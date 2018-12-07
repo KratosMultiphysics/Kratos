@@ -32,7 +32,6 @@ typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointer
 
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
-typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
 void CreateNodesForMapping(ModelPart& rModelPart, const int NumNodes)
 {
@@ -310,62 +309,61 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
     const SizeType comm_size = recv_buffer.size();
     const int comm_rank = 16; // only needed for error printing
 
-    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container
-        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
+    MapperInterfaceInfoPointerVectorType interface_info_container;
 
     MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
 
-    // throws bcs "p_interface_info_container" has the wrong size
+    // throws bcs "interface_info_container" has the wrong size
     KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer,
         p_ref_interface_info,
         comm_rank,
-        p_interface_info_container),
+        interface_info_container),
         "Error: Buffer-size mismatch!");
 
-    p_interface_info_container->resize(comm_size);
+    interface_info_container.resize(comm_size);
 
     KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong,
         p_ref_interface_info,
         comm_rank,
-        p_interface_info_container),
+        interface_info_container),
         "Error: Rank 16 received a wrong buffer-size from rank 3!");
 
     KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong_2,
         p_ref_interface_info,
         comm_rank,
-        p_interface_info_container),
+        interface_info_container),
         "Error: Buffer contains a double (3.11) that was not casted from an int, i.e. it contains a fractional part of 0.11!");
 
     MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer,
         p_ref_interface_info,
         comm_rank,
-        p_interface_info_container);
+        interface_info_container);
 
     // Check the created InterfaceInfos
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0].size(), 2);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1].size(), 3);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2].size(), 0);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3].size(), 1);
+    KRATOS_CHECK_EQUAL(interface_info_container[0].size(), 2);
+    KRATOS_CHECK_EQUAL(interface_info_container[1].size(), 3);
+    KRATOS_CHECK_EQUAL(interface_info_container[2].size(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[3].size(), 1);
 
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][1]->GetLocalSystemIndex(), 15);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][1]->GetLocalSystemIndex(), 2);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][2]->GetLocalSystemIndex(), 44);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3][0]->GetLocalSystemIndex(), 3);
+    KRATOS_CHECK_EQUAL(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_CHECK_EQUAL(interface_info_container[1][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[1][1]->GetLocalSystemIndex(), 2);
+    KRATOS_CHECK_EQUAL(interface_info_container[1][2]->GetLocalSystemIndex(), 44);
+    KRATOS_CHECK_EQUAL(interface_info_container[3][0]->GetLocalSystemIndex(), 3);
 
-    const auto coords_to_check = (*p_interface_info_container)[1][0]->Coordinates();
+    const auto coords_to_check = interface_info_container[1][0]->Coordinates();
     Point coords_exp(-21.0, 73.5, 35.89);
 
     for (IndexType i=0; i<3; ++i)
         KRATOS_CHECK_DOUBLE_EQUAL(coords_to_check[i], coords_exp[i]);
 
     // Test if the "Create" function returns the correct object
-    KRATOS_CHECK_EQUAL(typeid(*p_ref_interface_info), typeid(*(*p_interface_info_container)[0][0]));
+    KRATOS_CHECK_EQUAL(typeid(*p_ref_interface_info), typeid(*interface_info_container[0][0]));
 
     /////
     // now we "update" the Interface and then check again
@@ -388,20 +386,20 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
         recv_buffer_2,
         p_ref_interface_info,
         comm_rank,
-        p_interface_info_container);
+        interface_info_container);
 
     // Check the created InterfaceInfos
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0].size(), 3);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1].size(), 2);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2].size(), 1);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[3].size(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[0].size(), 3);
+    KRATOS_CHECK_EQUAL(interface_info_container[1].size(), 2);
+    KRATOS_CHECK_EQUAL(interface_info_container[2].size(), 1);
+    KRATOS_CHECK_EQUAL(interface_info_container[3].size(), 0);
 
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][0]->GetLocalSystemIndex(), 0);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][1]->GetLocalSystemIndex(), 15);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[0][2]->GetLocalSystemIndex(), 18);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][0]->GetLocalSystemIndex(), 2);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[1][1]->GetLocalSystemIndex(), 44);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container)[2][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[0][0]->GetLocalSystemIndex(), 0);
+    KRATOS_CHECK_EQUAL(interface_info_container[0][1]->GetLocalSystemIndex(), 15);
+    KRATOS_CHECK_EQUAL(interface_info_container[0][2]->GetLocalSystemIndex(), 18);
+    KRATOS_CHECK_EQUAL(interface_info_container[1][0]->GetLocalSystemIndex(), 2);
+    KRATOS_CHECK_EQUAL(interface_info_container[1][1]->GetLocalSystemIndex(), 44);
+    KRATOS_CHECK_EQUAL(interface_info_container[2][0]->GetLocalSystemIndex(), 0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosMappingApplicationSerialTestSuite)
@@ -415,7 +413,6 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
 
     typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
     typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
-    typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
     // A "NearestNeighborInterfaceInfo" is being used since "MapperInterfaceInfo" is a pure virtual class
     Point coords_1(1.0, 2.45, 33.8);
@@ -496,21 +493,20 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     KRATOS_CHECK_DOUBLE_EQUAL(neighbor_dist, dist_3_3);
 
     // Now finally we can construct the container
-    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container
-        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(2);
+    MapperInterfaceInfoPointerVectorType interface_info_container(2);
 
     // Note: the order is choosen intentionally
-    (*p_interface_info_container)[0].push_back(p_nearest_neighbor_info_3);
-    (*p_interface_info_container)[1].push_back(p_nearest_neighbor_info_1);
-    (*p_interface_info_container)[1].push_back(p_nearest_neighbor_info_2);
+    interface_info_container[0].push_back(p_nearest_neighbor_info_3);
+    interface_info_container[1].push_back(p_nearest_neighbor_info_1);
+    interface_info_container[1].push_back(p_nearest_neighbor_info_2);
 
     // Construct a reference obj, needed to create the correct objects while loading/deserializing
     const Kratos::unique_ptr<MapperInterfaceInfo> p_ref_nearest_neighbor_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
 
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper_0(
-        (*p_interface_info_container)[0], p_ref_nearest_neighbor_info );
+        interface_info_container[0], p_ref_nearest_neighbor_info );
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper_1(
-        (*p_interface_info_container)[1], p_ref_nearest_neighbor_info );
+        interface_info_container[1], p_ref_nearest_neighbor_info );
 
     // serializing the object (=> happens on the partition that sends the objects)
     StreamSerializer serializer_0;
@@ -518,27 +514,26 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_MapperInterfaceInfoSerializer, KratosM
     StreamSerializer serializer_1;
     serializer_1.save("obj", serializer_helper_1);
 
-    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container_new
-        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(2);
+    MapperInterfaceInfoPointerVectorType interface_info_container_new(2);
 
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper_new_0(
-        (*p_interface_info_container_new)[0], p_ref_nearest_neighbor_info );
+        interface_info_container_new[0], p_ref_nearest_neighbor_info );
 
     MapperUtilities::MapperInterfaceInfoSerializer serializer_helper_new_1(
-        (*p_interface_info_container_new)[1], p_ref_nearest_neighbor_info );
+        interface_info_container_new[1], p_ref_nearest_neighbor_info );
 
     // deserializing the object (=> happens on the partition that receives the objects)
     serializer_0.load("obj", serializer_helper_new_0);
     serializer_1.load("obj", serializer_helper_new_1);
 
     // Checking for the sizes of the container
-    KRATOS_CHECK_EQUAL((*p_interface_info_container_new)[0].size(), 1);
-    KRATOS_CHECK_EQUAL((*p_interface_info_container_new)[1].size(), 2);
+    KRATOS_CHECK_EQUAL(interface_info_container_new[0].size(), 1);
+    KRATOS_CHECK_EQUAL(interface_info_container_new[1].size(), 2);
 
     // Checking the objects inside the container
-    const auto& r_info_1 = (*p_interface_info_container_new)[1][0];
-    const auto& r_info_2 = (*p_interface_info_container_new)[1][1];
-    const auto& r_info_3 = (*p_interface_info_container_new)[0][0];
+    const auto& r_info_1 = interface_info_container_new[1][0];
+    const auto& r_info_2 = interface_info_container_new[1][1];
+    const auto& r_info_3 = interface_info_container_new[0][0];
 
     r_info_1->GetValue(found_id, MapperInterfaceInfo::InfoType::Dummy);
     KRATOS_CHECK_EQUAL(found_id, expected_id_found_1);
@@ -566,8 +561,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplic
     const int comm_rank = 1; // Whatever is on this rank is not being serialized, since no sending is required
     const int comm_size = 4;
 
-    MapperInterfaceInfoPointerVectorPointerType p_interface_info_container
-        = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>(comm_size);
+    MapperInterfaceInfoPointerVectorType interface_info_container(comm_size);
 
     MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
 
@@ -712,7 +706,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplic
     KRATOS_ERROR <<  "This test is not yet implemented!" << std::endl;
 
 
-    MapperUtilities::FillBufferAfterLocalSearch(p_interface_info_container,
+    MapperUtilities::FillBufferAfterLocalSearch(interface_info_container,
                                                 p_ref_interface_info,
                                                 comm_rank,
                                                 send_buffer,
@@ -721,7 +715,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplic
     MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(recv_buffer,
                                                                p_ref_interface_info,
                                                                comm_rank,
-                                                               p_interface_info_container);
+                                                               interface_info_container);
 
     // Check the MapperInterfaceInfos
 

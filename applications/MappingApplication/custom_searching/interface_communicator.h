@@ -55,7 +55,6 @@ public:
 
     typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
     typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
-    typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
@@ -77,8 +76,7 @@ public:
           mSearchSettings(SearchSettings)
     {
         // mEchoLevel = mSearchSettings["echo_level"].GetInt();
-        mpMapperInterfaceInfosContainer = Kratos::make_unique<MapperInterfaceInfoPointerVectorType>();
-        mpMapperInterfaceInfosContainer->resize(1);
+        mMapperInterfaceInfosContainer.resize(1);
     }
 
     /// Destructor.
@@ -122,7 +120,7 @@ protected:
 
     ModelPart& mrModelPartOrigin;
     const MapperLocalSystemPointerVector& mrMapperLocalSystems;
-    MapperInterfaceInfoPointerVectorPointerType mpMapperInterfaceInfosContainer; // this contains the InterfaceInfos for all ranks! => needed to do the async communication
+    MapperInterfaceInfoPointerVectorType mMapperInterfaceInfosContainer; // this contains the InterfaceInfos for all ranks! => needed to do the async communication
 
     BinsUniquePointerType mpLocalBinStructure;
 

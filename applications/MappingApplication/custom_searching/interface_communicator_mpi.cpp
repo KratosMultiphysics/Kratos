@@ -41,7 +41,7 @@ InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
     MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
     MPI_Comm_size(MPI_COMM_WORLD, &mCommSize);
 
-    mpMapperInterfaceInfosContainer->resize(mCommSize);
+    mMapperInterfaceInfosContainer.resize(mCommSize);
 
     mSendSizes.resize(mCommSize);
     mRecvSizes.resize(mCommSize);
@@ -98,7 +98,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rO
     MapperUtilities::CreateMapperInterfaceInfosFromBuffer(mRecvBufferDouble,
                                                           rpRefInterfaceInfo,
                                                           mCommRank,
-                                                          mpMapperInterfaceInfosContainer);
+                                                          mMapperInterfaceInfosContainer);
 
     // TODO print info saying that ORIGIN_ONLY has no effect in MPI, the destination also has to be updated
     // => since the origin changes also the destination might be sent to other partitions!
@@ -114,7 +114,7 @@ void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfo
 
     FilterInterfaceInfosSuccessfulSearch();
 
-    MapperUtilities::FillBufferAfterLocalSearch(mpMapperInterfaceInfosContainer,
+    MapperUtilities::FillBufferAfterLocalSearch(mMapperInterfaceInfosContainer,
                                                 rpRefInterfaceInfo,
                                                 mCommRank,
                                                 mSendBufferChar,
@@ -128,7 +128,7 @@ void InterfaceCommunicatorMPI::FinalizeSearchIteration(const MapperInterfaceInfo
     MapperUtilities::DeserializeMapperInterfaceInfosFromBuffer(mRecvBufferChar,
                                                                rpRefInterfaceInfo,
                                                                mCommRank,
-                                                               mpMapperInterfaceInfosContainer);
+                                                               mMapperInterfaceInfosContainer);
 
     AssignInterfaceInfos();
 

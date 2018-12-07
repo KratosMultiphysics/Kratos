@@ -39,7 +39,6 @@ typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointer
 
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
 typedef std::vector<std::vector<MapperInterfaceInfoPointerType>> MapperInterfaceInfoPointerVectorType;
-typedef Kratos::unique_ptr<MapperInterfaceInfoPointerVectorType> MapperInterfaceInfoPointerVectorPointerType;
 
 typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
 typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
@@ -286,22 +285,22 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                           const int CommRank,
-                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer);
+                                          MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
 
-void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                 const int CommRank,
                                 std::vector<std::vector<char>>& rSendBuffer,
                                 std::vector<int>& rSendSizes);
 
-void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+void AssignInterfaceInfosAfterRemoteSearch(const MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
                                            MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems);
 
 void DeserializeMapperInterfaceInfosFromBuffer(
     const std::vector<std::vector<char>>& rSendBuffer,
     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
     const int CommRank,
-    MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer);
+    MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer);
 
 /**
  * @class MapperInterfaceInfoSerializer

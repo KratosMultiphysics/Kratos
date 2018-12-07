@@ -241,9 +241,9 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>& rRecvBuffer,
                                           const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                           const int CommRank,
-                                          MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer)
+                                          MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer)
 {
-    const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
+    const SizeType comm_size = rMapperInterfaceInfosContainer.size();
 
     KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
@@ -257,7 +257,7 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
         const SizeType num_objs = recv_buffer_size_rank / 4; // 1 index and 3 coordinates
 
         const auto& r_rank_buffer = rRecvBuffer[i_rank];
-        auto& r_interface_infos_rank = (*rpMapperInterfaceInfosContainer)[i_rank];
+        auto& r_interface_infos_rank = rMapperInterfaceInfosContainer[i_rank];
         r_interface_infos_rank.clear();
 
         if (r_interface_infos_rank.size() != num_objs) {
@@ -288,13 +288,13 @@ void CreateMapperInterfaceInfosFromBuffer(const std::vector<std::vector<double>>
     }
 }
 
-void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer,
+void FillBufferAfterLocalSearch(MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer,
                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
                                 const int CommRank,
                                 std::vector<std::vector<char>>& rSendBuffer,
                                 std::vector<int>& rSendSizes)
 {
-    const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
+    const SizeType comm_size = rMapperInterfaceInfosContainer.size();
 
     KRATOS_DEBUG_ERROR_IF_NOT(rSendSizes.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
@@ -302,7 +302,7 @@ void FillBufferAfterLocalSearch(const MapperInterfaceInfoPointerVectorPointerTyp
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         if (i_rank != static_cast<IndexType>(CommRank)) {
             MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
-                (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
+                rMapperInterfaceInfosContainer[i_rank], rpRefInterfaceInfo );
 
             Kratos::StreamSerializer serializer;
             serializer.save("interface_infos", interface_infos_serializer);
@@ -330,9 +330,9 @@ void DeserializeMapperInterfaceInfosFromBuffer(
     const std::vector<std::vector<char>>& rRecvBuffer,
     const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
     const int CommRank,
-    MapperInterfaceInfoPointerVectorPointerType& rpMapperInterfaceInfosContainer)
+    MapperInterfaceInfoPointerVectorType& rMapperInterfaceInfosContainer)
 {
-    const SizeType comm_size = rpMapperInterfaceInfosContainer->size();
+    const SizeType comm_size = rMapperInterfaceInfosContainer.size();
 
     KRATOS_DEBUG_ERROR_IF_NOT(rRecvBuffer.size() == comm_size)
         << "Buffer-size mismatch!" << std::endl;
@@ -345,7 +345,7 @@ void DeserializeMapperInterfaceInfosFromBuffer(
             p_serializer_buffer->write(rRecvBuffer[i_rank].data(), rRecvBuffer[i_rank].size());
 
             MapperUtilities::MapperInterfaceInfoSerializer interface_infos_serializer(
-                (*rpMapperInterfaceInfosContainer)[i_rank], rpRefInterfaceInfo );
+                rMapperInterfaceInfosContainer[i_rank], rpRefInterfaceInfo );
 
             serializer.load("interface_infos", interface_infos_serializer);
         }

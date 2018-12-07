@@ -88,7 +88,7 @@ void InterfaceCommunicator::InitializeSearch(const Kratos::Flags& rOptions,
 
 void InterfaceCommunicator::FinalizeSearch()
 {
-    for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer)) {
+    for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) {
         r_interface_infos_rank.clear();
     }
 }
@@ -97,9 +97,9 @@ void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOpti
                                                 const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Creating the MapperInterfaceInfos
-    (*mpMapperInterfaceInfosContainer)[0].clear();
+    mMapperInterfaceInfosContainer[0].clear();
 
-    auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
+    auto& r_mapper_interface_infos = mMapperInterfaceInfosContainer[0];
     r_mapper_interface_infos.reserve(mrMapperLocalSystems.size());
 
     IndexType local_sys_idx = 0;
@@ -122,8 +122,8 @@ void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
 {
     // Erasing all the MapperLocalSystems that don't have a successful search
     // using the erase–remove idiom
-    for (IndexType i_rank=0; i_rank<mpMapperInterfaceInfosContainer->size(); ++i_rank) {
-        auto& r_interface_infos_rank = (*mpMapperInterfaceInfosContainer)[i_rank];
+    for (IndexType i_rank=0; i_rank<mMapperInterfaceInfosContainer.size(); ++i_rank) {
+        auto& r_interface_infos_rank = mMapperInterfaceInfosContainer[i_rank];
 
         auto new_end = std::remove_if(
             r_interface_infos_rank.begin(),
@@ -137,11 +137,11 @@ void InterfaceCommunicator::FilterInterfaceInfosSuccessfulSearch()
 
 void InterfaceCommunicator::AssignInterfaceInfos()
 {
-    // NOTE: mpMapperInterfaceInfosContainer must contain only the ones that are a successfuls search!
-    const SizeType comm_size = mpMapperInterfaceInfosContainer->size();
+    // NOTE: mMapperInterfaceInfosContainer must contain only the ones that are a successfuls search!
+    const SizeType comm_size = mMapperInterfaceInfosContainer.size();
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
-        for (const auto& rp_interface_info : (*mpMapperInterfaceInfosContainer)[i_rank]) {
+        for (const auto& rp_interface_info : mMapperInterfaceInfosContainer[i_rank]) {
             mrMapperLocalSystems[rp_interface_info->GetLocalSystemIndex()]
                 ->AddInterfaceInfo(rp_interface_info);
         }
@@ -244,7 +244,7 @@ void InterfaceCommunicator::ConductLocalSearch()
         std::vector<double> neighbor_distances(num_interface_obj_bin);
         auto interface_obj(Kratos::make_shared<InterfaceObject>(array_1d<double, 3>(0.0)));
 
-        for (auto& r_interface_infos_rank : (*mpMapperInterfaceInfosContainer)) { // loop the ranks
+        for (auto& r_interface_infos_rank : mMapperInterfaceInfosContainer) { // loop the ranks
             // #pragma omp parallel for // TODO this requires to make some things thread-local!
             // it makes more sense to omp this loop even though it is not the outermost one ...
             for (IndexType i=0; i<r_interface_infos_rank.size(); ++i) {
