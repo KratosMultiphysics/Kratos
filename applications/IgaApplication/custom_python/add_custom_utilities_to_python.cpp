@@ -301,7 +301,10 @@ void RegisterSurfaceGeometryBase(
             "IndexU"_a,
             "IndexV"_a,
             "Value"_a)
-        .def("Weight", &Type::Weight,
+        .def("Weight", (double (Type::*)(const int) const) &Type::Weight,
+            "Index"_a)
+        .def("Weight", (double (Type::*)(const int, const int) const)
+            &Type::Weight,
             "IndexU"_a,
             "IndexV"_a)
         .def("SetWeight", (void (Type::*)(const int, const double))

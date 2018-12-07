@@ -109,7 +109,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
 
     // We have to transform the principal deviatoric stress in cartesian stress
     Vector aux_N = ZeroVector(3);
-    Matrix aux_M = ZeroMatrix(3);
+    Matrix aux_M = ZeroMatrix(3,3);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -127,7 +127,7 @@ void HenckyElasticPlasticUP3DLaw::CalculatePrincipalStressTrial(const MaterialRe
         rStressMatrix(i,i) += pressure * rElasticVariables.DeterminantF;
 
     // Now We have to apply the spectral theorem
-    Matrix eigen_vectors  = ZeroMatrix(3);
+    Matrix eigen_vectors  = ZeroMatrix(3,3);
     Vector eigen_values   = ZeroVector(3);
 
     double tol = 1e-9;
@@ -210,14 +210,14 @@ void HenckyElasticPlasticUP3DLaw::CalculateElastoPlasticTangentMatrix( const MPM
     }
 
     // Adding the pressure contribution
-    Matrix fourth_order_identity = ZeroMatrix(6);
+    Matrix fourth_order_identity = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
         fourth_order_identity(i,i) = 1.0;
 
     for (unsigned int i = 3; i<6; ++i)
         fourth_order_identity(i,i) = 0.50;
 
-    Matrix identity_cross = ZeroMatrix(6);
+    Matrix identity_cross = ZeroMatrix(6,6);
     for (unsigned int i = 0; i<3; ++i)
     {
         for (unsigned int j = 0; j<3; ++j)
@@ -250,7 +250,7 @@ void HenckyElasticPlasticUP3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCa
     // E = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
 
     // Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

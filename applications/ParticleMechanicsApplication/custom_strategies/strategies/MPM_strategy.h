@@ -28,6 +28,7 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
+#include "boost/numeric/ublas/matrix.hpp"
 
 // Application includes
 #include "particle_mechanics_application.h"
@@ -97,7 +98,7 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef typename TSparseSpace::DataType TDataType;

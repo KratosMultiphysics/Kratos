@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:
+//
+
 #include <algorithm>
 #include <exception>
 #include <sstream>
@@ -492,7 +504,7 @@ class ResponseFunction : public AdjointResponseFunction
             rSensitivityGradient(0) = 0.;
         }
 
-        double CalculateValue() override
+        double CalculateValue(ModelPart& rModelPart) override
         {
             const double& x1 =
                 mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_X);

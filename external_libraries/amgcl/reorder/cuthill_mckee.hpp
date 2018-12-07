@@ -70,7 +70,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 
 #include <amgcl/backend/interface.hpp>
-#include <amgcl/reorder/cuthill_mckee.hpp>
 #include <amgcl/util.hpp>
 
 namespace amgcl {
