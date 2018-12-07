@@ -29,13 +29,8 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
-        namespace py = pybind11;
-
-        py::class_<MPMSearchElementUtility > (m,"MPMSearchElementUtility")
-            .def(py::init<>())
-            .def("SearchElement2D", &MPMSearchElementUtility::SearchElement< 2 >)
-            .def("SearchElement3D", &MPMSearchElementUtility::SearchElement< 3 >)
-            ;
+        m.def("SearchElement2D", &MPMSearchElementUtility::SearchElement< 2 >);
+        m.def("SearchElement3D", &MPMSearchElementUtility::SearchElement< 3 >);
     }
 
 }  // namespace Python.
