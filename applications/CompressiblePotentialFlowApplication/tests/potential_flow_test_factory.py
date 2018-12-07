@@ -8,7 +8,6 @@ import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 import KratosMultiphysics.KratosUnittest as UnitTest
 
 # Other imports
-import test_PotentialAnalysis
 from potential_flow_analysis import PotentialFlowAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os

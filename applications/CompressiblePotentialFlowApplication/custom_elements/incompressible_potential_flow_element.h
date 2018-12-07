@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Iñigo Lopez and Riccardo Rossi
 //
 
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED)
@@ -79,8 +79,11 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Life Cycle
     ///@{
 
+    //Constructors.
+
+    /// Default constuctor.
     /**
-     * Constructor.
+     * @param NewId Index number of the new element (optional)
      */
     IncompressiblePotentialFlowElement(IndexType NewId = 0){};
 
@@ -168,124 +171,18 @@ class IncompressiblePotentialFlowElement : public Element
     }
 
     /**
-     * this determines the elemental equation ID vector for all elemental
-     * DOFs
-     * @param rResult: the elemental equation ID vector
-     * @param rCurrentProcessInfo: the current process info instance
+     * @brief EquationIdVector Returns the global system rows corresponding to each local row.
+     * @param rResult rResult[i] is the global index of local row i (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    void EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &CurrentProcessInfo) override
-    {
-        if (this->IsNot(MARKER)) //normal element
-        {
-            if (rResult.size() != NumNodes)
-                rResult.resize(NumNodes, false);
-
-            if(this->GetValue(KUTTA) == 0)
-            {
-                for (unsigned int i = 0; i < NumNodes; i++)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
-            }
-            else
-            {
-                // array_1d<double, NumNodes> distances;
-                // GetWakeDistances(distances);
-                //Kutta elements have only negative part
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-                        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
-                    else
-                        rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
-
-                }
-            }
-        }
-        else //wake element
-        {
-            if (rResult.size() != 2 * NumNodes)
-                rResult.resize(2 * NumNodes, false);
-
-            array_1d<double, NumNodes> distances;
-            GetWakeDistances(distances);
-
-            //positive part
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] > 0.0)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
-                else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE, 0).EquationId();
-            }
-
-            //negative part - sign is opposite to the previous case
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] < 0.0)
-                    rResult[NumNodes + i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
-                else
-                    rResult[NumNodes + i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
-            }
-        }
-    }
+    void EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &CurrentProcessInfo) override;
 
     /**
      * determines the elemental list of DOFs
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &CurrentProcessInfo) override
-    {
-        if (this->IsNot(MARKER)) //normal element
-        {
-            if (rElementalDofList.size() != NumNodes)
-                rElementalDofList.resize(NumNodes);
-            
-            if(this->GetValue(KUTTA) == 0)
-            {
-                for (unsigned int i = 0; i < NumNodes; i++)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
-            }
-            else
-            {
-                // array_1d<double, NumNodes> distances;
-                // GetWakeDistances(distances);
-                //Kutta elements have only negative part
-                for (unsigned int i = 0; i < NumNodes; i++)
-                {
-                    if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-                        rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
-                    else
-                        rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
-                }
-            }
-        }
-        else //wake element
-        {
-            if (rElementalDofList.size() != 2 * NumNodes)
-                rElementalDofList.resize(2 * NumNodes);
-
-            array_1d<double, NumNodes> distances;
-            GetWakeDistances(distances);
-
-            //positive part
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
-                else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
-            }
-
-            //negative part - sign is opposite to the previous case
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] < 0)
-                    rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
-                else
-                    rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
-            }
-        }
-    }
+    void GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &CurrentProcessInfo) override;
 
     /**
      * ELEMENTS inherited from this class have to implement next
@@ -513,15 +410,15 @@ class IncompressiblePotentialFlowElement : public Element
         MatrixType rLeftHandSideMatrix;
         this->CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
-        VectorType tmp;
-        tmp.resize(NumNodes, false);
-
         ElementalData<NumNodes, Dim> data;
 
         double internal_energy = 0.0;
 
         if (this->IsNot(MARKER)) //normal element (non-wake) - eventually an embedded
         {
+            VectorType tmp;
+            tmp.resize(NumNodes, false);
+
             //gather nodal data
             for (unsigned int i = 0; i < NumNodes; i++)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
@@ -531,6 +428,9 @@ class IncompressiblePotentialFlowElement : public Element
         }
         else
         {
+            VectorType tmp;
+            tmp.resize(NumNodes * 2, false);
+
             GetWakeDistances(data.distances);
             Vector split_element_values(NumNodes * 2);
             GetValuesOnSplitElement(split_element_values, data.distances);
@@ -708,10 +608,19 @@ class IncompressiblePotentialFlowElement : public Element
     ///@}
     ///@name Protected Operators
     ///@{
-    void GetWakeDistances(array_1d<double, NumNodes> &distances)
-    {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
-    }
+    void GetWakeDistances(array_1d<double, NumNodes> &distances);
+
+    void EquationIdVectorNormalElement(EquationIdVectorType &rResult);
+
+    void EquationIdVectorKuttaElement(EquationIdVectorType &rResult);
+
+    void EquationIdVectorWakeElement(EquationIdVectorType &rResult);
+
+    void GetDofListNormalElement(DofsVectorType &rElementalDofList);
+
+    void GetDofListKuttaElement(DofsVectorType &rElementalDofList);
+
+    void GetDofListWakeElement(DofsVectorType &rElementalDofList);
 
     void ComputeLHSGaussPointContribution(
         const double weight,
@@ -785,7 +694,10 @@ class IncompressiblePotentialFlowElement : public Element
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
-        if(this->GetValue(KUTTA) == 0)
+        const IncompressiblePotentialFlowElement &r_this = *this;
+        const int &kutta = r_this.GetValue(KUTTA);
+
+        if(kutta == 0)
         {
             //gather nodal data
             for (unsigned int i = 0; i < NumNodes; i++)
