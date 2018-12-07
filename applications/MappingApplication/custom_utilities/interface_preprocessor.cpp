@@ -26,17 +26,17 @@ namespace Kratos
     /***********************************************************************************/
     /* PUBLIC Methods */
     /***********************************************************************************/
-    void InterfacePreprocessor::CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystems(const MapperLocalSystem& rLocalSystem)
     {
         mpMapperLocalSystems->clear();
 
-        const bool use_nodes = rpLocalSystem->UseNodesAsBasis();
+        const bool use_nodes = rLocalSystem.UseNodesAsBasis();
 
         if (use_nodes) {
-            CreateMapperLocalSystemsFromNodes(rpLocalSystem);
+            CreateMapperLocalSystemsFromNodes(rLocalSystem);
         }
         else {
-            CreateMapperLocalSystemsFromGeometries(rpLocalSystem);
+            CreateMapperLocalSystemsFromGeometries(rLocalSystem);
         }
 
         int num_local_systems = mpMapperLocalSystems->size(); // int bcs of MPI
@@ -51,7 +51,7 @@ namespace Kratos
     /* PRIVATE Methods */
     /***********************************************************************************/
 
-    void InterfacePreprocessor::CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer& rpLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rLocalSystem)
     {
         const std::size_t num_nodes = mrModelPartDestination.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_ptr_begin = mrModelPartDestination.GetCommunicator().LocalMesh().Nodes().ptr_begin();
@@ -63,11 +63,11 @@ namespace Kratos
         #pragma omp parallel for
         for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
             auto it_node = nodes_ptr_begin + i;
-            (*mpMapperLocalSystems)[i] = rpLocalSystem->Create((*it_node).get());
+            (*mpMapperLocalSystems)[i] = rLocalSystem.Create((*it_node).get());
         }
     }
 
-    void InterfacePreprocessor::CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer& rpLocalSystem)
+    void InterfacePreprocessor::CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rLocalSystem)
     {
         KRATOS_ERROR << "This function is not implemented yet" << std::endl;
     }

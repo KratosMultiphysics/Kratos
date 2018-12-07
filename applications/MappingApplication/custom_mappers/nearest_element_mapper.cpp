@@ -83,10 +83,10 @@ bool ProjectIntoVolume(const GeometryPointerType pGeometry,
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                                       const double NeighborDistance)
 {
-    const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
+    const auto p_geom = rInterfaceObject.pGetBaseGeometry();
     const SizeType num_nodes = p_geom->PointsNumber();
 
     const auto geom_family = p_geom->GetGeometryFamily();
@@ -139,10 +139,10 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject::Poi
     }
 }
 
-void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject::Pointer& rpInterfaceObject,
+void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const InterfaceObject& rInterfaceObject,
                                                                       const double NeighborDistance)
 {
-    const auto& p_geom = rpInterfaceObject->pGetBaseGeometry();
+    const auto p_geom = rInterfaceObject.pGetBaseGeometry();
 
     // looping the points of the geometry and finding the nearest neighbor
     for (const auto& r_point : p_geom->Points()) {
@@ -243,7 +243,7 @@ void NearestElementMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos
     const MapperLocalSystemPointer p_ref_local_system = Kratos::make_unique<NearestElementLocalSystem>();;
 
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-    mpInterfacePreprocessor->CreateMapperLocalSystems(p_ref_local_system);
+    mpInterfacePreprocessor->CreateMapperLocalSystems(*p_ref_local_system);
 
     BuildMappingMatrix(MappingOptions);
 }

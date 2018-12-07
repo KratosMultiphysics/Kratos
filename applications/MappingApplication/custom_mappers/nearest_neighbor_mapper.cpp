@@ -35,14 +35,14 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 /* PUBLIC Methods */
 /***********************************************************************************/
-void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+void NearestNeighborInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                                       const double NeighborDistance)
 {
     SetLocalSearchWasSuccessful();
 
     if (NeighborDistance < mNearestNeighborDistance) {
         mNearestNeighborDistance = NeighborDistance;
-        mNearestNeighborId = rpInterfaceObject->pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
+        mNearestNeighborId = rInterfaceObject.pGetBaseNode()->GetValue(INTERFACE_EQUATION_ID);
     }
 }
 
@@ -108,7 +108,7 @@ void NearestNeighborMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Krato
     const MapperLocalSystemPointer p_ref_local_system = Kratos::make_unique<NearestNeighborLocalSystem>();;
 
     KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-    mpInterfacePreprocessor->CreateMapperLocalSystems(p_ref_local_system);
+    mpInterfacePreprocessor->CreateMapperLocalSystems(*p_ref_local_system);
 
     BuildMappingMatrix(MappingOptions);
 }

@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessor_NodeBasedLocalSystems, KratosMap
 
     InterfacePreprocessor interface_preprocess(model_part, p_mapper_local_systems);
 
-    interface_preprocess.CreateMapperLocalSystems(p_ref_local_system);
+    interface_preprocess.CreateMapperLocalSystems(*p_ref_local_system);
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), p_mapper_local_systems->size());
 
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessor_UpdateInterface, KratosMappingAp
 
     InterfacePreprocessor interface_preprocess(model_part, p_mapper_local_systems);
 
-    interface_preprocess.CreateMapperLocalSystems(p_ref_local_system);
+    interface_preprocess.CreateMapperLocalSystems(*p_ref_local_system);
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), p_mapper_local_systems->size());
 
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfacePreprocessor_UpdateInterface, KratosMappingAp
 
     StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters_2).Execute();
 
-    interface_preprocess.CreateMapperLocalSystems(p_ref_local_system);
+    interface_preprocess.CreateMapperLocalSystems(*p_ref_local_system);
 
     KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), p_mapper_local_systems->size());
 

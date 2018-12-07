@@ -97,7 +97,7 @@ public:
     * @param rpInterfaceObject The distance to the InterfaceObject found by the search
     * @author Philipp Bucher
     */
-    virtual void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+    virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                      const double NeighborDistance) = 0;
 
     /**
@@ -116,7 +116,7 @@ public:
     * @author Philipp Bucher
     */
     virtual void ProcessSearchResultForApproximation(
-        const InterfaceObject::Pointer& rpInterfaceObject,
+        const InterfaceObject& rInterfaceObject,
         const double NeighborDistance) {}
 
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,

@@ -78,9 +78,9 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_ValidProjectionExists, Kra
     node_5->SetValue(INTERFACE_EQUATION_ID, 899);
 
     // Distances do not matter bcs only one projection is valid!
-    nearest_element_info.ProcessSearchResult(interface_geom_obj_1, 10.0);
-    nearest_element_info.ProcessSearchResult(interface_geom_obj_2, 11.0);
-    nearest_element_info.ProcessSearchResult(interface_geom_obj_3, 33.5);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_1, 10.0);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2, 11.0);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_3, 33.5);
 
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK_IS_FALSE(nearest_element_info.GetIsApproximation());
@@ -127,10 +127,10 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Approximation, KratosMappi
     node_3->SetValue(INTERFACE_EQUATION_ID, 108);
 
     // Distances do not matter bcs only one projection is valid!
-    nearest_element_info.ProcessSearchResult(interface_geom_obj_1, 10.0);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_1, 10.0);
     KRATOS_CHECK_IS_FALSE(nearest_element_info.GetLocalSearchWasSuccessful());
     // since the no valid projection could be found we try to get an approximation
-    nearest_element_info.ProcessSearchResultForApproximation(interface_geom_obj_1, 10.0);
+    nearest_element_info.ProcessSearchResultForApproximation(*interface_geom_obj_1, 10.0);
 
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
     KRATOS_CHECK(nearest_element_info.GetIsApproximation());
@@ -196,7 +196,7 @@ KRATOS_TEST_CASE_IN_SUITE(NearestElementInterfaceInfo_Serialization, KratosMappi
     node_4->SetValue(INTERFACE_EQUATION_ID, 61);
 
     // Distances do not matter bcs only one projection is valid!
-    nearest_element_info.ProcessSearchResult(interface_geom_obj_2, 11.0);
+    nearest_element_info.ProcessSearchResult(*interface_geom_obj_2, 11.0);
 
     KRATOS_CHECK(nearest_element_info.GetLocalSearchWasSuccessful());
 

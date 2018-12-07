@@ -262,7 +262,7 @@ void InterfaceCommunicator::ConductLocalSearch()
                     distance_itr, num_interface_obj_bin);
 
                 for (IndexType j=0; j<number_of_results; ++j) {
-                    r_interface_info->ProcessSearchResult(neighbor_results[j], neighbor_distances[j]);
+                    r_interface_info->ProcessSearchResult(*(neighbor_results[j]), neighbor_distances[j]);
                 }
 
                 // If the search did not result in a "valid" result (e.g. the projection fails)
@@ -270,7 +270,7 @@ void InterfaceCommunicator::ConductLocalSearch()
                 if (!r_interface_info->GetLocalSearchWasSuccessful()) {
                     for (IndexType j=0; j<number_of_results; ++j) {
                         r_interface_info->ProcessSearchResultForApproximation(
-                            neighbor_results[j], neighbor_distances[j]);
+                            *(neighbor_results[j]), neighbor_distances[j]);
                     }
                 }
             }

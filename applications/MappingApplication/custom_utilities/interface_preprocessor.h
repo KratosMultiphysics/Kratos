@@ -71,7 +71,7 @@ class InterfacePreprocessor
     ///@name Operations
     ///@{
 
-    void CreateMapperLocalSystems(const MapperLocalSystemPointer& rpLocalSystem);
+    void CreateMapperLocalSystems(const MapperLocalSystem& rLocalSystem);
 
     ///@}
     ///@name Input and output
@@ -112,9 +112,9 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CreateMapperLocalSystemsFromNodes(const MapperLocalSystemPointer& rpLocalSystem);
+    void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rLocalSystem);
 
-    void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystemPointer& rpLocalSystem);
+    void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rLocalSystem);
 
     ///@}
 

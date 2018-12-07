@@ -63,7 +63,7 @@ public:
             SourceRank);
     }
 
-    void ProcessSearchResult(const InterfaceObject::Pointer& rpInterfaceObject,
+    void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                              const double NeighborDistance) override;
 
     void GetValue(int& rValue,
