@@ -188,7 +188,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
 {
     KRATOS_TRY;
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.size();
     const unsigned int mat_size = number_of_nodes * 3;
 
@@ -289,7 +289,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
         {
-            if (pressure != 0.0)
+            if (std::abs(pressure) > std::numeric_limits<double>::epsilon())
             {
                 CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, DN_DeContainer[point_number], N, pressure, integration_weight);
             }
@@ -298,7 +298,7 @@ void MPMGridSurfaceLoadCondition3D::CalculateAll(
         // RIGHT HAND SIDE VECTOR
         if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
         {
-            if (pressure != 0.0)
+            if (std::abs(pressure) > std::numeric_limits<double>::epsilon())
             {
                 CalculateAndAddPressureForce(rRightHandSideVector, N, normal, pressure, integration_weight, rCurrentProcessInfo);
             }

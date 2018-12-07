@@ -84,7 +84,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 {
     KRATOS_TRY;
 
-    GeometryType& rGeom = GetGeometry();
+    const GeometryType& rGeom = GetGeometry();
     const unsigned int number_of_nodes = rGeom.size();
     const unsigned int dimension = rGeom.WorkingSpaceDimension();
     const unsigned int block_size = this->GetBlockSize();
@@ -192,7 +192,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
 
         if ( CalculateStiffnessMatrixFlag == true )
         {
-            if ( gauss_pressure != 0.0 )
+            if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
                 CalculateAndSubKp( rLeftHandSideMatrix, DN_De[point_number], row( Ncontainer, point_number ), gauss_pressure, integration_weight );
             }
@@ -200,7 +200,7 @@ void MPMGridLineLoadCondition2D::CalculateAll(
         // Adding contributions to the residual vector
         if ( CalculateResidualVectorFlag == true )
         {
-            if ( gauss_pressure != 0.0 )
+            if ( std::abs(gauss_pressure) > std::numeric_limits<double>::epsilon() )
             {
                 CalculateAndAddPressureForce( rRightHandSideVector, row( Ncontainer, point_number ), normal, gauss_pressure, integration_weight );
             }
@@ -244,7 +244,7 @@ void MPMGridLineLoadCondition2D::CalculateAndSubKp(
     KRATOS_TRY
 
     Matrix Kij( 2, 2 );
-    Matrix Cross_gn( 2, 2 );
+    BoundedMatrix<double,2,2> Cross_gn( 2, 2 );
 
     //TODO: decide what to do with thickness
     //const double h0 = GetProperties()[THICKNESS];
