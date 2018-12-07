@@ -171,6 +171,30 @@ void UpdateModelPartFromSystemVector(const TVectorType& rVector,
 */
 void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
 
+template<class TMapperLocalSystem>
+void CreateMapperLocalSystemsFromNodes(const Communicator& rModelPartCommunicator,
+                                       std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
+{
+    const std::size_t num_nodes = rModelPartCommunicator.LocalMesh().NumberOfNodes();
+    const auto nodes_ptr_begin = rModelPartCommunicator.LocalMesh().Nodes().ptr_begin();
+
+    if (rLocalSystems.size() != num_nodes) {
+        rLocalSystems.resize(num_nodes);
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i< static_cast<int>(num_nodes); ++i) {
+        auto it_node = nodes_ptr_begin + i;
+        rLocalSystems[i] = Kratos::make_unique<TMapperLocalSystem>((*it_node).get());
+    }
+
+    int num_local_systems = rLocalSystems.size(); // int bcs of MPI
+    rModelPartCommunicator.SumAll(num_local_systems);
+
+    KRATOS_ERROR_IF_NOT(num_local_systems > 0)
+        << "No mapper local systems were created" << std::endl;
+}
+
 inline int ComputeNumberOfNodes(ModelPart& rModelPart)
 {
     int num_nodes = rModelPart.GetCommunicator().LocalMesh().NumberOfNodes();
@@ -253,7 +277,7 @@ std::string BoundingBoxStringStream(const std::vector<double>& rBoundingBox);
 bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
                               const Point& rPoint);
 
-void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems,
+void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,

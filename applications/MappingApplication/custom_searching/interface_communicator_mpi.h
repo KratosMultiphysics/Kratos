@@ -53,8 +53,8 @@ public:
     ///@{
 
     InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
-                                MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
-                                Parameters SearchSettings);
+                             MapperLocalSystemPointerVector& rMapperLocalSystems,
+                             Parameters SearchSettings);
 
     /// Destructor.
     virtual ~InterfaceCommunicatorMPI()
@@ -127,7 +127,7 @@ private:
 
     std::size_t GetBufferSizeEstimate() const
     {
-        return mpMapperLocalSystems->size() / mCommSize;
+        return mrMapperLocalSystems.size() / mCommSize;
     }
 
     void ComputeGlobalBoundingBoxes();

@@ -59,7 +59,6 @@ public:
 
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
-    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
     typedef Kratos::unique_ptr<BinsObjectDynamic<InterfaceObjectConfigure>> BinsUniquePointerType;
 
@@ -71,10 +70,10 @@ public:
     ///@{
 
     InterfaceCommunicator(ModelPart& rModelPartOrigin,
-                             MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
+                             MapperLocalSystemPointerVector& rMapperLocalSystems,
                              Parameters SearchSettings)
         : mrModelPartOrigin(rModelPartOrigin),
-          mpMapperLocalSystems(pMapperLocalSystems),
+          mrMapperLocalSystems(rMapperLocalSystems),
           mSearchSettings(SearchSettings)
     {
         // mEchoLevel = mSearchSettings["echo_level"].GetInt();
@@ -122,7 +121,7 @@ protected:
     ///@{
 
     ModelPart& mrModelPartOrigin;
-    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
+    const MapperLocalSystemPointerVector& mrMapperLocalSystems;
     MapperInterfaceInfoPointerVectorPointerType mpMapperInterfaceInfosContainer; // this contains the InterfaceInfos for all ranks! => needed to do the async communication
 
     BinsUniquePointerType mpLocalBinStructure;

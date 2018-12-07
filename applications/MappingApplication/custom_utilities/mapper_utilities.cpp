@@ -196,7 +196,7 @@ bool PointIsInsideBoundingBox(const std::vector<double>& rBoundingBox,
     return false;
 }
 
-void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rpMapperLocalSystems,
+void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLocalSystems,
                                  const std::vector<double>& rBoundingBoxes,
                                  const SizeType BufferSizeEstimate,
                                  std::vector<std::vector<double>>& rSendBuffer,
@@ -215,12 +215,12 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVectorPointer& rp
         r_rank_buffer.reserve(BufferSizeEstimate);
         rSendSizes[i_rank] = 0;
 
-        for (IndexType i_local_sys=0; i_local_sys<rpMapperLocalSystems->size(); ++i_local_sys) {
+        for (IndexType i_local_sys=0; i_local_sys<rMapperLocalSystems.size(); ++i_local_sys) {
             for (IndexType j=0; j<6; ++j) {
                 bounding_box[j] = rBoundingBoxes[(i_rank*6) + j]; // retrieve bounding box of partition
             }
 
-            const auto& rp_local_sys = (*rpMapperLocalSystems)[i_local_sys];
+            const auto& rp_local_sys = rMapperLocalSystems[i_local_sys];
 
             if (!rp_local_sys->HasInterfaceInfo()) {
                 const auto& r_coords = rp_local_sys->Coordinates();

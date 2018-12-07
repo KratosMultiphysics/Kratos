@@ -31,11 +31,11 @@ typedef std::size_t SizeType;
 /* PUBLIC Methods */
 /***********************************************************************************/
 InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
-                                MapperLocalSystemPointerVectorPointer pMapperLocalSystems,
+                                MapperLocalSystemPointerVector& rMapperLocalSystems,
                                 Parameters SearchSettings) :
     InterfaceCommunicator(rModelPartOrigin,
-                                 pMapperLocalSystems,
-                                 SearchSettings)
+                          rMapperLocalSystems,
+                          SearchSettings)
 {
     // set up the buffers
     MPI_Comm_rank(MPI_COMM_WORLD, &mCommRank);
@@ -80,7 +80,7 @@ void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rO
                                                        bounding_boxes_with_tol);
 
     // Compute Candidate Partitions and fill the send buffer
-    MapperUtilities::FillBufferBeforeLocalSearch(mpMapperLocalSystems,
+    MapperUtilities::FillBufferBeforeLocalSearch(mrMapperLocalSystems,
                                                  bounding_boxes_with_tol,
                                                  GetBufferSizeEstimate(),
                                                  mSendBufferDouble,

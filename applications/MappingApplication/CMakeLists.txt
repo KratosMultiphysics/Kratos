@@ -19,7 +19,6 @@ set( KRATOS_MAPPING_APPLICATION_SOURCES
     # # Utilities
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapping_matrix_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_vector_container.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocessor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_factory.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_flags.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mapper_utilities.cpp

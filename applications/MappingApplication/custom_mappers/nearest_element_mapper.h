@@ -24,7 +24,6 @@
 #include "mapper.h"
 #include "custom_searching/interface_communicator.h"
 #include "custom_utilities/interface_vector_container.h"
-#include "custom_utilities/interface_preprocessor.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
 
@@ -165,13 +164,11 @@ public:
 
     typedef Mapper<TSparseSpace, TDenseSpace> BaseType;
 
-    typedef Kratos::unique_ptr<InterfacePreprocessor> InterfacePreprocessorPointerType;
     typedef Kratos::unique_ptr<InterfaceCommunicator> InterfaceCommunicatorPointerType;
     typedef typename InterfaceCommunicator::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
     typedef Kratos::unique_ptr<MapperLocalSystem> MapperLocalSystemPointer;
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
-    typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
     typedef InterfaceVectorContainer<TSparseSpace, TDenseSpace> InterfaceVectorContainerType;
     typedef Kratos::unique_ptr<InterfaceVectorContainerType> InterfaceVectorContainerPointerType;
@@ -204,10 +201,6 @@ public:
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
 
-        mpMapperLocalSystems = Kratos::make_shared<MapperLocalSystemPointerVector>();
-
-        mpInterfacePreprocessor = Kratos::make_unique<InterfacePreprocessor>(mrModelPartDestination,
-                                                                             mpMapperLocalSystems);
         ValidateInput(mMapperSettings);
         InitializeInterfaceCommunicator();
 
@@ -347,11 +340,12 @@ private:
     MapperUniquePointerType mpInverseMapper = nullptr;
 
     TMappingMatrixUniquePointerType mpMappingMatrix;
-    InterfacePreprocessorPointerType mpInterfacePreprocessor;
+
+    MapperLocalSystemPointerVector mMapperLocalSystems;
+
     InterfaceCommunicatorPointerType mpIntefaceCommunicator;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerOrigin;
     InterfaceVectorContainerPointerType mpInterfaceVectorContainerDestination;
-    MapperLocalSystemPointerVectorPointer mpMapperLocalSystems;
 
     ///@}
     ///@name Private Operations

@@ -150,7 +150,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     typedef std::vector<MapperLocalSystemPointer> MapperLocalSystemPointerVector;
     typedef Kratos::shared_ptr<MapperLocalSystemPointerVector> MapperLocalSystemPointerVectorPointer;
 
-    MapperLocalSystemPointerVectorPointer p_local_systems(Kratos::make_shared<MapperLocalSystemPointerVector>());
+    MapperLocalSystemPointerVector local_systems;
 
     const SizeType buffer_size_estimate = 3;
 
@@ -170,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     const std::vector<double> missized_bounding_boxes {10.5, -2.8, 3.89};
 
     KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
-        p_local_systems,
+        local_systems,
         missized_bounding_boxes,
         buffer_size_estimate,
         send_buffer,
@@ -185,15 +185,15 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     auto node_local_sys_3(Kratos::make_shared<Node<3>>(36, -10.0, 15.5, -5.0)); // in bbox 2
     auto node_local_sys_4(Kratos::make_shared<Node<3>>(46, 12.6, 50.1, 5.0)); // in bbox 3
 
-    p_local_systems->reserve(7);
+    local_systems.reserve(7);
 
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_1.get()));
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_2.get()));
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_3.get()));
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_4.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_1.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_2.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_3.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_4.get()));
 
     MapperUtilities::FillBufferBeforeLocalSearch(
-        p_local_systems,
+        local_systems,
         bounding_boxes,
         buffer_size_estimate,
         send_buffer,
@@ -239,12 +239,12 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     auto node_local_sys_6(Kratos::make_shared<Node<3>>(416, 13.5, 44.58, 7.5)); // in bbox 3
     auto node_local_sys_7(Kratos::make_shared<Node<3>>(417, 13.5125, 44.68, 8.5)); // in bbox 3
 
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_5.get()));
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_6.get()));
-    p_local_systems->push_back(local_sys_dummy.Create(node_local_sys_7.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_5.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_6.get()));
+    local_systems.push_back(local_sys_dummy.Create(node_local_sys_7.get()));
 
     MapperUtilities::FillBufferBeforeLocalSearch(
-        p_local_systems,
+        local_systems,
         bounding_boxes,
         buffer_size_estimate,
         send_buffer,
@@ -727,7 +727,36 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_SerializingForMPI, KratosMappingApplic
 
     // Check the MapperInterfaceInfos
 
+}
 
+KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperLocalSystemsFromNodes, KratosMappingApplicationSerialTestSuite)
+{
+    Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
+    Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
+    Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
+    Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+
+    Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("Generated");
+
+    Parameters mesher_parameters(R"(
+    {
+        "number_of_divisions" : 3,
+        "element_name"        : "Element2D3N",
+        "create_skin_sub_model_part": false
+    }  )");
+
+    StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
+
+    std::vector<Kratos::unique_ptr<MapperLocalSystem>> mapper_local_systems;
+
+    MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestNeighborLocalSystem>(
+        model_part.GetCommunicator(),
+        mapper_local_systems);
+
+    KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), mapper_local_systems.size());
 }
 
 }  // namespace Testing

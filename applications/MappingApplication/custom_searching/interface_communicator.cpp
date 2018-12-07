@@ -100,10 +100,10 @@ void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOpti
     (*mpMapperInterfaceInfosContainer)[0].clear();
 
     auto& r_mapper_interface_infos = (*mpMapperInterfaceInfosContainer)[0];
-    r_mapper_interface_infos.reserve(mpMapperLocalSystems->size());
+    r_mapper_interface_infos.reserve(mrMapperLocalSystems.size());
 
     IndexType local_sys_idx = 0;
-    for (const auto& r_local_sys : (*mpMapperLocalSystems)) {
+    for (const auto& r_local_sys : mrMapperLocalSystems) {
         if (!r_local_sys->HasInterfaceInfo()) { // Only the local_systems that have not received an InterfaceInfo create a new one
             const auto& r_coords = r_local_sys->Coordinates();
             r_mapper_interface_infos.push_back(rpRefInterfaceInfo->Create(r_coords, local_sys_idx));
@@ -142,7 +142,7 @@ void InterfaceCommunicator::AssignInterfaceInfos()
 
     for (IndexType i_rank=0; i_rank<comm_size; ++i_rank) {
         for (const auto& rp_interface_info : (*mpMapperInterfaceInfosContainer)[i_rank]) {
-            (*mpMapperLocalSystems)[rp_interface_info->GetLocalSystemIndex()]
+            mrMapperLocalSystems[rp_interface_info->GetLocalSystemIndex()]
                 ->AddInterfaceInfo(rp_interface_info);
         }
     }
@@ -293,7 +293,7 @@ bool InterfaceCommunicator::AllNeighborsFound(const Communicator& rComm) const
     int all_neighbors_found = 1; // set to "1" aka "true" by default in case
     // this partition doesn't have a part of the interface!
 
-    for (const auto& local_sys : (*mpMapperLocalSystems)) {
+    for (const auto& local_sys : mrMapperLocalSystems) {
         if (!local_sys->HasInterfaceInfo()) {
             all_neighbors_found = 0;
             break;

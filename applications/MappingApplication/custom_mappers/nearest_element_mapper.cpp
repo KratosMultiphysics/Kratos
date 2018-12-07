@@ -238,12 +238,9 @@ I.e. Operations that can be performed several times in the livetime of the mappe
 template<class TSparseSpace, class TDenseSpace>
 void NearestElementMapper<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
-    mpMapperLocalSystems->clear();
-
-    const MapperLocalSystemPointer p_ref_local_system = Kratos::make_unique<NearestElementLocalSystem>();;
-
-    KRATOS_ERROR_IF_NOT(mpInterfacePreprocessor) << "mpInterfacePreprocessor is a nullptr!" << std::endl;
-    mpInterfacePreprocessor->CreateMapperLocalSystems(*p_ref_local_system);
+    MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+        mrModelPartDestination.GetCommunicator(),
+        mMapperLocalSystems);
 
     BuildMappingMatrix(MappingOptions);
 }
@@ -272,7 +269,7 @@ void NearestElementMapper<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Kratos:
         mpInterfaceVectorContainerDestination->pGetVector(),
         mpInterfaceVectorContainerOrigin->GetModelPart(),
         mpInterfaceVectorContainerDestination->GetModelPart(),
-        *mpMapperLocalSystems,
+        mMapperLocalSystems,
         mMapperSettings["echo_level"].GetInt());
 
     // if (mEchoLevel > 0) PrintPairingInfo();
@@ -284,8 +281,8 @@ void NearestElementMapper<MapperDefinitions::SparseSpaceType, MapperDefinitions:
     Parameters search_settings(R"({})"); // TODO fill this
     search_settings.ValidateAndAssignDefaults(mMapperSettings);
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(mrModelPartOrigin,
-                                                                      mpMapperLocalSystems,
-                                                                      search_settings);
+                                                                        mMapperLocalSystems,
+                                                                        search_settings);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
@@ -295,8 +292,8 @@ void NearestElementMapper<MapperDefinitions::MPISparseSpaceType, MapperDefinitio
     Parameters search_settings(R"({})"); // TODO fill this
     search_settings.ValidateAndAssignDefaults(mMapperSettings);
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorMPI>(mrModelPartOrigin,
-                                                                         mpMapperLocalSystems,
-                                                                         search_settings);
+                                                                           mMapperLocalSystems,
+                                                                           search_settings);
 }
 #endif
 
