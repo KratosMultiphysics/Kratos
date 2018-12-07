@@ -127,7 +127,7 @@ protected:
     InterfaceObjectContainerUniquePointerType mpInterfaceObjectsOrigin;
 
     Parameters mSearchSettings;
-    double mSearchRadius;
+    double mSearchRadius = -1.0;
 
     int mEchoLevel = 0;
 

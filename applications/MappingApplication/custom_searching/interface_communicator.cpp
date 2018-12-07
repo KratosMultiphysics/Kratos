@@ -239,6 +239,9 @@ void InterfaceCommunicator::ConductLocalSearch()
 {
     SizeType num_interface_obj_bin = mpInterfaceObjectsOrigin->size();
 
+    KRATOS_ERROR_IF(mSearchRadius < 0.0) << "Search-Radius has to be larger than 0.0!"
+        << std::endl;
+
     if (num_interface_obj_bin > 0) { // this partition has a bin structure
         InterfaceObjectConfigure::ResultContainerType neighbor_results(num_interface_obj_bin);
         std::vector<double> neighbor_distances(num_interface_obj_bin);
