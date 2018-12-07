@@ -27,12 +27,12 @@ namespace Python
 
 ProcessInfo::Pointer ProcessInfoGetPreviousSolutionStepInfo(ProcessInfo& rProcessInfo)
 {
-	return rProcessInfo.pGetPreviousSolutionStepInfo();
+    return rProcessInfo.pGetPreviousSolutionStepInfo();
 }
 
 ProcessInfo::Pointer ProcessInfoGetPreviousTimeStepInfo(ProcessInfo& rProcessInfo)
 {
-	return rProcessInfo.pGetPreviousTimeStepInfo();
+    return rProcessInfo.pGetPreviousTimeStepInfo();
 }
 
 //
@@ -43,8 +43,8 @@ void  AddProcessInfoToPython(pybind11::module& m)
     py::class_<ProcessInfo, ProcessInfo::Pointer, DataValueContainer, Flags >(m,"ProcessInfo")
     .def(py::init<>())
     .def("CreateSolutionStepInfo", &ProcessInfo::CreateSolutionStepInfo)
-	.def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
-	.def("GetPreviousTimeStepInfo", ProcessInfoGetPreviousTimeStepInfo)
+    .def("GetPreviousSolutionStepInfo", ProcessInfoGetPreviousSolutionStepInfo)
+    .def("GetPreviousTimeStepInfo", ProcessInfoGetPreviousTimeStepInfo)
     .def("__str__", PrintObject<ProcessInfo>)
     ;
 }
