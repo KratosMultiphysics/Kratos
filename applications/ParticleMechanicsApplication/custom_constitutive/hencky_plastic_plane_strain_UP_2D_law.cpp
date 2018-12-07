@@ -95,7 +95,7 @@ void HenckyElasticPlasticPlaneStrainUP2DLaw::CalculateAlmansiStrain( const Matri
 {
 
     // E = 0.5*(1-invbT*invb)
-    Matrix InverseLeftCauchyGreen ( rLeftCauchyGreen.size1(), rLeftCauchyGreen.size2() );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( rLeftCauchyGreen.size1(), rLeftCauchyGreen.size2() );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # Other imports

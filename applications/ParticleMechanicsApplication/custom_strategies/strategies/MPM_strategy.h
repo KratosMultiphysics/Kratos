@@ -28,6 +28,7 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
+#include "boost/numeric/ublas/matrix.hpp"
 
 // Application includes
 #include "particle_mechanics_application.h"
@@ -97,7 +98,7 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef typename TSparseSpace::DataType TDataType;
@@ -213,8 +214,8 @@ public:
                 if(i->IsDefined(ACTIVE))
                 {
                     Properties::Pointer properties = i->pGetProperties();
-                    int material_id = i->GetProperties().Id();
-                    double density  = i->GetProperties()[DENSITY];
+                    const int material_id = i->GetProperties().Id();
+                    const double density  = i->GetProperties()[DENSITY];
 
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -284,8 +285,13 @@ public:
 
                     // Evaluation of element area/volume
                     const double area = rGeom.Area();
-
-                    MP_Mass   = area * density / integration_point_per_elements;
+                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+						const double thickness = i->GetProperties()[THICKNESS];
+						MP_Mass = area * thickness * density / integration_point_per_elements;
+					}
+					else {
+                        MP_Mass = area * density / integration_point_per_elements;
+                    }
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
@@ -300,8 +306,8 @@ public:
                             new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
                         }
                         Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                        double MP_Density  = density;
-                        int MP_Material_Id = material_id;
+                        const double MP_Density  = density;
+                        const int MP_Material_Id = material_id;
 
                         xg.clear();
 
@@ -548,29 +554,30 @@ public:
         for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
 
 			auto element_itr = grid_model_part.Elements().begin() + i;
+            auto& rGeom = element_itr->GetGeometry();
 			element_itr->Reset(ACTIVE);
             if (m_GeometryElement == "Triangle"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
+                rGeom[0].Reset(ACTIVE);
+                rGeom[1].Reset(ACTIVE);
+                rGeom[2].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr->GetGeometry()[3].Reset(ACTIVE);
+                    rGeom[3].Reset(ACTIVE);
                 }
             }
             else if (m_GeometryElement == "Quadrilateral"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-                element_itr->GetGeometry()[3].Reset(ACTIVE);
+                rGeom[0].Reset(ACTIVE);
+                rGeom[1].Reset(ACTIVE);
+                rGeom[2].Reset(ACTIVE);
+                rGeom[3].Reset(ACTIVE);
 
                 if (TDim ==3)
                 {
-                    element_itr->GetGeometry()[4].Reset(ACTIVE);
-                    element_itr->GetGeometry()[5].Reset(ACTIVE);
-                    element_itr->GetGeometry()[6].Reset(ACTIVE);
-                    element_itr->GetGeometry()[7].Reset(ACTIVE);
+                    rGeom[4].Reset(ACTIVE);
+                    rGeom[5].Reset(ACTIVE);
+                    rGeom[6].Reset(ACTIVE);
+                    rGeom[7].Reset(ACTIVE);
                 }
             }
 		}
@@ -591,7 +598,7 @@ public:
 
                 auto element_itr = mpm_model_part.Elements().begin() + i;
 
-                array_1d<double,3> xg = element_itr->GetValue(MP_COORD);
+                const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
                 Element::Pointer pelem;
@@ -603,28 +610,29 @@ public:
                 {
                     pelem->Set(ACTIVE);
                     element_itr->GetGeometry() = pelem->GetGeometry();
+                    auto& rGeom = element_itr->GetGeometry();
                     if (m_GeometryElement == "Triangle")
                     {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
+                        rGeom[0].Set(ACTIVE);
+                        rGeom[1].Set(ACTIVE);
+                        rGeom[2].Set(ACTIVE);
                         if (TDim ==3)
                         {
-                            element_itr->GetGeometry()[3].Set(ACTIVE);
+                            rGeom[3].Set(ACTIVE);
                         }
                     }
                     else if(m_GeometryElement == "Quadrilateral")
                     {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        element_itr->GetGeometry()[3].Set(ACTIVE);
+                        rGeom[0].Set(ACTIVE);
+                        rGeom[1].Set(ACTIVE);
+                        rGeom[2].Set(ACTIVE);
+                        rGeom[3].Set(ACTIVE);
                         if (TDim ==3)
                         {
-                            element_itr->GetGeometry()[4].Set(ACTIVE);
-                            element_itr->GetGeometry()[5].Set(ACTIVE);
-                            element_itr->GetGeometry()[6].Set(ACTIVE);
-                            element_itr->GetGeometry()[7].Set(ACTIVE);
+                            rGeom[4].Set(ACTIVE);
+                            rGeom[5].Set(ACTIVE);
+                            rGeom[6].Set(ACTIVE);
+                            rGeom[7].Set(ACTIVE);
                         }
                     }
                 }

@@ -96,15 +96,26 @@ struct datatype_impl<unsigned long long> {
     static MPI_Datatype get() { return MPI_UNSIGNED_LONG_LONG; }
 };
 
-template <>
-struct datatype_impl<ptrdiff_t>
-    : std::conditional<
+template <typename T>
+struct datatype_impl<T,
+    typename std::enable_if<
+        std::is_same<T, ptrdiff_t>::value &&
+        !std::is_same<ptrdiff_t, long long>::value &&
+        !std::is_same<ptrdiff_t, int>::value
+        >::type
+    > : std::conditional<
         sizeof(ptrdiff_t) == sizeof(int), datatype_impl<int>, datatype_impl<long long>
         >::type
 {};
 
-template <>
-struct datatype_impl<size_t>
+template <typename T>
+struct datatype_impl<T,
+    typename std::enable_if<
+        std::is_same<T, size_t>::value &&
+        !std::is_same<size_t, unsigned long long>::value &&
+        !std::is_same<ptrdiff_t, unsigned int>::value
+        >::type
+    >
     : std::conditional<
         sizeof(size_t) == sizeof(unsigned), datatype_impl<unsigned>, datatype_impl<unsigned long long>
         >::type
