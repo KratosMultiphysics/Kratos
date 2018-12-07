@@ -555,7 +555,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
 	}
 
     // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
-    std::vector< BoundedMatrix<double, 3, 3> > NodalProjectionMatrix(TNumNodes);
+    std::vector< BoundedMatrix<double, TNumNodes, TNumNodes> > NodalProjectionMatrix(TNumNodes);
     for(unsigned int node = 0; node < TNumNodes; node++){
         FluidElementUtilities<3>::SetTangentialProjectionMatrix( NodalNormals[node], NodalProjectionMatrix[node] );
     }
@@ -604,26 +604,24 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
         }
     }
 
-    Vector CompleteSigmaInterpolated;
-    CompleteSigmaInterpolated = ZeroVector(3);
+    Vector CompleteSigmaInterpolated = ZeroVector(TNumNodes);
 
-    std::vector<array_1d<double,TNumNodes+1>> NodalEntriesRHS(TNumNodes);
+    std::vector<array_1d<double,TNumNodes>> NodalEntriesRHS(TNumNodes);
 
     // Loop all nodal contributions
     for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
-        NodalEntriesRHS[nnode] = zero_vector<double>(3);
+        NodalEntriesRHS[nnode] = ZeroVector(TNumNodes);
         const array_1d<double, TNumNodes> N = rDataStruct.N;
         const double wGauss = rDataStruct.wGauss;
 
-        CompleteSigmaInterpolated = ZeroVector(3);
+        CompleteSigmaInterpolated = ZeroVector(TNumNodes);
         for( unsigned int comp = 0; comp < TNumNodes; comp++){
 
             CompleteSigmaInterpolated += N[comp] * prod( conditionNormalForVoigt, CompleteNodalSigma[comp] );
         }
 
-        NodalEntriesRHS[nnode] = ( wGauss * N(nnode) * CompleteSigmaInterpolated );
-        NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], NodalEntriesRHS[nnode] );
+        NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], ( wGauss * N(nnode) * CompleteSigmaInterpolated ) );
     }
 
     for (unsigned int node = 0; node < TNumNodes; node++){
