@@ -360,15 +360,6 @@ const ConditionDataStruct& data)
     // Gauss pt. outlet inflow prevention contribution
     if (this->Is(OUTLET)){
         this->ComputeRHSOutletInflowContribution(rhs_gauss, data);
-
-        /////  TEST  //////////
-        if ( true ){
-            const double navier_slip_length = 0.01;
-            Vector rhs_gauss_navier = ZeroVector(TNumNodes*LocalSize);
-            ComputeGaussPointNavierSlipRHSContribution( rhs_gauss_navier, data, navier_slip_length );
-            rhs_gauss += rhs_gauss_navier;
-        }
-
     }
 
     // contribution to avoid tangential components in the residual (BEHR2004)
@@ -712,6 +703,8 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
         }
         // application of the nodal projection matrix
         NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], (wGauss * N[nnode] * InterpolatedTraction) );
+        // test
+        NodalEntriesRHS[nnode] = (wGauss * N[nnode] * InterpolatedTraction);
     }
 
     // putting the RHS together
