@@ -1,23 +1,30 @@
-from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-# importing the Kratos Library
+from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Importing the Kratos Library
 import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 
+# Check that applications were imported in the main script
+KratosMultiphysics.CheckRegisteredApplications("CompressiblePotentialFlowApplication")
 
-def CreateSolver(main_model_part, custom_settings):
-    return LaplacianSolver(main_model_part, custom_settings)
+# Importing the base class
+from python_solver import PythonSolver
 
-class LaplacianSolver:
-    def __init__(self, model_part, custom_settings):
+
+def CreateSolver(model, custom_settings):
+    return LaplacianSolver(model, custom_settings)
+
+class LaplacianSolver(PythonSolver):
+    def __init__(self, model, custom_settings):
+        super(LaplacianSolver, self).__init__(model, custom_settings)
         self.MoveMeshFlag = False
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        self.main_model_part = model_part    
         
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "potential_flow_solver",
+            "domain_size"     : 2,
+            "model_part_name" : "MainModelPart",
             "echo_level": 1,
             "relative_tolerance": 1e-5,
             "absolute_tolerance": 1e-9,
@@ -49,12 +56,26 @@ class LaplacianSolver:
                     "scaling": false
             }
         }""")
-                    
-        ##overwrite the default settings with user-provided parameters
+
+        # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
+        model_part_name = self.settings["model_part_name"].GetString()
+
+        if model_part_name == "":
+            raise Exception('Please specify a model_part name!')
+
+        # This will be changed once the Model is fully supported!
+        if self.model.HasModelPart(model_part_name):
+            self.main_model_part = self.model[model_part_name]
+        else:
+            self.main_model_part = self.model.CreateModelPart(model_part_name)
+            domain_size = self.settings["domain_size"].GetInt()
+            if domain_size < 0:
+                raise Exception('Please specify a "domain_size" >= 0!')
+            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
         
-        #construct the linear solvers
+        # Construct the linear solvers
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -154,7 +175,7 @@ class LaplacianSolver:
     def SaveRestart(self):
         pass #one should write the restart file here
         
-    def Solve(self):
+    def SolveSolutionStep(self):
         (self.solver).Solve()
 
     #

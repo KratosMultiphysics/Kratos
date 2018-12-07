@@ -7,7 +7,7 @@ from KratosMultiphysics.CompressiblePotentialFlowApplication import *
 import potential_flow_solver
 import process_factory
 
-class PotentialFlowAnalysis:
+class PotentialFlowAnalysisTest:
 
     def __init__(self, model, project_parameters):
         """The constructor of the PotentialAnalysis-Object.
@@ -80,6 +80,7 @@ class PotentialFlowAnalysis:
         ## Processes construction
         # "list_of_processes" contains all the processes already constructed (boundary conditions and initial conditions)
         self.list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["boundary_conditions_process_list"] )
+        self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.project_parameters["auxiliar_process_list"] )
 
         if(self.echo_level > 1):
             for process in self.list_of_processes:

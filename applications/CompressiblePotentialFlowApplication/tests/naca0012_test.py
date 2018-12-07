@@ -10,6 +10,7 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 # Other imports
 import test_PotentialAnalysis
 from test_PotentialAnalysis import PotentialFlowAnalysis
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
 
 class controlledExecutionScope:
@@ -37,7 +38,8 @@ class WorkFolderScope:
 class PotentialFlowTestFactory(UnitTest.TestCase):
 
     def setUp(self):
-        print('hello world')
+        # Set to true to get post-process files for the test
+        self.print_output = False
         # Within this location context:
         #with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
 
@@ -61,16 +63,41 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
             self._run_test()
+
+            kratos_utilities.DeleteFileIfExisting("naca0012_Case_5.time")
         
 
     def _run_test(self):
         model = KratosMultiphysics.Model()
         with open(self.file_name + "_parameters.json",'r') as parameter_file:
-            print('self.file_name = ', self.file_name)
             ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+
+        # to check the results: add output settings block if needed
+        if self.print_output:
+            ProjectParameters.AddValue("output_configuration", KratosMultiphysics.Parameters(r'''{
+                "result_file_configuration" : {
+                    "gidpost_flags"       : {
+                        "GiDPostMode"           : "GiD_PostBinary",
+                        "WriteDeformedMeshFlag" : "WriteDeformed",
+                        "WriteConditionsFlag"   : "WriteConditions",
+                        "MultiFileFlag"         : "SingleFile"
+                    },
+                    "file_label"          : "step",
+                    "output_control_type" : "step",
+                    "output_frequency"    : 1,
+                    "body_output"         : true,
+                    "node_output"         : false,
+                    "skin_output"         : false,
+                    "plane_output"        : [],
+                    "nodal_results"       : ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","TEMPERATURE","UPPER_SURFACE","LOWER_SURFACE","DISTANCE","UPPER_WAKE","LOWER_WAKE","POTENTIAL_JUMP","AIRFOIL","TRAILING_EDGE","KUTTA","DEACTIVATED_WAKE","ZERO_VELOCITY_CONDITION"],
+                    "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","THICKNESS","TRAILING_EDGE","ELEMENTAL_DISTANCES","KUTTA","ALL_TRAILING_EDGE","ZERO_VELOCITY_CONDITION","DISTANCE","DECOUPLED_TRAILING_EDGE_ELEMENT","TRAILING_EDGE_ELEMENT"]
+                },
+                "point_data_configuration"  : []
+            }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model,ProjectParameters)
         potential_flow_analysis.Run()
+
 
 
 class Naca0012Test(PotentialFlowTestFactory):

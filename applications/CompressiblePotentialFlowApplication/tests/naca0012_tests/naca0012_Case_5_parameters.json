@@ -104,5 +104,19 @@
             "mesh_id"         : 0,
             "model_part_name" : "Body2D_LowerSurface"
         }
-    }]
+    }],
+    "auxiliar_process_list" :[{
+        "kratos_module"   : "KratosMultiphysics",
+        "python_module"   : "point_output_process",
+        "help"            : "",
+        "process_name"    : "PointOutputProcess",
+        "Parameters" : {
+            "position"         : [4.0, 4.709493, 0.0],
+            "model_part_name"  : "MainModelPart",
+            "output_file_settings": {
+                "file_name"  : "naca0012_test_probe1.dat"
+            },
+            "output_variables" : ["POSITIVE_FACE_PRESSURE"]
+        }
+     }]
 }
