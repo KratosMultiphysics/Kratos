@@ -184,7 +184,7 @@ private:
         rSerializer.save("Size", this->size());
         for(const auto& item : (*this))
         {
-            rSerializer.save("D", item);
+            rSerializer.save("pair", item);
         }
     }
 
@@ -196,8 +196,8 @@ private:
 
         for(std::size_t i = 0; i<size; ++i)
         {
-            std::pair< GlobalPointer<TDataType>, TValueType>  tmp(nullptr, 0);
-            rSerializer.load("D", tmp);
+            std::pair< GlobalPointer<TDataType>, TValueType>  tmp(nullptr, TValueType());
+            rSerializer.load("pair", tmp);
             this->insert(tmp);
         }
     }
@@ -221,13 +221,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    GlobalPointersUnorderedMap& operator=(GlobalPointersUnorderedMap const& rOther) {}
-
-    /// Copy constructor.
-    GlobalPointersUnorderedMap(GlobalPointersUnorderedMap const& rOther) {}
-
 
     ///@}
 

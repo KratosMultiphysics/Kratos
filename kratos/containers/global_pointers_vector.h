@@ -70,6 +70,10 @@ public:
     /// Default constructor.
     GlobalPointersVector() {}
 
+    GlobalPointersVector(const std::initializer_list<GlobalPointer<TDataType>>& l) 
+        : std::vector< GlobalPointer<TDataType> >(l)
+    {} 
+
     /// Destructor.
     virtual ~GlobalPointersVector() {}
 
@@ -82,7 +86,6 @@ public:
             this->push_back(GlobalPointer<TDataType>(&item));
         }
     }
-
 
     ///@}
     ///@name Operators
@@ -265,13 +268,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    GlobalPointersVector& operator=(GlobalPointersVector const& rOther) {}
-
-    /// Copy constructor.
-    GlobalPointersVector(GlobalPointersVector const& rOther) {}
-
 
     ///@}
 
