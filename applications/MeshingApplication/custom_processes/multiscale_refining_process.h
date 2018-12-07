@@ -358,7 +358,6 @@ public:
     /**
      * @brief Perform a check with the parameters
      */
-    int Check();
 
     /**
      * @brief

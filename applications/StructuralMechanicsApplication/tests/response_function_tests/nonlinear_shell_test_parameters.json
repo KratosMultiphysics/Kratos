@@ -63,7 +63,8 @@
         }
     }],
     "contact_process_list"     : [],
-    "loads_process_list"       : [{
+    "loads_process_list"       : [
+    {
         "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",

@@ -421,7 +421,6 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         if not self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.end_time += 1
         
-        #self.primal_analysis.RunSolutionLoop()
         ## run the solution loop
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
@@ -437,9 +436,22 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
         
-        self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
-        self.adjoint_analysis.InitializeSolutionStep()
+        # This is temporarily commented out
+        #self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
+        #self.adjoint_analysis.InitializeSolutionStep()
 
+        # This runs the whole solution loop for adjoint analysis
+        self.adjoint_analysis.RunSolutionLoop()
+
+        ## trial to test performing backward sensitivity calculation
+        # while self.primal_analysis.time > self.primal_analysis.end_time:
+        #     self.adjoint_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+        #     self.adjoint_analysis.InitializeSolutionStep()
+        #     self.adjoint_analysis._GetSolver().Predict()
+        #     self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        #     self.adjoint_analysis.FinalizeSolutionStep()
+        #     self.adjoint_analysis.OutputSolutionStep()
+            
     def CalculateResponseIncrement(self):
         startTime = timer.time()
         value = self._GetResponseFunctionUtility().CalculateResponseIncrement(self.primal_model_part)
@@ -457,49 +469,49 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
     
     ## TODO implement update sensitivities for this class
-    # def CalculateGradient(self):
-    #     Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
-    #     startTime = timer.time()
-    #     self.adjoint_analysis._GetSolver().Predict()
-    #     self.adjoint_analysis._GetSolver().SolveSolutionStep()
-    #     Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
+    def CalculateGradient(self):
+        Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
+        startTime = timer.time()
+        self.adjoint_analysis._GetSolver().Predict()
+        self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
-    # def GetValue(self):
-    #     return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
-
-
-    # def GetShapeGradient(self):
-    #     gradient = {}
-    #  #   for node in self.adjoint_model_part.Nodes:
-    #  #       gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
-    #     return gradient
+    def GetValue(self):
+        return self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE]
 
 
-    # def FinalizeSolutionStep(self):
-    #     self.adjoint_analysis.FinalizeSolutionStep()
-    #     self.adjoint_analysis.OutputSolutionStep()
+    def GetShapeGradient(self):
+        gradient = {}
+        for node in self.adjoint_model_part.Nodes:
+            gradient[node.Id] = node.GetSolutionStepValue(SHAPE_SENSITIVITY)
+        return gradient
+
+
+    def FinalizeSolutionStep(self):
+        self.adjoint_analysis.FinalizeSolutionStep()
+        self.adjoint_analysis.OutputSolutionStep()
 
 
     def Finalize(self):
         self.primal_analysis.Finalize()
-     #   self.adjoint_analysis.Finalize()
+        self.adjoint_analysis.Finalize()
 
 
     def _GetResponseFunctionUtility(self):
         return self.adjoint_analysis._GetSolver().response_function
 
 
-    # def _SynchronizeAdjointFromPrimal(self):
-    #     if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
-    #         raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+    def _SynchronizeAdjointFromPrimal(self):
+        if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
 
-    #     for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
-    #         adjoint_node.X0 = primal_node.X0
-    #         adjoint_node.Y0 = primal_node.Y0
-    #         adjoint_node.Z0 = primal_node.Z0
-    #         adjoint_node.X = primal_node.X
-    #         adjoint_node.Y = primal_node.Y
-    #         adjoint_node.Z = primal_node.Z
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            adjoint_node.X0 = primal_node.X0
+            adjoint_node.Y0 = primal_node.Y0
+            adjoint_node.Z0 = primal_node.Z0
+            adjoint_node.X = primal_node.X
+            adjoint_node.Y = primal_node.Y
+            adjoint_node.Z = primal_node.Z
 
     # ## this function calculates the response only in the python interface
     # def CalculateStrainEnergy(self):

@@ -1,7 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Non_Linear_Truss",
-        "start_time"      : 0.0,
+        "start_time"      : 0.00,
         "end_time"        : 4.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
@@ -12,6 +12,7 @@
         "model_part_name"              : "Structure",
         "domain_size"                  : 3,
         "time_stepping"                      : {
+            "automatic_time_step" : false,
             "time_step" : 0.1
         },
         "compute_reactions"			   : false,
@@ -19,8 +20,13 @@
         "scheme_settings" : {
             "scheme_type"              : "adjoint_structural"
             },
-
-            
+    "sensitivity_settings" : {
+        "sensitivity_model_part_name" : "sensitivity_mp",
+        "nodal_sensitivity_variables"  : ["SHAPE"],
+        "element_sensitivity_variables"  : [],
+        "condition_sensitivity_variables"  : [],
+        "build_mode": "static"
+        },            
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
@@ -66,7 +72,7 @@
     }
     ],
     "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_to_condition_process",
+        "python_module" : "assign_vector_by_direction_process",
         "kratos_module" : "KratosMultiphysics",
         "help"          : "This process sets a vector variable value over a condition according to a given modulus an direction",
         "check"         : "DirectorVectorNonZero direction",
