@@ -174,7 +174,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         is_max_total_iterations_reached = False
         previos_L = None
 
-        # initialize according to initial ALPHA values
+        # Initialize ALPHA_MAPPED according to initial ALPHA values
         self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
         for outer_iteration in range(1,self.max_outer_iterations+1):
