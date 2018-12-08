@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
