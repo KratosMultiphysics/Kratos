@@ -31,7 +31,7 @@
 #include "boost/numeric/ublas/matrix.hpp"
 
 // Application includes
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 // Geometry utilities
 #include "utilities/geometry_utilities.h"
