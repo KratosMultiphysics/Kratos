@@ -336,11 +336,10 @@ const ConditionDataStruct& data)
         ComputeGaussPointBehrSlipLHSContribution( lhs_gauss_behr, data );
         lhs_gauss += lhs_gauss_behr;
 
-        if ( true ){
-            Matrix lhs_gauss_navier = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
-            ComputeGaussPointNavierSlipLHSContribution( lhs_gauss_navier, data );
-            lhs_gauss += lhs_gauss_navier;
-        }
+        // Maybe better with "if (FLAG == set){ etc. } ..."
+        Matrix lhs_gauss_navier = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
+        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss_navier, data );
+        lhs_gauss += lhs_gauss_navier;
     }
 }
 
@@ -371,11 +370,10 @@ const ConditionDataStruct& data)
         ComputeGaussPointBehrSlipRHSContribution( rhs_gauss_behr, data );
         rhs_gauss += rhs_gauss_behr;
 
-        if ( true ){
-            Vector rhs_gauss_navier = ZeroVector(TNumNodes*LocalSize);
-            ComputeGaussPointNavierSlipRHSContribution( rhs_gauss_navier, data );
-            rhs_gauss += rhs_gauss_navier;
-        }
+        // Maybe better with "if (FLAG == set){ etc. } ..."
+        Vector rhs_gauss_navier = ZeroVector(TNumNodes*LocalSize);
+        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss_navier, data );
+        rhs_gauss += rhs_gauss_navier;
     }
 }
 
