@@ -918,7 +918,7 @@ class RemoveFluidNodesMesherProcess
     rNode.FastGetSolutionStepValue(DISPLACEMENT,1) *= quotient;
     //rNode.FastGetSolutionStepValue(DISPLACEMENT)   += rNode.Coordinates()-CurrentPosition;
     //rNode.FastGetSolutionStepValue(DISPLACEMENT,1) += rNode.Coordinates()-CurrentPosition;
-    rNode.GetInitialPosition() = (rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
+    rNode.GetInitialPosition() = Point(rNode.Coordinates() - rNode.FastGetSolutionStepValue(DISPLACEMENT));
     rNode.FastGetSolutionStepValue(VELOCITY)       *= quotient;
     rNode.FastGetSolutionStepValue(VELOCITY,1)     *= quotient;
     rNode.FastGetSolutionStepValue(ACCELERATION)   *= quotient;
