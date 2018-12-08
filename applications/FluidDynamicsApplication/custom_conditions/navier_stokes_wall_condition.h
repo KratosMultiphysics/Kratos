@@ -392,7 +392,6 @@ private:
      * at points were the normal directions of the adjacent boundary geometries do not
      * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
      * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
      * @param rDataStruct reference to a struct to hand over data
      */
     void ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
@@ -404,8 +403,7 @@ private:
      * This specific implementation of the slip condition avoids spurious velocities
      * at points were the normal directions of the adjacent boundary geometries do not
      * coincide (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rRightHandSideMatrix reference to the LHS matrix
-     * @param rCurrentProcessInfo reference to the ProcessInfo (unused)
+     * @param rRightHandSideVector reference to the RHS vector
      * @param rDataStruct reference to a struct to hand over data
      */
     void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
@@ -413,11 +411,28 @@ private:
 
 
 
-    // TODO : Add a proper docu here in header
+    /**
+     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
+     * The (Navier) slip length is read as a nodal variable.
+     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+     * Though only tangential velocities should appear, a tangetial projection is added.
+     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rRightHandSideVector reference to the RHS vector
+     * @param rDataStruct reference to a struct to hand over data
+     */
     void ComputeGaussPointNavierSlipRHSContribution(    VectorType& rRightHandSideVector,
                                                         const ConditionDataStruct& rDataStruct );
 
 
+    /**
+     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
+     * The (Navier) slip length is read as a nodal variable.
+     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
+     * Though only tangential velocities should appear, a tangetial projection is added.
+     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
+     * @param rLeftHandSideMatrix reference to the LHS matrix
+     * @param rDataStruct reference to a struct to hand over data
+     */
     void ComputeGaussPointNavierSlipLHSContribution(    Matrix& rLeftHandSideMatrix,
                                                         const ConditionDataStruct& rDataStruct );
 
