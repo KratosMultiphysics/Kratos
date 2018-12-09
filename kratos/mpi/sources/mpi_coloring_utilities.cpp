@@ -123,23 +123,6 @@ std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
             //     std::cout << item << " ";
             // std::cout << std::endl;
         }
-
-
-
-
-        // for(SizeType i = 0 ; i < mrDomainsGraph.size1() ; i++) // for each domain
-        //     for(SizeType j = i + 1 ; j < mrDomainsGraph.size2() ; j++) // finding neighbor domains
-        //         if(mrDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
-        //             for(SizeType color = 0 ; color < mrDomainsColoredGraph.size2() ; color++) // finding color
-        //                 if((mrDomainsColoredGraph(i,color) == -1.00) && (mrDomainsColoredGraph(j,color) == -1.00)) // the first unused color
-        //                 {
-        //                     mrDomainsColoredGraph(i,color) = j;
-        //                     mrDomainsColoredGraph(j,color) = i;
-        //                     if(mrMaxColor < static_cast<int>(color + 1))
-        //                         mrMaxColor = color + 1;
-        //                     break;
-        //                 }
-
     }
 
     auto colors = comm.Scatterv(global_colors, global_rank );
