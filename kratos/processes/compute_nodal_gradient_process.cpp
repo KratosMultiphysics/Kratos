@@ -118,7 +118,11 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( rAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+    }
     
     KRATOS_CATCH("")
 }
@@ -140,8 +144,15 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     mrOriginVariableDoubleList.push_back(rOriginVariable);
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( rGradientVariable )) {
+        const array_1d<double,3> zero_vector = ZeroVector(3);
+        VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, r_nodes);
+    }
+    if (!r_nodes.begin()->Has( rAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+    }
     
     KRATOS_CATCH("")
 }
@@ -164,7 +175,11 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistorica
     
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
     VariableUtils().CheckVariableExists(rGradientVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( rAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+    }
     
     KRATOS_CATCH("")
 }
@@ -186,8 +201,15 @@ ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistor
     mrOriginVariableComponentsList.push_back(rOriginVariable);
 
     VariableUtils().CheckVariableExists(rOriginVariable, mrModelPart.Nodes());
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rGradientVariable )) << "Missing variable " << rGradientVariable << std::endl;
-    KRATOS_ERROR_IF_NOT(rModelPart.Nodes().begin()->Has( rAreaVariable )) << "Missing variable " <<  rAreaVariable << std::endl;
+    // In case the area or gradient variable is not initialized we initialize it
+    auto& r_nodes = rModelPart.Nodes();
+    if (!r_nodes.begin()->Has( rGradientVariable )) {
+        const array_1d<double,3> zero_vector = ZeroVector(3);
+        VariableUtils().SetNonHistoricalVariable(rGradientVariable, zero_vector, r_nodes);
+    }
+    if (!r_nodes.begin()->Has( rAreaVariable )) {
+        VariableUtils().SetNonHistoricalVariable(rAreaVariable, 0.0, r_nodes);
+    }
     
     KRATOS_CATCH("")
 }
