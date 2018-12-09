@@ -132,9 +132,7 @@ namespace Kratos
             for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfConditions()); ++i)
             {
                 auto it = mrModelPart.ConditionsBegin() + i;
-                const SizeType number_of_nodes = it->GetGeometry().size();
-                for(IndexType j = 0; j < number_of_nodes; ++j)
-                    it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
+                it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
         for (const auto& variable_pair : mConditionSensitivityVectorVariables)
@@ -143,9 +141,7 @@ namespace Kratos
             for (int i = 0; i< static_cast<int> (mrModelPart.NumberOfConditions()); ++i)
             {
                 auto it = mrModelPart.ConditionsBegin() + i;
-                const SizeType number_of_nodes = it->GetGeometry().size();
-                for(IndexType j = 0; j < number_of_nodes; ++j)
-                    it->GetGeometry()[j].FastGetSolutionStepValue(variable_pair[1]) = variable_pair[1].Zero();
+                it->SetValue(variable_pair[1], variable_pair[1].Zero());
             }
         }
 
@@ -479,9 +475,8 @@ namespace Kratos
 
             if( (response_gradient[k].size() > 0) || (sensitivity_matrix[k].size1() > 0) )
             {
-                Condition::GeometryType& r_geom = it->GetGeometry();
                 this->AssembleConditionSensitivityContribution(
-                            rOutputVariable, sensitivity_vector[k], r_geom);
+                            rOutputVariable, sensitivity_vector[k], *it);
             }
         }
 
@@ -552,33 +547,21 @@ namespace Kratos
 
     void AdjointPostprocess::AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom)
+                                              Condition& rCondition)
     {
-        IndexType index = 0;
-        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
-        {
-            double& r_sensitivity =
-                rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
-            rGeom[i_node].SetLock();
-            r_sensitivity += rSensitivityVector[index++];
-            rGeom[i_node].UnSetLock();
-        }
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != 1) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
+        rCondition.GetValue(rSensitivityVariable) += rSensitivityVector[0];
     }
 
     void AdjointPostprocess::AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom)
+                                              Condition& rCondition)
     {
-        IndexType index = 0;
-        for (IndexType i_node = 0; i_node < rGeom.PointsNumber(); ++i_node)
-        {
-            array_1d<double, 3>& r_sensitivity =
-                rGeom[i_node].FastGetSolutionStepValue(rSensitivityVariable);
-            rGeom[i_node].SetLock();
-            for (IndexType d = 0; d < rGeom.WorkingSpaceDimension(); ++d)
-                r_sensitivity[d] += rSensitivityVector[index++];
-            rGeom[i_node].UnSetLock();
-        }
+        array_1d<double, 3>& r_sensitivity = rCondition.GetValue(rSensitivityVariable);
+        const auto ws_dim = rCondition.GetGeometry().WorkingSpaceDimension();
+        KRATOS_DEBUG_ERROR_IF(rSensitivityVector.size() != ws_dim) << "rSensitivityVector.size() = " << rSensitivityVector.size() << std::endl;
+        for (unsigned d = 0; d < ws_dim; ++d)
+            r_sensitivity[d] += rSensitivityVector[d];
     }
 
     void AdjointPostprocess::ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,

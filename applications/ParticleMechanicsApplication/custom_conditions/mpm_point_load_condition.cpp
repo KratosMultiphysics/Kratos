@@ -79,27 +79,27 @@ namespace Kratos
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
         // Resizing as needed the LHS
-        const unsigned int MatSize = NumberOfNodes * Dimension;
+        const unsigned int matrix_size = NumberOfNodes * Dimension;
 
         if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
         {
-            if ( rLeftHandSideMatrix.size1() != MatSize )
+            if ( rLeftHandSideMatrix.size1() != matrix_size )
             {
-                rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+                rLeftHandSideMatrix.resize( matrix_size, matrix_size, false );
             }
 
-            noalias( rLeftHandSideMatrix ) = ZeroMatrix(MatSize); //resetting LHS
+            noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
         }
 
         //resizing as needed the RHS
         if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
         {
-            if ( rRightHandSideVector.size( ) != MatSize )
+            if ( rRightHandSideVector.size( ) != matrix_size )
             {
-                rRightHandSideVector.resize( MatSize, false );
+                rRightHandSideVector.resize( matrix_size, false );
             }
 
-            noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
+            noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
         }
 
         // Vector with a loading applied to the condition
