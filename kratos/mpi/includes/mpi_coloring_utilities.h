@@ -16,6 +16,7 @@
 // System includes
 #include <iostream>
 #include <sstream>
+#include <map>
 
 // External includes
 
@@ -78,6 +79,12 @@ public:
         const std::vector<int>& destination_ids,
         MPIDataCommunicator& comm
     );
+
+    std::vector<int> ComputeCommunicationScheduling(
+        const std::vector<int>& local_destination_ids,
+        MPIDataCommunicator& comm
+    );
+
 
 
 
@@ -175,6 +182,8 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+    bool HasEdge(std::map<int, std::map<int, int> >& graph, int i, int j);
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const

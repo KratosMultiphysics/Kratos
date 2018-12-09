@@ -35,7 +35,7 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
     std::vector<std::vector<int>> recv_list;
 
     //gather everything on processor 0
-   auto global_destination_ids = comm.Gatherv(local_destination_ids, global_rank );
+    auto global_destination_ids = comm.Gatherv(local_destination_ids, global_rank );
 
     if(current_rank == global_rank)
     {
@@ -53,8 +53,109 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
     return local_recv;
 }
 
+std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
+    const std::vector<int>& local_destination_ids,
+    MPIDataCommunicator& comm
+)
+{
+    const int global_rank = 0;
+    int current_rank = comm.Rank();
+
+    auto global_destination_ids = comm.Gatherv(local_destination_ids, global_rank );
+
+    std::vector< std::vector< int >> global_colors;
+    if(current_rank == global_rank)
+    {
+        global_colors.resize(global_destination_ids.size());
+
+        std::map<int, std::map<int, int> > input_graph;
+        for(unsigned int i=0; i<global_destination_ids.size(); ++i)
+        {
+            for(const auto j : global_destination_ids[i] )
+            {
+                (input_graph[i])[j] = 1;
+                (input_graph[j])[i] = 1;
+            }
+        }
+
+        int max_colors = 0;
+        std::map<int, std::map<int, int> > colored_graph;
+        for(unsigned int i=0; i<input_graph.size(); ++i)
+        {
+            for(const auto item : input_graph[i] )
+            {
+                unsigned int j = item.first;
+                if(j > i)
+                {
+                    bool found = false;
+                    int color = 0;
+                    while(!found)
+                    {
+                        if( !HasEdge(colored_graph,i,color) && !HasEdge(colored_graph,j,color) )
+                        {
+                            colored_graph[i][color] = j;
+                            colored_graph[j][color] = i;
+                            if(max_colors < static_cast<int>(color + 1))
+                                max_colors = color + 1;
+                            found = true;
+                        }
+                        color += 1;
+                    }
+                }
+            }
+        }
+
+        for(auto& item : global_colors)
+        {
+            item.resize(max_colors, -1);
+        }
+
+        for(unsigned int i=0; i<colored_graph.size();  ++i)
+        {
+            for(const auto& item : colored_graph[i] )
+            {
+                global_colors[i][item.first] = item.second;
+            }
+
+            // //output, useful for debug
+            // std::cout << " proc : " << i << std::endl;
+            // for(auto& item : global_colors[i])
+            //     std::cout << item << " ";
+            // std::cout << std::endl;
+        }
 
 
+
+
+        // for(SizeType i = 0 ; i < mrDomainsGraph.size1() ; i++) // for each domain
+        //     for(SizeType j = i + 1 ; j < mrDomainsGraph.size2() ; j++) // finding neighbor domains
+        //         if(mrDomainsGraph(i,j) != 0.00) // domain i has interface with domain j
+        //             for(SizeType color = 0 ; color < mrDomainsColoredGraph.size2() ; color++) // finding color
+        //                 if((mrDomainsColoredGraph(i,color) == -1.00) && (mrDomainsColoredGraph(j,color) == -1.00)) // the first unused color
+        //                 {
+        //                     mrDomainsColoredGraph(i,color) = j;
+        //                     mrDomainsColoredGraph(j,color) = i;
+        //                     if(mrMaxColor < static_cast<int>(color + 1))
+        //                         mrMaxColor = color + 1;
+        //                     break;
+        //                 }
+
+    }
+
+    auto colors = comm.Scatterv(global_colors, global_rank );
+
+    return colors;
+}
+
+bool MPIColoringUtilities::HasEdge(std::map<int, std::map<int, int> >& graph,
+                                   int i,
+                                   int j)
+{
+    if(graph.find(i) != graph.end())
+        if(graph[i].find(j) != graph[i].end())
+            return true;
+    return false;
+}
 
 
 }  // namespace Kratos.
