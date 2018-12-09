@@ -130,7 +130,7 @@ namespace Testing {
         array_1d<double, 3> centre_local_coords;
         geom->PointLocalCoordinates(centre_local_coords, centre);
 
-        KRATOS_CHECK_NEAR(centre_local_coords(0), 1.0/2.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(centre_local_coords(0), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(centre_local_coords(1), 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(centre_local_coords(2), 0.0, TOLERANCE);
     }
@@ -305,8 +305,8 @@ namespace Testing {
         coord[0] = 2.0/3.0;
         coord[1] = 2.0/3.0;
         coord[2] = 0.0;
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 2.0/3.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *geom;
         auto p_geom_nodes = Line2D2<Node<3>>::Pointer(new Line2D2<Node<3>>(
         Node<3>::Pointer(new Node<3>(r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z())),
