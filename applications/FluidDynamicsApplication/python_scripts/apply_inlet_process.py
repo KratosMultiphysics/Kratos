@@ -41,7 +41,7 @@ class ApplyInletProcess(KratosMultiphysics.Process):
                 "interval"                  : [0.0,"End"],
                 "interface_normal"          : [0.0,1.0,0.0],
                 "point_on_interface"        : [0.0,0.25,0.0],
-                "inlet_radius"              : 0.2
+                "inlet_radius"              : 0.05
             }
             """)
 
@@ -129,8 +129,9 @@ class ApplyInletProcess(KratosMultiphysics.Process):
         # Call the base process ExecuteFinalizeSolutionStep()
         self.aux_process.ExecuteFinalizeSolutionStep()
 
+        print( self.inlet_radius )
+
         for node in self.main_model_part.Nodes:
-            # output for control - can be removed
 
             weighting_factor_inlet_field = node.GetSolutionStepValue(KratosFluid.DISTANCE_FROM_INLET)
             weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field
