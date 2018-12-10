@@ -220,6 +220,8 @@ class AleFluidSolver(PythonSolver):
             mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
 
     def __InitializeMeshVelocityComputation(self):
+        '''Initializing the helper-class for the time-integration
+        '''
         time_int_settings = self.settings["mesh_velocity_computation"]
         time_scheme = time_int_settings["time_scheme"].GetString()
 
