@@ -20,7 +20,6 @@
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
 #include "custom_utilities/explicit_mesh_moving_utilities.h"
-// #include "custom_utilities/calculate_mesh_velocity_utility.h"
 #include "custom_utilities/mesh_velocity_calculation.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
