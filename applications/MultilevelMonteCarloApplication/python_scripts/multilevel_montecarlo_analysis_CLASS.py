@@ -23,7 +23,7 @@ from analysis_stage import AnalysisStage
 # Import exaqute
 # from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
 # in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
@@ -110,6 +110,21 @@ def EvaluateQuantityOfInterest(simulation):
     return Q
 
 
+'''
+function evaluationg the QoI and the cost of simulation, computing the mesh of level finest_level
+refining recursively from the coarsest mesh
+input:
+        finest_level              : current Multilevel MOnte Carlo level we are solving
+        pickled_coarse_model      : pickled model
+        pickled_coarse_parameters : pickled parameters
+        size_meshes               : mesh sizes for all levels
+output:
+        results_simulation : QoI_finer_level   : QoI of level fisest_level
+                             QoI_coarser_level : QoI of level finest_level - 1
+                             finer_level       : finest level
+                             coarser_level     : finest_level - 1
+                             total_MLMC_time   : execution time
+'''
 def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_coarse_model)
@@ -139,7 +154,7 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
             '''refine if level < finest level exploiting the solution just computed'''
             if (lev < finest_level):
                 '''refine the model Kratos object'''
-                model_refined = refinement.compute_refinement_from_analysisstage_object(simulation,size_meshes[lev+1],size_meshes[lev])
+                model_refined = refinement.compute_refinement_hessian_metric(simulation,size_meshes[lev+1],size_meshes[lev])
                 '''initialize the model Kratos object'''
                 simulation = MultilevelMonteCarloAnalysis(model_refined,current_parameters,sample)
                 simulation.Initialize()
@@ -157,15 +172,13 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
     return(results_simulation)
 
 
-
-
 '''
-function serializing the model and the parameters of the problem
+function serializing and pickling the model and the parameters of the problem
 the idea is the following:
-first from Model/Parameters Kratos object to StreamSerializer Kratos object
-second from StreamSerializer Kratos object to pickle string
-third from pickle string to StreamSerializer Kratos object
-fourth from StreamSerializer Kratos object to Model/Parameters Kratos object
+i)   from Model/Parameters Kratos object to StreamSerializer Kratos object
+ii)  from StreamSerializer Kratos object to pickle string
+iii) from pickle string to StreamSerializer Kratos object
+iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
 input:
         parameter_file_name   : path of the Project Parameters file
 output:
@@ -173,28 +186,64 @@ output:
         serialized_parameters : project parameters serialized
 '''
 # @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
-def serialize_model_projectparameters(parameter_file_name):
+def SerializeModelParameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
-
+    '''initialize'''
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
-
+    '''save and pickle model and parameters'''
     serialized_model = KratosMultiphysics.StreamSerializer()
     serialized_model.Save("ModelSerialization",simulation.model)
-
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
-
     # pickle dataserialized_data
     pickled_model = pickle.dumps(serialized_model, 2)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
-
     return pickled_model, pickled_parameters
+
+
+'''
+function executing the problem
+input:
+        model       : serialization of the model
+        parameters  : serialization of the Project Parameters
+output:
+        QoI                   : Quantity of Interest
+        serialized_model      : model serialized
+        serialized_parameters : parameters serialized
+'''
+# @ExaquteTask(returns=2)
+def ExecuteRefinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
+    fake_sample = 1.0
+    '''overwrite the old model serializer with the unpickled one'''
+    model_serializer_coarse = pickle.loads(pickled_model_coarse)
+    model_coarse = KratosMultiphysics.Model()
+    model_serializer_coarse.Load("ModelSerialization",model_coarse)
+    del(model_serializer_coarse)
+    '''overwrite the old parameters serializer with the unpickled one'''
+    serialized_parameters = pickle.loads(pickled_parameters)
+    parameters_refinement = KratosMultiphysics.Parameters()
+    serialized_parameters.Load("ParametersSerialization",parameters_refinement)
+    del(serialized_parameters)
+    simulation_coarse = MultilevelMonteCarloAnalysis(model_coarse,parameters_refinement,fake_sample)
+    simulation_coarse.Run()
+    QoI =  EvaluateQuantityOfInterest(simulation_coarse)
+    '''refine'''
+    model_refined = refinement.compute_refinement_hessian_metric(simulation_coarse,min_size,max_size)
+    '''initialize'''
+    simulation = MultilevelMonteCarloAnalysis(model_refined,parameters_refinement,fake_sample)
+    simulation.Initialize()
+    '''serialize model and pickle it'''
+    serialized_model = KratosMultiphysics.StreamSerializer()
+    serialized_model.Save("ModelSerialization",simulation.model)
+    pickled_model_refined = pickle.dumps(serialized_model, 2)
+    return QoI,pickled_model_refined
+
 
 
 
@@ -215,11 +264,11 @@ def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+    parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
-    pickled_model,pickled_parameters = serialize_model_projectparameters(parameter_file_name)
+    pickled_model,pickled_parameters = SerializeModelParameters(parameter_file_name)
     print("\n############## Serialization completed ##############\n")
-
+    
     '''define setting parameters of the ML simulation'''
     k0   = 0.1 # Certainty Parameter 0 rates
     k1   = 0.1 # Certainty Parameter 1 rates
@@ -230,7 +279,7 @@ if __name__ == '__main__':
     cphi = 1.0 # Confidence on tolerance
     N0   = 15 # Number of samples for iter 0
     L0   = 2 # Number of levels for iter 0
-    Lmax = 4
+    Lmax = 4 # maximum number of levels
     M = 2 # mesh refinement coefficient
     initial_mesh_size = 0.5
     settings_ML_simulation = [k0,k1,r1,r2,tol0,tolF,cphi,N0,L0,Lmax,M,initial_mesh_size]
