@@ -146,7 +146,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
             "move_mesh_strategy": 0,
             "periodic": "periodic",
             "move_mesh_flag": false,
-            "turbulence_model": "None"
+            "turbulence_model": "None",
+            "compute_time_averaged_results": false
         }""")
 
         ## Backwards compatibility -- deprecation warnings
@@ -229,6 +230,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.Q_VALUE)
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
+        if self.settings["compute_time_averaged_results"].GetBool() == True:
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TIME_AVERAGED_VELOCITY)
+            self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.TIME_AVERAGED_PRESSURE)
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverMonolithic", "Fluid solver variables added correctly.")
 
