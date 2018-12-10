@@ -30,6 +30,9 @@ def CreateSolver(model, custom_settings):
         elif (solver_type == "Compressible"):
             solver_module_name = "navier_stokes_compressible_solver"
 
+        elif (solver_type == "TimeAveraged"):
+            solver_module_name = "navier_stokes_time_averaged_solver"
+
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper")
 
