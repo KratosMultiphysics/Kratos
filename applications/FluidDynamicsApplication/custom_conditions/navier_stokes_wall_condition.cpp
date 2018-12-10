@@ -658,34 +658,26 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
     }
 
     // Computation of the values for a single node
-    std::vector<array_1d<double,TNumNodes>> NodalEntriesRHS(TNumNodes);
     for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
         const double viscosity = rGeom[nnode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
         const double navier_slip_length = rGeom[nnode].GetValue(SLIP_LENGTH);
         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
-
         const double nodal_beta = viscosity / navier_slip_length;
 
-        NodalEntriesRHS[nnode] = ZeroVector(TNumNodes);
         const array_1d<double, TNumNodes> N = rDataStruct.N;
         const double wGauss = rDataStruct.wGauss;
         Vector InterpolatedTraction = ZeroVector(TNumNodes);
         for( unsigned int comp = 0; comp < TNumNodes; comp++){
-
             for (unsigned int i = 0; i < TNumNodes; i++){
                 // necessary because VELOCITY with 3 entries even in 2D case
                 InterpolatedTraction[i] -= N[comp] * rGeom[comp].FastGetSolutionStepValue(VELOCITY)[i];
             }
         }
         // application of the nodal projection matrix
-        NodalEntriesRHS[nnode] = prod( NodalProjectionMatrix[nnode], (wGauss * N[nnode] * nodal_beta * InterpolatedTraction) );
-    }
-
-    // putting the RHS together
-    for (unsigned int node = 0; node < TNumNodes; node++){
+        const array_1d<double,TNumNodes> NodalEntriesRHS = prod( NodalProjectionMatrix[nnode], (wGauss * N[nnode] * nodal_beta * InterpolatedTraction) );
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( node*(TNumNodes+1) + entry ) += NodalEntriesRHS[node][entry];
+            rRightHandSideVector( nnode*(TNumNodes+1) + entry ) += NodalEntriesRHS[entry];
         }
     }
 
@@ -722,7 +714,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSCo
         const double viscosity = rGeom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
         const double navier_slip_length = rGeom[inode].GetValue(SLIP_LENGTH);
         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
-
         const double nodal_beta = viscosity / navier_slip_length;
 
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
