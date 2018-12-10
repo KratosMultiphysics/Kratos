@@ -90,9 +90,6 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         self.frequency = self.params["time_frequency"].GetDouble()
         self.historical_value = self.params["historical_value"].GetBool()
         self.data =  read_external_json(input_file_name)
-        
-        # Initialize counter
-        self.step_counter = 0
 
         # Initialize counter
         self.step_counter = 0
@@ -140,14 +137,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             for node in self.sub_model_part.Nodes:
                 compute = self.__check_flag(node)
 
-                if compute:
+                if compute is True:
                     for i in range(self.params["check_variables"].size()):
                         out = self.params["check_variables"][i]
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-                        if self.historical_value:
+                        if self.historical_value is True:
                             value = node.GetSolutionStepValue(variable, 0)
                         else:
                             value = node.GetValue(variable)
@@ -194,7 +191,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             for elem in self.sub_model_part.Elements:
                 compute = self.__check_flag(elem)
 
-                if compute:
+                if compute is True:
                     for i in range(self.params["gauss_points_check_variables"].size()):
                         out = self.params["gauss_points_check_variables"][i]
                         variable_name = out.GetString()
