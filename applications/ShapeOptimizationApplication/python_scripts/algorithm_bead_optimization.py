@@ -119,25 +119,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
 
         self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
 
-        # Specify bounds
-        if self.bead_side == "positive":
-            VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes)
-            VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.5, self.design_surface.Nodes)
-            self.lower_bound = 0.0
-            self.upper_bound = 1.0
-        elif self.bead_side == "negative":
-            VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes)
-            VariableUtils().SetScalarVar(ALPHA_MAPPED, -0.5, self.design_surface.Nodes)
-            self.lower_bound = -1.0
-            self.upper_bound = 0.0
-        elif self.bead_side == "both":
-            VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes)
-            VariableUtils().SetScalarVar(ALPHA_MAPPED, 0.0, self.design_surface.Nodes)
-            self.lower_bound = -1.0
-            self.upper_bound = 1.0
-        else:
-            raise RuntimeError("Specified bead direction mode not supported!")
-
         # Identify fixed design areas
         VariableUtils().SetFlag(BOUNDARY, False, self.optimization_model_part.Nodes)
 
@@ -148,6 +129,25 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             sub_model_part_name = self.algorithm_settings["fix_boundaries"][itr].GetString()
             node_set = self.optimization_model_part.GetSubModelPart(sub_model_part_name).Nodes
             search_based_functions.FlagNodesInRadius(node_set, BOUNDARY, radius)
+
+        # Specify bounds and assign starting values for ALPHA
+        if self.bead_side == "positive":
+            VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes, BOUNDARY, False)
+            self.lower_bound = 0.0
+            self.upper_bound = 1.0
+        elif self.bead_side == "negative":
+            VariableUtils().SetScalarVar(ALPHA, -0.5, self.design_surface.Nodes, BOUNDARY, False)
+            self.lower_bound = -1.0
+            self.upper_bound = 0.0
+        elif self.bead_side == "both":
+            VariableUtils().SetScalarVar(ALPHA, 0.0, self.design_surface.Nodes, BOUNDARY, False)
+            self.lower_bound = -1.0
+            self.upper_bound = 1.0
+        else:
+            raise RuntimeError("Specified bead direction mode not supported!")
+
+        # Initialize ALPHA_MAPPED according to initial ALPHA values
+        self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
         # Specify bead direction
         bead_direction = self.algorithm_settings["bead_direction"].GetVector()
