@@ -386,7 +386,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(SLIP_LENGTH);
 
 			// Process info creation
             double delta_time = 0.01;
@@ -564,7 +563,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(SLIP_LENGTH);
 
 			// Process info creation
             double delta_time = 0.01;
@@ -816,7 +814,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(SLIP_LENGTH);
 
 			// Process info creation
             double delta_time = 0.01;
@@ -1004,7 +1001,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(SLIP_LENGTH);
 
 			// Process info creation
             double delta_time = 0.01;
@@ -1188,7 +1184,6 @@ namespace Kratos {
 			modelPart.AddNodalSolutionStepVariable(DISTANCE);
             modelPart.AddNodalSolutionStepVariable(NORMAL);
 			modelPart.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE);
-			modelPart.AddNodalSolutionStepVariable(SLIP_LENGTH);
 
 			// Process info creation
             double delta_time = 0.01;
