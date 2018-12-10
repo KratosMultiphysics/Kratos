@@ -22,15 +22,15 @@
 
 namespace Kratos
 {
-//******************************* CONSTRUCTOR ****************************************
-//************************************************************************************
+/******************************* CONSTRUCTOR ***************************************/
+/***********************************************************************************/
 
 SurfaceLoadCondition3D::SurfaceLoadCondition3D()
 {
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 SurfaceLoadCondition3D::SurfaceLoadCondition3D(
     IndexType NewId,
@@ -40,8 +40,8 @@ SurfaceLoadCondition3D::SurfaceLoadCondition3D(
 {
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 SurfaceLoadCondition3D::SurfaceLoadCondition3D(
     IndexType NewId,
@@ -52,8 +52,8 @@ SurfaceLoadCondition3D::SurfaceLoadCondition3D(
 {
 }
 
-//********************************* CREATE *******************************************
-//************************************************************************************
+/********************************* CREATE ******************************************/
+/***********************************************************************************/
 
 Condition::Pointer SurfaceLoadCondition3D::Create(
     IndexType NewId,
@@ -64,8 +64,8 @@ Condition::Pointer SurfaceLoadCondition3D::Create(
     return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, pGeom, pProperties);
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 Condition::Pointer SurfaceLoadCondition3D::Create(
     IndexType NewId,
@@ -76,18 +76,18 @@ Condition::Pointer SurfaceLoadCondition3D::Create(
     return Kratos::make_shared<SurfaceLoadCondition3D>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
-//******************************* DESTRUCTOR *****************************************
-//************************************************************************************
+/******************************* DESTRUCTOR ****************************************/
+/***********************************************************************************/
 
 SurfaceLoadCondition3D::~SurfaceLoadCondition3D()
 {
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SurfaceLoadCondition3D::CalculateAndSubKp(
-    Matrix& K,
+    Matrix& rK,
     const array_1d<double, 3>& rTangentXi,
     const array_1d<double, 3>& rTangentEta,
     const Matrix& rDN_De,
@@ -119,34 +119,34 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
             noalias(Kij) -= coeff * cross_tangent_eta;
 
             // NOTE TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            MathUtils<double>::SubtractMatrix(K, Kij, RowIndex, column_index);
+            MathUtils<double>::SubtractMatrix(rK, Kij, RowIndex, column_index);
         }
     }
 
     KRATOS_CATCH("")
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SurfaceLoadCondition3D::MakeCrossMatrix(
-    BoundedMatrix<double, 3, 3>& M,
-    const array_1d<double, 3>& U
+    BoundedMatrix<double, 3, 3>& rM,
+    const array_1d<double, 3>& rU
     )
 {
-    M(0, 0) = 0.0;
-    M(0, 1) = -U[2];
-    M(0, 2) = U[1];
-    M(1, 0) = U[2];
-    M(1, 1) = 0.0;
-    M(1, 2) = -U[0];
-    M(2, 0) = -U[1];
-    M(2, 1) = U[0];
-    M(2, 2) = 0.0;
+    rM(0, 0) = 0.0;
+    rM(0, 1) = -rU[2];
+    rM(0, 2) = rU[1];
+    rM(1, 0) = rU[2];
+    rM(1, 1) = 0.0;
+    rM(1, 2) = -rU[0];
+    rM(2, 0) = -rU[1];
+    rM(2, 1) = rU[0];
+    rM(2, 2) = 0.0;
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SurfaceLoadCondition3D::CalculateAndAddPressureForce(
     VectorType& rResidualVector,
@@ -172,8 +172,8 @@ void SurfaceLoadCondition3D::CalculateAndAddPressureForce(
     KRATOS_CATCH("")
 }
 
-//***********************************************************************************
-//***********************************************************************************
+/***********************************************************************************/
+/***********************************************************************************/
 
 void SurfaceLoadCondition3D::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
@@ -185,7 +185,7 @@ void SurfaceLoadCondition3D::CalculateAll(
 {
     KRATOS_TRY;
 
-    auto& r_geometry = GetGeometry();
+    const auto& r_geometry = GetGeometry();
     const std::size_t number_of_nodes = r_geometry.size();
     const std::size_t mat_size = number_of_nodes * 3;
 
@@ -249,7 +249,7 @@ void SurfaceLoadCondition3D::CalculateAll(
         r_geometry.Jacobian(J, point_number, integration_method);
         const double detJ = MathUtils<double>::GeneralizedDet(J);
         const double integration_weight = GetIntegrationWeight(integration_points, point_number, detJ);
-        const auto& N = row(Ncontainer, point_number);
+        const auto& rN = row(Ncontainer, point_number);
 
         tangent_xi[0]  = J(0, 0);
         tangent_eta[0] = J(0, 1);
@@ -264,19 +264,19 @@ void SurfaceLoadCondition3D::CalculateAll(
         // Calculating the pressure on the gauss point
         double pressure = 0.0;
         for (std::size_t ii = 0; ii < number_of_nodes; ii++) {
-            pressure += N[ii] * pressure_on_nodes[ii];
+            pressure += rN[ii] * pressure_on_nodes[ii];
         }
 
         // Adding pressure force
         if (std::abs(pressure) > std::numeric_limits<double>::epsilon()) {
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag) {
-                CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], N, pressure, integration_weight);
+                CalculateAndSubKp(rLeftHandSideMatrix, tangent_xi, tangent_eta, DN_DeContainer[point_number], rN, pressure, integration_weight);
             }
 
             // RIGHT HAND SIDE VECTOR
             if (CalculateResidualVectorFlag) { //calculation of the matrix is required
-                CalculateAndAddPressureForce(rRightHandSideVector, N, normal, pressure, integration_weight, rCurrentProcessInfo);
+                CalculateAndAddPressureForce(rRightHandSideVector, rN, normal, pressure, integration_weight, rCurrentProcessInfo);
             }
         }
 
@@ -284,14 +284,14 @@ void SurfaceLoadCondition3D::CalculateAll(
         array_1d<double, 3> gauss_load = surface_load;
         for (std::size_t ii = 0; ii < number_of_nodes; ++ii) {
             if( r_geometry[ii].SolutionStepsDataHas( SURFACE_LOAD ) ) {
-                noalias(gauss_load) += N[ii] * r_geometry[ii].FastGetSolutionStepValue( SURFACE_LOAD );
+                noalias(gauss_load) += rN[ii] * r_geometry[ii].FastGetSolutionStepValue( SURFACE_LOAD );
             }
         }
 
         for (std::size_t ii = 0; ii < number_of_nodes; ++ii) {
             const std::size_t base = ii * 3;
             for(std::size_t k = 0; k < 3; ++k) {
-                rRightHandSideVector[base + k] += integration_weight * N[ii] * gauss_load[k];
+                rRightHandSideVector[base + k] += integration_weight * rN[ii] * gauss_load[k];
             }
         }
     }
