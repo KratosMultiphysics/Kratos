@@ -3,7 +3,6 @@ import os
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.TrilinosApplication import *
-CheckForPreviousImport()
 import gid_output
 
 
