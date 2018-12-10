@@ -15,7 +15,7 @@ except ImportError:
 
 
 '''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
-def compute_refinement_from_analysisstage_object(simulation_coarse,minimal_size_value,maximal_size_value):
+def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maximal_size_value):
 
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "refinement started")
     '''set NODAL_AREA and NODAL_H as non historical variables'''
@@ -58,6 +58,8 @@ def compute_refinement_from_analysisstage_object(simulation_coarse,minimal_size_
         """{
             "echo_level"                       : 0}"""
             )
+    # remesh_param.AddEmptyValue("echo_level")
+    # remesh_param["echo_level"].SetInt(mmg_remeshing_info)
     MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
     MmgProcess.Execute()
     
