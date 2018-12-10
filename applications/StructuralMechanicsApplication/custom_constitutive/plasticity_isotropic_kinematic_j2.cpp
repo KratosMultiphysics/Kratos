@@ -111,8 +111,6 @@ void PlasticityIsotropicKinematicJ2::FinalizeSolutionStep(
     const Vector&       rShapeFunctionsValues,
     const ProcessInfo&  rCurrentProcessInfo)
 {
-//     KRATOS_WARNING("PlasticityIsotropicKinematicJ2") 
-//     << "Deprecated method: FinalizeSolutionStep. >>>>> Use FinalizeMaterialResponse " << std::endl;
 }
 
 //************************************************************************************
@@ -215,9 +213,7 @@ void PlasticityIsotropicKinematicJ2::CalculateResponse6(
     const double isotropic_hardening = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     const double bulk = young / (3. - 6.*poisson); //bulk_modulus
     const double shear = young / ( 2. + 2.*poisson); //shear_modulus
-    //const double mu_lame = shear;
-    //const double lambda_lame = shear*2.*poisson / (1. - 2.*poisson);
-    constexpr double sqrt_two_thirds = std::sqrt(2.0/3.0); // sqrt_two_thirds = 0.81649658
+    const double sqrt_two_thirds = std::sqrt(2.0/3.0); // sqrt_two_thirds = 0.81649658
 
     //initialization
     rPlasticStrain = mPlasticStrain;                      //initialize value with last converged step
@@ -298,7 +294,6 @@ void PlasticityIsotropicKinematicJ2::CalculateResponse6(
                                     rMaterialProperties, r_tangent_tensor);
         }
     }
-    // KRATOS_ERROR << "STOP DEBUGGING.";
 }
 
 
@@ -362,11 +357,9 @@ void PlasticityIsotropicKinematicJ2::FinalizeMaterialResponseCauchy(Constitutive
         break;
     }
     
-    //update member variables
+    // Update member variables
     mPlasticStrain = plastic_strain;
     mEquivalentPlasticStrain = equivalent_plastic_strain;
-    
-    // KRATOS_ERROR << "STOP FOR DEBUGGING in FinalizeMaterialResponseCauchy";
 }
 
 
@@ -378,7 +371,7 @@ double PlasticityIsotropicKinematicJ2::YieldFunction(
     const Properties& rMaterialProperties
     )
 {
-    constexpr double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
+    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double isotropic_hardening = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     const double k_last = yield_stress + isotropic_hardening * mEquivalentPlasticStrain;
