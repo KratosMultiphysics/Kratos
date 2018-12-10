@@ -52,7 +52,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
-#include "utilities/binbased_fast_point_locator.h"
+#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -536,116 +536,14 @@ public:
      * If one or more material points fall in the grid element, the grid element is
      * set to be active and its connectivity is associated to the material point
      * element.
-     * STEPS:
-     * 1) All the elements are set to be INACTIVE
-     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
     */
     virtual void SearchElement(
-        ModelPart& grid_model_part,
-        ModelPart& mpm_model_part,
         const std::size_t MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5)
     {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
-
-        // Reset elements to inactive
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-
-			auto element_itr = grid_model_part.Elements().begin() + i;
-            auto& rGeom = element_itr->GetGeometry();
-			element_itr->Reset(ACTIVE);
-            if (m_GeometryElement == "Triangle"){
-                rGeom[0].Reset(ACTIVE);
-                rGeom[1].Reset(ACTIVE);
-                rGeom[2].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    rGeom[3].Reset(ACTIVE);
-                }
-            }
-            else if (m_GeometryElement == "Quadrilateral"){
-                rGeom[0].Reset(ACTIVE);
-                rGeom[1].Reset(ACTIVE);
-                rGeom[2].Reset(ACTIVE);
-                rGeom[3].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    rGeom[4].Reset(ACTIVE);
-                    rGeom[5].Reset(ACTIVE);
-                    rGeom[6].Reset(ACTIVE);
-                    rGeom[7].Reset(ACTIVE);
-                }
-            }
-		}
-
-        // Search background grid and make element active
-        Vector N;
-        const int max_result = 1000;
-
-        #pragma omp parallel
-        {
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
-
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                auto element_itr = mpm_model_part.Elements().begin() + i;
-
-                const array_1d<double,3>& xg = element_itr->GetValue(MP_COORD);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
-                    element_itr->GetGeometry() = pelem->GetGeometry();
-                    auto& rGeom = element_itr->GetGeometry();
-                    if (m_GeometryElement == "Triangle")
-                    {
-                        rGeom[0].Set(ACTIVE);
-                        rGeom[1].Set(ACTIVE);
-                        rGeom[2].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            rGeom[3].Set(ACTIVE);
-                        }
-                    }
-                    else if(m_GeometryElement == "Quadrilateral")
-                    {
-                        rGeom[0].Set(ACTIVE);
-                        rGeom[1].Set(ACTIVE);
-                        rGeom[2].Set(ACTIVE);
-                        rGeom[3].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            rGeom[4].Set(ACTIVE);
-                            rGeom[5].Set(ACTIVE);
-                            rGeom[6].Set(ACTIVE);
-                            rGeom[7].Set(ACTIVE);
-                        }
-                    }
-                }
-                else{
-                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
-                        << " is failed. Geometry is cleared." << std::endl;
-
-                    element_itr->GetGeometry().clear();
-                    element_itr->Reset(ACTIVE);
-                    element_itr->Set(TO_ERASE);
-                }
-            }
-        }
+        MPMSearchElementUtility::SearchElement<TDim>(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
     }
 
 
