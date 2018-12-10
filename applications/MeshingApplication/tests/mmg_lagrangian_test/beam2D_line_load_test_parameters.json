@@ -37,7 +37,7 @@
         },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["Parts_Parts_Auto1","DISPLACEMENT_Displacement_Auto1","LineLoad2D_Load_on_lines_Auto1"],
-        "auxiliary_variables_list" : ["NODAL_AREA"]
+        "auxiliary_variables_list" : []
     },
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
