@@ -12,8 +12,8 @@
 
 
 // System includes
-#if !defined(KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED )
-#define  KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED
+#if !defined(KRATOS_MPM_GRID_LINE_LOAD_CONDITION_2D_H_INCLUDED )
+#define      KRATOS_MPM_GRID_LINE_LOAD_CONDITION_2D_H_INCLUDED
 
 // System includes
 
@@ -50,15 +50,15 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class MPMLineLoadCondition2D
+class MPMGridLineLoadCondition2D
     : public MPMBaseLoadCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of MPMLineLoadCondition2D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMLineLoadCondition2D );
+    /// Counted pointer of MPMGridLineLoadCondition2D
+    KRATOS_CLASS_POINTER_DEFINITION( MPMGridLineLoadCondition2D );
 
 #if KRATOS_USE_AMATRIX
     typedef MatrixRow<const Matrix> RowMatrix;
@@ -71,11 +71,11 @@ public:
     ///@{
 
     /// Default constructor.
-    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
-    MPMLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry );
+    MPMGridLineLoadCondition2D( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
     /// Destructor.
-    ~MPMLineLoadCondition2D() override;
+    ~MPMGridLineLoadCondition2D() override;
 
     ///@}
     ///@name Operators
@@ -195,7 +195,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    MPMLineLoadCondition2D() {};
+    MPMGridLineLoadCondition2D() {};
 
     ///@}
 
@@ -247,15 +247,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //MPMLineLoadCondition2D& operator=(const MPMLineLoadCondition2D& rOther);
+    //MPMGridLineLoadCondition2D& operator=(const MPMGridLineLoadCondition2D& rOther);
 
     /// Copy constructor.
-    //MPMLineLoadCondition2D(const MPMLineLoadCondition2D& rOther);
+    //MPMGridLineLoadCondition2D(const MPMGridLineLoadCondition2D& rOther);
 
 
     ///@}
 
-}; // Class MPMLineLoadCondition2D
+}; // Class MPMGridLineLoadCondition2D
 
 ///@}
 ///@name Type Definitions
@@ -269,11 +269,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        MPMLineLoadCondition2D& rThis);
+        MPMGridLineLoadCondition2D& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const MPMLineLoadCondition2D& rThis)
+        const MPMGridLineLoadCondition2D& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -285,6 +285,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPM_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
+#endif // KRATOS_MPM_GRID_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
 
 

@@ -11,8 +11,9 @@
 //
 
 
-#if !defined(KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED
+// System includes
+#if !defined(KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED )
+#define      KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -21,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/mpm_base_load_condition.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -44,45 +46,38 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class MPMSurfaceLoadCondition3D
+/// Short class definition.
+/** Detail class definition.
+*/
+
+class MPMGridPointLoadCondition
     : public MPMBaseLoadCondition
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
-    // Counted pointer of MPMSurfaceLoadCondition3D
-    KRATOS_CLASS_POINTER_DEFINITION( MPMSurfaceLoadCondition3D );
-
-#if KRATOS_USE_AMATRIX
-    typedef MatrixRow<const Matrix> RowMatrix;
-#else
-    typedef Vector RowMatrix;
-#endif
+    /// Counted pointer of MPMGridPointLoadCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MPMGridPointLoadCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    // Constructor void
-    MPMSurfaceLoadCondition3D();
-
-    // Constructor using an array of nodes
-    MPMSurfaceLoadCondition3D(
+    /// Default constructor.
+    MPMGridPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
-    // Constructor using an array of nodes with properties
-    MPMSurfaceLoadCondition3D(
+    MPMGridPointLoadCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
-    // Destructor
-    ~MPMSurfaceLoadCondition3D() override;
+    /// Destructor.
+    ~MPMGridPointLoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -93,7 +88,6 @@ public:
     ///@name Operations
     ///@{
 
-    // Name Operations
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -120,22 +114,37 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+//      virtual String Info() const;
+
+    /// Print information about this object.
+//      virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+//      virtual void PrintData(std::ostream& rOStream) const;
+
+
     ///@}
     ///@name Friends
     ///@{
 
-protected:
 
+    ///@}
+
+protected:
     ///@name Protected static Member Variables
     ///@{
+
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
+
     ///@}
     ///@name Protected Operators
     ///@{
+
 
     ///@}
     ///@name Protected Operations
@@ -153,32 +162,14 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
-        const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag
         ) override;
 
-    void CalculateAndSubKp(
-        Matrix& K,
-        const array_1d<double, 3>& ge,
-        const array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const RowMatrix& N,
-        const double Pressure,
-        const double Weight );
-
-    void MakeCrossMatrix(
-        BoundedMatrix<double, 3, 3>& M,
-        const array_1d<double, 3>& U
-        );
-
-    void CalculateAndAddPressureForce(
-        VectorType& rResidualVector,
-        const RowMatrix& N,
-        const array_1d<double, 3 >& Normal,
-        const double Pressure,
-        const double Weight,
-        const ProcessInfo& rCurrentProcessInfo
-        );
+    /**
+     * It calcules the integration load for the point load
+     */
+    virtual double GetPointLoadIntegrationWeight();
 
     ///@}
     ///@name Protected  Access
@@ -188,16 +179,22 @@ protected:
     ///@name Protected Inquiry
     ///@{
 
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
+    // A protected default constructor necessary for serialization
+    MPMGridPointLoadCondition() {};
+
+    ///@}
+
 private:
-    ///@name Private static Member Variables
+    ///@name Static Member Variables
     ///@{
 
     ///@}
-    ///@name Private member Variables
+    ///@name Member Variables
     ///@{
 
     ///@}
@@ -208,20 +205,14 @@ private:
     ///@name Private Operations
     ///@{
 
+
     ///@}
     ///@name Private  Access
     ///@{
 
+
     ///@}
     ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Private LifeCycle
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
     ///@{
 
     ///@}
@@ -241,15 +232,19 @@ private:
     }
 
 
-}; // class MPMSurfaceLoadCondition3D.
+}; // Class MPMGridPointLoadCondition
 
+///@}
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
 
-} // namespace Kratos.
+}  // namespace Kratos.
 
-#endif // KRATOS_MPM_SURFACE_LOAD_CONDITION_3D_H_INCLUDED  defined
+#endif // KRATOS_MPM_GRID_POINT_LOAD_CONDITION_H_INCLUDED  defined
+
+
