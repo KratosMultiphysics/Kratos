@@ -332,14 +332,9 @@ const ConditionDataStruct& data)
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
     if (this->Is(SLIP)){
 
-        Matrix lhs_gauss_behr = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
-        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss_behr, data );
-        lhs_gauss += lhs_gauss_behr;
+        ComputeGaussPointBehrSlipLHSContribution( lhs_gauss, data );
 
-        // Maybe better with "if (FLAG == set){ etc. } ..."
-        Matrix lhs_gauss_navier = ZeroMatrix(TNumNodes*LocalSize,TNumNodes*LocalSize);
-        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss_navier, data );
-        lhs_gauss += lhs_gauss_navier;
+        ComputeGaussPointNavierSlipLHSContribution( lhs_gauss, data );
     }
 }
 
@@ -366,14 +361,9 @@ const ConditionDataStruct& data)
     // Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663
     if (this->Is(SLIP)){
 
-        Vector rhs_gauss_behr = ZeroVector(TNumNodes*LocalSize);
-        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss_behr, data );
-        rhs_gauss += rhs_gauss_behr;
+        ComputeGaussPointBehrSlipRHSContribution( rhs_gauss, data );
 
-        // Maybe better with "if (FLAG == set){ etc. } ..."
-        Vector rhs_gauss_navier = ZeroVector(TNumNodes*LocalSize);
-        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss_navier, data );
-        rhs_gauss += rhs_gauss_navier;
+        ComputeGaussPointNavierSlipRHSContribution( rhs_gauss, data );
     }
 }
 
@@ -535,7 +525,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipLHSCont
             }
         }
     }
-    rLeftHandSideMatrix = prod( ProjectionLHSMatrix, BaseLHSMatrix );
+    rLeftHandSideMatrix += prod( ProjectionLHSMatrix, BaseLHSMatrix );
 
     KRATOS_CATCH("");
 }
@@ -637,7 +627,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointBehrSlipRHSCont
 
     for (unsigned int node = 0; node < TNumNodes; node++){
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( node*(TNumNodes+1) + entry ) = NodalEntriesRHS[node][entry];
+            rRightHandSideVector( node*(TNumNodes+1) + entry ) += NodalEntriesRHS[node][entry];
         }
     }
 
@@ -703,7 +693,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
     // putting the RHS together
     for (unsigned int node = 0; node < TNumNodes; node++){
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( node*(TNumNodes+1) + entry ) = NodalEntriesRHS[node][entry];
+            rRightHandSideVector( node*(TNumNodes+1) + entry ) += NodalEntriesRHS[node][entry];
         }
     }
 
@@ -749,8 +739,6 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSCo
     array_1d<double, TNumNodes> N = rDataStruct.N;
     const double wGauss = rDataStruct.wGauss;
 
-    rLeftHandSideMatrix = ZeroMatrix( (TNumNodes + 1)*TNumNodes , (TNumNodes + 1)*TNumNodes );
-
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
 
@@ -761,7 +749,7 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSCo
 
                     const unsigned int istart = inode * (TNumNodes+1);
                     const unsigned int jstart = jnode * (TNumNodes+1);
-                    rLeftHandSideMatrix(istart + i, jstart + j) = NodalLHSContribution(i,j);
+                    rLeftHandSideMatrix(istart + i, jstart + j) += NodalLHSContribution(i,j);
                 }
             }
         }
