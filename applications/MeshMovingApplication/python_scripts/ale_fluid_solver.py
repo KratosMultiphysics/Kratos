@@ -217,6 +217,7 @@ class AleFluidSolver(PythonSolver):
                 KM.MESH_VELOCITY,
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
+            mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
 
     def __InitializeMeshVelocityComputation(self):
         time_int_settings = self.settings["mesh_velocity_computation"]
