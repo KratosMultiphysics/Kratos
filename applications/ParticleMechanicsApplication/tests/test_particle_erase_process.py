@@ -68,7 +68,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         grid_model_part     = current_model.GetModelPart("Background_Grid")
 
         # Search element
-        self.solver.SearchElement(grid_model_part, material_model_part, max_num_results, specific_tolerance)
+        self.solver.SearchElement(max_num_results, specific_tolerance)
 
 
     def test_ParticleEraseOutsideGivenDomain(self):
