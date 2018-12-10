@@ -28,10 +28,10 @@ from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
 # Import Monte Carlo library
-import mc_utilities as mc
+# import mc_utilities as mc
 
 # Import variables class
-from cmlmc_utilities_CLASS import StatisticalVariable
+from cmlmc_utilities import StatisticalVariable
 
 # Import cpickle to pickle the serializer
 try:
@@ -267,14 +267,14 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level0/ProjectParameters.json"
+        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
-    pickled_model_coarse,pickled_parameters = SerializeModelParameters(parameter_file_name)
+    pickled_model,pickled_parameters = SerializeModelParameters(parameter_file_name)
     print("\n############## Serialization completed ##############\n")
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactTask(pickled_model_coarse,pickled_parameters) 
+    ExactExpectedValueQoI = ExecuteExactTask(pickled_model,pickled_parameters) 
 
     number_samples = 10
 
@@ -286,7 +286,7 @@ if __name__ == '__main__':
     QoI.second_moment = [[] for i in range (1)]
     QoI.sample_variance = [[] for i in range (1)]
     for instance in range (0,number_samples):
-        QoI.values[0].append(ExecuteTask(pickled_model_coarse,pickled_parameters))
+        QoI.values[0].append(ExecuteTask(pickled_model,pickled_parameters))
     
     '''Compute mean, second moment and sample variance'''
     for i_sample in range (0,number_samples):
