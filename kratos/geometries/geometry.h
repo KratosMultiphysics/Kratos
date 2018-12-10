@@ -686,7 +686,7 @@ public:
     }
 
     /**
-     * @brief It computes the normal (aka normal scaled with the area) of the geometry
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
      * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
      * @return The normal in the given point
      */
@@ -723,9 +723,8 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry
-     * @param rPointLocalCoordinates Refernce to the local coordinates of the
-     * point in where the unit normal is to be computed
+     * @brief It computes the unit normal of the geometry in the given local point
+     * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
     virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const

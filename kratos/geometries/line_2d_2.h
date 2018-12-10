@@ -806,7 +806,7 @@ public:
     }
 
     /**
-     * @brief It computes the normal (aka normal scaled with the area) of the geometry
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
      * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
      * @return The normal in the given point
      */
