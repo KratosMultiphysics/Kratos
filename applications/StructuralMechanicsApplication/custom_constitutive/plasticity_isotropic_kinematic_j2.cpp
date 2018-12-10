@@ -62,7 +62,7 @@ bool PlasticityIsotropicKinematicJ2::Has(const Variable<double>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-double PlasticityIsotropicKinematicJ2::GetValue(
+double& PlasticityIsotropicKinematicJ2::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -304,7 +304,7 @@ void PlasticityIsotropicKinematicJ2::CalculateResponse6(
 //************************************************************************************
 //************************************************************************************
 
-double PlasticityIsotropicKinematicJ2::CalculateValue(
+double& PlasticityIsotropicKinematicJ2::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
          const Variable<double>& rThisVariable,
                          double& rValue)
