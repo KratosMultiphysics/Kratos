@@ -21,7 +21,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_plane_strain_2D_law.hpp"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
