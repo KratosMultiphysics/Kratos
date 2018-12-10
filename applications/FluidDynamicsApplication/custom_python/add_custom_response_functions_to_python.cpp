@@ -25,8 +25,8 @@ class PyDragResponseFunction : public DragResponseFunction<TDim>
         void FinalizeSolutionStep() override {
             PYBIND11_OVERLOAD(void, DragResponseFunction<TDim>, FinalizeSolutionStep, );
         }
-        double CalculateValue() override {
-            PYBIND11_OVERLOAD_PURE(double, DragResponseFunction<TDim>, CalculateValue, );
+        double CalculateValue(ModelPart& rModelPart) override {
+            PYBIND11_OVERLOAD_PURE(double, DragResponseFunction<TDim>, CalculateValue, rModelPart);
         }
 };
 

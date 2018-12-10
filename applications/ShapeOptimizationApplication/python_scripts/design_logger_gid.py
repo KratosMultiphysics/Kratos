@@ -46,6 +46,10 @@ class DesignLoggerGID( DesignLogger ):
         if not gid_configuration.Has("result_file_configuration"):
             gid_configuration.AddValue("result_file_configuration", minimal_gid_settings["gid_configuration"]["result_file_configuration"])
 
+        result_file_configuration = gid_configuration["result_file_configuration"]
+        if not result_file_configuration.Has("gidpost_flags"):
+            result_file_configuration.AddValue("gidpost_flags", minimal_gid_settings["gid_configuration"]["result_file_configuration"]["gidpost_flags"])
+
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
 

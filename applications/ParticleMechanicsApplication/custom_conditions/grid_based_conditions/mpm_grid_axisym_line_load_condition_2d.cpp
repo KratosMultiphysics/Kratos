@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/mpm_axisym_line_load_condition_2d.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
@@ -24,11 +24,11 @@ namespace Kratos
 /******************************* CONSTRUCTOR ***************************************/
 /***********************************************************************************/
 
-MPMAxisymLineLoadCondition2D::MPMAxisymLineLoadCondition2D(
+MPMGridAxisymLineLoadCondition2D::MPMGridAxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry
     )
-        : MPMLineLoadCondition2D( NewId, pGeometry )
+        : MPMGridLineLoadCondition2D( NewId, pGeometry )
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -36,43 +36,43 @@ MPMAxisymLineLoadCondition2D::MPMAxisymLineLoadCondition2D(
 /***********************************************************************************/
 /***********************************************************************************/
 
-MPMAxisymLineLoadCondition2D::MPMAxisymLineLoadCondition2D(
+MPMGridAxisymLineLoadCondition2D::MPMGridAxisymLineLoadCondition2D(
     IndexType NewId,
     GeometryType::Pointer pGeometry,
     PropertiesType::Pointer pProperties
     )
-        : MPMLineLoadCondition2D( NewId, pGeometry, pProperties )
+        : MPMGridLineLoadCondition2D( NewId, pGeometry, pProperties )
 {
 }
 
 /********************************* CREATE ******************************************/
 /***********************************************************************************/
 
-Condition::Pointer MPMAxisymLineLoadCondition2D::Create(
+Condition::Pointer MPMGridAxisymLineLoadCondition2D::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMAxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
+    return Kratos::make_shared<MPMGridAxisymLineLoadCondition2D>(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-Condition::Pointer MPMAxisymLineLoadCondition2D::Create(
+Condition::Pointer MPMGridAxisymLineLoadCondition2D::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
     PropertiesType::Pointer pProperties
     ) const
 {
-    return Kratos::make_shared<MPMAxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
+    return Kratos::make_shared<MPMGridAxisymLineLoadCondition2D>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
 
 /******************************* DESTRUCTOR ****************************************/
 /***********************************************************************************/
 
-MPMAxisymLineLoadCondition2D::~MPMAxisymLineLoadCondition2D()
+MPMGridAxisymLineLoadCondition2D::~MPMGridAxisymLineLoadCondition2D()
 {
 }
 
@@ -80,7 +80,7 @@ MPMAxisymLineLoadCondition2D::~MPMAxisymLineLoadCondition2D()
 /********************************* PROTECTED ***************************************/
 /***********************************************************************************/
 
-double MPMAxisymLineLoadCondition2D::GetIntegrationWeight(
+double MPMGridAxisymLineLoadCondition2D::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const unsigned int PointNumber,
     const double detJ
@@ -100,18 +100,18 @@ double MPMAxisymLineLoadCondition2D::GetIntegrationWeight(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MPMAxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
+void MPMGridAxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "MPMAxisymLineLoadCondition2D" );
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMLineLoadCondition2D );
+    rSerializer.save( "Name", "MPMGridAxisymLineLoadCondition2D" );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMGridLineLoadCondition2D );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void MPMAxisymLineLoadCondition2D::load( Serializer& rSerializer )
+void MPMGridAxisymLineLoadCondition2D::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMLineLoadCondition2D );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMGridLineLoadCondition2D );
 }
 
 } // Namespace Kratos
