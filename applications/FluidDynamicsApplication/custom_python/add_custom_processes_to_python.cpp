@@ -31,6 +31,7 @@
 #include "custom_processes/embedded_postprocess_process.h"
 #include "custom_processes/embedded_skin_visualization_process.h"
 #include "custom_processes/move_rotor_process.h"
+#include "custom_processes/time_averaging_process.h"
 #include "spaces/ublas_space.h"
 
 #include "solving_strategies/strategies/solving_strategy.h"
@@ -93,13 +94,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     class_<EmbeddedSkinVisualizationProcess, EmbeddedSkinVisualizationProcess::Pointer, Process>
     (m,"EmbeddedSkinVisualizationProcess")
-    .def(init < 
-        ModelPart&, 
-        ModelPart&, 
-        const std::vector<Variable <double> >, 
-        const std::vector<Variable< array_1d<double, 3> > >, 
-        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >, 
-        std::string, 
+    .def(init <
+        ModelPart&,
+        ModelPart&,
+        const std::vector<Variable <double> >,
+        const std::vector<Variable< array_1d<double, 3> > >,
+        const std::vector<VariableComponent<VectorComponentAdaptor< array_1d< double, 3> > > >,
+        std::string,
         const bool >())
     .def(init< ModelPart&, ModelPart&, Parameters& >())
     ;
@@ -108,6 +109,11 @@ void AddCustomProcessesToPython(pybind11::module& m)
     (m,"MoveRotorProcess")
     .def(init < ModelPart&, const double, const double, const double, const double, const double, const unsigned int >())
     .def(init< ModelPart&, Parameters& >())
+    ;
+
+    class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>
+    (m,"TimeAveragingProcess")
+    .def(init < ModelPart& >())
     ;
 
 }
