@@ -130,7 +130,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             node_set = self.optimization_model_part.GetSubModelPart(sub_model_part_name).Nodes
             search_based_functions.FlagNodesInRadius(node_set, BOUNDARY, radius)
 
-        # Specify bounds and assign starting values
+        # Specify bounds and assign starting values for ALPHA
         if self.bead_side == "positive":
             VariableUtils().SetScalarVar(ALPHA, 0.5, self.design_surface.Nodes, BOUNDARY, False)
             self.lower_bound = 0.0
@@ -145,6 +145,9 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             self.upper_bound = 1.0
         else:
             raise RuntimeError("Specified bead direction mode not supported!")
+
+        # initialize according to initial ALPHA values
+        self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
         # Specify bead direction
         bead_direction = self.algorithm_settings["bead_direction"].GetVector()
@@ -173,9 +176,6 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         is_design_converged = False
         is_max_total_iterations_reached = False
         previos_L = None
-
-        # initialize according to initial ALPHA values
-        self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
         for outer_iteration in range(1,self.max_outer_iterations+1):
             for inner_iteration in range(1,self.max_inner_iterations+1):
