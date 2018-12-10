@@ -9,6 +9,7 @@
 //  Main authors:    Fernando Rastellini
 //  Collaborators:   Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
+//                   Marcelo Raschi
 //
 
 #include "plasticity_isotropic_kinematic_j2.h"
@@ -50,9 +51,9 @@ PlasticityIsotropicKinematicJ2::~PlasticityIsotropicKinematicJ2()
 //************************************************************************************
 //************************************************************************************
 
-bool PlasticityIsotropicKinematicJ2::Has(const Variable<bool>& rThisVariable)
+bool PlasticityIsotropicKinematicJ2::Has(const Variable<double>& rThisVariable)
 {
-    if(rThisVariable == INELASTIC_FLAG){
+    if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN){
         return true;
     }
     return false;
@@ -61,30 +62,41 @@ bool PlasticityIsotropicKinematicJ2::Has(const Variable<bool>& rThisVariable)
 //************************************************************************************
 //************************************************************************************
 
-bool& PlasticityIsotropicKinematicJ2::GetValue(
-    const Variable<bool>& rThisVariable,
-    bool& rValue
+double& PlasticityIsotropicKinematicJ2::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
     )
 {
-    if(rThisVariable == INELASTIC_FLAG){
-        rValue = mPlasticEvolution;
+    if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN){
+         rValue = mEquivalentPlasticStrain;
     }
-
     return rValue;
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void PlasticityIsotropicKinematicJ2::InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
+void PlasticityIsotropicKinematicJ2::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
-    mPlasticStrainLast = ZeroVector(this->GetStrainSize());
+    if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN){
+        mEquivalentPlasticStrain = rValue;
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void PlasticityIsotropicKinematicJ2::InitializeMaterial(
+    const Properties&   rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const Vector&       rShapeFunctionsValues)
+{
+    // Initialization when material CL is created (or cloned)
     mPlasticStrain = ZeroVector(this->GetStrainSize());
-    mEquivalentPlasticStrainLast = 0.0;
     mEquivalentPlasticStrain = 0.0;
 }
 
@@ -92,13 +104,13 @@ void PlasticityIsotropicKinematicJ2::InitializeMaterial(
 //************************************************************************************
 
 void PlasticityIsotropicKinematicJ2::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
+    const Properties&   rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
+    const Vector&       rShapeFunctionsValues,
+    const ProcessInfo&  rCurrentProcessInfo)
 {
-    mPlasticStrainLast = mPlasticStrain;
-    mEquivalentPlasticStrainLast = mEquivalentPlasticStrain;
+//     KRATOS_WARNING("PlasticityIsotropicKinematicJ2") 
+//     << "Deprecated method: FinalizeSolutionStep. >>>>> Use FinalizeMaterialResponse " << std::endl;
 }
 
 //************************************************************************************
@@ -106,7 +118,7 @@ void PlasticityIsotropicKinematicJ2::FinalizeSolutionStep(
 
 void PlasticityIsotropicKinematicJ2::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    InitializeMaterialResponseCauchy(rValues); //not yet implemented
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -114,7 +126,7 @@ void PlasticityIsotropicKinematicJ2::InitializeMaterialResponsePK1(ConstitutiveL
 
 void PlasticityIsotropicKinematicJ2::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    InitializeMaterialResponseCauchy(rValues); //not yet implemented
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -122,7 +134,7 @@ void PlasticityIsotropicKinematicJ2::InitializeMaterialResponsePK2(ConstitutiveL
 
 void PlasticityIsotropicKinematicJ2::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    InitializeMaterialResponseCauchy(rValues); //not yet implemented
+    InitializeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -130,10 +142,9 @@ void PlasticityIsotropicKinematicJ2::InitializeMaterialResponseKirchhoff(Constit
 
 void PlasticityIsotropicKinematicJ2::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    mPlasticStrainLast = ZeroVector(this->GetStrainSize());
-    mPlasticStrain = ZeroVector(this->GetStrainSize());
-    mEquivalentPlasticStrainLast = 0.0;
-    mEquivalentPlasticStrain = 0.0;
+    // Initializations (if any) at each time step
+    
+    // NOTHING DONE HERE
 }
 
 //************************************************************************************
@@ -141,7 +152,7 @@ void PlasticityIsotropicKinematicJ2::InitializeMaterialResponseCauchy(Constituti
 
 void PlasticityIsotropicKinematicJ2::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
-    CalculateMaterialResponseCauchy(rValues); //not yet implemented
+    CalculateMaterialResponseCauchy(rValues); //PK1 not yet implemented
 }
 
 //************************************************************************************
@@ -149,7 +160,7 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponsePK1(ConstitutiveLa
 
 void PlasticityIsotropicKinematicJ2::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    CalculateMaterialResponseCauchy(rValues); //not yet implemented
+    CalculateMaterialResponseCauchy(rValues); //PK2 not yet implemented
 }
 
 //************************************************************************************
@@ -157,7 +168,7 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponsePK2(ConstitutiveLa
 
 void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    CalculateMaterialResponseCauchy(rValues); //not yet implemented
+    CalculateMaterialResponseCauchy(rValues); //Kirchhoff not yet implemented
 }
 
 //************************************************************************************
@@ -165,13 +176,38 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseKirchhoff(Constitu
 
 void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-        
-    Flags & r_cl_options = rValues.GetOptions();  // The flags of the law
-    Vector& r_strain_vector = rValues.GetStrainVector();
-    Vector& r_stress_vector = rValues.GetStressVector();
-    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+    BoundedArrayType plastic_strain;
+    double           equivalent_plastic_strain;
     
+    switch ( VoigtSize )
+    {
+    case 3:
+        //this->CalculateResponse3(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    case 4:
+        //this->CalculateResponse4(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    case 6:
+        this->CalculateResponse6(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void PlasticityIsotropicKinematicJ2::CalculateResponse6(
+    ConstitutiveLaw::Parameters& rValues,
+               BoundedArrayType& rPlasticStrain,
+                         double& rEquivalentPlasticStrain)
+{
+    const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+
+    Flags&      r_cl_options = rValues.GetOptions();  // The flags of the law
+    Vector&     r_strain_vector = rValues.GetStrainVector();
+    Vector&     r_stress_vector = rValues.GetStressVector();
+    MatrixType& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+
     const double young = rMaterialProperties[YOUNG_MODULUS];
     const double poisson = rMaterialProperties[POISSON_RATIO];
     const double isotropic_hardening = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
@@ -179,32 +215,24 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
     const double shear = young / ( 2. + 2.*poisson); //shear_modulus
     //const double mu_lame = shear;
     //const double lambda_lame = shear*2.*poisson / (1. - 2.*poisson);
-    const double sqrt_two_thirds = std::sqrt(2.0/3.0); // sqrt_two_thirds = 0.81649658
-    double yield_function;
-    
-    //KRATOS_WATCH(r_tangent_tensor);
+    constexpr double sqrt_two_thirds = std::sqrt(2.0/3.0); // sqrt_two_thirds = 0.81649658
 
-    mPlasticStrain = mPlasticStrainLast;                      //initialize value with last converged step
-    mEquivalentPlasticStrain = mEquivalentPlasticStrainLast;  //initialize value with last converged step
-    
-    Matrix elastic_tensor(6,6);
-    CalculateElasticMatrix(elastic_tensor, rMaterialProperties);  //compute elastic matrix
+    //initialization
+    rPlasticStrain = mPlasticStrain;                      //initialize value with last converged step
+    rEquivalentPlasticStrain = mEquivalentPlasticStrain;  //initialize value with last converged step
 
-    //KRATOS_WATCH(elastic_tensor);
-    //KRATOS_WATCH(mPlasticStrainLast);
-    //KRATOS_WATCH(r_strain_vector);
-        
-    Vector sigma_trial(6);
-    sigma_trial = prod(elastic_tensor, r_strain_vector - mPlasticStrainLast);  //elastic trial prediction
+    MatrixType elastic_tensor(VoigtSize,VoigtSize);
+    CalculateElasticMatrix6(rMaterialProperties, elastic_tensor);  //compute elastic matrix
+
+    BoundedArrayType sigma_trial;
+    sigma_trial = prod(elastic_tensor, r_strain_vector - rPlasticStrain);  //elastic trial prediction
 
     // calculate deviatoric stress vector   (  deviatoric_stress = sigma - 1/3 tr(sigma) * I  )
-    Vector deviatoric_stress = sigma_trial;
+    BoundedArrayType deviatoric_stress = sigma_trial;
     const double pressure = (sigma_trial[0] + sigma_trial[1] + sigma_trial[2]) /3.0;
     deviatoric_stress[0] -= pressure;
     deviatoric_stress[1] -= pressure;
     deviatoric_stress[2] -= pressure;
-    
-    //KRATOS_WATCH(deviatoric_stress);
 
     //euclidean norm of deviatoric stress
     const double norm_dev_stress = std::sqrt(deviatoric_stress[0]*deviatoric_stress[0] +
@@ -213,18 +241,12 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
                                           2.*deviatoric_stress[3]*deviatoric_stress[3] +
                                           2.*deviatoric_stress[4]*deviatoric_stress[4] +
                                           2.*deviatoric_stress[5]*deviatoric_stress[5]);
-    
-    //KRATOS_WATCH(norm_dev_stress);
 
     //evaluate yield function
-    yield_function = this->YieldFunction(norm_dev_stress, rMaterialProperties);
-
-    //KRATOS_WATCH(yield_function);
-
+    double yield_function = this->YieldFunction(norm_dev_stress, rMaterialProperties);
     
     if (yield_function <= 0.) {
-        
-        mPlasticEvolution = false; // ELASTIC domain
+
         if( r_cl_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
             // update the stresses
             r_stress_vector = sigma_trial;
@@ -236,9 +258,8 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
         }
         
     } else {
-        
-        mPlasticEvolution = true; // PLASTIC evolution
-        const Vector yield_normal = deviatoric_stress / norm_dev_stress;
+
+        const BoundedArrayType yield_normal = deviatoric_stress / norm_dev_stress;
 
         // Linear hardening
         // calculate plastic multiplier (consistency condition)
@@ -246,13 +267,13 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
                                  (2.* shear* (1. + (isotropic_hardening / (3.* shear))));  //Simo equation 3.3.7
 
         // update plastic strains
-        mPlasticStrain[0] += delta_gamma*yield_normal[0];
-        mPlasticStrain[1] += delta_gamma*yield_normal[1];
-        mPlasticStrain[2] += delta_gamma*yield_normal[2];
-        mPlasticStrain[3] += delta_gamma*yield_normal[3]*2;
-        mPlasticStrain[4] += delta_gamma*yield_normal[4]*2;
-        mPlasticStrain[5] += delta_gamma*yield_normal[5]*2;
-        mEquivalentPlasticStrain += sqrt_two_thirds*delta_gamma;
+        rPlasticStrain[0] += delta_gamma*yield_normal[0];
+        rPlasticStrain[1] += delta_gamma*yield_normal[1];
+        rPlasticStrain[2] += delta_gamma*yield_normal[2];
+        rPlasticStrain[3] += delta_gamma*yield_normal[3]*2;
+        rPlasticStrain[4] += delta_gamma*yield_normal[4]*2;
+        rPlasticStrain[5] += delta_gamma*yield_normal[5]*2;
+        rEquivalentPlasticStrain += sqrt_two_thirds*delta_gamma;
         
         if( r_cl_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
             // update stresses
@@ -271,11 +292,11 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
 
         if( r_cl_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             // update the tangent tensor
-            CalculateTangentTensor(delta_gamma, norm_dev_stress, yield_normal,
-                                   rMaterialProperties, r_tangent_tensor);
+            CalculateTangentTensor6(delta_gamma, norm_dev_stress, yield_normal,
+                                    rMaterialProperties, r_tangent_tensor);
         }
     }
-    //KRATOS_WATCH(r_tangent_tensor);
+    // KRATOS_ERROR << "STOP DEBUGGING.";
 }
 
 
@@ -285,18 +306,12 @@ void PlasticityIsotropicKinematicJ2::CalculateMaterialResponseCauchy(Constitutiv
 
 double& PlasticityIsotropicKinematicJ2::CalculateValue(
     ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable,
-    double& rValue
-    )
+         const Variable<double>& rThisVariable,
+                         double& rValue)
 {
     if(rThisVariable == EQUIVALENT_PLASTIC_STRAIN){
         rValue = mEquivalentPlasticStrain;
     }
-    
-    if(rThisVariable == PLASTIC_STRAIN){
-        rValue = mEquivalentPlasticStrain;
-    }
-
     return(rValue);
 }
 
@@ -329,8 +344,27 @@ void PlasticityIsotropicKinematicJ2::FinalizeMaterialResponseKirchhoff(Constitut
 
 void PlasticityIsotropicKinematicJ2::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    mPlasticStrainLast = mPlasticStrain;
-    mEquivalentPlasticStrainLast = mEquivalentPlasticStrain;
+    BoundedArrayType plastic_strain;
+    double           equivalent_plastic_strain;
+    
+    switch ( VoigtSize )
+    {
+    case 3:
+        //this->CalculateResponse3(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    case 4:
+        //this->CalculateResponse4(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    case 6:
+        this->CalculateResponse6(rValues, plastic_strain, equivalent_plastic_strain);
+        break;
+    }
+    
+    //update member variables
+    mPlasticStrain = plastic_strain;
+    mEquivalentPlasticStrain = equivalent_plastic_strain;
+    
+    // KRATOS_ERROR << "STOP FOR DEBUGGING in FinalizeMaterialResponseCauchy";
 }
 
 
@@ -342,10 +376,10 @@ double PlasticityIsotropicKinematicJ2::YieldFunction(
     const Properties& rMaterialProperties
     )
 {
-    const double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
+    constexpr double sqrt_two_thirds = std::sqrt(2.0 / 3.0);
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double isotropic_hardening = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-    const double k_last = yield_stress + isotropic_hardening * mEquivalentPlasticStrainLast;
+    const double k_last = yield_stress + isotropic_hardening * mEquivalentPlasticStrain;
 
     return NormDeviatoricStress - sqrt_two_thirds * k_last;
 }
@@ -353,9 +387,9 @@ double PlasticityIsotropicKinematicJ2::YieldFunction(
 //************************************************************************************
 //************************************************************************************
 
-void PlasticityIsotropicKinematicJ2::CalculateElasticMatrix(
-    Matrix& rElasticityTensor,
-    const Properties& rMaterialProperties
+void PlasticityIsotropicKinematicJ2::CalculateElasticMatrix6(
+    const Properties& rMaterialProperties,
+    MatrixType&  rElasticityTensor
     )
 {
     const double young = rMaterialProperties[YOUNG_MODULUS];
@@ -389,12 +423,12 @@ void PlasticityIsotropicKinematicJ2::CalculateElasticMatrix(
 //************************************************************************************
 //************************************************************************************
 
-void PlasticityIsotropicKinematicJ2::CalculateTangentTensor(
+void PlasticityIsotropicKinematicJ2::CalculateTangentTensor6(
     const double DeltaGamma,
     const double NormDeviatoricStress,
-    const Vector& rYieldNormal,
+    const BoundedArrayType& rYieldNormal,
     const Properties& rMaterialProperties,
-    Matrix& rTangentTensor
+    MatrixType& rTangentTensor
     )
 {
     const double young = rMaterialProperties[YOUNG_MODULUS];
@@ -474,8 +508,8 @@ void PlasticityIsotropicKinematicJ2::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-    rFeatures.mStrainSize = 6;
-    rFeatures.mSpaceDimension = 3;
+    rFeatures.mStrainSize = VoigtSize;
+    rFeatures.mSpaceDimension = Dimension;
 }
 
 //************************************************************************************
@@ -501,11 +535,8 @@ int PlasticityIsotropicKinematicJ2::Check(
 void PlasticityIsotropicKinematicJ2::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mPlasticEvolution", mPlasticEvolution);
     rSerializer.save("mPlasticStrain", mPlasticStrain);
-    rSerializer.save("mPlasticStrainLast", mPlasticStrainLast);
     rSerializer.save("mEquivalentPlasticStrain", mEquivalentPlasticStrain);
-    rSerializer.save("mEquivalentPlasticStrainLast", mEquivalentPlasticStrainLast);
 }
 
 //************************************************************************************
@@ -514,11 +545,8 @@ void PlasticityIsotropicKinematicJ2::save(Serializer& rSerializer) const
 void PlasticityIsotropicKinematicJ2::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.load("mPlasticEvolution", mPlasticEvolution);
     rSerializer.load("mPlasticStrain", mPlasticStrain);
-    rSerializer.load("mPlasticStrainLast", mPlasticStrainLast);
     rSerializer.load("mEquivalentPlasticStrain", mEquivalentPlasticStrain);
-    rSerializer.load("mEquivalentPlasticStrainLast", mEquivalentPlasticStrainLast);
 }
 
 } /* namespace Kratos.*/

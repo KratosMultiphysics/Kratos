@@ -29,8 +29,7 @@ namespace Kratos {
 namespace Python {
 
 PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
-{    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,INELASTIC_FLAG)
-
+{
     namespace py = pybind11;
 
     py::class_<KratosStructuralMechanicsApplication,
@@ -206,7 +205,6 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RESPONSE_VALUE)
 
     // Constitutive laws variables
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_EVOLUTION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, YIELD_STRESS_TENSION)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_STRAIN_VECTOR)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PLASTIC_DEFORMATION_GRADIENT)

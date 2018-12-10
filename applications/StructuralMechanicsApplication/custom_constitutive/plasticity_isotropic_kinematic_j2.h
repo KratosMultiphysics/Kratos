@@ -51,9 +51,7 @@ namespace Kratos
  * - POISSON_RATIO
  * - YIELD_STRESS
  * - ISOTROPIC_HARDENING_MODULUS
- * - REFERENCE_HARDENING_MODULUS (kinematic hardening modulus)
- * - INFINITY_HARDENING_MODULUS (saturation hardening modulus)
- * - HARDENING_EXPONENT
+ * @warning TODO: Kinematic hardening
  * @warning Only small strains (for the moment...)
  * @author Fernando Rastellini
  */
@@ -68,6 +66,18 @@ public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
+
+    /// The Voigt size definition
+    static constexpr SizeType VoigtSize = 6;   //3D only (for the moment)
+
+    /// The dimension definition
+    static constexpr SizeType Dimension = VoigtSize == 6 ? 3 : 2;
+
+    /// The strain/stress vector type definition
+    typedef array_1d<double, VoigtSize> BoundedArrayType;
+
+    /// The constitutive matrix type definition
+    typedef Matrix MatrixType;
 
     // Counted pointer of PlasticityIsotropicKinematicJ2
     KRATOS_CLASS_POINTER_DEFINITION(PlasticityIsotropicKinematicJ2);
@@ -116,7 +126,7 @@ public:
      */
     SizeType WorkingSpaceDimension() override
     {
-        return 3;
+        return Dimension;
     };
 
     /**
@@ -124,25 +134,35 @@ public:
      */
     SizeType GetStrainSize() override
     {
-        return 6;
+        return VoigtSize;
     };
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (bool)
+     * @brief Returns whether this constitutive Law has specified variable (double)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
-    bool Has(const Variable<bool>& rThisVariable) override;
+    bool Has(const Variable<double>& rThisVariable) override;
 
     /**
-     * @brief Returns the value of a specified variable (bool)
+     * @brief Returns the value of a specified variable (double)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
      */
-    bool& GetValue(
-        const Variable<bool>& rThisVariable,
-        bool& rValue
+    double& GetValue(
+        const Variable<double>& rThisVariable,
+        double& rValue
+        ) override;
+
+    /**
+     * @brief Sets the value of a specified variable (double)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     */
+    void SetValue(
+        const Variable<double>& rThisVariable,
+        const double& rValue,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -151,6 +171,7 @@ public:
      * @param rMaterialProperties the Properties instance of the current element
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
+     * @warning This function is deprecated.
      */
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
@@ -162,6 +183,7 @@ public:
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param rCurrentProcessInfo the current ProcessInfo instance
+     * @warning This function is deprecated.
      */
     void FinalizeSolutionStep(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
@@ -298,11 +320,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    bool mPlasticEvolution; /// Flag for elastic domain or plastic evolution
-    Vector mPlasticStrain = ZeroVector(6); /// The current plastic strain
-    Vector mPlasticStrainLast = ZeroVector(6); /// The previous plastic strain (last converged value)
-    double mEquivalentPlasticStrain; /// The current equivalent plastic strain
-    double mEquivalentPlasticStrainLast; /// The previous equivalent plastic strain (last converged value)
+    BoundedArrayType mPlasticStrain;           /// The last converged plastic strain
+    double           mEquivalentPlasticStrain; /// The last converged equivalent plastic strain
 
     ///@}
     ///@name Protected Operators
@@ -319,33 +338,47 @@ protected:
      * @return The yield function value (stress units)
      */
     double YieldFunction(
-        const double NormDeviatoricStress,
+        const double      NormDeviatoricStress,
         const Properties& rMaterialProperties
         );
 
+    /**
+     * @brief This method computes the stress and constitutive tensor for VoigtSize = 6
+     * @param rValues The norm of the deviation stress
+     * @param rPlasticStrain
+     * @param rAccumulatedPlasticStrain
+     */
+    virtual void CalculateResponse6(
+        ConstitutiveLaw::Parameters& rValues,
+        BoundedArrayType&            rPlasticStrain,
+        double&                      rAccumulatedPlasticStrain
+        );
 
     /**
-     * @brief This method computes the plastic potential
+     * @brief This method computes the constitutive tangent matrix for VoigtSize = 6
      * @param DeltaGamma The increment on the Gamma parameter
      * @param NormStressTrial The norm of the stress trial
      * @param YieldFunctionNormalVector The yield function normal vector
      * @param rMaterialProperties The properties of the material
      * @param rTangentTensor The tangent tensor/matrix to be computed
      */
-    virtual void CalculateTangentTensor(
-        const double DeltaGamma,
-        const double NormStressTrial,
-        const Vector& YieldFunctionNormalVector,
-        const Properties& rMaterialProperties,
-        Matrix& rTangentTensor
+    virtual void CalculateTangentTensor6(
+        const double            DeltaGamma,
+        const double            NormStressTrial,
+        const BoundedArrayType& rYieldFunctionNormalVector,
+        const Properties&       rMaterialProperties,
+        MatrixType&             rTangentTensor
         );
 
     /**
-     * @brief This method computes the elastic tensor
+     * @brief This method computes the elastic tensor for VoigtSize = 6
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
-    void CalculateElasticMatrix(Matrix& rElasticityTensor, const Properties& rMaterialProperties);
+    void CalculateElasticMatrix6(
+        const Properties& rMaterialProperties,
+        MatrixType&       rElasticityTensor
+        );
 
     ///@}
     ///@name Protected  Access
