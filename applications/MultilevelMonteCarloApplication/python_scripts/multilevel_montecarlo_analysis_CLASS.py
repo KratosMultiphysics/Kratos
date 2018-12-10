@@ -88,7 +88,9 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
 function generating the random sample
 here the sample has a beta distribution with parameters alpha = 2.0 and beta = 6.0
 '''
-def GenerateBetaSample(alpha,beta):
+def GenerateSample():
+    alpha = 2.0
+    beta = 6.0
     number_samples = 1
     sample = np.random.beta(alpha,beta,number_samples)
     return sample
@@ -125,6 +127,7 @@ output:
                              coarser_level     : finest_level - 1
                              total_MLMC_time   : execution time
 '''
+@ExaquteTask(returns=1)
 def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_coarse_model)
@@ -137,7 +140,7 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
     serialized_parameters.Load("ParametersSerialization",current_parameters)
     del(serialized_parameters)
     '''generate the sample'''
-    sample = GenerateBetaSample(2.0,6.0)
+    sample = GenerateSample()
     QoI = []
     start_MLMC_time = time.time()
     if(finest_level == 0):
@@ -185,7 +188,7 @@ output:
         serialized_model      : model serialized
         serialized_parameters : project parameters serialized
 '''
-# @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
+@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def SerializeModelParameters(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -203,7 +206,7 @@ def SerializeModelParameters(parameter_file_name):
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
     # pickle dataserialized_data
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
-    pickled_parameters = pickle.dumps(serialized_parameters, 2)
+    pickled_parameters = pickle.dumps(serialized_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     return pickled_model, pickled_parameters
 
 
@@ -281,7 +284,7 @@ if __name__ == '__main__':
     L0   = 2 # Number of levels for iter 0
     Lmax = 4 # maximum number of levels
     M = 2 # mesh refinement coefficient
-    initial_mesh_size = 0.5
+    initial_mesh_size = 0.5 # initial mesh size, needed to estimate mesh parameters
     settings_ML_simulation = [k0,k1,r1,r2,tol0,tolF,cphi,N0,L0,Lmax,M,initial_mesh_size]
 
     '''contruct MultilevelMonteCarlo class'''

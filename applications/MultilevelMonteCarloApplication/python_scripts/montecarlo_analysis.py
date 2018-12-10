@@ -87,7 +87,7 @@ class MonteCarloAnalysis(AnalysisStage):
 function generating the random sample
 here the sample has a beta distribution with parameters alpha = 2.0 and beta = 6.0
 '''
-def GenerateBetaSample():
+def GenerateSample():
     alpha = 2.0
     beta = 6.0
     number_samples = 1
@@ -130,7 +130,7 @@ def ExecuteTask(pickled_model, pickled_parameters):
     current_parameters = KratosMultiphysics.Parameters()
     serialized_parameters.Load("ParametersSerialization",current_parameters)
     del(serialized_parameters)
-    sample = GenerateBetaSample()
+    sample = GenerateSample()
     simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
     simulation.Run()
     QoI = EvaluateQuantityOfInterest(simulation)
@@ -176,7 +176,7 @@ output:
 '''
 @ExaquteTask(returns=2)
 def ExecuteRefinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
-    sample = GenerateBetaSample()
+    sample = GenerateSample()
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer_coarse = pickle.loads(pickled_model_coarse)
     model_coarse = KratosMultiphysics.Model()
