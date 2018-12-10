@@ -92,8 +92,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
     typedef Element::WeakPointer ElementWeakPointerType;
     
     typedef Element::Pointer ElementPointerType;
