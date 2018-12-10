@@ -176,7 +176,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMeshVelocitiesGeneralizedAlpha, MeshMovingApp
 {
     TimeDiscretization::GeneralizedAlpha gen_alpha(-0.05, 0.03);
     Model current_model;
-    const std::size_t buffer_size = TimeDiscretization::GetMinimumBufferSize(gen_alpha);
+    const std::size_t buffer_size = GetMinimumBufferSize(gen_alpha);
     const std::size_t num_steps = 3;
     const double delta_time = 0.1;
     const bool requires_mesh_acceleration = true;
