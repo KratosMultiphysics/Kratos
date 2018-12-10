@@ -15,6 +15,10 @@ except ImportError:
 
 
 '''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
+'''
+function computing the refinement of the model based on the solution on the coarse mesh,
+exploiting the hessian metric of the solution
+'''
 def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maximal_size_value):
 
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "refinement started")
