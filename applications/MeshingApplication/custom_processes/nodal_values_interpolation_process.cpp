@@ -19,6 +19,7 @@
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
 #include "utilities/geometrical_projection_utilities.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -261,7 +262,8 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
     )
 {
     // We compute the NODAL_H
-    auto find_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable>(mrDestinationMainModelPart);
+    VariableUtils().SetNonHistoricalVariable(NODAL_H, 0.0, mrDestinationMainModelPart.Nodes());
+    auto find_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(mrDestinationMainModelPart);
     find_h_process.Execute();
 
     // We initialize some values
@@ -315,7 +317,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
         // Initialize values
         PointVector points_found(allocation_size);
 
-        const double search_radius = search_factor * std::sqrt(p_node->FastGetSolutionStepValue(NODAL_H));
+        const double search_radius = search_factor * std::sqrt(p_node->GetValue(NODAL_H));
 
         const SizeType number_points_found = tree_points.SearchInRadius(p_node->Coordinates(), search_radius, points_found.begin(), allocation_size);
 

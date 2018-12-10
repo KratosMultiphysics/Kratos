@@ -102,7 +102,7 @@ public:
 
     ModelPart& GetModelPart(const std::string& rFullModelPartName);
 
-    bool HasModelPart(const std::string& rFullModelPartName);
+    bool HasModelPart(const std::string& rFullModelPartName) const;
 
     ///@}
     ///@name Operations
@@ -208,7 +208,7 @@ private:
 
     ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
 
-    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName);
+    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
 
     ///@}

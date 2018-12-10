@@ -4,10 +4,6 @@ import sys
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvDiff
@@ -21,9 +17,9 @@ def CreateSolver(main_model_part, custom_settings):
 class CoupledFluidThermalSolver(PythonSolver):
 
     def __init__(self, model, custom_settings):
-        
+
         super(CoupledFluidThermalSolver, self).__init__(model, custom_settings)
-                
+
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type" : "ThermallyCoupled",
@@ -57,7 +53,7 @@ class CoupledFluidThermalSolver(PythonSolver):
 
         import python_solvers_wrapper_fluid
         self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
-        
+
         import python_solvers_wrapper_convection_diffusion
         self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
@@ -68,9 +64,9 @@ class CoupledFluidThermalSolver(PythonSolver):
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part, self.thermal_solver.main_model_part)
 
     def ImportModelPart(self):
-        # Call the fluid solver to import the model part from the mdpa 
+        # Call the fluid solver to import the model part from the mdpa
         self.fluid_solver.ImportModelPart()
-        
+
         # Save the convection diffusion settings
         convection_diffusion_settings = self.thermal_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS)
 
@@ -78,7 +74,7 @@ class CoupledFluidThermalSolver(PythonSolver):
         modeler = KratosMultiphysics.ConnectivityPreserveModeler()
         if self.domain_size == 2:
             modeler.GenerateModelPart(self.fluid_solver.main_model_part,
-                                      self.thermal_solver.main_model_part, 
+                                      self.thermal_solver.main_model_part,
                                       "EulerianConvDiff2D",
                                       "ThermalFace2D")
         else:
@@ -93,7 +89,7 @@ class CoupledFluidThermalSolver(PythonSolver):
     def PrepareModelPart(self):
         self.fluid_solver.PrepareModelPart()
         self.thermal_solver.PrepareModelPart()
-        
+
     def AddDofs(self):
         self.fluid_solver.AddDofs()
         self.thermal_solver.AddDofs()
@@ -150,7 +146,7 @@ class CoupledFluidThermalSolver(PythonSolver):
     def SolveSolutionStep(self):
         self.fluid_solver.SolveSolutionStep()
         self.thermal_solver.SolveSolutionStep()
-        
+
     def FinalizeSolutionStep(self):
         self.fluid_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
