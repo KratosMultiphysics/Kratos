@@ -149,7 +149,7 @@ public:
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      */
-    double GetValue(
+    double& GetValue(
         const Variable<double>& rThisVariable,
         double& rValue
         ) override;
@@ -281,9 +281,9 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                          const Variable<double>& rThisVariable,
-                          double& rValue) override;
+    double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<double>& rThisVariable,
+                           double& rValue) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
