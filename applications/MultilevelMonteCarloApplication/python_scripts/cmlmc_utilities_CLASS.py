@@ -21,8 +21,7 @@ References:
 class StatisticalVariable(object):
     '''The base class for the quantity of interest and other statistical variables computed'''
     def __init__(self):
-        '''
-        Constructor of the class
+        '''constructor of the class
         Keyword arguments:
         self : an instance of a class
         '''
@@ -75,7 +74,7 @@ class StatisticalVariable(object):
 class MultilevelMonteCarlo(object):
     '''The base class for the MultilevelMonteCarlo-classes'''
     def __init__(self,settings):
-        '''The constructor of the MultilevelMonteCarlo-Object
+        '''constructor of the MultilevelMonteCarlo-Object
         Keyword arguments:
         self     : an instance of a class
         settings : the settings of the Multilevel Monte Carlo simulation
