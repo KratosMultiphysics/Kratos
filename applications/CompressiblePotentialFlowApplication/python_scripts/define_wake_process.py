@@ -157,6 +157,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                 if(nneg>0 and npos>0) and (nneg_ls>0 and npos_ls>0):
                     elem.Set(KratosMultiphysics.INTERFACE) 
+                    for elnode in elem.GetNodes():
+                        elnode.Set(KratosMultiphysics.THERMAL,True)
                     print('KUTTA ELEMENT:',elem.Id)
                     elem.Set(KratosMultiphysics.ACTIVE,True)
                     

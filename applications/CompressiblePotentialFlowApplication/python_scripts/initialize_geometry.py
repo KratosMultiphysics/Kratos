@@ -109,8 +109,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             RotateModelPart(origin,angle,self.skin_model_part)
         elif self.skin_model_part_name=='circle':
             for node in self.skin_model_part.Nodes:
-                node.X=2*node.X+1e-5
-                node.Y=2*node.Y+1e-5
+                node.X=node.X+1e-5
+                node.Y=node.Y+1e-5
 
 
     def CalculateDistance(self):
