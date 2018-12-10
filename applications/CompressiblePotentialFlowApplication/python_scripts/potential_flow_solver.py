@@ -5,14 +5,12 @@ KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
 
 def CreateSolver(model, custom_settings):
-    return LaplacianSolver(model, custom_settings["solver_settings"])
+    return PotentialSolver(model, custom_settings["solver_settings"])
 
-class LaplacianSolver(PythonSolver):
+class PotentialSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         self.MoveMeshFlag = False
-
-        #TODO: shall obtain the compute_model_part from the MODEL once the object is implemented
-        
+ 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
@@ -145,7 +143,7 @@ class LaplacianSolver(PythonSolver):
    
 
     def ImportModelPart(self):
-        
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
             print(self.settings["model_import_settings"]["input_filename"].GetString())
@@ -204,28 +202,28 @@ class LaplacianSolver(PythonSolver):
                 raise Exception("Problem type not defined!!")
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            
+
         else:
             raise Exception("other input options are not yet implemented")
         print("Solving",self.settings["problem_type"].GetString() ,"case")
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-                
+
         print ("model reading finished")
-        
+
     def GetMinimumBufferSize(self):
         return 2;
-    
+
     def GetComputingModelPart(self):
         return self.main_model_part
-        
+
     def GetOutputVariables(self):
         pass
-        
+
     def ComputeDeltaTime(self):
         pass
-        
+
     def SaveRestart(self):
         pass #one should write the restart file here
     

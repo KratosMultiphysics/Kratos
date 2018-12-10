@@ -41,7 +41,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "couette_imposed_3D"
         },
-        "dynamic_tau"                  : 1.0,
         "relative_velocity_tolerance"  : 1e-5,
         "absolute_velocity_tolerance"  : 1e-7,
         "relative_pressure_tolerance"  : 1e-5,
@@ -56,8 +55,11 @@
             "automatic_time_step" : false,
             "time_step"           : 100.0
         },
-        "is_slip": false,
-        "penalty_coefficient": 10.0
+        "formulation": {
+            "element_type": "embedded_navier_stokes",
+            "is_slip": false,
+            "dynamic_tau": 1.0
+        }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

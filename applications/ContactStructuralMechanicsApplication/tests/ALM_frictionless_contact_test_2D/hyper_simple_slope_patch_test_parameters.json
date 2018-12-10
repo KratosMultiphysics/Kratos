@@ -27,7 +27,7 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "block_builder"                      : false,
+        "block_builder"                      : true,
         "clear_storage"                      : true,
         "line_search"                        : false,
         "compute_reactions"                  : false,

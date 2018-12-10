@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
@@ -19,6 +16,12 @@ def CreateSolver(mesh_model_part, custom_settings):
 
 class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
+        if custom_settings.Has("buffer_size"):
+            buffer_size = custom_settings["buffer_size"]
+            if buffer_size < 2:
+                raise Exception("A buffer_size of at least 2 is required!")
+        else: # overwritting baseclass-default
+            custom_settings.AddEmptyValue("buffer_size").SetInt(2)
         super(MeshSolverLaplacian, self).__init__(mesh_model_part, custom_settings)
         print("::[MeshSolverLaplacian]:: Construction finished")
 

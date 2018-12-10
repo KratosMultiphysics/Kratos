@@ -43,23 +43,25 @@ Recommended references for implementation details of MPM in Kratos:
 The following features are currently available and subject to development within the Particle Mechanics Application:
 
 - A set of *Neumann* conditions:
-    * Static Point load (loads applied directly on the background nodes)
-    * Static Line load (a distributed load applied over a line)
-    * Static Surface load (a distributed load applied over a face)
+    * Grid-Based Conditions: loads applied directly on the background nodes
+        * Static Point load
+        * Static Line load (a distributed load applied over a line)
+        * Static Surface load (a distributed load applied over a face)
 
 - Solid (background) elements:
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
     * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, with Mixed Variational Methods of displacement and pressure
     * Updated Lagrangian quadrilateral elements - quadrilateral (2D) and hexahedral (3D), structured and unstructured
+    * Updated Lagrangian axis-symmetric elements - triangular and quadrilateral (2D), structured and unstructured
 
 - Constitutive laws:
-    * Linear elastic materials - plane strain, plane stress and 3D
-    * Hyperelastic Neo-Hookean laws - finite strain, plane strain and 3D
+    * Linear elastic materials - plane strain, plane stress, axis-symmetric, and 3D
+    * Hyperelastic Neo-Hookean laws - finite strain, plane strain, axis-symmetric, and 3D
     * Elasto-plastic laws:
-        * Mohr Coulomb - finite strain, associative and non-associative, plane strain and 3D
-        * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain and 3D
+        * Mohr Coulomb - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
+        * Mohr Coulomb with Strain Softening - finite strain, associative and non-associative, plane strain, axis-symmetric, and 3D
     * Critical state laws:
-        * Modified Cam-Clay - finite strain, plane strain and 3D
+        * Modified Cam-Clay - finite strain, plane strain, axis-symmetric, and 3D
 
 - Strategies and schemes:
     * Implicit - Newmark prediction and correction scheme
@@ -67,7 +69,7 @@ The following features are currently available and subject to development within
 - Other features:
     * Particle erase features - to delete particle outside the interest domain
     * Arbitrary slip boundary condition
-    
+
 Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
 ## Available Interfaces

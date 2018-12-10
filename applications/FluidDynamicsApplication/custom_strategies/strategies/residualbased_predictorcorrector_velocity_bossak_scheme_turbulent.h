@@ -578,9 +578,9 @@ namespace Kratos {
 
             //if orthogonal subscales are computed
             if (CurrentProcessInfo[OSS_SWITCH] == 1.0) {
-                if (rModelPart.GetCommunicator().MyPID() == 0)
-                    std::cout << "Computing OSS projections" << std::endl;
 
+                KRATOS_INFO_IF("ResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
+                    << "Computing OSS projections" << std::endl;
 
                 const int nnodes = static_cast<int>(rModelPart.Nodes().size());
                 auto nbegin = rModelPart.NodesBegin();

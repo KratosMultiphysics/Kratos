@@ -269,37 +269,37 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
     def test_MPC_Constraints(self):
-        dim = 2
-        current_model = KratosMultiphysics.Model()
-        self.mp= current_model.CreateModelPart("MainModelPart")
-        self._add_variables()
-        self._setup_model_part()
-        self._add_dofs()
-        self._apply_material_properties(dim)
+        if (missing_external_dependencies is False):
+            dim = 2
+            current_model = KratosMultiphysics.Model()
+            self.mp= current_model.CreateModelPart("MainModelPart")
+            self._add_variables()
+            self._setup_model_part()
+            self._add_dofs()
+            self._apply_material_properties(dim)
 
-        #time integration parameters
-        dt = 0.002
-        time = 0.0
-        end_time = 0.01
-        step = 0
+            #time integration parameters
+            dt = 0.002
+            time = 0.0
+            end_time = 0.01
+            step = 0
 
-        self._set_and_fill_buffer(2, dt)
-        # Applying boundary conditions
-        self._apply_BCs()
-        # Applying constraints
-        self._apply_mpc_constraints()
-        # Solving the system of equations
-        self._setup_solver()
+            self._set_and_fill_buffer(2, dt)
+            # Applying boundary conditions
+            self._apply_BCs()
+            # Applying constraints
+            self._apply_mpc_constraints()
+            # Solving the system of equations
+            self._setup_solver()
 
-        while (time <= end_time):
-            time = time + dt
-            step = step + 1
-            self.mp.CloneTimeStep(time)
-            self._solve()
-        # Checking the results
-        self._check_results()
-        self._reset()
-
+            while (time <= end_time):
+                time = time + dt
+                step = step + 1
+                self.mp.CloneTimeStep(time)
+                self._solve()
+            # Checking the results
+            self._check_results()
+            self._reset()
 
 if __name__ == '__main__':
     KratosUnittest.main()
