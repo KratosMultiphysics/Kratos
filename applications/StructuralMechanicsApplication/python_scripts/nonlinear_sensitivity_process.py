@@ -93,6 +93,7 @@ class NonlinearSensitivityProcess(KratosMultiphysics.Process):
     """
 
     def __init__(self, model_part, params):
+        KratosMultiphysics.Process.__init__(self)
         """ The default constructor of the class
 
         Keyword arguments:
