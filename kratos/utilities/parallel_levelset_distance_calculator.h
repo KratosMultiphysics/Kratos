@@ -795,7 +795,7 @@ private:
              {
 
                  if (Options.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE))
-                    GeometryUtils::CalculateTetrahedraDistancesToPlane(element_geometry, dist);
+                    GeometryUtils::CalculateExactDistancesToPlane(element_geometry, dist);
                  else
                     GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
 

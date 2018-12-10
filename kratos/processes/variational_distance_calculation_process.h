@@ -260,16 +260,13 @@ public:
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
                 if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
-                    if(TDim==3){
-                            GeometryUtils::CalculateTetrahedraDistancesToPlane(geom, distances);
-                        } else {
-                            GeometryUtils::CalculateTriangleDistancesToLine(geom, distances);
-                        }
+                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }
                 else {
                     if(TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                    } else {
+                    } 
+                    else {
                         GeometryUtils::CalculateTriangleDistances(geom, distances);
                     }
                 }
