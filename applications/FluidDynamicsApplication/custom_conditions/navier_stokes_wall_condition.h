@@ -394,7 +394,7 @@ private:
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointBehrSlipLHSContribution(  Matrix& rLeftHandSideMatrix,
+    void ComputeGaussPointBehrSlipLHSContribution(  BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
                                                     const ConditionDataStruct& rDataStruct );
 
 
@@ -406,7 +406,7 @@ private:
      * @param rRightHandSideVector reference to the RHS vector
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointBehrSlipRHSContribution(  VectorType& rRightHandSideVector,
+    void ComputeGaussPointBehrSlipRHSContribution(  array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                     const ConditionDataStruct& rDataStruct );
 
 
@@ -420,7 +420,7 @@ private:
      * @param rRightHandSideVector reference to the RHS vector
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointNavierSlipRHSContribution(    VectorType& rRightHandSideVector,
+    void ComputeGaussPointNavierSlipRHSContribution(    array_1d<double,TNumNodes*(TDim+1)>& rRightHandSideVector,
                                                         const ConditionDataStruct& rDataStruct );
 
 
@@ -433,7 +433,7 @@ private:
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rDataStruct reference to a struct to hand over data
      */
-    void ComputeGaussPointNavierSlipLHSContribution(    Matrix& rLeftHandSideMatrix,
+    void ComputeGaussPointNavierSlipLHSContribution(    BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
                                                         const ConditionDataStruct& rDataStruct );
 
     ///@}
