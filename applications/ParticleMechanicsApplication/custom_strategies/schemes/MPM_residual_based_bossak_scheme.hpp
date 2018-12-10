@@ -26,8 +26,6 @@
 #include "includes/element.h"
 #include "containers/array_1d.h"
 #include "solving_strategies/schemes/scheme.h"
-
-#include "particle_mechanics_application.h"
 #include "custom_utilities/mpm_boundary_rotation_utility.h"
 
 namespace Kratos

@@ -52,12 +52,12 @@
 #include "utilities/table_stream_utility.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-#include "utilities/sub_model_parts_list_utility.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
 #include "utilities/merge_variable_lists_utility.h"
 #include "utilities/variable_redistribution_utility.h"
 #include "utilities/sensitivity_builder.h"
 #include "utilities/auxiliar_model_part_utilities.h"
+#include "utilities/time_discretization.h"
 
 namespace Kratos {
 namespace Python {
@@ -73,7 +73,7 @@ void SetOnProcessInfo(
     rCurrentProcessInfo[TABLE_UTILITY] = pTable;
 }
 
-// Embedded skin utility auxiliar functions 
+// Embedded skin utility auxiliar functions
 template<std::size_t TDim>
 void InterpolateMeshVariableToSkinDouble(
     EmbeddedSkinUtility<TDim> &rEmbeddedSkinUtility,
@@ -170,7 +170,7 @@ void ModelPartRemoveConditionAndBelongingsFromAllLevels4(AuxiliarModelPartUtilit
 {
     rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);
 }
-  
+
 void AddUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -690,14 +690,6 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("ReadMaterials",&ReadMaterialsUtility::ReadMaterials)
     ;
 
-    // SubModelParts List Utility
-    py::class_<SubModelPartsListUtility, typename SubModelPartsListUtility::Pointer>(m, "SubModelPartsListUtility")
-        .def(py::init<ModelPart&>())
-        .def("DebugComputeSubModelPartsList",&SubModelPartsListUtility::DebugComputeSubModelPartsList)
-        .def("GetRecursiveSubModelPartNames",&SubModelPartsListUtility::GetRecursiveSubModelPartNames)
-        .def("GetRecursiveSubModelPart",&SubModelPartsListUtility::GetRecursiveSubModelPart)
-        ;
-
     // AssignUniqueModelPartCollectionTagUtility
     py::class_<AssignUniqueModelPartCollectionTagUtility, typename AssignUniqueModelPartCollectionTagUtility::Pointer>(m, "AssignUniqueModelPartCollectionTagUtility")
         .def(py::init<ModelPart&>())
@@ -739,28 +731,97 @@ void AddUtilitiesToPython(pybind11::module& m)
     // Auxiliar ModelPart Utility
 
     py::class_<AuxiliarModelPartUtilities, typename AuxiliarModelPartUtilities::Pointer>(m, "AuxiliarModelPartUtilities")
-    .def(py::init<ModelPart&>())
-    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
-    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
-    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
-    .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings4)
-    .def("RemoveElementsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongings)
-    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels1)
-    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels2)
-    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels3)
-    .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels4)
-    .def("RemoveElementsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels)
-    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings1)
-    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings2)
-    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings3)
-    .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings4)
-    .def("RemoveConditionsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongings)
-    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels1)
-    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels2)
-    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels3)
-    .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels4)
-    .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
-    ;
+        .def(py::init<ModelPart&>())
+        .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings1)
+        .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings2)
+        .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings3)
+        .def("RemoveElementAndBelongings", ModelPartRemoveElementAndBelongings4)
+        .def("RemoveElementsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongings)
+        .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels1)
+        .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels2)
+        .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels3)
+        .def("RemoveElementAndBelongingsFromAllLevels", ModelPartRemoveElementAndBelongingsFromAllLevels4)
+        .def("RemoveElementsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveElementsAndBelongingsFromAllLevels)
+        .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings1)
+        .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings2)
+        .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings3)
+        .def("RemoveConditionAndBelongings", ModelPartRemoveConditionAndBelongings4)
+        .def("RemoveConditionsAndBelongings", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongings)
+        .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels1)
+        .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels2)
+        .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels3)
+        .def("RemoveConditionAndBelongingsFromAllLevels", ModelPartRemoveConditionAndBelongingsFromAllLevels4)
+        .def("RemoveConditionsAndBelongingsFromAllLevels", &Kratos::AuxiliarModelPartUtilities::RemoveConditionsAndBelongingsFromAllLevels)
+        ;
+
+    py::class_<TimeDiscretization::BDF1>(m, "BDF1")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF1::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF2>(m, "BDF2")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF2::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF3>(m, "BDF3")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF3::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF4>(m, "BDF4")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF4::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF5>(m, "BDF5")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF5::ComputeBDFCoefficients)
+        ;
+    py::class_<TimeDiscretization::BDF6>(m, "BDF6")
+        .def(py::init<>())
+        .def("ComputeBDFCoefficients", &TimeDiscretization::BDF6::ComputeBDFCoefficients)
+        ;
+
+    py::class_<TimeDiscretization::Newmark>(m, "Newmark")
+        .def(py::init<>())
+        .def(py::init<const double, const double>())
+        .def("GetBeta", &TimeDiscretization::Newmark::GetBeta)
+        .def("GetGamma", &TimeDiscretization::Newmark::GetGamma)
+        ;
+    py::class_<TimeDiscretization::Bossak>(m, "Bossak")
+        .def(py::init<>())
+        .def(py::init<const double>())
+        .def(py::init<const double, const double, const double>())
+        .def("GetBeta", &TimeDiscretization::Bossak::GetBeta)
+        .def("GetGamma", &TimeDiscretization::Bossak::GetGamma)
+        .def("GetAlphaM", &TimeDiscretization::Bossak::GetAlphaM)
+        ;
+    py::class_<TimeDiscretization::GeneralizedAlpha>(m, "GeneralizedAlpha")
+        .def(py::init<>())
+        .def(py::init<const double, const double>())
+        .def(py::init<const double, const double, const double, const double>())
+        .def("GetBeta", &TimeDiscretization::GeneralizedAlpha::GetBeta)
+        .def("GetGamma", &TimeDiscretization::GeneralizedAlpha::GetGamma)
+        .def("GetAlphaM", &TimeDiscretization::GeneralizedAlpha::GetAlphaM)
+        .def("GetAlphaF", &TimeDiscretization::GeneralizedAlpha::GetAlphaF)
+        ;
+
+    std::size_t (*GetMinimumBufferSizeBDF1)(const TimeDiscretization::BDF1&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBDF2)(const TimeDiscretization::BDF2&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBDF3)(const TimeDiscretization::BDF3&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBDF4)(const TimeDiscretization::BDF4&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBDF5)(const TimeDiscretization::BDF5&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBDF6)(const TimeDiscretization::BDF6&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeNewmark)(const TimeDiscretization::Newmark&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeBossak)(const TimeDiscretization::Bossak&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeGneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
+
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF1 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF2 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF3 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF4 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF5 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF6 );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGneralizedAlpha );
 }
 
 } // namespace Python.
