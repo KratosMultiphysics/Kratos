@@ -205,7 +205,7 @@ def execution_task_refinement(pickled_model_coarse, pickled_parameters, min_size
     QoI =  EvaluateQuantityOfInterest(simulation_coarse)
 
     '''refine here'''
-    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)
+    model_refined = refinement.compute_refinement_hessian_metric(simulation_coarse,min_size,max_size)
     
     '''initialize'''
     simulation = MonteCarloAnalysis(model_refined,parameters_refinement,sample)
@@ -290,7 +290,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model_0,pickled_parameters = serialize_model_projectparameters(parameter_file_name)
