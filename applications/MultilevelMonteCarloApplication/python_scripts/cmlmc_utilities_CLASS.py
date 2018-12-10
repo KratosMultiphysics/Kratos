@@ -81,8 +81,8 @@ class MultilevelMonteCarlo(object):
         '''
 
         '''
-        k0   : Certainty Parameter 0 rates
-        k1   : Certainty Parameter 1 rates
+        k0   : Certainty Parameter 0 rates (confidence in the variance models)
+        k1   : Certainty Parameter 1 rates (confidence in the weak convergence model)
         r1   : Cost increase first iterations C-MLMC
         r2   : Cost increase final iterations C-MLMC
         tol0 : Tolerance iter 0

@@ -202,7 +202,7 @@ def SerializeModelParameters(parameter_file_name):
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
     # pickle dataserialized_data
-    pickled_model = pickle.dumps(serialized_model, 2)
+    pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
     return pickled_model, pickled_parameters
 
@@ -256,7 +256,7 @@ output :
         relative_error        : relative error
 '''
 # @ExaquteTask(returns=1)
-def compare_mean(AveragedMeanQoI,ExactExpectedValueQoI):
+def CompareMean(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
 
@@ -270,8 +270,8 @@ if __name__ == '__main__':
     print("\n############## Serialization completed ##############\n")
     
     '''define setting parameters of the ML simulation'''
-    k0   = 0.1 # Certainty Parameter 0 rates
-    k1   = 0.1 # Certainty Parameter 1 rates
+    k0   = 0.1 # Certainty Parameter 0 rates (confidence in the variance models)
+    k1   = 0.1 # Certainty Parameter 1 rates (confidence in the weak convergence model)
     r1   = 1.25 # Cost increase first iterations C-MLMC
     r2   = 1.15 # Cost increase final iterations C-MLMC
     tol0 = 0.25 # Tolerance iter 0
