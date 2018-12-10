@@ -644,22 +644,19 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
-    std::vector< BoundedMatrix<double, TNumNodes, TNumNodes> > NodalProjectionMatrix(TNumNodes);
-    for(unsigned int nnode = 0; nnode < TNumNodes; nnode++){
+    for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
 
+        // finding the nodal projection matrix nodal_projection_matrix = ( [I] - (na)(na) )
+        BoundedMatrix<double, TNumNodes, TNumNodes> nodal_projection_matrix;
         array_1d<double,3> nodal_normal = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
         double sum_of_squares = 0.0;
         for (unsigned int j = 0; j < 3; j++){
             sum_of_squares += nodal_normal[j] * nodal_normal[j];
         }
         nodal_normal /= sqrt(sum_of_squares);
-        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, NodalProjectionMatrix[nnode] );
-    }
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
 
-    // Computation of the values for a single node
-    for (unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-
+        // finding the coefficent to relate velocity to drag
         const double viscosity = rGeom[nnode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
         const double navier_slip_length = rGeom[nnode].GetValue(SLIP_LENGTH);
         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
@@ -667,17 +664,17 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipRHSCo
 
         const array_1d<double, TNumNodes> N = rDataStruct.N;
         const double wGauss = rDataStruct.wGauss;
-        Vector InterpolatedTraction = ZeroVector(TNumNodes);
+        Vector interpolated_velocity = ZeroVector(TNumNodes);
         for( unsigned int comp = 0; comp < TNumNodes; comp++){
             for (unsigned int i = 0; i < TNumNodes; i++){
                 // necessary because VELOCITY with 3 entries even in 2D case
-                InterpolatedTraction[i] -= N[comp] * rGeom[comp].FastGetSolutionStepValue(VELOCITY)[i];
+                interpolated_velocity[i] -= N[comp] * rGeom[comp].FastGetSolutionStepValue(VELOCITY)[i];
             }
         }
         // application of the nodal projection matrix
-        const array_1d<double,TNumNodes> NodalEntriesRHS = prod( NodalProjectionMatrix[nnode], (wGauss * N[nnode] * nodal_beta * InterpolatedTraction) );
+        const array_1d<double,TNumNodes> nodal_entry_rhs = prod( nodal_projection_matrix, (wGauss * N[nnode] * nodal_beta * interpolated_velocity) );
         for (unsigned int entry = 0; entry < TNumNodes; entry++){
-            rRightHandSideVector( nnode*(TNumNodes+1) + entry ) += NodalEntriesRHS[entry];
+            rRightHandSideVector( nnode*(TNumNodes+1) + entry ) += nodal_entry_rhs[entry];
         }
     }
 
