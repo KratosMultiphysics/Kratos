@@ -686,18 +686,16 @@ public:
     }
 
     /**
-     * It computes the normal of the geometry, if possible
-     * @return The normal of the geometry
+     * @brief It computes the normal (aka normal scaled with the area) of the geometry
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
      */
     virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
 
-        if (dimension == local_space_dimension)
-        {
-            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        }
+        KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
         array_1d<double,3> tangent_xi(3, 0.0);
@@ -707,18 +705,13 @@ public:
         this->Jacobian( j_node, rPointLocalCoordinates);
 
         // Using the Jacobian tangent directions
-        if (dimension == 2)
-        {
+        if (dimension == 2) {
             tangent_eta[2] = 1.0;
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
             }
-        }
-        else
-        {
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
+        } else {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
                 tangent_eta[i_dim] = j_node(i_dim, 1);
             }

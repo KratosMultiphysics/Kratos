@@ -823,10 +823,9 @@ public:
     }
 
     /**
-     * It computes the area normal of the geometry
-     * @param rPointLocalCoordinates Local coordinates of the point
-     * in where the area normal is to be computed
-     * @return The area normal in the given point
+     * @brief It computes the normal (aka normal scaled with the area) of the geometry
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
      */
     array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
