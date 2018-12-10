@@ -307,7 +307,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = nodes_array.begin() + i;
-        it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->GetValue(NODAL_AREA);
     }
 }
 

@@ -25,7 +25,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         # We add the variables needed
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
         # We import the model main_model_part
         file_path = os.path.dirname(os.path.realpath(__file__))
@@ -34,6 +33,7 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         # We calculate the gradient of the distance variable
         find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(main_model_part)
         find_nodal_h.Execute()
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, main_model_part.Nodes)
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess3D(main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
         local_gradient.Execute()
 
@@ -63,7 +63,6 @@ class TestRemeshMMG(KratosUnittest.TestCase):
         }
         """)
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess3D(main_model_part, KratosMultiphysics.DISTANCE_GRADIENT, MetricParameters)
-
         metric_process.Execute()
 
         mmg_parameters = KratosMultiphysics.Parameters("""
