@@ -94,8 +94,8 @@ public:
           mNewmarkGamma(NewmarkGamma) {}
 
     double GetAlphaM() const { return mAlphaM; }
-    double GetBeta()   const { return mNewmarkGamma + mAlphaM; }
-    double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM) * (1+mAlphaM); }
+    double GetBeta()   const { return mNewmarkBeta * (1-mAlphaM) * (1-mAlphaM); }
+    double GetGamma()  const { return mNewmarkGamma - mAlphaM; }
 
 private:
     double mAlphaM=-0.3;
@@ -124,8 +124,8 @@ public:
 
     double GetAlphaM() const { return mAlphaM; }
     double GetAlphaF() const { return mAlphaF; }
-    double GetBeta()   const { return mNewmarkGamma + mAlphaM - mAlphaF; }
-    double GetGamma()  const { return mNewmarkBeta * (1+mAlphaM-mAlphaF) * (1+mAlphaM-mAlphaF); }
+    double GetBeta()   const { return mNewmarkBeta * (1-mAlphaM+mAlphaF) * (1-mAlphaM+mAlphaF); }
+    double GetGamma()  const { return mNewmarkGamma - mAlphaM + mAlphaF; }
 
 private:
     double mAlphaM=-0.3;
