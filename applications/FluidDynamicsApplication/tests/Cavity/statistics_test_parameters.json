@@ -126,8 +126,8 @@
             "output_file_name"    : "statistics_test.csv",
             "reference_file_name" : "statistics_reference.csv",
             "comparison_type"     : "deterministic",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     }]
 }

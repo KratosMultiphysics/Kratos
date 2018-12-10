@@ -153,8 +153,8 @@
             "output_file_name"    : "steady_cavity10_probe_1.dat",
             "reference_file_name" : "steady_cavity10_probe_ref_1.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -165,8 +165,8 @@
             "output_file_name"    : "steady_cavity10_probe_2.dat",
             "reference_file_name" : "steady_cavity10_probe_ref_2.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     }]
 }
