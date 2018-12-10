@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ConvectionDiffusionApplication")
-
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as ConvectionDiffusionApplication
 
@@ -410,7 +407,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             materials = KratosMultiphysics.Parameters(parameter_file.read())
 
         for i in range(materials["properties"].size()):
-            model_part = self.main_model_part.GetSubModelPart(materials["properties"][i]["model_part_name"].GetString())
+            model_part = self.model.GetModelPart(materials["properties"][i]["model_part_name"].GetString())
             mat = materials["properties"][i]["Material"]
 
             for key, value in mat["Variables"].items():

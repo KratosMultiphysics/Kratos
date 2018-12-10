@@ -159,28 +159,6 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void HyperElastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HyperElastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
@@ -353,7 +331,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 {
     // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
     //Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
@@ -496,7 +474,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
 						  Vector& rVolStressVector )
 {
 
-    Matrix VolStressMatrix ( 3 , 3 );
+    Matrix VolStressMatrix = ZeroMatrix( 3 , 3 );
 
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure (rElasticVariables, Pressure);
@@ -682,16 +660,15 @@ Matrix& HyperElastic3DLaw::Transform2DTo3D (Matrix& rMatrix)
 {
     if (rMatrix.size1() == 2 && rMatrix.size2() == 2)
     {
-        rMatrix.resize( 3, 3, true);
+        const BoundedMatrix<double,2,2> temp_matrix = rMatrix;
+        rMatrix.resize( 3, 3, false);
+        rMatrix = IdentityMatrix(3);
 
-        rMatrix( 0 , 2 ) = 0.0;
-        rMatrix( 1 , 2 ) = 0.0;
+        rMatrix(0,0) = temp_matrix(0,0);
+        rMatrix(1,1) = temp_matrix(1,1);
 
-        rMatrix( 2 , 0 ) = 0.0;
-        rMatrix( 2 , 1 ) = 0.0;
-
-        rMatrix( 2 , 2 ) = 1.0;
-
+        rMatrix(0,1) = temp_matrix(0,1);
+        rMatrix(1,0) = temp_matrix(1,0);
     }
     else if(rMatrix.size1() != 3 && rMatrix.size2() != 3)
     {

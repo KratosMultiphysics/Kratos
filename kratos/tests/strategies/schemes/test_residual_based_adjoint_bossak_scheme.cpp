@@ -1,3 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:		 BSD License
+//					 Kratos default license: kratos/license.txt
+//
+//  Main authors:
+//
+
 #include <algorithm>
 #include <exception>
 #include <sstream>
@@ -43,6 +55,7 @@ typedef SolvingStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType> Solvi
 struct PrimalResults
 {
     KRATOS_CLASS_POINTER_DEFINITION(PrimalResults);
+    virtual ~PrimalResults() {};
     virtual void StoreCurrentSolutionStep(const ModelPart& rModelPart) = 0;
     virtual void LoadCurrentSolutionStep(ModelPart& rModelPart) const = 0;
 };
@@ -131,15 +144,15 @@ namespace NonLinearSpringMassDamper
  * @brief A system of two mass-spring-dampers for testing a second-order ode.
  * @details Taken from L.F. Fernandez, D.A. Tortorelli, Semi-analytical
  * sensitivity analysis for nonlinear transient problems.
- * 
+ *
  *  |                _____                 _____
  *  |---[ Damper ]--|mass1|---[ Damper ]--|mass2|
  *  |-----/\/\/\----|_____|-----/\/\/\----|_____|
  *  |
- * 
+ *
  * Spring force: fe = x + stiffness * x^3
  * Damper force: fc = damping * x'
- * 
+ *
  * Momentum equations:
  * mass1 * acc1 + 2 * damping * vel1 - damping * vel2 + 2 * disp1 - disp2 + stiffness * disp1^3 - stiffness * (disp2 - disp1)^3 = 0,
  * mass2 * acc2 - damping * vel1 + damping * vel2 - disp1 + disp2 + stiffness * (disp2 - disp1)^3 = 0.
@@ -491,7 +504,7 @@ class ResponseFunction : public AdjointResponseFunction
             rSensitivityGradient(0) = 0.;
         }
 
-        double CalculateValue() override
+        double CalculateValue(ModelPart& rModelPart) override
         {
             const double& x1 =
                 mrModelPart.GetNode(1).FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -636,7 +649,7 @@ KRATOS_TEST_CASE_IN_SUITE(ResidualBasedAdjointBossak_TwoMassSpringDamperSystem, 
     // Solve the primal problem.
     Model current_model;
     ModelPart& model_part = current_model.CreateModelPart("test");
-    
+
     Nlsmd::InitializePrimalModelPart(model_part);
     auto p_results_data = Kratos::make_shared<Nlsmd::PrimalResults>();
     Base::PrimalStrategy solver(model_part, p_results_data);

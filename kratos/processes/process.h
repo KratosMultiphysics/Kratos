@@ -124,6 +124,13 @@ public:
     {
     }
 
+    /// this function is designed for being called after ExecuteInitialize ONCE to
+    /// verify that the input is correct.
+    virtual int Check()
+    {
+        return 0;
+    }
+
 
     ///@}
     ///@name Access
@@ -217,6 +224,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROCESS_H_INCLUDED  defined 
+#endif // KRATOS_PROCESS_H_INCLUDED  defined
 
 
