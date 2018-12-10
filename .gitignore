@@ -68,3 +68,13 @@ kratos/includes/kratos_version.h
 *.cpp~
 
 applications/python_scripts/beam_profiles\.csv
+
+\.vscode/
+
+runkratos\.exe
+
+applications/FluidDynamicsApplication/symbolic_generation/time_averaged_navier_stokes/\.ipynb_checkpoints/NavierStokesElementDerivation-checkpoint\.ipynb
+
+*.png
+
+*.grf
