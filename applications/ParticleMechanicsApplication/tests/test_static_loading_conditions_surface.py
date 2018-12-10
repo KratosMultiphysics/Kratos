@@ -8,7 +8,7 @@ import math
 
 class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
 
-    def test_MPMSurfaceLoadCondition3D4N(self):
+    def test_MPMGridSurfaceLoadCondition3D4N(self):
         current_model = KratosMultiphysics.Model()
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -32,7 +32,7 @@ class TestStaticLoadingConditionsSurface(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
 
 
-        cond = mp.CreateNewCondition("MPMSurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
+        cond = mp.CreateNewCondition("MPMGridSurfaceLoadCondition3D4N", 1, [1,2,4,3], mp.GetProperties()[1])
 
         lhs = KratosMultiphysics.Matrix(0,0)
         rhs = KratosMultiphysics.Vector(0)
