@@ -97,16 +97,6 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
-        /**
-        * This functions calculates the base vector on the location
-        * of the condition
-        * @param rBaseVector: Base vector on location of the condition
-        *                     on the surface.
-        */
-        void CalculateBaseVector(
-            Vector& rBaseVector,
-            const Matrix& rDN_De);
-
 
         /// Turn back information as a string.
         std::string Info() const override

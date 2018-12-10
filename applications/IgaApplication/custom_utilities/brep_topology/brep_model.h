@@ -24,6 +24,12 @@ namespace Kratos
         ///@name Life Cycle
         ///@{
 
+        bool GetNodesGeometry(
+            ModelPart& rModelPart,
+            const int brep_id,
+            const int rU,
+            const int rV);
+
         bool GetIntegrationDomainGeometry(
             ModelPart& rModelPart,
             const int brep_id,

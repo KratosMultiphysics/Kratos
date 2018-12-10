@@ -22,6 +22,7 @@
 
 namespace Kratos
 {
+
     void LoadPointDiscreteCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -44,9 +45,9 @@ namespace Kratos
             for (unsigned int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index]     = -PointLoad[0] * N[i];
-                fLoads[index + 1] = -PointLoad[1] * N[i];
-                fLoads[index + 2] = -PointLoad[2] * N[i];
+                fLoads[index]     += PointLoad[0] * N[i];
+                fLoads[index + 1] += PointLoad[1] * N[i];
+                fLoads[index + 2] += PointLoad[2] * N[i];
             }
         }
 
@@ -58,9 +59,9 @@ namespace Kratos
             for (unsigned int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index]     = -PointLoad[0] * N[i];
-                fLoads[index + 1] = -PointLoad[1] * N[i];
-                fLoads[index + 2] = -PointLoad[2] * N[i];
+                fLoads[index]     += PointLoad[0] * N[i];
+                fLoads[index + 1] += PointLoad[1] * N[i];
+                fLoads[index + 2] += PointLoad[2] * N[i];
             }
         }
 
@@ -77,12 +78,13 @@ namespace Kratos
             for (int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                fLoads[index] = -direction[0] * pressure * integration_weight * N[i];
-                fLoads[index + 1] = -direction[1] * pressure * integration_weight * N[i];
-                fLoads[index + 2] = -direction[2] * pressure * integration_weight * N[i];
+                fLoads[index]     += direction[0] * pressure * integration_weight * N[i];
+                fLoads[index + 1] += direction[1] * pressure * integration_weight * N[i];
+                fLoads[index + 2] += direction[2] * pressure * integration_weight * N[i];
             }
         }
 
-        noalias(rRightHandSideVector) -= fLoads;
+        noalias(rRightHandSideVector) += fLoads;
     }
+
 } // Namespace Kratos

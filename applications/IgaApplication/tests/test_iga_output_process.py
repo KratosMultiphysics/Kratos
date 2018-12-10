@@ -7,6 +7,8 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from iga_output_process import IgaOutputProcess
 from compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+import numpy as np
+
 import os
 
 def GetFilePath(fileName):
@@ -35,8 +37,12 @@ def SetSolutionSteps(model_part):
     model_part.GetNode(9).SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, [4,24,92])
 
 def CreateElements(model_part):
-    element1 = model_part.CreateNewElement("ShellKLDiscreteElement",1,[1,2,3,4,5,6,7,8,9])
-    element1.SetValue(SHAPE_FUNCTION_VALUES, [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0])
+    prop = KratosMultiphysics.Properties(1)
+    element1 = model_part.CreateNewElement("ShellKLDiscreteElement",1,[1,2,3,4,5,6,7,8,9], prop)
+    A = np.zeros((9,2))
+    element1.SetValue(KratosIga.SHAPE_FUNCTION_VALUES, [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0])
+    element1.SetValue(KratosIga.SHAPE_FUNCTION_LOCAL_DERIVATIVES, A)
+    #element1.SetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES_VALUES, [0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0];[0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0]])
 
 class TestIgaOutputProcess(KratosUnittest.TestCase):
     def tearDown(self):
@@ -100,8 +106,6 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         check_process.ExecuteFinalize()
 
     def test_elemental_results(self):
-        print("test2")
-        print(KratosMultiphysics.IgaApplication.COORDINATES)
         test_model = KratosMultiphysics.Model()
         model_part = test_model.CreateModelPart("Structure")
         comp_model_part = model_part.CreateSubModelPart("computing_domain")
@@ -112,7 +116,7 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
 
         SetSolutionSteps(comp_model_part)
 
-        #CreateElements(comp_model_part)
+        CreateElements(comp_model_part)
 
         # Use the process
         # here the minimum settings are specified to test the default values!
@@ -137,27 +141,27 @@ class TestIgaOutputProcess(KratosUnittest.TestCase):
         post_eigen_process.ExecuteAfterOutputStep()
         post_eigen_process.ExecuteFinalize()
 
-        ## check the results
-        #settings_check_process = KratosMultiphysics.Parameters("""
-        #{
-        #    "reference_file_name"   : "",
-        #    "output_file_name"      : "",
-        #    "comparison_type"       : "post_res_file"
-        #}
-        #""")
+        # check the results
+        settings_check_process = KratosMultiphysics.Parameters("""
+        {
+            "reference_file_name"   : "",
+            "output_file_name"      : "",
+            "comparison_type"       : "post_res_file"
+        }
+        """)
 
-        #settings_check_process["reference_file_name"].SetString(GetFilePath("elemental_results.ref"))
-        #settings_check_process["output_file_name"].SetString("elemental_results.post.res")
+        settings_check_process["reference_file_name"].SetString(GetFilePath("elemental_results.ref"))
+        settings_check_process["output_file_name"].SetString("elemental_results.post.res")
 
-        #check_process = CompareTwoFilesCheckProcess(settings_check_process)
+        check_process = CompareTwoFilesCheckProcess(settings_check_process)
 
-        #check_process.ExecuteInitialize()
-        #check_process.ExecuteBeforeSolutionLoop()
-        #check_process.ExecuteInitializeSolutionStep()
-        #check_process.ExecuteFinalizeSolutionStep()
-        #check_process.ExecuteBeforeOutputStep()
-        #check_process.ExecuteAfterOutputStep()
-        #check_process.ExecuteFinalize()
+        check_process.ExecuteInitialize()
+        check_process.ExecuteBeforeSolutionLoop()
+        check_process.ExecuteInitializeSolutionStep()
+        check_process.ExecuteFinalizeSolutionStep()
+        check_process.ExecuteBeforeOutputStep()
+        check_process.ExecuteAfterOutputStep()
+        check_process.ExecuteFinalize()
 
 
 if __name__ == '__main__':

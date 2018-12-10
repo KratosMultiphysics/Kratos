@@ -79,32 +79,6 @@ namespace Kratos
         noalias(rRightHandSideVector) -= fLoads;
     }
 
-    void LoadSurfaceDiscreteCondition::CalculateBaseVector(
-        Vector& rBaseVector,
-        const Matrix& rDN_De)
-    {
-        if (rBaseVector.size() != 3)
-            rBaseVector.resize(3);
-        rBaseVector = ZeroVector(3);
-
-        Matrix Jacobian = ZeroMatrix(3,2);
-        CalculateJacobian(rDN_De, Jacobian, 3, 2);
-
-        Vector g1 = ZeroVector(3);
-        Vector g2 = ZeroVector(3);
-
-        g1[0] = Jacobian(0, 0);
-        g2[0] = Jacobian(0, 1);
-        g1[1] = Jacobian(1, 0);
-        g2[1] = Jacobian(1, 1);
-        g1[2] = Jacobian(2, 0);
-        g2[2] = Jacobian(2, 1);
-
-        //KRATOS_WATCH(Jacobian)
-
-        MathUtils<double>::CrossProduct(rBaseVector, g1, g2);
-    }
-
     void LoadSurfaceDiscreteCondition::EquationIdVector(
         EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo)

@@ -16,6 +16,51 @@
 
 namespace Kratos
 {
+    void BrepFace::GetGeometryNodes(
+        ModelPart& rModelPart,
+        const int& rU, 
+        const int& rV)
+    {
+        int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
+        int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
+
+        int u_start = 0;
+        int u_end = number_of_cps_u;
+        int v_start = 0;
+        int v_end = number_of_cps_v;
+
+        if (rU >= 0)
+        {
+            u_start = rU * (number_of_cps_u - 1);
+            u_end = rU * number_of_cps_u + 1;
+        }
+        if (rV >= 0)
+        {
+            v_start = rV * (number_of_cps_v - 1);
+            v_end = rV * number_of_cps_v + 1;
+        }
+
+        KRATOS_WATCH(number_of_cps_u)
+            KRATOS_WATCH(number_of_cps_v)
+
+        KRATOS_WATCH(rU)
+            KRATOS_WATCH(rV)
+
+        KRATOS_WATCH(u_start)
+            KRATOS_WATCH(u_end)
+            KRATOS_WATCH(v_start)
+            KRATOS_WATCH(v_end)
+
+        for (int i = u_start; i < u_end; ++i)
+        {
+            for (int j = v_start; j < v_end; ++j)
+            {
+                rModelPart.AddNode(mNodeSurfaceGeometry3D->GetNode(i, j));
+            }
+        }
+    }
+
+
     void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
@@ -25,7 +70,7 @@ namespace Kratos
     {
         //bool trimmed = Is(IGAFlags::IS_TRIMMED);
 
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
+        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
         auto spans_u = mNodeSurfaceGeometry3D->SpansU();
         auto spans_v = mNodeSurfaceGeometry3D->SpansV();
@@ -92,7 +137,7 @@ namespace Kratos
 
                         rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
                         element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -111,7 +156,7 @@ namespace Kratos
 
                         rModelPart.AddNodes(non_zero_control_points.begin(), non_zero_control_points.end());
 
-                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
                         condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -209,7 +254,7 @@ namespace Kratos
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
+        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
         int number_of_points_spans =
             mNodeSurfaceGeometry3D->DegreeU()
@@ -250,15 +295,16 @@ namespace Kratos
                     shape_function_derivative,
                     shape_function_second_derivative);
 
-                rModelPart.AddNodes(control_points.begin(), control_points.end());
-
                 if (rType == "element")
                 {
                     int id = 0;
                     if (rModelPart.GetRootModelPart().Elements().size() > 0)
                         id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                    auto element = rModelPart.CreateNewElement(rName, id, control_points, this_property);
+                    auto element = rModelPart.CreateNewElement(rName, id, control_points, 0);
+
+                    rModelPart.AddNodes(control_points.begin(), control_points.end());
+
 
                     element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
                     element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
@@ -279,7 +325,10 @@ namespace Kratos
                     if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                         id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                    auto condition = rModelPart.CreateNewCondition(rName, id, control_points, this_property);
+                    auto condition = rModelPart.CreateNewCondition(rName, id, control_points, 0);
+
+                    rModelPart.AddNodes(control_points.begin(), control_points.end());
+
 
                     condition->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
                     condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
@@ -297,6 +346,8 @@ namespace Kratos
                 // for strong application of properties on control point nodes
                 if (rType == "node")
                 {
+                    KRATOS_WATCH(rModelPart)
+                    KRATOS_WATCH(shape_function)
                     for (int sh_nonzero = 0; sh_nonzero < shape_function.size(); ++sh_nonzero)
                     {
                         if (shape_function(sh_nonzero) > 1e-5)
@@ -304,6 +355,7 @@ namespace Kratos
                             rModelPart.AddNode(control_points(sh_nonzero));
                         }
                     }
+                    KRATOS_WATCH(rModelPart)
                 }
             }
         }
@@ -318,7 +370,7 @@ namespace Kratos
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables) const
     {
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
+        //Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
 
         ANurbs::SurfaceShapeEvaluator<double> shape(
             mNodeSurfaceGeometry3D->DegreeU(),
@@ -363,7 +415,7 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Elements().size() > 0)
                     id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+                auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
                 element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -377,7 +429,7 @@ namespace Kratos
                 if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                     id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+                auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
                 condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                 condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -504,7 +556,7 @@ namespace Kratos
     {
         int number_of_nodes_u = rKnotVectorU.size() - rP - 1;
         int number_of_nodes_v = rKnotVectorV.size() - rQ - 1;
-
+        
         mNodeSurfaceGeometry3D = Kratos::make_unique<NodeSurfaceGeometry3D>(
             rP, rQ, number_of_nodes_u, number_of_nodes_v);
 

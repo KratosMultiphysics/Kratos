@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:    BSD License
-//              Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//              Kratos default license: kratos/license.txt
 //
 //  Main authors:    Tobias Teschemacher
 //                   Michael Breitenberger
@@ -15,11 +15,39 @@
 // Project includes
 #include "brep_model.h"
 
-#include "iga_application_variables.h"
-
 
 namespace Kratos
 {
+    bool BrepModel::GetNodesGeometry(
+        ModelPart& rModelPart,
+        const int brep_id,
+        const int rU,
+        const int rV)
+    {
+        bool success = false;
+
+        for (int i = 0; i < mBrepFaces.size(); ++i)
+        {
+            if (mBrepFaces[i].Id() == brep_id)
+            {
+                mBrepFaces[i].GetGeometryNodes(
+                    rModelPart, rU, rV);
+                return true;
+            }
+        }
+
+        for (int i = 0; i < mBrepEdges.size(); ++i)
+        {
+            if (mBrepEdges[i].Id() == brep_id)
+            {
+                KRATOS_ERROR << "Strong application for edges not implemented yet." << std::endl;
+                return true;
+            }
+        }
+
+        return success;
+    }
+
     bool BrepModel::GetIntegrationDomainGeometry(
         ModelPart& rModelPart, 
         const int brep_id,

@@ -162,22 +162,24 @@ class IgaSolver(PythonSolver):
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "DOF's ADDED")
 
     def ImportModelPart(self):
-        """This function imports the ModelPart
-        """
+        """This function imports the ModelPart"""
         self._set_nurbs_brep_modeler()
+
+        with open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r') as physics_file:
+                physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
+
+        physics_file = open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r')
+        physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
+        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
+
 
     def PrepareModelPart(self):
         # Check and prepare computing model part and import constitutive laws.
         self._execute_after_reading()
-
-        physics_file = open(self.settings["model_import_settings"]["physics_filename"].GetString(),'r')
-        physics_parameters = KratosMultiphysics.Parameters( physics_file.read())
-
-        self.nurbs_brep_modeler.ImportModelPart(self.main_model_part, physics_parameters)
-
         self._set_and_fill_buffer()
 
         print(self.main_model_part)
+
 
         KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]::", "ModelPart prepared for Solver.")
 
@@ -295,7 +297,6 @@ class IgaSolver(PythonSolver):
         self.nurbs_brep_modeler = IgaApplication.NurbsBrepModeler(self.main_model_part)
 
         if self.settings["model_import_settings"]["input_type"].GetString() == "json":
-
             with open(self.settings["model_import_settings"]["input_filename"].GetString() + ".json",'r') as geometry_file:
                 geometry_parameters = KratosMultiphysics.Parameters( geometry_file.read())
             self.geometry_reader = IgaApplication.BrepJsonIO()
@@ -315,7 +316,14 @@ class IgaSolver(PythonSolver):
         # check_and_prepare_model_process_structural.CheckAndPrepareModelProcess(self.model, params).Execute()
 
         # Import constitutive laws.
-        self.import_constitutive_laws()
+        materials_imported = self.import_constitutive_laws()
+        if materials_imported:
+            self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
+        else:
+            self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was not imported.")
+
+        # Import constitutive laws.
+        #self.import_constitutive_laws()
         #materials_imported = self.import_constitutive_laws()
         #if materials_imported:
         #    KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Constitutive law was successfully imported.")

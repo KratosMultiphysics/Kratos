@@ -87,6 +87,11 @@ namespace Kratos
         ///@}
         ///@name Life Cycle
         ///@{
+        void GetGeometryNodes(
+            ModelPart& rModelPart,
+            const int& rU,
+            const int& rV);
+
         void GetGeometryIntegration(
             ModelPart& rModelPart,
             const std::string& rType,

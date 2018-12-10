@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+
     void LoadCurveDiscreteCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -53,15 +54,13 @@ namespace Kratos
             for (unsigned int i = 0; i < number_of_control_points; i++)
             {
                 int index = 3 * i;
-                f_loads[index]     = line_load[0] * integration_weight * N[i];
-                f_loads[index + 1] = line_load[1] * integration_weight * N[i];
-                f_loads[index + 2] = line_load[2] * integration_weight * N[i];
+                f_loads[index]     += line_load[0] * integration_weight * N[i];
+                f_loads[index + 1] += line_load[1] * integration_weight * N[i];
+                f_loads[index + 2] += line_load[2] * integration_weight * N[i];
             }
         }
 
         noalias(rRightHandSideVector) += f_loads;
-
-        KRATOS_WATCH(rRightHandSideVector)
     }
 
     void LoadCurveDiscreteCondition::EquationIdVector(
