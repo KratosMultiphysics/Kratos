@@ -140,22 +140,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             for node in self.sub_model_part.Nodes:
                 compute = self.__check_flag(node)
 
-<<<<<<< HEAD
-                if (compute is True):
-=======
-                if compute is True:
->>>>>>> master
+                if compute:
                     for i in range(self.params["check_variables"].size()):
                         out = self.params["check_variables"][i]
                         variable_name = out.GetString()
                         variable = KratosMultiphysics.KratosGlobals.GetVariable( variable_name )
                         variable_type = KratosMultiphysics.KratosGlobals.GetVariableType(variable_name)
 
-<<<<<<< HEAD
-                        if (self.historical_value is True):
-=======
-                        if self.historical_value is True:
->>>>>>> master
+                        if self.historical_value:
                             value = node.GetSolutionStepValue(variable, 0)
                         else:
                             value = node.GetValue(variable)
@@ -202,11 +194,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
             for elem in self.sub_model_part.Elements:
                 compute = self.__check_flag(elem)
 
-<<<<<<< HEAD
-                if (compute is True):
-=======
-                if compute is True:
->>>>>>> master
+                if compute:
                     for i in range(self.params["gauss_points_check_variables"].size()):
                         out = self.params["gauss_points_check_variables"][i]
                         variable_name = out.GetString()
@@ -262,11 +250,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
                         # TODO: Add pending classes
 
             self.step_counter += 1
-<<<<<<< HEAD
-            
-=======
 
->>>>>>> master
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
 
