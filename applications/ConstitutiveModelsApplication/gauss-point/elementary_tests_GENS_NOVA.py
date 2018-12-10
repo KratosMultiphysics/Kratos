@@ -31,6 +31,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
+            self.current_case = case  
             self._create_material_model_and_law()
             self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
             self.parameters.SetMaterialProperties( self.properties )
@@ -54,6 +55,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
+            self.current_case = case  
             self._create_material_model_and_law()
             self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
             self.parameters.SetMaterialProperties( self.properties )
@@ -76,6 +78,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
+            self.current_case = case  
 
 
             self._create_material_model_and_law()
@@ -98,6 +101,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
+            self.current_case = case  
             self._create_material_model_and_law()
             
             self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
@@ -142,8 +146,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             residual = 0.0*stress + stress;
             
             residual[0] = stress[0] - sigma_h
-            residual[2] = stress[2] - sigma_h
             residual[1] = stress[1] - sigma_v
+            residual[2] = stress[2] - sigma_h
             
             #Compute the norm of the residual
             norm = 0
@@ -189,7 +193,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         isotropicLoadingStrain = self.F[1,1]
 
         # Second part
-        nLoadingSteps = 600
+        nLoadingSteps = 1000
         FinalAxialDeformation = 0.35
 
 
@@ -302,6 +306,222 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             plt.show(block=False)
 
 
+    # Triaxial test at gauss point
+    def test_BiaxialLoading_Drained(self):
+
+        import math
+        import numpy as np
+
+        self._create_material_model_and_law()
+        for case in range(0, self.size_parametric_analysis):
+            self.current_case = case  
+            self._create_material_model_and_law()
+            
+            self.properties.SetValue(self.parametric_analysis_variable,  self.parametric_analysis_values[case])
+            self.parameters.SetMaterialProperties( self.properties )
+
+            self._test_BiaxialCompression()
+    
+        if ( self.plot):
+            import matplotlib.pyplot as plt
+            plt.show(block=True)
+
+    # driver of the triaxial compression
+    def _test_BiaxialCompression(self):
+    
+        #self._create_material_model_and_law()
+        
+        self.F = self._set_identity_matrix()
+        self.detF = 1.0
+        self.parameters.SetDeformationGradientF( self.F )
+        self.parameters.SetDeterminantF( self.detF )
+        self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
+        self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
+
+
+        import numpy as np
+        if ( self.plot):
+            import matplotlib.pyplot as plt
+
+        #isotropic compression
+        #
+        #
+        XX = 0.0*self.parameters.GetStrainVector()
+        
+        sigma_v = self.initial_stress_state[1]
+        sigma_h = self.initial_stress_state[0]
+        sigma_h2 = self.initial_stress_state[2]
+
+        for iteracio in range(0, 200):
+            stress = self.parameters.GetStressVector()
+
+            residual = 0.0*stress + stress;
+            
+            residual[0] = stress[0] - sigma_h
+            residual[2] = stress[2] - sigma_h
+            residual[1] = stress[1] - sigma_v
+            
+            #Compute the norm of the residual
+            norm = 0
+            for i in range(0,6):
+                norm += residual[i]*residual[i]
+
+            if (norm < 1e-9):
+                break
+            if ( iteracio > 195):
+                disp('The initial state is not converging')
+                pNode
+
+
+            C = self.parameters.GetConstitutiveMatrix()
+            SystemMatrix = np.zeros((6,6));
+            for i in range(0,6):
+                for j in range(0,6):
+                    SystemMatrix[i,j] = C[i,j];
+            dx = np.linalg.solve(SystemMatrix, residual)
+            for i in range(0,6):
+                XX[i] = XX[i] - dx[i];
+            self.F = self._set_identity_matrix()
+            for j in range(0,3):
+                self.F[j,j] = self.F[j,j] + 1.0*XX[j]
+            self.detF = self._compute_determinant(self.F)
+
+            #Compute
+            self.parameters.SetDeformationGradientF( self.F )
+            self.parameters.SetDeterminantF( self.detF )
+            self.material_law.CalculateMaterialResponseKirchhoff( self.parameters)
+
+
+        self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
+        stress = self.parameters.GetStressVector();
+        self.strain = self.parameters.GetStrainVector();
+        strain = self.ComputeStrainFromF(self.F)
+
+        
+        self._OpenOutputFile('drained_biaxial.csv')
+        self._WriteThisToFile(0, stress, strain)
+
+        verticalLoadingStrain0 = self.F[1,1]
+        outplaneLoadingStrain0 = self.F[2,2]
+
+        # Second part
+        nLoadingSteps = 1000
+        FinalAxialDeformation = 0.35
+
+
+
+        VolStrain = 1.1*np.arange( float(nLoadingSteps+1) )
+        DevStrain = 1.1*np.arange( float(nLoadingSteps+1) )
+        VolStress = 1.1*np.arange( float(nLoadingSteps+1) )
+        DevStress = 1.1*np.arange( float(nLoadingSteps+1) )
+
+        VolStrain[0] = strain[0] + strain[1] + strain[2]
+        VolStrain[0] *= -1.0
+        DevStrain[0] = strain[1] - strain[0]
+        DevStrain[0] *= -1.0
+
+        VolStress[0] = stress[0] + stress[1] + stress[2]
+        VolStress[0] /= -3.0
+        DevStress[0] = stress[1]-stress[0]
+        DevStress[0] *= -1.0
+
+
+
+
+        for t in range(1, nLoadingSteps+1):
+
+            verticalStrain = verticalLoadingStrain0 - float(t)/float(nLoadingSteps) * FinalAxialDeformation
+            for iteracio in range(0, 100):
+
+                stress = self.parameters.GetStressVector()
+                strain = self.parameters.GetStrainVector();
+
+                residual = 0.0*stress + stress;
+            
+                residual[0] = stress[0] - sigma_h
+                outplaneF = self.F[2,2]
+                residual[2] = outplaneF - outplaneLoadingStrain0
+                verticalF = self.F[1,1]
+                residual[1] = verticalF - verticalStrain
+
+                norm = 0
+                for i in range(0,6):
+                    norm += residual[i]*residual[i]
+                if (norm < 1e-12):
+                    break
+                if (iteracio > 90):
+                    print('In the triaxial loading. Not converging')
+                    pNode
+
+                C = self.parameters.GetConstitutiveMatrix()
+                SystemMatrix = np.zeros((6,6));
+                for i in range(0,6):
+                    for j in range(0,6):
+                        SystemMatrix[i,j] = C[i,j];
+                # partial inversion of the system
+                for i in range(0,6): 
+                    SystemMatrix[1,i] = 0.0
+                    SystemMatrix[2,i] = 0.0
+                SystemMatrix[1,1] = 1.0;
+                SystemMatrix[2,2] = 1.0;
+
+                dx = np.linalg.solve(SystemMatrix, residual)
+                for i in range(0,6):
+                    XX[i] = XX[i] - dx[i];
+                self.F = self._set_identity_matrix()
+                for j in range(0,3):
+                    self.F[j,j] = self.F[j,j] + 1.0*XX[j]
+                self.detF = self._compute_determinant(self.F)
+
+                #Compute
+                
+                self.parameters.SetDeformationGradientF( self.F )
+                self.parameters.SetDeterminantF( self.detF )
+                self.material_law.CalculateMaterialResponseKirchhoff( self.parameters)
+
+
+            self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
+            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
+            stress = self.parameters.GetStressVector();
+            self.strain = self.parameters.GetStrainVector();
+            strain = self.ComputeStrainFromF(self.F)
+        
+            self._WriteThisToFile(t, stress, strain)
+
+            VolStrain[t] = strain[0] + strain[1] + strain[2]
+            VolStrain[t] *= -1.0
+            DevStrain[t] = strain[1] - strain[0]
+            DevStrain[t] *= -1.0
+
+            VolStress[t] = stress[0] + stress[1] + stress[2]
+            VolStress[t] /= -3.0
+            DevStress[t] = stress[1]-stress[0]
+            DevStress[t] *= -1.0
+
+        if ( self.plot):
+            plt.subplot(2,2,1)
+            plt.plot(VolStress, DevStress)
+            plt.xlabel('pressure')
+            plt.ylabel('DevStress')
+
+            plt.subplot(2,2,2)
+            plt.plot(DevStrain, DevStress )
+            plt.xlabel('DevStrain')
+            plt.ylabel('DevStress')
+
+
+            plt.subplot(2,2,3)
+            plt.plot(VolStress, VolStrain)
+            plt.xlabel('pressure')
+            plt.ylabel('VolStrain')
+
+            plt.subplot(2,2,4)
+            plt.plot(DevStrain, VolStrain)
+            plt.xlabel('DevStrain')
+            plt.ylabel('VolStrain')
+            plt.show(block=False)
     # driver for initial stress state
     def _setInitialStressState(self):
     
@@ -460,7 +680,9 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         parameter_file = open("ProjectParameters.json", 'r')
         settings = KratosMultiphysics.Parameters(parameter_file.read() )
         parameter_file.close()
-        self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
+        model = KratosMultiphysics.Model()
+        self.model_part = model.CreateModelPart(settings["model_part_name"].GetString())
+        #self.model_part = KratosMultiphysics.ModelPart(settings["model_part_name"].GetString())
         self.echo_level = settings["echo_level"].GetInt()
 
         #read nodes
@@ -605,6 +827,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
     def _OpenOutputFile(self, FileName):
         import os.path
 
+        FileName = str(self.current_case)+ FileName
         problem_path = os.getcwd()
         self.csv_path = os.path.join(problem_path, FileName)
 
