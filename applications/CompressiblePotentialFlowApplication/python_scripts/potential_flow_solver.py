@@ -56,7 +56,7 @@ class PotentialSolver(PythonSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         model_part_name = self.settings["model_part_name"].GetString()
-        super(LaplacianSolver,self).__init__(model, self.settings)
+        super(PotentialSolver,self).__init__(model, self.settings)
 
         if model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
