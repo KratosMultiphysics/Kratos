@@ -222,6 +222,9 @@ void FemDem3DElement::UpdateDataBase()
 
 	mDamage = this->CalculateElementalDamage(mDamages);
 	mThreshold = this->CalculateElementalDamage(mThresholds);
+
+	this->SetValue(DAMAGE_ELEMENT, mDamage);
+	this->SetValue(STRESS_THRESHOLD, mThreshold);
 }
 
 void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)

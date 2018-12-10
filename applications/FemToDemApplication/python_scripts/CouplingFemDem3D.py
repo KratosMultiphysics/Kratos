@@ -71,43 +71,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			# Perform remeshing
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
-			if is_remeshing:
-				self.RefineMappedVariables()
 
 			self.nodal_neighbour_finder.Execute()
 
 			if is_remeshing:
-				# Initialize the "flag" IS_DEM in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
-				# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
-				# Initialize the "flag" RADIUS in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
-
-				# Remove DEMS from previous mesh
-				self.SpheresModelPart.Elements.clear()
-				self.SpheresModelPart.Nodes.clear()
-
-				self.InitializeDummyNodalForces()
-
-				self.InitializeMMGvariables()
-				self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
-				self.FEM_Solution.model_processes.ExecuteInitialize()
-				self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
-				self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
-
-				# Search the skin nodes for the remeshing
-				skin_detection_process_param = KratosMultiphysics.Parameters("""
-				{
-					"name_auxiliar_model_part" : "SkinDEMModelPart",
-					"name_auxiliar_condition"  : "Condition",
-					"echo_level"               : 0
-				}""")
-				skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
-																				skin_detection_process_param)
-				skin_detection_process.Execute()
-
-				self.GenerateDemAfterRemeshing()
+				self.RefineMappedVariables()
+				self.InitializeSolutionAfterRemeshing()
 
 		self.FEM_Solution.InitializeSolutionStep()
 
@@ -806,7 +775,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
 			if NumberOfActiveElements == 0 and node.GetValue(KratosFemDem.INACTIVE_NODE) == False:
 				Id = node.Id
-				print("nodo eliminado: ", Id)
+				# print("nodo eliminado: ", Id)
 				DEMnode = self.SpheresModelPart.GetNode(Id)
 				node.SetValue(KratosFemDem.INACTIVE_NODE, True)
 				node.Set(KratosMultiphysics.TO_ERASE, True) # added
@@ -1024,3 +993,37 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if elem.GetValue(KratosFemDem.DAMAGE_ELEMENT) < 0.0:
 				elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
 
+#============================================================================================================================
+
+	def InitializeSolutionAfterRemeshing(self):
+
+		# Initialize the "flag" IS_DEM in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" RADIUS in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+		# Remove DEMS from previous mesh
+		self.SpheresModelPart.Elements.clear()
+		self.SpheresModelPart.Nodes.clear()
+
+		self.InitializeDummyNodalForces()
+
+		self.InitializeMMGvariables()
+		self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
+		self.FEM_Solution.model_processes.ExecuteInitialize()
+		self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
+		self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
+
+		# Search the skin nodes for the remeshing
+		skin_detection_process_param = KratosMultiphysics.Parameters("""
+		{
+			"name_auxiliar_model_part" : "SkinDEMModelPart",
+			"name_auxiliar_condition"  : "Condition",
+			"echo_level"               : 0
+		}""")
+		skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
+																		skin_detection_process_param)
+		skin_detection_process.Execute()
+		self.GenerateDemAfterRemeshing()

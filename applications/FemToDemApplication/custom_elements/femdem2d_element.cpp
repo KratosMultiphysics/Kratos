@@ -106,6 +106,9 @@ void FemDem2DElement::UpdateDataBase()
 
 	mDamage = this->CalculateElementalDamage(mDamages);
 	mThreshold = this->CalculateElementalDamage(mThresholds);
+
+	this->SetValue(DAMAGE_ELEMENT, mDamage);
+	this->SetValue(STRESS_THRESHOLD, mThreshold);
 }
 
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
@@ -181,7 +184,6 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 
 		//b.-compute infinitessimal strain
 		this->CalculateInfinitesimalStrain(StrainVector, DN_DX);
-		//this->SetStrainVector(StrainVector);
 		this->SetValue(STRAIN_VECTOR, StrainVector);
 
 		ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
@@ -244,7 +246,6 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	noalias(F) = identity_matrix<double>(dimension);
 
 	//3.-Calculate elemental system:
-
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
@@ -327,7 +328,6 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			double threshold = mThresholds[edge];
 			double damage = mDamages[edge];
 			
-
 			const double length = this->CalculateCharacteristicLength(this, elem_neigb[edge], edge);
 			this->IntegrateStressDamageMechanics(threshold,
 											     damage,
@@ -339,7 +339,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 			mNonConvergedDamages[edge] = damage;
 			mNonConvergedThresholds[edge] = threshold;
 		} // Loop over edges
-		
+
 		// Calculate the elemental Damage...
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 		// mNonConvergedDamage = damage_element;
