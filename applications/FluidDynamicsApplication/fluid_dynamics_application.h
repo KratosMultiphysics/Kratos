@@ -59,6 +59,7 @@
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_conditions/navier_stokes_wall_condition.h"
 #include "custom_conditions/embedded_ausas_navier_stokes_wall_condition.h"
+#include "custom_conditions/time_averaged_navier_stokes_wall_condition.h"
 
 #include "custom_elements/dpg_vms.h"
 #include "custom_elements/bingham_fluid.h"
@@ -70,7 +71,7 @@
 #include "custom_elements/embedded_ausas_navier_stokes.h"
 #include "custom_elements/compressible_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
-
+#include "custom_elements/time_averaged_navier_stokes.h"
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
@@ -271,7 +272,7 @@ private:
     const EmbeddedFluidElement< SymbolicNavierStokes< SymbolicNavierStokesData<3,4> > > mEmbeddedSymbolicNavierStokes3D4N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<2,3> > > mEmbeddedQSVMS2D3N;
     const EmbeddedFluidElement< QSVMS< TimeIntegratedQSVMSData<3,4> > > mEmbeddedQSVMS3D4N;
-    
+
     /// 3D instance of the two-fluid VMS element
     const TwoFluidVMS<3,4> mTwoFluidVMS3D;
     const TwoFluidVMSLinearizedDarcy<3,4> mTwoFluidVMSLinearizedDarcy3D;
@@ -383,6 +384,11 @@ private:
     const Newtonian3DLaw mNewtonian3DLaw;
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
 
+    /// Time averaged navier stokes elements
+    const TimeAveragedNavierStokes<2> mTimeAveragedNavierStokes2D;
+    const TimeAveragedNavierStokes<3> mTimeAveragedNavierStokes3D;
+    const TimeAveragedNavierStokesWallCondition<2> mTimeAveragedNavierStokesWallCondition2D;
+    const TimeAveragedNavierStokesWallCondition<3> mTimeAveragedNavierStokesWallCondition3D;
     ///@}
     ///@name Private Operators
     ///@{
