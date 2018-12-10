@@ -693,24 +693,22 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSCo
 
     const GeometryType& rGeom = this->GetGeometry();
 
-    // Computation of NodalProjectionMatrix = ( [I] - (na)(na) ) for all nodes and store it
-    std::vector< BoundedMatrix<double, TNumNodes, TNumNodes> > NodalProjectionMatrix(TNumNodes);
-    for(unsigned int nnode = 0; nnode < TNumNodes; nnode++){
-
-        array_1d<double,3> nodal_normal = rGeom[nnode].FastGetSolutionStepValue(NORMAL);
-        double sum_of_squares = 0.0;
-        for (unsigned int j = 0; j < 3; j++){
-            sum_of_squares += nodal_normal[j] * nodal_normal[j];
-        }
-        nodal_normal /= sqrt(sum_of_squares);
-        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, NodalProjectionMatrix[nnode] );
-    }
-
     array_1d<double, TNumNodes> N = rDataStruct.N;
     const double wGauss = rDataStruct.wGauss;
 
     for(unsigned int inode = 0; inode < TNumNodes; inode++){
 
+        // finding the nodal projection matrix nodal_projection_matrix = ( [I] - (na)(na) )
+        BoundedMatrix<double, TNumNodes, TNumNodes> nodal_projection_matrix;
+        array_1d<double,3> nodal_normal = rGeom[inode].FastGetSolutionStepValue(NORMAL);
+        double sum_of_squares = 0.0;
+        for (unsigned int j = 0; j < 3; j++){
+            sum_of_squares += nodal_normal[j] * nodal_normal[j];
+        }
+        nodal_normal /= sqrt(sum_of_squares);
+        FluidElementUtilities<3>::SetTangentialProjectionMatrix( nodal_normal, nodal_projection_matrix );
+
+        // finding the coefficent to relate velocity to drag
         const double viscosity = rGeom[inode].GetSolutionStepValue(DYNAMIC_VISCOSITY);
         const double navier_slip_length = rGeom[inode].GetValue(SLIP_LENGTH);
         KRATOS_ERROR_IF_NOT( navier_slip_length > 0.0 ) << "Negative or zero slip length was defined" << std::endl;
@@ -718,14 +716,14 @@ void NavierStokesWallCondition<TDim,TNumNodes>::ComputeGaussPointNavierSlipLHSCo
 
         for(unsigned int jnode = 0; jnode < TNumNodes; jnode++){
 
-            const BoundedMatrix<double, TNumNodes, TNumNodes> NodalLHSContribution = wGauss * nodal_beta * N[inode] * N[jnode] * NodalProjectionMatrix[inode];
+            const BoundedMatrix<double, TNumNodes, TNumNodes> nodal_lhs_contribution = wGauss * nodal_beta * N[inode] * N[jnode] * nodal_projection_matrix;
 
             for( unsigned int i = 0; i < TNumNodes; i++){
                 for( unsigned int j = 0; j < TNumNodes; j++){
 
                     const unsigned int istart = inode * (TNumNodes+1);
                     const unsigned int jstart = jnode * (TNumNodes+1);
-                    rLeftHandSideMatrix(istart + i, jstart + j) += NodalLHSContribution(i,j);
+                    rLeftHandSideMatrix(istart + i, jstart + j) += nodal_lhs_contribution(i,j);
                 }
             }
         }
