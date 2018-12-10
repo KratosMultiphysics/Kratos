@@ -9,13 +9,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
