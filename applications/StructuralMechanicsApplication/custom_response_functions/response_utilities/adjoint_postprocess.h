@@ -126,19 +126,19 @@ protected:
 
     void AssembleElementSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                                 Vector const& rSensitivityVector,
-                                                Element& rElem);
+                                                Element& rElement);
 
     void AssembleElementSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                                 Vector const& rSensitivityVector,
-                                                Element& rElem);
+                                                Element& rElement);
 
     void AssembleConditionSensitivityContribution(Variable<double> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
+                                              Condition& rCondition);
 
     void AssembleConditionSensitivityContribution(Variable<array_1d<double, 3>> const& rSensitivityVariable,
                                               Vector const& rSensitivityVector,
-                                              Element::GeometryType& rGeom);
+                                              Condition& rCondition);
 
     void ReadDesignVariables(std::vector<std::vector<Variable<double>>>& rScalarDesignVariables,
         std::vector<std::vector<Variable<array_1d<double,3>>>>& rVectorDesignVariables, Parameters DesignVariableSettings);
