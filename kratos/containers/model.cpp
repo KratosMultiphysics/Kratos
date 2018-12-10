@@ -145,14 +145,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    bool Model::HasModelPart(const std::string& rFullModelPartName)
+    bool Model::HasModelPart(const std::string& rFullModelPartName) const
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
 
-        std::vector< std::string > subparts_list =  SplitSubModelPartHierarchy(rFullModelPartName);
+        std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
 
         //token 0 is the root
         auto search = mRootModelPartMap.find(subparts_list[0]);
@@ -198,7 +198,7 @@ namespace Kratos
     {
     }
 
-    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName)
+    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const
     {
         std::vector<std::string> rSubPartsList;
         std::istringstream iss(rFullModelPartName);

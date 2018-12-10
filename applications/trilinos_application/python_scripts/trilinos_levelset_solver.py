@@ -8,8 +8,6 @@ from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 from KratosMultiphysics.mpi import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 import trilinos_pureconvection_solver
 import trilinos_thermal_solver

@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
-CheckForPreviousImport()
 
 #implementation for string (py) settings
 def AddVariables(model_part, py_settings=None):

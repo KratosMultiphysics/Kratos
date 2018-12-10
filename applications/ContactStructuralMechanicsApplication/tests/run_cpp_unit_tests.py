@@ -3,7 +3,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.ContactStructuralMechanicsApplication import *
 
 def run():
-    Tester.SetVerbosity(Tester.Verbosity.TESTS_OUTPUTS)
+    Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
     Tester.RunTestSuite("KratosContactStructuralMechanicsFastSuite")
 
 if __name__ == '__main__':
