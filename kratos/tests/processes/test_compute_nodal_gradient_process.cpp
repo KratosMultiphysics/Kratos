@@ -52,7 +52,7 @@ namespace Kratos
         * Test triangle
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient1, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient1, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -136,7 +136,7 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient2, KratosCoreFastSuite)
         {
             Model current_model;
 
@@ -299,7 +299,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test quadrilateral
         */
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient3, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient3, KratosCoreFastSuite)
         {
             Model current_model;
             
@@ -370,7 +370,7 @@ namespace Kratos
         * Checks the correct work of the nodal gradient compute
         * Test hexahedra
         */
-        KRATOS_TEST_CASE_IN_SUITE(NodalGradient4, KratosCoreFastSuite2)
+        KRATOS_TEST_CASE_IN_SUITE(NodalGradient4, KratosCoreFastSuite)
         {
             Model current_model;
 
