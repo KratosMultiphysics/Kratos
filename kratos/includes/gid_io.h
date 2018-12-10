@@ -635,7 +635,7 @@ public:
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
             {
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+                for ( auto it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
                 {
@@ -652,7 +652,7 @@ public:
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
             {
-                for ( typename std::vector<TGaussPointContainer>::iterator it =
+                for ( auto it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
                 {
@@ -663,7 +663,7 @@ public:
             }
 
         // Writing gauss points definitions
-        for ( typename std::vector<TGaussPointContainer>::iterator it = mGidGaussPointContainers.begin();
+        for ( auto it = mGidGaussPointContainers.begin();
               it != mGidGaussPointContainers.end(); it++ )
         {
             it->WriteGaussPoints(mResultFile);
@@ -682,7 +682,7 @@ public:
             mResultFileOpen = false;
         }
         //resetting gauss point containers
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
+        for ( auto it =
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
@@ -1407,22 +1407,18 @@ public:
     }
 
     /**
-     * Prints variables of type double on gauss points of the complete mesh
+     * Prints variables of type int on gauss points of the complete mesh
      * @param rVariable the given variable name
      * @param rModelPart the current model part
      */
-    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+    virtual void PrintOnGaussPoints( const Variable<bool>& rVariable, ModelPart& rModelPart,
                                      double SolutionTag, int ValueIndex = 0 )
     {
         KRATOS_TRY;
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
-
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1443,11 +1439,28 @@ public:
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
+            it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
+        }
 
+        Timer::Stop("Writing Results");
+
+        KRATOS_CATCH("");
+    }
+
+    /**
+     * Prints variables of type double on gauss points of the complete mesh
+     * @param rVariable the given variable name
+     * @param rModelPart the current model part
+     */
+    virtual void PrintOnGaussPoints( const Variable<double>& rVariable, ModelPart& rModelPart,
+                                     double SolutionTag, int ValueIndex = 0 )
+    {
+        KRATOS_TRY;
+
+        Timer::Start("Writing Results");
+
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults( mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1467,10 +1480,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
@@ -1490,12 +1500,8 @@ public:
         KRATOS_TRY;
         Timer::Start("Writing Results");
 
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
-
         }
 
         Timer::Stop("Writing Results");
@@ -1513,11 +1519,8 @@ public:
     {
         KRATOS_TRY;
         Timer::Start("Writing Results");
-        for ( typename std::vector<TGaussPointContainer>::iterator it =
-                    mGidGaussPointContainers.begin();
-                it != mGidGaussPointContainers.end(); it++ )
-        {
 
+        for ( auto it = mGidGaussPointContainers.begin(); it != mGidGaussPointContainers.end(); it++ ) {
             it->PrintResults(  mResultFile, rVariable, rModelPart, SolutionTag, ValueIndex );
         }
 
