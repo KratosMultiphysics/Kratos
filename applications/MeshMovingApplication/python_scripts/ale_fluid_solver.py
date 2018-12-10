@@ -217,7 +217,7 @@ class AleFluidSolver(PythonSolver):
                 KM.MESH_VELOCITY,
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
-            mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
+            # mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY) # TODO expose in separate PR
 
     def __InitializeMeshVelocityComputation(self):
         '''Initializing the helper-class for the time-integration
