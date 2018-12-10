@@ -16,7 +16,7 @@ class AleFluidSolver(PythonSolver):
             "ale_boundary_parts"          : [ ],
             "fluid_solver_settings"       : { },
             "mesh_motion_solver_settings" : { },
-            "mesh_velocity_computation"   : { }
+            "mesh_velocity_calculation"   : { }
         }""")
 
         # cannot recursively validate because validation of fluid- and
@@ -49,7 +49,7 @@ class AleFluidSolver(PythonSolver):
         self.is_printing_rank = self.fluid_solver._IsPrintingRank()
 
         # Doing this after the Fluid-solver-settings have been validated to access the settings
-        self._SelectMeshVelocityComputationSettings()
+        self._SelectMeshVelocityCalculationSettings()
 
         self.__InitializeMeshVelocityComputation()
 
@@ -97,7 +97,7 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.AddVariables()
 
         # Adding Variables used for computation of Mesh-Velocity
-        time_scheme = self.settings["mesh_velocity_computation"]["time_scheme"].GetString()
+        time_scheme = self.settings["mesh_velocity_calculation"]["time_scheme"].GetString()
         main_model_part = self.model[self.settings["fluid_solver_settings"]["model_part_name"].GetString()]
         main_model_part.AddNodalSolutionStepVariable(KM.MESH_VELOCITY)
         if not time_scheme.startswith("bdf"): # bdfx does not need MESH_ACCELERATION
@@ -196,8 +196,8 @@ class AleFluidSolver(PythonSolver):
         '''
         raise Exception("Fluid solver creation must be implemented in the derived class.")
 
-    def _SelectMeshVelocityComputationSettings(self):
-        '''Specifying the time-scheme used to compute the mesh-velocity
+    def _SelectMeshVelocityCalculationSettings(self):
+        '''Specifying the time-scheme used to calculate the mesh-velocity
         It can to be overridden in derived classes
         '''
 
@@ -206,7 +206,7 @@ class AleFluidSolver(PythonSolver):
             "time_scheme" : "bdf2"
         }""")
 
-        self.settings["mesh_velocity_computation"].ValidateAndAssignDefaults(default_settings)
+        self.settings["mesh_velocity_calculation"].ValidateAndAssignDefaults(default_settings)
 
 
     def __ApplyALEBoundaryCondition(self):
@@ -222,7 +222,7 @@ class AleFluidSolver(PythonSolver):
     def __InitializeMeshVelocityComputation(self):
         '''Initializing the helper-class for the time-integration
         '''
-        time_int_settings = self.settings["mesh_velocity_computation"]
+        time_int_settings = self.settings["mesh_velocity_calculation"]
         time_scheme = time_int_settings["time_scheme"].GetString()
 
         if time_scheme == "bdf1":
@@ -233,13 +233,13 @@ class AleFluidSolver(PythonSolver):
             self.time_int_helper = KM.Newmark()
         elif time_scheme == "bossak":
             if time_int_settings.Has("alpha_m"):
-                alpha_m = time_int_settings.GetDouble["alpha_m"]
+                alpha_m = time_int_settings["alpha_m"].GetDouble()
                 self.time_int_helper = KM.Bossak(alpha_m)
             else:
                 self.time_int_helper = KM.Bossak()
         elif time_scheme == "generalized_alpha":
-            alpha_m = time_int_settings.GetDouble["alpha_m"]
-            alpha_f = time_int_settings.GetDouble["alpha_f"]
+            alpha_m = time_int_settings["alpha_m"].GetDouble()
+            alpha_f = time_int_settings["alpha_f"].GetDouble()
             self.time_int_helper = KM.GeneralizedAlpha(alpha_m, alpha_f)
         else:
             err_msg =  'The requested time scheme "' + time_scheme + '" is not available!\n'
