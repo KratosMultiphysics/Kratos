@@ -348,7 +348,7 @@ protected:
      * @param rPlasticStrain
      * @param rAccumulatedPlasticStrain
      */
-    virtual void CalculateResponse6(
+    void CalculateResponse6(
         ConstitutiveLaw::Parameters& rValues,
         BoundedArrayType&            rPlasticStrain,
         double&                      rAccumulatedPlasticStrain
@@ -362,7 +362,7 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @param rTangentTensor The tangent tensor/matrix to be computed
      */
-    virtual void CalculateTangentTensor6(
+    void CalculateTangentTensor6(
         const double            DeltaGamma,
         const double            NormStressTrial,
         const BoundedArrayType& rYieldFunctionNormalVector,

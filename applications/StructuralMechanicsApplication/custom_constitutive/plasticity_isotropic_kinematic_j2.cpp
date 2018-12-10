@@ -28,8 +28,10 @@ PlasticityIsotropicKinematicJ2::PlasticityIsotropicKinematicJ2()
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
 
-PlasticityIsotropicKinematicJ2::PlasticityIsotropicKinematicJ2(const PlasticityIsotropicKinematicJ2 &rOther)
-    : ConstitutiveLaw(rOther)
+PlasticityIsotropicKinematicJ2::PlasticityIsotropicKinematicJ2(const PlasticityIsotropicKinematicJ2& rOther)
+    : ConstitutiveLaw(rOther),
+      mPlasticStrain(rOther.mPlasticStrain),
+      mEquivalentPlasticStrain(rOther.mEquivalentPlasticStrain)
 {
 }
 
