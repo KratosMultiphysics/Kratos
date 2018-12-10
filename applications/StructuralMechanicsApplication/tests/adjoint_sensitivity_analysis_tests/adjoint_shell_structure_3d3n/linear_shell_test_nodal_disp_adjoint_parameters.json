@@ -106,7 +106,7 @@
             "tolerance"            : 1e-5,
             "time_frequency"   : -2.0
         }
-    }],
+    }]},
     "_json_output_process" : [
         {
             "python_module" : "json_output_process",
@@ -119,5 +119,5 @@
                 "model_part_name"  : "Structure",
                 "time_frequency"   : -2.0
             }
-        }]}
+        }]
 }
