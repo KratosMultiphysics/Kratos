@@ -24,7 +24,7 @@ class FractureUPwSolver(object):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "poromechanics_fracture_U_Pw_solver",
-            "model_part_name": "PorousDomain",
+            "model_part_name": "PorousModelPart",
             "domain_size": 2,
             "start_time": 0.0,
             "time_step": 0.1,
