@@ -146,7 +146,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         else:
             raise RuntimeError("Specified bead direction mode not supported!")
 
-        # initialize according to initial ALPHA values
+        # Initialize ALPHA_MAPPED according to initial ALPHA values
         self.mapper.Map(ALPHA, ALPHA_MAPPED)
 
         # Specify bead direction
