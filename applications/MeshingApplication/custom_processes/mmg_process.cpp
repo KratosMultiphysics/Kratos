@@ -212,6 +212,23 @@ void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
     // Save to file
     if (safe_to_file) SaveSolutionToFile(false);
 
+    // We do a clear of the containers data (this is not interpolated anyway and some variables give problems, because are pointers to others containers)
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = r_conditions_array.begin() + i;
+        auto& r_data = it_cond->Data();
+        r_data.Clear();
+    }
+
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+        auto& r_data = it_elem->Data();
+        r_data.Clear();
+    }
+
     // We execute the remeshing
     ExecuteRemeshing();
 
