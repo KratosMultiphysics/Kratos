@@ -172,7 +172,7 @@ class TestModelPartIO(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
 
         model_part = current_model.CreateModelPart("Main")
-        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read"), KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("auxiliar_files_for_python_unnitest/mdpa_files/test_model_part_io_read"), KratosMultiphysics.IO.MESH_ONLY)
         model_part_io.ReadModelPart(model_part)
 
         self.assertEqual(model_part.NumberOfSubModelParts(), 2)
