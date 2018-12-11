@@ -144,7 +144,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #out.ExecuteFinalizeSolutionStep()
 
     def test_less_basic_mortar_mapping_triangle_pure_implicit(self):
-        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/auxiliar_files_for_python_unnitest/mortar_mapper_python_tests/test_integration_several_triangles"
         self._mapper_tests(input_filename, 3, 3, True)
 
     def test_less_basic_mortar_mapping_triangle(self):
