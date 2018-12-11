@@ -69,8 +69,12 @@ class ParticleMechanicsAnalysis(AnalysisStage):
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage"""
         import time
+
+        ## Analysis timer start
+        analysis_start_time = time.time()
+
         while self.time < self.end_time:
-            ## Timer Start
+            ## Solution loop timer start
             start_solve_time = time.time()
 
             self.time = self._GetSolver().AdvanceInTime(self.time)
@@ -80,10 +84,16 @@ class ParticleMechanicsAnalysis(AnalysisStage):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-            ## Stop Timer
+            ## Stop solution loop timer
             end_solve_time = time.time()
             if self.is_printing_rank:
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "SOLVING TIME: ", end_solve_time - start_solve_time, " s]")
+
+        ## Stop analysis timer
+        analysis_end_time = time.time()
+        if self.is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "ANALYSIS TIME: ", analysis_end_time - analysis_start_time, " s]")
+
 
     #### Internal functions ####
     def _CreateSolver(self):

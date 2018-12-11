@@ -31,6 +31,7 @@
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
+#include "input_output/logger.h"
 //#include "containers/model.h"
 // #include "containers/variable.h"
 
@@ -788,8 +789,7 @@ public:
             read(read_tag);
             if(read_tag == rTag)
             {
-                std::cout << "In line " << mNumberOfLines;
-                std::cout << " loading " << rTag << " as expected" << std::endl;
+                KRATOS_INFO("Serializer") << "In line " << mNumberOfLines << " loading " << rTag << " as expected" << std::endl;
                 return true;
             }
             else
@@ -816,6 +816,25 @@ public:
     BufferType* pGetBuffer()
     {
         return mpBuffer;
+    }
+
+    /**
+     * This function let's one introduce "pValue"  between the objects 
+     * which are considered to be already serialized
+     * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
+     */
+    template<class TDataType>
+    void AddToSavedPointers(const TDataType& pValue) {
+        mSavedPointers.insert(pValue);
+    }
+    
+    /**
+     * This function is to be used to inform the serializer that the object
+     * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
+     * This function is useful to substitute some objects with others that already exist.
+     */
+    void RedirectLoadingPointer(void * pStoredPointer, void * pAllocatedPosition) {
+        mLoadedPointers[pStoredPointer]=pAllocatedPosition;
     }
 
     static RegisteredObjectsContainerType& GetRegisteredObjects()

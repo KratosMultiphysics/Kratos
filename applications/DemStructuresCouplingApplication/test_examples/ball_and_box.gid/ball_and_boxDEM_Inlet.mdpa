@@ -1,0 +1,48 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 1 // Inlet group: Inlet0
+  PARTICLE_DENSITY 10000.0
+  YOUNG_MODULUS 1.0e7
+  POISSON_RATIO 0.20
+  PARTICLE_FRICTION 0.5
+  PARTICLE_COHESION 0.0
+  COEFFICIENT_OF_RESTITUTION 0.2
+  PARTICLE_MATERIAL 1
+  ROLLING_FRICTION 0.01
+  PARTICLE_SPHERICITY 1.0
+  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Hertz_viscous_Coulomb
+  DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEMContinuumConstitutiveLaw
+End Properties
+
+Begin Nodes // GUI Inlet group identifier: Inlet0
+1 0.5 0.5 1.2
+End Nodes
+
+Begin SubModelPart 1 // Group name: Inlet0
+  Begin SubModelPartData // DEM-Inlet. Group name: Inlet0
+  PROPERTIES_ID 1
+  RIGID_BODY_MOTION 0
+  IDENTIFIER Inlet0
+  INJECTOR_ELEMENT_TYPE SphericParticle3D
+  ELEMENT_TYPE SphericParticle3D
+  CONTAINS_CLUSTERS 0
+  VELOCITY [3] (0.0, 0.0, -1.0)
+  MAX_RAND_DEVIATION_ANGLE 1
+  INLET_NUMBER_OF_PARTICLES 50.0
+  IMPOSED_MASS_FLOW_OPTION 0
+  MASS_FLOW 0.2
+  INLET_START_TIME 0.0
+  INLET_STOP_TIME 0.5
+  RADIUS 0.2
+  PROBABILITY_DISTRIBUTION normal
+  STANDARD_DEVIATION 0.0
+  RANDOM_ORIENTATION 1
+  ORIENTATION [4] (0.0, 0.0, 0.0, 1.0)
+  End SubModelPartData
+  Begin SubModelPartNodes
+  1
+  End SubModelPartNodes
+End SubModelPart
+
