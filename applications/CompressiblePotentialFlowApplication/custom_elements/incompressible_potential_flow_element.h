@@ -85,27 +85,36 @@ class IncompressiblePotentialFlowElement : public Element
     /**
      * @param NewId Index number of the new element (optional)
      */
-    IncompressiblePotentialFlowElement(IndexType NewId = 0){};
+    IncompressiblePotentialFlowElement(
+        IndexType NewId = 0){};
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes){};
+    IncompressiblePotentialFlowElement(
+        IndexType NewId,
+        const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes){};
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    IncompressiblePotentialFlowElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties){};
+    IncompressiblePotentialFlowElement(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties){};
 
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const &rOther){};
+    IncompressiblePotentialFlowElement(
+        IncompressiblePotentialFlowElement const &rOther){};
 
     /**
      * Destructor
@@ -117,7 +126,8 @@ class IncompressiblePotentialFlowElement : public Element
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement &operator=(IncompressiblePotentialFlowElement const &rOther)
+    IncompressiblePotentialFlowElement &operator=(
+        IncompressiblePotentialFlowElement const &rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -135,7 +145,10 @@ class IncompressiblePotentialFlowElement : public Element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const &ThisNodes, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const &ThisNodes,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
@@ -149,7 +162,10 @@ class IncompressiblePotentialFlowElement : public Element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
@@ -163,7 +179,9 @@ class IncompressiblePotentialFlowElement : public Element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const &ThisNodes) const override
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const &ThisNodes) const override
     {
         KRATOS_TRY
         return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
@@ -195,14 +213,18 @@ class IncompressiblePotentialFlowElement : public Element
      * @param rResult rResult[i] is the global index of local row i (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    void EquationIdVector(EquationIdVectorType &rResult, ProcessInfo &CurrentProcessInfo) override;
+    void EquationIdVector(
+        EquationIdVectorType &rResult,
+        ProcessInfo &CurrentProcessInfo) override;
 
     /**
      * @brief GetDofList Returns a list of the element's Dofs.
      * @param rElementalDofList List of DOFs. (output)
      * @param rCurrentProcessInfo Current ProcessInfo instance. (input)
      */
-    void GetDofList(DofsVectorType &rElementalDofList, ProcessInfo &CurrentProcessInfo) override;
+    void GetDofList(
+        DofsVectorType &rElementalDofList,
+        ProcessInfo &CurrentProcessInfo) override;
 
     /**
      * this is called during the assembling process in order
@@ -210,77 +232,17 @@ class IncompressiblePotentialFlowElement : public Element
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) override
+    void CalculateRightHandSide(
+        VectorType &rRightHandSideVector,
+        ProcessInfo &rCurrentProcessInfo) override
     {
         //TODO: improve speed
         Matrix tmp;
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
 
-    void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override
-    {
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (this->Is(MARKER) && active == true)
-        {
-            CheckWakeCondition();
-
-            const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-            const double vinfinity_norm = sqrt(inner_prod(vinfinity, vinfinity));
-
-            array_1d<double, NumNodes> distances;
-            GetWakeDistances(distances);
-
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] > 0)
-                {
-                    GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE));
-                }
-                else
-                {
-                    GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE));
-                }
-            }
-        }
-
-        //Compute element internal energy
-        VectorType rRightHandSideVector;
-        MatrixType rLeftHandSideMatrix;
-        this->CalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-
-        ElementalData<NumNodes, Dim> data;
-
-        double internal_energy = 0.0;
-
-        if (this->IsNot(MARKER)) //normal element (non-wake) - eventually an embedded
-        {
-            VectorType tmp;
-            tmp.resize(NumNodes, false);
-
-            //gather nodal data
-            for (unsigned int i = 0; i < NumNodes; i++)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-
-            noalias(tmp) = prod(rLeftHandSideMatrix, data.phis);
-            internal_energy = 0.5 * inner_prod(tmp, data.phis);
-        }
-        else
-        {
-            VectorType tmp;
-            tmp.resize(NumNodes * 2, false);
-
-            GetWakeDistances(data.distances);
-            Vector split_element_values(NumNodes * 2);
-            GetValuesOnSplitElement(split_element_values, data.distances);
-
-            noalias(tmp) = prod(rLeftHandSideMatrix, split_element_values);
-            internal_energy = 0.5 * inner_prod(rRightHandSideVector, split_element_values);
-        }
-        this->SetValue(INTERNAL_ENERGY, internal_energy);
-    }
+    void FinalizeSolutionStep(
+        ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -463,13 +425,40 @@ class IncompressiblePotentialFlowElement : public Element
 
     void GetDofListWakeElement(DofsVectorType &rElementalDofList);
 
+    void CalculateLocalSystemNormalElement(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector);
+
+    void CalculateLocalSystemWakeElement(
+        MatrixType &rLeftHandSideMatrix,
+        VectorType &rRightHandSideVector);
+
+    void CalculateLocalSystemSubdividedElement(
+        Matrix &lhs_positive,
+        Matrix &lhs_negative);
+
     void ComputeLHSGaussPointContribution(
         const double weight,
         Matrix &lhs,
-        const ElementalData<NumNodes, Dim> &data)
-    {
-        noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
-    }
+        const ElementalData<NumNodes, Dim> &data);
+
+    void AssignLocalSystemSubdividedElement(
+        MatrixType &rLeftHandSideMatrix,
+        Matrix &lhs_positive,
+        Matrix &lhs_negative,
+        Matrix &lhs_total,
+        const ElementalData<NumNodes, Dim> &data);
+
+    void AssignLocalSystemWakeElement(
+        MatrixType &rLeftHandSideMatrix,
+        Matrix &lhs_total,
+        const ElementalData<NumNodes, Dim> &data);
+
+    void AssignLocalSystemWakeNode(
+        MatrixType &rLeftHandSideMatrix,
+        Matrix &lhs_total,
+        const ElementalData<NumNodes, Dim> &data,
+        unsigned int &row);
 
     void ComputeRHSGaussPointContribution(
         const double weight,
@@ -620,19 +609,9 @@ class IncompressiblePotentialFlowElement : public Element
         noalias(velocity) = prod(trans(data.DN_DX), data.phis);
     }
 
-    void CheckWakeCondition()
-    {
-        array_1d<double, Dim> upper_wake_velocity;
-        ComputeVelocityUpperWakeElement(upper_wake_velocity);
-        const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-        array_1d<double, Dim> lower_wake_velocity;
-        ComputeVelocityLowerWakeElement(lower_wake_velocity);
-        const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-        if (std::abs(vupnorm - vlownorm) > 0.1)
-            std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id() << std::endl;
-    }
+    void CheckWakeCondition();
+    void ComputePotentialJump(ProcessInfo &rCurrentProcessInfo);
+    void ComputeElementInternalEnergy();
 
     double ComputePressureUpper(const ProcessInfo &rCurrentProcessInfo)
     {
