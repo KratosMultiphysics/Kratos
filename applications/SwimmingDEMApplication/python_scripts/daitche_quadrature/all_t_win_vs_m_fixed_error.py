@@ -17,12 +17,12 @@ def CalculateErrors(points_set, pp, samples = 10):
 
     for m in points_set.exponential_indices:
         for i in range(n_samples):
-            final_time = pp.final_time - 2 * math.pi * i / n_samples
-            final_time_minus_tw = final_time - pp.t_w
-            ExactIntegral = quad.ExactIntegrationOfSinus(final_time)
-            F_w = quad.ExactIntegrationOfSinus(final_time, final_time_minus_tw)
+            end_time = pp.end_time - 2 * math.pi * i / n_samples
+            end_time_minus_tw = end_time - pp.t_w
+            ExactIntegral = quad.ExactIntegrationOfSinus(end_time)
+            F_w = quad.ExactIntegrationOfSinus(end_time, end_time_minus_tw)
             tis = [pp.t_w * ti for ti in points_set.AsTs[m][1]]
-            F_tail = quad.ExactIntegrationOfTail(final_time, final_time_minus_tw, 0, points_set.AsTs[m][0], tis)
+            F_tail = quad.ExactIntegrationOfTail(end_time, end_time_minus_tw, 0, points_set.AsTs[m][0], tis)
             ApproxIntegral = float(F_w) + float(F_tail)
             error_bound = ObjectiveFunction(points_set, m, pp)
             Error += abs((ExactIntegral - ApproxIntegral))
@@ -30,10 +30,10 @@ def CalculateErrors(points_set, pp, samples = 10):
         points_set.ErrorBounds.append(error_bound)
 
 def CalculateError(t_w):
-    ExactIntegral = quad.ExactIntegrationOfSinus(pp.final_time)
-    F_w = quad.ExactIntegrationOfSinus(pp.final_time, pp.final_time_minus_tw)
+    ExactIntegral = quad.ExactIntegrationOfSinus(pp.end_time)
+    F_w = quad.ExactIntegrationOfSinus(pp.end_time, pp.end_time_minus_tw)
     tis = [t_w * ti for ti in points_set.AsTs[m][1]]
-    F_tail = quad.ExactIntegrationOfTail(pp.final_time, pp.final_time_minus_tw, 0, points_set.AsTs[m][0], tis)
+    F_tail = quad.ExactIntegrationOfTail(pp.end_time, pp.end_time_minus_tw, 0, points_set.AsTs[m][0], tis)
     ApproxIntegral = float(F_w) + float(F_tail)
     error_bound = ObjectiveFunction(points_set, m, pp)
     Error = abs((ExactIntegral - ApproxIntegral))
@@ -138,7 +138,7 @@ class HinsbergPointsSetGivenNorm:
         self.ErrorBounds = []
 
 pp = ProblemParameters()
-pp.final_time = 2 * math.pi
+pp.end_time = 2 * math.pi
 pp.initial_time = 'MinusInfinity'
 ref_errors = [1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
 # ref_errors = [1e-1, 1e-2, 1e-3]
@@ -156,17 +156,17 @@ def CalculateTws(m, max_t_w, points_set, ref_error, n_samples = 40):
     def ObjectiveFunctionMaxTwin(t_w):
         error = 0.
         for i in range(n_samples):
-            final_time = 2 * math.pi * (i + 1) / n_samples
-            final_time_minus_tw = final_time - t_w
+            end_time = 2 * math.pi * (i + 1) / n_samples
+            end_time_minus_tw = end_time - t_w
             approximate_tail_contribution = 0.
 
             if m_index + 1:
                 ais = points_set.AsTs[m_index][0][:]
                 tis = [t_w * ti for ti in points_set.AsTs[m_index][1]]
-                approximate_tail_contribution = float(quad.ExactIntegrationOfTail(final_time = final_time, final_time_minus_tw = final_time_minus_tw, initial_time = 'MinusInfinity', ais = ais, tis = tis))
-            exact_tail = quad.ExactIntegrationOfSinus(final_time, a = 'MinusInfinity', b = final_time) - quad.ExactIntegrationOfSinus(final_time, a = final_time_minus_tw, b = final_time)
+                approximate_tail_contribution = float(quad.ExactIntegrationOfTail(end_time = end_time, end_time_minus_tw = end_time_minus_tw, initial_time = 'MinusInfinity', ais = ais, tis = tis))
+            exact_tail = quad.ExactIntegrationOfSinus(end_time, a = 'MinusInfinity', b = end_time) - quad.ExactIntegrationOfSinus(end_time, a = end_time_minus_tw, b = end_time)
             error += abs(exact_tail - approximate_tail_contribution)
-            # print('a', final_time_minus_tw)
+            # print('a', end_time_minus_tw)
             # print('EXACT', exact_tail)
             # print('APROX',approximate_tail_contribution)
         return error / n_samples / ref_error - 1

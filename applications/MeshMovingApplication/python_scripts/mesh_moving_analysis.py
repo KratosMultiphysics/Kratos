@@ -4,18 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
-
 # Importing the base class
 from analysis_stage import AnalysisStage
 
@@ -48,12 +36,6 @@ class MeshMovingAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", '"solver_settings" does not have "echo_level", please add it!')
             solver_settings.AddEmptyValue("echo_level")
             solver_settings["echo_level"].SetInt(0)
-
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         super(MeshMovingAnalysis, self).__init__(model, project_parameters)
 

@@ -2,10 +2,6 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 
@@ -35,12 +31,6 @@ class FluidDynamicsAnalysis(AnalysisStage):
             Kratos.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
-
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         super(FluidDynamicsAnalysis,self).__init__(model,parameters)
 

@@ -82,9 +82,9 @@ namespace Kratos
         VariableUtils().SetFlag<ModelPart::ConditionsContainerType>(TO_ERASE, true, mrSkinModelPart.Conditions());
 
         // Remove all the skin model part geometrical entities
-        // mrSkinModelPart.RemoveNodes(TO_ERASE);
-        // mrSkinModelPart.RemoveElements(TO_ERASE);
-        // mrSkinModelPart.RemoveConditions(TO_ERASE);
+        mrSkinModelPart.RemoveNodes(TO_ERASE);
+        mrSkinModelPart.RemoveElements(TO_ERASE);
+        mrSkinModelPart.RemoveConditions(TO_ERASE);
     }
 
     template<std::size_t TDim>
@@ -224,7 +224,7 @@ namespace Kratos
     }
 
     template<std::size_t TDim>
-    const bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
+    bool inline EmbeddedSkinUtility<TDim>::ElementIsSplit(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances)
     {
