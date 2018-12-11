@@ -27,6 +27,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
 
         # Create element and nodes
         sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLE_PER_ELEMENT, 4)
         self._create_nodes(sub_mp)
         self._create_elements(sub_mp)
 
