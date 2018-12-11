@@ -278,7 +278,7 @@ if __name__ == '__main__':
 
     number_samples = 10
 
-    QoI = StatisticalVariable()
+    QoI = StatisticalVariable(0) # number of levels = 0 (we only have one level), needed using this class
     '''to exploit StatisticalVariable UpdateOnePassMeanVariance function we need to initialize a level 0 in values, mean, sample variance and second moment
     and store in this level the informations'''
     QoI.values = [[] for i in range (1)]
