@@ -243,7 +243,7 @@ class ConstructionUtility
             if (mAging == false)
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -253,7 +253,7 @@ class ConstructionUtility
             else
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -303,7 +303,7 @@ class ConstructionUtility
                         if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
                         {
                             it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
-                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = it_thermal->GetGeometry()[i].FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) = initial_temperature;
                         }
                     }
                 }
@@ -356,6 +356,7 @@ class ConstructionUtility
                     for (unsigned int i = 0; i < number_of_points; i++)
                     {
                         it->GetGeometry()[i].Set(ACTIVE, true);
+                        it->GetGeometry()[i].Set(SOLID, false);
                     }
                 }
             }
@@ -410,6 +411,36 @@ class ConstructionUtility
                 }
                 if (active_condition) it_cond_thermal->Set(ACTIVE, true);
                 else it_cond_thermal->Set(ACTIVE, false);
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CheckTemperature()
+    {
+        KRATOS_TRY;
+
+        const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+            if (it->Is(ACTIVE) && it->IsNot(SOLID))
+            {
+                if (it->FastGetSolutionStepValue(TEMPERATURE) > (it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + 23.0))
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + 23.0;
+                }
+                if (it->FastGetSolutionStepValue(TEMPERATURE) < -7.5){
+                    it->FastGetSolutionStepValue(TEMPERATURE) = -7.5;
+                }
             }
         }
 

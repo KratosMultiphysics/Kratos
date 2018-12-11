@@ -88,11 +88,15 @@ class DamConstructionUtility:
                     self.name_sub_mechanical_part = "sub_Parts_" + file_3[1]
                     self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
 
+        # Check if the temperature of every nodes is in the range (it must be done each step)
+        print("Checking temperatures...")
+        self.Construction.CheckTemperature()
+
         # Detection of fluxes (it must be done each step)
         print("Searching free surfaces...")
         self.Construction.SearchingFluxes()
 
-        # Contribution of heat source
+        # Contribution of heat source (it must be done each step)
         print("Assigning heat source...")
         if (self.heat_source_type == 'Noorzai'):
             self.Construction.ActiveHeatFluxNoorzai(self.heat_source_parameters)

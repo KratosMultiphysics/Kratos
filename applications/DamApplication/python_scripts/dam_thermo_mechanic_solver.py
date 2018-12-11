@@ -162,7 +162,7 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)
-
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.PLACEMENT_TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.INITIAL_NODAL_CAUCHY_STRESS_TENSOR)
 
         # This Variable is used for computing heat source according Azenha Formulation
