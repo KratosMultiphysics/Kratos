@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("ParticleMechanicsApplication")
-
 # Import applications and dependencies
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
@@ -68,6 +65,7 @@ class ParticleMPMSolver(PythonSolver):
             "geometry_element"                   : "Triangle",
             "number_of_material"                 : 1,
             "particle_per_element"               : 3,
+            "axis_symmetric_flag"                : false,
             "impenetrability_condition"          : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
@@ -167,6 +165,7 @@ class ParticleMPMSolver(PythonSolver):
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
         self.line_search            = self.settings["line_search"].GetBool()
         self.implex                 = self.settings["implex"].GetBool()
+        self.axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
         # Set definition of search element
@@ -181,7 +180,10 @@ class ParticleMPMSolver(PythonSolver):
                 if (self.pressure_dofs):
                     self.new_element = KratosParticle.CreateUpdatedLagragianUP2D3N()
                 else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian2D3N()
+                    if (self.axis_symmetric_flag):
+                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D3N()
+                    else:
+                        self.new_element = KratosParticle.CreateUpdatedLagragian2D3N()
             else:
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Tetrahedral Element is not yet implemented.")
@@ -192,7 +194,10 @@ class ParticleMPMSolver(PythonSolver):
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 2D for Quadrilateral Element is not yet implemented.")
                 else:
-                    self.new_element = KratosParticle.CreateUpdatedLagragian2D4N()
+                    if (self.axis_symmetric_flag):
+                        self.new_element = KratosParticle.CreateUpdatedLagragianAxis2D4N()
+                    else:
+                        self.new_element = KratosParticle.CreateUpdatedLagragian2D4N()
             else:
                 if (self.pressure_dofs):
                     raise Exception("Element for mixed U-P formulation in 3D for Hexahedral Element is not yet implemented.")
@@ -225,7 +230,7 @@ class ParticleMPMSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def SearchElement(self):
-        self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
+        self.solver.SearchElement(self.max_number_of_search_results, self.searching_tolerance)
 
     def InitializeSolutionStep(self):
         self.SearchElement()
@@ -311,7 +316,6 @@ class ParticleMPMSolver(PythonSolver):
             # add specific variables for the problem (pressure dofs)
             model_part.AddNodalSolutionStepVariable(KratosParticle.PRESSURE_REACTION)
             model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MPRESSURE)
-            model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_PRESSURE)
 
     def _model_part_reading(self):
         # reading the model part of the background grid

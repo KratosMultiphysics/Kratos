@@ -20,6 +20,7 @@
 #include "custom_utilities/ball_vertex_meshmoving.h"
 #include "custom_utilities/ball_vertex_meshmoving3D.h"
 #include "custom_utilities/explicit_mesh_moving_utilities.h"
+#include "custom_utilities/mesh_velocity_calculation.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -52,6 +53,18 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ProjectVirtualValues2D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<2>)
         .def("ProjectVirtualValues3D",&ExplicitMeshMovingUtilities::ProjectVirtualValues<3>)
         .def("UndoMeshMovement",&ExplicitMeshMovingUtilities::UndoMeshMovement);
+
+    void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
+    void (*CalculateMeshVelocitiesBDF2)(ModelPart&, const TimeDiscretization::BDF2&) = &MeshVelocityCalculation::CalculateMeshVelocities;
+    void (*CalculateMeshVelocitiesNewmark)(ModelPart&, const TimeDiscretization::Newmark&) = &MeshVelocityCalculation::CalculateMeshVelocities;
+    void (*CalculateMeshVelocitiesBossak)(ModelPart&, const TimeDiscretization::Bossak&) = &MeshVelocityCalculation::CalculateMeshVelocities;
+    void (*CalculateMeshVelocitiesGeneralizedAlpha)(ModelPart&, const TimeDiscretization::GeneralizedAlpha&) = &MeshVelocityCalculation::CalculateMeshVelocities;
+
+    m.def("CalculateMeshVelocities", CalculateMeshVelocitiesBDF1 );
+    m.def("CalculateMeshVelocities", CalculateMeshVelocitiesBDF2 );
+    m.def("CalculateMeshVelocities", CalculateMeshVelocitiesNewmark );
+    m.def("CalculateMeshVelocities", CalculateMeshVelocitiesBossak );
+    m.def("CalculateMeshVelocities", CalculateMeshVelocitiesGeneralizedAlpha );
 
 }
 
