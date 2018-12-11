@@ -7,7 +7,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_MPI_SOURCES
    mpi_environment.cpp
    sources/mpi_data_communicator.cpp
-   sources/mpi_coloring_utilities.cpp
+   utilities/mpi_coloring_utilities.cpp
 )
 
 ## Kratos MPI extension Python interface
