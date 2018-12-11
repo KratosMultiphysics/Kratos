@@ -160,7 +160,7 @@ public:
         Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle",
         int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
-        mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement)
+        mr_mpm_model_part(mpm_model_part)
     {
 
         // Assigning the nodes to the new model part
@@ -229,8 +229,9 @@ public:
                     }
 
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    if (m_GeometryElement == "Triangle")
+                    if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
                     {
                         switch (particle_per_element)
                         {
@@ -257,7 +258,7 @@ public:
                                     break;
                                 }
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(particle_per_element);
+                                std::string warning_msg = "The input number of PARTICLE_PER_ELEMENT: " + std::to_string(particle_per_element);
                                 warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                                 warning_msg += "The default number of particle: 3 is currently assumed.";
@@ -265,7 +266,7 @@ public:
                                 break;
                         }
                     }
-                    else if(m_GeometryElement == "Quadrilateral")
+                    else if(rGeoType == GeometryData::Kratos_Hexahedra3D8  || rGeoType == GeometryData::Kratos_Quadrilateral2D4)
                     {
                         switch (particle_per_element)
                         {
@@ -282,13 +283,19 @@ public:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                 break;
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(particle_per_element);
+                                std::string warning_msg = "The input number of PARTICLE_PER_ELEMENT: " + std::to_string(particle_per_element);
                                 warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                                 warning_msg += "The default number of particle: 4 is currently assumed.";
                                 KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                 break;
                         }
+                    }
+                    else{
+                        std::string error_msg = "The Geometry type of the Element given is invalid or currently not available. ";
+                        error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
+                        error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
+                        KRATOS_ERROR << error_msg << std::endl;
                     }
 
                     // Number of MP per elements
@@ -849,7 +856,6 @@ protected:
     ModelPart& mr_grid_model_part;
     ModelPart& mr_initial_model_part;
     ModelPart& mr_mpm_model_part;
-    std::string m_GeometryElement;
 
     SolvingStrategyType::Pointer mp_solving_strategy;
 
