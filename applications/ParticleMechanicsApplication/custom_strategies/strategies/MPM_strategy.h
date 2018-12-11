@@ -160,7 +160,7 @@ public:
         Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle",
         int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
-        mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
+        mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement)
     {
 
         // Assigning the nodes to the new model part
@@ -217,11 +217,22 @@ public:
                     const int material_id = i->GetProperties().Id();
                     const double density  = i->GetProperties()[DENSITY];
 
+                    unsigned int particle_per_element;
+                    if (i->GetProperties().Has( PARTICLE_PER_ELEMENT )){
+                        particle_per_element = i->GetProperties()[PARTICLE_PER_ELEMENT];
+                    }
+                    else{
+                        std::string warning_msg = "PARTICLE_PER_ELEMENT is not specified in Properties, ";
+                        warning_msg += "1 Particle per element is assumed.";
+                        KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                        particle_per_element = 1;
+                    }
+
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     if (m_GeometryElement == "Triangle")
                     {
-                        switch (m_NumPar)
+                        switch (particle_per_element)
                         {
                             case 1:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
@@ -246,7 +257,7 @@ public:
                                     break;
                                 }
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                std::string warning_msg = "The input number of particle: " + std::to_string(particle_per_element);
                                 warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                                 warning_msg += "The default number of particle: 3 is currently assumed.";
@@ -256,7 +267,7 @@ public:
                     }
                     else if(m_GeometryElement == "Quadrilateral")
                     {
-                        switch (m_NumPar)
+                        switch (particle_per_element)
                         {
                             case 1:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
@@ -271,7 +282,7 @@ public:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                 break;
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                std::string warning_msg = "The input number of particle: " + std::to_string(particle_per_element);
                                 warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                                 warning_msg += "The default number of particle: 4 is currently assumed.";
@@ -839,7 +850,6 @@ protected:
     ModelPart& mr_initial_model_part;
     ModelPart& mr_mpm_model_part;
     std::string m_GeometryElement;
-    int m_NumPar;
 
     SolvingStrategyType::Pointer mp_solving_strategy;
 
