@@ -39,9 +39,9 @@
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
 
 #include "custom_elements/spheric_swimming_particle.h"
-#include "../DEM_application/custom_elements/spheric_particle.h"
-#include "../DEM_application/custom_elements/nanoparticle.h"
-#include "../DEM_application/custom_elements/analytic_spheric_particle.h"
+#include "../DEMApplication/custom_elements/spheric_particle.h"
+#include "../DEMApplication/custom_elements/nanoparticle.h"
+#include "../DEMApplication/custom_elements/analytic_spheric_particle.h"
 
 namespace Kratos
 {

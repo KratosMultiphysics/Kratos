@@ -9,9 +9,6 @@ from json_output_process import JsonOutputProcess
 # Import applications and dependencies
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")

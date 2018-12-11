@@ -111,7 +111,7 @@ class DarcyChannelTest(UnitTest.TestCase):
                 self.density = float(density)
                 self.temperature = float(temperature)
                 self.kinematic_viscosity = float(kinematic_viscosity)
- 
+
         fluids = [
             Fluid("Water",7,1000,1.38E-06),
             Fluid("Pure Aluminium",710,2386,5.25E-07),
@@ -228,8 +228,11 @@ class DarcyChannelTest(UnitTest.TestCase):
         self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+
+        import linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "AMGCL"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False
@@ -326,7 +329,7 @@ class DarcyChannelTest(UnitTest.TestCase):
         label = self.fluid_model_part.ProcessInfo[TIME]
         self.gid_io.WriteNodalResults(VELOCITY,self.fluid_model_part.Nodes,label,0)
         self.gid_io.WriteNodalResults(PRESSURE,self.fluid_model_part.Nodes,label,0)
-    
+
     def FinalizeOutput(self):
         self.gid_io.FinalizeResults()
 
