@@ -298,6 +298,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
 		Vector IntegratedStressVectorConcrete = ZeroVector(voigt_size);
 		Vector damages_edges = ZeroVector(6);
+		bool is_damaging = false;
 
 		// Loop over edges of the element
 		const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
@@ -317,7 +318,8 @@ void RomFemDem3DElement::CalculateLocalSystem(
 												 AverageStrainVectorConcrete, 
 												 AverageStressVectorConcrete, 
 												 edge, 
-												 characteristic_lengths[edge]);
+												 characteristic_lengths[edge],
+												 is_damaging);
 			mNonConvergedDamages[edge] = damage_edge;
 			mNonConvergedThresholds[edge] = threshold;
 		} // End loop over edges

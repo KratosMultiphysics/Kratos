@@ -75,12 +75,13 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 										const Vector &rStrainVector,
 										const Vector &rStressVector,
 										int Edge,
-										double Length);
-	void ModifiedMohrCoulombCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void RankineCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void SimoJuCriterion(double& rThreshold, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char);
-	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char);
+										double Length,
+										bool& rIsDamaging);
+	void ModifiedMohrCoulombCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+	void RankineCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+	void SimoJuCriterion(double& rThreshold, double &Damage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
 
 	// Stress Invariants in 3D
 	double CalculateI1Invariant(Vector StressVector);

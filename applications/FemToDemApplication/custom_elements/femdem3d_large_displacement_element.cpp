@@ -196,6 +196,7 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         Vector IntegratedStressVector = ZeroVector(strain_size);
 		Vector DamagesOnEdges = ZeroVector(6);
+		bool is_damaging = false;
 
 		// Loop over edges of the element
         const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
@@ -214,7 +215,8 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 												 AverageStrainVector, 
 				                                 AverageStressVector, 
 												 edge, 
-												 characteristic_lengths[edge]);
+												 characteristic_lengths[edge],
+											     is_damaging);
 			this->SetNonConvergedDamages(damage_edge, edge);
 			mNonConvergedDamages[edge] = damage_edge;
 			mNonConvergedThresholds[edge] = threshold;

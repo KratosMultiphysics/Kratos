@@ -134,6 +134,7 @@ namespace Kratos
 		Vector average_stress_edge = ZeroVector(voigt_size);
 		Vector average_strain_edge = ZeroVector(voigt_size);
 		double characteristic_length;
+		bool is_damaging;
 
 		// Loop over edges to compute the elemental damage
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
@@ -149,7 +150,8 @@ namespace Kratos
 												 average_strain_edge, 
 												 average_stress_edge, 
 												 edge, 
-												 characteristic_length);
+												 characteristic_length,
+												 is_damaging);
 			mNonConvergedDamages[edge] = damage_edge;
 			mNonConvergedThresholds[edge] = threshold;
 		}
