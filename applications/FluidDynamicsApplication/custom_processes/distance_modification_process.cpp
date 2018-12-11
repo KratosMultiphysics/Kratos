@@ -184,7 +184,7 @@ void DistanceModificationProcess::ModifyDistance() {
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<double> aux_modified_distance_values;
 
-            for (auto it_node = nodes_begin; it_node != nodes_end; ++it_node) {
+            for (auto it_node = nodes_begin; it_node < nodes_end; ++it_node) {
                 const double h = it_node->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
                 double &d = it_node->FastGetSolutionStepValue(DISTANCE);
@@ -264,7 +264,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<Vector> aux_modified_elemental_distances;
 
-            for (auto it_elem = elems_begin; it_elem != elems_end; ++it_elem){
+            for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem){
                 // Compute the distance tolerance
                 const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
 
