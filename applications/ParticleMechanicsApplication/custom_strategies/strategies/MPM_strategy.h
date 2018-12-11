@@ -322,7 +322,7 @@ public:
                         {
                             new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
                         }
-                        Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
+                        Element::Pointer p_element = NewElement.Create(new_element_id, grid_model_part.ElementsBegin()->GetGeometry(), properties);
                         const double MP_Density  = density;
                         const int MP_Material_Id = material_id;
 
