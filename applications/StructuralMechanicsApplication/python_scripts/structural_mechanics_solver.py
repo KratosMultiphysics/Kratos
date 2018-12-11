@@ -415,11 +415,8 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        linear_solver_configuration = self.settings["linear_solver_settings"]
-        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
-        else:
-            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
