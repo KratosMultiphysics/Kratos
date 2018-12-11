@@ -287,16 +287,20 @@ if __name__ == '__main__':
     QoI.sample_variance = [[] for i in range (1)]
     for instance in range (0,number_samples):
         QoI.values[0].append(ExecuteTask(pickled_model,pickled_parameters))
-    
+
     '''Compute mean, second moment and sample variance'''
     for i_sample in range (0,number_samples):
         QoI.UpdateOnepassMeanVariance(0,i_sample)
     '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
     relative_error = CompareMean(QoI.mean[0],ExactExpectedValueQoI)
     # QoI = get_value_from_remote(QoI)
+    for i in range(len(QoI.values[0])):
+        QoI.values[0][i] = get_value_from_remote(QoI.values[0][i])
+    QoI_mean = get_value_from_remote(QoI.mean[0])
     ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
     relative_error = get_value_from_remote(relative_error)
-    print("\nMC mean = ",QoI.mean,"exact mean = ",ExactExpectedValueQoI)
+    print("values MC = ",QoI.values[0])
+    print("\nMC mean = ",QoI_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
 
     end_time = time.time()
