@@ -20,7 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/geometry.h"
-#include "tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 
 namespace Kratos {
 namespace Testing {

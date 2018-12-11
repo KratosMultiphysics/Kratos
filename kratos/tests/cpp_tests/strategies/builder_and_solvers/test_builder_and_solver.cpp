@@ -27,7 +27,7 @@
 
 /* Element include */
 #include "geometries/line_2d_2.h"
-#include "tests/test_bar_element.h"
+#include "tests/cpp_tests/auxiliar_files/test_bar_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"

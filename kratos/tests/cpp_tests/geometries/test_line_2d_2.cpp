@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
-#include "tests/geometries/test_geometry.h"
+#include "tests/cpp_tests/geometries/test_geometry.h"
 
 
 // Utility includes
