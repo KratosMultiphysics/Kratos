@@ -157,8 +157,7 @@ public:
     /*@{ */
 
     MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
-        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle",
-        int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
+        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", bool BlockBuilder = false, bool isMixedFormulation = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
         mr_mpm_model_part(mpm_model_part)
     {
