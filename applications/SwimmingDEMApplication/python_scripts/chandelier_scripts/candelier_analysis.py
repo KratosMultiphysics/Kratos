@@ -124,7 +124,9 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
 
     def PerformFinalOperations(self, time = None):
         self.results_database.WriteToHDF5()
+        dt_quad_over_dt = self.pp.CFD_DEM["delta_time_quadrature"].GetDouble() / self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
         os.chdir(self.main_path)
+        sys.stdout.path_to_console_out_file
         import shutil
         folder_name = self.post_path + '_FINISHED_AT_t=' + str(round(time, 1))
         try:

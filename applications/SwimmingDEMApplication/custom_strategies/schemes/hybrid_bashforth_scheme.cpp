@@ -22,9 +22,7 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         array_1d<double, 3 >& old_vel = i.FastGetSolutionStepValue(VELOCITY_OLD);
-        array_1d<double, 3 > AUXX = mOldVelocity-old_vel;
-        KRATOS_WATCH(AUXX)
-        noalias(old_vel) += AUXX;
+
         if (StepFlag == 1){
             for (int k = 0; k < 3; k++) {
                 delta_displ[k] = 0.5 * delta_t * (3 * vel[k] - old_vel[k]);
