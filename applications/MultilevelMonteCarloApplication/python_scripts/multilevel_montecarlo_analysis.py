@@ -21,9 +21,9 @@ from analysis_stage import AnalysisStage
 # from pycompss.api.parameter import *
 
 # Import exaqute
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
 # get_value_from_remote is the equivalent of compss_wait_on
 # in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 
@@ -127,7 +127,7 @@ output:
                              coarser_level     : finest_level - 1
                              total_MLMC_time   : execution time
 '''
-@ExaquteTask(returns=1)
+@ExaquteTask(returns=5)
 def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_coarse_model)
@@ -172,7 +172,13 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
         "finer_level":finest_level,\
         "coarser_level":np.maximum(0,finest_level-1),\
         "total_MLMC_time":end_MLMC_time - start_MLMC_time}
-    return(results_simulation)
+    return results_simulation
+    # QoI_finer_level = QoI[-1]
+    # QoI_coarser_level = QoI[-2]
+    # finer_level = finest_level
+    # coarser_level = np.maximum(0,finest_level-1)
+    # total_MLMC_time = end_MLMC_time - start_MLMC_time
+    # return QoI_finer_level,QoI_coarser_level,finer_level,coarser_level,total_MLMC_time
 
 
 '''
@@ -293,6 +299,8 @@ if __name__ == '__main__':
 
     for lev in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.number_samples[lev]):
+            # QoI_finer_level,QoI_coarser_level,finer_level,coarser_level,total_MLMC_time = ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh)
+            # mlmc_class.AddResults(QoI_finer_level,QoI_coarser_level,total_MLMC_time,lev)
             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
     
     mlmc_class.FinalizeScreeningPhase()
