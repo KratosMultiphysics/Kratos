@@ -20,7 +20,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-#include "adjoint_structural_response_function.h"
+#include "response_functions/adjoint_response_function.h"
 
 
 namespace Kratos
@@ -67,7 +67,7 @@ public:
     ///@{
 
     /// Constructor.
-    AdjointPostprocess(ModelPart& rModelPart, AdjointStructuralResponseFunction& rResponseFunction, Parameters ResponseSettings);
+    AdjointPostprocess(ModelPart& rModelPart, AdjointResponseFunction& rResponseFunction, Parameters ResponseSettings);
 
     /// Destructor.
     virtual ~AdjointPostprocess();
@@ -150,7 +150,7 @@ private:
 
     ModelPart* mpSensitivityModelPart = nullptr;
     ModelPart& mrModelPart;
-    AdjointStructuralResponseFunction& mrResponseFunction;
+    AdjointResponseFunction& mrResponseFunction;
     std::string mBuildMode;
 
     std::vector<std::vector<Variable<double>>> mNodalSensitivityScalarVariables;

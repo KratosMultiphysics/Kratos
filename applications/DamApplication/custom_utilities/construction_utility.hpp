@@ -347,7 +347,7 @@ class ConstructionUtility
                 ModelPart::ElementsContainerType::iterator it_thermal = el_begin_thermal + k;
                 array_1d<double, 3> central_position = it->GetGeometry().Center();
 
-                if ((central_position(direction) >= mReferenceCoordinate) && (central_position(direction) <= current_height))
+                if ((central_position(direction) >= (mReferenceCoordinate - (mHeight / mPhases))) && (central_position(direction) <= current_height))
                 {
                     it->Set(ACTIVE, true);
                     it_thermal->Set(ACTIVE, true);
