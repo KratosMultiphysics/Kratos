@@ -91,20 +91,23 @@
                 "list_of_variables": ["DISPLACEMENT", "ROTATION"]
             }
         }
-     },
-     {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "input_file_name"  : "linear_shell_test_strain_energy_results.json",
-            "model_part_name"  : "Structure",
-            "tolerance"            : 1e-5,
-            "time_frequency"   : -2.0
+     }],
+    "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
+                "input_file_name"  : "linear_shell_test_strain_energy_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-5,
+                "time_frequency"   : -2.0
+            }
         }
-    }],
+        ]
+    },
     "_json_output_process" : [
         {
             "python_module" : "json_output_process",
@@ -117,5 +120,5 @@
                 "model_part_name"  : "Structure",
                 "time_frequency"   : -2.0
             }
-        }]}
+        }]
 }

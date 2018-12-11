@@ -4,10 +4,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.MeshMovingApplication as MeshMovingApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 

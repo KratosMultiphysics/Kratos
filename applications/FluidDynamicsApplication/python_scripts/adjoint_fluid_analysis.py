@@ -2,10 +2,6 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
@@ -41,11 +37,8 @@ class AdjointFluidAnalysis(AnalysisStage):
         self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
 
         self.is_printing_rank = True
-        ## Import parallel modules if needed
         if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
             from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             self.is_printing_rank = (mpi.rank == 0)
 
         super(AdjointFluidAnalysis, self).__init__(model, parameters)
