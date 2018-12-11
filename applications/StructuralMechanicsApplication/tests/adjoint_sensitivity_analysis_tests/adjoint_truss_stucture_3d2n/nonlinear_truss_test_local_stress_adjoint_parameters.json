@@ -108,22 +108,24 @@
                 "list_of_variables": ["DISPLACEMENT"]
             }
         }
-     },
-     {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
-            "input_file_name"  : "nonlinear_truss_test_local_stress_results.json",
-            "model_part_name"  : "Structure",
-            "tolerance"            : 1e-4,
-            "time_frequency"   : -2.0
+    }],
+    "json_check_process":[
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"  : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
+                "gauss_points_check_variables" : ["CROSS_AREA_SENSITIVITY"],
+                "input_file_name"  : "nonlinear_truss_test_local_stress_results.json",
+                "model_part_name"  : "Structure",
+                "tolerance"            : 1e-4,
+                "time_frequency"   : -2.0
+            }
         }
-    }
-    ]},
+        ]
+    },
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

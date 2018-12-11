@@ -230,7 +230,7 @@ class ParticleMPMSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def SearchElement(self):
-        self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
+        self.solver.SearchElement(self.max_number_of_search_results, self.searching_tolerance)
 
     def InitializeSolutionStep(self):
         self.SearchElement()
