@@ -37,9 +37,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         print("wip_compute_lift_level_set_process")
         self.process.Execute()
-        self.adjoint.Execute()
-        print(self.dFdu)
-        stop
+        # self.adjoint.Execute()
+        # print(self.dFdu)
+        # stop
         x_upper=[]
         cp_upper=[]
         x_lower=[]

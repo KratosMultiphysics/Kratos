@@ -99,8 +99,13 @@ public:
     {
         KRATOS_TRY;
         std::cout<<"Compute Gradient Adjoint Process Started"<< std::endl;
-        
-        const double epsilon = 1e-9;
+        // Vector all_ids;
+        // const double epsilon = 1e-9;
+        // for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
+        // {   
+        //     std::vector<std::size_t> id_vector;
+        //     it -> EquationIdVector(id_vector,mrModelPart.GetProcessInfo());
+        // }
 
         for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
         {
@@ -113,20 +118,50 @@ public:
             it -> CalculateLocalSystem(LHS_ref,RHS_ref,mrModelPart.GetProcessInfo());
             it -> EquationIdVector(id_vector,mrModelPart.GetProcessInfo());
             const unsigned int NumDof=RHS_ref.size();
-            KRATOS_WATCH(NumDof);
+            
             Matrix dRdx_elemental = ZeroMatrix(NumDof,NumDof);
+            Vector dFdu_elemental = ZeroVector(NumDof);
+            double vol;
+            bounded_matrix<double, 3, 2 > DN_DX;
+            array_1d<double, 3 > N;
+            GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
+            const array_1d<double, 3> vinfinity = mrModelPart.GetProcessInfo()[VELOCITY_INFINITY];
+            const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+            Vector normal = ZeroVector(3);
+            normal= it -> GetValue(NORMAL);
+            if(NumDof==NumNodes){
+                array_1d<double,3> phis;  
+                for(unsigned int i = 0; i<NumNodes; i++){   
+                    phis(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
+                }
+                dFdu_elemental=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis)+trans(prod(phis,Matrix(prod(DN_DX, trans(DN_DX))))));
+            }else{
+                array_1d<double,3> phis_pos;
+                array_1d<double,3> phis_neg; 
+                Vector dFdu_elemental_pos = ZeroVector(NumNodes); 
+                Vector dFdu_elemental_neg = ZeroVector(NumNodes); 
+
+
+                for(unsigned int i = 0; i<NumNodes; i++){
+                    if (geom[i].GetSolutionStepValue(LEVEL_SET_DISTANCE)>0){
+                        phis_pos(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
+                        phis_neg(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
+                    }
+                    else{
+                        phis_pos(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
+                        phis_neg(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
+                    }
+                }
+                dFdu_elemental_pos=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis_pos)+trans(prod(phis_pos,Matrix(prod(DN_DX, trans(DN_DX))))));
+                dFdu_elemental_neg=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis_neg)+trans(prod(phis_neg,Matrix(prod(DN_DX, trans(DN_DX))))));
+                for(unsigned int i = 0; i<NumNodes; i++){
+                    dFdu_elemental(i)=dFdu_elemental_pos(i);
+                    dFdu_elemental(i+NumNodes)=dFdu_elemental_neg(i);
+                }
+            }
             if (it->Is(BOUNDARY)){ 
-                Vector dFdu_elemental = ZeroVector(NumDof);
                 Matrix LHS = ZeroMatrix(NumDof,NumDof);
                 Vector RHS = ZeroVector(NumDof);
-                double vol;
-                const array_1d<double, 3> vinfinity = mrModelPart.GetProcessInfo()[VELOCITY_INFINITY];
-                const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-                bounded_matrix<double, 3, 2 > DN_DX;
-                array_1d<double, 3 > N;
-                GeometryUtils::CalculateGeometryData(geom, DN_DX, N, vol);
-                Vector normal = ZeroVector(3);
-                normal= it -> GetValue(NORMAL);
                 for(unsigned int i = 0; i<NumNodes; i++){                    
                     geom[i].GetSolutionStepValue(LEVEL_SET_DISTANCE) += epsilon;
                     it -> CalculateLocalSystem(LHS,RHS,mrModelPart.GetProcessInfo());
@@ -136,38 +171,6 @@ public:
                         if(NumNodes!=NumDof)
                             dRdx_elemental(i+NumNodes,j) = (RHS_ref(j)-RHS(j))/epsilon;
                     }          
-                }
-
-                if(NumDof==NumNodes){
-                    array_1d<double,3> phis;  
-
-                    for(unsigned int i = 0; i<NumNodes; i++){   
-                        phis(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
-                    }
-                    dFdu_elemental=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis)+trans(prod(phis,Matrix(prod(DN_DX, trans(DN_DX))))));
-                }else{
-                    array_1d<double,3> phis_pos;
-                    array_1d<double,3> phis_neg; 
-                    Vector dFdu_elemental_pos = ZeroVector(NumNodes); 
-                    Vector dFdu_elemental_neg = ZeroVector(NumNodes); 
-
-  
-                    for(unsigned int i = 0; i<NumNodes; i++){
-                        if (geom[i].GetSolutionStepValue(LEVEL_SET_DISTANCE)>0){
-                            phis_pos(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
-                            phis_neg(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
-                        }
-                        else{
-                            phis_pos(i) = geom[i].GetSolutionStepValue(NEGATIVE_POTENTIAL);
-                            phis_neg(i) = geom[i].GetSolutionStepValue(POSITIVE_POTENTIAL);
-                        }
-                    }
-                    dFdu_elemental_pos=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis_pos)+trans(prod(phis_pos,Matrix(prod(DN_DX, trans(DN_DX))))));
-                    dFdu_elemental_neg=-normal(1)*2.0/vinfinity_norm2*(prod(Matrix(prod(DN_DX, trans(DN_DX))),phis_neg)+trans(prod(phis_neg,Matrix(prod(DN_DX, trans(DN_DX))))));
-                    for(unsigned int i = 0; i<NumNodes; i++){
-                        dFdu_elemental(i)=dFdu_elemental_pos(i);
-                        dFdu_elemental(i+NumNodes)=dFdu_elemental_neg(i);
-                    }
                 }      
             }
             unsigned int I;
@@ -180,7 +183,7 @@ public:
                     mrdRdx(I,J) += dRdx_elemental(i_node,j_node);
                     mrdRdu(J,I) += LHS_ref(i_node,j_node); //transposed dRdu
                 }      
-                // mrdFdu(I) += dFdu_elemental(i_node);
+                mrdFdu(I) += dFdu_elemental(i_node);
             }   
         }
         // double number_of_nodes=mrModelPart.NumberOfNodes();
