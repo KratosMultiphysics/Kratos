@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-import numpy as np
+import math
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -39,9 +39,13 @@ class ApplyInletProcess(KratosMultiphysics.Process):
                 "constrained"               : true,
                 "direction"                 : [1.0,0.0,0.0],
                 "interval"                  : [0.0,"End"],
-                "interface_normal"          : [0.0,1.0,0.0],
-                "point_on_interface"        : [0.0,0.25,0.0],
-                "inlet_radius"              : 0.05
+                "two_fluid_settings" : {
+                    "modulus_air"               : 0.2,
+                    "modulus_water"             : 1.0,
+                    "interface_normal"          : [0.0,1.0,0.0],
+                    "point_on_interface"        : [0.0,0.25,0.0],
+                    "inlet_radius"              : 0.05
+                }
             }
             """)
 
@@ -71,11 +75,12 @@ class ApplyInletProcess(KratosMultiphysics.Process):
 
         # Set the INLET flag in the inlet model part nodes and conditions
         self.inlet_model_part = Model[settings["model_part_name"].GetString()]
-        self.inlet_radius = settings["inlet_radius"].GetDouble()
-        self.interface_normal = settings["interface_normal"].GetVector()
-        self.point_on_interface = settings["point_on_interface"].GetVector()
 
         if ( self.preliminray_two_fluid_flag == True ):
+            self.inlet_radius = settings["two_fluid_settings"]["inlet_radius"].GetDouble()
+            self.interface_normal = settings["two_fluid_settings"]["interface_normal"].GetVector()
+            self.point_on_interface = settings["two_fluid_settings"]["point_on_interface"].GetVector()
+
             # needed for the inlet distance calculation
             self.main_model_part = self.inlet_model_part.GetRootModelPart()
             print( self.main_model_part.Nodes )
@@ -93,29 +98,35 @@ class ApplyInletProcess(KratosMultiphysics.Process):
 
             self.distance_calculator = KratosMultiphysics.BodyDistanceCalculationUtils()
 
-            for node in self.main_model_part.Nodes:
-                node.SetValue(KratosMultiphysics.IS_VISITED, 0.0)
-
-            for node in self.inlet_model_part.Nodes:
-                node.SetValue(KratosMultiphysics.IS_VISITED, 1.0)
-                node.SetSolutionStepValue(KratosFluid.DISTANCE_FROM_INLET, 0, -self.inlet_radius)
+            # mind that the variable is not endowed with a hsitory in the buffer - thus this function is needed
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable( KratosMultiphysics.IS_VISITED, 0.0, self.main_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable( KratosMultiphysics.IS_VISITED, 1.0, self.inlet_model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable( KratosFluid.DISTANCE_FROM_INLET, -self.inlet_radius, self.inlet_model_part.Nodes)
 
             if ( self.dimension == 2 ):
-                self.distance_calculator.CalculateDistances2D(self.main_model_part.Elements, KratosFluid.DISTANCE_FROM_INLET, 0.0)
+                # new version of the function is used (!!!)
+                self.distance_calculator.CalculateDistances2D(self.main_model_part.Elements, KratosFluid.DISTANCE_FROM_INLET, 0.0, False)
             elif ( self.dimension == 3 ):
-                self.distance_calculator.CalculateDistances3D(self.main_model_part.Elements, KratosFluid.DISTANCE_FROM_INLET, 0.0)
+                # new version of the function is used (!!!)
+                self.distance_calculator.CalculateDistances3D(self.main_model_part.Elements, KratosFluid.DISTANCE_FROM_INLET, 0.0, False)
 
             for node in self.main_model_part.Nodes:
+                # is a scaling operation possible with VariableUtils()
                 scaling_factor = - 1.0 / self.inlet_radius
-                node.SetSolutionStepValue( KratosFluid.DISTANCE_FROM_INLET, 0, scaling_factor * node.GetSolutionStepValue(KratosFluid.DISTANCE_FROM_INLET) )
+                node.SetValue( KratosFluid.DISTANCE_FROM_INLET, scaling_factor * node.GetValue(KratosFluid.DISTANCE_FROM_INLET) )
+
+            for node in self.main_model_part.Nodes:
+                # print( node.GetSolutionStepValue(KratosMultiphysics.IS_VISITED) )
+                # print( node.GetSolutionStepValue(KratosFluid.DISTANCE_FROM_INLET) )
+                print( node.GetValue(KratosFluid.DISTANCE_FROM_INLET) )
+
+            # input( "Paused ..." )
 
         import assign_vector_by_direction_process
         # Construct the base process AssignVectorByDirectionProcess
         if ( self.preliminray_two_fluid_flag == True) :
             base_settings = settings.Clone()
-            base_settings.RemoveValue("interface_normal")
-            base_settings.RemoveValue("point_on_interface")
-            base_settings.RemoveValue("inlet_radius")
+            base_settings.RemoveValue("two_fluid_settings")
             self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, base_settings)
         else:
             self.aux_process = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
@@ -129,21 +140,21 @@ class ApplyInletProcess(KratosMultiphysics.Process):
         # Call the base process ExecuteFinalizeSolutionStep()
         self.aux_process.ExecuteFinalizeSolutionStep()
 
-        print( self.inlet_radius )
-
         for node in self.main_model_part.Nodes:
 
-            weighting_factor_inlet_field = node.GetSolutionStepValue(KratosFluid.DISTANCE_FROM_INLET)
+            weighting_factor_inlet_field = node.GetValue(KratosFluid.DISTANCE_FROM_INLET)
             weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field
 
-            start_point = np.array( [ self.point_on_interface[0], self.point_on_interface[1], self.point_on_interface[2] ] )
-            normal = np.array( [ self.interface_normal[0], self.interface_normal[1], self.interface_normal[2] ] )
-            normal = normal / np.linalg.norm(normal)
-            node_position = np.array( [node.X, node.Y, node.Z] )
+            vector_length = math.sqrt(  self.interface_normal[0]*self.interface_normal[0] +
+                                        self.interface_normal[1]*self.interface_normal[1] +
+                                        self.interface_normal[2]*self.interface_normal[2] )
 
-            inlet_distance_field = np.dot( node_position - start_point, normal )
+            self.interface_normal = [ self.interface_normal[0] / vector_length, self.interface_normal[1] / vector_length, self.interface_normal[2] / vector_length ]
+
+            distance_vector = [ node.X - self.point_on_interface[0], node.Y - self.point_on_interface[1], node.Z - self.point_on_interface[2] ]
+
+            inlet_distance_field =  self.interface_normal[0]*distance_vector[0] + self.interface_normal[1]*distance_vector[1] + self.interface_normal[2]*distance_vector[2]
+
             domain_distance_field = node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
-
             value = weighting_factor_inlet_field * inlet_distance_field + weighting_factor_domain_field * domain_distance_field
-
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, 0, value)
