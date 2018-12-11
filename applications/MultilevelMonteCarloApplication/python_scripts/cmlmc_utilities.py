@@ -79,7 +79,7 @@ class StatisticalVariable(object):
         self.mean[level] = new_mean
         self.second_moment[level] = new_M2
         self.sample_variance[level] = new_sample_variance
-    #     # del(new_mean, new_M2, new_sample_variance)
+
 
     # '''    
     # function updating mean and second moment values and computing the sample variance
