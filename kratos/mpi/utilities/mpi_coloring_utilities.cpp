@@ -129,12 +129,12 @@ std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
     return colors;
 }
 
-bool MPIColoringUtilities::HasEdge(std::map<int, std::map<int, int> >& graph,
+bool MPIColoringUtilities::HasEdge(std::map<int, std::map<int, int> >& rGraph,
                                    int i,
                                    int j)
 {
-    auto it = graph.find(i);
-    if( it != graph.end())
+    auto it = rGraph.find(i);
+    if( it != rGraph.end())
         if(it->second.find(j) != it->second.end())
             return true;
     return false;

@@ -169,7 +169,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    static bool HasEdge(std::map<int, std::map<int, int> >& graph, int i, int j);
+    static bool HasEdge(std::map<int, std::map<int, int> >& rGraph, int i, int j);
 
 
     ///@}
