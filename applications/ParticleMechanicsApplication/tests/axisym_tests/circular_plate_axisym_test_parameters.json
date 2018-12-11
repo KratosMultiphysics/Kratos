@@ -36,7 +36,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "axisym_tests/circular_plate_axisym_test_Grid"
         },
-        "particle_per_element"               : 3,
         "pressure_dofs"                      : false,
         "axis_symmetric_flag"                : true
     },

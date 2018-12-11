@@ -38,7 +38,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "gravity_tests/dynamic_gravity_application_test_Grid"
         },
-        "particle_per_element"               : 1,
         "pressure_dofs"                      : false
     },
     "processes"        : {

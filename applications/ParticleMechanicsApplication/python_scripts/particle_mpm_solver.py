@@ -64,7 +64,6 @@ class ParticleMPMSolver(PythonSolver):
             "max_iteration"                      : 10,
             "geometry_element"                   : "Triangle",
             "number_of_material"                 : 1,
-            "particle_per_element"               : 3,
             "axis_symmetric_flag"                : false,
             "impenetrability_condition"          : true,
             "move_mesh_flag"                     : false,

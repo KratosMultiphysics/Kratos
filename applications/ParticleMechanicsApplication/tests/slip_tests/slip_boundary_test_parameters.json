@@ -38,7 +38,6 @@
             "input_type"     : "mdpa",
             "input_filename" : "slip_tests/slip_boundary_test_Grid"
         },
-        "particle_per_element"               : 3,
         "pressure_dofs"                      : false
     },
     "processes"        : {
