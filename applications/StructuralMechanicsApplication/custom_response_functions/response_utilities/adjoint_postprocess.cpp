@@ -25,7 +25,7 @@ namespace Kratos
 {
 
     /// Constructor.
-    AdjointPostprocess::AdjointPostprocess(ModelPart& rModelPart, AdjointStructuralResponseFunction& rResponseFunction, Parameters SensitivitySettings)
+    AdjointPostprocess::AdjointPostprocess(ModelPart& rModelPart, AdjointResponseFunction& rResponseFunction, Parameters SensitivitySettings)
       : mrModelPart(rModelPart) , mrResponseFunction(rResponseFunction)
     {
         KRATOS_TRY;
@@ -226,7 +226,7 @@ namespace Kratos
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
-            mrResponseFunction.CalculateSensitivityGradient(
+            mrResponseFunction.CalculatePartialSensitivity(
                 elem_i, rSensitivityVariable, sensitivity_matrix[k],
                 response_gradient[k], r_process_info);
 
@@ -303,7 +303,7 @@ namespace Kratos
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
-            mrResponseFunction.CalculateSensitivityGradient(
+            mrResponseFunction.CalculatePartialSensitivity(
                 cond_i, rSensitivityVariable, sensitivity_matrix[k],
                 response_gradient[k], r_process_info);
 
@@ -369,7 +369,7 @@ namespace Kratos
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
-            mrResponseFunction.CalculateSensitivityGradient(
+            mrResponseFunction.CalculatePartialSensitivity(
                 *it, rSensitivityVariable, sensitivity_matrix[k],
                     response_gradient[k], r_process_info);
 
@@ -441,7 +441,7 @@ namespace Kratos
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
-            mrResponseFunction.CalculateSensitivityGradient(
+            mrResponseFunction.CalculatePartialSensitivity(
                 *it, rSensitivityVariable, sensitivity_matrix[k],
                 response_gradient[k], r_process_info);
 
