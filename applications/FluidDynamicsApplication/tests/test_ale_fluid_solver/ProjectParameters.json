@@ -13,6 +13,9 @@
         "mesh_motion_solver_settings" : {
             "solver_type"         : "mesh_solver_structural_similarity"
         },
+        "mesh_velocity_calculation"   : {
+            "time_scheme" : "bdf2"
+        },
         "fluid_solver_settings" :{
             "model_part_name"             : "FluidModelPart",
             "domain_size"                 : 2,
