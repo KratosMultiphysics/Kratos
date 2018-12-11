@@ -72,6 +72,8 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TDim> v_ave, vn_ave, vnn_ave, vnnn_ave, vmesh, f;
         array_1d<double,TNumNodes> p_ave, pn_ave, pnn_ave, pnnn_ave, rho, mu;
+        double t, tn, tnn, tnnn;
+        double dt, dtn, dtnn, dtnnn;
 
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
@@ -86,8 +88,6 @@ public:
         double c;             // Wave velocity (needed if artificial compressibility is considered)
         double h;             // Element size
         double volume;        // In 2D: element area. In 3D: element volume
-        double dt;            // Time increment
-        double n;              // Time step
         double dyn_tau;       // Dynamic tau considered in ASGS stabilization coefficients
     };
 
@@ -399,9 +399,29 @@ protected:
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
 
-        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];  // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];   // Only, needed if the temporal dependent term is considered in the subscales
         rData.dt = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
-        rData.n = rCurrentProcessInfo[STEP];
+        rData.t = rCurrentProcessInfo[TIME];
+
+        //previous step data
+        const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+        rData.dtn = rPreviousProcessInfo[DELTA_TIME];
+        rData.tn = rPreviousProcessInfo[TIME];
+
+        // 2 previous step data
+        const ProcessInfo& r2PreviousProcessInfo = rPreviousProcessInfo.GetPreviousSolutionStepInfo();
+        rData.dtnn = r2PreviousProcessInfo[DELTA_TIME];
+        rData.tnn = r2PreviousProcessInfo[TIME];
+
+        // 3 previous step data
+        if (rCurrentProcessInfo[STEP] == 3){
+            rData.dtnnn = r2PreviousProcessInfo[PREVIOUS_DELTA_TIME];
+            rData.tnnn = rCurrentProcessInfo[START_TIME];
+        }else{
+            const ProcessInfo& r3PreviousProcessInfo = r2PreviousProcessInfo.GetPreviousSolutionStepInfo();
+            rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME];
+            rData.tnnn = r3PreviousProcessInfo[TIME];
+        }
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
@@ -489,8 +509,12 @@ protected:
         const BoundedMatrix<double, TNumNodes, TDim>& v_ave = rData.v_ave;
         const BoundedMatrix<double, TNumNodes, TDim>& vn_ave = rData.vn_ave;
         const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
-		int n = rData.n;
-		const BoundedMatrix<double, TNumNodes, TDim> v = n * v_ave - (n - 1) * vn_ave;
+
+		double t = rData.t;
+		double tn = rData.tn;
+		double dt = rData.dt;
+
+		const BoundedMatrix<double, TNumNodes, TDim> v = (t * v_ave - tn * vn_ave) / dt;
 
         // Compute strain (B*v)
         // 3D strain computation

@@ -59,21 +59,25 @@ for dim in dim_vector:
     pnn_ave =  DefineVector('pnn_ave',nnodes)           # Averaged 2 previous step pressure
     pnnn_ave = DefineVector('pnnn_ave',nnodes)          # Averaged 3 previous step pressure
 
-    ## Time steps
-    n = symbols('n')  # current time step
-    nn = symbols('(n-1)') # previous time step
+    ## Time
+    t = symbols('t')  # current time
+    tn = symbols('tn') # 1 previous time
+    tnn = symbols('tnn') # 2 previous time
+    tnnn = symbols('tnnn') # 3 previous time
 
-    # factor functions
-    A = lambda x : 1 / x                                # factor function for v
-    B = lambda x : (x - 1) / x                          # factor function for vn
+    ## Time steps
+    dt = symbols('dt')  # current time
+    dtn = symbols('dtn') # 1 previous time
+    dtnn = symbols('dtnn') # 2 previous time
+    dtnnn = symbols('dtnnn') # 3 previous time
 
     ## Not Averaged unknown fields definition
-    v =   ( v_ave   - B(n)   * vn_ave )   / A(n)             # Current step velocity (v(i,j) refers to velocity of node i component j)
-    vn =  ( vn_ave  - B(n-1) * vnn_ave )  / A(n-1)           # Previous step velocity
-    vnn = ( vnn_ave - B(n-2) * vnnn_ave ) / A(n-2)           # 2 previous step velocity
-    p =   ( p_ave   - B(n)   * pn_ave )   / A(n)             # Current pressure
-    pn =  ( pn_ave  - B(n-1) * pnn_ave )  / A(n-1)           # 2 previous step pressure
-    pnn = ( pnn_ave - B(n-2) * pnnn_ave ) / A(n-2)
+    v   = ( t   * v_ave   - tn   * vn_ave   ) / dt           # Current step velocity (v(i,j) refers to velocity of node i component j)
+    vn  = ( tn  * vn_ave  - tnn  * vnn_ave  ) / dtn          # Previous step velocity
+    vnn = ( tnn * vnn_ave - tnnn * vnnn_ave ) / dtnn         # 2 previous step velocity
+    p   = ( t   * p_ave   - tn   * pn_ave   ) / dt           # Current step pressure
+    pn  = ( tn  * pn_ave  - tnn  * pnn_ave  ) / dtn          # Previous step pressure
+    pnn = ( tnn * pnn_ave - tnnn * pnnn_ave ) / dtnn         # 2 previous step pressure
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function

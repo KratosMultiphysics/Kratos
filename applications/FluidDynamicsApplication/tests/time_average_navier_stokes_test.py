@@ -194,7 +194,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
 
 if __name__ == '__main__':
-    TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    #TimeAveragedNavierStokesTest().testBackStepFlow2D()
     #TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
-    #TimeAveragedNavierStokesTest().testPipeFlow2D()
+    TimeAveragedNavierStokesTest().testPipeFlow2D()
     #TimeAveragedNavierStokesTest().testPipeFlow2DReference()

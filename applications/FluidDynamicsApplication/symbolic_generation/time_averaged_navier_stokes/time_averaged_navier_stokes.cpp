@@ -130,7 +130,6 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const double c = data.c;                                // Wave velocity
 
     const double& dt = data.dt;
-    const double& n = data.n;
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
 
