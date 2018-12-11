@@ -3,6 +3,8 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 def ConstructSolver(configuration):
     import KratosMultiphysics
 
+    KratosMultiphysics.Logger.PrintWarning('DEPRECATION', 'Please use the "python_linear_solver_factory.py"')
+
     if(type(configuration) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 

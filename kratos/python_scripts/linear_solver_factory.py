@@ -24,6 +24,8 @@ def ConstructPreconditioner(configuration):
 #
 def ConstructSolver(configuration):
 
+    Logger.PrintWarning('DEPRECATION', 'Please use the "python_linear_solver_factory.py"')
+
     params = 0
     ##############################################################
     ###THIS IS A VERY DIRTY HACK TO ALLOW PARAMETERS TO BE PASSED TO THE LINEAR SOLVER FACTORY
