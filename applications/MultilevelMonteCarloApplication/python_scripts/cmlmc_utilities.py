@@ -18,9 +18,25 @@ References:
 [PNL17] M. Pisaroni; F. Nobile; P. Leyland : A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics; Computer Methods in Applied Mechanics and Engineering, vol 326, pp 20-50, 2017. DOI : 10.1016/j.cma.2017.07.030.
 '''
 
+@ExaquteTask(old_mean=INOUT, old_M2=INOUT, returns=4)
+def UpdateOnepassMeanVarianceAux(sample, old_mean, old_M2, nsamples):
+    nsamples=nsamples + 1
+    if nsamples == 1:
+        new_mean = sample
+        new_M2 = np.zeros(np.size(sample))
+        new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
+        new_sample_variance = np.zeros(np.size(sample))
+        new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
+    else:
+        delta = np.subtract(sample, old_mean)
+        new_mean = old_mean + np.divide(delta,nsamples)
+        new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
+        new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
+    return new_mean, new_M2, new_sample_variance, nsamples
+
 class StatisticalVariable(object):
     '''The base class for the quantity of interest and other statistical variables computed'''
-    def __init__(self):
+    def __init__(self, current_number_levels):
         '''constructor of the class
         Keyword arguments:
         self : an instance of a class
@@ -40,7 +56,8 @@ class StatisticalVariable(object):
         self.statistical_error = None
         '''type of variable: scalar or field'''
         self.type = None
-
+        '''number of samples of the variable computed'''
+        self.number_samples = [0 for _ in range(current_number_levels+1)]
 
     '''
     function updating mean and second moment values and computing the sample variance
@@ -48,27 +65,42 @@ class StatisticalVariable(object):
     M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
     s_n^2 = M_{2,n} / (n-1)
     '''
-    @ExaquteTask()
     def UpdateOnepassMeanVariance(self,level,i_sample):
         sample = self.values[level][i_sample]
         old_mean = self.mean[level]
         old_M2 = self.second_moment[level]
-        nsamples = i_sample + 1
-        delta = np.subtract(sample, old_mean)
-        if nsamples == 1:
-            new_mean = sample
-            new_M2 = np.zeros(np.size(sample))
-            new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
-            new_sample_variance = np.zeros(np.size(sample))
-            new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
-        else:
-            new_mean = old_mean + np.divide(delta,nsamples)
-            new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-            new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
+        new_mean, new_M2, new_sample_variance, self.number_samples[level] = UpdateOnepassMeanVarianceAux(sample, old_mean, old_M2, self.number_samples[level])
         self.mean[level] = new_mean
         self.second_moment[level] = new_M2
         self.sample_variance[level] = new_sample_variance
-        del(new_mean, new_M2, new_sample_variance)
+    #     # del(new_mean, new_M2, new_sample_variance)
+
+    # '''    
+    # function updating mean and second moment values and computing the sample variance
+    # M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
+    # M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
+    # s_n^2 = M_{2,n} / (n-1)
+    # '''
+    # def UpdateOnepassMeanVariance(self,level,i_sample):
+    #     sample = self.values[level][i_sample]
+    #     old_mean = self.mean[level]
+    #     old_M2 = self.second_moment[level]
+    #     nsamples = i_sample + 1
+    #     delta = np.subtract(sample, old_mean)
+    #     if nsamples == 1:
+    #         new_mean = sample
+    #         new_M2 = np.zeros(np.size(sample))
+    #         new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
+    #         new_sample_variance = np.zeros(np.size(sample))
+    #         new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
+    #     else:
+    #         new_mean = old_mean + np.divide(delta,nsamples)
+    #         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
+    #         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
+    #     self.mean[level] = new_mean
+    #     self.second_moment[level] = new_M2
+    #     self.sample_variance[level] = new_sample_variance
+    #     del(new_mean, new_M2, new_sample_variance)
 
 
 '''TODO: inser distinction between scalar and field Quantity of Interests'''
@@ -161,11 +193,11 @@ class MultilevelMonteCarlo(object):
 
         '''difference_QoI : Quantity of Interest of the considered problem organized in consecutive levels
                             difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1'''
-        self.difference_QoI = StatisticalVariable()
+        self.difference_QoI = StatisticalVariable(self.current_number_levels)
         self.difference_QoI.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
-        '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized in consecutive levels'''
         self.difference_QoI.type = "scalar"
-        self.time_ML = StatisticalVariable()
+        '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized in consecutive levels'''
+        self.time_ML = StatisticalVariable(self.current_number_levels)
         self.time_ML.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
 
         '''########################################################################
@@ -231,14 +263,17 @@ class MultilevelMonteCarlo(object):
             self.difference_QoI.mean.append([])
             self.difference_QoI.sample_variance.append([])
             self.difference_QoI.second_moment.append([])
+            self.difference_QoI.number_samples.append(0)
             self.time_ML.mean.append([])
             self.time_ML.sample_variance.append([])
             self.time_ML.second_moment.append([])
+            self.time_ML.number_samples.append(0)
         '''compute mean, second moment and sample variance'''
         for level in range (self.current_number_levels+1):
             # for i_sample in range(self.difference_number_samples[level]):
             for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
                 self.difference_QoI.UpdateOnepassMeanVariance(level,i_sample)
+                print(self.difference_QoI.mean)
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
         '''compute estimatior MLMC mean QoI'''
         self.compute_mean_mlmc_QoI()
@@ -330,6 +365,7 @@ class MultilevelMonteCarlo(object):
     we consider level > 0 to compute calpha,alpha,cbeta,beta for robustness reasons [see PNL17 for details]
     '''
     def ComputeRatesLS(self):
+        print(self.difference_QoI.mean)
         bias_ratesLS = np.abs(self.difference_QoI.mean)
         variance_ratesLS = self.difference_QoI.sample_variance
         cost_ML_ratesLS = self.time_ML.mean
@@ -373,6 +409,7 @@ class MultilevelMonteCarlo(object):
         beta  = self.rates_error["beta"]
         mesh_param = self.mesh_parameters
         '''use local variables, in order to not modify the global variables'''
+        '''TODO: use copy!'''
         mean_local = self.difference_QoI.mean[:]
         variance_local = self.difference_QoI.sample_variance[:]
         nsam_local = self.number_samples[:]
