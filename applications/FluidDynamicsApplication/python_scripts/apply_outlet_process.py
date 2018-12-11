@@ -34,26 +34,26 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_settings)
 
         # Set a Kratos parameters suitable for the core processes to set the PRESSURE
-        pres_settings = settings.Clone()
-        pres_settings.RemoveValue("hydrostatic_outlet")
-        pres_settings.RemoveValue("h_top")
+        self.pres_settings = settings.Clone()
+        self.pres_settings.RemoveValue("hydrostatic_outlet")
+        self.pres_settings.RemoveValue("h_top")
 
         # Create a copy of the PRESSURE settings to set the EXTERNAL_PRESSURE
-        ext_pres_settings = pres_settings.Clone()
+        ext_pres_settings = self.pres_settings.Clone()
         ext_pres_settings["constrained"].SetBool(False)
         ext_pres_settings["variable_name"].SetString("EXTERNAL_PRESSURE")
 
         # Check the core processes input data
-        if (pres_settings["model_part_name"].GetString() == ""):
+        if (self.pres_settings["model_part_name"].GetString() == ""):
             raise Exception("Empty outlet pressure model part name. Set a valid model part name.")
         elif (ext_pres_settings["model_part_name"].GetString() == ""):
             raise Exception("Empty outlet external pressure model part name. Set a valid model part name.")
-        elif (pres_settings["variable_name"].GetString() != "PRESSURE"):
-            raise Exception("Outlet pressure settings variable_name is not PRESSURE.")
+        elif (self.pres_settings["variable_name"].GetString() != "PRESSURE" and self.pres_settings["variable_name"].GetString() != "TIME_AVERAGED_PRESSURE"):
+            raise Exception("Outlet pressure settings variable_name is not PRESSURE or TIME_AVERAGED_PRESSURE.")
         elif (ext_pres_settings["variable_name"].GetString() != "EXTERNAL_PRESSURE"):
             raise Exception("Outlet external pressure settings variable_name is not EXTERNAL_PRESSURE.")
-        elif (pres_settings["value"].IsString()):
-            if (pres_settings["value"].GetString == ""):
+        elif (self.pres_settings["value"].IsString()):
+            if (self.pres_settings["value"].GetString == ""):
                 raise Exception("Outlet pressure function sting is empty.")
         elif (ext_pres_settings["value"].IsString()):
             if (ext_pres_settings["value"].GetString == ""):
@@ -63,7 +63,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         self.h_top = settings["h_top"].GetDouble()
 
         # Set the OUTLET flag in the outlet model part nodes and conditions
-        self.outlet_model_part = Model[pres_settings["model_part_name"].GetString()]
+        self.outlet_model_part = Model[self.pres_settings["model_part_name"].GetString()]
         for node in self.outlet_model_part.Nodes:
             node.Set(KratosMultiphysics.OUTLET, True)
         for condition in self.outlet_model_part.Conditions:
@@ -71,7 +71,7 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
 
         # Construct the base process AssignValueProcess
         import assign_scalar_variable_process
-        self.aux_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, pres_settings)
+        self.aux_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, self.pres_settings)
         self.aux_external_pressure_process = assign_scalar_variable_process.AssignScalarVariableProcess(Model, ext_pres_settings)
 
 
@@ -132,7 +132,10 @@ class ApplyOutletProcess(KratosMultiphysics.Process):
         # Compute the outlet average velocity
         outlet_avg_vel_norm = 0.0
         for node in self.outlet_model_part.GetCommunicator().LocalMesh().Nodes:
-            vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
+            if (self.pres_settings["variable_name"].GetString() == "TIME_AVERAGED_PRESSURE"):
+                vnode = node.GetSolutionStepValue(KratosFluid.TIME_AVERAGED_VELOCITY)
+            else:
+    	        vnode = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             outlet_avg_vel_norm += math.sqrt(vnode[0]*vnode[0] + vnode[1]*vnode[1] + vnode[2]*vnode[2])
         outlet_avg_vel_norm = self.outlet_model_part.GetCommunicator().SumAll(outlet_avg_vel_norm)
 
