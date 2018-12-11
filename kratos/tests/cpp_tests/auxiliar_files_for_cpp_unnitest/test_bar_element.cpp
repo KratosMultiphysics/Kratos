@@ -19,7 +19,7 @@
 #include "includes/define.h"
 #include "includes/checks.h"
 #include "includes/variables.h"
-#include "tests/cpp_tests/auxiliar_files_for_python_unnitest/test_bar_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
 
 namespace Kratos
 {

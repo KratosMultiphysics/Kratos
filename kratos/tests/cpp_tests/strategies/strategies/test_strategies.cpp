@@ -25,7 +25,7 @@
 #include "spaces/ublas_space.h"
 
 /* Element include */
-#include "tests/cpp_tests/auxiliar_files_for_python_unnitest/test_element.h"
+#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 
 // Linear solvers
 #include "linear_solvers/reorderer.h"
