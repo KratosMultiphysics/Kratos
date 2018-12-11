@@ -1,10 +1,8 @@
 from KratosMultiphysics import *
 import swimming_DEM_procedures as SDP
-import swimming_DEM_algorithm
-BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import math
-import chandelier as ch
-import chandelier_parameters as ch_pp
+import candelier_scripts.candelier as candelier
+import candelier_scripts.candelier_parameters as candelier_pp
 
 def Cross(a, b):
     c0 = a[1]*b[2] - a[2]*b[1]
@@ -12,10 +10,12 @@ def Cross(a, b):
     c2 = a[0]*b[1] - a[1]*b[0]
     return Vector([c0, c1, c2])
 
+import swimming_DEM_analysis
+BaseAnalysis = swimming_DEM_analysis.SwimmingDEMAnalysis
 
-class Algorithm(BaseAlgorithm):
+class CandelierBenchmarkAnalysis(BaseAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
-        BaseAlgorithm.__init__(self, model, varying_parameters)
+        BaseAnalysis.__init__(self, model, varying_parameters)
 
     def GetVelocityRelativeToMovingFrame(self, r_rel, v_glob):
         cross_omega_r = Cross(self.frame_angular_vel, r_rel)
@@ -40,14 +40,14 @@ class Algorithm(BaseAlgorithm):
         return SDP.Counter(self.pp.CFD_DEM["debug_tool_cycle"].GetInt(), 1, is_dead = 1)
 
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
-        BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
-        ch_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
-        ch.sim = ch.AnalyticSimulator(ch_pp)
+        BaseAnalysis.SetCustomBetaParameters(self, custom_parameters)
+        candelier_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
+        candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.frame_angular_vel = Vector([0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()])
         self.is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
 
     def SetUpResultsDatabase(self):
-        import candelier_hdf5
+        import candelier_scripts.candelier_hdf5 as candelier_hdf5
         self.results_database = candelier_hdf5.ResultsCandelier(self.pp, self.main_path)
 
     def DEMSolve(self, time = 'None'):
@@ -69,12 +69,12 @@ class Algorithm(BaseAlgorithm):
     def PerformZeroStepInitializations(self):
         # Impose initial velocity to be that of the fluid for the x/y-components
         # and the terminal velocity for the z-component
-        ch.sim.CalculateNonDimensionalVars()
-        terminal_velocity_z = 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p)
+        candelier.sim.CalculateNonDimensionalVars()
+        terminal_velocity_z = 2. / 9 * 9.81 * candelier_pp.a ** 2 / (candelier_pp.nu * candelier_pp.rho_f) * (candelier_pp.rho_f - candelier_pp.rho_p)
 
         for node in self.spheres_model_part.Nodes:
             r = Vector([node.X, node.Y, node.Z])
-            v0 = Vector([ch_pp.u0, ch_pp.v0, terminal_velocity_z])
+            v0 = Vector([candelier_pp.u0, candelier_pp.v0, terminal_velocity_z])
 
             if self.is_rotating_frame:
                 v0 = self.GetVelocityRelativeToMovingFrame(r_rel = r, v_glob = v0)
@@ -85,13 +85,13 @@ class Algorithm(BaseAlgorithm):
             node.Fix(VELOCITY_OLD_Z)
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_X, v0[0])
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
-            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, 0.0)
+            node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
 
     def ApplyForwardCoupling(self, alpha = 'None'):
         self.projection_module.ApplyForwardCoupling(alpha)
 
         for node in self.spheres_model_part.Nodes:
-            omega = ch_pp.omega
+            omega = candelier_pp.omega
             r = Vector([node.X, node.Y, node.Z])
             vx = - omega * r[1]
             vy =   omega * r[0]
@@ -107,12 +107,12 @@ class Algorithm(BaseAlgorithm):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED, v)
             node.SetSolutionStepValue(FLUID_ACCEL_PROJECTED, a)
 
-    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time):
+    def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
         for node in self.spheres_model_part.Nodes:
             r = Vector([node.X, node.Y, node.Z])
             self.results_database.MakeReading(time, r)
-            new_vx = - ch_pp.omega * r[1]
-            new_vy =   ch_pp.omega * r[0]
+            new_vx = - candelier_pp.omega * r[1]
+            new_vy =   candelier_pp.omega * r[0]
             new_v = Vector([new_vx, new_vy, 0.])
 
             if self.is_rotating_frame:

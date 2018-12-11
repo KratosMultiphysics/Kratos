@@ -68,9 +68,15 @@ class SDEMLogger(object):
         #you might want to specify some extra behavior here.
         pass
 
+    def getvalue(self):
+        return self.terminal.getvalue()
+
+class python_parameters:
+    def __init__(self):
+        pass
+
 class SwimmingDEMAnalysis(AnalysisStage):
     def __enter__ (self):
-        # sys.stdout = SDEMLogger()
         return self
 
     def __exit__(self, exception_type, exception_value, traceback):
@@ -78,14 +84,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def __init__(self, model, parameters = Parameters("{}")):
         sys.stdout = SDEMLogger()
+        self.pp = python_parameters()
         self.StartTimer()
         self.model = model
         self.main_path = os.getcwd()
-
+        self.ReadFluidParameters()
         self.SetFluidAlgorithm()
         self.fluid_solution.coupling_analysis = weakref.proxy(self)
-
-        self.pp = self.fluid_solution.pp
 
         self.SetCouplingParameters(parameters)
 
@@ -108,9 +113,19 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
         super(SwimmingDEMAnalysis, self).__init__(model, self.pp.fluid_parameters)
 
+    def ReadFluidParameters(self):
+        with open("ProjectParameters.json",'r') as parameter_file:
+            self.pp.fluid_parameters = Parameters(parameter_file.read())
+            gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+            gauss_point_results = result_file_configuration["gauss_point_results"]
+            nodal_variables = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
+            self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
+
     def SetFluidAlgorithm(self):
         import DEM_coupled_fluid_dynamics_analysis
-        self.fluid_solution = DEM_coupled_fluid_dynamics_analysis.DEMCoupledFluidDynamicsAnalysis(self.model)
+        self.fluid_solution = DEM_coupled_fluid_dynamics_analysis.DEMCoupledFluidDynamicsAnalysis(self.model, self.pp.fluid_parameters, self.pp)
         self.fluid_solution.main_path = self.main_path
 
     def SetDispersePhaseAlgorithm(self):
@@ -121,6 +136,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
             self.pp.CFD_DEM = Parameters(parameters_file.read())
+
+        with open("ProjectParameters.json",'r') as fluid_parameter_file:
+            self.fpp = fluid_parameter_file
 
         import dem_default_input_parameters
         dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
@@ -289,9 +307,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         #     self.pp.CFD_DEM.__setitem__(name, value)
 
     def Run(self):
-        self.Initialize()
-        self.RunMainTemporalLoop()
-        self.Finalize()
+        super(SwimmingDEMAnalysis, self).Run()
 
         return self.GetReturnValue()
 
@@ -609,15 +625,27 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.analytic_face_watcher.MakeMeasurements()
         self.analytic_particle_watcher.MakeMeasurements()
 
-    def RunMainTemporalLoop(self):
-        coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
-        project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
-        coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
-        integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-        dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
-        interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
+    def RunMainTemporalLoop(self): # deprecated
+        self.RunSolutionLoop()
+
+    def RunSolutionLoop(self):
+        while self.TheSimulationMustGoOn():
+            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
+            self.InitializeSolutionStep()
+            self._GetSolver().Predict()
+            self._GetSolver().SolveSolutionStep()
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
+
+    def RunSolutionLoop(self):
 
         while self.TheSimulationMustGoOn():
+            coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
+            project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
+            coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
+            integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
+            dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
+            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
             #self.time = self.time + self.Dt
             self.time = self.fluid_solution._GetSolver().AdvanceInTime(self.time)

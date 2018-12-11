@@ -3,7 +3,7 @@ import cmath
 import mpmath
 import matplotlib.pyplot as plt
 import numpy as np
-import chandelier_parameters as pp
+import candelier_scripts.candelier_parameters as pp
 
 class AnalyticSimulator:
     def __init__(self, pp):
