@@ -174,7 +174,6 @@ class ParticleMPMSolver(PythonSolver):
 
         # Set default solver_settings parameters
         self.geometry_element   = self.settings["geometry_element"].GetString()
-        self.number_particle    = self.settings["particle_per_element"].GetInt()
         if self.geometry_element == "Triangle":
             if (self.domain_size == 2):
                 if (self.pressure_dofs):
@@ -206,9 +205,13 @@ class ParticleMPMSolver(PythonSolver):
 
         # Initialize solver
         if(self.domain_size==2):
-            self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
+                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
+                                self.pressure_dofs)
         else:
-            self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
+                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
+                                self.pressure_dofs)
 
         # Set echo level
         self._set_echo_level()
