@@ -75,7 +75,7 @@ public:
     ///@{
     /** This function computes the list of ranks from which a message needs to be expected
      *  NOTE: it implies a global communication
-     * 
+     *
      *  @param rLocalDestinationIds list of Ranks to which a message needs to be sent
      *  @param rComm world in which communications happen
      */
@@ -87,19 +87,19 @@ public:
     /** This function colors communications so to allow syncronous mpi communications
      *  each processor receives an array of integers, corresponding to the colors of communication.
      *  -1 implies no communication happening on that epoque.
-     * 
+     *
      *  for example returning {1,-1,3}
-     *  implies that 
+     *  implies that
      *  epoque 1 - communicating with processor 1 (sendrecv)
      *  epoque 2 - no communication (waiting)
      *  epoque 3 - communicating with processor 3 (sendrecv)
-     * 
+     *
      *  NOTE: this function implies a global communication
-     * 
+     *
      *  @param rLocalDestinationIds list of Ranks to which a message needs to be sent
      *  @param rComm world in which communications happen
      */
-        static std::vector<int> ComputeCommunicationScheduling(
+    static std::vector<int> ComputeCommunicationScheduling(
         const std::vector<int>& rLocalDestinationIds,
         MPIDataCommunicator& rComm
     );
