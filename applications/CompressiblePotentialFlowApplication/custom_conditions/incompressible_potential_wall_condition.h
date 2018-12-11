@@ -250,7 +250,7 @@ public:
                               VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override
     {               
-        if (this->IsNot(STRUCTURE)){
+        if (this->IsNot(STRUCTURE) || this-> IsNotDefined(STRUCTURE)){
             if (rLeftHandSideMatrix.size1() != TNumNodes)
                 rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
             if (rRightHandSideVector.size() != TNumNodes)
