@@ -75,14 +75,14 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    std::vector<int> ComputeRecvList(
-        const std::vector<int>& destination_ids,
-        MPIDataCommunicator& comm
+    static std::vector<int> ComputeRecvList(
+        const std::vector<int>& rLocalDestinationIds,
+        MPIDataCommunicator& rComm
     );
 
-    std::vector<int> ComputeCommunicationScheduling(
-        const std::vector<int>& local_destination_ids,
-        MPIDataCommunicator& comm
+    static std::vector<int> ComputeCommunicationScheduling(
+        const std::vector<int>& rLocalDestinationIds,
+        MPIDataCommunicator& rComm
     );
 
 
@@ -150,6 +150,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    static bool HasEdge(std::map<int, std::map<int, int> >& graph, int i, int j);
 
 
     ///@}
@@ -182,7 +183,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    bool HasEdge(std::map<int, std::map<int, int> >& graph, int i, int j);
 
     friend class Serializer;
 

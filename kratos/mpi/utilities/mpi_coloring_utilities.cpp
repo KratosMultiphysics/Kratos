@@ -18,24 +18,24 @@
 
 // Project includes
 #include "includes/define.h"
-#include "mpi/includes/mpi_coloring_utilities.h"
+#include "mpi/utilities/mpi_coloring_utilities.h"
 
 namespace Kratos
 {
 
 std::vector<int> MPIColoringUtilities::ComputeRecvList(
-    const std::vector<int>& local_destination_ids,
-    MPIDataCommunicator& comm
+    const std::vector<int>& rLocalDestinationIds,
+    MPIDataCommunicator& rComm
 )
 {
     const int global_rank = 0;
-    int current_rank = comm.Rank();
+    int current_rank = rComm.Rank();
 
     //compute recv_list
     std::vector<std::vector<int>> recv_list;
 
     //gather everything on processor 0
-    auto global_destination_ids = comm.Gatherv(local_destination_ids, global_rank );
+    auto global_destination_ids = rComm.Gatherv(rLocalDestinationIds, global_rank );
 
     if(current_rank == global_rank)
     {
@@ -45,23 +45,22 @@ std::vector<int> MPIColoringUtilities::ComputeRecvList(
             for(const int& dest : global_destination_ids[i])
                 recv_list[dest].push_back(i);
     }
-    auto local_recv = comm.Scatterv(recv_list, global_rank );
+    auto local_recv = rComm.Scatterv(recv_list, global_rank );
 
-    std::sort(local_recv.begin(), local_recv.end());
     std::unique(local_recv.begin(), local_recv.end());
 
     return local_recv;
 }
 
 std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
-    const std::vector<int>& local_destination_ids,
-    MPIDataCommunicator& comm
+    const std::vector<int>& rLocalDestinationIds,
+    MPIDataCommunicator& rComm
 )
 {
     const int global_rank = 0;
-    int current_rank = comm.Rank();
+    int current_rank = rComm.Rank();
 
-    auto global_destination_ids = comm.Gatherv(local_destination_ids, global_rank );
+    auto global_destination_ids = rComm.Gatherv(rLocalDestinationIds, global_rank );
 
     std::vector< std::vector< int >> global_colors;
     if(current_rank == global_rank)
@@ -125,7 +124,7 @@ std::vector<int> MPIColoringUtilities::ComputeCommunicationScheduling(
         }
     }
 
-    auto colors = comm.Scatterv(global_colors, global_rank );
+    auto colors = rComm.Scatterv(global_colors, global_rank );
 
     return colors;
 }
@@ -134,8 +133,9 @@ bool MPIColoringUtilities::HasEdge(std::map<int, std::map<int, int> >& graph,
                                    int i,
                                    int j)
 {
-    if(graph.find(i) != graph.end())
-        if(graph[i].find(j) != graph[i].end())
+    auto it = graph.find(i);
+    if( it != graph.end())
+        if(it->second.find(j) != it->second.end())
             return true;
     return false;
 }
