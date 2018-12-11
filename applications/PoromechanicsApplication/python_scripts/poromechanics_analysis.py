@@ -29,6 +29,8 @@ class PoromechanicsAnalysis(AnalysisStage):
             import KratosMultiphysics.TrilinosApplication as TrilinosApplication
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"MPI parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
         else:
+            import poromechanics_cleaning_utility
+            poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
         # Creating solver and model part and adding variables
