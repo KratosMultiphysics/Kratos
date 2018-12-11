@@ -18,6 +18,11 @@ References:
 [PNL17] M. Pisaroni; F. Nobile; P. Leyland : A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics; Computer Methods in Applied Mechanics and Engineering, vol 326, pp 20-50, 2017. DOI : 10.1016/j.cma.2017.07.030.
 '''
 
+'''
+auxiliary function of UpdateOnepassMeanVariance
+this function is needed since in compss we do operations among future objects,
+and we need to handle the singular future values
+'''
 @ExaquteTask(old_mean=INOUT, old_M2=INOUT, returns=4)
 def UpdateOnepassMeanVarianceAux(sample, old_mean, old_M2, nsamples):
     nsamples=nsamples + 1
@@ -36,10 +41,11 @@ def UpdateOnepassMeanVarianceAux(sample, old_mean, old_M2, nsamples):
 
 class StatisticalVariable(object):
     '''The base class for the quantity of interest and other statistical variables computed'''
-    def __init__(self, current_number_levels):
+    def __init__(self, number_levels):
         '''constructor of the class
         Keyword arguments:
         self : an instance of a class
+        number_levels : number of levels
         '''
 
         '''values of the variable, divided per level'''
@@ -57,7 +63,7 @@ class StatisticalVariable(object):
         '''type of variable: scalar or field'''
         self.type = None
         '''number of samples of the variable computed'''
-        self.number_samples = [0 for _ in range(current_number_levels+1)]
+        self.number_samples = [0 for _ in range(number_levels+1)]
 
     '''
     function updating mean and second moment values and computing the sample variance
