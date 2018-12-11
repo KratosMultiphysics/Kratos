@@ -114,8 +114,8 @@ public:
             it -> EquationIdVector(id_vector,mrModelPart.GetProcessInfo());
             const unsigned int NumDof=RHS_ref.size();
             KRATOS_WATCH(NumDof);
+            Matrix dRdx_elemental = ZeroMatrix(NumDof,NumDof);
             if (it->Is(BOUNDARY)){ 
-                Matrix dRdx_elemental = ZeroMatrix(NumDof,NumDof);
                 Vector dFdu_elemental = ZeroVector(NumDof);
                 Matrix LHS = ZeroMatrix(NumDof,NumDof);
                 Vector RHS = ZeroVector(NumDof);
@@ -168,21 +168,20 @@ public:
                         dFdu_elemental(i)=dFdu_elemental_pos(i);
                         dFdu_elemental(i+NumNodes)=dFdu_elemental_neg(i);
                     }
-                }
-
-                unsigned int I;
-                unsigned int J;
-                for (unsigned int i_node = 0; i_node<NumDof;++i_node){
-                    for (unsigned int j_node = 0; j_node<NumDof;++j_node){ 
-                        I = id_vector[i_node];//geom[i_node].Id();
-                        J = id_vector[j_node];//geom[j_node].Id();
-                        
-                        mrdRdx(I,J) += dRdx_elemental(i_node,j_node);
-                        mrdRdu(J,I) += LHS_ref(i_node,j_node); //transposed dRdu
-                    }      
-                    mrdFdu(I) += dFdu_elemental(i_node);
-                }         
+                }      
             }
+            unsigned int I;
+            unsigned int J;
+            for (unsigned int i_node = 0; i_node<NumDof;++i_node){
+                for (unsigned int j_node = 0; j_node<NumDof;++j_node){ 
+                    I = id_vector[i_node];//geom[i_node].Id();
+                    J = id_vector[j_node];//geom[j_node].Id();
+                    
+                    mrdRdx(I,J) += dRdx_elemental(i_node,j_node);
+                    mrdRdu(J,I) += LHS_ref(i_node,j_node); //transposed dRdu
+                }      
+                // mrdFdu(I) += dFdu_elemental(i_node);
+            }   
         }
         // double number_of_nodes=mrModelPart.NumberOfNodes();
         // Vector lambda_0=ZeroVector(number_of_nodes);

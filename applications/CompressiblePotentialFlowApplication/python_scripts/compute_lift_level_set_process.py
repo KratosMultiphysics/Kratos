@@ -27,9 +27,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.problem_name=settings["problem_name"].GetString()
         self.fluid_model_part=Model.GetModelPart(settings["fluid_part_name"].GetString()).GetRootModelPart() 
         self.result_force=KratosMultiphysics.Vector(3)  
-        self.dRdu=KratosMultiphysics.Matrix(self.fluid_model_part.NumberOfNodes(),self.fluid_model_part.NumberOfNodes())
-        self.dRdx=KratosMultiphysics.Matrix(self.fluid_model_part.NumberOfNodes(),self.fluid_model_part.NumberOfNodes())     
-        self.dFdu=KratosMultiphysics.Vector(self.fluid_model_part.NumberOfNodes())          
+        self.dRdu=KratosMultiphysics.Matrix(100,100)
+        self.dRdx=KratosMultiphysics.Matrix(100,100)     
+        self.dFdu=KratosMultiphysics.Vector(100)          
         self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftLevelSetProcess(self.fluid_model_part,self.result_force)
         self.adjoint=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeGradientAdjointProcess(self.fluid_model_part,self.dRdu,self.dRdx,self.dFdu)       
 
@@ -37,7 +37,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
     def ExecuteFinalizeSolutionStep(self):
         print("wip_compute_lift_level_set_process")
         self.process.Execute()
-        # self.adjoint.Execute()
+        self.adjoint.Execute()
+        print(self.dFdu)
+        stop
         x_upper=[]
         cp_upper=[]
         x_lower=[]
