@@ -224,7 +224,7 @@ public:
                     else{
                         std::string warning_msg = "PARTICLE_PER_ELEMENT is not specified in Properties, ";
                         warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                        KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                         particle_per_element = 1;
                     }
 
