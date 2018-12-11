@@ -17,6 +17,7 @@
 
 // Project includes
 #include "includes/checks.h"
+#include "input_output/logger.h"
 #include "time_discretization.h"
 
 namespace Kratos {
@@ -39,17 +40,24 @@ std::array<double, 3> BDF2::ComputeBDFCoefficients(const double DeltaTime, const
 {
     KRATOS_ERROR_IF(DeltaTime < std::numeric_limits<double>::epsilon())
         << "Expects DeltaTime > 0!" << std::endl;
-    KRATOS_ERROR_IF(PreviousDeltaTime < std::numeric_limits<double>::epsilon())
-        << "Expects PreviousDeltaTime > 0!" << std::endl;
 
     const double rho = PreviousDeltaTime / DeltaTime;
     double time_coeff = 1.0 / (DeltaTime * rho * rho + DeltaTime * rho);
 
     std::array<double, 3> coefficients;
 
-    coefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)
-    coefficients[1] = -time_coeff * (rho * rho + 2.0 * rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
-    coefficients[2] =  time_coeff; // coefficient for step n-1 (1/2Dt if Dt is constant)
+    if (PreviousDeltaTime < std::numeric_limits<double>::epsilon()) {
+        KRATOS_DETAIL("ComputeBDFCoefficients") << "previous delta-time is zero, using "
+            << "constant time-step for computation of coefficients" << std::endl;
+        coefficients[0] =  1.5 / DeltaTime;
+        coefficients[1] = -2.0 / DeltaTime;
+        coefficients[2] =  0.5 / DeltaTime;
+    }
+    else {
+        coefficients[0] =  time_coeff * (rho * rho + 2.0 * rho); // coefficient for step n+1 (3/2Dt if Dt is constant)
+        coefficients[1] = -time_coeff * (rho * rho + 2.0 * rho + 1.0); // coefficient for step n (-4/2Dt if Dt is constant)
+        coefficients[2] =  time_coeff; // coefficient for step n-1 (1/2Dt if Dt is constant)
+    }
 
     return coefficients;
 }
