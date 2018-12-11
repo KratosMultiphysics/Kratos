@@ -73,7 +73,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                KratosMultiphysics.Logger.PrintWarning("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the gid-output, this will be removed!")
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:
