@@ -3,16 +3,16 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 
-# try:
-#     import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-#     structural_dependencies = True
-#     missing_application = ''
-# except ImportError as e:
-#     structural_dependencies = False
-#     # extract name of the missing application from the error message
-#     import re
-#     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-#                                     '{0}'.format(e)).group(1)
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+    structural_dependencies = True
+    missing_application = ''
+except ImportError as e:
+    structural_dependencies = False
+    # extract name of the missing application from the error message
+    import re
+    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
+                                     '{0}'.format(e)).group(1)
 
 from json_utilities import *
 import json
