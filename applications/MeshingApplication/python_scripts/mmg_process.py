@@ -18,8 +18,6 @@ from json_utilities import *
 import json
 import os
 
-KratosMultiphysics.CheckForPreviousImport()
-
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -142,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # Calculate NODAL_H
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.model_part.Nodes)
         self.find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.model_part)
         self.find_nodal_h.Execute()
 

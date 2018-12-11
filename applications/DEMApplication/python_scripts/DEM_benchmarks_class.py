@@ -14,70 +14,70 @@ def initialize_time_parameters(benchmark_number):
 
     if benchmark_number==1:
 
-        final_time                      = 0.0005
+        end_time                      = 0.0005
         dt                              = 6.4e-8 # Complies Rayleigh's condition
         graph_print_interval            = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==2:
 
-        final_time                      = 0.007
+        end_time                      = 0.007
         dt                              = 3e-7 # Complies Rayleigh's condition????????????????
         graph_print_interval            = 0.0001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==3:
 
-        final_time                      = 0.00031
+        end_time                      = 0.00031
         dt                              = 8.1e-9 #1.1e-9 # Complies Rayleigh's condition
         graph_print_interval            = 0.000001
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==4:
 
-        final_time                      = 0.0002  #0.00003
+        end_time                      = 0.0002  #0.00003
         dt                              = 2e-8 #1.9e-9 # Complies Rayleigh's condition
         graph_print_interval            = 0.000001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==5:
 
-        final_time                      = 0.0000005
+        end_time                      = 0.0000005
         dt                              = 3.6e-11  #3.6e-12 # Complies Rayleigh's condition
         graph_print_interval            = 0.00000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==6:
 
-        final_time                      = 0.01
+        end_time                      = 0.01
         dt                              = 1.0e-6  #1.0e-7 # Complies Rayleigh's condition ????????????????
         graph_print_interval            = 0.00025
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==7:
 
-        final_time                      = 0.0005
+        end_time                      = 0.0005
         dt                              = 4.4614e-7 #4.4614e-8 # Complies Rayleigh's condition ????????????????
         graph_print_interval            = 0.000005
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==8:
 
-        final_time                      = 0.02
+        end_time                      = 0.02
         dt                              = 2.0e-6 #5.0e-7 # Complies Rayleigh's condition
         graph_print_interval            = 0.0001
         number_of_points_in_the_graphic = 17
 
     elif benchmark_number==9:
 
-        final_time                      = 0.001 #0.0005
+        end_time                      = 0.001 #0.0005
         dt                              = 5.0e-8 # 3.4e-8 # Complies Rayleigh's condition
         graph_print_interval            = 0.000005
         number_of_points_in_the_graphic = 6
 
     elif benchmark_number==10:
 
-        final_time                      = 0.00015 #0.0005
+        end_time                      = 0.00015 #0.0005
         dt                              = 2.0e-8  #3.6e-12 # Complies Rayleigh's condition
         graph_print_interval            = 0.00001
         number_of_points_in_the_graphic = 10
@@ -85,7 +85,7 @@ def initialize_time_parameters(benchmark_number):
 
     elif benchmark_number==11:
 
-        final_time                      = 0.00015 #0.0005
+        end_time                      = 0.00015 #0.0005
         dt                              = 1.0e-7 #3.6e-12 # Complies Rayleigh's condition
         graph_print_interval            = 0.00001
         number_of_points_in_the_graphic = 10
@@ -93,145 +93,145 @@ def initialize_time_parameters(benchmark_number):
 
     elif benchmark_number==12:
 
-        final_time                      = 0.1
+        end_time                      = 0.1
         dt                              = 5.0e-7
         graph_print_interval            = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==13:
 
-        final_time                      = 2.0
+        end_time                      = 2.0
         dt                              = 1.0e-4
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==14:
 
-        final_time                      = 2.0
+        end_time                      = 2.0
         dt                              = 1.0e-4
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==15:
 
-        final_time                      = 2.0
+        end_time                      = 2.0
         dt                              = 1.0e-4
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==16:
 
-        final_time                      = 1.0
+        end_time                      = 1.0
         dt                              = 0.50e-4
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==17:
 
-        final_time                      = 1.0
+        end_time                      = 1.0
         dt                              = 1.0e-6
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==20:          # Normal compression
 
-        final_time                      = 0.01
+        end_time                      = 0.01
         dt                              = 1e-5
         graph_print_interval            = 1e-5   # utilitzo com a output freq del grafic de punts
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==21:          # Normal compression with indentation
 
-        final_time                      = 0.01
+        end_time                      = 0.01
         dt                              = 1e-5
         graph_print_interval            = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==22:          # Tensile
 
-        final_time                      = 0.05
+        end_time                      = 0.05
         dt                              = 1e-5
         graph_print_interval            = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==23:          # Tensile with indentation
 
-        final_time                      = 0.05
+        end_time                      = 0.05
         dt                              = 1e-5
         graph_print_interval            = 1e-5
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==24:          # Shear
 
-        final_time                      = 8e-5
+        end_time                      = 8e-5
         dt                              = 1e-7
         graph_print_interval            = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==25:          # Shear + radius expansion
 
-        final_time                      = 8e-5
+        end_time                      = 8e-5
         dt                              = 1e-7
         graph_print_interval            = 1e-7
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==26:          #
 
-        final_time                      = 0.1
+        end_time                      = 0.1
         dt                              = 1e-5
         graph_print_interval            = 1e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==27:          #UCS TEST
 
-        final_time                      = 0.05
+        end_time                      = 0.05
         dt                              = 5e-7
         graph_print_interval            = 5e-4
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==28:          #PENDULO3D . not ready
 
-        final_time                      = 100
+        end_time                      = 100
         dt                              = 1e-4
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==30:
 
-        final_time                      = 0.5
+        end_time                      = 0.5
         dt                              = 1.0e-3
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==31:
 
-        final_time                      = 0.5
+        end_time                      = 0.5
         dt                              = 1.0e-3
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==32:
 
-        final_time                      = 0.5
+        end_time                      = 0.5
         dt                              = 1.0e-6
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     elif benchmark_number==33:
 
-        final_time                      = 0.5
+        end_time                      = 0.5
         dt                              = 1.0e-6
         graph_print_interval            = 1e-2
         number_of_points_in_the_graphic = 1
 
     else: #benchmark_number==68:        #
 
-        final_time                      = 1e-3
+        end_time                      = 1e-3
         dt                              = 1e-6
         graph_print_interval            = 1e-7
         number_of_points_in_the_graphic = 1
 
-    return final_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
+    return end_time, dt, graph_print_interval, number_of_points_in_the_graphic, number_of_coeffs_of_restitution
 
 def PrintResultsMessage(test_number, it_is_success, error, elapsed_time, error_filename = 'errors.err'):
     with open(error_filename, 'a') as error_file:
