@@ -108,18 +108,20 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
 	const Vector thresholds = this->GetThresholds();
 	const double ElementThreshold = this->GetValue(STRESS_THRESHOLD);
-	if (thresholds[0] == 0.0 && thresholds[1] == 0.0 && thresholds[2] == 0.0) {
+	if (thresholds[0] + thresholds[1] + thresholds[2] + thresholds[3] +
+	 thresholds[4] + thresholds[4] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
 			this->SetThreshold(ElementThreshold, edge);
 		}
 	}
 
 	// IDEM with the edge damages
-	const Vector DamageEdges = this->GetDamages();
-	const double DamageElement = this->GetValue(DAMAGE_ELEMENT);
-	if (DamageEdges[0] == 0.0 && DamageEdges[1] == 0.0 && DamageEdges[2] == 0.0) {
+	const Vector damage_edges = this->GetDamages();
+	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
+	if (damage_edges[0] + damage_edges[1] + damage_edges[2] + 
+	 damage_edges[3] + damage_edges[4] + damage_edges[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
-			this->SetConvergedDamages(DamageElement, edge);
+			this->SetConvergedDamages(damage_element, edge);
 		}
 	}
 }
@@ -194,10 +196,8 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 				}
 			}
 		}
-
 		// Let's create the vector of neighbour elements for this edge
 		std::vector<Element *> edge_shared_elements = edge_shared_elements_node_1;
-
 		// Add the neigh elements from the node 2
 		for (unsigned int i = 0; i < edge_shared_elements_node_2.size(); i++) {
 			int aux = 0;
@@ -206,13 +206,10 @@ void FemDem3DElement::ComputeEdgeNeighbours(ProcessInfo &rCurrentProcessInfo)
 				if (edge_shared_elements_node_2[i]->Id() == edge_shared_elements[j]->Id())
 					aux++;
 			}
-
 			if (aux == 0)
 				edge_shared_elements.push_back(edge_shared_elements_node_2[i]);
 		}
-
 		EdgeNeighboursContainer.push_back(edge_shared_elements);
-
 	} // End loop edges
 
 	// Storages the information inside the element
@@ -245,16 +242,6 @@ void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	this->ResetNonConvergedVars();
 	this->SetValue(DAMAGE_ELEMENT, damage_element);
 	this->SetValue(STRESS_THRESHOLD, this->GetMaxValue(this->GetThresholds()));
-
-	// Reset the nodal force flag for the next time step
-	Geometry<Node<3>> &NodesElement = this->GetGeometry();
-
-	for (unsigned int i = 0; i < 3; i++) {
-		#pragma omp critical 
-		{
-			NodesElement[i].SetValue(NODAL_FORCE_APPLIED, false);
-		}
-	}
 }
 
 void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo)
@@ -437,7 +424,7 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		// RHS
 		for (unsigned int i = 0; i < number_of_nodes; i++) {
-			int index = dimension * i;
+			const int index = dimension * i;
 			for (unsigned int j = 0; j < dimension; j++) {
 				rRightHandSideVector[index + j] += IntegrationWeight * N[i] * VolumeForce[j];
 			}
@@ -445,41 +432,8 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		//compute and add internal forces (RHS = rRightHandSideVector = Fext - Fint)
 		noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(B), IntegratedStressVector);
-
-		// Add nodal DEM forces
-		Vector NodalRHS = ZeroVector(system_size);
-		this->AddDEMContactForces(NodalRHS);
-
-		// Add nodal contact forces from the DEM
-		noalias(rRightHandSideVector) += NodalRHS;
 	}
 	KRATOS_CATCH("")
-}
-
-void FemDem3DElement::AddDEMContactForces(Vector &rNodalRHS)
-{
-	#pragma omp critical 
-	{
-		Geometry<Node<3>> &NodesElement = this->GetGeometry();
-
-		// Loop Over nodes to apply the DEM contact forces to the FEM
-		for (unsigned int i = 0; i < NodesElement.size(); i++) {
-			const bool IsDEM = NodesElement[i].GetValue(IS_DEM);
-			const bool NodalForceApplied = NodesElement[i].GetValue(NODAL_FORCE_APPLIED);
-
-			if (IsDEM == true && NodalForceApplied == false) {
-				const double ForceX = NodesElement[i].GetValue(NODAL_FORCE_X);
-				const double ForceY = NodesElement[i].GetValue(NODAL_FORCE_Y);
-				const double ForceZ = NodesElement[i].GetValue(NODAL_FORCE_Z);
-
-				rNodalRHS[3 * i] += ForceX;
-				rNodalRHS[3 * i + 1] += ForceY;
-				rNodalRHS[3 * i + 2] += ForceZ;
-
-				NodesElement[i].SetValue(NODAL_FORCE_APPLIED, true);
-			}
-		}
-	}
 }
 
 void FemDem3DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX)

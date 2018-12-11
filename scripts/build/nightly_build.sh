@@ -32,13 +32,19 @@ unzip mmg.zip
 wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
 tar xzf eigen.tar.gz
 mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
+# ANurbs library
+# a specific commit is specified, this has to be tested before updating
+ANUBS_COMMIT_HASH=dada39e26909bee36f1fdee8f5a282ea563cf00a
+wget https://github.com/oberbichler/ANurbs/archive/${ANUBS_COMMIT_HASH}.tar.gz -O AnurbsLibrary.tar.gz
+tar xzf AnurbsLibrary.tar.gz
+mv ${HOME}/ANurbs-${ANUBS_COMMIT_HASH} ${HOME}/ANurbs
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
 chmod 777 smtp-cli
 
-wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz
-tar xzf master.tar.gz
+wget https://github.com/KratosMultiphysics/Kratos/archive/master.tar.gz -O KratosMaster.tar.gz
+tar xzf KratosMaster.tar.gz
 mv ${HOME}/Kratos-master ${HOME}/Kratos
 cd ${HOME}/Kratos
 

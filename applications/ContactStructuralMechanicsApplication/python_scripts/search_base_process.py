@@ -2,10 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
-
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
@@ -85,9 +81,9 @@ class SearchBaseProcess(KM.Process):
         self.database_step = 0
 
         # Detect "End" as a tag and replace it by a large number
-        if(self.settings.Has("interval")):
-            if(self.settings["interval"][1].IsString() ):
-                if(self.settings["interval"][1].GetString() == "End"):
+        if self.settings.Has("interval"):
+            if self.settings["interval"][1].IsString():
+                if self.settings["interval"][1].GetString() == "End":
                     self.settings["interval"][1].SetDouble(1e30) # = default_settings["interval"][1]
                 else:
                     raise Exception("the second value of interval can be \"End\" or a number, interval currently:"+settings["interval"].PrettyPrintJsonString())
@@ -103,7 +99,7 @@ class SearchBaseProcess(KM.Process):
         """
 
         # First we generate or identify the different model parts
-        if (self.computing_model_part.HasSubModelPart("Contact")):
+        if self.computing_model_part.HasSubModelPart("Contact"):
             self.preprocess = False
             # We get the submodelpart
             self.search_model_part = self.computing_model_part.GetSubModelPart("Contact")
@@ -113,17 +109,17 @@ class SearchBaseProcess(KM.Process):
             self.search_model_part = self.computing_model_part.CreateSubModelPart("Contact")
 
         # In case of no "Contact" model part we create it
-        if (self.preprocess is True):
+        if self.preprocess is True:
             # In case no model part is assigned we detect the skin
             self.count_search_model_part = 0
             for key in self.settings["search_model_part"].keys():
-                if (self.settings["search_model_part"][key].size() > 0):
+                if self.settings["search_model_part"][key].size() > 0:
                     self.count_search_model_part += 1
-            if (self.count_search_model_part == 0):
+            if self.count_search_model_part == 0:
                 self.__detect_skin(self.main_model_part)
             else:
                 for key in self.settings["search_model_part"].keys():
-                    if (self.settings["search_model_part"][key].size() > 0):
+                    if self.settings["search_model_part"][key].size() > 0:
                         self.__generate_search_model_part_from_input_list(self.settings["search_model_part"][key], key)
 
         # We compute NODAL_H that can be used in the search and some values computation
@@ -131,7 +127,7 @@ class SearchBaseProcess(KM.Process):
         self.find_nodal_h.Execute()
 
         ## We recompute the search factor and the check in function of the relative size of the mesh
-        if (self.settings["search_parameters"]["adapt_search"].GetBool() is True):
+        if self.settings["search_parameters"]["adapt_search"].GetBool() is True:
             factor = CSMA.ContactUtilities.CalculateRelativeSizeMesh(self.computing_model_part)
             KM.Logger.PrintWarning("SEARCH ADAPT FACTOR: ", "{:.2e}".format(factor))
             search_factor = self.settings["search_parameters"]["search_factor"].GetDouble() * factor
@@ -143,7 +139,7 @@ class SearchBaseProcess(KM.Process):
         self._initialize_process_info()
 
         #If the conditions doesn't exist we create them
-        if (self.preprocess is False):
+        if self.preprocess is False:
             master_slave_process = CSMA.MasterSlaveProcess(self.computing_model_part)
             master_slave_process.Execute()
 
@@ -160,7 +156,7 @@ class SearchBaseProcess(KM.Process):
         # Creating the search
         self.search_search = {}
         for key in self.settings["search_model_part"].keys():
-            if (self.settings["search_model_part"][key].size() > 0):
+            if self.settings["search_model_part"][key].size() > 0:
                 self._create_main_search(key)
 
         # We initialize conditions
@@ -168,7 +164,7 @@ class SearchBaseProcess(KM.Process):
 
         # We perform search initializations
         for key in self.settings["search_model_part"].keys():
-            if (self.settings["search_model_part"][key].size() > 0):
+            if self.settings["search_model_part"][key].size() > 0:
                 # We initialize the search utility
                 self.search_search[key].CheckContactModelParts()
                 self.search_search[key].CreatePointListMortar()
@@ -189,16 +185,16 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        if(self._get_if_is_interval() is True):
+        if self._get_if_is_interval() is True:
             self.database_step += 1
             global_step = self.main_model_part.ProcessInfo[KM.STEP]
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (self.database_step >= database_step_update or global_step == 1):
+            if self.database_step >= database_step_update or global_step == 1:
                 # We unset the flag MARKER (used in the nodes to not deactivate it)
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self._get_process_model_part().Nodes)
                 # We solve one linear step with a linear strategy if needed
                 for key in self.settings["search_model_part"].keys():
-                    if (self.settings["search_model_part"][key].size() > 0):
+                    if self.settings["search_model_part"][key].size() > 0:
                         # Clear current pairs
                         self.search_search[key].ClearMortarConditions()
                         # Update database
@@ -209,7 +205,7 @@ class SearchBaseProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self._get_process_model_part().Nodes)
 
                 # Debug
-                if (self.settings["search_parameters"]["debug_mode"].GetBool() is True):
+                if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
                     self._debug_output(global_step, "", self._get_problem_name())
                     # We compute the total integrated area, for debugging
                     self.__get_integration_area()
@@ -241,12 +237,12 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         global_step = self.main_model_part.ProcessInfo[KM.STEP]
-        if(self._get_if_is_interval() is True):
+        if self._get_if_is_interval() is True:
             modified = self.main_model_part.Is(KM.MODIFIED)
             database_step_update = self.settings["search_parameters"]["database_step_update"].GetInt()
-            if (modified is False and (self.database_step >= database_step_update or global_step == 1)):
+            if modified is False and (self.database_step >= database_step_update or global_step == 1):
                 for key in self.settings["search_model_part"].keys():
-                    if (self.settings["search_model_part"][key].size() > 0):
+                    if self.settings["search_model_part"][key].size() > 0:
                         self.search_search[key].ClearMortarConditions()
                 self.database_step = 0
 
@@ -293,11 +289,11 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        if (self.predefined_master_slave is True):
+        if self.predefined_master_slave is True:
             KM.VariableUtils().SetFlag(KM.SLAVE, False, partial_model_part.Nodes)
             KM.VariableUtils().SetFlag(KM.MASTER, True, partial_model_part.Nodes)
 
-            if (len(partial_model_part.Conditions) > 0):
+            if len(partial_model_part.Conditions) > 0:
                 KM.VariableUtils().SetFlag(KM.SLAVE, False, partial_model_part.Conditions)
                 KM.VariableUtils().SetFlag(KM.MASTER, True, partial_model_part.Conditions)
 
@@ -308,7 +304,7 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
 
-        if (self.predefined_master_slave is True):
+        if self.predefined_master_slave is True:
             if not self.settings["assume_master_slave"][key].IsArray():
                 raise Exception("{0} Error: Model part list is unreadable".format(self.__class__.__name__))
             for i in range(0, self.settings["assume_master_slave"][key].size()):
@@ -317,7 +313,7 @@ class SearchBaseProcess(KM.Process):
                 KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Nodes)
                 KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Nodes)
 
-                if (len(model_part_slave.Conditions) > 0):
+                if len(model_part_slave.Conditions) > 0:
                     KM.VariableUtils().SetFlag(KM.SLAVE, True, model_part_slave.Conditions)
                     KM.VariableUtils().SetFlag(KM.MASTER, False, model_part_slave.Conditions)
 
@@ -335,7 +331,7 @@ class SearchBaseProcess(KM.Process):
         # It should create the conditions automatically
         interface_parameters = KM.Parameters("""{"simplify_geometry": false, "contact_property_id": 0}""")
         interface_parameters["contact_property_id"].SetInt(self.settings["search_property_ids"][key].GetInt())
-        if (self.dimension == 2):
+        if self.dimension == 2:
             self.interface_preprocess.GenerateInterfacePart2D(partial_model_part, interface_parameters)
         else:
             self.interface_preprocess.GenerateInterfacePart3D(partial_model_part, interface_parameters)
@@ -399,6 +395,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
+        search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)
@@ -409,17 +406,17 @@ class SearchBaseProcess(KM.Process):
         number_nodes, number_nodes_master = self._compute_number_nodes()
 
         # We create the search process
-        if (self.dimension == 2):
+        if self.dimension == 2:
             self.search_search[key] = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
         else:
-            if (number_nodes == 3):
-                if (number_nodes_master == 3):
+            if number_nodes == 3:
+                if number_nodes_master == 3:
                     self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
                 else:
                     self.search_search[key] = CSMA.TreeContactSearch3D3N4N(self.computing_model_part, search_parameters)
 
-            elif (number_nodes == 4):
-                if (number_nodes_master == 3):
+            elif number_nodes == 4:
+                if number_nodes_master == 3:
                     self.search_search[key] = CSMA.TreeContactSearch3D4N3N(self.computing_model_part, search_parameters)
                 else:
                     self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
@@ -473,20 +470,20 @@ class SearchBaseProcess(KM.Process):
         gid_io.WriteNodalResults(KM.NORMAL, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(KM.NODAL_AREA, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
-        if (self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True):
+        if self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True:
             gid_io.WriteNodalResults(KM.VELOCITY, self.main_model_part.Nodes, label, 0)
             gid_io.WriteNodalResults(KM.ACCELERATION, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(CSMA.NORMAL_GAP, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(CSMA.AUXILIAR_COORDINATES, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResultsNonHistorical(CSMA.DELTA_COORDINATES, self.main_model_part.Nodes, label)
 
-        if (problem_name == "Contact"):
+        if problem_name == "Contact":
             gid_io.WriteNodalResults(CSMA.WEIGHTED_GAP, self.main_model_part.Nodes, label, 0)
             gid_io.WriteNodalResultsNonHistorical(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
-            if (self.is_frictional is True):
+            if self.is_frictional is True:
                 gid_io.WriteNodalFlags(KM.SLIP, "SLIP", self.main_model_part.Nodes, label)
                 gid_io.WriteNodalResultsNonHistorical(CSMA.AUGMENTED_TANGENT_CONTACT_PRESSURE, self.main_model_part.Nodes, label)
-            if (self.main_model_part.Nodes[1].SolutionStepsDataHas(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) is True):
+            if self.main_model_part.Nodes[1].SolutionStepsDataHas(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) is True:
                 gid_io.WriteNodalResults(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, self.main_model_part.Nodes, label, 0)
             else:
                 gid_io.WriteNodalResults(KM.VECTOR_LAGRANGE_MULTIPLIER, self.main_model_part.Nodes, label, 0)
@@ -510,24 +507,24 @@ class SearchBaseProcess(KM.Process):
         self -- It signifies an instance of a class.
         """
         current_time = self.main_model_part.ProcessInfo[KM.TIME]
-        if(self.interval.IsInInterval(current_time)):
+        if self.interval.IsInInterval(current_time):
             return True
         else:
             return False
 
     def _compute_number_nodes(self):
         # We compute the number of nodes of the geometry
-        if (self.predefined_master_slave is True and self.dimension == 3):
+        if self.predefined_master_slave is True and self.dimension == 3:
             slave_defined = False
             master_defined = False
             for cond in self.computing_model_part.Conditions:
-                if (cond.Is(KM.SLAVE)):
+                if cond.Is(KM.SLAVE):
                     number_nodes = len(cond.GetNodes())
                     slave_defined = True
-                if (cond.Is(KM.MASTER)):
+                if cond.Is(KM.MASTER):
                     number_nodes_master = len(cond.GetNodes())
                     master_defined = True
-                if (slave_defined and master_defined):
+                if slave_defined and master_defined:
                     break
         else:
             number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
@@ -543,17 +540,17 @@ class SearchBaseProcess(KM.Process):
         """
         # We compute the total integrated area, for debugging
         total_area = 0.0
-        if (self.dimension == 2):
+        if self.dimension == 2:
             exact_integration = KM.ExactMortarIntegrationUtility2D2N(3)
         else:
             number_nodes, number_nodes_master = self._compute_number_nodes()
-            if (number_nodes == 3):
-                if (number_nodes_master == 3):
+            if number_nodes == 3:
+                if number_nodes_master == 3:
                     exact_integration = KM.ExactMortarIntegrationUtility3D3N(3)
                 else:
                     exact_integration = KM.ExactMortarIntegrationUtility3D3N4N(3)
             else:
-                if (number_nodes_master == 3):
+                if number_nodes_master == 3:
                     exact_integration = KM.ExactMortarIntegrationUtility3D4N3N(3)
                 else:
                     exact_integration = KM.ExactMortarIntegrationUtility3D4N(3)
@@ -598,12 +595,12 @@ class SearchBaseProcess(KM.Process):
 
             # We set the interface flag
             KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Nodes)
-            if (len(partial_model_part.Conditions) == 0):
+            if len(partial_model_part.Conditions) == 0:
                 KM.Logger.PrintInfo("Contact Process", "Using nodes for interface. We recommend to use conditions instead")
             else:
                 KM.VariableUtils().SetFlag(KM.INTERFACE, True, partial_model_part.Conditions)
 
-        if (self.preprocess is True):
+        if self.preprocess is True:
             id_prop = self.settings["search_property_ids"][key].GetInt()
             if (id_prop != 0):
                 sub_search_model_part.SetProperties(self.main_model_part.GetProperties(id_prop))
@@ -635,7 +632,7 @@ class SearchBaseProcess(KM.Process):
         sub_search_model_part_name = "ContactSub"+key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
         detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
-        if (self.dimension == 2):
+        if self.dimension == 2:
             detect_skin = KM.SkinDetectionProcess2D(model_part, detect_skin_parameters)
         else:
             detect_skin = KM.SkinDetectionProcess3D(model_part, detect_skin_parameters)
@@ -652,7 +649,7 @@ class SearchBaseProcess(KM.Process):
         key -- The key to identify the current pair
         """
         # When all conditions are simultaneously master and slave
-        if (self.settings["assume_master_slave"][key].size() > 0):
+        if self.settings["assume_master_slave"][key].size() > 0:
             self.predefined_master_slave = True
         else:
             self.predefined_master_slave = False

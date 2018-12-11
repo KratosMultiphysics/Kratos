@@ -121,14 +121,8 @@ public:
     /// The index type
     typedef std::size_t IndexType;
 
-    /// The signed index type
-    typedef std::ptrdiff_t  SignedIndexType;
-
     /// A vector of indexes
     typedef DenseVector<IndexType> IndexVectorType;
-
-    /// A vector of indexes (signed)
-    typedef DenseVector<SignedIndexType> SignedIndexVectorType;
 
     /// A vector of types
     typedef DenseVector<BlockType> BlockTypeVectorType;
@@ -818,42 +812,42 @@ protected:
         // We initialize the blocks sparse matrix
         std::partial_sum(KMLMA_ptr, KMLMA_ptr + master_size + 1, KMLMA_ptr);
         const std::size_t KMLMA_nonzero_values = KMLMA_ptr[master_size];
-        SignedIndexType* aux_index2_KMLMA= new SignedIndexType[KMLMA_nonzero_values];
+        IndexType* aux_index2_KMLMA= new IndexType[KMLMA_nonzero_values];
         double* aux_val_KMLMA= new double[KMLMA_nonzero_values];
 
         std::partial_sum(mKSAN_ptr, mKSAN_ptr + slave_active_size + 1, mKSAN_ptr);
         const std::size_t mKSAN_nonzero_values = mKSAN_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAN= new SignedIndexType[mKSAN_nonzero_values];
+        IndexType* aux_index2_mKSAN= new IndexType[mKSAN_nonzero_values];
         double* aux_val_mKSAN= new double[mKSAN_nonzero_values];
 
         std::partial_sum(mKSAM_ptr, mKSAM_ptr + slave_active_size + 1, mKSAM_ptr);
         const std::size_t mKSAM_nonzero_values = mKSAM_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSAM= new SignedIndexType[mKSAM_nonzero_values];
+        IndexType* aux_index2_mKSAM= new IndexType[mKSAM_nonzero_values];
         double* aux_val_mKSAM= new double[mKSAM_nonzero_values];
 
         std::partial_sum(mKSASI_ptr, mKSASI_ptr + slave_active_size + 1, mKSASI_ptr);
         const std::size_t mKSASI_nonzero_values = mKSASI_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASI= new SignedIndexType[mKSASI_nonzero_values];
+        IndexType* aux_index2_mKSASI= new IndexType[mKSASI_nonzero_values];
         double* aux_val_mKSASI= new double[mKSASI_nonzero_values];
 
         std::partial_sum(mKSASA_ptr, mKSASA_ptr + slave_active_size + 1, mKSASA_ptr);
         const std::size_t mKSASA_nonzero_values = mKSASA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_mKSASA= new SignedIndexType[mKSASA_nonzero_values];
+        IndexType* aux_index2_mKSASA= new IndexType[mKSASA_nonzero_values];
         double* aux_val_mKSASA = new double[mKSASA_nonzero_values];
 
         std::partial_sum(KSALMA_ptr, KSALMA_ptr + slave_active_size + 1, KSALMA_ptr);
         const std::size_t KSALMA_nonzero_values = KSALMA_ptr[slave_active_size];
-        SignedIndexType* aux_index2_KSALMA= new SignedIndexType[KSALMA_nonzero_values];
+        IndexType* aux_index2_KSALMA= new IndexType[KSALMA_nonzero_values];
         double* aux_val_KSALMA = new double[KSALMA_nonzero_values];
 
         std::partial_sum(KLMILMI_ptr, KLMILMI_ptr + lm_inactive_size + 1, KLMILMI_ptr);
         const std::size_t KLMILMI_nonzero_values = KLMILMI_ptr[lm_inactive_size];
-        SignedIndexType* aux_index2_KLMILMI= new SignedIndexType[KLMILMI_nonzero_values];
+        IndexType* aux_index2_KLMILMI= new IndexType[KLMILMI_nonzero_values];
         double* aux_val_KLMILMI = new double[KLMILMI_nonzero_values];
 
         std::partial_sum(KLMALMA_ptr, KLMALMA_ptr + lm_active_size + 1, KLMALMA_ptr);
         const std::size_t KLMALMA_nonzero_values = KLMALMA_ptr[lm_active_size];
-        SignedIndexType* aux_index2_KLMALMA = new SignedIndexType[KLMALMA_nonzero_values];
+        IndexType* aux_index2_KLMALMA = new IndexType[KLMALMA_nonzero_values];
         double* aux_val_KLMALMA = new double[KLMALMA_nonzero_values];
 
         #pragma omp parallel
@@ -866,8 +860,8 @@ protected:
                 const IndexType local_row_id = mGlobalToLocalIndexing[i];
 
                 if ( mWhichBlockType[i] == BlockType::MASTER) { // KMLMA
-                    SignedIndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
-                    SignedIndexType KMLMA_row_end = KMLMA_row_beg;
+                    IndexType KMLMA_row_beg = KMLMA_ptr[local_row_id];
+                    IndexType KMLMA_row_end = KMLMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if ( mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KMLMA block
@@ -879,16 +873,16 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::SLAVE_ACTIVE) { //either KSAN or KSAM or KSASA or KSASA or KSALM
-                    SignedIndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
-                    SignedIndexType mKSAN_row_end = mKSAN_row_beg;
-                    SignedIndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
-                    SignedIndexType mKSAM_row_end = mKSAM_row_beg;
-                    SignedIndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
-                    SignedIndexType mKSASI_row_end = mKSASI_row_beg;
-                    SignedIndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
-                    SignedIndexType mKSASA_row_end = mKSASA_row_beg;
-                    SignedIndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
-                    SignedIndexType KSALMA_row_end = KSALMA_row_beg;
+                    IndexType mKSAN_row_beg = mKSAN_ptr[local_row_id];
+                    IndexType mKSAN_row_end = mKSAN_row_beg;
+                    IndexType mKSAM_row_beg = mKSAM_ptr[local_row_id];
+                    IndexType mKSAM_row_end = mKSAM_row_beg;
+                    IndexType mKSASI_row_beg = mKSASI_ptr[local_row_id];
+                    IndexType mKSASI_row_end = mKSASI_row_beg;
+                    IndexType mKSASA_row_beg = mKSASA_ptr[local_row_id];
+                    IndexType mKSASA_row_end = mKSASA_row_beg;
+                    IndexType KSALMA_row_beg = KSALMA_ptr[local_row_id];
+                    IndexType KSALMA_row_end = KSALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         const double value = values[j];
@@ -916,8 +910,8 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_INACTIVE) { // KLMILMI
-                    SignedIndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
-                    SignedIndexType KLMILMI_row_end = KLMILMI_row_beg;
+                    IndexType KLMILMI_row_beg = KLMILMI_ptr[local_row_id];
+                    IndexType KLMILMI_row_end = KLMILMI_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_INACTIVE) { // KLMILMI block (diagonal)
@@ -929,8 +923,8 @@ protected:
                         }
                     }
                 } else if ( mWhichBlockType[i] == BlockType::LM_ACTIVE) { // KLMALMA
-                    SignedIndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
-                    SignedIndexType KLMALMA_row_end = KLMALMA_row_beg;
+                    IndexType KLMALMA_row_beg = KLMALMA_ptr[local_row_id];
+                    IndexType KLMALMA_row_end = KLMALMA_row_beg;
                     for (IndexType j=row_begin; j<row_end; j++) {
                         const IndexType col_index = index2[j];
                         if (mWhichBlockType[col_index] == BlockType::LM_ACTIVE) { // KLMALMA block
@@ -1033,7 +1027,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux1, K_disp_modified_ptr_aux1 + nrows + 1, K_disp_modified_ptr_aux1);
         const SizeType nonzero_values_aux1 = K_disp_modified_ptr_aux1[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux1 = new SignedIndexType[nonzero_values_aux1];
+        IndexType* aux_index2_K_disp_modified_aux1 = new IndexType[nonzero_values_aux1];
         double* aux_val_K_disp_modified_aux1 = new double[nonzero_values_aux1];
 
         #pragma omp parallel
@@ -1123,7 +1117,7 @@ protected:
         // We initialize the final sparse matrix
         std::partial_sum(K_disp_modified_ptr_aux2, K_disp_modified_ptr_aux2 + nrows + 1, K_disp_modified_ptr_aux2);
         const SizeType nonzero_values_aux2 = K_disp_modified_ptr_aux2[nrows];
-        SignedIndexType* aux_index2_K_disp_modified_aux2 = new SignedIndexType[nonzero_values_aux2];
+        IndexType* aux_index2_K_disp_modified_aux2 = new IndexType[nonzero_values_aux2];
         double* aux_val_K_disp_modified_aux2 = new double[nonzero_values_aux2];
 
         #pragma omp parallel
@@ -1359,7 +1353,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals
         )
     {
@@ -1426,7 +1420,7 @@ private:
         const int CurrentRow,
         const IndexType InitialIndex,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals
         )
     {
@@ -1503,7 +1497,7 @@ private:
      */
     inline void ComputeAuxiliarValuesBlocks(
         const SparseMatrixType& AuxK,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVals,
         const int CurrentRow,
         IndexType& RowEnd,
@@ -1850,7 +1844,7 @@ private:
         const SizeType NRows,
         const SizeType NCols,
         IndexType* Ptr,
-        SignedIndexType* AuxIndex2,
+        IndexType* AuxIndex2,
         double* AuxVal
         )
     {
@@ -1906,9 +1900,9 @@ private:
 //             }
 //         }
 
-        SignedIndexType* ptr = new SignedIndexType[size_A + 1];
+        IndexType* ptr = new IndexType[size_A + 1];
         ptr[0] = 0;
-        SignedIndexType* aux_index2 = new SignedIndexType[size_A];
+        IndexType* aux_index2 = new IndexType[size_A];
         double* aux_val = new double[size_A];
 
         #pragma omp parallel for

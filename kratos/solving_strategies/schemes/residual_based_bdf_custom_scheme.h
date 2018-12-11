@@ -96,50 +96,40 @@ public:
 
     /**
      * @brief Constructor. The BDF method
+     * @param ThisParameters The parameters containing the list of variables to consider
+     * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
+     */
+    explicit ResidualBasedBDFCustomScheme(Parameters ThisParameters)
+    {
+        // Getting default parameters
+        Parameters default_parameters = GetDefaultParameters();
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // Now here call the base class constructor
+        BDFBaseType( ThisParameters["order"].GetInt());
+
+        // Creating variables list
+        CreateVariablesList(ThisParameters);
+    }
+
+    /**
+     * @brief Constructor. The BDF method
      * @param Order The integration order
-     * @param rParameters The parameters containing the list of variables to consider
+     * @param ThisParameters The parameters containing the list of variables to consider
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
      */
     explicit ResidualBasedBDFCustomScheme(
         const std::size_t Order = 2,
-        Parameters rParameters =  Parameters(R"({})")
+        Parameters ThisParameters =  Parameters(R"({})")
         )
         :BDFBaseType(Order)
     {
+        // Getting default parameters
         Parameters default_parameters = GetDefaultParameters();
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-        const std::size_t n_variables = rParameters["variable"].size();
-        const std::size_t n_first_derivative = rParameters["first_derivative"].size();
-        const std::size_t n_second_derivative = rParameters["second_derivative"].size();
-
-        // Size check
-        KRATOS_ERROR_IF(n_variables != n_first_derivative) << "Your list of variables is not the same size as the list of first derivatives variables" << std::endl;
-        KRATOS_ERROR_IF(n_variables != n_second_derivative) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
-
-        for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
-            const std::string& variable_name = rParameters["variable"].GetArrayItem(i_var).GetString();
-            const std::string& first_derivative_name = rParameters["first_derivative"].GetArrayItem(i_var).GetString();
-            const std::string& second_derivative_name = rParameters["second_derivative"].GetArrayItem(i_var).GetString();
-
-            if(KratosComponents<Variable<double>>::Has(variable_name)){
-                Variable<double> variable = KratosComponents< Variable<double> >::Get(variable_name);
-                Variable<double> first_derivative = KratosComponents< Variable<double> >::Get(first_derivative_name);
-                Variable<double> second_derivative = KratosComponents< Variable<double> >::Get(second_derivative_name);
-                mDoubleVariable.push_back(variable);
-                mFirtsDoubleDerivatives.push_back(first_derivative);
-                mSecondDoubleDerivatives.push_back(second_derivative);
-            } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
-                Variable<array_1d< double, 3>> variable = KratosComponents< Variable<array_1d< double, 3>> >::Get(variable_name);
-                Variable<array_1d< double, 3>> first_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(first_derivative_name);
-                Variable<array_1d< double, 3>> second_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(second_derivative_name);
-                mArrayVariable.push_back(variable);
-                mFirtsArrayDerivatives.push_back(first_derivative);
-                mSecondArrayDerivatives.push_back(second_derivative);
-            } else {
-                KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
-            }
-        }
+        // Creating variables list
+        CreateVariablesList(ThisParameters);
     }
 
     /** Copy Constructor.
@@ -505,14 +495,54 @@ private:
     }
 
     /**
+     * @brief This method creates the list of variables
+     * @param ThisParameters The configuration parameters
+     */
+    void CreateVariablesList(Parameters ThisParameters)
+    {
+        const std::size_t n_variables = ThisParameters["variable"].size();
+        const std::size_t n_first_derivative = ThisParameters["first_derivative"].size();
+        const std::size_t n_second_derivative = ThisParameters["second_derivative"].size();
+
+        // Size check
+        KRATOS_ERROR_IF(n_variables != n_first_derivative) << "Your list of variables is not the same size as the list of first derivatives variables" << std::endl;
+        KRATOS_ERROR_IF(n_variables != n_second_derivative) << "Your list of variables is not the same size as the list of second derivatives variables" << std::endl;
+
+        for (unsigned int i_var = 0; i_var < n_variables; ++i_var){
+            const std::string& variable_name = ThisParameters["variable"].GetArrayItem(i_var).GetString();
+            const std::string& first_derivative_name = ThisParameters["first_derivative"].GetArrayItem(i_var).GetString();
+            const std::string& second_derivative_name = ThisParameters["second_derivative"].GetArrayItem(i_var).GetString();
+
+            if(KratosComponents<Variable<double>>::Has(variable_name)){
+                Variable<double> variable = KratosComponents< Variable<double> >::Get(variable_name);
+                Variable<double> first_derivative = KratosComponents< Variable<double> >::Get(first_derivative_name);
+                Variable<double> second_derivative = KratosComponents< Variable<double> >::Get(second_derivative_name);
+                mDoubleVariable.push_back(variable);
+                mFirtsDoubleDerivatives.push_back(first_derivative);
+                mSecondDoubleDerivatives.push_back(second_derivative);
+            } else if (KratosComponents< Variable< array_1d< double, 3> > >::Has(variable_name)) {
+                Variable<array_1d< double, 3>> variable = KratosComponents< Variable<array_1d< double, 3>> >::Get(variable_name);
+                Variable<array_1d< double, 3>> first_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(first_derivative_name);
+                Variable<array_1d< double, 3>> second_derivative = KratosComponents< Variable<array_1d< double, 3>> >::Get(second_derivative_name);
+                mArrayVariable.push_back(variable);
+                mFirtsArrayDerivatives.push_back(first_derivative);
+                mSecondArrayDerivatives.push_back(second_derivative);
+            } else {
+                KRATOS_ERROR << "Only double and vector variables are allowed in the variables list." ;
+            }
+        }
+    }
+
+    /**
      * @brief This method returns the defaulr parameters in order to avoid code duplication
      * @return Returns the default parameters
      */
-
     Parameters GetDefaultParameters()
     {
         Parameters default_parameters = Parameters(R"(
         {
+            "scheme_type"           : "ResidualBasedBDFCustomScheme",
+            "integration_order"     : 2,
             "variable"              : ["DISPLACEMENT"],
             "first_derivative"      : ["VELOCITY"],
             "second_derivative"     : ["ACCELERATION"]

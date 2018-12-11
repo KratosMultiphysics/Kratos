@@ -269,8 +269,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-	{
+	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
 		const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
 		Vector N = row(Ncontainer, PointNumber);
 
@@ -285,9 +284,8 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		Vector DamagesOnEdges = ZeroVector(6);
 
 		// Loop over edges of the element
-		for (int edge = 0; edge < 6; edge++)
-		{
-			std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
+		for (int edge = 0; edge < 6; edge++) {
+			const std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
 
 			Vector AverageStressVectorConcrete, AverageStrainVectorConcrete, IntegratedStressVectorOnEdge;
 			this->CalculateAverageStressOnEdge(AverageStressVectorConcrete, EdgeNeighbours);
@@ -339,11 +337,9 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
 
 		// RHS Volumetric load
-		for (unsigned int i = 0; i < number_of_nodes; i++)
-		{
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
 			int index = dimension * i;
-			for (unsigned int j = 0; j < dimension; j++)
-			{
+			for (unsigned int j = 0; j < dimension; j++) {
 				rRightHandSideVector[index + j] += IntegrationWeight * N[i] * VolumeForce[j];
 			}
 		}
@@ -358,13 +354,6 @@ void RomFemDem3DElement::CalculateLocalSystem(
 
 		Vector CompositeStressVector = k * IntegratedSteelVector + (1.0 - k) * IntegratedStressVectorConcrete;
 		noalias(rRightHandSideVector) -= IntegrationWeight * prod(trans(B), CompositeStressVector);
-
-		// Add nodal DEM forces
-		Vector NodalRHS = ZeroVector(system_size);
-		this->AddDEMContactForces(NodalRHS);
-
-		// Add nodal contact forces from the DEM
-		noalias(rRightHandSideVector) += NodalRHS;
 	}
 	KRATOS_CATCH("")
 	//*****************************
