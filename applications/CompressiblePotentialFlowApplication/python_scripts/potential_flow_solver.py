@@ -70,8 +70,8 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2.0)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)# alpha penalty
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,1000.0)# alpha penalty
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,1000.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
@@ -203,7 +203,7 @@ class PotentialSolver(PythonSolver):
                     self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                         {
                         "element_name":"IncompressibleAlphaPotentialFlowElement2D3N",
-                        "condition_name": "IncompressibleAlphaPotentialWallCondition2D2N"
+                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
                         }
                         """)
                 else:
@@ -213,7 +213,7 @@ class PotentialSolver(PythonSolver):
                     self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                         {
                         "element_name":"IncompressibleStressesMixPotentialFlowElement2D3N",
-                        "condition_name": "IncompressibleStressesMixPotentialWallCondition2D2N"
+                        "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
                         }
                         """)
                 else:
