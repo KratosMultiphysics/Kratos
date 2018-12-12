@@ -67,7 +67,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         self.element_name = "TimeAveragedNavierStokes"
         self.condition_name = "TimeAveragedNavierStokesWallCondition"
-        self.min_buffer_size = 4
+        self.min_buffer_size = 5
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True

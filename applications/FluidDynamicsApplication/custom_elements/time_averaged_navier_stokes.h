@@ -399,29 +399,24 @@ protected:
         rData.bdf1 = BDFVector[1];
         rData.bdf2 = BDFVector[2];
 
-        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];   // Only, needed if the temporal dependent term is considered in the subscales
-        rData.dt = rCurrentProcessInfo[DELTA_TIME];         // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];     // Only, needed if the temporal dependent term is considered in the subscales
+        rData.dt = rCurrentProcessInfo[DELTA_TIME];  // Only, needed if the temporal dependent term is considered in the subscales
         rData.t = rCurrentProcessInfo[TIME];
 
         //previous step data
-        const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo();
+        const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
         rData.dtn = rPreviousProcessInfo[DELTA_TIME];
         rData.tn = rPreviousProcessInfo[TIME];
 
         // 2 previous step data
-        const ProcessInfo& r2PreviousProcessInfo = rPreviousProcessInfo.GetPreviousSolutionStepInfo();
+        const ProcessInfo& r2PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(2);
         rData.dtnn = r2PreviousProcessInfo[DELTA_TIME];
         rData.tnn = r2PreviousProcessInfo[TIME];
 
         // 3 previous step data
-        if (rCurrentProcessInfo[STEP] == 3){
-            rData.dtnnn = r2PreviousProcessInfo[PREVIOUS_DELTA_TIME];
-            rData.tnnn = rCurrentProcessInfo[START_TIME];
-        }else{
-            const ProcessInfo& r3PreviousProcessInfo = r2PreviousProcessInfo.GetPreviousSolutionStepInfo();
-            rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME];
-            rData.tnnn = r3PreviousProcessInfo[TIME];
-        }
+		const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
+        rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
+        rData.tnnn = r3PreviousProcessInfo[TIME];
 
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
