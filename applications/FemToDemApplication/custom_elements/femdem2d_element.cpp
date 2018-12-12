@@ -818,41 +818,32 @@ double FemDem2DElement::GetMaxValue(const Vector& rValues)
 	return V[n - 1];
 }
 
-double FemDem2DElement::GetMaxAbsValue(const Vector& rValues)
+double FemDem2DElement::GetMaxAbsValue(const Vector& rArrayValues)
 {
-	Vector V;
-	const int n = rValues.size();
-	V.resize(n);
-	for (int cont = 0; cont < n; cont++) {
-		V[cont] = std::abs(rValues[cont]);
-	}
-	for (int i = 0; i < n; i++) {
-		for (int j = 0; j < n - 1; j++) {
-			if (V[j] > V[j + 1]) {
-				const double aux = V[j];
-				V[j] = V[j + 1];
-				V[j + 1] = aux;
-			}
+	const SizeType dimension = rArrayValues.size();
+
+	IndexType counter = 0;
+	double aux = 0.0;
+	for (IndexType i = 0; i < dimension; ++i) {
+		if (std::abs(rArrayValues[i]) > aux) {
+			aux = std::abs(rArrayValues[i]);
+			++counter;
 		}
 	}
-	return V[n - 1];
+	return aux;
 }
 
 double FemDem2DElement::GetMinAbsValue(const Vector& rArrayValues)
 {
-	const std::size_t  dimension = rArrayValues.size();
-	std::vector<double> non_zero_values;
+	const SizeType dimension = rArrayValues.size();
 
-	for (std::size_t i = 0; i < dimension; ++i) {
-		if (std::abs(rArrayValues[i]) > tolerance)
-			non_zero_values.push_back(std::abs(rArrayValues[i]));
-	}
-	KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-	double aux = std::abs(non_zero_values[0]);
-	for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-		if (non_zero_values[i] < aux)
-			aux = non_zero_values[i];
+	IndexType counter = 0;
+	double aux = std::numeric_limits<double>::max();
+	for (IndexType i = 0; i < dimension; ++i) {
+		if (std::abs(rArrayValues[i]) < aux) {
+			aux = std::abs(rArrayValues[i]);
+			++counter;
+		}
 	}
 	return aux;
 }
