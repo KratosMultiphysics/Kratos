@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -67,7 +64,8 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         return settings
 
     def __init__(self, model, custom_settings):
-        super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
+        # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
+        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"

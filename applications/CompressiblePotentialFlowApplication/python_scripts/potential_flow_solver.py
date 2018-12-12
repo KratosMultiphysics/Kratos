@@ -111,30 +111,30 @@ class LaplacianSolver(PythonSolver):
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.NEGATIVE_FACE_PRESSURE, self.main_model_part)
-        
+
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
-        
+
         self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-            self.main_model_part, 
-            time_scheme, 
+            self.main_model_part,
+            time_scheme,
             self.linear_solver,
-            self.settings["compute_reactions"].GetBool(), 
-            self.settings["reform_dofs_at_each_step"].GetBool(), 
-            self.settings["calculate_solution_norm"].GetBool(), 
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["calculate_solution_norm"].GetBool(),
             move_mesh_flag)
-        
+
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.solver.Check()
-        
+
     def ImportModelPart(self):
-        
+
         if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
             #here it would be the place to import restart data if required
             print(self.settings["model_import_settings"]["input_filename"].GetString())
             KratosMultiphysics.ModelPartIO(self.settings["model_import_settings"]["input_filename"].GetString()).ReadModelPart(self.main_model_part)
-                     
+
             throw_errors = False
             KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part,throw_errors).Execute()
             #here we replace the dummy elements we read with proper elements
@@ -148,30 +148,30 @@ class LaplacianSolver(PythonSolver):
                     """)
             elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] != 2):
                 raise Exception("Domain size is not 2 or 3!!")
-            
+
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
-            
+
         else:
             raise Exception("other input options are not yet implemented")
-        
+
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-                
+
         print ("model reading finished")
-        
+
     def GetMinimumBufferSize(self):
         return 2;
-    
+
     def GetComputingModelPart(self):
         return self.main_model_part
-        
+
     def GetOutputVariables(self):
         pass
-        
+
     def ComputeDeltaTime(self):
         pass
-        
+
     def SaveRestart(self):
         pass #one should write the restart file here
         
