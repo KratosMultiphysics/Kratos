@@ -167,7 +167,7 @@ class FEMDEM_Solution:
         self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
-                                                                   self.DEM_Solution.dt,
+                                                                   self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
         self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
@@ -177,7 +177,7 @@ class FEMDEM_Solution:
         ########################################################
 
         self.DEM_Solution.AfterSolveOperations()
-        self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.dt)
+        self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.solver.dt)
         
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
@@ -849,7 +849,7 @@ class FEMDEM_Solution:
         else:
             time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
 
-            if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.dt):
+            if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
                 self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
                 self.DEM_Solution.time_old_print = self.DEM_Solution.time
 
