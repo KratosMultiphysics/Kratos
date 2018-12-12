@@ -175,12 +175,12 @@ void MultiscaleRefiningProcess::InitializeVisualizationModelPart(ModelPart& rRef
 
 void MultiscaleRefiningProcess::InitializeRefinedModelPart(ModelPart& rReferenceModelPart, ModelPart& rNewModelPart)
 {
+    // Create the sub model parts and add properties and tables
+    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
+
     // Increase the refinement level
     int subscale_index = rReferenceModelPart.GetValue(SUBSCALE_INDEX);
     rNewModelPart.SetValue(SUBSCALE_INDEX, ++subscale_index);
-
-    // Create the sub model parts and add properties and tables
-    InitializeNewModelPart(rReferenceModelPart, rNewModelPart);
 }
 
 
@@ -189,6 +189,10 @@ void MultiscaleRefiningProcess::InitializeNewModelPart(ModelPart& rReferenceMode
     // Copy all the tables and properties
     AddAllTablesToModelPart(rReferenceModelPart, rNewModelPart);
     AddAllPropertiesToModelPart(rReferenceModelPart, rNewModelPart);
+
+    // Copy the ProcessInfo
+    ProcessInfo& process_info = rNewModelPart.GetProcessInfo();
+    process_info = rReferenceModelPart.GetProcessInfo();
 
     // Get the model part hierarchy
     StringVectorType sub_model_parts_names;
