@@ -811,7 +811,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     std::size_t (*GetMinimumBufferSizeBDF6)(const TimeDiscretization::BDF6&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeNewmark)(const TimeDiscretization::Newmark&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeBossak)(const TimeDiscretization::Bossak&) = &TimeDiscretization::GetMinimumBufferSize;
-    std::size_t (*GetMinimumBufferSizeGneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeGeneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
 
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF1 );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF2 );
@@ -821,7 +821,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF6 );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGneralizedAlpha );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
 }
 
 } // namespace Python.
