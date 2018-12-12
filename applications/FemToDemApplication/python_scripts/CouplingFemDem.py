@@ -109,7 +109,6 @@ class FEMDEM_Solution:
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
         neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-        neighbour_elemental_finder.ClearNeighbours()
         neighbour_elemental_finder.Execute()
 
         if self.DoRemeshing:

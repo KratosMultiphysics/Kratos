@@ -72,6 +72,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			# Perform remeshing
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
+			self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
 			self.nodal_neighbour_finder.Execute()
 
 			if is_remeshing:
@@ -84,7 +85,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.create_initial_dem_skin = False  # Hard Coded TODO
 		if self.create_initial_dem_skin and self.FEM_Solution.step == 1:
 			self.CreateInitialSkinDEM()
-
 
 #============================================================================================================================
 	def SolveSolutionStep(self):
@@ -120,17 +120,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 		self.UpdateDEMVariables() # to print DEM with the FEM coordinates
 
-		# DEM GiD print output
-		if self.DEM_Solution.step == 1: # always print the 1st step
-			self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-			self.DEM_Solution.time_old_print = self.DEM_Solution.time
-		else:
-			time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
-
-			if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
-
-				self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-				self.DEM_Solution.time_old_print = self.DEM_Solution.time
+		self.PrintDEMResultsForGid()
 
 		self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
 
@@ -1027,3 +1017,19 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 																		skin_detection_process_param)
 		skin_detection_process.Execute()
 		self.GenerateDemAfterRemeshing()
+
+#============================================================================================================================
+
+	def PrintDEMResultsForGid(self):
+
+		# DEM GiD print output
+		if self.DEM_Solution.step == 1: # always print the 1st step
+			self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+			self.DEM_Solution.time_old_print = self.DEM_Solution.time
+		else:
+			time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
+
+			if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
+
+				self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+				self.DEM_Solution.time_old_print = self.DEM_Solution.time

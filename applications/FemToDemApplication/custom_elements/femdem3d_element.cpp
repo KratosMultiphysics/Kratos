@@ -462,7 +462,7 @@ void FemDem3DElement::CalculateLocalSystem(
 		this->CalculateDeformationMatrix(B, DN_DX);
 
 		Matrix tangent_tensor;
-		if (is_damaging == true) {
+		if (is_damaging == true && std::abs(StrainVector[0] + StrainVector[1]) > tolerance) {
 			this->CalculateTangentTensor(tangent_tensor, StrainVector, integrated_stress_vector, constitutive_matrix);
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
 		} else {
@@ -1034,19 +1034,15 @@ double FemDem3DElement::GetMaxAbsValue(
 	const Vector& rArrayValues
 	)
 {
-	const std::size_t dimension = rArrayValues.size();
-	std::vector<double> non_zero_values;
+	const SizeType dimension = rArrayValues.size();
 
-	for (std::size_t i = 1; i < dimension; ++i) {
-		if (std::abs(rArrayValues[i]) > tolerance)
-			non_zero_values.push_back(std::abs(rArrayValues[i]));
-	}
-	KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-	double aux = std::abs(non_zero_values[0]);
-	for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-		if (non_zero_values[i] > aux)
-			aux = non_zero_values[i];
+	IndexType counter = 0;
+	double aux = 0.0;
+	for (IndexType i = 0; i < dimension; ++i) {
+		if (std::abs(rArrayValues[i]) > aux) {
+			aux = std::abs(rArrayValues[i]);
+			++counter;
+		}
 	}
 	return aux;
 }
@@ -1054,19 +1050,15 @@ double FemDem3DElement::GetMaxAbsValue(
 double FemDem3DElement::GetMinAbsValue(
 	const Vector& rArrayValues)
 {
-	const std::size_t  dimension = rArrayValues.size();
-	std::vector<double> non_zero_values;
+	const SizeType dimension = rArrayValues.size();
 
-	for (std::size_t i = 0; i < dimension; ++i) {
-		if (std::abs(rArrayValues[i]) > tolerance)
-			non_zero_values.push_back(std::abs(rArrayValues[i]));
-	}
-	KRATOS_ERROR_IF(non_zero_values.size() == 0) << "The strain vector is full of 0's..." << std::endl;
-
-	double aux = std::abs(non_zero_values[0]);
-	for (std::size_t i = 1; i < non_zero_values.size(); ++i) {
-		if (non_zero_values[i] < aux)
-			aux = non_zero_values[i];
+	IndexType counter = 0;
+	double aux = std::numeric_limits<double>::max();
+	for (IndexType i = 0; i < dimension; ++i) {
+		if (std::abs(rArrayValues[i]) < aux) {
+			aux = std::abs(rArrayValues[i]);
+			++counter;
+		}
 	}
 	return aux;
 }
@@ -1145,7 +1137,6 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	const double K3 = 0.5 * (1.0 + alpha_r) * sinphi - 0.5 * (1.0 - alpha_r);
 	const double n = sigma_c / sigma_t;
 	const double A = 1.00 / (n * n * Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
-	KRATOS_ERROR_IF(A < tolerance) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	// Check Modified Mohr-Coulomb criterion
 	double uniaxial_stress;
