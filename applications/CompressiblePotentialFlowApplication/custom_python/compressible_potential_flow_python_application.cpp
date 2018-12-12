@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Iñigo Lopez and Riccardo Rossi
+//  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
 // System includes

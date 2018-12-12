@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Iñigo Lopez and Riccardo Rossi
+//  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED)
@@ -289,6 +289,37 @@ class IncompressiblePotentialFlowElement : public Element
     ///@}
     ///@name Protected Operators
     ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
+
+  private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
     void GetWakeDistances(array_1d<double, NumNodes> &distances);
 
     void GetEquationIdVectorNormalElement(EquationIdVectorType &rResult);
@@ -371,36 +402,6 @@ class IncompressiblePotentialFlowElement : public Element
     double ComputePressureUpperWakeElement(const ProcessInfo &rCurrentProcessInfo);
 
     double ComputePressureLowerWakeElement(const ProcessInfo &rCurrentProcessInfo);
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
-  private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
 
     ///@}
     ///@name Private Operations
