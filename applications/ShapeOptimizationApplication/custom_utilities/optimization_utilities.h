@@ -79,6 +79,12 @@ public:
         // Initialize constraint value
         mConstraintValue = 0.0;
         mPreviousConstraintValue = 0.0;
+
+        // Initialize member variables for penalized projection
+        mCorrectionScaling = 1.0;
+        std::string algorithm_name = optimizationSettings["optimization_algorithm"]["name"].GetString();
+        if(algorithm_name.compare("penalized_projection") == 0)
+          mCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
     }
 
     /// Destructor.
@@ -99,28 +105,21 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void ComputeControlPointUpdate()
+    void ComputeControlPointUpdate(double step_size)
     {
         KRATOS_TRY;
 
-        double step_size = mOptimizationSettings["optimization_algorithm"]["line_search"]["step_size"].GetDouble();
-        bool normalize_search_direction = mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool();
-
-        // Computation of update of design variable. Normalization is applied if specified.
-        if(normalize_search_direction)
+        // Normalize if specified
+        if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
         {
-            // Compute max norm of search direction
             double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
 
-            // Normalize by max norm
             if(max_norm_search_dir>1e-10)
-            {
                 for (auto & node_i : mrDesignSurface.Nodes())
                 {
-                    array_3d normalized_search_direction = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)/max_norm_search_dir;
-                    noalias(node_i.FastGetSolutionStepValue(SEARCH_DIRECTION)) = normalized_search_direction;
+                    array_3d& search_dir = node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
+                    search_dir/=max_norm_search_dir;
                 }
-            }
             else
                 std::cout << "> WARNING: Normalization of search direction by max norm activated but max norm is < 1e-10. Hence normalization is ommited!" << std::endl;
         }
@@ -292,42 +291,36 @@ public:
     	}
     	norm_correction_term = std::sqrt(norm_correction_term);
     	norm_search_direction = std::sqrt(norm_search_direction);
-        double correction_scaling = GetCorrectionScaling();
 
-    	return correction_scaling * norm_search_direction / norm_correction_term;
+        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
+        {
+            // Adapt constraint scaling
+
+            // Three cases need to be covered
+            // 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
+            // 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
+            if(mConstraintValue*mPreviousConstraintValue<0)
+            {
+                mCorrectionScaling *= 0.5;
+                std::cout << "Correction scaling needs to decrease...." << std::endl;
+            }
+            // 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
+            if(std::abs(mConstraintValue)>std::abs(mPreviousConstraintValue) && mConstraintValue*mPreviousConstraintValue>0)
+            {
+                std::cout << "Correction scaling needs to increase...." << std::endl;
+                mCorrectionScaling = std::min(mCorrectionScaling*2,1.0);
+            }
+        }
+
+        KRATOS_WATCH(mCorrectionScaling)
+
+    	return mCorrectionScaling * norm_search_direction / norm_correction_term;
     }
 
     // --------------------------------------------------------------------------
     double GetCorrectionScaling()
     {
-        double correction_scaling = mOptimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
-        if(mOptimizationSettings["optimization_algorithm"]["use_adaptive_correction"].GetBool())
-        {
-            correction_scaling = AdaptCorrectionScaling( correction_scaling );
-            mOptimizationSettings["optimization_algorithm"]["correction_scaling"].SetDouble(correction_scaling);
-        }
-        return correction_scaling;
-    }
-
-    // --------------------------------------------------------------------------
-    double AdaptCorrectionScaling( double correction_scaling )
-    {
-    	// Three cases need to be covered
-		// 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
-    	// 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
-    	if(mConstraintValue*mPreviousConstraintValue<0)
-    	{
-    		correction_scaling *= 0.5;
-    		std::cout << "Correction scaling needs to decrease...." << std::endl;
-    	}
-    	// 3) In case we have subsequently increasing constraint value --> correction was too low --> increase
-    	if(std::abs(mConstraintValue)>std::abs(mPreviousConstraintValue) && mConstraintValue*mPreviousConstraintValue>0)
-    	{
-    		std::cout << "Correction scaling needs to increase...." << std::endl;
-    		correction_scaling = std::min(correction_scaling*2,1.0);
-    	}
-
-        return correction_scaling;
+        return mCorrectionScaling;
     }
 
     // ==============================================================================
@@ -424,6 +417,7 @@ private:
     Parameters mOptimizationSettings;
     double mConstraintValue;
     double mPreviousConstraintValue;
+    double mCorrectionScaling;
 
     ///@}
     ///@name Private Operators

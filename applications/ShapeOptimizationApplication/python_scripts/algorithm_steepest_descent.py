@@ -60,8 +60,16 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
 
+        self.previos_objective_value = None
+
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
+        self.gradient_tolerance = self.algorithm_settings["gradient_tolerance"].GetDouble()
+        self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
+        self.approximation_tolerance = self.algorithm_settings["line_search"]["approximation_tolerance"].GetDouble()
+        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
+        self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
@@ -78,11 +86,6 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.model_part_controller.ImportOptimizationModelPart()
         self.model_part_controller.InitializeMeshController()
 
-        self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
-        self.approximation_tolerance = self.algorithm_settings["line_search"]["approximation_tolerance"].GetDouble()
-        self.initial_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
-        self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
-        self.max_increase_factor = self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
         self.analyzer.InitializeBeforeOptimizationLoop()
 
         self.design_surface = self.model_part_controller.GetDesignSurface()
@@ -111,7 +114,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__analyzeShape()
 
-            self.__adjustStepSize()
+            if self.line_search_type == "adaptive_stepping" and self.optimization_iteration > 1:
+                self.__adjustStepSize()
 
             self.__computeShapeUpdate()
 
@@ -155,46 +159,41 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __adjustStepSize(self):
-        if self.line_search_type == "manual_stepping":
-            return
+        current_a = self.step_size
 
-        if self.optimization_iteration > 1:
-            current_step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        # Compare actual and estimated improvement using linear information
+        dfda1 = 0.0
+        for node in self.design_surface.Nodes:
+            s1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
+            dfds1 = node.GetSolutionStepValue(DF1DX_MAPPED)
+            dfda1 = dfda1 + s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
 
-            # Compare actual and estimated improvement using linear information
-            dfd0 = 0.0
-            for node in self.DesignSurface.Nodes:
-                vec1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
-                vec2 = node.GetSolutionStepValue(DF1DX_MAPPED)
-                dfd0 = dfd0 + vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]
+        f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        f1 = self.previos_objective_value
 
-            fa = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
-            f0 = self.previos_objective_value
+        df_actual = f2 - f1
+        df_estimated = current_a*dfda1
 
-            df_actual = fa - f0
-            df_estimated = current_step_size*dfd0
+        # Adjust step size if necessary
+        if f2 < f1:
+            estimation_error = (df_actual-df_estimated)/df_actual
 
-            # Adjust step size if necessary
-            if fa < f0:
-                estimation_error = (df_actual-df_estimated)/df_actual
+            # Increase step size if linear approximation matches the actual improvement within a specified tolerance
+            if estimation_error < self.approximation_tolerance:
+                new_a = min(current_a*self.increase_factor, self.max_step_size)
 
-                # Increase step size if linear approximation matches the actual improvement within a specified tolerance
-                if estimation_error < self.approximation_tolerance:
-                    new_step_size = current_step_size * self.increase_factor
-                    new_step_size = min(new_step_size, self.initial_step_size*self.max_increase_factor)
-
-                # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained
-                else:
-                    new_step_size = current_step_size
+            # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained
             else:
-                # Search approximation of optimal step using interpolation
-                a = current_step_size
-                corrected_step_size = - 0.5 * dfd0 * a**2 / (fa - f0 - dfd0 * a )
+                new_a = current_a
+        else:
+            # Search approximation of optimal step using interpolation
+            a = current_a
+            corrected_step_size = - 0.5 * dfda1 * a**2 / (f2 - f1 - dfda1 * a )
 
-                # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
-                new_step_size = current_step_size-corrected_step_size
+            # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
+            new_a = current_a-corrected_step_size
 
-            self.algorithm_settings["line_search"]["step_size"].SetDouble(new_step_size)
+        self.step_size = new_a
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -202,18 +201,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
 
         self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate()
+        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
         self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
-        self.previos_objective_value = self.Communicator.getStandardizedValue(self.only_obj["identifier"].GetString())
-        self.norm_obj_gradient = self.OptimizationUtilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
+        self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        self.norm_obj_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
 
         additional_values_to_log = {}
-        additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["norm_obj_gradient"] = self.norm_obj_gradient
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
