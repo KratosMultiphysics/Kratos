@@ -130,7 +130,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def SetDispersePhaseAlgorithm(self):
         import fluid_coupled_DEM_analysis as DEM_analysis
-        self.disperse_phase_solution = DEM_analysis.Solution(self.model, self.pp)
+        self.disperse_phase_solution = DEM_analysis.FluidCoupledDEMAnalysisStage(self.model, self.pp)
 
     def ReadDispersePhaseAndCouplingParameters(self):
 
@@ -490,8 +490,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.time       = self.pp.fluid_parameters["problem_data"]["start_time"].GetDouble()
         self.Dt         = self.fluid_solution._GetSolver()._ComputeDeltaTime()
         self.end_time = self.pp.CFD_DEM["FinalTime"].GetDouble()
-        self.DEM_step   = 0
-        self.time_dem   = 0.0
         self.Dt_DEM     = self.spheres_model_part.ProcessInfo.GetValue(DELTA_TIME)
         self.rigid_face_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
         self.cluster_model_part.ProcessInfo[DELTA_TIME] = self.Dt_DEM
@@ -648,8 +646,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
             #self.time = self.time + self.Dt
-            self.time = self.fluid_solution._GetSolver().AdvanceInTime(self.time)
-            self.step += 1
+            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
             self.TellTime(self.time)
 
             if coupling_scheme_type == "UpdatedDEM":
@@ -692,7 +689,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 if coupling_level_type:
                     self.projection_module.ComputePostProcessResults(self.spheres_model_part.ProcessInfo)
 
-                self.post_utils.Writeresults(self.time_dem)
+                self.post_utils.Writeresults(self.time)
 
             # solving the DEM part
 
@@ -704,81 +701,76 @@ class SwimmingDEMAnalysis(AnalysisStage):
             Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
             first_dem_iter = True
 
-            for self.time_dem in self.yield_DEM_time(
-                    self.time_dem,
-                    time_final_DEM_substepping,
-                    self.Dt_DEM):
-                self.DEM_step += 1
-                self.spheres_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
-                self.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
-                self.cluster_model_part.ProcessInfo[TIME_STEPS] = self.DEM_step
+            self.spheres_model_part.ProcessInfo[TIME_STEPS] = self.step
+            self.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.step
+            self.cluster_model_part.ProcessInfo[TIME_STEPS] = self.step
 
-                self.PerformInitialDEMStepOperations(self.time_dem)
+            self.PerformInitialDEMStepOperations(self.time)
 
-                it_is_time_to_forward_couple = (
-                    self.time >= interaction_start_time and
-                    coupling_level_type and
-                    (project_at_every_substep_option or first_dem_iter)
-                )
+            it_is_time_to_forward_couple = (
+                self.time >= interaction_start_time and
+                coupling_level_type and
+                (project_at_every_substep_option or first_dem_iter)
+            )
 
-                if it_is_time_to_forward_couple:
+            if it_is_time_to_forward_couple:
 
-                    if coupling_scheme_type == "UpdatedDEM":
-                        self.ApplyForwardCoupling()
+                if coupling_scheme_type == "UpdatedDEM":
+                    self.ApplyForwardCoupling()
 
-                    else:
-                        alpha = 1.0 - (time_final_DEM_substepping - self.time_dem) / self.Dt
-                        self.ApplyForwardCoupling(alpha)
+                else:
+                    alpha = 1.0 - (self._GetSolver().next_time_to_solve_fluid - self.time) / self.Dt
+                    self.ApplyForwardCoupling(alpha)
 
-                        if self.quadrature_counter.Tick():
-                            self.AppendValuesForTheHistoryForce()
+            if self.quadrature_counter.Tick():
+                self.AppendValuesForTheHistoryForce()
 
-                        if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
-                            # Advance in space only
-                            self.DEMSolve(self.time_dem)
-                            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time_dem)
+            if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
+                # Advance in space only
+                self.DEMSolve(self.time)
+                self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
 
-                # performing the time integration of the DEM part
+            # performing the time integration of the DEM part
 
-                self.spheres_model_part.ProcessInfo[TIME] = self.time_dem
-                self.rigid_face_model_part.ProcessInfo[TIME] = self.time_dem
-                self.cluster_model_part.ProcessInfo[TIME] = self.time_dem
+            self.spheres_model_part.ProcessInfo[TIME] = self.time
+            self.rigid_face_model_part.ProcessInfo[TIME] = self.time
+            self.cluster_model_part.ProcessInfo[TIME] = self.time
 
-                if self.do_solve_dem:
-                    self.DEMSolve(self.time_dem)
+            if self.do_solve_dem:
+                self.DEMSolve(self.time)
 
-                self.disperse_phase_solution.DEMFEMProcedures.MoveAllMeshes(
-                    self.all_model_parts,
-                    self.time_dem,
-                    self.Dt_DEM)
+            self.disperse_phase_solution.DEMFEMProcedures.MoveAllMeshes(
+                self.all_model_parts,
+                self.time,
+                self.Dt_DEM)
 
-                #### TIME CONTROL ##################################
+            #### TIME CONTROL ##################################
 
-                # adding DEM elements by the inlet:
-                if dem_inlet_option:
-                    # After solving, to make sure that neighbours are already set.
-                    self.disperse_phase_solution.DEM_inlet.CreateElementsFromInletMesh(
-                        self.spheres_model_part,
-                        self.cluster_model_part,
-                        self.disperse_phase_solution.creator_destructor)
+            # adding DEM elements by the inlet:
+            if dem_inlet_option:
+                # After solving, to make sure that neighbours are already set.
+                self.disperse_phase_solution.DEM_inlet.CreateElementsFromInletMesh(
+                    self.spheres_model_part,
+                    self.cluster_model_part,
+                    self.disperse_phase_solution.creator_destructor)
 
-                if self.print_counter_updated_fluid.Tick():
+            if self.print_counter_updated_fluid.Tick():
 
-                    if coupling_level_type:
-                        self.projection_module.ComputePostProcessResults(
-                            self.spheres_model_part.ProcessInfo)
+                if coupling_level_type:
+                    self.projection_module.ComputePostProcessResults(
+                        self.spheres_model_part.ProcessInfo)
 
-                    self.post_utils.Writeresults(self.time_dem)
+                self.post_utils.Writeresults(self.time)
 
-                first_dem_iter = False
+            first_dem_iter = False
 
-                # applying DEM-to-fluid coupling
+            # applying DEM-to-fluid coupling
 
-                if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
-                    self.projection_module.ProjectFromParticles()
+            if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
+                self.projection_module.ProjectFromParticles()
 
-                #Phantom
-                self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
+            #Phantom
+            self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
 
             #### PRINTING GRAPHS ####
             os.chdir(self.graphs_path)
@@ -1028,13 +1020,13 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.swimming_DEM_gid_io.finalize_results()
 
-        self.PerformFinalOperations(self.time_dem)
+        self.PerformFinalOperations(self.time)
 
         self.FinalizeDragOutput()
 
         self.fluid_solution.Finalize()
 
-        self.TellFinalSummary(self.step, self.time, self.DEM_step)
+        self.TellFinalSummary(self.step, self.time, self._GetSolver().fluid_step)
 
     def FinalizeDragOutput(self):
         for i in self.drag_file_output_list:
@@ -1130,4 +1122,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     # To-do: for the moment, provided for compatibility
     def _CreateSolver(self):
-        return self.fluid_solution._CreateSolver()
+        import swimming_DEM_solver
+        return swimming_DEM_solver.SwimmingDEMSolver(self.model,
+                                                     self.pp.CFD_DEM,
+                                                     self.fluid_solution._GetSolver(),
+                                                     self.disperse_phase_solution._GetSolver())

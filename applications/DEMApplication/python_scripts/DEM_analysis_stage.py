@@ -93,7 +93,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.step_count = 0
         self.p_count = self.p_frequency
 
-        self.solver = self.SetSolver()
+        self.solver = self._GetSolver()
         self.SetDt()
         self.SetFinalTime()
         super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
@@ -232,12 +232,14 @@ class DEMAnalysisStage(AnalysisStage):
         return SolverStrategy
 
     def SetSolver(self):
+        return self._CreateSolver()
+
+    def _CreateSolver(self):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
                                                      self.DEM_parameters,
                                                      self.procedures)
-
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -631,6 +633,10 @@ class DEMAnalysisStage(AnalysisStage):
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)
 
+    def _GetSolver(self):
+        if not hasattr(self, 'solver'):
+            self.solver = self._CreateSolver()
+        return self.solver
 
 if __name__ == "__main__":
     model = Model()

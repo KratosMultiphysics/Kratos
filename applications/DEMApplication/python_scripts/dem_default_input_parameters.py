@@ -42,6 +42,7 @@ def GetDefaultInputParameters():
             "strategy_parameters" :{
                 "RemoveBallsInitiallyTouchingWalls": false
             },
+            "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
                 "parallel_type" : "OpenMP",

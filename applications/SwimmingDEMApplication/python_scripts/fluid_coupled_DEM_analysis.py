@@ -2,15 +2,15 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import main_script
+import DEM_analysis_stage
 
-BaseAnalysis = main_script.Solution
+BaseAnalysis = DEM_analysis_stage.DEMAnalysisStage
 
-class Solution(BaseAnalysis):
+class FluidCoupledDEMAnalysisStage(BaseAnalysis):
 
     def __init__(self, model, pp):
         self.pp = pp
-        super(Solution, self).__init__(model)
+        super(FluidCoupledDEMAnalysisStage, self).__init__(model, pp)
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.pp.CFD_DEM
@@ -32,6 +32,9 @@ class Solution(BaseAnalysis):
         return SolverStrategy
 
     def SetSolver(self):
+        return self._CreateSolver()
+
+    def _CreateSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
@@ -73,7 +76,7 @@ class Solution(BaseAnalysis):
             return rotational_scheme
 
     def BaseReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
-        super(Solution, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
+        super(FluidCoupledDEMAnalysisStage, self).ReadModelParts(max_node_Id, max_elem_Id, max_cond_Id)
 
     def ReadModelParts(self, max_node_Id = 0, max_elem_Id = 0, max_cond_Id = 0):
         self.coupling_analysis.ReadDispersePhaseModelParts()
