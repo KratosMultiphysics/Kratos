@@ -2,10 +2,8 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 
 # Importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("CompressiblePotentialFlowApplication")
+import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
 
 # Importing the base class
 from python_solver import PythonSolver
@@ -86,27 +84,27 @@ class LaplacianSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NEGATIVE_FACE_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.PRESSURE_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.UPPER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LOWER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_JUMP)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.PRESSURE_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.UPPER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.LOWER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.UPPER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.LOWER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.POTENTIAL_JUMP)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_ENERGY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_ENERGY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ENERGY_NORM_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POTENTIAL_ENERGY_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.AIRFOIL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DECOUPLED_TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.KUTTA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DEACTIVATED_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ALL_TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ZERO_VELOCITY_CONDITION)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ENERGY_NORM_REFERENCE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.POTENTIAL_ENERGY_REFERENCE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.AIRFOIL)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.DECOUPLED_TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.KUTTA)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.DEACTIVATED_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ALL_TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ZERO_VELOCITY_CONDITION)
         
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
