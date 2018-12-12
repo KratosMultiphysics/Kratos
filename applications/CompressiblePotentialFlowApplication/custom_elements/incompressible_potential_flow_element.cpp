@@ -273,7 +273,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKutta
         if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
             rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
         else
-            rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
+            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
@@ -290,7 +290,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
         if (distances[i] > 0.0)
             rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
         else
-            rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE, 0).EquationId();
+            rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL, 0).EquationId();
     }
 
     // Negative part - sign is opposite to the previous case
@@ -299,7 +299,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
         if (distances[i] < 0.0)
             rResult[NumNodes + i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
         else
-            rResult[NumNodes + i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE).EquationId();
+            rResult[NumNodes + i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
 }
 
@@ -321,7 +321,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(
         if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
             rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
         else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
 
@@ -338,7 +338,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(
         if (distances[i] > 0)
             rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
         else
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 
     // Negative part - sign is opposite to the previous case
@@ -347,7 +347,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(
         if (distances[i] < 0)
             rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
         else
-            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
 }
 
@@ -517,7 +517,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
         rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
     }
 
-    // Applying wake condition on the NEGATIVE_FACE_PRESSURE dofs
+    // Applying wake condition on the AUXILIARY_VELOCITY_POTENTIAL dofs
     if (data.distances[row] < 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
             rLeftHandSideMatrix(row, column + NumNodes) = -lhs_total(row, column); //Side 1
@@ -553,9 +553,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(
 
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] > 0)
-            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE));
+            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) - GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE));
         else
-            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE));
+            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL));
 }
 
 template <int Dim, int NumNodes>
@@ -588,7 +588,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElem
             if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
                 phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
             else
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
@@ -618,7 +618,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeE
         if (distances[i] > 0)
             upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
         else
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
@@ -630,7 +630,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeE
         if (distances[i] < 0)
             lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
         else
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>

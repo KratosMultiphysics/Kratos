@@ -45,7 +45,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
         // Register Variables (defined in compressible_potential_flow_application_variables.h)
         // Degrees of freedom
         KRATOS_REGISTER_VARIABLE(VELOCITY_POTENTIAL);
-        KRATOS_REGISTER_VARIABLE(VELOCITY_AUXILIARY_POTENTIAL);
+        KRATOS_REGISTER_VARIABLE(AUXILIARY_VELOCITY_POTENTIAL);
 
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_LOWER);

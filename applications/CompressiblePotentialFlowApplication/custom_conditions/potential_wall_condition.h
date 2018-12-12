@@ -285,8 +285,8 @@ public:
             // Check that all required variables have been registered
             if(POSITIVE_FACE_PRESSURE.Key() == 0)
                 KRATOS_ERROR << "POSITIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.";
-            if(NEGATIVE_FACE_PRESSURE.Key() == 0)
-                KRATOS_ERROR << "NEGATIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.";
+            if(AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
 
@@ -296,8 +296,8 @@ public:
 
                 if(this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
                     KRATOS_ERROR << "missing POSITIVE_FACE_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(NEGATIVE_FACE_PRESSURE) == false)
-                    KRATOS_ERROR << "missing NEGATIVE_FACE_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(AUXILIARY_VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
 
 
                 return Check;

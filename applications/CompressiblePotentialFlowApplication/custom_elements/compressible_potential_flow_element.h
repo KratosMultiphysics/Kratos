@@ -203,7 +203,7 @@ public:
                 if(distances[i] > 0)
                     rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
@@ -212,7 +212,7 @@ public:
                 if(distances[i] < 0)
                     rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_FACE_PRESSURE,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL,0).EquationId();
             }
         }
 
@@ -249,7 +249,7 @@ public:
                 if(distances[i] > 0)
                     rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
@@ -258,7 +258,7 @@ public:
                 if(distances[i] < 0)
                     rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
             }
         }
     }
@@ -411,7 +411,7 @@ public:
                     }
                     
                 
-                    //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side1  -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
                         if(data.distances[i]<0)
@@ -424,7 +424,7 @@ public:
                         }
                     }
                     
-                    //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
+                    //side2 -assign constraint only on the AUXILIARY_VELOCITY_POTENTIAL dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {                            
                         if(data.distances[i]>0)
@@ -621,7 +621,7 @@ protected:
             if(distances[i] > 0)
                 split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
             else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
         //negative part - sign is opposite to the previous case
@@ -630,7 +630,7 @@ protected:
             if(distances[i] < 0)
                 split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
             else
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
     }
 
@@ -678,7 +678,7 @@ protected:
             if (distances[i] > 0)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
         noalias(velocity) = prod(trans(data.DN_DX), data.phis);
@@ -700,7 +700,7 @@ protected:
             if (distances[i] < 0)
                 data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
         }
 
         noalias(velocity) = prod(trans(data.DN_DX), data.phis);

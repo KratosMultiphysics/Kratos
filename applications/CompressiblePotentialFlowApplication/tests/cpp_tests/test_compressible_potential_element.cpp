@@ -32,7 +32,7 @@ namespace Kratos {
     {
       // Variables addition
       rModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-      rModelPart.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
+      rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 
       // Set the element properties
       Properties::Pointer pElemProp = rModelPart.pGetProperties(0);
@@ -129,7 +129,7 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < 3; i++) {
         pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
-        pElement->GetGeometry()[i].AddDof(NEGATIVE_FACE_PRESSURE);
+        pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
       }
 
       Element::DofsVectorType ElementalDofList;
