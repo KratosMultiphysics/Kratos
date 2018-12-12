@@ -130,13 +130,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
@@ -144,13 +137,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param pGeom: the geometry to be employed
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
@@ -158,13 +144,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * creates a new element pointer and clones the previous element data
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override
     {
         KRATOS_TRY
@@ -172,12 +151,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    /**
-     * this determines the elemental equation ID vector for all elemental
-     * DOFs
-     * @param rResult: the elemental equation ID vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
@@ -219,12 +192,6 @@ public:
 
     }
 
-
-    /**
-     * determines the elemental list of DOFs
-     * @param ElementalDofList: the list of DOFs
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
     {
         if(this->IsNot(MARKER)) //normal element
@@ -263,22 +230,6 @@ public:
         }
     }
 
-
-    /**
-     * ELEMENTS inherited from this class have to implement next
-     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations
-     * only once: MANDATORY
-     */
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
@@ -444,13 +395,6 @@ public:
         
     }
 
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
     {
         //TODO: improve speed
@@ -468,15 +412,6 @@ public:
             CheckWakeCondition();
     }
 
-    /**
-     * This method provides the place to perform checks on the completeness of the input
-     * and the compatibility with the problem options as well as the contitutive laws selected
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     * this method is: MANDATORY
-     */
     int Check(const ProcessInfo& rCurrentProcessInfo) override
     {
 

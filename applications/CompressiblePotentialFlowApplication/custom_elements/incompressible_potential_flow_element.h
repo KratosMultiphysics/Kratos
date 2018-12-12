@@ -133,91 +133,29 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Operations
     ///@{
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const &ThisNodes,
-        PropertiesType::Pointer pProperties) const override
-    {
-        KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
-        KRATOS_CATCH("");
-    }
+        PropertiesType::Pointer pProperties) const override;
 
-    /**
-     * creates a new element pointer
-     * @param NewId: the ID of the new element
-     * @param pGeom: the geometry to be employed
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const override
-    {
-        KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
-        KRATOS_CATCH("");
-    }
+        PropertiesType::Pointer pProperties) const override;
 
-    /**
-     * creates a new element pointer and clones the previous element data
-     * @param NewId: the ID of the new element
-     * @param ThisNodes: the nodes of the new element
-     * @param pProperties: the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Clone(
         IndexType NewId,
-        NodesArrayType const &ThisNodes) const override
-    {
-        KRATOS_TRY
-        return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
-        KRATOS_CATCH("");
-    }
+        NodesArrayType const &ThisNodes) const override;
 
-    /**
-     * ELEMENTS inherited from this class have to implement next
-     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
-     * they can be managed internally with a private method to do the same calculations
-     * only once: MANDATORY
-     */
-
-    /**
-     * This is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix (output)
-     * @param rRightHandSideVector: the elemental right hand side (output)
-     * @param rCurrentProcessInfo: the current process info instance (input)
-     */
     void CalculateLocalSystem(
         MatrixType &rLeftHandSideMatrix,
         VectorType &rRightHandSideVector,
         ProcessInfo &rCurrentProcessInfo) override;
 
-    /**
-     * This is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector (output)
-     * @param rCurrentProcessInfo: the current process info instance (input)
-     */
     void CalculateRightHandSide(
         VectorType &rRightHandSideVector,
         ProcessInfo &rCurrentProcessInfo) override;
 
-    /**
-     * @brief EquationIdVector Returns the global system rows corresponding to each local row.
-     * @param rResult rResult[i] is the global index of local row i (output)
-     * @param rCurrentProcessInfo Current ProcessInfo values (input)
-     */
     void EquationIdVector(
         EquationIdVectorType &rResult,
         ProcessInfo &CurrentProcessInfo) override;
@@ -248,15 +186,6 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Inquiry
     ///@{
 
-    /**
-     * This method provides the place to perform checks on the completeness of the input
-     * and the compatibility with the problem options as well as the contitutive laws selected
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     * this method is: MANDATORY
-     */
     int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
@@ -377,11 +306,17 @@ class IncompressiblePotentialFlowElement : public Element
 
     void GetPotentialOnNormalElement(array_1d<double, NumNodes> &phis);
 
-    void GetPotentialOnWakeElement(Vector &split_element_values, const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnWakeElement(
+        Vector &split_element_values,
+        const array_1d<double, NumNodes> &distances);
 
-    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes> &upper_phis, const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnUpperWakeElement(
+        array_1d<double, NumNodes> &upper_phis,
+        const array_1d<double, NumNodes> &distances);
 
-    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes> &lower_phis, const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnLowerWakeElement(
+        array_1d<double, NumNodes> &lower_phis,
+        const array_1d<double, NumNodes> &distances);
 
     void ComputeVelocityUpper(array_1d<double, Dim> &velocity);
 

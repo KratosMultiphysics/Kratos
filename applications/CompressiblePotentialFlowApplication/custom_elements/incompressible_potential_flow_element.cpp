@@ -19,6 +19,38 @@ namespace Kratos
 // Public Operations
 
 template <int Dim, int NumNodes>
+Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
+    IndexType NewId,
+    NodesArrayType const &ThisNodes,
+    PropertiesType::Pointer pProperties) const
+{
+    KRATOS_TRY
+    return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    KRATOS_CATCH("");
+}
+
+template <int Dim, int NumNodes>
+Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties) const
+{
+    KRATOS_TRY
+    return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
+    KRATOS_CATCH("");
+}
+
+template <int Dim, int NumNodes>
+Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
+    IndexType NewId,
+    NodesArrayType const &ThisNodes) const
+{
+    KRATOS_TRY
+    return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+    KRATOS_CATCH("");
+}
+
+template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix,
     VectorType &rRightHandSideVector,
