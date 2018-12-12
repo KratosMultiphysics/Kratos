@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-import KratosMultiphysics.ShallowWaterApplication as Shallow # This is temporary
 
 KratosMultiphysics.CheckForPreviousImport()
 
@@ -24,6 +23,9 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "echo_level"                      : 0,
             "error_variable"                  : "RESIDUAL_NORM",
             "variable_threshold"              : 1e-3,
+            "variables_to_apply_fixity"       : [""],
+            "variables_to_set_at_interface"   : [""],
+            "variables_to_update_at_coarse"   : [""],
             "advanced_configuration"          : {
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
@@ -66,6 +68,10 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             self.refined_model_part = self.model.CreateModelPart(self.refined_model_part_name)
             self.refined_model_part.ProcessInfo[MeshingApplication.SUBSCALE_INDEX] = self.current_subscale
 
+        self.variables_to_apply_fixity = self._GenerateVariableListFromInput(self.settings["variables_to_apply_fixity"])
+        self.variables_to_set_at_interface = self._GenerateVariableListFromInput(self.settings["variables_to_set_at_interface"])
+        self.variables_to_update_at_coarse = self._GenerateVariableListFromInput(self.settings["variables_to_update_at_coarse"])
+
     def PrepareModelPart(self):
         # Initialize the corresponding model part
         if self.current_subscale == 0:
@@ -87,20 +93,14 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
         # This is equivalent to the ExecuteBeforeSolutionLoop
-        if self.current_subscale > 0:
-            self._EvaluateCondition()
-            self._ExecuteRefinement()
-            self._ExecuteCoarsening()
-            self.subscales_utility.FixRefinedInterface(KratosMultiphysics.VELOCITY_X, True)
-            self.subscales_utility.FixRefinedInterface(KratosMultiphysics.VELOCITY_Y, True)
+        self.ExecuteBeforeSolutionLoop()
 
     def ExecuteBeforeSolutionLoop(self):
         if self.current_subscale > 0:
             self._EvaluateCondition()
             self._ExecuteRefinement()
             self._ExecuteCoarsening()
-            self.subscales_utility.FixRefinedInterface(KratosMultiphysics.VELOCITY_X, True)
-            self.subscales_utility.FixRefinedInterface(KratosMultiphysics.VELOCITY_Y, True)
+            self._ApplyFixityAtInterface()
 
     def ExecuteInitializeSolutionStep(self):
         if self.current_subscale == 0:
@@ -109,9 +109,8 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             self.visualization_model_part.ProcessInfo[KratosMultiphysics.TIME] = time
             self.visualization_model_part.ProcessInfo[KratosMultiphysics.STEP] = step
         else:
+            self._TransferSubstepToRefinedInterface()
             substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
-            self.subscales_utility.TransferSubstepToRefinedInterface(Shallow.HEIGHT, substep_fraction)
-            self.subscales_utility.TransferSubstepToRefinedInterface(KratosMultiphysics.VELOCITY, substep_fraction)
 
     def ExecuteFinalizeSolutionStep(self):
         # if self.current_subscale > 0:
@@ -164,3 +163,21 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             if residual > threshold:
                 for node in elem.GetNodes():
                     node.Set(KratosMultiphysics.TO_REFINE, True)
+
+    def _ApplyFixityAtInterface(self):
+        for variable in self.variables_to_apply_fixity:
+            self.subscales_utility.FixRefinedInterface(variable, True)
+
+    def _TransferSubstepToRefinedInterface(self):
+        substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
+        for variable in self.variables_to_set_at_interface:
+            self.subscales_utility.TransferSubstepToRefinedInterface(variable, substep_fraction)
+
+    def _GenerateVariableListFromInput(self,param):
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
