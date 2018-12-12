@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -38,7 +36,7 @@ class RigidBodiesProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
 
         self.main_model_part = self.Model[self.settings["model_part_name"].GetString()]
- 
+
         # construct rigid body domains
         self.rigid_bodies = []
         bodies_list = self.settings["rigid_bodies"]

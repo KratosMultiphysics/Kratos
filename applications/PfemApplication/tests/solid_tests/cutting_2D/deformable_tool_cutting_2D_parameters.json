@@ -60,7 +60,8 @@
 		    "time_integration_settings" : {
 			"solution_type"      : "Quasi-static",
 			"analysis_type"      : "Non-linear",
-			"integration_method" : "Static"
+			"integration_method" : "Static",
+			"buffer_size" : 3
 		    },
 		    "solving_strategy_settings" : {
 			"line_search"            : true,
@@ -127,6 +128,7 @@
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 2,
             "meshing_before_output" : true,
+	    "echo_level"            : 1,
             "meshing_domains" : [{
                 "python_module": "meshing_domain",
                 "model_part_name": "Solid_Piece",
@@ -204,6 +206,7 @@
             "meshing_control_type"  : "step",
             "meshing_frequency"     : 2,
             "meshing_before_output" : true,
+	    "echo_level"            : 1,
             "meshing_domains" : [{
                 "python_module": "contact_domain",
                 "model_part_name": "contact_domain",

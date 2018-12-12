@@ -3,7 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
-KratosMultiphysics.CheckForPreviousImport()
 
 import remesh_domains_process
 
@@ -30,7 +29,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
         for domain in self.meshing_domains:
             if( domain.Active() ):
                 self.remesh_domains_active = True
-                
+
         # check restart
         self.restart = False
         if( self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
@@ -44,7 +43,7 @@ class ContactDomainProcess(remesh_domains_process.RemeshDomainsProcess):
 
 
         # execute initialize base class
-        if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):            
+        if( self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False ):
             # self.main_model_part.ProcessInfo[KratosDelaunay.INITIALIZED_DOMAINS] == False
             if( self.remesh_domains_active ):
                 self.InitializeDomains()

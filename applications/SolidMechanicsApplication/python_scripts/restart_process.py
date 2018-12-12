@@ -3,8 +3,6 @@ import os
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):

@@ -1192,7 +1192,7 @@ namespace Kratos
       std::string ComputingModelPartName;
       for(ModelPart::SubModelPartIterator i_mp= mrModelPart.SubModelPartsBegin(); i_mp!=mrModelPart.SubModelPartsEnd(); ++i_mp)
 	{
-	  if( i_mp->Is(ACTIVE) )
+	  if( i_mp->Is(ACTIVE) && i_mp->IsNot(THERMAL) )
 	    ComputingModelPartName = i_mp->Name();
 	}
 

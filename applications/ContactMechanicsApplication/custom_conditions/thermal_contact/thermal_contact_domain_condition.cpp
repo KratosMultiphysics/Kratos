@@ -258,7 +258,7 @@ void ThermalContactDomainCondition::Initialize()
 {
   KRATOS_TRY
 
-      std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
+  //std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
 
   KRATOS_CATCH("")
       }

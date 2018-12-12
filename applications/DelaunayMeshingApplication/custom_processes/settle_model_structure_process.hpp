@@ -864,7 +864,7 @@ class SettleModelStructureProcess
     std::string ComputingModelPartName;
     for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
     {
-      if( i_mp->Is(ACTIVE) ){ //computing_domain
+      if( i_mp->Is(ACTIVE)  && i_mp->IsNot(THERMAL) ){ //computing_domain
         ComputingModelPartName = i_mp->Name();
       }
     }

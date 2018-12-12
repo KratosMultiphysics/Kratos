@@ -3,9 +3,6 @@ import sys
 #import kratos core and applications
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 from math import *
 
 class compiled_space_time_function:

@@ -5,9 +5,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 #Base class to develop other solvers
 class ModelManager(object):
     """The base class for solid mechanic model build process.

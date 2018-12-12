@@ -3,9 +3,6 @@ import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 import solid_mechanics_monolithic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):

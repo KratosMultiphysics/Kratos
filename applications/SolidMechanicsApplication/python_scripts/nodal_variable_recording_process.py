@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import os
 # importing the Kratos Library
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 from numpy import *
 

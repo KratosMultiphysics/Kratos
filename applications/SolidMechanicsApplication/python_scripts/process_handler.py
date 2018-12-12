@@ -2,9 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 import KratosMultiphysics
 
-KratosMultiphysics.CheckForPreviousImport()
-
-
 class ProcessHandler(KratosMultiphysics.Process):
     #
     def __init__(self, Model, custom_settings ):
