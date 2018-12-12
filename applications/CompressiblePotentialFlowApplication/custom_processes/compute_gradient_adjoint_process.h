@@ -100,7 +100,7 @@ public:
         KRATOS_TRY;
         std::cout<<"Compute Gradient Adjoint Process Started"<< std::endl;
         // Vector all_ids;
-        // const double epsilon = 1e-9;
+        const double epsilon = 1e-9;
         // for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
         // {   
         //     std::vector<std::size_t> id_vector;
