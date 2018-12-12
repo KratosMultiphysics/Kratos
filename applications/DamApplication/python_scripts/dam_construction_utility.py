@@ -71,7 +71,6 @@ class DamConstructionUtility:
         # The function recieves the mame of submodel Part, the number of phase and the activation time
         print("Assigning time activation for each node")
         with open(self.construction_input_file_name,'r') as file_name2:
-            #for line in reversed(list((file_name2))):
             for j, line in enumerate(file_name2):
                 file_2 = line.split(" ")
                 if (len(file_2)) > 1:
