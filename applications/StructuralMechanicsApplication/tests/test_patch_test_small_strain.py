@@ -38,6 +38,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO,0.3)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.THICKNESS,1.0)
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,1.0)
+        #mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.INTEGRATION_ORDER,5)
 
         g = [0,0,0]
         mp.GetProperties()[1].SetValue(KratosMultiphysics.VOLUME_ACCELERATION,g)
@@ -129,22 +130,27 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             u = A*xvec
             u += b
 
+            coor_list = ["X","Y","Z"]
+
             d = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            self.assertAlmostEqual(d[0], u[0])
-            self.assertAlmostEqual(d[1], u[1])
-            self.assertAlmostEqual(d[2], u[2])
+            for i in range(3):
+                if abs(u[i]) > 0.0:
+                    error = (d[i] - u[i])/u[i]
+                    if error > 1.0e-6:
+                       print("NODE ", node.Id,": Component ", coor_list[i],":\t",u[i],"\t",d[i], "\tError: ", error)
+                    self.assertLess(error, 1.0e-6)
 
     def _check_outputs(self,mp,A,dim):
 
         E = mp.GetProperties()[1].GetValue(KratosMultiphysics.YOUNG_MODULUS)
         NU =mp.GetProperties()[1].GetValue(KratosMultiphysics.POISSON_RATIO)
 
-        #given the matrix A, the analytic deformation graident is F+I
+        # Given the matrix A, the analytic deformation gradient is F+I
         F = A
         for i in range(3):
             F[i,i] += 1.0
 
-        #here compute the Cauchy green strain tensor
+        # Here compute the Cauchy green strain tensor
         Etensor = KratosMultiphysics.Matrix(3,3)
 
         for i in range(3):
@@ -154,7 +160,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         for i in range(3):
             for j in range(3):
                 for k in range(3):
-                    Etensor[i,j] += A[k,i]*A[k,j]
+                    Etensor[i,j] += F[k,i]*F[k,j]
 
         for i in range(3):
             Etensor[i,i] -= 1.0
@@ -163,8 +169,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             for j in range(3):
                 Etensor[i,j] = 0.5*Etensor[i,j]
 
+        # Verify strain
         if(dim == 2):
-            #verify strain
             reference_strain = KratosMultiphysics.Vector(3)
             reference_strain[0] = Etensor[0,0]
             reference_strain[1] = Etensor[1,1]
@@ -182,9 +188,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.GREEN_LAGRANGE_STRAIN_VECTOR, mp.ProcessInfo)
             for strain in out:
                 for i in range(len(reference_strain)):
-                    self.assertAlmostEqual(reference_strain[i], strain[i])
+                    if abs(strain[i]) > 0.0:
+                        self.assertLess((reference_strain[i] - strain[i])/strain[i], 1.0e-6)
 
-        #finally compute stress
+        # Finally compute stress
         if(dim == 2):
             #here assume plane stress
             c1 = E / (1.00 - NU*NU);
@@ -211,7 +218,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
             out = elem.CalculateOnIntegrationPoints(KratosMultiphysics.PK2_STRESS_VECTOR, mp.ProcessInfo)
             for stress in out:
                 for i in range(len(reference_stress)):
-                    self.assertAlmostEqual(reference_stress[i], stress[i],2)
+                    if abs(stress[i]) > 0.0:
+                        self.assertLess((reference_stress[i] - stress[i])/stress[i], 1.0e-6)
 
     def test_SmallDisplacementElement_2D_triangle(self):
         dim = 2
@@ -251,7 +259,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         #checking consistent mass matrix
         M = KratosMultiphysics.Matrix(0,0)
         mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
-        Area = mp.Elements[1].GetArea()
+        Area = mp.Elements[1].GetGeometry().Area()
         for i in range(3):
             for j in range(3):
                 for k in range(dim):
@@ -294,6 +302,100 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         mp.CreateNewElement("SmallDisplacementElement2D4N", 3, [1,2,4,6], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 4, [4,2,3,7], mp.GetProperties()[1])
         mp.CreateNewElement("SmallDisplacementElement2D4N", 5, [2,1,5,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
+    def test_SmallDisplacementElement_3D_tetra(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.0, 1.0, 0.0)
+        mp.CreateNewNode(2,0.0, 1.0, 0.1)
+        mp.CreateNewNode(3, 0.28739360416666665, 0.27808503701741405, 0.05672979583333333)
+        mp.CreateNewNode(4, 0.0, 0.1, 0.0)
+        mp.CreateNewNode(5, 0.1, 0.1, 0.1)
+        mp.CreateNewNode(6, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(7, 1.2, 0.0, 0.1)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,4,5,6,7])
+
+        #create Element
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 1,[5,3,1,2], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 2,[3,1,2,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 3,[6,4,7,3], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 4,[5,4,1,3], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 5,[4,1,3,6], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 6,[5,4,3,7], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 7,[3,5,7,2], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D4N", 8,[6,7,2,3], mp.GetProperties()[1])
+
+        A,b = self._define_movement(dim)
+
+        self._apply_BCs(bcs,A,b)
+        self._solve(mp)
+        self._check_results(mp,A,b)
+        self._check_outputs(mp,A,dim)
+
+        #self.__post_process(mp)
+
+    def test_SmallDisplacementElement_3D_prism(self):
+        dim = 3
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+        self._add_variables(mp)
+        self._apply_material_properties(mp,dim)
+
+        #create nodes
+        mp.CreateNewNode(1,0.5,0.5,0.0)
+        mp.CreateNewNode(2,0.7,0.2,0.0)
+        mp.CreateNewNode(3,0.9,0.8,0.0)
+        mp.CreateNewNode(4,0.3,0.7,0.0)
+        mp.CreateNewNode(5,0.6,0.6,0.0)
+        mp.CreateNewNode(6,0.5,0.5,0.1)
+        mp.CreateNewNode(7,0.7,0.2,0.1)
+        mp.CreateNewNode(8,0.9,0.8,0.1)
+        mp.CreateNewNode(9,0.3,0.7,0.1)
+        mp.CreateNewNode(10,0.6,0.6,0.1)
+        mp.CreateNewNode(11,0.5,0.5,0.2)
+        mp.CreateNewNode(12,0.7,0.2,0.2)
+        mp.CreateNewNode(13,0.9,0.8,0.2)
+        mp.CreateNewNode(14,0.3,0.7,0.2)
+        mp.CreateNewNode(15,0.6,0.6,0.2)
+
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y,mp)
+        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z,mp)
+
+        #create a submodelpart for boundary conditions
+        bcs = mp.CreateSubModelPart("BoundaryCondtions")
+        bcs.AddNodes([1,2,3,4,5,6,7,8,9,11,12,13,14,15])
+
+        #create Element
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 1, [1,2,5,6,7,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 2, [2,3,5,7,8,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 3, [3,4,5,8,9,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 4, [4,1,5,9,6,10], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 5, [6,7,10,11,12,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 6, [7,8,10,12,13,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 7, [8,9,10,13,14,15], mp.GetProperties()[1])
+        mp.CreateNewElement("SmallDisplacementElement3D6N", 8, [9,6,10,14,11,15], mp.GetProperties()[1])
 
         A,b = self._define_movement(dim)
 

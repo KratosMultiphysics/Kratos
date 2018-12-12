@@ -152,6 +152,18 @@ public:
     }
 
     // --------------------------------------------------------------------------
+    double ComputeL2NormOfNodalVariable( const Variable<double> &rVariable)
+    {
+        double l2_norm = 0.0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            double &value = node_i.FastGetSolutionStepValue(rVariable);
+            l2_norm += value*value;
+        }
+        return std::sqrt(l2_norm);
+    }
+
+    // --------------------------------------------------------------------------
     double ComputeMaxNormOfNodalVariable( const Variable<array_3d> &rVariable)
     {
         double max_norm = 0.0;
@@ -160,8 +172,21 @@ public:
             array_3d& variable_vector = node_i.FastGetSolutionStepValue(rVariable);
             double squared_value = inner_prod(variable_vector,variable_vector);
 
-            if(squared_value>max_norm)
-                max_norm = squared_value;
+            max_norm = std::max(squared_value,max_norm);
+        }
+        return std::sqrt(max_norm);
+    }
+
+    // --------------------------------------------------------------------------
+    double ComputeMaxNormOfNodalVariable( const Variable<double> &rVariable)
+    {
+        double max_norm = 0.0;
+        for (auto & node_i : mrDesignSurface.Nodes())
+        {
+            double &value = node_i.FastGetSolutionStepValue(rVariable);
+            double squared_value = value*value;
+
+            max_norm = std::max(squared_value,max_norm);
         }
         return std::sqrt(max_norm);
     }

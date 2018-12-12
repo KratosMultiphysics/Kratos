@@ -47,4 +47,4 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ShapeOptimizationApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/ShapeOptimizationApplication")
