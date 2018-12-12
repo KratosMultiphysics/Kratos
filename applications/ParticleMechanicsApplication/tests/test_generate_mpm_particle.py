@@ -95,89 +95,89 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
 
-    # def test_GenerateMPMParticleTriangle2D3P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=3, expected_num_particle=3)
+    def test_GenerateMPMParticleTriangle2D3P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=3, expected_num_particle=3)
 
-    # def test_GenerateMPMParticleTriangle2D6P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=6, expected_num_particle=6)
+    def test_GenerateMPMParticleTriangle2D6P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=6, expected_num_particle=6)
 
-    # def test_GenerateMPMParticleTriangle2D12P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=12, expected_num_particle=12)
+    def test_GenerateMPMParticleTriangle2D12P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=12, expected_num_particle=12)
 
-    # def test_GenerateMPMParticleTriangle2D16P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=16, expected_num_particle=16)
+    def test_GenerateMPMParticleTriangle2D16P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=16, expected_num_particle=16)
 
-    # def test_GenerateMPMParticleTriangle2D33P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=33, expected_num_particle=33)
+    def test_GenerateMPMParticleTriangle2D33P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=33, expected_num_particle=33)
 
-    # def test_GenerateMPMParticleTriangle2DDefault(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=50, expected_num_particle=3)
+    def test_GenerateMPMParticleTriangle2DDefault(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Triangle", num_particle=50, expected_num_particle=3)
 
-    # def test_GenerateMPMParticleTriangle3D1P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
+    def test_GenerateMPMParticleTriangle3D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=1, expected_num_particle=1)
 
-    # def test_GenerateMPMParticleTriangle3D4P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_num_particle=4)
+    def test_GenerateMPMParticleTriangle3D4P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=3, expected_num_particle=4)
 
-    # def test_GenerateMPMParticleTriangle3D14P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=6, expected_num_particle=14)
+    def test_GenerateMPMParticleTriangle3D14P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=6, expected_num_particle=14)
 
-    # def test_GenerateMPMParticleTriangle3D24P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=12, expected_num_particle=24)
+    def test_GenerateMPMParticleTriangle3D24P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=12, expected_num_particle=24)
 
-    # def test_GenerateMPMParticleTriangle3DDefault(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=50, expected_num_particle=4)
+    def test_GenerateMPMParticleTriangle3DDefault(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Triangle", num_particle=50, expected_num_particle=4)
 
-    # def test_GenerateMPMParticleQuadrilateral2D1P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
+    def test_GenerateMPMParticleQuadrilateral2D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
 
-    # def test_GenerateMPMParticleQuadrilateral2D4P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=4)
+    def test_GenerateMPMParticleQuadrilateral2D4P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=4)
 
-    # def test_GenerateMPMParticleQuadrilateral2D9P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=9)
+    def test_GenerateMPMParticleQuadrilateral2D9P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=9)
 
-    # def test_GenerateMPMParticleQuadrilateral2D16P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=16)
+    def test_GenerateMPMParticleQuadrilateral2D16P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=16)
 
-    # def test_GenerateMPMParticleQuadrilateral2DDefault(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=4)
+    def test_GenerateMPMParticleQuadrilateral2DDefault(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=2, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=4)
 
-    # def test_GenerateMPMParticleQuadrilateral3D1P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
+    def test_GenerateMPMParticleQuadrilateral3D1P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=1, expected_num_particle=1)
 
-    # def test_GenerateMPMParticleQuadrilateral3D8P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=8)
+    def test_GenerateMPMParticleQuadrilateral3D8P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=4, expected_num_particle=8)
 
-    # def test_GenerateMPMParticleQuadrilateral3D27P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=27)
+    def test_GenerateMPMParticleQuadrilateral3D27P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=9, expected_num_particle=27)
 
-    # def test_GenerateMPMParticleQuadrilateral3D64P(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=64)
+    def test_GenerateMPMParticleQuadrilateral3D64P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=16, expected_num_particle=64)
 
-    # def test_GenerateMPMParticleQuadrilateral3DDefault(self):
-    #     current_model = KratosMultiphysics.Model()
-    #     self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=8)
+    def test_GenerateMPMParticleQuadrilateral3DDefault(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_particle_element_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_particle=50, expected_num_particle=8)
 
 if __name__ == '__main__':
     KratosUnittest.main()
