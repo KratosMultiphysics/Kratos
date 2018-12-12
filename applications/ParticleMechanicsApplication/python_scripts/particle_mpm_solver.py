@@ -62,8 +62,6 @@ class ParticleMPMSolver(PythonSolver):
             "residual_relative_tolerance"        : 1.0E-4,
             "residual_absolute_tolerance"        : 1.0E-9,
             "max_iteration"                      : 10,
-            "geometry_element"                   : "",
-            "particle_per_element"               : 0,
             "number_of_material"                 : 1,
             "axis_symmetric_flag"                : false,
             "impenetrability_condition"          : true,
@@ -90,6 +88,18 @@ class ParticleMPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
+
+        # Temporary warnings, to be removed
+        if custom_settings.Has("geometry_element"):
+            custom_settings.RemoveValue("geometry_element")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "geometry_element", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Geometry element", warning)
+        if custom_settings.Has("particle_per_element"):
+            custom_settings.RemoveValue("particle_per_element")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "particle_per_element", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Particle per element", warning)
 
         # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
