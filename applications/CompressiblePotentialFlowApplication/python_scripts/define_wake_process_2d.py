@@ -152,7 +152,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             x_distance_to_te = elnode.X - self.te.X
             y_distance_to_te = elnode.Y - self.te.Y
 
-            #Compute the projection of the distance vector in the wake normal direction
+            # Compute the projection of the distance vector in the wake normal direction
             distance_to_wake = x_distance_to_te*self.wake_normal[0] + \
                 y_distance_to_te*self.wake_normal[1]
 
