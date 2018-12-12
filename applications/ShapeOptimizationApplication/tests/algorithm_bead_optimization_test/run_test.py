@@ -40,9 +40,9 @@ with open(response_log_filename, 'r') as csvfile:
 
     resulting_lagrange_value = float(last_line[3].strip())
     resulting_objective_value = float(last_line[5].strip())
-    resulting_penalty_value = float(last_line[9].strip())
-    resulting_penalty_scaling = float(last_line[10].strip())
-    resulting_penalty_factor = float(last_line[11].strip())
+    resulting_penalty_value = float(last_line[10].strip())
+    resulting_penalty_scaling = float(last_line[11].strip())
+    resulting_penalty_factor = float(last_line[12].strip())
 
     # Check against specifications
     TestCase().assertAlmostEqual(resulting_lagrange_value,  2.46402E-02,5)
