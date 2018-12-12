@@ -192,10 +192,13 @@ public:
 
         KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
-        unsigned int k = 0;
-        const unsigned int number_elements = grid_model_part.NumberOfElements();
+        const unsigned int number_elements = grid_model_part.NumberOfElements() + initial_model_part.NumberOfElements();
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
-        int new_element_id = 0;
+        unsigned int last_element_id;
+        if (number_nodes>number_elements)
+            last_element_id = number_nodes + 1;
+        else
+            last_element_id = number_elements + 1;
 
         // Loop over the submodelpart of initial_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = initial_model_part.SubModelPartsBegin();
@@ -312,16 +315,10 @@ public:
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
+                    unsigned int new_element_id = 0;
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
-                        if(number_elements > number_nodes)
-                        {
-                            new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
-                        }
-                        else
-                        {
-                            new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
-                        }
+                        new_element_id = last_element_id + PointNumber;
                         Element::Pointer p_element = NewElement.Create(new_element_id, grid_model_part.ElementsBegin()->GetGeometry(), properties);
                         const double MP_Density  = density;
                         const int MP_Material_Id = material_id;
@@ -362,7 +359,7 @@ public:
                         mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
                     }
 
-                    k +=1;
+                    last_element_id += integration_point_per_elements;
 
                 }
 
