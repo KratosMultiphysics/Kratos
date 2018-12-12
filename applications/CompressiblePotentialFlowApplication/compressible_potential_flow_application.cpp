@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Riccardo Rossi
+//  Main authors:    Iñigo Lopez and Riccardo Rossi
 //
 
 
@@ -43,6 +43,10 @@ void KratosCompressiblePotentialFlowApplication::Register()
  	std::cout << "Initializing KratosCompressiblePotentialFlowApplication... " << std::endl;
 
         // Register Variables (defined in compressible_potential_flow_application_variables.h)
+        // Degrees of freedom
+        KRATOS_REGISTER_VARIABLE(POTENTIAL);
+        KRATOS_REGISTER_VARIABLE(AUXILIARY_POTENTIAL);
+
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_INFINITY);
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(VELOCITY_LOWER);
         KRATOS_REGISTER_VARIABLE(PRESSURE_LOWER);

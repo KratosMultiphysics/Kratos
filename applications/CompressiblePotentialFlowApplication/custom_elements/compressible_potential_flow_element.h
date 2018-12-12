@@ -9,6 +9,7 @@
 //
 //  Main authors:    Riccardo Rossi
 //
+// This is the old potential flow element. This will be eventually removed!
 
 #if !defined(KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED )
 #define KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H_INCLUDED
