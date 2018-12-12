@@ -80,7 +80,7 @@ class LaplacianSolver(PythonSolver):
         print("Construction of LaplacianSolver finished")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
+        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
@@ -107,7 +107,7 @@ class LaplacianSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ZERO_VELOCITY_CONDITION)
         
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.POSITIVE_FACE_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL, self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):

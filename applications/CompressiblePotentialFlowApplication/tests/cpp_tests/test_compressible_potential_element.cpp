@@ -31,7 +31,7 @@ namespace Kratos {
     void GenerateElement(ModelPart& rModelPart)
     {
       // Variables addition
-      rModelPart.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+      rModelPart.AddNodalSolutionStepVariable(VELOCITY_POTENTIAL);
       rModelPart.AddNodalSolutionStepVariable(AUXILIARY_VELOCITY_POTENTIAL);
 
       // Set the element properties
@@ -63,7 +63,7 @@ namespace Kratos {
       potential(2) = 3.0;
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) = potential(i);
+        pElement->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) = potential(i);
 
       // Compute RHS and LHS
       Vector RHS = ZeroVector(3);
@@ -91,7 +91,7 @@ namespace Kratos {
       Element::Pointer pElement = model_part.pGetElement(1);
 
       for (unsigned int i = 0; i < 3; i++)
-        pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
+        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
 
       Element::DofsVectorType ElementalDofList;
       pElement->GetDofList(ElementalDofList, model_part.GetProcessInfo());
@@ -128,7 +128,7 @@ namespace Kratos {
       pElement->SetValue(ELEMENTAL_DISTANCES, distances);
 
       for (unsigned int i = 0; i < 3; i++) {
-        pElement->GetGeometry()[i].AddDof(POSITIVE_FACE_PRESSURE);
+        pElement->GetGeometry()[i].AddDof(VELOCITY_POTENTIAL);
         pElement->GetGeometry()[i].AddDof(AUXILIARY_VELOCITY_POTENTIAL);
       }
 

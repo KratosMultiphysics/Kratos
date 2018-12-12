@@ -283,8 +283,8 @@ public:
         else
         {
             // Check that all required variables have been registered
-            if(POSITIVE_FACE_PRESSURE.Key() == 0)
-                KRATOS_ERROR << "POSITIVE_FACE_PRESSURE Key is 0. Check if the application was correctly registered.";
+            if(VELOCITY_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
             if(AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
                 KRATOS_ERROR << "AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check if the application was correctly registered.";
 
@@ -294,8 +294,8 @@ public:
             for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
 
-                if(this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-                    KRATOS_ERROR << "missing POSITIVE_FACE_PRESSURE variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
                 if(this->GetGeometry()[i].SolutionStepsDataHas(AUXILIARY_VELOCITY_POTENTIAL) == false)
                     KRATOS_ERROR << "missing AUXILIARY_VELOCITY_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
 
@@ -320,7 +320,7 @@ public:
                 rResult.resize(TNumNodes, false);
 
             for (unsigned int i = 0; i < TNumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+                rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         }
 
 
@@ -336,7 +336,7 @@ public:
                 ConditionDofList.resize(TNumNodes);
 
             for (unsigned int i = 0; i < TNumNodes; i++)
-                ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+                ConditionDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 
         }
 

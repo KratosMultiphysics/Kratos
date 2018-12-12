@@ -128,8 +128,8 @@ int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo &
     }
 
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
-        if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_FACE_PRESSURE on node ", this->GetGeometry()[i].Id())
+        if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing variable VELOCITY_POTENTIAL on node ", this->GetGeometry()[i].Id())
 
     return 0;
 
@@ -260,7 +260,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNorma
     EquationIdVectorType &rResult)
 {
     for (unsigned int i = 0; i < NumNodes; i++)
-        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+        rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 }
 
 template <int Dim, int NumNodes>
@@ -271,7 +271,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKutta
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-            rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
@@ -288,7 +288,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (distances[i] > 0.0)
-            rResult[i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+            rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL, 0).EquationId();
     }
@@ -297,7 +297,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (distances[i] < 0.0)
-            rResult[NumNodes + i] = GetGeometry()[i].GetDof(POSITIVE_FACE_PRESSURE).EquationId();
+            rResult[NumNodes + i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
         else
             rResult[NumNodes + i] = GetGeometry()[i].GetDof(AUXILIARY_VELOCITY_POTENTIAL).EquationId();
     }
@@ -308,7 +308,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListNormalElement(
     DofsVectorType &rElementalDofList)
 {
     for (unsigned int i = 0; i < NumNodes; i++)
-        rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+        rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
@@ -319,7 +319,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else
             rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
@@ -336,7 +336,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (distances[i] > 0)
-            rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+            rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else
             rElementalDofList[i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
@@ -345,7 +345,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(
     for (unsigned int i = 0; i < NumNodes; i++)
     {
         if (distances[i] < 0)
-            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(POSITIVE_FACE_PRESSURE);
+            rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
         else
             rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(AUXILIARY_VELOCITY_POTENTIAL);
     }
@@ -553,9 +553,9 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(
 
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] > 0)
-            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) - GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE));
+            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL) - GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL));
         else
-            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL));
+            GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL) - GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL));
 }
 
 template <int Dim, int NumNodes>
@@ -582,11 +582,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElem
 
     if (kutta == 0)
         for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
     else
         for (unsigned int i = 0; i < NumNodes; i++)
             if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
             else
                 phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
@@ -616,7 +616,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeE
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] > 0)
-            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         else
             upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
@@ -628,7 +628,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeE
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] < 0)
-            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
         else
             lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
 }
