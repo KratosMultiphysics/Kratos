@@ -19,7 +19,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
         if self.project_parameters["solver_settings"]["multigrid_settings"].Has("maximum_number_of_subscales"):
             self.maximum_subgrids = self.project_parameters["solver_settings"]["multigrid_settings"]["maximum_number_of_subscales"].GetInt()
 
-        self.current_subscale = self._GetSolver()._GetComputingModelPart().ProcessInfo[Meshing.SUBSCALE_INDEX]
+        self.current_subscale = self._GetSolver().GetComputingModelPart().ProcessInfo[Meshing.SUBSCALE_INDEX]
 
         if self.current_subscale < self.maximum_subgrids:
             self.new_parameters = self.project_parameters.Clone() # Create a copy before modifying the parameters
@@ -40,7 +40,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             if self.current_subscale < self.maximum_subgrids:
-                self.sub_analysis._GetSolver()._GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] = 0
+                self.sub_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] = 0
                 self.sub_analysis.end_time = self.time
                 self.sub_analysis.InitializeMultigridSolver()
                 self.sub_analysis.RunSolutionLoop()
@@ -53,10 +53,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
             self.sub_analysis.Finalize()
 
     def InitializeMultigridSolver(self):
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_X, False, self._GetSolver()._GetComputingModelPart().Nodes)
-        KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.VELOCITY_Y, False, self._GetSolver()._GetComputingModelPart().Nodes)
         self._GetSolver().multigrid.ExecuteInitialize()
-        self._GetSolver().AddDofs()
         self._GetSolver().Initialize()
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
@@ -64,7 +61,7 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
     def _UpdateModelPartNamesInParameters(self):
         # Update the model part name in the processes parameters
         old_model_part_name = self.project_parameters["solver_settings"]["model_part_name"].GetString()
-        new_model_part_name = self._GetSolver()._GetComputingModelPart().Name
+        new_model_part_name = self._GetSolver().GetComputingModelPart().Name
         for name, process_list in self.project_parameters["processes"].items():
             for i in range(0,process_list.size()):
                 process = process_list[i]

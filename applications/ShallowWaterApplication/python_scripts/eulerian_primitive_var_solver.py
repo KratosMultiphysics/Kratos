@@ -29,10 +29,10 @@ class EulerianPrimitiveVarSolver(ShallowWaterBaseSolver):
         self.print_on_rank_zero("::[EulerianPrimitiveVarSolver]::", "Shallow water solver DOFs added correctly.")
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized:
-            # If a node and it's neighbours are dry, set ACTIVE flag to false
+        if self._TimeBufferIsInitialized():
+            # If all the nodes of an element are dry, set ACTIVE flag False
             self.ShallowVariableUtils.SetDryWetState()
-            # Solve equations on mesh
+            # Solve equations on the mesh
             is_converged = self.solver.SolveSolutionStep()
             # Compute free surface
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()

@@ -150,15 +150,12 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         MeshingApplication.MultiscaleRefiningProcess.InitializeRefinedModelPart(self.coarse_model_part, self.refined_model_part)
 
     def _ExecuteRefinement(self):
-        print('EXECUTING THE REFINEMENT !!!!!!!!')
         self.subscales_utility.ExecuteRefinement()
 
     def _ExecuteCoarsening(self):
-        print('EXECUTING THE COARSENING !!!!!!!!!')
         self.subscales_utility.ExecuteCoarsening()
 
     def _EvaluateCondition(self):
-        print('EVALUATING REFINEMENT CONDITION !!!!!!!')
         variable = getattr(KratosMultiphysics, self.settings["error_variable"].GetString())
         threshold = self.settings["variable_threshold"].GetDouble()
         # Set the nodes or the elements which are to refine

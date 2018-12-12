@@ -139,7 +139,7 @@ class ShallowWaterBaseSolver(PythonSolver):
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
-        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.main_model_part,
+        self.solver = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(self.GetComputingModelPart(),
                                                                             self.time_scheme,
                                                                             self.linear_solver,
                                                                             self.conv_criteria,
