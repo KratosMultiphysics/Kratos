@@ -16,6 +16,12 @@ class DamConstructionUtility:
         ambient_input_file_name = parameters["ambient_input_file_name"].GetString()
         self.construction_input_file_name = parameters["construction_input_file_name"].GetString()
 
+        self.check_temperature_parameters = Parameters("{}")
+        self.activate_check_temperature = parameters["activate_check_temperature"]
+        if (self.activate_check_temperature):
+            self.check_temperature_parameters.AddValue("maximum_temperature_increment",parameters["maximum_temperature_increment"])
+            self.check_temperature_parameters.AddValue("minimum_temperature",parameters["minimum_temperature"])
+
         self.heat_source_parameters = Parameters("{}")
         if (parameters["source_type"].GetString() == "Adiabatic"):
             self.heat_source_type = "Noorzai"
@@ -89,8 +95,9 @@ class DamConstructionUtility:
                     self.Construction.InitializeSolutionStep(self.name_sub_thermal_part,self.name_sub_mechanical_part,int(file_3[2]))
 
         # Check if the temperature of every nodes is in the range (it must be done each step)
-        print("Checking temperatures...")
-        self.Construction.CheckTemperature()
+        if (self.activate_check_temperature):
+            print("Checking temperatures...")
+            self.Construction.CheckTemperature(self.check_temperature_parameters)
 
         # Detection of fluxes (it must be done each step)
         print("Searching free surfaces...")
