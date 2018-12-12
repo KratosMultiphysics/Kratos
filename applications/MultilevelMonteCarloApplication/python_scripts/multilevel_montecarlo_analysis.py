@@ -127,7 +127,7 @@ output:
                              coarser_level     : finest_level - 1
                              total_MLMC_time   : execution time
 '''
-@ExaquteTask(returns=5)
+@ExaquteTask(returns=1)
 def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_coarse_model)
@@ -173,12 +173,6 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
         "coarser_level":np.maximum(0,finest_level-1),\
         "total_MLMC_time":end_MLMC_time - start_MLMC_time}
     return results_simulation
-    # QoI_finer_level = QoI[-1]
-    # QoI_coarser_level = QoI[-2]
-    # finer_level = finest_level
-    # coarser_level = np.maximum(0,finest_level-1)
-    # total_MLMC_time = end_MLMC_time - start_MLMC_time
-    # return QoI_finer_level,QoI_coarser_level,finer_level,coarser_level,total_MLMC_time
 
 
 '''
@@ -254,8 +248,6 @@ def ExecuteRefinement(pickled_model_coarse, pickled_parameters, min_size, max_si
     return QoI,pickled_model_refined
 
 
-
-
 '''
 function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
 input :
@@ -301,7 +293,7 @@ if __name__ == '__main__':
         for instance in range (mlmc_class.number_samples[lev]):
             # QoI_finer_level,QoI_coarser_level,finer_level,coarser_level,total_MLMC_time = ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh)
             # mlmc_class.AddResults(QoI_finer_level,QoI_coarser_level,total_MLMC_time,lev)
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
     
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -312,7 +304,7 @@ if __name__ == '__main__':
         
         for lev in range (mlmc_class.current_number_levels+1):
             for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
         
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
