@@ -57,8 +57,8 @@
             "automatic_time_step" : false,
             "time_step"           : 0.01
         },
-        "stabilization" : {
-            "formulation"              : "vms",
+        "formulation" : {
+            "element_type"             : "vms",
             "use_orthogonal_subscales" : false,
             "dynamic_tau"              : 1.0
         }
@@ -182,7 +182,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe1.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 6,
+            "tolerance"           : 1e-6,
             "remove_output_file"  : false
         }
     },{
@@ -194,7 +194,7 @@
             "output_file_name"    : "AdjointVMSSensitivity2DTest/mpi_cylinder_test_probe2.dat",
             "reference_file_name" : "AdjointVMSSensitivity2DTest/cylinder_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-            "decimal_places"      : 6,
+            "tolerance"           : 1e-6,
             "remove_output_file"  : false
         }
     }]

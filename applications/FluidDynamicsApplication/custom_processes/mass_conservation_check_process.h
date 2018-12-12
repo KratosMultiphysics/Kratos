@@ -76,7 +76,8 @@ public:
         ModelPart& rModelPart,
         const int MassComputationFreq,
         const bool CompareToInitial,
-        const bool WriteToLogFile);
+        const bool WriteToLogFile,
+        const std::string LogFileName);
 
     /// Constructor with Kratos parameters.
     MassConservationCheckProcess(
@@ -183,6 +184,7 @@ private:
     int mMassComputationFreq;
     bool mCompareToInitial;
     bool mWriteToLogFile;
+    std::string mLogFileName;
 
     bool mIsUpdated;
 

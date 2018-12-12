@@ -21,7 +21,7 @@
 // Project includes
 #include "custom_constitutive/flow_rules/mc_plastic_flow_rule.hpp"
 
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 #include "custom_utilities/mpm_stress_principal_invariants_utility.h"
 
 namespace Kratos

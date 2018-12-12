@@ -43,9 +43,10 @@ Recommended references for implementation details of MPM in Kratos:
 The following features are currently available and subject to development within the Particle Mechanics Application:
 
 - A set of *Neumann* conditions:
-    * Static Point load (loads applied directly on the background nodes)
-    * Static Line load (a distributed load applied over a line)
-    * Static Surface load (a distributed load applied over a face)
+    * Grid-Based Conditions: loads applied directly on the background nodes
+        * Static Point load
+        * Static Line load (a distributed load applied over a line)
+        * Static Surface load (a distributed load applied over a face)
 
 - Solid (background) elements:
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
@@ -68,7 +69,7 @@ The following features are currently available and subject to development within
 - Other features:
     * Particle erase features - to delete particle outside the interest domain
     * Arbitrary slip boundary condition
-    
+
 Some unit tests of the above features can be found in the [tests](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/ParticleMechanicsApplication/tests) folder.
 
 ## Available Interfaces
