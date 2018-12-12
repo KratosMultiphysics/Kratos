@@ -85,31 +85,31 @@ double AdjointNonlinearStrainEnergyResponseFunction::CalculateValue(ModelPart& r
     KRATOS_CATCH("");
 }
 
-void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY
 
-    if (rResponseGradient.size() != 0)
-        rResponseGradient.resize(0, false);
+    if (rSensitivityGradient.size() != 0)
+        rSensitivityGradient.resize(0, false);
 
     KRATOS_CATCH("");
 }
 
 
-void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Element& rAdjointElem,
-                                              const Variable<double>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY;
 
-    if (rResponseGradient.size() != 0)
-        rResponseGradient.resize(0, false);
+    if (rSensitivityGradient.size() != 0)
+        rSensitivityGradient.resize(0, false);
 
     KRATOS_CATCH("");
 }
@@ -117,24 +117,25 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 
 // Calculates the derivate of the response function with respect to the design parameters
 // Computation of \frac{1}{2} (u^T_i - u^T_i-1)  \cdot ( \frac{\partial f_{ext}_i}{\partial x} + frac{\partial f_{ext}_i-1}{\partial x})
-void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                                                const Variable<double>& rVariable,
-                                                                const Matrix& rDerivativesMatrix,
-                                                                Vector& rResponseGradient,
-                                                                ProcessInfo& rProcessInfo)
+void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<double>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY;   
     
     KRATOS_CATCH("");
 }
 
-void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(Condition& rAdjointCondition,
-                                              const Variable<array_1d<double,3>>& rVariable,
-                                              const Matrix& rDerivativesMatrix,
-                                              Vector& rResponseGradient,
-                                              ProcessInfo& rProcessInfo)
+void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Condition& rAdjointCondition,
+                                             const Variable<array_1d<double, 3>>& rVariable,
+                                             const Matrix& rSensitivityMatrix,
+                                             Vector& rSensitivityGradient,
+                                             const ProcessInfo& rProcessInfo)
 {
     KRATOS_TRY;
+    ProcessInfo process_info = rProcessInfo;
 
     const SizeType number_of_nodes = rAdjointCondition.GetGeometry().size();
     const SizeType dimension = rAdjointCondition.GetGeometry().WorkingSpaceDimension();
@@ -143,8 +144,8 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
     // Matrix for the load partial derivative
     Matrix partial_derivative_matrix = ZeroMatrix(mat_size, mat_size);
 
-    if (rResponseGradient.size() != mat_size)
-        rResponseGradient.resize(mat_size, false);
+    if (rSensitivityGradient.size() != mat_size)
+        rSensitivityGradient.resize(mat_size, false);
 
     // step size is temporarily hard coded, later it should be read from json file
     double step_size = 0.01;
@@ -183,7 +184,7 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 
 
 	//Semi-analytic computation of partial derivative for the force vector w.r.t. node coordinates at the current time step
-	rAdjointCondition.CalculateRightHandSide(RHS, rProcessInfo);
+	rAdjointCondition.CalculateRightHandSide(RHS, process_info);
     int i_2 = 0;
     // This returns a vector of partial derivative vectors
     // TODO, use rVariable instead of the nodal degrees of freedom
@@ -193,7 +194,7 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 
 	// Pertubation, gradient analysis and recovery of x
 	node_i.X0() += Delta;
-	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, rProcessInfo);
+	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, process_info);
     column(partial_derivative_matrix, i_2) = (perturbed_RHS - RHS) / Delta;
 	node_i.X0() -= Delta;
 
@@ -202,7 +203,7 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 
 	// Pertubation, gradient analysis and recovery of y
 	node_i.Y0() += Delta;
-	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, rProcessInfo);
+	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, process_info);
     column(partial_derivative_matrix, i_2 + 1) = (perturbed_RHS - RHS) / Delta;
 	node_i.Y0() -= Delta;
 
@@ -211,7 +212,7 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 
 	// Pertubation, gradient analysis and recovery of z
 	node_i.Z0() += Delta;
-	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, rProcessInfo);
+	rAdjointCondition.CalculateRightHandSide(perturbed_RHS, process_info);
     column(partial_derivative_matrix, i_2 + 2) = (perturbed_RHS - RHS) / Delta;
 	node_i.Z0() -= Delta;
 
@@ -219,8 +220,8 @@ void AdjointNonlinearStrainEnergyResponseFunction::CalculateSensitivityGradient(
 	}
 
     // TODO, calculating 0.5 * delta(u) * (partial(f_i)/partial(x)  + partial(f_i-1)/partial(x))
-    rResponseGradient = 0.50 * prod(displacement - displacement_previous_step , m_partial_derivative_0 + partial_derivative_matrix);
-    std::cout << "response gradient" << rResponseGradient << std::endl;
+    rSensitivityGradient = 0.50 * prod(displacement - displacement_previous_step , m_partial_derivative_0 + partial_derivative_matrix);
+    std::cout << "response gradient" << rSensitivityGradient << std::endl;
 
 
     // passing the value of the partial derivative matrix to a member variable
