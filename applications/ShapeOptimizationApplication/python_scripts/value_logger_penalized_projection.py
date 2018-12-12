@@ -38,7 +38,6 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
                 row.append("{:>13s}".format("c"+str(itr+1)+"_ref"))
 
             row.append("{:>13s}".format("c_scaling"))
-            row.append("{:>13s}".format("step_size"))
             row.append("{:>25s}".format("time_stamp"))
             historyWriter.writerow(row)
 
@@ -72,7 +71,6 @@ class ValueLoggerPenalizedProjection( ValueLogger ):
                 row.append(" {:> .5E}".format(self.communicator.getReferenceValue(constraint_id)))
 
             row.append(" {:> .5E}".format(self.value_history["correction_scaling"][self.current_iteration]))
-            row.append(" {:> .5E}".format(self.value_history["step_size"][self.current_iteration]))
             row.append("{:>25}".format(Timer().GetTimeStamp()))
             historyWriter.writerow(row)
 
