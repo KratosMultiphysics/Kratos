@@ -161,8 +161,8 @@ class IncompressiblePotentialFlowElement : public Element
         ProcessInfo &CurrentProcessInfo) override;
 
     void GetDofList(
-        DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        DofsVectorType &rElementalDofList,
+        ProcessInfo &rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 
