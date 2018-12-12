@@ -124,6 +124,9 @@ class FEMDEM_Solution:
             # Perform remeshing
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
+            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+            neighbour_elemental_finder.Execute()
+
             if is_remeshing:
                 self.InitializeSolutionAfterRemeshing()
 
@@ -153,13 +156,9 @@ class FEMDEM_Solution:
         self.GenerateDEM()
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
-        # self.CheckInactiveNodes()
 
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()
-
-        # Extrapolate the VonMises normalized stress to nodes (remeshing)
-        KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
         self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
@@ -958,10 +957,6 @@ class FEMDEM_Solution:
         self.SpheresModelPart.Nodes.clear()
 
         self.InitializeDummyNodalForces()
-
-        neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-        neighbour_elemental_finder.ClearNeighbours()
-        neighbour_elemental_finder.Execute()
 
         self.InitializeMMGvariables()
         self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()

@@ -47,8 +47,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
 		KratosMultiphysics.Logger.PrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
 		KratosMultiphysics.Logger.PrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
-                                                                          
-
+		KratosMultiphysics.Logger.PrintInfo("")
+                             
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
@@ -58,6 +58,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.main_model_part.CloneTimeStep(self.FEM_Solution.time)
 		self.FEM_Solution.step = self.FEM_Solution.step + 1
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
+
+		self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+		self.nodal_neighbour_finder.Execute()
 
 		if self.DoRemeshing:
 			is_remeshing = self.CheckIfHasRemeshed()
@@ -72,12 +75,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			# Perform remeshing
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
-			self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
-			self.nodal_neighbour_finder.Execute()
-
 			if is_remeshing:
 				self.RefineMappedVariables()
 				self.InitializeSolutionAfterRemeshing()
+				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+				self.nodal_neighbour_finder.Execute()
 
 		self.FEM_Solution.InitializeSolutionStep()
 
@@ -100,7 +102,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
 		self.CheckForPossibleIndentations()
 
-		# self.CheckInactiveNodes()
 		self.UpdateDEMVariables()     # We update coordinates, displ and velocities of the DEM according to FEM
 
 		self.DEM_Solution.InitializeTimeStep()
