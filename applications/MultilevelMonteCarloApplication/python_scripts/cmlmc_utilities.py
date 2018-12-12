@@ -85,17 +85,12 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples):
         '''compute total error of the MLMC simulation'''
         auxiliary_MLMC_object.ComputeTotalErrorMLMC()
 
-
-
-
     return auxiliary_MLMC_object.rates_error["calpha"],auxiliary_MLMC_object.rates_error["alpha"],\
     auxiliary_MLMC_object.rates_error["cbeta"],auxiliary_MLMC_object.rates_error["beta"],\
     auxiliary_MLMC_object.rates_error["cgamma"],auxiliary_MLMC_object.rates_error["gamma"],\
     auxiliary_MLMC_object.BayesianVariance,auxiliary_MLMC_object.mean_mlmc_QoI,\
     auxiliary_MLMC_object.difference_QoI.bias_error,auxiliary_MLMC_object.difference_QoI.statistical_error,\
     auxiliary_MLMC_object.TErr,auxiliary_MLMC_object.number_samples,auxiliary_MLMC_object.BayesianVariance
-
-
 
 
 
