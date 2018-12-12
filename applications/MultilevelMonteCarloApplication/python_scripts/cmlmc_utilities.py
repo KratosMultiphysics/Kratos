@@ -40,32 +40,61 @@ def UpdateOnepassMeanVarianceAux(sample, old_mean, old_M2, nsamples):
         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
     return new_mean, new_M2, new_sample_variance, nsamples
 
+
+'''
+auxiliary function of AddResults
+this function is needed since in compss we do operations among future objects,
+and we need to handle the singular future values
+'''
 @ExaquteTask(returns=2)
 def AddResultsAux(simulation_results,QoI_values_level,timeML_values_level):
     difference_QoI_value = simulation_results["QoI_finer_level"] - simulation_results["QoI_coarser_level"]
     return difference_QoI_value, simulation_results["total_MLMC_time"]
 
 
-# def FinalizePhaseTask(difference_QoI_mean,difference_QoI_sample_variance,time_ML_mean,aux_settings,aux_mesh_parameters,aux_current_number_levels):
-#     auxiliary_settings = KratosMultiphysics.Parameters("""{ }""")
-#     auxiliary_MLMC_object = MultilevelMonteCarlo(auxiliary_settings)
-#     auxiliary_MLMC_object.settings = aux_settings
-#     auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
-#     auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
-#     auxiliary_MLMC_object.time_ML.mean = time_ML_mean
-#     auxiliary_MLMC_object.mesh_parameters = aux_mesh_parameters
-#     auxiliary_MLMC_object.current_number_levels = aux_current_number_levels
+'''
+auxiliary function finalizing the screening phase and the MLMC phase
+'''
+def FinalizePhaseTask(difference_QoI_mean,difference_QoI_sample_variance,time_ML_mean,aux_settings,aux_mesh_parameters,\
+aux_current_number_levels,aux_current_iteration,aux_number_samples):
+    '''create an auxiliary object equivalent to the current one of the problem'''
+    auxiliary_settings = KratosMultiphysics.Parameters("""{ }""")
+    auxiliary_MLMC_object = MultilevelMonteCarlo(auxiliary_settings)
+    auxiliary_MLMC_object.settings = aux_settings
+    auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
+    auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
+    auxiliary_MLMC_object.time_ML.mean = time_ML_mean
+    auxiliary_MLMC_object.mesh_parameters = aux_mesh_parameters
+    auxiliary_MLMC_object.current_number_levels = aux_current_number_levels
+    auxiliary_MLMC_object.current_iteration = aux_current_iteration
+    auxiliary_MLMC_object.number_samples = aux_number_samples
 
-#     auxiliary_MLMC_object.ComputeRatesLS()
+    '''compute the functions needed to finalize the screening phase or the MLMC phase'''
+    if (auxiliary_MLMC_object.current_iteration == 0):
+        '''compute parameters by least square fit'''
+        auxiliary_MLMC_object.ComputeRatesLS()
+        '''compute Bayesian variance V^c[Y_l]'''
+        auxiliary_MLMC_object.EstimateBayesianVariance(auxiliary_MLMC_object.current_number_levels)
+    else:
+        '''compute estimatior MLMC mean QoI'''
+        auxiliary_MLMC_object.ComputeMeanMLMCQoI()
+        '''compute parameters by least square fit'''
+        auxiliary_MLMC_object.ComputeRatesLS()
+        '''compute Bayesian variance V^c[Y_l]'''
+        auxiliary_MLMC_object.EstimateBayesianVariance(auxiliary_MLMC_object.current_number_levels)
+        '''compute total error of the MLMC simulation'''
+        auxiliary_MLMC_object.ComputeTotalErrorMLMC()
 
-#     auxiliary_MLMC_object.EstimateBayesianVariance(auxiliary_MLMC_object.current_number_levels)
 
 
 
-#     return auxiliary_MLMC_object.rates_error["calpha"],auxiliary_MLMC_object.rates_error["alpha"],\
-#     auxiliary_MLMC_object.rates_error["cbeta"],auxiliary_MLMC_object.rates_error["beta"],\
-#     auxiliary_MLMC_object.rates_error["cgamma"],auxiliary_MLMC_object.rates_error["gamma"],\
-#     auxiliary_MLMC_object.BayesianVariance
+    return auxiliary_MLMC_object.rates_error["calpha"],auxiliary_MLMC_object.rates_error["alpha"],\
+    auxiliary_MLMC_object.rates_error["cbeta"],auxiliary_MLMC_object.rates_error["beta"],\
+    auxiliary_MLMC_object.rates_error["cgamma"],auxiliary_MLMC_object.rates_error["gamma"],\
+    auxiliary_MLMC_object.BayesianVariance,auxiliary_MLMC_object.mean_mlmc_QoI,\
+    auxiliary_MLMC_object.difference_QoI.bias_error,auxiliary_MLMC_object.difference_QoI.statistical_error,\
+    auxiliary_MLMC_object.TErr,auxiliary_MLMC_object.number_samples,auxiliary_MLMC_object.BayesianVariance
+
 
 
 
@@ -215,7 +244,7 @@ class MultilevelMonteCarlo(object):
         '''convergence : boolean variable defining if MLMC algorithm is convergenced'''
         self.convergence = False
         '''current_iteration : current iteration of MLMC algorithm'''
-        self.current_iteration = None
+        self.current_iteration = 0
         '''tolerance_i : tolerance of i^th-iteration considered in MLMC algorithm'''
         self.tolerance_i = None
         '''theta_i : splitting parameter \in(0,1) that affects bias and statistical error in the computation of the total error'''
@@ -266,21 +295,24 @@ class MultilevelMonteCarlo(object):
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
         '''compute i_E, number of iterations of Multilevel Monte Carlo algorithm'''
         self.ComputeNumberIterationsMLMC()
-        '''start first iteration, we enter in the MLMC algorithm'''
-        self.current_iteration = 1
         '''synchronization point needed to compute the following functions
         put as in the end as possible'''
         self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
         self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
         self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
-        '''compute parameters by least square fit to estimate Bayesian VAR'''
-        self.ComputeRatesLS()
-        '''compute Bayesian VAR V^c[Y_l]'''
-        self.EstimateBayesianVariance(self.current_number_levels)
-        # self.rates_error["calpha"],self.rates_error["alpha"],self.rates_error["cbeta"],self.rates_error["beta"],\
-        # self.rates_error["cgamma"],self.rates_error["gamma"],self.BayesianVariance\
-        # = FinalizePhaseTask(self.difference_QoI.mean,self.difference_QoI.sample_variance,self.time_ML.mean,\
-        # self.settings,self.mesh_parameters,self.current_number_levels)
+        # '''compute parameters by least square fit to estimate Bayesian VAR'''
+        # self.ComputeRatesLS()
+        # '''compute Bayesian VAR V^c[Y_l]'''
+        # self.EstimateBayesianVariance(self.current_number_levels)
+        self.rates_error["calpha"],self.rates_error["alpha"],self.rates_error["cbeta"],self.rates_error["beta"],\
+        self.rates_error["cgamma"],self.rates_error["gamma"],self.BayesianVariance,self.mean_mlmc_QoI,\
+        self.difference_QoI.bias_error,self.difference_QoI.statistical_error,\
+        self.TErr,self.number_samples,self.BayesianVariance\
+        = FinalizePhaseTask(self.difference_QoI.mean,self.difference_QoI.sample_variance,self.time_ML.mean,\
+        self.settings,self.mesh_parameters,self.current_number_levels,self.current_iteration,self.number_samples)
+        '''start first iteration, we enter in the MLMC algorithm'''
+        self.current_iteration = 1
+
 
 
 
@@ -324,21 +356,28 @@ class MultilevelMonteCarlo(object):
             for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
                 self.difference_QoI.UpdateOnepassMeanVariance(level,i_sample)
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
-        
+        '''update number of levels'''
+        self.previous_number_levels = self.current_number_levels
+        '''synchronization point'''
         self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
         self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
         self.time_ML.mean = get_value_from_remote(self.time_ML.mean)
+        # '''compute estimatior MLMC mean QoI'''
+        # self.ComputeMeanMLMCQoI()
+        # '''compute parameters by least square fit'''
+        # self.ComputeRatesLS()
+        # '''compute Bayesian variance'''
+        # self.EstimateBayesianVariance(self.current_number_levels)
+        # '''compute total error of the MLMC simulation'''
+        # self.ComputeTotalErrorMLMC()
+        
+        self.rates_error["calpha"],self.rates_error["alpha"],self.rates_error["cbeta"],self.rates_error["beta"],\
+        self.rates_error["cgamma"],self.rates_error["gamma"],self.BayesianVariance,self.mean_mlmc_QoI,\
+        self.difference_QoI.bias_error,self.difference_QoI.statistical_error,\
+        self.TErr,self.number_samples,self.BayesianVariance\
+        = FinalizePhaseTask(self.difference_QoI.mean,self.difference_QoI.sample_variance,self.time_ML.mean,\
+        self.settings,self.mesh_parameters,self.current_number_levels,self.current_iteration,self.number_samples)
 
-        '''compute estimatior MLMC mean QoI'''
-        self.compute_mean_mlmc_QoI()
-        '''compute parameters by least square fit'''
-        self.ComputeRatesLS()
-        '''compute Bayesian variance'''
-        self.EstimateBayesianVariance(self.current_number_levels)
-        '''compute total error of the MLMC simulation'''
-        self.ComputeTotalErrorMLMC()
-        '''update number of levels'''
-        self.previous_number_levels = self.current_number_levels
         '''convergence reached if: i) current_iteration >= number_iterations_iE
                                   ii) TErr < tolerance_i
            if not update current_iteration'''
@@ -653,7 +692,7 @@ class MultilevelMonteCarlo(object):
     '''
     function computing the mlmc estimator for the mean of the Quantity of Interest
     '''
-    def compute_mean_mlmc_QoI(self):
+    def ComputeMeanMLMCQoI(self):
         self.mean_mlmc_QoI = np.sum(self.difference_QoI.mean)
 
 
