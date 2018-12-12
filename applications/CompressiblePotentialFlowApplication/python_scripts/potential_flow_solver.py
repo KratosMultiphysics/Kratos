@@ -70,7 +70,7 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2.0)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)#penalty stress
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)# alpha penalty
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
@@ -108,18 +108,7 @@ class PotentialSolver(PythonSolver):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        if self.settings["problem_type"].GetString() == "incompressible" or self.settings["problem_type"].GetString() == "incompressible_stress":
-            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
-                self.main_model_part, 
-                time_scheme, 
-                self.linear_solver,
-                builder_and_solver,
-                self.settings["compute_reactions"].GetBool(), 
-                self.settings["reform_dofs_at_each_step"].GetBool(), 
-                self.settings["calculate_solution_norm"].GetBool(), 
-                move_mesh_flag)
-        else:
+        if self.settings["problem_type"].GetString() == "compressible":
             conv_criteria = KratosMultiphysics.ResidualCriteria(
                 self.settings["relative_tolerance"].GetDouble(), 
                 self.settings["absolute_tolerance"].GetDouble())
@@ -133,6 +122,17 @@ class PotentialSolver(PythonSolver):
                 max_iterations,
                 self.settings["compute_reactions"].GetBool(), 
                 self.settings["reform_dofs_at_each_step"].GetBool(), 
+                move_mesh_flag)
+        else:
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+                self.main_model_part, 
+                time_scheme, 
+                self.linear_solver,
+                builder_and_solver,
+                self.settings["compute_reactions"].GetBool(), 
+                self.settings["reform_dofs_at_each_step"].GetBool(), 
+                self.settings["calculate_solution_norm"].GetBool(), 
                 move_mesh_flag)
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
@@ -194,6 +194,26 @@ class PotentialSolver(PythonSolver):
                         {
                         "element_name":"IncompressibleStressesPotentialFlowElement2D3N",
                         "condition_name": "IncompressibleStressesPotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2!!")
+            elif (self.settings["problem_type"].GetString() == "incompressible_alpha"):
+                if(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressibleAlphaPotentialFlowElement2D3N",
+                        "condition_name": "IncompressibleAlphaPotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2!!")
+            elif (self.settings["problem_type"].GetString() == "incompressible_stresses_mix"):
+                if(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressibleStressesMixPotentialFlowElement2D3N",
+                        "condition_name": "IncompressibleStressesMixPotentialWallCondition2D2N"
                         }
                         """)
                 else:

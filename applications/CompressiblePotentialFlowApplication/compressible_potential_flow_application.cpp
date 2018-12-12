@@ -31,6 +31,8 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     KratosApplication("CompressiblePotentialFlowApplication"),
     mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressibleStressesPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mIncompressibleAlphaPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mIncompressibleStressesMixPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
     mCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mCompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
@@ -62,6 +64,8 @@ void KratosCompressiblePotentialFlowApplication::Register()
         //Register elements
         KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N",mIncompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleStressesPotentialFlowElement2D3N",mIncompressibleStressesPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_ELEMENT("IncompressibleAlphaPotentialFlowElement2D3N",mIncompressibleAlphaPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_ELEMENT("IncompressibleStressesMixPotentialFlowElement2D3N",mIncompressibleStressesMixPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement3D4N",mIncompressiblePotentialFlowElement3D4N); //this is the name the element should have according to the naming convention
 
         KRATOS_REGISTER_ELEMENT("CompressiblePotentialFlowElement2D3N",mCompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
