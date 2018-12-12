@@ -92,7 +92,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	double CalculateJ3Invariant(const Vector Deviator);
 	void CalculateIntegratedStressVector(Vector &rIntegratedStressVector, const Vector rStressVector, const double Damage)
 	{
-		rIntegratedStressVector = (1.0 - Damage) * rStressVector;
+		noalias(rIntegratedStressVector) = (1.0 - Damage) * rStressVector;
 	}
 	// Lode's angle
 	double CalculateLodeAngle(double J2, double J3);

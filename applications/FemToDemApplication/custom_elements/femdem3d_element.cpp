@@ -1106,7 +1106,7 @@ void FemDem3DElement::IntegrateStressDamageMechanics(
 void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
@@ -1135,9 +1135,9 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 	const double c_max = std::abs(sigma_c);
 	const double sinphi = std::sin(friction_angle);
 
-	const double I1 = this->CalculateI1Invariant(StressVector);
+	const double I1 = this->CalculateI1Invariant(rStressVector);
 	Vector Deviator = ZeroVector(6);
-	this->CalculateDeviatorVector(Deviator, StressVector, I1);
+	this->CalculateDeviatorVector(Deviator, rStressVector, I1);
 	const double J2 = this->CalculateJ2Invariant(Deviator);
 	const double J3 = this->CalculateJ3Invariant(Deviator);
 	const double K1 = 0.5 * (1.0 + alpha_r) - 0.5 * (1.0 - alpha_r) * sinphi;
@@ -1177,14 +1177,14 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 void FemDem3DElement::RankineCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();
 	const double sigma_c = properties[YIELD_STRESS_C];
@@ -1221,7 +1221,7 @@ void FemDem3DElement::RankineCriterion(
 void FemDem3DElement::DruckerPragerCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
@@ -1244,9 +1244,9 @@ void FemDem3DElement::DruckerPragerCriterion(
 		std::cout << "Friction Angle not defined, assumed equal to 32deg " << std::endl;
 	}
 	const double c_max = std::abs(sigma_t * (3.0 + std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0));
-	const double I1 = CalculateI1Invariant(StressVector);
+	const double I1 = CalculateI1Invariant(rStressVector);
 	Vector Deviator = ZeroVector(6);
-	this->CalculateDeviatorVector(Deviator, StressVector, I1);
+	this->CalculateDeviatorVector(Deviator, rStressVector, I1);
 	const double J2 = CalculateJ2Invariant(Deviator);
 	const double A = 1.00 / (Gt * E / (Length * std::pow(sigma_c, 2)) - 0.5);
 	KRATOS_ERROR_IF(A < tolerance) << " 'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
@@ -1281,15 +1281,15 @@ void FemDem3DElement::DruckerPragerCriterion(
 void FemDem3DElement::SimoJuCriterion(
 	double& rThreshold,
 	double& rDamage,
-	const Vector &StrainVector,
-	const Vector &StressVector,
+	const Vector &rStrainVector,
+	const Vector &rStressVector,
 	const int Edge,
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();
 	const double sigma_t = properties[YIELD_STRESS_T];
@@ -1310,12 +1310,12 @@ void FemDem3DElement::SimoJuCriterion(
 
 	// Check SimoJu criterion
 	double uniaxial_stress;
-	if (StrainVector[0] + StrainVector[1] + StrainVector[2] < tolerance) {
+	if (rStrainVector[0] + rStrainVector[1] + rStrainVector[2] < tolerance) {
 		uniaxial_stress = 0.0;
 	} else {
 		double auxf = 0.0;
 		for (unsigned int cont = 0; cont < 6; cont++) {
-			auxf += StrainVector[cont] * StressVector[cont]; // E*S
+			auxf += rStrainVector[cont] * rStressVector[cont]; // E*S
 		}
 		uniaxial_stress = std::sqrt(auxf);
 		uniaxial_stress *= (ere0 * n + ere1);
@@ -1343,14 +1343,14 @@ void FemDem3DElement::SimoJuCriterion(
 void FemDem3DElement::RankineFragileLaw(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStresses(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStresses(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();
 	const double sigma_c = properties[YIELD_STRESS_C];
