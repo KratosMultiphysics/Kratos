@@ -6,7 +6,7 @@ message("**** configuring KratosNvidiaFlexApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_SOURCE_DIR}/applications/DEM_application )
+include_directories( ${CMAKE_SOURCE_DIR}/applications/DEMApplication )
 include_directories( ${NVIDIA_FLEX_ROOT_DIR}/core )
 include_directories( ${NVIDIA_FLEX_ROOT_DIR}/include )
 

@@ -121,10 +121,10 @@ public:
         )
     {
         double I1, J2;
-        array_1d<double, VoigtSize> Deviator(6, 0.0);
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
-        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, Deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
         rEquivalentStress = std::sqrt(3.0 * J2);
     }
@@ -253,19 +253,16 @@ public:
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
 
-	/**
-     * @brief This method returns true if the yield
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns true if the yield surfacecompares with the tension tield stress
      */
     static bool IsWorkingWithTensionThreshold()
     {
         return true;
     }
 
-	/**
-     * @brief This method returns the scaling factor of the
-     * yield surface
-	 * surfacecompares with the tension tield stress
+    /**
+     * @brief This method returns the scaling factor of the yield surface surfacecompares with the tension tield stress
      */
     static double GetScaleFactorTension(const Properties& rMaterialProperties)
     {

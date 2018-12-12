@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -74,13 +74,19 @@ void FlagsPrintOnGaussPoints( GidIO<>& dummy, Kratos::Flags rFlag, std::string r
     dummy.PrintFlagsOnGaussPoints( rFlag, rFlagName, rModelPart, SolutionTag );
 }
 
-void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+void BoolPrintOnGaussPoints( GidIO<>& dummy, const Variable<bool>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void IntPrintOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
+}
+
+void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
@@ -188,8 +194,8 @@ void  AddIOToPython(pybind11::module& m)
 	io_python_interface.attr("WRITE") =IO::WRITE;
 	io_python_interface.attr("APPEND") = IO::APPEND;
 	io_python_interface.attr("IGNORE_VARIABLES_ERROR" ) = IO::IGNORE_VARIABLES_ERROR;
-
-
+  io_python_interface.attr("SKIP_TIMER" ) = IO::SKIP_TIMER;
+  io_python_interface.attr("MESH_ONLY" ) = IO::MESH_ONLY;
 
     py::class_<ModelPartIO, ModelPartIO::Pointer, IO>(
        m, "ModelPartIO")
@@ -252,8 +258,9 @@ void  AddIOToPython(pybind11::module& m)
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
     .def("PrintFlagsOnGaussPoints", FlagsPrintOnGaussPoints)
-    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
+    .def("PrintOnGaussPoints", BoolPrintOnGaussPoints)
     .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
+    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
@@ -274,7 +281,7 @@ void  AddIOToPython(pybind11::module& m)
     .value("GiD_PostAscii", GiD_PostAscii)
     .value("GiD_PostAsciiZipped", GiD_PostAsciiZipped)
     .value("GiD_PostBinary", GiD_PostBinary)
-	.value("GiD_PostHDF5", GiD_PostHDF5)
+    .value("GiD_PostHDF5", GiD_PostHDF5)
     ;
 
     py::enum_<WriteDeformedMeshFlag>(m,"WriteDeformedMeshFlag")

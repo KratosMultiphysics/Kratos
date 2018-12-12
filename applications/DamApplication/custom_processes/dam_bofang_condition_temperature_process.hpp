@@ -244,13 +244,13 @@ class DamBofangConditionTemperatureProcess : public Process
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "BofangConditionTemperatureProcess";
+        return "DamBofangConditionTemperatureProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << "BofangConditionTemperatureProcess";
+        rOStream << "DamBofangConditionTemperatureProcess";
     }
 
     /// Print object's data.
