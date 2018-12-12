@@ -853,8 +853,8 @@ double FemDem2DElement::GetMinAbsValue(const Vector& rArrayValues)
 void FemDem2DElement::IntegrateStressDamageMechanics(
 	double& rThreshold,
 	double &rDamage,
-	const Vector StrainVector,
-	const Vector StressVector,
+	const Vector& rStrainVector,
+	const Vector& rStressVector,
 	const int Edge,
 	const double Length,
 	bool& rIsDamaging)
@@ -863,19 +863,19 @@ void FemDem2DElement::IntegrateStressDamageMechanics(
 
 	if (yield_surface == "ModifiedMohrCoulomb") {
 		this->ModifiedMohrCoulombCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
+			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "SimoJu") {
 		this->SimoJuCriterion(
-			rThreshold, rDamage, StrainVector, StressVector, Edge, Length, rIsDamaging);
+			rThreshold, rDamage, rStrainVector, rStressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "Rankine") {
 		this->RankineCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
+			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "DruckerPrager") {
 		this->DruckerPragerCriterion(
-			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
+			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(
-			rThreshold, rDamage, StressVector, Edge, Length, rIsDamaging);
+			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << " Yield Surface not defined " << std::endl;
 	}
@@ -884,14 +884,14 @@ void FemDem2DElement::IntegrateStressDamageMechanics(
 void FemDem2DElement::ModifiedMohrCoulombCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(2);
-	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();
 	const double sigma_c = properties[YIELD_STRESS_C];
@@ -949,14 +949,14 @@ void FemDem2DElement::ModifiedMohrCoulombCriterion(
 void FemDem2DElement::RankineCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();	
 	const double sigma_c = properties[YIELD_STRESS_C];
@@ -986,14 +986,14 @@ void FemDem2DElement::RankineCriterion(
 void FemDem2DElement::DruckerPragerCriterion(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 
 	const auto& properties = this->GetProperties();		
 	const double sigma_c = properties[YIELD_STRESS_C];
@@ -1046,15 +1046,15 @@ void FemDem2DElement::DruckerPragerCriterion(
 void FemDem2DElement::SimoJuCriterion(
 	double& rThreshold,
 	double &rDamage,
-	const Vector &StrainVector,
-	const Vector &StressVector,
+	const Vector &rStrainVector,
+	const Vector &rStressVector,
 	const int Edge,
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 	const auto& properties = this->GetProperties();
 	const double sigma_t = properties[YIELD_STRESS_T];
 	const double sigma_c = properties[YIELD_STRESS_C];
@@ -1073,12 +1073,12 @@ void FemDem2DElement::SimoJuCriterion(
 	const double ere1 = SumC / SumA;
 	double uniaxial_stress;
 	// Check SimoJu criterion
-	if (StrainVector[0] + StrainVector[1] < tolerance) {
+	if (rStrainVector[0] + rStrainVector[1] < tolerance) {
 		uniaxial_stress = 0;
 	} else {
 		double auxf = 0.0;
 		for (unsigned int cont = 0; cont < 3; cont++) {
-			auxf += StrainVector[cont] * StressVector[cont]; // E*S
+			auxf += rStrainVector[cont] * rStressVector[cont]; // E*S
 		}
 		uniaxial_stress = std::sqrt(auxf);
 		uniaxial_stress *= (ere0 * n + ere1);
@@ -1105,14 +1105,14 @@ void FemDem2DElement::SimoJuCriterion(
 void FemDem2DElement::RankineFragileLaw(
 	double& rThreshold,
 	double &rDamage, 
-	const Vector &StressVector, 
+	const Vector &rStressVector, 
 	const int Edge, 
 	const double Length,
 	bool& rIsDamaging
 	)
 {
 	Vector PrincipalStressVector = ZeroVector(3);
-	this->CalculatePrincipalStress(PrincipalStressVector, StressVector);
+	this->CalculatePrincipalStress(PrincipalStressVector, rStressVector);
 	const auto& properties = this->GetProperties();
 
 	const double sigma_c = properties[YIELD_STRESS_C];

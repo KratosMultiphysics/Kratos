@@ -83,8 +83,8 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	void IntegrateStressDamageMechanics(double &rThreshold,
 										double &Damage, 
-										const Vector StrainVector, 
-										const Vector StressVector, 
+										const Vector& StrainVector, 
+										const Vector& StressVector, 
 										const int cont, 
 										const double L_char, 
 										bool& rIsDamaging);
