@@ -1952,7 +1952,7 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
 {
     if (rVariable == DIVERGENCE){
 
-        auto& rGeom = this->GetGeometry();
+        const auto& rGeom = this->GetGeometry();
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
         const unsigned int num_gauss = IntegrationPoints.size();
 
@@ -1960,9 +1960,9 @@ void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Va
             rValues.resize(num_gauss);
         }
 
-        Vector GaussPtsJDet = ZeroVector(num_gauss);
+        Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
         GeometryData::ShapeFunctionsGradientsType DN_DX;
-        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, GaussPtsJDet, GeometryData::GI_GAUSS_2);
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
 
         for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
 
