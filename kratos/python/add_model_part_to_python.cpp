@@ -634,6 +634,18 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
 }
 
 template<class TDataType>
+bool CommunicatorSynchronizeVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeVariable(ThisVariable);
+}
+
+template<class TDataType>
+bool CommunicatorSynchronizeNonHistoricalVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeNonHistoricalVariable(ThisVariable);
+}
+
+template<class TDataType>
 bool CommunicatorAssembleCurrentData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
 {
     return rCommunicator.AssembleCurrentData(ThisVariable);
@@ -718,6 +730,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("MaxAll", CommunicatorMaxAll<double> )
         .def("ScanSum", CommunicatorScanSum<int> )
         .def("ScanSum", CommunicatorScanSum<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<int> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<array_1d<double,3> > )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Vector> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Matrix> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<int> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<double> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<array_1d<double,3> > )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Vector> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Matrix> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )

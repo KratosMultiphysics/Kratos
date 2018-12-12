@@ -112,12 +112,12 @@ double NewtonianTwoFluid2DLaw::EquivalentStrainRate(ConstitutiveLaw::Parameters&
 
 void NewtonianTwoFluid2DLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NewtonianTwoFluid2DLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian2DLaw )
 }
 
 void NewtonianTwoFluid2DLaw::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NewtonianTwoFluid2DLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian2DLaw )
 }
 
 } // Namespace Kratos
