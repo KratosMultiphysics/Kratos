@@ -72,9 +72,30 @@ namespace Kratos {
 		std::vector<ModelPart::IndexType> condNodes2{ 2, 3};
 		std::vector<ModelPart::IndexType> condNodes3{ 3, 1};
 		rModelPart.CreateNewElement("IncompressibleStressesPotentialFlowElement2D3N", 1, elemNodes1, pProp);
-		rModelPart.CreateNewCondition("IncompressiblePotentialWallCondition2D2N", 1, condNodes1, pProp);
-		rModelPart.CreateNewCondition("IncompressiblePotentialWallCondition2D2N", 2, condNodes2, pProp);
-		rModelPart.CreateNewCondition("IncompressiblePotentialWallCondition2D2N", 3, condNodes3, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 1, condNodes1, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 2, condNodes2, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 3, condNodes3, pProp);
+    }
+	void GenerateElementAlpha(ModelPart& rModelPart)
+    {
+		// Variables addition
+		rModelPart.AddNodalSolutionStepVariable(POSITIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(NEGATIVE_POTENTIAL);
+		rModelPart.AddNodalSolutionStepVariable(WAKE_DISTANCE);
+
+		// Set the element properties
+		Properties::Pointer pProp = rModelPart.pGetProperties(0);
+
+		// Geometry creation
+		CreateNodes(rModelPart);
+		std::vector<ModelPart::IndexType> elemNodes1{ 1, 2, 3 };
+		std::vector<ModelPart::IndexType> condNodes1{ 1, 2};
+		std::vector<ModelPart::IndexType> condNodes2{ 2, 3};
+		std::vector<ModelPart::IndexType> condNodes3{ 3, 1};
+		rModelPart.CreateNewElement("IncompressibleAlphaPotentialFlowElement2D3N", 1, elemNodes1, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 1, condNodes1, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 2, condNodes2, pProp);
+		rModelPart.CreateNewCondition("IncompressibleStressesPotentialWallCondition2D2N", 3, condNodes3, pProp);
     }
 	void GenerateElementStressesHexagon(ModelPart& rModelPart)
     {
@@ -197,14 +218,14 @@ namespace Kratos {
 					RHS_cond(I+NumNodes) += rhs(i_node);    
 				}
      		}
-			KRATOS_WATCH(rhs)
+			// KRATOS_WATCH(rhs)
 		}
 		std::cout<< "Incompressible_master" << std::endl;
-		KRATOS_WATCH(LHS);
+		// KRATOS_WATCH(LHS);
 
-		KRATOS_WATCH(RHS);
+		// KRATOS_WATCH(RHS);
 	
-    	KRATOS_WATCH(RHS_cond);
+    	// KRATOS_WATCH(RHS_cond);
 
 		KRATOS_CHECK_NEAR(RHS(0), -RHS_cond(0), 1e-7);
 		KRATOS_CHECK_NEAR(RHS(1), -RHS_cond(1), 1e-7);
@@ -227,8 +248,8 @@ namespace Kratos {
 			potential(i) = pElement -> GetGeometry()[i].X()+pElement->GetGeometry()[i].Y();
 		}
 
-		distances(0) = 4.0;
-		distances(1) = -4.0;
+		distances(0) = 1.0;
+		distances(1) = -1.0;
 		distances(2) = -1.0;
 
 		for (unsigned int i = 0; i < 3; i++){
@@ -287,6 +308,93 @@ namespace Kratos {
      		}
 		}
 		std::cout<< "Incompressible_stresses" << std::endl;
+		KRATOS_WATCH(LHS);
+
+		KRATOS_WATCH(RHS);
+	
+    	KRATOS_WATCH(RHS_cond);
+
+		KRATOS_CHECK_NEAR(RHS(0), -RHS_cond(0), 1e-7);
+		KRATOS_CHECK_NEAR(RHS(1), -RHS_cond(1), 1e-7);
+		KRATOS_CHECK_NEAR(RHS(2), -RHS_cond(2), 1e-7);
+    }
+	  KRATOS_TEST_CASE_IN_SUITE(CompressiblePotentialFlowElement_CalculateLocalSystemAlpha, CompressiblePotentialApplicationFastSuite)
+    {
+      	std::cout<<std::endl;
+		Model this_model;
+		ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+		GenerateElementAlpha(model_part);
+
+		Element::Pointer pElement = model_part.pGetElement(1);
+		model_part.GetProcessInfo().SetValue(TEMPERATURE,1.0);
+		// Define the nodal values
+		Vector potential(3);
+		Vector distances(3);
+    	int NumNodes = 3;
+		for (unsigned int i = 0; i < 3; i++){
+			potential(i) = pElement -> GetGeometry()[i].X()+pElement->GetGeometry()[i].Y();
+		}
+
+		distances(0) = 1.0;
+		distances(1) = -1.0;
+		distances(2) = -1.0;
+
+		for (unsigned int i = 0; i < 3; i++){
+      	if(distances[i] > 0)
+      	 	pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i];      	
+      	else
+        	pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i];
+		
+      	pElement->GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE) = distances(i);
+    	}
+		//negative part - sign is opposite to the previous case
+		for (unsigned int i = 0; i < 3; i++){
+			if(distances[i] < 0)
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL)= potential[i]+5;
+			else
+				pElement->GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL)= potential[i]+5;			
+		}
+		pElement -> GetValue(ELEMENTAL_DISTANCES) = distances;
+		pElement -> Set(MARKER);
+
+		// Compute RHS and LHS
+		Vector RHS = ZeroVector(6);
+    	Vector RHS_cond = ZeroVector(6);
+		Matrix LHS = ZeroMatrix(6, 6);
+
+		Vector vinf = ZeroVector(3);
+		vinf(0)=1.0;
+    	vinf(1)=1.0;
+		
+		pElement->CalculateLocalSystem(LHS, RHS, model_part.GetProcessInfo());
+
+		for (unsigned int i_cond=1; i_cond<4;i_cond++){			
+			Condition::Pointer pCondition = model_part.pGetCondition(i_cond);
+			Matrix lhs = ZeroMatrix(2,2);
+			Vector rhs = ZeroVector(2);
+     	 	if ((i_cond ==1) || (i_cond == 3)){
+				pCondition -> Set(STRUCTURE);
+			}
+			pCondition -> GetValue(VELOCITY_INFINITY) = vinf;
+			pCondition -> CalculateLocalSystem(lhs,rhs,model_part.GetProcessInfo());
+      		if (pCondition->Is(STRUCTURE)){        
+        		int I_0 = (pCondition -> GetGeometry()[0].Id())-1;
+        		int I_1 = (pCondition -> GetGeometry()[1].Id())-1;        
+				RHS_cond(I_0) += rhs(0);
+				RHS_cond(I_1) += rhs(1);
+				RHS_cond(I_0+NumNodes) += rhs(2);
+				RHS_cond(I_1+NumNodes) += rhs(3);        
+			}else{
+				for (unsigned int i_node=0;i_node<2;i_node++){
+				int I = (pCondition -> GetGeometry()[i_node].Id())-1;
+				if(distances[I] > 0)
+					RHS_cond(I) += rhs(i_node);          
+				else            
+					RHS_cond(I+NumNodes) += rhs(i_node);    
+				}
+     		}
+		}
+		std::cout<< "Incompressible_alpha" << std::endl;
 		KRATOS_WATCH(LHS);
 
 		KRATOS_WATCH(RHS);
