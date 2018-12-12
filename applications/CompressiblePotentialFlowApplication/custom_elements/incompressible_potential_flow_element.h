@@ -222,14 +222,9 @@ class IncompressiblePotentialFlowElement : public Element
         EquationIdVectorType &rResult,
         ProcessInfo &CurrentProcessInfo) override;
 
-    /**
-     * @brief GetDofList Returns a list of the element's Dofs.
-     * @param rElementalDofList List of DOFs. (output)
-     * @param rCurrentProcessInfo Current ProcessInfo instance. (input)
-     */
     void GetDofList(
-        DofsVectorType &rElementalDofList,
-        ProcessInfo &CurrentProcessInfo) override;
+        DofsVectorType& rElementalDofList,
+        ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 

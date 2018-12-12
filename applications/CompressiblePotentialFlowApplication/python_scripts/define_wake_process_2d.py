@@ -107,7 +107,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 wake_element = self.SelectWakeElements(distances_to_wake)
 
                 if(wake_element):
-                    elem.Set(KratosMultiphysics.MARKER, True)
+                    elem.SetValue(CPFApp.WAKE, True)
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
 
@@ -224,7 +224,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         for elem in self.trailing_edge_model_part.Elements:
             if(elem.GetGeometry().Center().X < maximum_x_coordinate):
-                elem.Set(KratosMultiphysics.MARKER, False)
+                elem.SetValue(CPFApp.WAKE, False)
             else:
                 elem.Set(KratosMultiphysics.STRUCTURE)
                 elem.SetValue(CPFApp.KUTTA, False)

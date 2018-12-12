@@ -3,10 +3,10 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 # Importing the Kratos Library
 import KratosMultiphysics
 
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CompressiblePotentialFlowApplication
+import KratosMultiphysics.CompressiblePotentialFlowApplication as KCPFApp
 
 # Importing the base class
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 def CreateSolver(model, custom_settings):
@@ -80,35 +80,45 @@ class LaplacianSolver(PythonSolver):
         print("Construction of LaplacianSolver finished")
 
     def AddVariables(self):
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.VELOCITY_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.PRESSURE_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.UPPER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.LOWER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.UPPER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.LOWER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.POTENTIAL_JUMP)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        # Degrees of freedom
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
+
+        # Flow field magnitudes
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_INFINITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.PRESSURE_LOWER)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.POTENTIAL_JUMP)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ENERGY_NORM_REFERENCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.POTENTIAL_ENERGY_REFERENCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_ENERGY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_ENERGY)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ENERGY_NORM_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.POTENTIAL_ENERGY_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.AIRFOIL)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.DECOUPLED_TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.KUTTA)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.DEACTIVATED_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ALL_TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(CompressiblePotentialFlowApplication.ZERO_VELOCITY_CONDITION)
-        
+
+        # Markers
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.KUTTA)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.UPPER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LOWER_SURFACE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.UPPER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LOWER_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AIRFOIL)
+
+        # Kratos variables
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
+
+        #To be removed
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.DEACTIVATED_WAKE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ALL_TRAILING_EDGE)
+        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ZERO_VELOCITY_CONDITION)
+
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(CompressiblePotentialFlowApplication.VELOCITY_POTENTIAL, self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(CompressiblePotentialFlowApplication.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

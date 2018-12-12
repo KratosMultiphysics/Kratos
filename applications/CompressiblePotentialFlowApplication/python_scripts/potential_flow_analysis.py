@@ -12,7 +12,7 @@ except ImportError:
     KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class PotentialFlowAnalysis(AnalysisStage):
     '''Main script for potential flow simulations.'''
@@ -32,12 +32,12 @@ class PotentialFlowAnalysis(AnalysisStage):
             KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", warn_msg)
 
         if not solver_settings.Has("domain_size") and project_parameters["problem_data"].Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("PotentialFlowAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name") and project_parameters["problem_data"].Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("PotentialFlowAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
@@ -61,7 +61,7 @@ class PotentialFlowAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("PotentialFlowAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", info_msg)
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -77,7 +77,7 @@ class PotentialFlowAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("PotentialFlowAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("PotentialFlowAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

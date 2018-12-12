@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Iñigo Lopez and Riccardo Rossi
+//  Main authors:    Inigo Lopez and Riccardo Rossi
 //
 
 #include "incompressible_potential_flow_element.h"
@@ -24,7 +24,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     VectorType &rRightHandSideVector,
     ProcessInfo &rCurrentProcessInfo)
 {
-    if (this->IsNot(MARKER)) // Normal element (non-wake) - eventually an embedded
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
+
+    if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
     else // Wake element
         CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
@@ -45,12 +48,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType &rResult,
     ProcessInfo &CurrentProcessInfo)
 {
-    if (this->IsNot(MARKER)) // Normal element
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
+
+    if (wake == 0) // Normal element
     {
         if (rResult.size() != NumNodes)
             rResult.resize(NumNodes, false);
 
-        const IncompressiblePotentialFlowElement &r_this = *this;
         const int &kutta = r_this.GetValue(KUTTA);
 
         if (kutta == 0)
@@ -72,12 +77,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(
     DofsVectorType &rElementalDofList,
     ProcessInfo &CurrentProcessInfo)
 {
-    if (this->IsNot(MARKER)) //Normal element
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
+
+    if (wake == 0) //Normal element
     {
         if (rElementalDofList.size() != NumNodes)
             rElementalDofList.resize(NumNodes);
 
-        const IncompressiblePotentialFlowElement &r_this = *this;
         const int &kutta = r_this.GetValue(KUTTA);
 
         if (kutta == 0)
@@ -102,7 +109,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(
     if ((this)->IsDefined(ACTIVE))
         active = (this)->Is(ACTIVE);
 
-    if (this->Is(MARKER) && active == true)
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
+
+    if (wake != 0 && active == true)
     {
         CheckWakeCondition();
         ComputePotentialJump(rCurrentProcessInfo);
@@ -118,20 +128,20 @@ int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo &
 {
     KRATOS_TRY
 
-    if (this->Id() < 1)
-        KRATOS_THROW_ERROR(std::logic_error, "IncompressiblePotentialFlowElement found with Id 0 or negative", "")
-
-    if (this->GetGeometry().Area() <= 0)
-    {
-        std::cout << "error on IncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
-        KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
+    // Generic geometry check
+    int out = Element::Check(rCurrentProcessInfo);
+    if (out != 0) {
+        return out;
     }
 
-    for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
-        if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
-            KRATOS_THROW_ERROR(std::invalid_argument, "missing variable VELOCITY_POTENTIAL on node ", this->GetGeometry()[i].Id())
+    KRATOS_ERROR_IF(GetGeometry().Area() <= 0.0) << this->Id() << "Area cannot be less than or equal to 0" << std::endl;
 
-    return 0;
+    for (unsigned int i = 0; i < this->GetGeometry().size(); i++){
+        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
+            << "missing variable VELOCITY_POTENTIAL on node " << this->GetGeometry()[i].Id() << std::endl;
+    }
+
+    return out;
 
     KRATOS_CATCH("");
 }
@@ -147,7 +157,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
     if (rValues.size() != 1)
         rValues.resize(1);
 
-    if (rVariable == PRESSURE)
+        if (rVariable == PRESSURE)
     {
         double p = 0.0;
         p = ComputePressureUpper(rCurrentProcessInfo);
@@ -159,16 +169,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
         p = ComputePressureLower(rCurrentProcessInfo);
         rValues[0] = p;
     }
-    else if (rVariable == THICKNESS)
+    else if (rVariable == WAKE)
     {
-        if (this->Is(THERMAL))
-            rValues[0] = 30.0;
-        else if (this->Is(MODIFIED))
-            rValues[0] = 20.0;
-        else if (this->Is(MARKER))
-            rValues[0] = 10.0;
-        else
-            rValues[0] = 0.0;
+        const IncompressiblePotentialFlowElement &r_this = *this;
+        rValues[0] = r_this.GetValue(WAKE);
     }
 }
 
@@ -564,7 +568,10 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     double internal_energy = 0.0;
     array_1d<double, Dim> velocity;
 
-    if (this->IsNot(MARKER)) // Normal element (non-wake) - eventually an embedded
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
+
+    if (wake == 0) // Normal element (non-wake) - eventually an embedded
         ComputeVelocityNormalElement(velocity);
     else // Wake element
         ComputeVelocityUpperWakeElement(velocity);
@@ -638,13 +645,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(arr
 {
     velocity.clear();
 
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
 
-    if (this->IsNot(MARKER) && active == true)
+    if (wake == 0)
         ComputeVelocityNormalElement(velocity);
-    else if (active == true && this->Is(MARKER))
+    else
         ComputeVelocityUpperWakeElement(velocity);
 }
 
@@ -653,13 +659,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(arr
 {
     velocity.clear();
 
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
 
-    if (this->IsNot(MARKER) && active == true)
+    if (wake == 0)
         ComputeVelocityNormalElement(velocity);
-    else if (active == true && this->Is(MARKER))
+    else
         ComputeVelocityLowerWakeElement(velocity);
 }
 
@@ -713,13 +718,12 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(c
 {
     double pressure = 0.0;
 
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
 
-    if (active && !this->Is(MARKER))
+    if (wake == 0)
         pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-    else if (active == true && this->Is(MARKER))
+    else
         pressure = ComputePressureUpperWakeElement(rCurrentProcessInfo);
 
     return pressure;
@@ -730,13 +734,12 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(c
 {
     double pressure = 0.0;
 
-    bool active = true;
-    if ((this)->IsDefined(ACTIVE))
-        active = (this)->Is(ACTIVE);
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &wake = r_this.GetValue(WAKE);
 
-    if (active && !this->Is(MARKER))
+    if (wake == 0)
         pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-    else if (active == true && this->Is(MARKER))
+    else
         pressure = ComputePressureLowerWakeElement(rCurrentProcessInfo);
 
     return pressure;
