@@ -426,8 +426,8 @@ class ConstructionUtility
         const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
 
         // Getting CheckTemperature Values
-        double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
-        double minimum_temperature = CheckTemperatureParameters["minimum_temperature"].GetDouble();
+        const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
+        const double minimum_temperature = CheckTemperatureParameters["minimum_temperature"].GetDouble();
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -438,11 +438,15 @@ class ConstructionUtility
 
             if (it->Is(ACTIVE) && it->IsNot(SOLID))
             {
-                if (it->FastGetSolutionStepValue(TEMPERATURE) > (it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment))
+                double maximum_temperature = it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment;
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
                 {
-                    it->FastGetSolutionStepValue(TEMPERATURE) = it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment;
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
                 }
-                if (it->FastGetSolutionStepValue(TEMPERATURE) < minimum_temperature){
+                else if (current_temperature < minimum_temperature)
+                {
                     it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
                 }
             }
@@ -797,9 +801,6 @@ class ConstructionUtility
     std::string mSourceType;
     bool mActivateSoilPart;
     bool mActivateExistingPart;
-//     bool mActivateCheckTemp;
-//     double mMaximumTempIncr;
-//     double mMinmmumTemp;
     double mReferenceCoordinate;
     double mHighestBlockHeight;
     double mHeight;
