@@ -97,7 +97,11 @@ void UniformRefinementUtility::Refine(int& rFinalRefinementLevel)
     if (mrModelPart.Nodes().size() == 0)
         KRATOS_WARNING("UniformRefinementUtility") << "Attempting to refine an empty model part" << std::endl;
     else
+    {
         mDofs = mrModelPart.NodesBegin()->GetDofs();
+        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
+            it_dof->FreeDof();
+    }
 
     // Get the lowest refinement level
     int minimum_divisions_level = 1e6;
@@ -239,6 +243,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
         // Get the refinement level of the origin element
         int step_divisions_level = rDivision + 1;
+        IndexType collection_tag = mElementsTags[i_element->Id()];
 
         // Get the geometry
         Geometry<NodeType>& geom = i_element->GetGeometry();
@@ -251,8 +256,8 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
+
             // Split the triangle
             PointerVector<NodeType> sub_element_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -269,8 +274,8 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
+            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the quadrilateral
             PointerVector<NodeType> sub_element_nodes(4);    // a quadrilateral is defined by 4 nodes
@@ -288,7 +293,7 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the tetrahedra
             PointerVector<NodeType> sub_element_nodes(4);    // a tetrahedra is defined by 4 nodes
@@ -306,10 +311,10 @@ void UniformRefinementUtility::ExecuteDivision(
 
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
             for (auto face : geom.Faces())
-                middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInFace(face, step_divisions_level, rTagNodes, collection_tag);
+            middle_nodes[i_node++] = GetNodeInBody(geom, step_divisions_level, rTagNodes, collection_tag);
 
             // Split the hexahedra
             PointerVector<NodeType> sub_element_nodes(8);    // an hexahedra is defined by 8 nodes
@@ -339,13 +344,14 @@ void UniformRefinementUtility::ExecuteDivision(
 
         // Get the refinement level of the origin condition
         int step_divisions_level = rDivision + 1;
+        IndexType collection_tag = mConditionsTags[i_condition->Id()];
 
         // Get the geometry
         Geometry<NodeType>& geom = i_condition->GetGeometry();
 
         if (geom.GetGeometryType() == GeometryData::Kratos_Line2D2)
         {
-            NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level, rTagNodes);
+            NodeType::Pointer middle_node = GetNodeInEdge(geom, step_divisions_level, rTagNodes, collection_tag);
 
             // Create the sub conditions
             PointerVector<NodeType> sub_condition_nodes(2);
@@ -362,7 +368,7 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(3);
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
 
             PointerVector<NodeType> sub_condition_nodes(3);    // a triangle is defined by 3 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub triangles
@@ -378,8 +384,8 @@ void UniformRefinementUtility::ExecuteDivision(
             std::vector<NodeType::Pointer> middle_nodes(5);
             // Loop the edges to get or create the middle nodes
             for (auto edge : geom.Edges())
-                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes);
-            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes);
+                middle_nodes[i_node++] = GetNodeInEdge(edge, step_divisions_level, rTagNodes, collection_tag);
+            middle_nodes[i_node++] = GetNodeInFace(geom, step_divisions_level, rTagNodes, collection_tag);
 
             PointerVector<NodeType> sub_condition_nodes(4);    // a quadrilateral is defined by 4 nodes
             for (int position = 0; position < 4; position++) // there are 4 sub quadrilaterals
@@ -406,7 +412,8 @@ void UniformRefinementUtility::ExecuteDivision(
 typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions,
-    IndexIndexVectorMapType& rTagNodes
+    IndexIndexVectorMapType& rTagNodes,
+    const IndexType& rCollectionTag
 )
 {
     // Initialize the output
@@ -424,7 +431,14 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
     }
     else
     {
-        middle_node = CreateNodeInEdge(rEdge, rNumberOfDivisions, node_key, rTagNodes);
+        middle_node = CreateNodeInEdge(rEdge, rNumberOfDivisions, node_key);
+    }
+
+    // Store the created node on the taps map in order to later add it to the sub model parts
+    if (mNodesTags[middle_node->Id()] != rCollectionTag)
+    {
+        rTagNodes[rCollectionTag].push_back(middle_node->Id());
+        mNodesTags[middle_node->Id()] = rCollectionTag;
     }
 
     return middle_node;
@@ -435,8 +449,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInEdge(
 typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
     const EdgeType& rEdge,
     const int& rNumberOfDivisions,
-    const EdgeKeyType& rNodeKey,
-    IndexIndexVectorMapType& rTagNodes
+    const EdgeKeyType& rNodeKey
 )
 {
     // Initialize the output
@@ -465,11 +478,6 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
     for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         middle_node->pAddDof(*it_dof);
 
-    // Store the created node on the taps map in order to later add it to the sub model parts
-    IndexType tag = mNodesTags[rEdge(0)->Id()];
-    rTagNodes[tag].push_back(middle_node->Id());
-    mNodesTags[middle_node->Id()] = tag;
-
     return middle_node;
 }
 
@@ -478,7 +486,8 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInEdge(
 typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions,
-    IndexIndexVectorMapType& rTagNodes
+    IndexIndexVectorMapType& rTagNodes,
+    const IndexType& rCollectionTag
 )
 {
     // Initialize the output
@@ -496,7 +505,14 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
     }
     else
     {
-        middle_node = CreateNodeInFace(rFace, rNumberOfDivisions, node_key, rTagNodes);
+        middle_node = CreateNodeInFace(rFace, rNumberOfDivisions, node_key);
+    }
+
+    // Store the created node on the taps map in order to later add it to the sub model parts
+    if (mNodesTags[middle_node->Id()] != rCollectionTag)
+    {
+        rTagNodes[rCollectionTag].push_back(middle_node->Id());
+        mNodesTags[middle_node->Id()] = rCollectionTag;
     }
 
     return middle_node;
@@ -507,8 +523,7 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInFace(
 typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
     const FaceType& rFace,
     const int& rNumberOfDivisions,
-    const FaceKeyType& rNodeKey,
-    IndexIndexVectorMapType& rTagNodes
+    const FaceKeyType& rNodeKey
 )
 {
     // Initialize the output
@@ -537,11 +552,6 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
     for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         middle_node->pAddDof(*it_dof);
 
-    // Store the created node on the tags map in order to later add it to the sub model parts
-    IndexType tag = mNodesTags[rFace(0)->Id()];
-    rTagNodes[tag].push_back(middle_node->Id());
-    mNodesTags[middle_node->Id()] = tag;
-
     return middle_node;
 }
 
@@ -550,18 +560,19 @@ typename NodeType::Pointer UniformRefinementUtility::CreateNodeInFace(
 typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
     const BodyType& rBody,
     const int& rNumberOfDivisions,
-    IndexIndexVectorMapType& rTagNodes
+    IndexIndexVectorMapType& rTagNodes,
+    const IndexType& rCollectionTag
 )
 {
     // Initialize the output
     NodeType::Pointer middle_node;
 
     // Create the new node
-    const double new_x = 0.125*rBody(0)->X() + 0.125*rBody(1)->X() + 0.125*rBody(2)->X() + 
+    const double new_x = 0.125*rBody(0)->X() + 0.125*rBody(1)->X() + 0.125*rBody(2)->X() +
         0.125*rBody(3)->X() + 0.125*rBody(4)->X() + 0.125*rBody(5)->X() + 0.125*rBody(6)->X() + 0.125*rBody(7)->X();
-    const double new_y = 0.125*rBody(0)->Y() + 0.125*rBody(1)->Y() + 0.125*rBody(2)->Y() + 
+    const double new_y = 0.125*rBody(0)->Y() + 0.125*rBody(1)->Y() + 0.125*rBody(2)->Y() +
         0.125*rBody(3)->Y() + 0.125*rBody(4)->Y() + 0.125*rBody(5)->Y() + 0.125*rBody(6)->Y() + 0.125*rBody(7)->Y();
-    const double new_z = 0.125*rBody(0)->Z() + 0.125*rBody(1)->Z() + 0.125*rBody(2)->Z() + 
+    const double new_z = 0.125*rBody(0)->Z() + 0.125*rBody(1)->Z() + 0.125*rBody(2)->Z() +
         0.125*rBody(3)->Z() + 0.125*rBody(4)->Z() + 0.125*rBody(5)->Z() + 0.125*rBody(6)->Z() + 0.125*rBody(7)->Z();
     middle_node = mrModelPart.CreateNewNode(++mLastNodeId, new_x, new_y, new_z);
 
@@ -580,9 +591,9 @@ typename NodeType::Pointer UniformRefinementUtility::GetNodeInBody(
         middle_node->pAddDof(*it_dof);
 
     // Store the created node on the tags map in order to later add it to the sub model parts
-    IndexType tag = mNodesTags[rBody(0)->Id()];
-    rTagNodes[tag].push_back(middle_node->Id());
-    mNodesTags[middle_node->Id()] = tag;
+    // IndexType tag = mNodesTags[rBody(0)->Id()];
+    rTagNodes[rCollectionTag].push_back(middle_node->Id());
+    mNodesTags[middle_node->Id()] = rCollectionTag;
 
     return middle_node;
 }

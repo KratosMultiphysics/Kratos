@@ -144,8 +144,8 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(final_conds, this_model_part.NumberOfConditions());
 
             // Check the number of entities in the first sub model part
-            // final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[1]-1)*std::pow(2,refinement_level)+1);
-            // KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_1.NumberOfNodes());
+            final_nodes = (std::pow(2,refinement_level)+1) * ((0.5*initial_nodes[1]-1)*std::pow(2,refinement_level)+1);
+            KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_1.NumberOfNodes());
 
             final_elems = initial_elems[1] * std::pow(4,refinement_level);
             KRATOS_CHECK_EQUAL(final_elems, r_sub_model_part_1.NumberOfElements());
@@ -154,8 +154,8 @@ namespace Kratos
             KRATOS_CHECK_EQUAL(final_conds, r_sub_model_part_1.NumberOfConditions());
 
             // Check the number of entities in the second sub model part
-            // final_nodes = (std::pow(2,refinement_level)+1);
-            // KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_2.NumberOfNodes());
+            final_nodes = (std::pow(2,refinement_level)+1);
+            KRATOS_CHECK_EQUAL(final_nodes, r_sub_model_part_2.NumberOfNodes());
 
             final_elems = initial_elems[2] * std::pow(4,refinement_level);
             KRATOS_CHECK_EQUAL(final_elems, r_sub_model_part_2.NumberOfElements());
