@@ -85,22 +85,17 @@ class IncompressiblePotentialFlowElement : public Element
     /**
      * @param NewId Index number of the new element (optional)
      */
-    IncompressiblePotentialFlowElement(
-        IndexType NewId = 0){};
+    IncompressiblePotentialFlowElement(IndexType NewId = 0){};
 
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(
-        IndexType NewId,
-        const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes){};
+    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes){};
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    IncompressiblePotentialFlowElement(IndexType NewId,GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
 
     /**
      * Constructor using Properties
@@ -209,6 +204,16 @@ class IncompressiblePotentialFlowElement : public Element
         ProcessInfo &rCurrentProcessInfo) override;
 
     /**
+     * This is called during the assembling process in order
+     * to calculate the elemental right hand side vector only
+     * @param rRightHandSideVector: the elemental right hand side vector (output)
+     * @param rCurrentProcessInfo: the current process info instance (input)
+     */
+    void CalculateRightHandSide(
+        VectorType &rRightHandSideVector,
+        ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
      * @brief EquationIdVector Returns the global system rows corresponding to each local row.
      * @param rResult rResult[i] is the global index of local row i (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
@@ -226,23 +231,27 @@ class IncompressiblePotentialFlowElement : public Element
         DofsVectorType &rElementalDofList,
         ProcessInfo &CurrentProcessInfo) override;
 
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateRightHandSide(
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override
-    {
-        //TODO: improve speed
-        Matrix tmp;
-        CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-    }
+    void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(
-        ProcessInfo &rCurrentProcessInfo) override;
+    ///@}
+    ///@name Access
+    ///@{
+
+    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
+                                     std::vector<double> &rValues,
+                                     const ProcessInfo &rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<int> &rVariable,
+                                     std::vector<int> &rValues,
+                                     const ProcessInfo &rCurrentProcessInfo) override;
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>> &rVariable,
+                                     std::vector<array_1d<double, 3>> &rValues,
+                                     const ProcessInfo &rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
 
     /**
      * This method provides the place to perform checks on the completeness of the input
@@ -253,146 +262,20 @@ class IncompressiblePotentialFlowElement : public Element
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo &rCurrentProcessInfo) override
-    {
-
-        KRATOS_TRY
-
-        if (this->Id() < 1)
-        {
-            KRATOS_THROW_ERROR(std::logic_error, "IncompressiblePotentialFlowElement found with Id 0 or negative", "")
-        }
-
-        if (this->GetGeometry().Area() <= 0)
-        {
-            std::cout << "error on IncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
-            KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
-        }
-
-        for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
-        {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_FACE_PRESSURE on node ", this->GetGeometry()[i].Id())
-        }
-
-        return 0;
-
-        KRATOS_CATCH("");
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override
-    {
-        if (rValues.size() != 1)
-            rValues.resize(1);
-
-        if (rVariable == PRESSURE)
-        {
-            double p = 0.0;
-            p = ComputePressureUpper(rCurrentProcessInfo);
-            rValues[0] = p;
-        }
-        else if (rVariable == PRESSURE_LOWER)
-        {
-            double p = 0.0;
-            p = ComputePressureLower(rCurrentProcessInfo);
-            rValues[0] = p;
-        }
-        else if (rVariable == THICKNESS)
-        {
-            if (this->Is(THERMAL))
-                rValues[0] = 30.0;
-            else if (this->Is(MODIFIED))
-                rValues[0] = 20.0;
-            else if (this->Is(MARKER))
-                rValues[0] = 10.0;
-            else
-                rValues[0] = 0.0;
-        }
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<int> &rVariable,
-                                     std::vector<int> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override
-    {
-        if (rValues.size() != 1)
-            rValues.resize(1);
-
-        if(rVariable == TRAILING_EDGE)
-            rValues[0] = this->GetValue(TRAILING_EDGE);
-        else if(rVariable == KUTTA)
-            rValues[0] = this->GetValue(KUTTA);
-        else if(rVariable == ALL_TRAILING_EDGE)
-            rValues[0] = this->GetValue(ALL_TRAILING_EDGE);
-        else if(rVariable == ZERO_VELOCITY_CONDITION)
-            rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
-        else if(rVariable == TRAILING_EDGE_ELEMENT)
-            rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
-        else if(rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
-            rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>> &rVariable,
-                                     std::vector<array_1d<double, 3>> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override
-    {
-        if (rValues.size() != 1)
-            rValues.resize(1);
-
-        if (rVariable == VELOCITY)
-        {
-            array_1d<double, 3> v(3, 0.0);
-            array_1d<double, Dim> vaux;
-            ComputeVelocityUpper(vaux);
-            for (unsigned int k = 0; k < Dim; k++)
-                v[k] = vaux[k];
-            rValues[0] = v;
-        }
-        else if (rVariable == VELOCITY_LOWER)
-        {
-            array_1d<double, 3> v(3, 0.0);
-            array_1d<double, Dim> vaux;
-            ComputeVelocityLower(vaux);
-            for (unsigned int k = 0; k < Dim; k++)
-                v[k] = vaux[k];
-            rValues[0] = v;
-        }
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
+    int Check(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "IncompressiblePotentialFlowElement #" << Id();
-        return buffer.str();
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-
-    void PrintInfo(std::ostream &rOStream) const override
-    {
-        rOStream << "IncompressiblePotentialFlowElement #" << Id();
-    }
+    void PrintInfo(std::ostream &rOStream) const override;
 
     /// Print object's data.
-
-    void PrintData(std::ostream &rOStream) const override
-    {
-        pGetGeometry()->PrintData(rOStream);
-    }
+    void PrintData(std::ostream &rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -413,11 +296,11 @@ class IncompressiblePotentialFlowElement : public Element
     ///@{
     void GetWakeDistances(array_1d<double, NumNodes> &distances);
 
-    void EquationIdVectorNormalElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorNormalElement(EquationIdVectorType &rResult);
 
-    void EquationIdVectorKuttaElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorKuttaElement(EquationIdVectorType &rResult);
 
-    void EquationIdVectorWakeElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorWakeElement(EquationIdVectorType &rResult);
 
     void GetDofListNormalElement(DofsVectorType &rElementalDofList);
 
@@ -460,244 +343,39 @@ class IncompressiblePotentialFlowElement : public Element
         const ElementalData<NumNodes, Dim> &data,
         unsigned int &row);
 
-    void ComputeRHSGaussPointContribution(
-        const double weight,
-        Vector &rhs,
-        const ElementalData<NumNodes, Dim> &data)
-    {
-        array_1d<double, Dim> grad = prod(trans(data.DN_DX), data.phis);
-        noalias(rhs) -= weight * prod(data.DN_DX, grad);
-    }
-
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes> &phis);
-    
-    void GetValuesOnSplitElement(Vector &split_element_values, const array_1d<double, NumNodes> &distances)
-    {
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            if (distances[i] > 0)
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-            else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-        }
-
-        //negative part - sign is opposite to the previous case
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            if (distances[i] < 0)
-                split_element_values[NumNodes + i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-            else
-                split_element_values[NumNodes + i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-        }
-    }
-
-    void ComputeVelocityUpper(array_1d<double, Dim> &velocity)
-    {
-        velocity.clear();
-
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (this->IsNot(MARKER) && active == true)
-            ComputeVelocityNormalElement(velocity);
-        else if (active == true && this->Is(MARKER))
-            ComputeVelocityUpperWakeElement(velocity);
-    }
-
-    void ComputeVelocityLower(array_1d<double, Dim> &velocity)
-    {
-        velocity.clear();
-
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (this->IsNot(MARKER) && active == true)
-            ComputeVelocityNormalElement(velocity);
-        else if (active == true && this->Is(MARKER))
-            ComputeVelocityLowerWakeElement(velocity);
-    }
-
-    void ComputeVelocityNormalElement(array_1d<double, Dim> &velocity)
-    {
-        ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        const IncompressiblePotentialFlowElement &r_this = *this;
-        const int &kutta = r_this.GetValue(KUTTA);
-
-        if(kutta == 0)
-        {
-            //gather nodal data
-            for (unsigned int i = 0; i < NumNodes; i++)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-        }
-        else
-        {
-            // array_1d<double, NumNodes> distances;
-            // GetWakeDistances(distances);
-            //taking only negative part
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if(!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                else
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-            }
-        }
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-    }
-
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim> &velocity)
-    {
-        ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        array_1d<double, NumNodes> distances;
-        GetWakeDistances(distances);
-
-        //taking only positive part
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-            else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-        }
-
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-    }
-
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim> &velocity)
-    {
-        ElementalData<NumNodes, Dim> data;
-
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        array_1d<double, NumNodes> distances;
-        GetWakeDistances(distances);
-
-        if (this->Is(ISOLATED))
-        {
-            //taking only negative part
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] < 0)
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                else
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NODAL_H);
-            }
-        }
-        else
-        {
-            //taking only negative part
-            for (unsigned int i = 0; i < NumNodes; i++)
-            {
-                if (distances[i] < 0)
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                else
-                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-            }
-        }
-
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-    }
-
     void CheckWakeCondition();
+
     void ComputePotentialJump(ProcessInfo &rCurrentProcessInfo);
+
     void ComputeElementInternalEnergy();
 
-    double ComputePressureUpper(const ProcessInfo &rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes> &phis);
 
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
+    void GetPotentialOnWakeElement(Vector &split_element_values, const array_1d<double, NumNodes> &distances);
 
-        if (active && !this->Is(MARKER))
-            pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-        else if (active == true && this->Is(MARKER))
-            pressure = ComputePressureUpperWakeElement(rCurrentProcessInfo);
+    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes> &upper_phis, const array_1d<double, NumNodes> &distances);
 
-        return pressure;
-    }
+    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes> &lower_phis, const array_1d<double, NumNodes> &distances);
 
-    double ComputePressureLower(const ProcessInfo &rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
+    void ComputeVelocityUpper(array_1d<double, Dim> &velocity);
 
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
+    void ComputeVelocityLower(array_1d<double, Dim> &velocity);
 
-        if (active && !this->Is(MARKER))
-            pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-        else if (active == true && this->Is(MARKER))
-            pressure = ComputePressureLowerWakeElement(rCurrentProcessInfo);
+    void ComputeVelocityNormalElement(array_1d<double, Dim> &velocity);
 
-        return pressure;
-    }
+    void ComputeVelocityUpperWakeElement(array_1d<double, Dim> &velocity);
 
-    double ComputePressureNormalElement(const ProcessInfo &rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+    void ComputeVelocityLowerWakeElement(array_1d<double, Dim> &velocity);
 
-        KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-            << "Error on element -> " << this->Id() << "\n"
-            << "vinfinity_norm2 must be larger than zero." << std::endl;
+    double ComputePressureUpper(const ProcessInfo &rCurrentProcessInfo);
 
-        array_1d<double, Dim> v;
-        ComputeVelocityNormalElement(v);
+    double ComputePressureLower(const ProcessInfo &rCurrentProcessInfo);
 
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+    double ComputePressureNormalElement(const ProcessInfo &rCurrentProcessInfo);
 
-        return pressure;
-    }
+    double ComputePressureUpperWakeElement(const ProcessInfo &rCurrentProcessInfo);
 
-    double ComputePressureUpperWakeElement(const ProcessInfo &rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-        KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-            << "Error on element -> " << this->Id() << "\n"
-            << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-        array_1d<double, Dim> v;
-        ComputeVelocityUpperWakeElement(v);
-
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-        return pressure;
-    }
-
-    double ComputePressureLowerWakeElement(const ProcessInfo &rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-        KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-            << "Error on element -> " << this->Id() << "\n"
-            << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-        array_1d<double, Dim> v;
-        ComputeVelocityLowerWakeElement(v);
-
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-        return pressure;
-    }
+    double ComputePressureLowerWakeElement(const ProcessInfo &rCurrentProcessInfo);
 
     ///@}
     ///@name Protected Operations
@@ -739,15 +417,9 @@ class IncompressiblePotentialFlowElement : public Element
 
     friend class Serializer;
 
-    void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    }
+    void save(Serializer &rSerializer) const override;
 
-    void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    }
+    void load(Serializer &rSerializer) override;
 
     ///@}
     ///@name Private  Access

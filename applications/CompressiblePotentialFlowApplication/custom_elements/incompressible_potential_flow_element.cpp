@@ -26,8 +26,18 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
 {
     if (this->IsNot(MARKER)) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
-    else // wake element
+    else // Wake element
         CalculateLocalSystemWakeElement(rLeftHandSideMatrix, rRightHandSideVector);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateRightHandSide(
+    VectorType &rRightHandSideVector,
+    ProcessInfo &rCurrentProcessInfo)
+{
+    //TODO: improve speed
+    Matrix tmp;
+    CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
@@ -44,16 +54,16 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
         const int &kutta = r_this.GetValue(KUTTA);
 
         if (kutta == 0)
-            EquationIdVectorNormalElement(rResult);
+            GetEquationIdVectorNormalElement(rResult);
         else
-            EquationIdVectorKuttaElement(rResult);
+            GetEquationIdVectorKuttaElement(rResult);
     }
     else // Wake element
     {
         if (rResult.size() != 2 * NumNodes)
             rResult.resize(2 * NumNodes, false);
 
-        EquationIdVectorWakeElement(rResult);
+        GetEquationIdVectorWakeElement(rResult);
     }
 }
 
@@ -101,6 +111,141 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(
     }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Inquiry
+
+template <int Dim, int NumNodes>
+int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (this->Id() < 1)
+        KRATOS_THROW_ERROR(std::logic_error, "IncompressiblePotentialFlowElement found with Id 0 or negative", "")
+
+    if (this->GetGeometry().Area() <= 0)
+    {
+        std::cout << "error on IncompressiblePotentialFlowElement -> " << this->Id() << std::endl;
+        KRATOS_THROW_ERROR(std::logic_error, "Area cannot be less than or equal to 0", "")
+    }
+
+    for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
+        if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_FACE_PRESSURE) == false)
+            KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_FACE_PRESSURE on node ", this->GetGeometry()[i].Id())
+
+    return 0;
+
+    KRATOS_CATCH("");
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+
+    if (rVariable == PRESSURE)
+    {
+        double p = 0.0;
+        p = ComputePressureUpper(rCurrentProcessInfo);
+        rValues[0] = p;
+    }
+    else if (rVariable == PRESSURE_LOWER)
+    {
+        double p = 0.0;
+        p = ComputePressureLower(rCurrentProcessInfo);
+        rValues[0] = p;
+    }
+    else if (rVariable == THICKNESS)
+    {
+        if (this->Is(THERMAL))
+            rValues[0] = 30.0;
+        else if (this->Is(MODIFIED))
+            rValues[0] = 20.0;
+        else if (this->Is(MARKER))
+            rValues[0] = 10.0;
+        else
+            rValues[0] = 0.0;
+    }
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+    const Variable<int> &rVariable,
+    std::vector<int> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+    if(rVariable == TRAILING_EDGE)
+        rValues[0] = this->GetValue(TRAILING_EDGE);
+    else if(rVariable == KUTTA)
+        rValues[0] = this->GetValue(KUTTA);
+    else if(rVariable == ALL_TRAILING_EDGE)
+        rValues[0] = this->GetValue(ALL_TRAILING_EDGE);
+    else if(rVariable == ZERO_VELOCITY_CONDITION)
+        rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
+    else if(rVariable == TRAILING_EDGE_ELEMENT)
+        rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
+    else if(rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
+        rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoints(
+    const Variable<array_1d<double, 3>> &rVariable,
+    std::vector<array_1d<double, 3>> &rValues,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    if (rValues.size() != 1)
+        rValues.resize(1);
+    if (rVariable == VELOCITY)
+    {
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux;
+        ComputeVelocityUpper(vaux);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
+        rValues[0] = v;
+    }
+    else if (rVariable == VELOCITY_LOWER)
+    {
+        array_1d<double, 3> v(3, 0.0);
+        array_1d<double, Dim> vaux;
+        ComputeVelocityLower(vaux);
+        for (unsigned int k = 0; k < Dim; k++)
+            v[k] = vaux[k];
+        rValues[0] = v;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Input and output
+
+template <int Dim, int NumNodes>
+std::string IncompressiblePotentialFlowElement<Dim, NumNodes>::Info() const
+{
+    std::stringstream buffer;
+    buffer << "IncompressiblePotentialFlowElement #" << Id();
+    return buffer.str();
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintInfo(std::ostream &rOStream) const
+{
+    rOStream << "IncompressiblePotentialFlowElement #" << Id();
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream &rOStream) const
+{
+    pGetGeometry()->PrintData(rOStream);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -111,7 +256,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVectorNormalElement(
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(
     EquationIdVectorType &rResult)
 {
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -119,7 +264,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVectorNormalEl
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVectorKuttaElement(
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(
     EquationIdVectorType &rResult)
 {
     // Kutta elements have only negative part
@@ -133,7 +278,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVectorKuttaEle
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVectorWakeElement(
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(
     EquationIdVectorType &rResult)
 {
     array_1d<double, NumNodes> distances;
@@ -204,33 +349,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(
         else
             rElementalDofList[NumNodes + i] = GetGeometry()[i].pGetDof(NEGATIVE_FACE_PRESSURE);
     }
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElement(
-    array_1d<double, NumNodes> &phis)
-{
-    const IncompressiblePotentialFlowElement &r_this = *this;
-    const int &kutta = r_this.GetValue(KUTTA);
-
-    if (kutta == 0)
-        for (unsigned int i = 0; i < NumNodes; i++)
-            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-    else
-        for (unsigned int i = 0; i < NumNodes; i++)
-            if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-            else
-                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
-}
-
-template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
-    const double weight,
-    Matrix &lhs,
-    const ElementalData<NumNodes, Dim> &data)
-{
-    noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
 }
 
 template <int Dim, int NumNodes>
@@ -342,6 +460,15 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
 }
 
 template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
+    const double weight,
+    Matrix &lhs,
+    const ElementalData<NumNodes, Dim> &data)
+{
+    noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
+}
+
+template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdividedElement(
     MatrixType &rLeftHandSideMatrix,
     Matrix &lhs_positive,
@@ -445,6 +572,252 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 
     internal_energy = 0.5 * inner_prod(velocity, velocity);
     this->SetValue(INTERNAL_ENERGY, abs(internal_energy));
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElement(
+    array_1d<double, NumNodes> &phis)
+{
+    const IncompressiblePotentialFlowElement &r_this = *this;
+    const int &kutta = r_this.GetValue(KUTTA);
+
+    if (kutta == 0)
+        for (unsigned int i = 0; i < NumNodes; i++)
+            phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+    else
+        for (unsigned int i = 0; i < NumNodes; i++)
+            if (!GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
+                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+            else
+                phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
+    Vector &split_element_values,
+    const array_1d<double, NumNodes> &distances)
+{
+    array_1d<double, NumNodes> upper_phis;
+    GetPotentialOnUpperWakeElement(upper_phis, distances);
+
+    array_1d<double, NumNodes> lower_phis;
+    GetPotentialOnLowerWakeElement(lower_phis, distances);
+
+    for (unsigned int i = 0; i < NumNodes; i++)
+    {
+        split_element_values[i] = upper_phis[i];
+        split_element_values[NumNodes + i] = lower_phis[i];
+    }
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
+    array_1d<double, NumNodes> &upper_phis,
+    const array_1d<double, NumNodes> &distances)
+{
+    for (unsigned int i = 0; i < NumNodes; i++)
+        if (distances[i] > 0)
+            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+        else
+            upper_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
+    array_1d<double, NumNodes> &lower_phis,
+    const array_1d<double, NumNodes> &distances)
+{
+    for (unsigned int i = 0; i < NumNodes; i++)
+        if (distances[i] < 0)
+            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+        else
+            lower_phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim> &velocity)
+{
+    velocity.clear();
+
+    bool active = true;
+    if ((this)->IsDefined(ACTIVE))
+        active = (this)->Is(ACTIVE);
+
+    if (this->IsNot(MARKER) && active == true)
+        ComputeVelocityNormalElement(velocity);
+    else if (active == true && this->Is(MARKER))
+        ComputeVelocityUpperWakeElement(velocity);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim> &velocity)
+{
+    velocity.clear();
+
+    bool active = true;
+    if ((this)->IsDefined(ACTIVE))
+        active = (this)->Is(ACTIVE);
+
+    if (this->IsNot(MARKER) && active == true)
+        ComputeVelocityNormalElement(velocity);
+    else if (active == true && this->Is(MARKER))
+        ComputeVelocityLowerWakeElement(velocity);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(array_1d<double, Dim> &velocity)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    GetPotentialOnNormalElement(data.phis);
+
+    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(array_1d<double, Dim> &velocity)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    array_1d<double, NumNodes> distances;
+    GetWakeDistances(distances);
+
+    GetPotentialOnUpperWakeElement(data.phis, distances);
+
+    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(array_1d<double, Dim> &velocity)
+{
+    ElementalData<NumNodes, Dim> data;
+
+    // Calculate shape functions
+    GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
+
+    array_1d<double, NumNodes> distances;
+    GetWakeDistances(distances);
+
+    GetPotentialOnLowerWakeElement(data.phis, distances);
+
+    noalias(velocity) = prod(trans(data.DN_DX), data.phis);
+}
+
+template <int Dim, int NumNodes>
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo &rCurrentProcessInfo)
+{
+    double pressure = 0.0;
+
+    bool active = true;
+    if ((this)->IsDefined(ACTIVE))
+        active = (this)->Is(ACTIVE);
+
+    if (active && !this->Is(MARKER))
+        pressure = ComputePressureNormalElement(rCurrentProcessInfo);
+    else if (active == true && this->Is(MARKER))
+        pressure = ComputePressureUpperWakeElement(rCurrentProcessInfo);
+
+    return pressure;
+}
+
+template <int Dim, int NumNodes>
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo &rCurrentProcessInfo)
+{
+    double pressure = 0.0;
+
+    bool active = true;
+    if ((this)->IsDefined(ACTIVE))
+        active = (this)->Is(ACTIVE);
+
+    if (active && !this->Is(MARKER))
+        pressure = ComputePressureNormalElement(rCurrentProcessInfo);
+    else if (active == true && this->Is(MARKER))
+        pressure = ComputePressureLowerWakeElement(rCurrentProcessInfo);
+
+    return pressure;
+}
+
+template <int Dim, int NumNodes>
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo &rCurrentProcessInfo)
+{
+    double pressure = 0.0;
+
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+
+    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << this->Id() << "\n"
+        << "vinfinity_norm2 must be larger than zero." << std::endl;
+
+    array_1d<double, Dim> v;
+    ComputeVelocityNormalElement(v);
+
+    pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+    return pressure;
+}
+
+template <int Dim, int NumNodes>
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement(const ProcessInfo &rCurrentProcessInfo)
+{
+    double pressure = 0.0;
+
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+
+    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << this->Id() << "\n"
+        << "vinfinity_norm2 must be larger than zero." << std::endl;
+
+    array_1d<double, Dim> v;
+    ComputeVelocityUpperWakeElement(v);
+
+    pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+
+    return pressure;
+}
+
+template <int Dim, int NumNodes>
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement(const ProcessInfo &rCurrentProcessInfo)
+{
+    double pressure = 0.0;
+
+    const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
+    const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
+
+    KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
+        << "Error on element -> " << this->Id() << "\n"
+        << "vinfinity_norm2 must be larger than zero." << std::endl;
+
+    array_1d<double, Dim> v;
+    ComputeVelocityLowerWakeElement(v);
+
+    pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+
+    return pressure;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Private functions
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+// serializer
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::save(Serializer &rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+}
+
+template <int Dim, int NumNodes>
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::load(Serializer &rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
