@@ -26,7 +26,7 @@ namespace Python {
 pybind11::list items(Parameters const& self)
 {
     pybind11::list t;
-    for(auto it=self.begin(); it!=self.end(); ++it)
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
         t.append( std::make_tuple(it.name(), *it) );
     return t;
 }
@@ -34,7 +34,7 @@ pybind11::list items(Parameters const& self)
 pybind11::list keys(Parameters const& self)
 {
     pybind11::list t;
-    for(auto it=self.begin(); it!=self.end(); ++it)
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
         t.append(it.name());
     return t;
 }
@@ -42,7 +42,7 @@ pybind11::list keys(Parameters const& self)
 pybind11::list values(Parameters const& self)
 {
     pybind11::list t;
-    for(auto it=self.begin(); it!=self.end(); ++it)
+    for(Parameters::const_iterator it=self.begin(); it!=self.end(); ++it)
         t.append(*it);
     return t;
 }
