@@ -461,13 +461,14 @@ void FemDem3DElement::CalculateLocalSystem(
 		Matrix constitutive_matrix = Values.GetConstitutiveMatrix();
 		this->CalculateDeformationMatrix(B, DN_DX);
 
-		Matrix tangent_tensor;
-		if (is_damaging == true) {
-			this->CalculateTangentTensor(tangent_tensor, StrainVector, integrated_stress_vector, constitutive_matrix);
-			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
-		} else {
-			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(constitutive_matrix, B)));
-		}
+		// Matrix tangent_tensor;
+		// if (is_damaging == true) {
+		// 	this->CalculateTangentTensor(tangent_tensor, StrainVector, integrated_stress_vector, constitutive_matrix);
+		// 	noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
+		// } else {
+		// 	noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(constitutive_matrix, B)));
+		// }
+		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(constitutive_matrix, B)));
 
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
@@ -870,28 +871,28 @@ void FemDem3DElement::Get2MinValues(Vector &MaxValues, double a, double b, doubl
 	MaxValues[1] = V[0];
 }
 
-double FemDem3DElement::CalculateI1Invariant(Vector StressVector)
+double FemDem3DElement::CalculateI1Invariant(const Vector& rStressVector)
 {
-	return StressVector[0] + StressVector[1] + StressVector[2];
+	return rStressVector[0] + rStressVector[1] + rStressVector[2];
 }
 
-double FemDem3DElement::CalculateI2Invariant(const Vector StressVector)
+double FemDem3DElement::CalculateI2Invariant(const Vector& rStressVector)
 {
-	return (StressVector[0] + StressVector[2]) * StressVector[1] + StressVector[0] * StressVector[2] +
-		   -StressVector[3] * StressVector[3] - StressVector[4] * StressVector[4] - StressVector[5] * StressVector[5];
+	return (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
+		   -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
 }
 
-double FemDem3DElement::CalculateI3Invariant(const Vector StressVector)
+double FemDem3DElement::CalculateI3Invariant(const Vector& rStressVector)
 {
-	return (StressVector[1] * StressVector[2] - StressVector[4] * StressVector[4]) * StressVector[0] -
-		   StressVector[1] * StressVector[5] * StressVector[5] - StressVector[2] * StressVector[3] * StressVector[3] +
-		   2.0 * StressVector[3] * StressVector[4] * StressVector[5];
+	return (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
+		   rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
+		   2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
 }
 
-void FemDem3DElement::CalculateDeviatorVector(Vector &rDeviator, const Vector StressVector, const double I1)
+void FemDem3DElement::CalculateDeviatorVector(Vector& rDeviator, const Vector& rStressVector, const double I1)
 {
 	rDeviator.resize(6);
-	rDeviator = StressVector;
+	rDeviator = rStressVector;
 	const double Pmean = I1 / 3.0;
 
 	rDeviator[0] -= Pmean;
@@ -899,17 +900,17 @@ void FemDem3DElement::CalculateDeviatorVector(Vector &rDeviator, const Vector St
 	rDeviator[2] -= Pmean;
 }
 
-double FemDem3DElement::CalculateJ2Invariant(const Vector Deviator)
+double FemDem3DElement::CalculateJ2Invariant(const Vector& rDeviator)
 {
-	return 0.5 * (Deviator[0] * Deviator[0] + Deviator[1] * Deviator[1] + Deviator[2] * Deviator[2]) +
-		   (Deviator[3] * Deviator[3] + Deviator[4] * Deviator[4] + Deviator[5] * Deviator[5]);
+	return 0.5 * (rDeviator[0] * rDeviator[0] + rDeviator[1] * rDeviator[1] + rDeviator[2] * rDeviator[2]) +
+		   (rDeviator[3] * rDeviator[3] + rDeviator[4] * rDeviator[4] + rDeviator[5] * rDeviator[5]);
 }
 
-double FemDem3DElement::CalculateJ3Invariant(const Vector Deviator)
+double FemDem3DElement::CalculateJ3Invariant(const Vector& rDeviator)
 {
-	return Deviator[0] * (Deviator[1] * Deviator[2] - Deviator[4] * Deviator[4]) +
-		   Deviator[3] * (-Deviator[3] * Deviator[2] + Deviator[5] * Deviator[4]) +
-		   Deviator[5] * (Deviator[3] * Deviator[4] - Deviator[5] * Deviator[1]);
+	return rDeviator[0] * (rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4]) +
+		   rDeviator[3] * (-rDeviator[3] * rDeviator[2] + rDeviator[5] * rDeviator[4]) +
+		   rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
 }
 
 double FemDem3DElement::CalculateLodeAngle(double J2, double J3)
@@ -1149,7 +1150,7 @@ void FemDem3DElement::ModifiedMohrCoulombCriterion(
 
 	// Check Modified Mohr-Coulomb criterion
 	double uniaxial_stress;
-	if (I1 < tolerance) {
+	if (std::abs(I1) < tolerance) {
 		uniaxial_stress = 0.0;
 	} else {
 		const double theta = CalculateLodeAngle(J2, J3);
@@ -1253,7 +1254,7 @@ void FemDem3DElement::DruckerPragerCriterion(
 
 	// Check DruckerPrager criterion
 	double uniaxial_stress;
-	if (I1 < tolerance) {
+	if (std::abs(I1) < tolerance) {
 		uniaxial_stress = 0.0;
 	} else {
 		const double CFL = -std::sqrt(3.0) * (3.0 - std::sin(friction_angle)) / (3.0 * std::sin(friction_angle) - 3.0);

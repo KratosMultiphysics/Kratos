@@ -84,12 +84,12 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
 
 	// Stress Invariants in 3D
-	double CalculateI1Invariant(Vector StressVector);
-	double CalculateI2Invariant(const Vector StressVector);
-	double CalculateI3Invariant(const Vector StressVector);
-	void CalculateDeviatorVector(Vector &rDeviator, const Vector StressVector, const double I1);
-	double CalculateJ2Invariant(const Vector Deviator);
-	double CalculateJ3Invariant(const Vector Deviator);
+	double CalculateI1Invariant(const Vector& rStressVector);
+	double CalculateI2Invariant(const Vector& rStressVector);
+	double CalculateI3Invariant(const Vector& rStressVector);
+	void CalculateDeviatorVector(Vector& rDeviator, const Vector& rStressVector, const double I1);
+	double CalculateJ2Invariant(const Vector& rDeviator);
+	double CalculateJ3Invariant(const Vector& rDeviator);
 	void CalculateIntegratedStressVector(Vector &rIntegratedStressVector, const Vector rStressVector, const double Damage)
 	{
 		noalias(rIntegratedStressVector) = (1.0 - Damage) * rStressVector;
