@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CPFApp
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as UnitTest
@@ -11,17 +10,6 @@ import KratosMultiphysics.KratosUnittest as UnitTest
 from potential_flow_analysis import PotentialFlowAnalysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 import os
-
-class controlledExecutionScope:
-    def __init__(self, scope):
-        self.currentPath = os.getcwd()
-        self.scope = scope
-
-    def __enter__(self):
-        os.chdir(self.scope)
-
-    def __exit__(self, type, value, traceback):
-        os.chdir(self.currentPath)
 
 class WorkFolderScope:
     def __init__(self, work_folder):

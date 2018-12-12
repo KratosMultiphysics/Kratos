@@ -165,7 +165,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         return nodal_distances_to_wake
 
-    def SelectWakeElements(self, distances_to_wake):
+    @staticmethod
+    def SelectWakeElements(distances_to_wake):
         # This function checks whether the element is cut by the wake
 
         # Initialize counters

@@ -72,10 +72,6 @@ class LaplacianSolver(PythonSolver):
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-        
-        # Construct the linear solvers
-        import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of LaplacianSolver finished")
 
@@ -121,10 +117,14 @@ class LaplacianSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
+        # Construct the linear solvers
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
-        self.solver = KratosMultiphysics.ResidualBasedLinearStrategy(
+        self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.main_model_part,
             time_scheme,
             self.linear_solver,
@@ -133,8 +133,11 @@ class LaplacianSolver(PythonSolver):
             self.settings["calculate_solution_norm"].GetBool(),
             move_mesh_flag)
 
-        (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
-        self.solver.Check()
+        (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
+        self.incompressible_solution_stratety.Initialize()
+
+    def Check(self):
+        self.incompressible_solution_stratety.Check()
 
     def ImportModelPart(self):
 
@@ -169,28 +172,26 @@ class LaplacianSolver(PythonSolver):
         print ("model reading finished")
 
     def GetMinimumBufferSize(self):
-        return 2;
+        return 2
 
     def GetComputingModelPart(self):
         return self.main_model_part
 
-    def GetOutputVariables(self):
-        pass
+    def InitializeSolutionStep(self):
+        (self.incompressible_solution_stratety).InitializeSolutionStep()
 
-    def ComputeDeltaTime(self):
-        pass
+    def Predict(self):
+        (self.incompressible_solution_stratety).Predict()
 
-    def SaveRestart(self):
-        pass #one should write the restart file here
-        
     def SolveSolutionStep(self):
-        (self.solver).Solve()
+        (self.incompressible_solution_stratety).SolveSolutionStep()
 
-    #
+    def FinalizeSolutionStep(self):
+        (self.incompressible_solution_stratety).FinalizeSolutionStep()
+
     def SetEchoLevel(self, level):
-        (self.solver).SetEchoLevel(level)
+        (self.incompressible_solution_stratety).SetEchoLevel(level)
 
-    #
     def Clear(self):
-        (self.solver).Clear()
+        (self.incompressible_solution_stratety).Clear()
 

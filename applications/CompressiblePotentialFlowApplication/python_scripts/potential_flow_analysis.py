@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.CompressiblePotentialFlowApplication as CPApp
 
 # Importing the solvers (if available)
 try:
@@ -52,7 +51,7 @@ class PotentialFlowAnalysis(AnalysisStage):
         This method is TEMPORARY to not break existing code
         It will be removed in the future
         """
-        list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order) 
+        list_of_processes = super(PotentialFlowAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
 
         if parameter_name == "processes":
             processes_block_names = ["initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
@@ -101,6 +100,7 @@ class PotentialFlowAnalysis(AnalysisStage):
 
     def RunSolutionLoop(self):
         self.InitializeSolutionStep()
+        self._GetSolver().Predict()
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
         self.OutputSolutionStep()
