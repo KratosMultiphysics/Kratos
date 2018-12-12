@@ -95,7 +95,7 @@ class IncompressiblePotentialFlowElement : public Element
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId,GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
 
     /**
      * Constructor using Properties

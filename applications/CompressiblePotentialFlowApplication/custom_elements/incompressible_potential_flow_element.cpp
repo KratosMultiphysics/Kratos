@@ -20,9 +20,9 @@ namespace Kratos
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo)
+    MatrixType &rLeftHandSideMatrix,
+    VectorType &rRightHandSideVector,
+    ProcessInfo &rCurrentProcessInfo)
 {
     if (this->IsNot(MARKER)) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
@@ -97,18 +97,18 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(
     ProcessInfo &rCurrentProcessInfo)
-    {
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
+{
+    bool active = true;
+    if ((this)->IsDefined(ACTIVE))
+        active = (this)->Is(ACTIVE);
 
-        if (this->Is(MARKER) && active == true)
-        {
-            CheckWakeCondition();
-            ComputePotentialJump(rCurrentProcessInfo);
-        }
-        ComputeElementInternalEnergy();
+    if (this->Is(MARKER) && active == true)
+    {
+        CheckWakeCondition();
+        ComputePotentialJump(rCurrentProcessInfo);
     }
+    ComputeElementInternalEnergy();
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
@@ -180,17 +180,17 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 {
     if (rValues.size() != 1)
         rValues.resize(1);
-    if(rVariable == TRAILING_EDGE)
+    if (rVariable == TRAILING_EDGE)
         rValues[0] = this->GetValue(TRAILING_EDGE);
-    else if(rVariable == KUTTA)
+    else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
-    else if(rVariable == ALL_TRAILING_EDGE)
+    else if (rVariable == ALL_TRAILING_EDGE)
         rValues[0] = this->GetValue(ALL_TRAILING_EDGE);
-    else if(rVariable == ZERO_VELOCITY_CONDITION)
+    else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
-    else if(rVariable == TRAILING_EDGE_ELEMENT)
+    else if (rVariable == TRAILING_EDGE_ELEMENT)
         rValues[0] = this->GetValue(TRAILING_EDGE_ELEMENT);
-    else if(rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
+    else if (rVariable == DECOUPLED_TRAILING_EDGE_ELEMENT)
         rValues[0] = this->GetValue(DECOUPLED_TRAILING_EDGE_ELEMENT);
 }
 
@@ -480,7 +480,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
     {
         // The TE node takes the contribution of the subdivided element and
         // we do not apply the wake condition on the TE node
-        if(GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
+        if (GetGeometry()[i].FastGetSolutionStepValue(TRAILING_EDGE))
         {
             for (unsigned int j = 0; j < NumNodes; ++j)
             {
@@ -516,7 +516,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
         rLeftHandSideMatrix(row, column) = lhs_total(row, column);
         rLeftHandSideMatrix(row + NumNodes, column + NumNodes) = lhs_total(row, column);
     }
-    
+
     // Applying wake condition on the NEGATIVE_FACE_PRESSURE dofs
     if (data.distances[row] < 0.0)
         for (unsigned int column = 0; column < NumNodes; ++column)
@@ -556,7 +556,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(
             GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE));
         else
             GetGeometry()[i].GetSolutionStepValue(POTENTIAL_JUMP) = 2.0 / vinfinity_norm * (GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE) - GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE));
-
 }
 
 template <int Dim, int NumNodes>
