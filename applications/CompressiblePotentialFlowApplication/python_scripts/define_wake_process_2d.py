@@ -28,7 +28,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             """)
 
         settings.ValidateAndAssignDefaults(default_settings)
-        #TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
+        # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
 
         self.wake_direction = KratosMultiphysics.Vector(3)
         self.wake_direction[0] = settings["wake_direction"][0].GetDouble()
