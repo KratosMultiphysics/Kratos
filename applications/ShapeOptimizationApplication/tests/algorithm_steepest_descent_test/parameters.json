@@ -69,7 +69,7 @@
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "SHAPE_CHANGE","DF1DX_MAPPED","DF1DX","CONTROL_POINT_UPDATE","SHAPE_UPDATE" ],
+            "nodal_results"           : [ "SHAPE_CHANGE"],
             "output_format" : {
                 "name": "gid"
             }
