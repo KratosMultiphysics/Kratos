@@ -351,7 +351,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		const Matrix& C =  Values.GetConstitutiveMatrix();
 
 		Matrix tangent_tensor;
-		if (is_damaging == true) {
+		if (is_damaging == true && std::abs(strain_vector[0] + strain_vector[0] +strain_vector[0]) > tolerance) {
 			this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
 		} else {
