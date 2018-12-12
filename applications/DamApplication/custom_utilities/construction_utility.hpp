@@ -425,6 +425,10 @@ class ConstructionUtility
 
         const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
 
+        double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        time = time / mTimeUnitConverter;
+        const double ambient_temp = mrTableAmbientTemp.GetValue(time);
+
         // Getting CheckTemperature Values
         const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
         const double minimum_temperature = CheckTemperatureParameters["minimum_temperature"].GetDouble();
@@ -438,7 +442,7 @@ class ConstructionUtility
 
             if (it->Is(ACTIVE) && it->IsNot(SOLID))
             {
-                double maximum_temperature = it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment;
+                double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, ambient_temp);
                 double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 
                 if (current_temperature > maximum_temperature)
