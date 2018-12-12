@@ -52,27 +52,38 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
         with open(self.file_name + "_parameters.json",'r') as parameter_file:
             ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        # to check the results: add output settings block if needed
         if self.print_output:
-            ProjectParameters.AddValue("output_configuration", KratosMultiphysics.Parameters(r'''{
-                "result_file_configuration" : {
-                    "gidpost_flags"       : {
-                        "GiDPostMode"           : "GiD_PostBinary",
-                        "WriteDeformedMeshFlag" : "WriteDeformed",
-                        "WriteConditionsFlag"   : "WriteConditions",
-                        "MultiFileFlag"         : "SingleFile"
-                    },
-                    "file_label"          : "step",
-                    "output_control_type" : "step",
-                    "output_frequency"    : 1,
-                    "body_output"         : true,
-                    "node_output"         : false,
-                    "skin_output"         : false,
-                    "plane_output"        : [],
-                    "nodal_results"       : ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","TEMPERATURE","UPPER_SURFACE","LOWER_SURFACE","DISTANCE","UPPER_WAKE","LOWER_WAKE","POTENTIAL_JUMP","AIRFOIL","TRAILING_EDGE","KUTTA","DEACTIVATED_WAKE","ZERO_VELOCITY_CONDITION"],
-                    "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","THICKNESS","TRAILING_EDGE","ELEMENTAL_DISTANCES","KUTTA","ALL_TRAILING_EDGE","ZERO_VELOCITY_CONDITION","DISTANCE","DECOUPLED_TRAILING_EDGE_ELEMENT","TRAILING_EDGE_ELEMENT"]
-                },
-                "point_data_configuration"  : []
+            ProjectParameters.AddValue("output_processes", KratosMultiphysics.Parameters(r'''{
+                "gid_output" : [{
+                    "python_module" : "gid_output_process",
+                    "kratos_module" : "KratosMultiphysics",
+                    "process_name"  : "GiDOutputProcess",
+                    "help"          : "This process writes postprocessing files for GiD",
+                    "Parameters"    : {
+                        "model_part_name"        : "MainModelPart",
+                        "output_name"            : "naca0012",
+                        "postprocess_parameters" : {
+                            "result_file_configuration" : {
+                                "gidpost_flags"       : {
+                                    "GiDPostMode"           : "GiD_PostBinary",
+                                    "WriteDeformedMeshFlag" : "WriteDeformed",
+                                    "WriteConditionsFlag"   : "WriteConditions",
+                                    "MultiFileFlag"         : "SingleFile"
+                                },
+                                "file_label"          : "step",
+                                "output_control_type" : "step",
+                                "output_frequency"    : 1,
+                                "body_output"         : true,
+                                "node_output"         : false,
+                                "skin_output"         : false,
+                                "plane_output"        : [],
+                                "nodal_results"       : ["POSITIVE_FACE_PRESSURE","NEGATIVE_FACE_PRESSURE","TEMPERATURE","UPPER_SURFACE","LOWER_SURFACE","DISTANCE","UPPER_WAKE","LOWER_WAKE","POTENTIAL_JUMP","AIRFOIL","TRAILING_EDGE","KUTTA","DEACTIVATED_WAKE","ZERO_VELOCITY_CONDITION"],
+                                "gauss_point_results" : ["PRESSURE","VELOCITY","VELOCITY_LOWER","PRESSURE_LOWER","THICKNESS","TRAILING_EDGE","ELEMENTAL_DISTANCES","KUTTA","ALL_TRAILING_EDGE","ZERO_VELOCITY_CONDITION","DISTANCE","DECOUPLED_TRAILING_EDGE_ELEMENT","TRAILING_EDGE_ELEMENT"]
+                            },
+                            "point_data_configuration"  : []
+                        }
+                    }
+                }]
             }'''))
 
         potential_flow_analysis = PotentialFlowAnalysis(model,ProjectParameters)
