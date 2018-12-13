@@ -7,10 +7,6 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-
 def CreateSolver(main_model_part, custom_settings):
 
     return DamThermoMechanicSolver(main_model_part, custom_settings)
