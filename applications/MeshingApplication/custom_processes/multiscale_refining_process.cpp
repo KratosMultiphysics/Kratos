@@ -775,11 +775,9 @@ void MultiscaleRefiningProcess::UpdateRefinedInterface()
             if (father_node->IsNot(INTERFACE))
                 is_refined_interface = false;
         }
+
         if (is_refined_interface)
-        {
             mRefinedInterfaceContainer.push_back(NodeType::SharedPointer(*node.base()));
-            node->Set(INTERFACE); // TEMP LINE. TODO: REMOVE THIS LINE !!!!!!!!!!!!
-        }
     }
 }
 

@@ -87,3 +87,6 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
     def FinalizeSolutionStep(self):
         if self.GetComputingModelPart().NumberOfElements() != 0:
             super(MultigridSolver, self).FinalizeSolutionStep()
+
+    def Finalize(self):
+        self.multigrid.ExecuteFinalize()

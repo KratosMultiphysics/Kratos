@@ -44,13 +44,9 @@ class ShallowWaterMultigridAnalysis(ShallowWaterAnalysis):
                 self.sub_analysis.end_time = self.time
                 self.sub_analysis.InitializeMultigridSolver()
                 self.sub_analysis.RunSolutionLoop()
+                self.sub_analysis.Finalize()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
-    def Finalize(self):
-        super(ShallowWaterMultigridAnalysis, self).Finalize()
-        if self.current_subscale < self.maximum_subgrids:
-            self.sub_analysis.Finalize()
 
     def InitializeMultigridSolver(self):
         self._GetSolver().multigrid.ExecuteInitialize()

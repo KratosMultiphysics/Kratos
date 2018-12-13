@@ -100,7 +100,7 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             self._EvaluateCondition()
             self._ExecuteRefinement()
             self._ExecuteCoarsening()
-            self._ApplyFixityAtInterface()
+            self._ApplyFixityAtInterface(True)
 
     def ExecuteInitializeSolutionStep(self):
         if self.current_subscale == 0:
@@ -113,8 +113,6 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
 
     def ExecuteFinalizeSolutionStep(self):
-        # if self.current_subscale > 0:
-        #     self._ExecuteCoarsening()
         pass
 
     def ExecuteBeforeOutputStep(self):
@@ -124,7 +122,8 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteFinalize(self):
-        pass
+        if self.current_subscale > 0:
+            self._ApplyFixityAtInterface(False)
 
     def Clear(self):
         pass
@@ -164,9 +163,9 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
                 for node in elem.GetNodes():
                     node.Set(KratosMultiphysics.TO_REFINE, True)
 
-    def _ApplyFixityAtInterface(self):
+    def _ApplyFixityAtInterface(self, state):
         for variable in self.variables_to_apply_fixity:
-            self.subscales_utility.FixRefinedInterface(variable, True)
+            self.subscales_utility.FixRefinedInterface(variable, state)
 
     def _TransferSubstepToRefinedInterface(self):
         substep_fraction = self.refined_model_part.ProcessInfo[KratosMultiphysics.STEP] / self.number_of_substeps
