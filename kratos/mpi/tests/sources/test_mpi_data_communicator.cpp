@@ -246,7 +246,6 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinInt, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
-    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     int local = world_rank;
@@ -257,6 +256,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinInt, KratosMPICoreFastSuite)
     }
 
     #ifdef KRATOS_DEBUG
+    const int world_size = mpi_world_communicator.Size();
     // passing invalid rank as argument
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
@@ -269,7 +269,6 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
     const int world_rank = mpi_world_communicator.Rank();
-    const int world_size = mpi_world_communicator.Size();
     constexpr int root = 0;
 
     double local = 2.0*world_rank;
@@ -280,6 +279,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommuniactorMinDouble, KratosMPICoreFastSuite)
     }
 
     #ifdef KRATOS_DEBUG
+    const int world_size = mpi_world_communicator.Size();
     // passing invalid rank as argument
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
