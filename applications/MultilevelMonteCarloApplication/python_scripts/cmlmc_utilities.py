@@ -138,7 +138,9 @@ class MultilevelMonteCarlo(object):
             "Lmax" : 4,
             "mesh_refinement_coefficient" : 2,
             "initial_mesh_size" : 0.5,
-            "minimum_add_level" : 6.0
+            "minimum_add_level" : 6.0,
+            "splitting_parameter_max" : 0.9,
+            "splitting_parameter_min" : 0.1
         }
         """)
         self.settings = custom_settings
@@ -554,6 +556,10 @@ class MultilevelMonteCarlo(object):
         tol = self.tolerance_i
         mesh_param = self.mesh_parameters[level]
         self.theta_i = 1.0 - (calpha * (mesh_param)**(-alpha))/tol
+        if (self.theta_i > self.settings["splitting_parameter_max"].GetDouble()):
+            self.theta_i = self.settings["splitting_parameter_max"].GetDouble()
+        elif (self.theta_i < self.settings["splitting_parameter_min"].GetDouble()):
+            self.theta_i = self.settings["splitting_parameter_min"].GetDouble()
         if (self.theta_i < 0.0) or (self.theta_i > 1.0):
             raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1) : ",self.theta_i)
         del(calpha,alpha,tol,mesh_param)
