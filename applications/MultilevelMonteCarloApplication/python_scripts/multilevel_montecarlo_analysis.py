@@ -286,7 +286,7 @@ if __name__ == '__main__':
 
     '''contruct MultilevelMonteCarlo class'''
     mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
-
+    print("\n ######## SCREENING PHASE ######## \n")
     for lev in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.number_samples[lev]):
             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)

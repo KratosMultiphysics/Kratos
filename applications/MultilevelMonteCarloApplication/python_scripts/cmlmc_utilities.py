@@ -197,7 +197,6 @@ class MultilevelMonteCarlo(object):
         self.time_ML = StatisticalVariable(self.current_number_levels)
         self.time_ML.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
 
-        print("\n ######## SCREENING PHASE ######## \n")
 
         '''########################################################################
         # observation: levels start from level 0                                  #
