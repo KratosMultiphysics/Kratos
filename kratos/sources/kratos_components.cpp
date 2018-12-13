@@ -149,6 +149,7 @@ template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1
 template class KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
 template class KratosComponents<Variable<Flags> >;
 template class KratosComponents<Flags>;
+template class KratosComponents<DataCommunicator>;
 
 template class KratosComponents<Element>;
 template class KratosComponents<Condition>;
