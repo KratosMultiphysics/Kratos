@@ -2,10 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
-
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
@@ -224,36 +220,7 @@ class SearchBaseProcess(KM.Process):
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
-
-        # Debug we compute if the total load corresponds with the total contact force and the reactions
-        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
-            total_load = KM.Vector(3)
-            total_load[0] = 0.0
-            total_load[1] = 0.0
-            total_load[2] = 0.0
-            total_reaction = KM.Vector(3)
-            total_reaction[0] = 0.0
-            total_reaction[1] = 0.0
-            total_reaction[2] = 0.0
-            total_contact_force = 0
-
-            # Computing total load applied (I will consider only surface loads for now)
-            for cond in self.computing_model_part.Conditions:
-                geom = cond.GetGeometry()
-                if cond.Has(SMA.LINE_LOAD):
-                    total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
-                if cond.Has(SMA.SURFACE_LOAD):
-                    total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
-
-            for node in self.computing_model_part.Nodes:
-                if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
-                    total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
-
-                total_reaction += node.GetSolutionStepValue(KM.REACTION)
-
-            KM.Logger.PrintWarning("TOTAL LOAD: ", "X: {:.2e}".format(total_load[0]), "\t Y: {:.2e}".format(total_load[1]), "\tZ: {:.2e}".format(total_load[2]))
-            KM.Logger.PrintWarning("TOTAL REACTION: ", "X: {:.2e}".format(total_reaction[0]), "\t Y: {:.2e}".format(total_reaction[1]), "\tZ: {:.2e}".format(total_reaction[2]))
-            KM.Logger.PrintWarning("TOTAL CONTACT FORCE: ", "{:.2e}".format(total_contact_force))
+        pass
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -428,6 +395,7 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
+        search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
         self.__assume_master_slave(key)

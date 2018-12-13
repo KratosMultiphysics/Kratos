@@ -32,12 +32,14 @@ MassConservationCheckProcess::MassConservationCheckProcess(
         ModelPart& rModelPart,
         const int MassComputationFreq,
         const bool CompareToInitial,
-        const bool WriteToLogFile)
+        const bool WriteToLogFile,
+        const std::string LogFileName)
     : Process(), mrModelPart(rModelPart) {
 
     mMassComputationFreq = MassComputationFreq;
     mCompareToInitial = CompareToInitial;
     mWriteToLogFile = WriteToLogFile;
+    mLogFileName = LogFileName;
 }
 
 
@@ -49,16 +51,18 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     Parameters default_parameters( R"(
     {
         "model_part_name"                        : "default_model_part_name",
-        "mass_computation_frequency"             : 20,
+        "frequency_of_execution_in_time_steps"   : 20,
         "compare_to_initial_values"              : true,
-        "write_to_log_file"                      : true
+        "write_to_log_file"                      : true,
+        "log_file_name"                          : "mass_conservation.log"
     }  )" );
 
     rParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMassComputationFreq = rParameters["mass_computation_frequency"].GetInt();
+    mMassComputationFreq = rParameters["frequency_of_execution_in_time_steps"].GetInt();
     mCompareToInitial = rParameters["compare_to_initial_values"].GetBool();
     mWriteToLogFile = rParameters["write_to_log_file"].GetBool();
+    mLogFileName = rParameters["log_file_name"].GetString();
 }
 
 
