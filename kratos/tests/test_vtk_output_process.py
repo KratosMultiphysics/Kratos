@@ -4,7 +4,7 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from vtk_output_process import VtkOutputProcessPython
+import vtk_output_process
 
 import os
 
@@ -70,40 +70,51 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
     def __SetSolution(self):
         for node in self.mp.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,[1.0,0.0,0.0])
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,[0.0,0.0,1.0])
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,[node.X,node.Y,node.Z])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,[2*node.X,2*node.Y,2*node.Z])
+
+    def __SetupVtkOutputProcess(self, current_model, parameters):
+        return vtk_output_process.Factory(parameters, current_model)
 
     def test_vtk_io(self):
         current_model = KratosMultiphysics.Model()
-        self.__SetupModelPart(current_model, name)
+        model_part_name = "Main"
+        self.__SetupModelPart(current_model, model_part_name)
         self.__SetSolution()
 
         vtk_output_parameters = KratosMultiphysics.Parameters("""
         {
             "model_part_name"                    : "Main",
-            "file_name"                          : "",
             "file_format"                        : "ASCII",
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : true,
+            "folder_name"                        : "test_output",
             "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : [],
-            "nodal_data_value_variables"         : ["DISPLACEMENT", "VELOCITY"],
+            "nodal_solution_step_data_variables" : ["DISPLACEMENT", "VELOCITY"],
+            "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : ["ACTIVE"]
         }
         """)
-        vtk_output_process = self.__SetupVtkOutputProcess(parameters)
+        vtk_output_process = self.__SetupVtkOutputProcess(current_model, vtk_output_parameters)
 
         time = 0.0
         dt = 0.2
+        step = 0
         end_time = 1.0
         vtk_output_process.ExecuteInitialize()
 
         while (time <= end_time):
             time = time + dt
             step = step + 1
+            #print("STEP :: ", step, ", TIME :: ", time)
             vtk_output_process.ExecuteInitializeSolutionStep()
             self.mp.CloneTimeStep(time)
             vtk_output_process.ExecuteFinalizeSolutionStep()
 
-        vtk_output_parameters.ExecuteFinalize()
+        vtk_output_process.ExecuteFinalize()
+
+
+
+if __name__ == '__main__':
+    KratosUnittest.main()
