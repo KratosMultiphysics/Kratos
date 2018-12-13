@@ -429,7 +429,12 @@ public:
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(TSize); i++) {
                 //We use the first intersection point as reference
-                double d = std::abs(inner_prod(rThisGeometry[i].Coordinates()-intersection_points[0], distance_gradient));
+                double d = 0.0;
+                const auto i_coords = rThisGeometry[i].Coordinates();
+                for (unsigned int d = 0; d < TSize - 1; d++) {
+                    d += (i_coords[d] - intersection_points[0][d]) * distance_gradient[d];
+                }
+                double d = std::abs(d);
                 rDistances[i] = std::min(std::abs(rDistances[i]), d);
             }
         }
