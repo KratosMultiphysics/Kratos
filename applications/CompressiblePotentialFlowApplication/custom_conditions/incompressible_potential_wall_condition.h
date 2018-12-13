@@ -250,7 +250,7 @@ public:
                               VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override
     {               
-        if (this->IsNot(STRUCTURE) || this-> IsNotDefined(STRUCTURE)){
+        if (true){//this->IsNot(STRUCTURE) || this-> IsNotDefined(STRUCTURE)
             if (rLeftHandSideMatrix.size1() != TNumNodes)
                 rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
             if (rRightHandSideVector.size() != TNumNodes)
@@ -301,12 +301,12 @@ public:
             if(distances[0] > 0){ 
                 rRightHandSideVector[0] = value_0*N_0[0];
                 rRightHandSideVector[TNumNodes] = value_1*N_1[0];
-                rRightHandSideVector[1] = value_0*N_0[1];
-                rRightHandSideVector[TNumNodes+1] = value_1*N_1[1];
+                rRightHandSideVector[1] = 0;
+                rRightHandSideVector[TNumNodes+1] = 0;
             }
             else{
-                rRightHandSideVector[0] =  value_1*N_1[0];
-                rRightHandSideVector[TNumNodes] = value_0*N_0[0];
+                rRightHandSideVector[0] =  0;
+                rRightHandSideVector[TNumNodes] = 0;
                 rRightHandSideVector[1] =  value_1*N_1[1];
                 rRightHandSideVector[TNumNodes+1] = value_0*N_0[1];
             }
@@ -385,7 +385,7 @@ public:
                                       ProcessInfo& rCurrentProcessInfo) override
         {   
         
-            if (this->IsNot(STRUCTURE)){
+            if (true){
                 if (rResult.size() != TNumNodes)
                     rResult.resize(TNumNodes, false);
 
@@ -428,7 +428,7 @@ public:
         void GetDofList(DofsVectorType& ConditionDofList,
                                 ProcessInfo& CurrentProcessInfo) override
         {
-           if (this->IsNot(STRUCTURE)){
+           if (true){
                 if (ConditionDofList.size() != TNumNodes)
                 ConditionDofList.resize(TNumNodes);
 
