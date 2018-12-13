@@ -269,7 +269,6 @@ if __name__ == '__main__':
     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters(parameter_file_name)
-    # pickled_model,pickled_parameters = SerializeModelParameters(MultilevelMonteCarloAnalysis,parameter_file_name)
     
     '''customize setting parameters of the ML simulation'''
     settings_ML_simulation = KratosMultiphysics.Parameters("""
@@ -291,7 +290,6 @@ if __name__ == '__main__':
     for lev in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.number_samples[lev]):
             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
-            # mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(MultilevelMonteCarloAnalysis,GenerateSample,EvaluateQuantityOfInterest,lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
     
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -303,7 +301,6 @@ if __name__ == '__main__':
         for lev in range (mlmc_class.current_number_levels+1):
             for instance in range (mlmc_class.difference_number_samples[lev]):
                 mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
-                # mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(MultilevelMonteCarloAnalysis,GenerateSample,EvaluateQuantityOfInterest,lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
         
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
