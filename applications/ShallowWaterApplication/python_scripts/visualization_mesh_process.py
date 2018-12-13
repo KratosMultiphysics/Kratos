@@ -22,12 +22,15 @@ class VisualizationMeshProcess(KratosMultiphysics.Process):
             )
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.process = KratosShallow.ShallowWaterVariablesUtility(Model.GetModelPart(settings["model_part_name"].GetString()))
+        self.process = KratosShallow.ShallowWaterVariablesUtility(Model[settings["model_part_name"].GetString()])
 
-    def ExecuteBeforeSolutionLoop(self):
+        # The DefineDryProperties methods duplicates the current number of properties:
+        # For each property, it creates another one, which means dry stateself.
+        # It should be called only once, otherwise, the number of properties will increase without limits
         self.process.DefineDryProperties()
 
     def ExecuteBeforeOutputStep(self):
+        # The elements should be active to be included on the GidOutputProcess
         self.process.SetElementsActive()
         self.process.AssignDryWetProperties()
         self.process.SetMeshPosition()
