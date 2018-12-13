@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_plastic_axisym_2D_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -91,7 +91,7 @@ void HenckyElasticPlasticAxisym2DLaw::CalculateAlmansiStrain( const Matrix & rLe
         Vector& rStrainVector )
 {
     // e= 0.5*(1-invbT*invb)
-    Matrix InverseLeftCauchyGreen ( 3 , 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3 , 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
