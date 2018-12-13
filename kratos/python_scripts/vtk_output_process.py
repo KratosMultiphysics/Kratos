@@ -15,8 +15,10 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
             "file_name"                          : "",
+            "file_format"                        : "ASCII",
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
+            "output_sub_model_parts"             : true,
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
