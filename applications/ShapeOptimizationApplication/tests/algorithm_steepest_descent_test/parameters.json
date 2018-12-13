@@ -56,12 +56,11 @@
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 20,
-            "relative_tolerance" : 1e-2,
-            "gradient_tolerance" : 0.8,
+            "relative_tolerance" : 1e-0,
             "line_search" : {
-                "line_search_type"           : "adaptive_stepping",
+                "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 0.1
+                "step_size"                  : 0.2
             }
         },
         "output" : {
@@ -69,7 +68,7 @@
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "SHAPE_CHANGE"],
+            "nodal_results"           : ["SHAPE_CHANGE"],
             "output_format" : {
                 "name": "gid"
             }

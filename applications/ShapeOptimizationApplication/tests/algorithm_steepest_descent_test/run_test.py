@@ -43,14 +43,10 @@ with open(response_log_filename, 'r') as csvfile:
 
     resulting_optimization_iterations = int(last_line[0].strip())
     resulting_improvement = float(last_line[2].strip())
-    resulting_gradient_norm = float(last_line[4].strip())
-    resulting_step_size = float(last_line[5].strip())
 
     # Check against specifications
-    TestCase().assertEqual(resulting_optimization_iterations, 10)
-    TestCase().assertAlmostEqual(resulting_improvement, -8.79655E+00, 4)
-    TestCase().assertAlmostEqual(resulting_gradient_norm, 4.48563E+03, 4)
-    TestCase().assertAlmostEqual(resulting_step_size, 2.35795E-01, 4)
+    TestCase().assertEqual(resulting_optimization_iterations, 16)
+    TestCase().assertAlmostEqual(resulting_improvement, -17.553770, 4)
 
 os.chdir(original_directory)
 
