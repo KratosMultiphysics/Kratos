@@ -501,7 +501,7 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
     #pragma omp parallel for
     for (int i=0; i<num_nodes; i++) {
         const auto it_node  = nodes_begin + i;
-        noalias(it_node->GetInitialPosition()) = it_node->Coordinates();
+        noalias(it_node->GetInitialPosition().Coordinates()) = it_node->Coordinates();
     }
 
     KRATOS_CATCH("");
