@@ -29,7 +29,8 @@
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
-
+#include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
+#include "state_derivative/variable_utilities/direct_sensitivity_element_data_variable.h"
 
 namespace Kratos {
 namespace Python {
@@ -87,6 +88,18 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "AdjointLinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
+    py::class_<DirectSensitivityVariable, DirectSensitivityVariable::Pointer>
+        (m, "DirectSensitivityVariable")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &DirectSensitivityVariable::Initialize)
+        .def("InitializeSolutionStep", &DirectSensitivityVariable::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &DirectSensitivityVariable::FinalizeSolutionStep)
+        .def("CalculatePseudoLoadVector", &DirectSensitivityVariable::CalculatePseudoLoadVector);
+
+    py::class_<DirectSensitivityElementDataVariable, DirectSensitivityElementDataVariable::Pointer, DirectSensitivityVariable>
+        (m, "DirectSensitivityElementDataVariable")
+        .def(py::init<ModelPart&, Parameters>());
+        
 }
 
 }  // namespace Python.

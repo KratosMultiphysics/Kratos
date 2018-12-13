@@ -44,6 +44,10 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ## RESPONSE FUNCTIONS
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp
 
+  ## VARIABLE UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_variable.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp
+
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_plasticity_constitutive_law.cpp

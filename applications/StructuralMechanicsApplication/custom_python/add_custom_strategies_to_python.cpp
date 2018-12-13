@@ -30,6 +30,7 @@
 #include "custom_strategies/custom_schemes/explicit_central_differences_scheme.hpp"
 #include "custom_strategies/custom_schemes/eigensolver_dynamic_scheme.hpp"
 #include "custom_response_functions/adjoint_schemes/adjoint_structural_static_scheme.h"
+#include "state_derivative/direct_schemes/direct_structural_static_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -77,7 +78,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef EigensolverDynamicScheme< SparseSpaceType, LocalSpaceType > EigensolverDynamicSchemeType;
     typedef ExplicitCentralDifferencesScheme< SparseSpaceType, LocalSpaceType >  ExplicitCentralDifferencesSchemeType;
     typedef AdjointStructuralStaticScheme< SparseSpaceType, LocalSpaceType > AdjointStructuralStaticSchemeType;
-
+    typedef DirectStructuralStaticScheme< SparseSpaceType, LocalSpaceType > DirectStructuralStaticSchemeType;
 
     // Custom convergence criterion types
     typedef DisplacementAndOtherDoFCriteria< SparseSpaceType,  LocalSpaceType > DisplacementAndOtherDoFCriteriaType;
@@ -151,6 +152,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     py::class_<AdjointStructuralStaticSchemeType, AdjointStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "AdjointStructuralStaticScheme")
         .def(py::init<Parameters, AdjointStructuralResponseFunction::Pointer>());
+
+    py::class_<DirectStructuralStaticSchemeType, DirectStructuralStaticSchemeType::Pointer, BaseSchemeType>(m, "DirectStructuralStaticScheme")
+        .def(py::init<Parameters, DirectSensitivityVariable::Pointer>())
+        ;
 
 
     //********************************************************************
