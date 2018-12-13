@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla, Mengjie Zhao
 //
 
 #include "custom_elements/time_averaged_navier_stokes.h"
@@ -129,11 +129,15 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
@@ -146,9 +150,17 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,nnodes,dim>& vn_ave = data.vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
 
-    // Get time accurate expression
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
-    const BoundedMatrix<double, nnodes, dim>& vconv = v - vmesh;
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
+    const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get constitutive matrix
     const Matrix& C = data.C;
@@ -179,15 +191,20 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
     const double& tnnn = data.tnnn;
+
     const double& bdf0 = data.bdf0;
     const double& dyn_tau = data.dyn_tau;
 
@@ -195,18 +212,26 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointLHSContribution(
     const BoundedMatrix<double,nnodes,dim>& vn_ave = data.vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
 
-    // Get time accurate expression
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
-    // Get constitutive matrix
+    // get constitutive matrix
     const Matrix& C = data.C;
 
-    // Get shape function values
+    // get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // Stabilization parameters
+    // stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
@@ -229,11 +254,15 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointRHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
@@ -256,20 +285,28 @@ void TimeAveragedNavierStokes<3>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& pnnn_ave = data.pnnn_ave;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get time accurate expression
-    const array_1d<double,nnodes>& p = (t * p_ave - tn * pn_ave) * ( 1.0 / dt );
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
-    // Get shape function values
+    // get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // Auxiliary variables used in the calculation of the RHS
+    // auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
 
-    // Stabilization parameters
+    // stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
 
@@ -292,11 +329,15 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointRHSContribution(
     const double h = data.h;                                // Characteristic element size
     const double c = data.c;                                // Wave velocity
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
@@ -319,9 +360,17 @@ void TimeAveragedNavierStokes<2>::ComputeGaussPointRHSContribution(
     const array_1d<double,nnodes>& pnnn_ave = data.pnnn_ave;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get time accurate expression
-    const array_1d<double,nnodes>& p = (t * p_ave - tn * pn_ave) * ( 1.0 / dt );
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get shape function values
@@ -352,11 +401,15 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     const double h = data.h;                                // Characteristic element size
     // const double c = data.c;                                // Wave velocity
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
@@ -376,9 +429,17 @@ double TimeAveragedNavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruc
     const array_1d<double,nnodes>& p_ave = data.p_ave;
     const array_1d<double,nnodes>& pn_ave = data.pn_ave;
 
-    // Get time accurate expression
-    const array_1d<double,nnodes>& p = (t * p_ave - tn * pn_ave) * ( 1.0 / dt );
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get shape function values
@@ -415,11 +476,15 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
 
+    const double& dts = data.dts;                           // The averaging time period
+
+    // time step history info
     const double& dt = data.dt;
     const double& dtn = data.dtn;
     const double& dtnn = data.dtnn;
     const double& dtnnn = data.dtnnn;
 
+    // time history info
     const double& t = data.t;
     const double& tn = data.tn;
     const double& tnn = data.tnn;
@@ -439,9 +504,17 @@ double TimeAveragedNavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruc
     const array_1d<double,nnodes>& p_ave = data.p_ave;
     const array_1d<double,nnodes>& pn_ave = data.pn_ave;
 
-    // Get time accurate expression
-    const array_1d<double,nnodes>& p = (t * p_ave - tn * pn_ave) * ( 1.0 / dt );
-    const BoundedMatrix<double,nnodes,dim>& v = (t * v_ave - tn * vn_ave) * ( 1.0 / dt );
+    // time averaging parameters
+    double ave_c1 = data.ave_c1;
+    double ave_c2 = data.ave_c2;
+    double ave_n_c1 = data.ave_n_c1;
+    double ave_n_c2 = data.ave_n_c2;
+    double ave_nn_c1 = data.ave_nn_c1;
+    double ave_nn_c2 = data.ave_nn_c2;
+
+    // get time accurate expression
+    const array_1d<double,nnodes>& p = ave_c1 * p_ave - ave_c2 * pn_ave;
+    const BoundedMatrix<double,nnodes,dim>& v = ave_c1 * v_ave - ave_c2 * vn_ave;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
 
     // Get shape function values
