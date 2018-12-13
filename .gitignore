@@ -78,3 +78,5 @@ applications/FluidDynamicsApplication/symbolic_generation/time_averaged_navier_s
 *.png
 
 *.grf
+
+*.dat
