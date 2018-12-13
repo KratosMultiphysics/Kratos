@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Antonia Laresse
 //                   Riccardo Rossi
-//
+//                    
 //
 
 #include "includes/model_part.h"
@@ -133,8 +133,7 @@ public:
     void CalculateDistances(
         ElementsArrayType& rElements,
         Variable<double>& rDistanceVar,
-        const double max_distance,
-        const bool distance_with_history = true)
+        const double max_distance)
     {
         KRATOS_TRY
 
@@ -166,12 +165,10 @@ public:
 
             for (unsigned int kk = 0; kk < TDim + 1; kk++)
             {
-                if (geom[kk].GetValue(IS_VISITED) == 1){
+                if (geom[kk].GetValue(IS_VISITED) == 1)
                     visited_nodes += 1;
-                } else {
-                    if ( distance_with_history ){ geom[kk].FastGetSolutionStepValue(rDistanceVar) = max_distance; }
-                    else { geom[kk].GetValue(rDistanceVar) = max_distance; }
-                }
+                else
+                    geom[kk].FastGetSolutionStepValue(rDistanceVar) = max_distance;
             }
 
             //save in the elements to solve if just one node is missing to be determined
@@ -192,6 +189,7 @@ public:
 
         while (elements_to_solve.size() != 0)
         {
+//                KRATOS_WATCH(elements_to_solve.size());
             //compute all of the candidate elements
             for (unsigned int current_position = 0; current_position != elements_to_solve.size(); current_position++)
             {
@@ -200,6 +198,8 @@ public:
 
                 unsigned int unknown_node_index = 0;
 
+
+
                 double Volume;
                 GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
 
@@ -207,10 +207,7 @@ public:
                 noalias(d) = ZeroVector(TDim);
                 for (unsigned int iii = 0; iii < TDim + 1; iii++)
                 {
-                    double distance = 0.0;
-                    if ( distance_with_history ){ distance = geom[iii].FastGetSolutionStepValue(rDistanceVar); }
-                    else { distance = geom[iii].GetValue(rDistanceVar); }
-
+                    const double distance = geom[iii].FastGetSolutionStepValue(rDistanceVar);
                     double node_is_known = geom[iii].GetValue(IS_VISITED);
                     if (node_is_known == 1) //identyfing the unknown node
                         for (unsigned int jjj = 0; jjj < TDim; jjj++)
@@ -270,16 +267,13 @@ public:
             //now loop over all of the active nodes, and assign the minimum value of distance
             for (unsigned int k = 0; k < active_nodes.size(); k++)
             {
-                if ( distance_with_history ) {
-                    if (active_nodes(k)->FastGetSolutionStepValue(rDistanceVar) > node_distance_values[k])
-                        active_nodes(k)->FastGetSolutionStepValue(rDistanceVar) = node_distance_values[k];
-                    active_nodes(k)->GetValue(IS_VISITED) = 1;
-                } else {
-                    if (active_nodes(k)->GetValue(rDistanceVar) > node_distance_values[k])
-                        active_nodes(k)->GetValue(rDistanceVar) = node_distance_values[k];
-                    active_nodes(k)->GetValue(IS_VISITED) = 1;
-                }
+//                                        std::cout << " " << active_nodes[k].Id() << " " << active_nodes[k].FastGetSolutionStepValue(rDistanceVar) <<" " << node_distance_values[k];
+                if (active_nodes(k)->FastGetSolutionStepValue(rDistanceVar) > node_distance_values[k])
+                    active_nodes(k)->FastGetSolutionStepValue(rDistanceVar) = node_distance_values[k];
+//                                        std::cout << " " << active_nodes[k].FastGetSolutionStepValue(rDistanceVar) << std::endl;
+                active_nodes(k)->GetValue(IS_VISITED) = 1;
             }
+
 
             //CHAPUZA TEST
 //                 for (PointerVector< Node < 3 > >::iterator it = failed_nodes.begin(); it != failed_nodes.end(); it++)
@@ -305,73 +299,49 @@ public:
 //                    k++;
 //                }
 
+
+
             elements_to_solve.clear();
+
 
             //now loop over all of the active nodes, and assign the minimum value of distance
             for (PointerVector< Node < 3 > >::iterator it = active_nodes.begin(); it != active_nodes.end(); it++)
             {
-                if (distance_with_history){
-                    if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
+                if(it->FastGetSolutionStepValue(rDistanceVar) < max_distance)
+                {
+                    //loop over neighbour elements and add them to the todo list
+                    for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
+                            ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
                     {
-                        //loop over neighbour elements and add them to the todo list
-                        for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                                ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
-                        {
-                            unsigned int visited_nodes = 0;
-                            Element::GeometryType& geom = ie->GetGeometry();
+                        unsigned int visited_nodes = 0;
+                        Element::GeometryType& geom = ie->GetGeometry();
 
-                            for (unsigned int kk = 0; kk < TDim + 1; kk++)
+                        for (unsigned int kk = 0; kk < TDim + 1; kk++)
+                        {
+                            if (geom[kk].GetValue(IS_VISITED) == 1)
+                                visited_nodes += 1;
+                        }
+
+                        if (visited_nodes == TDim)
+                            if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
                             {
-                                if (geom[kk].GetValue(IS_VISITED) == 1)
-                                    visited_nodes += 1;
+                                ie->GetValue(IS_VISITED) = 1;
+                                elements_to_solve.push_back( (*(ie.base())).lock());
                             }
 
-                            if (visited_nodes == TDim)
-                                if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
-                                {
-                                    ie->GetValue(IS_VISITED) = 1;
-                                    elements_to_solve.push_back( (*(ie.base())).lock());
-                                }
+                        //                        if(visited_nodes == TDim+1)
+                        //                            std::cout << "should not add the element" << ie->Id() << std::endl;
 
-                            //                        if(visited_nodes == TDim+1)
-                            //                            std::cout << "should not add the element" << ie->Id() << std::endl;
-
-                        }
-                    }
-                } else {
-                    if(it->GetValue(rDistanceVar) < max_distance)
-                    {
-                        //loop over neighbour elements and add them to the todo list
-                        for (WeakPointerVector< Element >::iterator ie = it->GetValue(NEIGHBOUR_ELEMENTS).begin();
-                                ie != it->GetValue(NEIGHBOUR_ELEMENTS).end(); ie++)
-                        {
-                            unsigned int visited_nodes = 0;
-                            Element::GeometryType& geom = ie->GetGeometry();
-
-                            for (unsigned int kk = 0; kk < TDim + 1; kk++)
-                            {
-                                if (geom[kk].GetValue(IS_VISITED) == 1)
-                                    visited_nodes += 1;
-                            }
-
-                            if (visited_nodes == TDim)
-                                if( ie->GetValue(IS_VISITED) != 1 ) //it is to be used for the next step (an was not added before by another element)
-                                {
-                                    ie->GetValue(IS_VISITED) = 1;
-                                    elements_to_solve.push_back( (*(ie.base())).lock());
-                                }
-
-                            //                        if(visited_nodes == TDim+1)
-                            //                            std::cout << "should not add the element" << ie->Id() << std::endl;
-
-                        }
                     }
                 }
             }
 
+
+
             //erase working arrays
             active_nodes.clear();
             node_distance_values.clear();
+
 
         }
 
@@ -390,8 +360,7 @@ public:
                 {
                     if (in->GetValue(IS_VISITED) == 1)
                     {
-                        if (distance_with_history){ davg += in->FastGetSolutionStepValue(rDistanceVar); }
-                        else { davg += in->GetValue(rDistanceVar); }
+                        davg += in->FastGetSolutionStepValue(rDistanceVar);
                         counter += 1.0;
                     }
                 }
@@ -399,20 +368,10 @@ public:
                 if (counter != 0.0)
                 {
                     double estimated_distance = davg / counter;
-                    if (distance_with_history){
-                        if(estimated_distance < max_distance){
-                            it->FastGetSolutionStepValue(rDistanceVar) = estimated_distance;
-                        } else {
-                            it->FastGetSolutionStepValue(rDistanceVar) = max_distance;
-                        }
-                    } else {
-                        if(estimated_distance < max_distance){
-                            it->GetValue(rDistanceVar) = estimated_distance;
-                        } else {
-                            it->GetValue(rDistanceVar) = max_distance;
-                        }
-                    }
-
+                    if(estimated_distance < max_distance)
+                        it->FastGetSolutionStepValue(rDistanceVar) = estimated_distance;
+                    else
+                        it->FastGetSolutionStepValue(rDistanceVar) = max_distance;
                 }
                 else
                 {
@@ -525,3 +484,4 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_BODY_DISTANCE_CALCULATION_UTILS defined */
+
