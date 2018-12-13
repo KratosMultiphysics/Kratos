@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED )
@@ -61,6 +61,7 @@ class ParallelDistanceCalculator
 public:
     ///@name Type Definitions
     ///@{
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     /// Pointer definition of ParallelDistanceCalculator
     KRATOS_CLASS_POINTER_DEFINITION(ParallelDistanceCalculator);
@@ -87,15 +88,16 @@ public:
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
                             const unsigned int max_levels,
-                            const double max_distance)
+                            const double max_distance,
+                            Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
     {
         KRATOS_TRY
 
 		Check(rModelPart, rDistanceVar, rAreaVar);
-                         
+
 		ResetVariables(rModelPart,rDistanceVar, max_distance);
 
-		CalculateExactDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance);
+		CalculateExactDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance, Options);
 
         ExtendDistancesByLayer(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 
@@ -124,7 +126,7 @@ public:
         KRATOS_TRY
 
 		Check(rModelPart, rDistanceVar, rAreaVar);
-                         
+
 		ResetVariables(rModelPart,rDistanceVar, max_distance);
 
 		AbsDistancesOnDividedElements(rModelPart, rDistanceVar, rAreaVar, max_distance);
@@ -200,7 +202,7 @@ public:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) 
+            #pragma omp parallel for private(DN_DX,visited)
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -221,7 +223,7 @@ public:
             //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -238,7 +240,7 @@ public:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -250,7 +252,7 @@ public:
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) 
+            #pragma omp parallel for private(DN_DX)
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -270,7 +272,7 @@ public:
         //*****************************************************************+
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -719,7 +721,7 @@ private:
         //check that variables needed are in the model part
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"distance Variable is not in the model part","");
-        
+
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
             KRATOS_THROW_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
@@ -729,7 +731,7 @@ private:
 
 		KRATOS_CATCH("")
 	}
-                         
+
     void ResetVariables(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
 							const double MaxDistance)
@@ -738,7 +740,7 @@ private:
 
         //reset the variables needed
         const int node_size = rModelPart.Nodes().size();
-        
+
         #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
@@ -764,7 +766,8 @@ private:
     void CalculateExactDistancesOnDividedElements(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
-							const double MaxDistance)
+							const double MaxDistance,
+                            Flags Options)
 	{
         KRATOS_TRY
 
@@ -790,7 +793,13 @@ private:
 
              if (is_divided == true)
              {
-                 GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
+
+                 if (Options.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)){
+                    GeometryUtils::CalculateExactDistancesToPlane(element_geometry, dist);
+                 }
+
+                 else
+                    GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
 
                  // loop over nodes and apply the new distances.
                  for (unsigned int i_node = 0; i_node < element_geometry.size(); i_node++)
@@ -806,7 +815,7 @@ private:
                     element_geometry[i_node].GetValue(IS_VISITED) = 1;
 
                     element_geometry[i_node].UnSetLock();
-                }
+                  }
             }
         }
 
@@ -933,7 +942,7 @@ private:
         const int elem_size = rModelPart.Elements().size();
 		const int node_size = rModelPart.Nodes().size();
 
-        
+
         //*****************************************************************+
         //*****************************************************************+
         //*****************************************************************+
@@ -941,7 +950,7 @@ private:
         for(unsigned int level=0; level<max_levels; level++)
         {
             //loop on active elements and advance the distance computation
-            #pragma omp parallel for private(DN_DX,visited) 
+            #pragma omp parallel for private(DN_DX,visited)
             for(int i = 0; i<elem_size; i++)
             {
                 PointerVector< Element>::iterator it=rModelPart.ElementsBegin()+i;
@@ -957,7 +966,7 @@ private:
 
                     AddDistanceToNodes(rDistanceVar,rAreaVar,geom,DN_DX,Volume);
                 }
-            } 
+            }
 
 			bool is_distributed = false;
 			if(rModelPart.GetCommunicator().TotalProcesses() > 1)
@@ -966,7 +975,7 @@ private:
 		    //mpi sync variables
             if(is_distributed == true)
             {
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -983,7 +992,7 @@ private:
                 rModelPart.GetCommunicator().AssembleCurrentData(rAreaVar);
                 rModelPart.GetCommunicator().AssembleCurrentData(rDistanceVar);
 
-                #pragma omp parallel for private(DN_DX) 
+                #pragma omp parallel for private(DN_DX)
                 for(int i = 0; i<node_size; i++)
                 {
                     ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -995,7 +1004,7 @@ private:
 
 
             //finalize the computation of the distance
-            #pragma omp parallel for private(DN_DX) 
+            #pragma omp parallel for private(DN_DX)
             for(int i = 0; i<node_size; i++)
             {
                 ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -1014,7 +1023,7 @@ private:
 		KRATOS_CATCH("")
 	}
 
- 
+
      void AssignDistanceSign(ModelPart& rModelPart,
                             const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
@@ -1027,7 +1036,7 @@ private:
         //*****************************************************************+
         //assign the sign to the distance function according to the original distribution. Set to max for nodes that were not calculated
         const int node_size = rModelPart.Nodes().size();
-        #pragma omp parallel for 
+        #pragma omp parallel for
         for(int i = 0; i<node_size; i++)
         {
             ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
@@ -1081,6 +1090,11 @@ private:
 ///@name Type Definitions
 ///@{
 
+template< unsigned int TDim>
+const Kratos::Flags ParallelDistanceCalculator<TDim>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0));
+
+template< unsigned int TDim>
+const Kratos::Flags ParallelDistanceCalculator<TDim>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(0, false));
 
 ///@}
 ///@name Input and output
@@ -1111,6 +1125,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined 
-
-
+#endif // KRATOS_PARALLEL_DISTANCE_CALCULATOR_H_INCLUDED  defined
