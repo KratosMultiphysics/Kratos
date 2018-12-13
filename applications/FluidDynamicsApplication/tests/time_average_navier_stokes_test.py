@@ -22,26 +22,38 @@ class WorkFolderScope:
 
 class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
+    def testCylinderFlow2D(self):
+        self.work_folder = "TimeAveragedNavierStokesTest\\cylinder"
+        self.settings = "cylinder_2d.json"
+        self.ExcecuteFlowTest()
+
+
+    def testCylinderFlow2DReference(self):
+        self.work_folder = "TimeAveragedNavierStokesTest\\cylinder"
+        self.settings = "cylinder_2d_reference.json"
+        self.ExcecuteFlowTest()
+
+
     def testBackStepFlow2D(self):
-        self.work_folder = "TimeAveragedNavierStokesTest"
+        self.work_folder = "TimeAveragedNavierStokesTest\\back_step"
         self.settings = "back_step_flow_100.json"
         self.ExcecuteFlowTest()
 
 
-    def testPipeFlow2D(self):
-        self.work_folder = "TimeAveragedNavierStokesTest"
-        self.settings = "pipe_flow.json"
-        self.ExcecuteFlowTest()
-
-
     def testBackStepFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest"
+        self.work_folder = "TimeAveragedNavierStokesTest\\back_step"
         self.settings = "back_step_flow_reference_100.json"
         self.ExcecuteFlowTest()
 
 
+    def testPipeFlow2D(self):
+        self.work_folder = "TimeAveragedNavierStokesTest\\pipe_flow"
+        self.settings = "pipe_flow.json"
+        self.ExcecuteFlowTest()
+
+
     def testPipeFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest"
+        self.work_folder = "TimeAveragedNavierStokesTest\\pipe_flow"
         self.settings = "pipe_flow_reference.json"
         self.ExcecuteFlowTest()
 
@@ -163,38 +175,10 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
         return gid_output
 
-
-    def checkResults(self):
-        ## 2D results check
-        if (self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            if self.print_reference_values:
-                with open(self.reference_file+'.csv','w') as ref_file:
-                    ref_file.write("#ID, TIME_AVERAGED_VELOCITY_X, TIME_AVERAGED_VELOCITY_Y\n")
-                    for node in self.main_model_part.Nodes:
-                        vel = node.GetSolutionStepValue(TIME_AVERAGED_VELOCITY,0)
-                        ref_file.write("{0}, {1}, {2}\n".format(node.Id, vel[0], vel[1]))
-            else:
-                with open(self.reference_file+'.csv','r') as reference_file:
-                    reference_file.readline() # skip header
-                    line = reference_file.readline()
-
-                    for node in self.main_model_part.Nodes:
-                        values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                        node_id = values[0]
-                        reference_vel_x = values[1]
-                        reference_vel_y = values[2]
-
-                        velocity = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
-                        self.assertAlmostEqual(reference_vel_x, velocity[0], delta = self.check_tolerance)
-                        self.assertAlmostEqual(reference_vel_y, velocity[1], delta = self.check_tolerance)
-
-                        line = reference_file.readline()
-                    if line != '': # If we did not reach the end of the reference file
-                        self.fail("The number of nodes in the mdpa is smaller than the number of nodes in the output file")
-
-
 if __name__ == '__main__':
-    #TimeAveragedNavierStokesTest().testBackStepFlow2D()
-    #TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
-    TimeAveragedNavierStokesTest().testPipeFlow2D()
-    #TimeAveragedNavierStokesTest().testPipeFlow2DReference()
+    # TimeAveragedNavierStokesTest().testCylinderFlow2D()
+    # TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
+    TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    # TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
+    # TimeAveragedNavierStokesTest().testPipeFlow2D()
+    # TimeAveragedNavierStokesTest().testPipeFlow2DReference()
