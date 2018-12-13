@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 1,
         "start_time"      : 0.0,
-        "end_time"        : 200.0
+        "end_time"        : 100.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -60,8 +60,13 @@
         "time_stepping"               : {
             "automatic_time_step" : true,
             "CFL_number": 1.0,
-            "minimum_delta_time": 1.0,
-            "maximum_delta_time": 5.0
+            "minimum_delta_time": 1e-5,
+            "maximum_delta_time": 1.0
+        },
+        "time_step_acceleration"        :{
+            "considered_time"     : 5.0,
+            "minimum_delta_time"  : 1e-2,
+            "maximum_delta_time"  : 1.0
         }
     },
     "initial_conditions_process_list"  : [],

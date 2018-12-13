@@ -59,7 +59,12 @@
         "no_skin_parts"                   : [],
         "time_stepping"                   : {
             "automatic_time_step" : false,
-            "time_step"  : 0.1
+            "time_step"           : 0.1
+        },
+        "time_averaging_acceleration"        :{
+            "considered_time"     : 5.0,
+            "minimum_delta_time"  : 1e-2,
+            "maximum_delta_time"  : 1.0
         }
     },
     "initial_conditions_process_list"  : [],

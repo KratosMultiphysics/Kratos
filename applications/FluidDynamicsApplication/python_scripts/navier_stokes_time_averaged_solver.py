@@ -55,6 +55,11 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
                 "minimum_delta_time"  : 1e-2,
                 "maximum_delta_time"  : 1.0
             },
+            "time_averaging_acceleration"        :{
+                "considered_time"     : 5.0,
+                "minimum_delta_time"  : 1e-2,
+                "maximum_delta_time"  : 1.0
+            },
             "periodic": "periodic",
             "move_mesh_flag": false
         }""")
@@ -161,6 +166,28 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
+
+
+    def AdvanceInTime(self, current_time):
+        #dt = self._ComputeDeltaTime()
+        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+        dt = self._ComputeIncreasedDt(current_dt)
+        new_time = current_time + dt
+
+        self.main_model_part.CloneTimeStep(new_time)
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+
+        return new_time
+
+
+    def _ComputeIncreasedDt(self, current_dt):
+        dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
+        dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
+        new_dt = current_dt + 0.01
+        if (new_dt >= dt_max):
+            new_dt = dt_max
+        print("New dt is: ", new_dt)
+        return new_dt
 
 
     def Solve(self):
