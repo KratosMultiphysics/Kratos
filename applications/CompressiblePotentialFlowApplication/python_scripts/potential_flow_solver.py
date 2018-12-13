@@ -45,12 +45,12 @@ class PotentialSolver(PythonSolver):
                     "scaling": false
             }
 
-
         }""")
 
-            # "linear_solver_settings"       : {
-            #      "solver_type"     : "SkylineLUFactorizationSolver"
-            #   }
+    #    "linear_solver_settings"       : {
+    #             "solver_type"     : "SkylineLUFactorizationSolver"
+    #         }
+        
          
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -69,9 +69,10 @@ class PotentialSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2.0)#n_parameter
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,0.0)#n_parameter
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,1000.0)# alpha penalty
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,1000.0)#penalty kutta
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         

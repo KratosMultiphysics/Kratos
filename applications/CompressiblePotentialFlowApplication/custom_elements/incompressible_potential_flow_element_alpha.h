@@ -438,12 +438,17 @@ public:
            
             double penalty=rCurrentProcessInfo[INITIAL_PENALTY];
             double alpha=rCurrentProcessInfo[TEMPERATURE];
+            double geometry_angle=rCurrentProcessInfo[MIU];
          
             bounded_matrix<double, 2, 1 > n_kutta;
-            n_kutta(0,0)=0;
-            n_kutta(1,0)=1;          
-            Matrix test=prod(data.DN_DX,n_kutta);
-
+            n_kutta(0,0)=sin(geometry_angle*3.1415926/180);
+            n_kutta(1,0)=cos(geometry_angle*3.1415926/180);
+                     
+            Matrix test=prod(data.DN_DX,n_kutta);   
+            // noalias(lhs_plus_plus_alpha)  = alpha*data.vol*prod(data.DN_DX, trans(data.DN_DX));
+            // noalias(lhs_plus_minus_alpha) = -alpha*data.vol*prod(data.DN_DX, trans(data.DN_DX));
+            // noalias(lhs_minus_minus_alpha)= alpha*data.vol*prod(data.DN_DX, trans(data.DN_DX));
+            // noalias(lhs_minus_plus_alpha) = -alpha*data.vol*prod(data.DN_DX, trans(data.DN_DX)); 
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
@@ -471,6 +476,12 @@ public:
 
                         rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+penalty*lhs_kutta_negative(i,j); 
                         rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
+
+                        // rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+lhs_plus_plus_alpha(i,j)+penalty*lhs_kutta_positive(i,j);  
+                        // rLeftHandSideMatrix(i,j+NumNodes)          =  lhs_plus_minus_alpha(i,j);
+
+                        // rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+lhs_minus_minus_alpha(i,j)+penalty*lhs_kutta_negative(i,j); 
+                        // rLeftHandSideMatrix(i+NumNodes,j)          =  lhs_minus_plus_alpha(i,j);
                     }
                 }
                 Vector split_element_values(NumNodes*2);

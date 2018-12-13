@@ -393,11 +393,13 @@ public:
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
-            bounded_matrix<double, 2, 1 > n;
-            n(0,0)=0;
-            n(1,0)=1;
+            double geometry_angle=rCurrentProcessInfo[MIU];
+         
+            bounded_matrix<double, 2, 1 > n_kutta;
+            n_kutta(0,0)=sin(geometry_angle*3.1415926/180);
+            n_kutta(1,0)=cos(geometry_angle*3.1415926/180);
 
-            Matrix test=prod(data.DN_DX,n);
+            Matrix test=prod(data.DN_DX,n_kutta);
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
@@ -410,7 +412,7 @@ public:
                 }
             }
             
-            double penalty =10000.0;//rCurrentProcessInfo[INITIAL_PENALTY];
+            double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
 //                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
