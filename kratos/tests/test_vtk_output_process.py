@@ -12,10 +12,10 @@ def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestVtkOutputProcess(KratosUnittest.TestCase):
-    def __SetupModelPart(self, model):
-        mp = model.CreateModelPart("Main")
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
-        mp.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+    def __SetupModelPart(self, model, model_part_name):
+        self.mp = model.CreateModelPart(model_part_name)
+        self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         #create nodes
         self.mp.CreateNewNode(1, 0.00000, 1.00000, 0.00000)
         self.mp.CreateNewNode(2, 0.00000, 0.50000, 0.00000)
@@ -36,13 +36,6 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
         self.mp.CreateNewNode(17, 1.00000, 0.50000, 0.00000)
         self.mp.CreateNewNode(18, 1.00000, 0.00000, 0.00000)
 
-        #create a submodelpart for boundary conditions
-        bcs = self.mp.CreateSubModelPart("FixedEdgeNodes")
-        bcs.AddNodes([1, 2, 5])
-
-        bcmn = self.mp.CreateSubModelPart("MovingNodes")
-        bcmn.AddNodes([13, 14, 15])
-
         #create Element
         self.mp.CreateNewElement("Element2D4N", 1,
                             [14, 11, 12, 15], self.mp.GetProperties()[1])
@@ -61,5 +54,56 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
         self.mp.CreateNewElement("Element2D4N", 8, [8, 9, 7, 4],
                             self.mp.GetProperties()[1])
 
+        self.mp.CreateNewCondition("LineCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.mp.CreateNewCondition("LineCondition2D2N", 2, [2,5], self.mp.GetProperties()[1])
+        self.mp.CreateNewCondition("LineCondition2D2N", 3, [13,14], self.mp.GetProperties()[1])
+        self.mp.CreateNewCondition("LineCondition2D2N", 4, [14,15], self.mp.GetProperties()[1])
+
+        #create a submodelpart for boundary conditions
+        bcs = self.mp.CreateSubModelPart("FixedEdgeNodes")
+        bcs.AddNodes([1, 2, 5])
+        bcs.AddConditions([1,2])
+
+        bcmn = self.mp.CreateSubModelPart("MovingNodes")
+        bcmn.AddNodes([13, 14, 15])
+        bcs.AddConditions([3,4])
+
+    def __SetSolution(self):
+        for node in self.mp.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,[1.0,0.0,0.0])
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,[0.0,0.0,1.0])
+
     def test_vtk_io(self):
         current_model = KratosMultiphysics.Model()
+        self.__SetupModelPart(current_model, name)
+        self.__SetSolution()
+
+        vtk_output_parameters = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"                    : "Main",
+            "file_name"                          : "",
+            "file_format"                        : "ASCII",
+            "output_control_type"                : "step",
+            "output_frequency"                   : 1.0,
+            "output_sub_model_parts"             : true,
+            "save_output_files_in_folder"        : true,
+            "nodal_solution_step_data_variables" : [],
+            "nodal_data_value_variables"         : ["DISPLACEMENT", "VELOCITY"],
+            "element_data_value_variables"       : ["ACTIVE"]
+        }
+        """)
+        vtk_output_process = self.__SetupVtkOutputProcess(parameters)
+
+        time = 0.0
+        dt = 0.2
+        end_time = 1.0
+        vtk_output_process.ExecuteInitialize()
+
+        while (time <= end_time):
+            time = time + dt
+            step = step + 1
+            vtk_output_process.ExecuteInitializeSolutionStep()
+            self.mp.CloneTimeStep(time)
+            vtk_output_process.ExecuteFinalizeSolutionStep()
+
+        vtk_output_parameters.ExecuteFinalize()
