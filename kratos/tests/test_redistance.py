@@ -77,15 +77,11 @@ class TestRedistance(KratosUnittest.TestCase):
         model_part.CloneTimeStep(1.0)
 
         max_iterations = 2
-        print ("before 2D ")
-
         KratosMultiphysics.VariationalDistanceCalculationProcess2D(
             model_part,
             linear_solver,
             max_iterations,
             KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
-
-        print ("after 2D ")
 
         for node in model_part.Nodes:
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )

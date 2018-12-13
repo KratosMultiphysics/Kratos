@@ -256,7 +256,6 @@ public:
             // The element is cut by the interface
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
-
                 if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
                     GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }

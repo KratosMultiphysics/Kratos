@@ -422,24 +422,21 @@ public:
         else {
             BoundedMatrix<double,TSize,TSize-1> DN_DX;
             array_1d<double, TSize> N;
-            double volume = 0;
+            double volume;
             GeometryUtils::CalculateGeometryData(rThisGeometry, DN_DX, N, volume);
-            array_1d<double, 3> distance_gradient = ZeroVector(3);
-            // very rough fix
-            if ( static_cast<int>( TSize-1 ) == 2 ){
-                array_1d<double, 2> temp_distance_gradient = prod(trans(DN_DX), rDistances);
-                for (unsigned int i = 0; i < 2; i++){
-                    distance_gradient[i] = temp_distance_gradient[i];
+            array_1d<double, TSize-1> distance_gradient = prod(trans(DN_DX), rDistances);
+            double distance_gradient_norm = norm_2(distance_gradient);
+            if (distance_gradient_norm < 1e-15) distance_gradient_norm = 1e-15; //avoid division by zero
+            distance_gradient /= distance_gradient_norm;
+            //We use the first intersection point as reference
+            const auto &ref_point = intersection_points[0].Coordinates();
+            for (unsigned int i = 0; i < TSize; i++) {
+                double d = 0.0;
+                const auto &i_coords = rThisGeometry[i].Coordinates();
+                for (unsigned int Dim = 0; Dim < TSize - 1; Dim++) {
+                    d += (i_coords[Dim] - ref_point[Dim]) * distance_gradient[Dim];
                 }
-            } else {
-                distance_gradient = prod(trans(DN_DX), rDistances);
-            }
-
-            distance_gradient /= norm_2(distance_gradient);
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(TSize); i++) {
-                //We use the first intersection point as reference
-                double d = std::abs(inner_prod(rThisGeometry[i].Coordinates()-intersection_points[0], distance_gradient));
+                d = std::abs(d);
                 rDistances[i] = std::min(std::abs(rDistances[i]), d);
             }
         }
