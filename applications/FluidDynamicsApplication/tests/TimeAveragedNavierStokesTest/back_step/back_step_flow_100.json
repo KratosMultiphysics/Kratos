@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 1,
         "start_time"      : 0.0,
-        "end_time"        : 10.0
+        "end_time"        : 20.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,7 +18,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 0.05,
+            "output_frequency"    : 0.5,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -59,7 +59,7 @@
         "no_skin_parts"                   : [],
         "time_stepping"                   : {
             "automatic_time_step" : false,
-            "time_step"  : 1e-4
+            "time_step"  : 0.1
         }
     },
     "initial_conditions_process_list"  : [],
@@ -70,18 +70,19 @@
         "Parameters"    : {
             "model_part_name" : "AutomaticInlet2D_inlet",
             "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "value"           : [10.0,0.0,0.0],
+            "value"           : [0.01,0.0,0.0],
             "constrained"     : [true,true,true]
         }
     },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name": "AssignVectorVariableProcess",
-        "Parameters": {
-            "model_part_name" : "Outlet2D_outlet",
-            "variable_name"   : "TIME_AVERAGED_PRESSURE",
+        "python_module" : "apply_outlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name"    : "Outlet2D_outlet",
+            "variable_name"      : "TIME_AVERAGED_PRESSURE",
             "constrained"        : true,
-            "value"              : "0"
+            "value"              : 0.0,
+            "hydrostatic_outlet" : false,
+            "h_top"              : 0.0
         }
     },{
         "python_module" : "assign_vector_variable_process",
