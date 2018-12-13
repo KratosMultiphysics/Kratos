@@ -296,15 +296,7 @@ public:
             double value_1,value_0;
             
             value_0 = inner_prod(v, An_0);
-            value_1 = inner_prod(v, An_1);
-            KRATOS_WATCH(An_0)
-            KRATOS_WATCH(An_1)
-            KRATOS_WATCH(N_0)
-            KRATOS_WATCH(N_1)
-
-            KRATOS_WATCH(v)
-            
-
+            value_1 = inner_prod(v, An_1);            
 
             if(distances[0] > 0){ 
                 rRightHandSideVector[0] = value_0*N_0[0];
