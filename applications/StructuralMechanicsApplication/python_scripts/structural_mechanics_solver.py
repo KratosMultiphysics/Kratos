@@ -416,7 +416,7 @@ class MechanicalSolver(PythonSolver):
 
     def _create_linear_solver(self):
         from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-        return linear_solver_factory.ConstructSolver(linear_solver_configuration)
+        return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
