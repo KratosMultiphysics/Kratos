@@ -12,7 +12,7 @@ class ExplicitStrategy(object):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
         # Initialization of member variables
-
+        self.all_model_parts = all_model_parts
         self.spheres_model_part = all_model_parts.Get("SpheresPart")
         self.inlet_model_part = all_model_parts.Get("DEMInletPart")
         self.fem_model_part = all_model_parts.Get("RigidFacePart")
@@ -319,11 +319,28 @@ class ExplicitStrategy(object):
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
-    def AdvanceInTime(self, step, time):
+    def AdvanceInTime(self, step, time, is_time_to_print = False):
         step += 1
         time = time + self.dt
-
+        self.UpdateTimeInModelParts(time, step, is_time_to_print)
         return step, time
+
+    def UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+
+        self.UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
+
+    def UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
+        model_part.ProcessInfo[TIME] = time
+        model_part.ProcessInfo[DELTA_TIME] = self.dt
+        model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
         pass

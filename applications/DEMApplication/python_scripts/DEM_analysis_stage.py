@@ -439,7 +439,7 @@ class DEMAnalysisStage(AnalysisStage):
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
+        self.solver.UpdateTimeInModelParts(self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
 
     def UpdateTimeInOneModelPart(self):
         pass
@@ -463,9 +463,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
-
-        self.UpdateTimeInModelParts()
-
         self.BeforeSolveOperations(self.time)
 
     def BeforeSolveOperations(self, time):
