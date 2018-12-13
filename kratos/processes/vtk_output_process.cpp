@@ -251,7 +251,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &model_part)
     {
         // write nodal results variable header
         std::string nodalResultName = nodalResults[entry].GetString();
-        unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+        unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 component vector
         if (KratosComponents<Variable<double>>::Has(nodalResultName))
         {
             dataCharacteristic = 1;
@@ -694,11 +694,18 @@ void VtkOutputProcess::WriteElementDataBinary(ModelPart &model_part)
 
 //#################################################################End of Binary vtk ################################################################
 
-void VtkOutputProcess::PrintOutputSubModelPart(ModelPart &modelPart)
+void VtkOutputProcess::PrintOutputModelPart(ModelPart &modelPart)
 {
     Initialize(modelPart);
     std::string type = this->mrOutputSettings["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].GetString();
-    if (type == "GiD_PostBinary")
+    if (type == "ASCII")
+    {
+        WriteHeader(modelPart);
+        WriteMesh(modelPart);
+        WriteNodalResultsAsPointData(modelPart);
+        WriteElementData(modelPart);
+    }
+    else
     {
         Initialize(modelPart);
         WriteHeaderBinary(modelPart);
@@ -706,29 +713,25 @@ void VtkOutputProcess::PrintOutputSubModelPart(ModelPart &modelPart)
         WriteNodalResultsAsPointDataBinary(modelPart);
         WriteElementDataBinary(modelPart);
     }
-
-    else
-    {
-
-        WriteHeader(modelPart);
-        WriteMesh(modelPart);
-        WriteNodalResultsAsPointData(modelPart);
-        WriteElementData(modelPart);
-    }
 }
 
 void VtkOutputProcess::PrintOutput()
 {
     //For whole model part
-    PrintOutputSubModelPart(mrModelPart);
+    PrintOutputModelPart(mrModelPart);
     //For sub model parts
-    std::vector<std::string> subModelPartNames = mrModelPart.GetSubModelPartNames();
-    for (auto subModelPartName : subModelPartNames)
+    bool print_sub_model_parts = this->mrOutputSettings["output_sub_model_parts"].GetBool();
+
+    if(print_sub_model_parts)
     {
-        ModelPart &subModelPart = mrModelPart.GetSubModelPart(subModelPartName);
-        PrintOutputSubModelPart(subModelPart);
+        std::vector<std::string> subModelPartNames = mrModelPart.GetSubModelPartNames();
+        for (auto subModelPartName : subModelPartNames)
+        {
+            ModelPart &subModelPart = mrModelPart.GetSubModelPart(subModelPartName);
+            PrintOutputModelPart(subModelPart);
+        }
+        ++mStep;
     }
-    ++mStep;
 }
 
 void VtkOutputProcess::ForceBigEndian(unsigned char *bytes)
