@@ -23,9 +23,9 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "echo_level"                      : 0,
             "error_variable"                  : "RESIDUAL_NORM",
             "variable_threshold"              : 1e-3,
-            "variables_to_apply_fixity"       : [""],
-            "variables_to_set_at_interface"   : [""],
-            "variables_to_update_at_coarse"   : [""],
+            "variables_to_apply_fixity"       : [],
+            "variables_to_set_at_interface"   : [],
+            "variables_to_update_at_coarse"   : [],
             "advanced_configuration"          : {
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
