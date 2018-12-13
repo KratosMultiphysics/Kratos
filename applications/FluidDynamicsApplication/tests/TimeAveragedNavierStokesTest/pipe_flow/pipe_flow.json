@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 1,
         "start_time"      : 0.0,
-        "end_time"        : 10.0
+        "end_time"        : 200.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,7 +18,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 0.2,
+            "output_frequency"    : 5.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -58,8 +58,10 @@
         "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_wall"],
         "no_skin_parts"               : [],
         "time_stepping"               : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.1
+            "automatic_time_step" : true,
+            "CFL_number": 1.0,
+            "minimum_delta_time": 1.0,
+            "maximum_delta_time": 5.0
         }
     },
     "initial_conditions_process_list"  : [],
@@ -70,18 +72,19 @@
         "Parameters"    : {
             "model_part_name" : "AutomaticInlet2D_inlet",
             "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "value"           : [1.0,0.0,0.0],
+            "value"           : [0.1,0.0,0.0],
             "constrained"     : [true,true,true]
         }
     },{
-        "python_module" : "assign_scalar_variable_process",
-        "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name": "AssignVectorVariableProcess",
-        "Parameters": {
-            "model_part_name" : "Outlet2D_outlet",
-            "variable_name"   : "TIME_AVERAGED_PRESSURE",
+        "python_module" : "apply_outlet_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name"    : "Outlet2D_outlet",
+            "variable_name"      : "TIME_AVERAGED_PRESSURE",
             "constrained"        : true,
-            "value"              : 0.0
+            "value"              : 0.0,
+            "hydrostatic_outlet" : false,
+            "h_top"              : 0.0
         }
     },{
         "python_module" : "assign_vector_variable_process",
@@ -103,6 +106,23 @@
             "modulus"         : 0.0,
             "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "auxiliar_process_list"            : [{
+        "python_module"  : "line_output_process",
+        "kratos_module"  : "KratosMultiphysics",
+        "process_name"   : "LineOutputProcess",
+        "Parameters"            : {
+            "start_point"       : [0.0,  0.5, 0.0],
+            "end_point"         : [10.0, 0.5, 0.0],
+            "entity_type"       : "element",
+            "sampling_points"   : 10,
+            "model_part_name"  : "Parts_fluid",
+            "output_file_settings": {
+                "folder_name" : "line_output//time_averaged",
+                "file_name" : "time_averaged"
+            },
+            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
         }
     }]
 }

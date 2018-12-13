@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 10.0
+        "end_time"        : 100.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,7 +18,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 1,
+            "output_frequency"    : 5.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -56,7 +56,7 @@
         "no_skin_parts"               : [],
         "time_stepping"               : {
             "automatic_time_step" : false,
-            "time_step"           : 0.1
+            "time_step"           : 1.0
         },
         "compute_time_averaged_results": true
     },
@@ -67,7 +67,7 @@
         "Parameters"    : {
             "model_part_name" : "AutomaticInlet2D_inlet",
             "variable_name"   : "VELOCITY",
-            "modulus"         : 1.0,
+            "modulus"         : 0.1,
             "direction"       : "automatic_inwards_normal",
             "interval"        : [0.0,"End"]
         }
@@ -107,6 +107,22 @@
         "process_name"  : "ApplyTimeAveragingProcess",
         "Parameters"    : {
             "model_part_name" : "Parts_fluid"
+        }
+    },{
+        "python_module"  : "line_output_process",
+        "kratos_module"  : "KratosMultiphysics",
+        "process_name"   : "LineOutputProcess",
+        "Parameters"            : {
+            "start_point"       : [0.0,  0.5, 0.0],
+            "end_point"         : [10.0, 0.5, 0.0],
+            "entity_type"       : "element",
+            "sampling_points"   : 10,
+            "model_part_name"  : "Parts_fluid",
+            "output_file_settings": {
+                "folder_name" : "line_output//time_accurate",
+                "file_name" : "time_accurate"
+            },
+            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
         }
     }]
 }
