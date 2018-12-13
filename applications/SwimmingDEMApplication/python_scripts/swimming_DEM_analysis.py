@@ -111,6 +111,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.cluster_model_part = self.disperse_phase_solution.cluster_model_part
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
         self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
+        vars_man.ConstructListsOfVariables(self.pp)
         super(SwimmingDEMAnalysis, self).__init__(model, self.pp.fluid_parameters)
 
     def ReadFluidParameters(self):
@@ -339,12 +340,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.MPI_results = MPI_results
         #self.mixed_model_part = self.all_model_parts.Get('MixedPart')
 
-        vars_man.ConstructListsOfVariables(self.pp)
-
         self.TransferBodyForceFromDisperseToFluid()
 
         self.FluidInitialize()
         self.DispersePhaseInitialize()
+        self._GetSolver().projection_module.UpdateDatabase(self._GetSolver().h_min)
 
         self.SetAllModelParts()
 
@@ -394,14 +394,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # creating an IOTools object to perform other printing tasks
         self.io_tools = SDP.IOTools(self.pp)
 
-        # creating a projection module for the fluid-DEM coupling
-        self.h_min = 0.01
-        n_balls = 1
-        fluid_volume = 10
-        # the variable n_particles_in_depth is only relevant in 2D problems
-        self.pp.CFD_DEM.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
-        # creating a physical calculations module to analyse the DEM model_part
-
         dem_physics_calculator = SphericElementGlobalPhysicsCalculator(
             self.spheres_model_part
             )
@@ -423,19 +415,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
             elif self.spheres_model_part.NumberOfElements(0) == 0:
                 self.pp.CFD_DEM["meso_scale_length"].SetDouble(1.0)
 
-            self.projection_module = CFD_DEM_coupling.ProjectionModule(
-                self.fluid_model_part,
-                self.spheres_model_part,
-                self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
-                )
-
-            self.projection_module.UpdateDatabase(self.h_min)
-
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
+        self.custom_functions_tool = SDP.FunctionsCalculator(self.domain_size)
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(
@@ -635,6 +617,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
+    def InitializeSolutionStep(self):
+        self.TellTime(self.time)
+        self.PerformInitialDEMStepOperations(self.time)
+
     def RunSolutionLoop(self):
 
         while self.TheSimulationMustGoOn():
@@ -645,51 +631,19 @@ class SwimmingDEMAnalysis(AnalysisStage):
             dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
             interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
 
-            #self.time = self.time + self.Dt
             self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.TellTime(self.time)
-
-            if coupling_scheme_type == "UpdatedDEM":
-                time_final_DEM_substepping = self.time + self.Dt
-
-            else:
-                time_final_DEM_substepping = self.time
-
+            self.InitializeSolutionStep()
             #self.PerformEmbeddedOperations() TO-DO: it's crashing
-
-            self.UpdateALEMeshMovement(self.time)
-
+            self._GetSolver().Predict()
             # solving the fluid part
-            if self.step >= self.GetFirstStepForFluidComputation():
-                self.FluidSolve(
-                    self.time,
-                    solve_system=self.fluid_solve_counter.Tick() and not self.stationarity
-                    )
+            self._GetSolver().SolveSolutionStep()
+                # assessing stationarity
 
-            # assessing stationarity
-                if self.stationarity_counter.Tick():
-                    self.AssessStationarity()
 
             # printing if required
 
             if self.particles_results_counter.Tick():
-                self.io_tools.PrintParticlesResults(
-                    self.pp.variables_to_print_in_file,
-                    self.time,
-                    self.spheres_model_part)
-
-                self.PrintDrag(
-                    self.drag_list,
-                    self.drag_file_output_list,
-                    self.fluid_model_part,
-                    self.time)
-
-            if self.print_counter_updated_DEM.Tick():
-
-                if coupling_level_type:
-                    self.projection_module.ComputePostProcessResults(self.spheres_model_part.ProcessInfo)
-
-                self.post_utils.Writeresults(self.time)
+                Print()
 
             # solving the DEM part
 
@@ -699,18 +653,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.RecoverDerivatives()
 
             Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
-            first_dem_iter = True
-
-            self.spheres_model_part.ProcessInfo[TIME_STEPS] = self.step
-            self.rigid_face_model_part.ProcessInfo[TIME_STEPS] = self.step
-            self.cluster_model_part.ProcessInfo[TIME_STEPS] = self.step
-
-            self.PerformInitialDEMStepOperations(self.time)
 
             it_is_time_to_forward_couple = (
                 self.time >= interaction_start_time and
                 coupling_level_type and
-                (project_at_every_substep_option or first_dem_iter)
+                (project_at_every_substep_option or self._GetSolver().calculating_fluid_in_current_step)
             )
 
             if it_is_time_to_forward_couple:
@@ -732,10 +679,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
             # performing the time integration of the DEM part
 
-            self.spheres_model_part.ProcessInfo[TIME] = self.time
-            self.rigid_face_model_part.ProcessInfo[TIME] = self.time
-            self.cluster_model_part.ProcessInfo[TIME] = self.time
-
             if self.do_solve_dem:
                 self.DEMSolve(self.time)
 
@@ -755,28 +698,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
                     self.disperse_phase_solution.creator_destructor)
 
             if self.print_counter_updated_fluid.Tick():
-
-                if coupling_level_type:
-                    self.projection_module.ComputePostProcessResults(
-                        self.spheres_model_part.ProcessInfo)
-
-                self.post_utils.Writeresults(self.time)
-
-            first_dem_iter = False
+                self.ComputePostProcessResults()
 
             # applying DEM-to-fluid coupling
 
             if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
-                self.projection_module.ProjectFromParticles()
+                self._GetSolver().projection_module.ProjectFromParticles()
 
             #Phantom
             self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
-
-            #### PRINTING GRAPHS ####
-            os.chdir(self.graphs_path)
-            # measuring mean velocities in a certain control volume (the 'velocity trap')
-            if self.pp.CFD_DEM["VelocityTrapOption"].GetBool():
-                self.post_utils_DEM.ComputeMeanVelocitiesinTrap("Average_Velocity.txt", self.time)
 
             os.chdir(self.post_path)
 
@@ -788,16 +718,25 @@ class SwimmingDEMAnalysis(AnalysisStage):
             # printing if required
 
             if self.particles_results_counter.Tick():
-                self.io_tools.PrintParticlesResults(
-                    self.pp.variables_to_print_in_file,
-                    self.time,
-                    self.spheres_model_part)
+                Print()
 
-                self.PrintDrag(
-                    self.drag_list,
-                    self.drag_file_output_list,
-                    self.fluid_model_part,
-                    self.time)
+    def Print(self):
+        self.io_tools.PrintParticlesResults(
+            self.pp.variables_to_print_in_file,
+            self.time,
+            self.spheres_model_part)
+
+        self.PrintDrag(
+            self.drag_list,
+            self.drag_file_output_list,
+            self.fluid_model_part,
+            self.time)
+
+        self.post_utils.Writeresults(self.time)
+
+    def ComputePostProcessResults(self):
+        if self.pp.CFD_DEM["coupling_level_type"].GetInt():
+            self._GetSolver().projection_module.ComputePostProcessResults(self.spheres_model_part.ProcessInfo)
 
     def GetFirstStepForFluidComputation(self):
         return 3
@@ -994,7 +933,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.basset_force_tool.AppendIntegrands(self.spheres_model_part)
 
     def GetBassetForceTools(self):
-        self.basset_force_tool = SDP.BassetForceTools()
+        self.basset_force_tool = BassetForceTools()
 
     def GetFieldUtility(self):
         return None
@@ -1003,10 +942,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
         return None
 
     def ApplyForwardCoupling(self, alpha='None'):
-        self.projection_module.ApplyForwardCoupling(alpha)
+        self._GetSolver().projection_module.ApplyForwardCoupling(alpha)
 
     def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self.projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
+        self._GetSolver().projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
 
     def PerformFinalOperations(self, time=None):
         os.chdir(self.main_path)
@@ -1123,7 +1062,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
     # To-do: for the moment, provided for compatibility
     def _CreateSolver(self):
         import swimming_DEM_solver
+        self.pp.field_utility = self.GetFieldUtility()
         return swimming_DEM_solver.SwimmingDEMSolver(self.model,
                                                      self.pp.CFD_DEM,
                                                      self.fluid_solution._GetSolver(),
-                                                     self.disperse_phase_solution._GetSolver())
+                                                     self.disperse_phase_solution._GetSolver(),
+                                                     self.pp)

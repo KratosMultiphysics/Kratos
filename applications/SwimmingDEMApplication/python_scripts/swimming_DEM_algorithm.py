@@ -397,15 +397,19 @@ class Algorithm(object):
                 self.fluid_model_part,
                 self.spheres_model_part,
                 self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
+                self.pp.CFD_DEM,
+                self.pp.coupling_dem_vars,
+                self.pp.coupling_fluid_vars,
+                self.pp.time_filtered_vars,
+                flow_field=self.GetFieldUtility(),
+                dimension=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
+        self.custom_functions_tool = SDP.FunctionsCalculator(self.domain_size)
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(

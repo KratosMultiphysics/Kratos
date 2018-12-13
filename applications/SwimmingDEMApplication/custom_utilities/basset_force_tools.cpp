@@ -516,7 +516,7 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 void BassetForceTools::AppendIntegrands(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
+    double time = r_process_info[TIME];
     r_process_info[LAST_TIME_APPENDING] = time;
 
     for (NodeIterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++){
@@ -587,7 +587,7 @@ void BassetForceTools::AppendIntegrandsImplicit(ModelPart& r_model_part)
 void BassetForceTools::AppendIntegrandsWindow(ModelPart& r_model_part)
 {
     ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-    double time = r_process_info[TIME] + r_process_info[DELTA_TIME];
+    double time = r_process_info[TIME];
     r_process_info[LAST_TIME_APPENDING] = time;
 
     if (r_process_info[BASSET_FORCE_TYPE] >= 3 && mNumberOfExponentials > 0){

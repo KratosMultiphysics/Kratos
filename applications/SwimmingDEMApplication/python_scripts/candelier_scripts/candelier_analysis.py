@@ -45,6 +45,8 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
         candelier.sim = candelier.AnalyticSimulator(candelier_pp)
         self.frame_angular_vel = Vector([0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()])
         self.is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
+        self.pp.CFD_DEM["fluid_already_calculated"].SetBool(True)
+        self.pp.CFD_DEM.AddEmptyValue("load_derivatives").SetBool(False)
 
     def SetUpResultsDatabase(self):
         import candelier_scripts.candelier_hdf5 as candelier_hdf5
@@ -88,7 +90,7 @@ class CandelierBenchmarkAnalysis(BaseAnalysis):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
 
     def ApplyForwardCoupling(self, alpha = 'None'):
-        self.projection_module.ApplyForwardCoupling(alpha)
+        self._GetSolver().projection_module.ApplyForwardCoupling(alpha)
 
         for node in self.spheres_model_part.Nodes:
             omega = candelier_pp.omega

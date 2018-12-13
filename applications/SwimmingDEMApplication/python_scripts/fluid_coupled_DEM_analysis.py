@@ -31,9 +31,6 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         import swimming_sphere_strategy as SolverStrategy
         return SolverStrategy
 
-    def SetSolver(self):
-        return self._CreateSolver()
-
     def _CreateSolver(self):
         return self.solver_strategy.SwimmingStrategy(self.all_model_parts,
                                                      self.creator_destructor,
