@@ -57,10 +57,10 @@ class PostProcessing:
 
     def __init__(self, case_name, case_folder_name, parameter_file):
         self.case_name = case_name
-        self.result_folder_name = "."
-        self.fig_folder_name = "."
+        self.result_folder_name = case_folder_name + os.sep + "line_output" + os.sep + "time_averaged"
+        self.fig_folder_name = case_folder_name + os.sep + "pics"
         self.file_name = "time_averaged"
-        self.ref_folder_name = "."
+        self.ref_folder_name = case_folder_name + os.sep + "line_output" + os.sep + "time_accurate"
         self.ref_file_name = "time_accurate"
 
         with WorkFolderScope(case_folder_name):
@@ -157,5 +157,7 @@ class PostProcessing:
         plt.show()
 
 
-re100 = PostProcessing("Re100", ".","pipe_flow.json")
-re100.plot()
+re1000 = PostProcessing("Re1000", "pipe_flow","pipe_flow.json")
+re1000.plot()
+# re100 = PostProcessing("Cylinder", "cylinder","cylinder_2d.json")
+# re100.plot()
