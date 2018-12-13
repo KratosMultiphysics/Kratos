@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/element.h"
-#include "geometries/plane.h"
 
 
 namespace Kratos
@@ -425,16 +424,18 @@ public:
             double volume;
             GeometryUtils::CalculateGeometryData(rThisGeometry, DN_DX, N, volume);
             array_1d<double, TSize-1> distance_gradient = prod(trans(DN_DX), rDistances);
-            distance_gradient /= norm_2(distance_gradient);
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(TSize); i++) {
-                //We use the first intersection point as reference
+            double distance_gradient_norm = norm_2(distance_gradient);
+            if (distance_gradient_norm < 1e-15) distance_gradient_norm = 1e-15; //avoid division by zero
+            distance_gradient /= distance_gradient_norm;
+            //We use the first intersection point as reference
+            const auto ref_point = intersection_points[0].Coordinates();
+            for (unsigned int i = 0; i < TSize; i++) {
                 double d = 0.0;
                 const auto i_coords = rThisGeometry[i].Coordinates();
-                for (unsigned int d = 0; d < TSize - 1; d++) {
-                    d += (i_coords[d] - intersection_points[0][d]) * distance_gradient[d];
+                for (unsigned int Dim = 0; Dim < TSize - 1; Dim++) {
+                    d += (i_coords[Dim] - ref_point[Dim]) * distance_gradient[Dim];
                 }
-                double d = std::abs(d);
+                d = std::abs(d);
                 rDistances[i] = std::min(std::abs(rDistances[i]), d);
             }
         }
