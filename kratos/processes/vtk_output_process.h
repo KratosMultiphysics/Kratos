@@ -160,7 +160,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
 
     void WriteElementDataBinary(ModelPart &model_part);
 
-    void PrintOutputSubModelPart(ModelPart &modelPart);
+    void PrintOutputModelPart(ModelPart &modelPart);
 
     void PrintOutput();
 
