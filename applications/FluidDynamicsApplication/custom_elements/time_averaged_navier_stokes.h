@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla, Mengjie Zhao
 //
 
 #if !defined(KRATOS_TIME_AVERAGED_NAVIER_STOKES)
@@ -72,8 +72,26 @@ public:
     {
         BoundedMatrix<double, TNumNodes, TDim> v_ave, vn_ave, vnn_ave, vnnn_ave, vmesh, f;
         array_1d<double,TNumNodes> p_ave, pn_ave, pnn_ave, pnnn_ave, rho, mu;
-        double t, tn, tnn, tnnn;
-        double dt, dtn, dtnn, dtnnn;
+
+        double t, tn, tnn, tnnn;        // time history
+        double dt, dtn, dtnn, dtnnn;    // time step history
+        double dts;                     // the averaging time period
+
+        //// parameters for time averaged variables
+        // for current time step
+        // v = ave_c1 * v_ave - ave_c2 * vn_ave
+        double ave_c1;
+        double ave_c2;
+
+        // for previous time step
+        // vn = ave_n_c0 * vn_ave - ave_n_c1 * vnn_ave
+        double ave_n_c1;
+        double ave_n_c2;
+
+        // for 2 previous time step
+        // vnn = ave_nn_c1 * v_ave - ave_nn_c2 * vn_ave
+        double ave_nn_c1;
+        double ave_nn_c2;
 
         BoundedMatrix<double, TNumNodes, TDim > DN_DX;
         array_1d<double, TNumNodes > N;
@@ -418,6 +436,41 @@ protected:
         rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
         rData.tnnn = r3PreviousProcessInfo[TIME];
 
+        // time period considered in the averaging scheme
+        // TO DO --> find the way to define the restart time regardless of the problem itself
+        // rData.dts = rCurrentProcessInfo[END_TIME] * 0.5;
+        rData.dts = 10.0;
+
+        // parameters for time averaged variables
+        if (rData.t <= rData.dts){
+
+            // for current time step: v = ave_c1 * v_ave - ave_c2 * vn_ave
+            rData.ave_c1 = rData.t / rData.dt;
+            rData.ave_c2 = rData.tn / rData.dt;
+
+            // for previous time step: vn = ave_n_c0 * vn_ave - ave_n_c1 * vnn_ave
+            rData.ave_n_c1 = rData.tn / rData.dtn;
+            rData.ave_n_c2 = rData.tnn / rData.dtn;
+
+            // for 2 previous time step: vnn = ave_nn_c0 * vnn_ave - ave_nn_c1 * vnnn_ave
+            rData.ave_nn_c1 = rData.tnn / rData.dtnn;
+            rData.ave_nn_c2 = rData.tnnn / rData.dtnn;
+
+        } else {
+
+            // for current time step: v = ave_c1 * v_ave - ave_c2 * vn_ave
+            rData.ave_c1 = rData.dts / rData.dt;
+            rData.ave_c2 = (rData.dts - rData.dtn ) / rData.dt;
+
+            // for previous time step: vn = ave_n_c1 * vn_ave - ave_n_c2 * vnn_ave
+            rData.ave_n_c1 = ( rData.dts - rData.dtn ) / rData.dtn;
+            rData.ave_n_c2 = ( rData.dts - rData.dtn - rData.dtnn ) / rData.dtn;
+
+            // for 2 previous time step: vnn = ave_nn_c0 * vnn_ave - ave_nn_c1 * vnnn_ave
+            rData.ave_nn_c1 = ( rData.dts - rData.dtn - rData.dtnn ) / rData.dtnn;
+            rData.ave_nn_c2 = ( rData.dts - rData.dtn - rData.dtnn - rData.dtnnn) / rData.dtnn;
+        }
+
         rData.c = rCurrentProcessInfo[SOUND_VELOCITY];           // Wave velocity
 
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -506,10 +559,14 @@ protected:
         const BoundedMatrix<double, TNumNodes, TDim>& DN = rData.DN_DX;
 
 		double t = rData.t;
-		double tn = rData.tn;
+		double dtn = rData.dtn;
 		double dt = rData.dt;
 
-		const BoundedMatrix<double, TNumNodes, TDim> v = (t * v_ave - tn * vn_ave) / dt;
+        // time averaging parameters
+        double ave_c1 = rData.ave_c1;
+        double ave_c2 = rData.ave_c2;
+
+		const BoundedMatrix<double, TNumNodes, TDim> v = ave_c1 * v_ave - ave_c2 * vn_ave;
 
         // Compute strain (B*v)
         // 3D strain computation
