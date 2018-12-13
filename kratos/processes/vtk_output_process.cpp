@@ -244,7 +244,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &model_part)
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
-    Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
+    Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
     outputFile << "POINT_DATA " << model_part.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
@@ -298,32 +298,17 @@ void VtkOutputProcess::WriteElementData(ModelPart &model_part)
     std::string outputFileName = GetOutputFileName(model_part);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app);
-    std::vector<std::string> elementResults = {}; // list of element results
+    Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element results
+
     // write cells header
     if (model_part.NumberOfElements() > 0)
     {
         outputFile << "CELL_DATA " << model_part.NumberOfElements() << "\n";
-        outputFile << "SCALARS ACTIVE float 1\nLOOKUP_TABLE default\n";
-
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-            if ((elem_i)->IsDefined(ACTIVE))
-            {
-
-                outputFile << elem_i->Is(ACTIVE) << "\n";
-            }
-
-            else
-                outputFile << "1\n";
-        }
-
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
 
-            std::string elementResultName = elementResults[entry];
-            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
+            std::string elementResultName = elementResults[entry].GetString();
+            unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 component vector
 
             if (KratosComponents<Variable<double>>::Has(elementResultName))
             {
@@ -553,7 +538,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &model_part)
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
-    Parameters nodalResults = this->mrOutputSettings["result_file_configuration"]["nodal_results"];
+    Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
     outputFile << "\nPOINT_DATA " << model_part.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
@@ -612,38 +597,16 @@ void VtkOutputProcess::WriteElementDataBinary(ModelPart &model_part)
     std::string outputFileName = GetOutputFileName(model_part);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app);
-    std::vector<std::string> elementResults = {}; //list of element results
+    Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element resultss
     if (model_part.NumberOfElements() > 0)
     {
         // write cells header
         outputFile << "\nCELL_DATA " << model_part.NumberOfElements() << "\n";
-        outputFile << "SCALARS ACTIVE float \nLOOKUP_TABLE default\n";
-
-        // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
-        {
-            //outputFile << numberOfNodes;
-
-            if ((elem_i)->IsDefined(ACTIVE))
-            {
-                float is_active = elem_i->Is(ACTIVE);
-                ForceBigEndian((unsigned char *)&is_active);
-                outputFile.write((char *)(&is_active), sizeof(float));
-            }
-
-            else
-            {
-
-                float is_active = 1;
-                ForceBigEndian((unsigned char *)&is_active);
-                outputFile.write((char *)(&is_active), sizeof(float));
-            }
-        }
 
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
 
-            std::string elementResultName = elementResults[entry];
+            std::string elementResultName = elementResults[entry].GetString();
             unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
 
             if (KratosComponents<Variable<double>>::Has(elementResultName))
@@ -697,7 +660,7 @@ void VtkOutputProcess::WriteElementDataBinary(ModelPart &model_part)
 void VtkOutputProcess::PrintOutputModelPart(ModelPart &modelPart)
 {
     Initialize(modelPart);
-    std::string type = this->mrOutputSettings["result_file_configuration"]["gidpost_flags"]["GiDPostMode"].GetString();
+    std::string type = this->mrOutputSettings["file_format"].GetString();
     if (type == "ASCII")
     {
         WriteHeader(modelPart);
@@ -763,7 +726,8 @@ std::string VtkOutputProcess::GetOutputFileName(ModelPart &model_part)
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
-    std::string outputFilename = model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(mStep) + ".vtk";
+    std::string outputFilename = mrOutputSettings["folder_name"].GetString() +"/"+
+                                    model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(mStep) + ".vtk";
     return outputFilename;
 }
 
