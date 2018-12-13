@@ -59,25 +59,36 @@ for dim in dim_vector:
     pnn_ave =  DefineVector('pnn_ave',nnodes)           # Averaged 2 previous step pressure
     pnnn_ave = DefineVector('pnnn_ave',nnodes)          # Averaged 3 previous step pressure
 
-    ## Time
+    ## Time history
     t = symbols('t')  # current time
     tn = symbols('tn') # 1 previous time
     tnn = symbols('tnn') # 2 previous time
     tnnn = symbols('tnnn') # 3 previous time
 
-    ## Time steps
+    ## Time steps history
     dt = symbols('dt')  # current time
     dtn = symbols('dtn') # 1 previous time
     dtnn = symbols('dtnn') # 2 previous time
     dtnnn = symbols('dtnnn') # 3 previous time
 
+    ## time averaging parameters
+    # current time step
+    ave_c1 = symbols('ave_c1')
+    ave_c2 = symbols('ave_c2')
+    # previous time step
+    ave_n_c1 = symbols('ave_n_c1')
+    ave_n_c2 = symbols('ave_n_c2')
+    # 2 previous time step
+    ave_nn_c1 = symbols('ave_nn_c1')
+    ave_nn_c2 = symbols('ave_nn_c2')
+
     ## Not Averaged unknown fields definition
-    v   = ( t   * v_ave   - tn   * vn_ave   ) / dt           # Current step velocity (v(i,j) refers to velocity of node i component j)
-    vn  = ( tn  * vn_ave  - tnn  * vnn_ave  ) / dtn          # Previous step velocity
-    vnn = ( tnn * vnn_ave - tnnn * vnnn_ave ) / dtnn         # 2 previous step velocity
-    p   = ( t   * p_ave   - tn   * pn_ave   ) / dt           # Current step pressure
-    pn  = ( tn  * pn_ave  - tnn  * pnn_ave  ) / dtn          # Previous step pressure
-    pnn = ( tnn * pnn_ave - tnnn * pnnn_ave ) / dtnn         # 2 previous step pressure
+    v   = ave_c1    * v_ave   - ave_c2    * vn_ave           # Current step velocity (v(i,j) refers to velocity of node i component j)
+    vn  = ave_n_c1  * vn_ave  - ave_n_c2  * vnn_ave          # Previous step velocity
+    vnn = ave_nn_c1 * vnn_ave - ave_nn_c2 * vnnn_ave         # 2 previous step velocity
+    p   = ave_c1    * p_ave   - ave_c2    * pn_ave           # Current step pressure
+    pn  = ave_n_c1  * pn_ave  - ave_n_c2  * pnn_ave          # Previous step pressure
+    pnn = ave_nn_c1 * pnn_ave - ave_nn_c2 * pnnn_ave         # 2 previous step pressure
 
     ## Test functions definition
     w = DefineMatrix('w',nnodes,dim)            # Velocity field test function
