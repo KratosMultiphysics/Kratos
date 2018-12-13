@@ -1,9 +1,10 @@
 import KratosMultiphysics
+import os
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VtkOutputProcessPython(Model, settings["Parameters"])
+    return VtkOutputProcessPython(Model, settings)
 
 
 ## All the processes python should be derived from "Process"
@@ -14,11 +15,11 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
-            "file_name"                          : "",
             "file_format"                        : "ASCII",
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : true,
+            "folder_name"                        : "",
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
@@ -30,9 +31,19 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
+        folder_name = self.settings["folder_name"].GetString()
 
-        if settings["save_output_files_in_folder"].GetBool() :
-            os.mkdir("VTK_Output")
+        if(self.settings["folder_name"].GetString() == ""):
+            self.settings["folder_name"].SetString("VTK_Output_test")
+
+        folder_name = self.settings["folder_name"].GetString()
+
+        if self.settings["save_output_files_in_folder"].GetBool() :
+            if(os.path.isdir(folder_name)):
+                import shutil
+                shutil.rmtree(folder_name)
+            os.mkdir(folder_name)
+
 
         model_part_name = settings["model_part_name"].GetString()
         model_part = self.model[model_part_name]
