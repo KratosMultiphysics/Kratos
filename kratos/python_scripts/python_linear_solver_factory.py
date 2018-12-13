@@ -8,6 +8,10 @@ def ConstructSolver(configuration):
 
     solver_type = configuration["solver_type"].GetString()
 
+    # dict specifying in which applications the linear-solvers are defined
+    # it is necessary to import the applications in which the linear-solvers
+    # are defined, because otherwise they are not registered in the kernel
+    # and hence cannot be created by the C-linear-solver-factory
     linear_solver_apps = {
         "ExternalSolversApplication" : [
             "GMRESSolver",
@@ -25,6 +29,7 @@ def ConstructSolver(configuration):
             "eigen_pardiso_lu",
             "complex_eigen_sparse_lu",
             "complex_eigen_pardiso_lu"
+        ]
     }
 
     for app_name, linear_solve_names in linear_solver_apps.items():
