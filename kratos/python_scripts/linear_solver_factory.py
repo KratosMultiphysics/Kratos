@@ -24,7 +24,9 @@ def ConstructPreconditioner(configuration):
 #
 def ConstructSolver(configuration):
 
-    Logger.PrintWarning('DEPRECATION', 'Please use the "python_linear_solver_factory.py"')
+    depr_msg  = '"kratos/python_scripts/linear_solver_factory.py" is deprecated and will be removed,\n
+    depr_msg += 'please use "kratos/python_scripts/python_linear_solver_factory.py" instead!'
+    Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
 
     params = 0
     ##############################################################
