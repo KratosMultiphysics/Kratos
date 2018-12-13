@@ -30,7 +30,14 @@
 // Project includes
 #include "utilities/math_utils.h"
 #include "geometries/point.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
+#include "particle_mechanics_application_variables.h"
 
+#if !defined(INITIAL_CURRENT)
+#define INITIAL_CURRENT
+    enum Configuration {Initial = 0, Current = 1};
+#endif
 
 namespace Kratos
 {
@@ -52,6 +59,10 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
+	typedef Node<3> NodeType;
+
+	typedef Geometry< Node<3> > GeometryType;
+
     typedef DenseVector<Vector> Second_Order_Tensor;
 
     typedef DenseVector<Second_Order_Tensor> Third_Order_Tensor;
@@ -60,6 +71,68 @@ public:
 
     typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
+    /**
+     * Calculates the radius of axisymmetry
+     * @param N: The Gauss Point shape function
+     * @param Geom: The geometry studied
+     * @return Radius: The radius of axisymmetry
+     */
+
+    static inline double CalculateRadius(
+        const Vector& N,
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current
+        )
+    {
+        double radius = 0.0;
+
+        for (unsigned int iNode = 0; iNode < Geom.size(); iNode++)
+        {
+            // Displacement from the reference to the current configuration
+            if (ThisConfiguration == Current)
+            {
+                const array_1d<double, 3 >& delta_displacement = Geom[iNode].FastGetSolutionStepValue(DISPLACEMENT);
+                const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
+
+                const array_1d<double, 3 > current_position = reference_position + delta_displacement;
+                radius += current_position[0] * N[iNode];
+            }
+            else
+            {
+                const array_1d<double, 3 >& reference_position = Geom[iNode].Coordinates();
+                radius += reference_position[0] * N[iNode];
+            }
+        }
+
+        return radius;
+    }
+
+    /**
+     * Calculates the radius of axisymmetry for a point
+     * @param Geom: The geometry studied
+     * @return The radius of axisymmetry
+     */
+
+    static inline double CalculateRadiusPoint(
+        GeometryType& Geom,
+        const Configuration ThisConfiguration = Current
+        )
+    {
+        // Displacement from the reference to the current configuration
+        if (ThisConfiguration == Current)
+        {
+            const array_1d<double, 3 >& delta_displacement = Geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 >& reference_position = Geom[0].Coordinates();
+
+            const array_1d<double, 3 > current_position = reference_position + delta_displacement;
+            return current_position[0];
+        }
+        else
+        {
+            const array_1d<double, 3 >& reference_position = Geom[0].Coordinates();
+            return reference_position[0];
+        }
+    }
 
     /**
      * @brief Calculates the QR Factorization of given square matrix A=QR.
@@ -83,17 +156,17 @@ public:
 
         R.resize(dim,dim,false);
 
-        noalias(R)=ZeroMatrix(dim);
+        noalias(R)=ZeroMatrix(dim, dim);
 
         Q.resize(dim,dim,false);
 
-        noalias(Q)=ZeroMatrix(dim);
+        noalias(Q)=ZeroMatrix(dim, dim);
 
         Matrix Help(A.size1(),A.size2());
 	    noalias(Help) = A;
 
         Matrix unity(dim,dim);
-	    noalias(unity) = ZeroMatrix(dim);
+	    noalias(unity) = ZeroMatrix(dim, dim);
 
         for(unsigned int j=0; j<dim; j++)
             unity(j,j)=1.0;
@@ -107,7 +180,7 @@ public:
             HelpQ[i].resize(dim,dim,false);
             HelpR[i].resize(dim,dim,false);
             noalias(HelpQ[i])= unity;
-            noalias(HelpR[i])= ZeroMatrix(dim);
+            noalias(HelpR[i])= ZeroMatrix(dim, dim);
         }
 
         for(unsigned int iteration=0; iteration< dim-1; iteration++)
@@ -205,13 +278,13 @@ public:
 	    noalias(Result) = ZeroVector(dim);
 
         Matrix HelpA(dim,dim);
-	    noalias(HelpA) = ZeroMatrix(dim);
+	    noalias(HelpA) = ZeroMatrix(dim, dim);
 
         Matrix HelpQ(dim,dim);
-	    noalias(HelpQ) = ZeroMatrix(dim);
+	    noalias(HelpQ) = ZeroMatrix(dim, dim);
 
         Matrix HelpR(dim,dim);
-	    noalias(HelpR) = ZeroMatrix(dim);
+	    noalias(HelpR) = ZeroMatrix(dim, dim);
 
         HelpA=A;
 
@@ -230,7 +303,7 @@ public:
 
             ParticleMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
-            HelpA= ZeroMatrix(dim);
+            HelpA= ZeroMatrix(dim, dim);
 
             for(unsigned int i=0; i<dim; i++)
             {
@@ -628,7 +701,7 @@ public:
             for(unsigned int j=0; j<3; j++)
             {
                 rTensor[i][j].resize(3,3,false);
-                noalias(rTensor[i][j])= ZeroMatrix(3);
+                noalias(rTensor[i][j])= ZeroMatrix(3,3);
                 for(unsigned int k=0; k<3; k++)
                     for(unsigned int l=0; l<3; l++)
                     {

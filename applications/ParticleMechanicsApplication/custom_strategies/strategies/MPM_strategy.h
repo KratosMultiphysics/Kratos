@@ -28,9 +28,10 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
+#include "boost/numeric/ublas/matrix.hpp"
 
 // Application includes
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 // Geometry utilities
 #include "utilities/geometry_utilities.h"
@@ -51,7 +52,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
 #include "linear_solvers/linear_solver.h"
-#include "utilities/binbased_fast_point_locator.h"
+#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -97,7 +98,7 @@ public:
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef typename TSparseSpace::DataType TDataType;
@@ -213,8 +214,8 @@ public:
                 if(i->IsDefined(ACTIVE))
                 {
                     Properties::Pointer properties = i->pGetProperties();
-                    int material_id = i->GetProperties().Id();
-                    double density  = i->GetProperties()[DENSITY];
+                    const int material_id = i->GetProperties().Id();
+                    const double density  = i->GetProperties()[DENSITY];
 
                     Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
@@ -284,8 +285,13 @@ public:
 
                     // Evaluation of element area/volume
                     const double area = rGeom.Area();
-
-                    MP_Mass   = area * density / integration_point_per_elements;
+                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+						const double thickness = i->GetProperties()[THICKNESS];
+						MP_Mass = area * thickness * density / integration_point_per_elements;
+					}
+					else {
+                        MP_Mass = area * density / integration_point_per_elements;
+                    }
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
@@ -300,8 +306,8 @@ public:
                             new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
                         }
                         Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                        double MP_Density  = density;
-                        int MP_Material_Id = material_id;
+                        const double MP_Density  = density;
+                        const int MP_Material_Id = material_id;
 
                         xg.clear();
 
@@ -530,114 +536,14 @@ public:
      * If one or more material points fall in the grid element, the grid element is
      * set to be active and its connectivity is associated to the material point
      * element.
-     * STEPS:
-     * 1) All the elements are set to be INACTIVE
-     * 2) A searching is performed and the grid elements which contain at least a MP are set to be ACTIVE
      *
     */
     virtual void SearchElement(
-        ModelPart& grid_model_part,
-        ModelPart& mpm_model_part,
         const std::size_t MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5)
     {
         KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
-
-        // Reset elements to inactive
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-
-			auto element_itr = grid_model_part.Elements().begin() + i;
-			element_itr->Reset(ACTIVE);
-            if (m_GeometryElement == "Triangle"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    element_itr->GetGeometry()[3].Reset(ACTIVE);
-                }
-            }
-            else if (m_GeometryElement == "Quadrilateral"){
-                element_itr->GetGeometry()[0].Reset(ACTIVE);
-                element_itr->GetGeometry()[1].Reset(ACTIVE);
-                element_itr->GetGeometry()[2].Reset(ACTIVE);
-                element_itr->GetGeometry()[3].Reset(ACTIVE);
-
-                if (TDim ==3)
-                {
-                    element_itr->GetGeometry()[4].Reset(ACTIVE);
-                    element_itr->GetGeometry()[5].Reset(ACTIVE);
-                    element_itr->GetGeometry()[6].Reset(ACTIVE);
-                    element_itr->GetGeometry()[7].Reset(ACTIVE);
-                }
-            }
-		}
-
-        // Search background grid and make element active
-        Vector N;
-        const int max_result = 1000;
-
-        #pragma omp parallel
-        {
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
-
-            #pragma omp for
-            for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                auto element_itr = mpm_model_part.Elements().begin() + i;
-
-                array_1d<double,3> xg = element_itr->GetValue(MP_COORD);
-                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                Element::Pointer pelem;
-
-                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
-
-                if (is_found == true)
-                {
-                    pelem->Set(ACTIVE);
-                    element_itr->GetGeometry() = pelem->GetGeometry();
-                    if (m_GeometryElement == "Triangle")
-                    {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()[3].Set(ACTIVE);
-                        }
-                    }
-                    else if(m_GeometryElement == "Quadrilateral")
-                    {
-                        element_itr->GetGeometry()[0].Set(ACTIVE);
-                        element_itr->GetGeometry()[1].Set(ACTIVE);
-                        element_itr->GetGeometry()[2].Set(ACTIVE);
-                        element_itr->GetGeometry()[3].Set(ACTIVE);
-                        if (TDim ==3)
-                        {
-                            element_itr->GetGeometry()[4].Set(ACTIVE);
-                            element_itr->GetGeometry()[5].Set(ACTIVE);
-                            element_itr->GetGeometry()[6].Set(ACTIVE);
-                            element_itr->GetGeometry()[7].Set(ACTIVE);
-                        }
-                    }
-                }
-                else{
-                    KRATOS_INFO("MPM_Strategy.SearchElement") << "WARNING: Search Element for Particle " << element_itr->Id()
-                        << " is failed. Geometry is cleared." << std::endl;
-
-                    element_itr->GetGeometry().clear();
-                    element_itr->Reset(ACTIVE);
-                    element_itr->Set(TO_ERASE);
-                }
-            }
-        }
+        MPMSearchElementUtility::SearchElement<TDim>(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
     }
 
 

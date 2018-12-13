@@ -35,6 +35,7 @@ ComputeHessianSolMetricProcess<TDim, TVarType>::ComputeHessianSolMetricProcess(
         "enforce_current"                     : true,
         "hessian_strategy_parameters":
         {
+            "metric_variable"                  : ["DISTANCE"],
             "estimate_interpolation_error"         : false,
             "interpolation_error"                  : 1.0e-6,
             "mesh_dependent_constant"              : 0.28125
@@ -89,7 +90,8 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
     // Some checks
     VariableUtils().CheckVariableExists(mVariable, nodes_array);
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     // Ratio reference variable
     KRATOS_ERROR_IF_NOT(KratosComponents<Variable<double>>::Has(mRatioReferenceVariable)) << "Variable " << mRatioReferenceVariable << " is not a double variable" << std::endl;
@@ -115,8 +117,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::Execute()
 
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not defined for node " << it_node->Id();
-        const double nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
+        const double nodal_h = it_node->GetValue(NODAL_H);
 
         double element_min_size = mMinSize;
         if ((element_min_size > nodal_h) && mEnforceCurrent) element_min_size = nodal_h;
@@ -263,8 +264,9 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 3>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 2, 2>, array_1d<double, 3>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 3; ++k) {
-                    double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
+                    double& val = aux_hessian[k];
 
                     #pragma omp atomic
                     val += N[i_node] * volume * hessian_cond[k];
@@ -289,8 +291,9 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
             const array_1d<double, 6>& hessian_cond = MathUtils<double>::StressTensorToVector<BoundedMatrix<double, 3, 3>, array_1d<double, 6>>(hessian);
 
             for(IndexType i_node = 0; i_node < geom.size(); ++i_node) {
+                auto& aux_hessian = geom[i_node].GetValue(AUXILIAR_HESSIAN);
                 for(IndexType k = 0; k < 6; ++k) {
-                    double& val = geom[i_node].GetValue(AUXILIAR_HESSIAN)[k];
+                    double& val = aux_hessian[k];
 
                     #pragma omp atomic
                     val += N[i_node] * volume * hessian_cond[k];
@@ -304,7 +307,7 @@ void ComputeHessianSolMetricProcess<TDim, TVarType>::CalculateAuxiliarHessian()
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
         auto it_node = nodes_array.begin() + i;
-        it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->FastGetSolutionStepValue(NODAL_AREA);
+        it_node->GetValue(AUXILIAR_HESSIAN) /= it_node->GetValue(NODAL_AREA);
     }
 }
 

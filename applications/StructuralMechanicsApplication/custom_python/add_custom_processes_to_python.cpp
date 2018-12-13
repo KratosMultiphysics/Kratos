@@ -23,6 +23,7 @@
 #include "custom_processes/postprocess_eigenvalues_process.h"
 #include "custom_processes/total_structural_mass_process.h"
 #include "custom_processes/compute_center_of_gravity_process.h"
+#include "custom_processes/compute_mass_moment_of_inertia_process.h"
 #include "custom_processes/shell_to_solid_shell_process.h"
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
@@ -44,16 +45,20 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def_static("CalculateElementMass", &TotalStructuralMassProcess::CalculateElementMass);
         ;
 
-    py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
+    py::class_<ComputeCenterOfGravityProcess, ComputeCenterOfGravityProcess::Pointer, Process>(m,"ComputeCenterOfGravityProcess")
         .def(py::init<ModelPart&>())
         ;
-
 
 /*     class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
         .def(init<ModelPart&,Parameters&>())
         .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
         ;  */
-    py::class_<ComputeCenterOfGravityProcess, ComputeCenterOfGravityProcess::Pointer, Process>(m,"ComputeCenterOfGravityProcess")
+
+    py::class_<ComputeMassMomentOfInertiaProcess, ComputeMassMomentOfInertiaProcess::Pointer, Process>(m,"ComputeMassMomentOfInertiaProcess")
+        .def(py::init<ModelPart&, const Point&, const Point&>())
+        ;
+
+    py::class_<SolidShellThickComputeProcess, SolidShellThickComputeProcess::Pointer, Process>(m,"SolidShellThickComputeProcess")
         .def(py::init<ModelPart&>())
         ;
 

@@ -48,10 +48,17 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Compute Nodal Gradient process
-/** This process computes the gradient of a certain variable stored in the nodes
+/**
+ * @class ComputeNodalGradientProcess
+ * @ingroup KratosCore
+ * @brief Compute Nodal Gradient process
+ * @details This process computes the gradient of a certain variable stored in the nodes
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of the problem
+ * @tparam TVarType The variable type
+ * @tparam THist If the variable is historical or not
 */
-
 template< int TDim, class TVarType, HistoricalValues THist> 
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process

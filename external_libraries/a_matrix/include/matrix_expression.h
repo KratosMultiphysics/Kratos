@@ -81,7 +81,6 @@ class MatrixRow : public MatrixExpression<MatrixRow<TExpressionType>> {
     template <typename TOtherExpressionType, std::size_t TCategory>
     MatrixRow& operator=(
         MatrixExpression<TOtherExpressionType, TCategory> const& Other) {
-        auto& other_expression = Other.expression();
         for (std::size_t j = 0; j < size2(); j++)
             _original_expression(_row_index, j) = Other.expression()(0, j);
         return *this;
@@ -90,7 +89,6 @@ class MatrixRow : public MatrixExpression<MatrixRow<TExpressionType>> {
     template <typename TOtherExpressionType>
     MatrixRow& operator=(
         MatrixExpression<TOtherExpressionType, row_major_access> const& Other) {
-        auto& other_expression = Other.expression();
         for (std::size_t j = 0; j < size2(); j++)
             _original_expression(_row_index, j) = Other.expression()[j];
         return *this;
@@ -134,7 +132,6 @@ class MatrixColumn : public MatrixExpression<MatrixColumn<TExpressionType>> {
     template <typename TOtherExpressionType, std::size_t TCategory>
     MatrixColumn& operator=(
         MatrixExpression<TOtherExpressionType, TCategory> const& Other) {
-        auto& other_expression = Other.expression();
         for (std::size_t i = 0; i < size1(); i++)
             _original_expression(i, _column_index) = Other.expression()(i, 0);
         return *this;
@@ -143,7 +140,6 @@ class MatrixColumn : public MatrixExpression<MatrixColumn<TExpressionType>> {
     template <typename TOtherExpressionType>
     MatrixColumn& operator=(
         MatrixExpression<TOtherExpressionType, row_major_access> const& Other) {
-        auto& other_expression = Other.expression();
         for (std::size_t i = 0; i < size1(); i++)
             _original_expression(i, _column_index) = Other.expression()[i];
         return *this;
@@ -195,7 +191,6 @@ class SubMatrix : public MatrixExpression<SubMatrix<TExpressionType>> {
     template <typename TOtherExpressionType, std::size_t TCategory>
     SubMatrix& operator=(
         MatrixExpression<TOtherExpressionType, TCategory> const& Other) {
-        auto& other_expression = Other.expression();
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
                 _original_expression(i + _origin_index1, j + _origin_index2) =
@@ -206,7 +201,6 @@ class SubMatrix : public MatrixExpression<SubMatrix<TExpressionType>> {
     template <typename TOtherExpressionType>
     SubMatrix& operator=(
         MatrixExpression<TOtherExpressionType, row_major_access> const& Other) {
-        auto& other_expression = Other.expression();
         std::size_t k = 0;
         for (std::size_t i = 0; i < size1(); i++)
             for (std::size_t j = 0; j < size2(); j++)
@@ -449,6 +443,12 @@ class MatrixUnaryMinusExpression
         return -_original_expression[i];
     }
 };
+
+template <typename TExpressionType, std::size_t TCategory>
+MatrixUnaryMinusExpression<TExpressionType> operator-(
+    MatrixExpression<TExpressionType, TCategory> const& TheExpression) {
+    return MatrixUnaryMinusExpression<TExpressionType>(TheExpression.expression());
+}
 
 template <typename TExpressionType>
 class MatrixScalarProductExpression

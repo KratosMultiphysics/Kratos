@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "geometries/point.h"
 #include "includes/dof.h"
-#include "containers/vector_map.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
 #include "utilities/indexed_object.h"
