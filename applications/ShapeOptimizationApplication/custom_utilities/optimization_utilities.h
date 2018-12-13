@@ -76,14 +76,9 @@ public:
         : mrDesignSurface( designSurface ),
           mOptimizationSettings( optimizationSettings )
     {
-        // Initialize constraint value
-        mConstraintValue = 0.0;
-        mPreviousConstraintValue = 0.0;
-
         // Initialize member variables for penalized projection
-        mCorrectionScaling = 1.0;
         std::string algorithm_name = optimizationSettings["optimization_algorithm"]["name"].GetString();
-        if(algorithm_name.compare("penalized_projection") == 0)
+        if(algorithm_name == "penalized_projection")
           mCorrectionScaling = optimizationSettings["optimization_algorithm"]["correction_scaling"].GetDouble();
     }
 
@@ -105,14 +100,14 @@ public:
     // ==============================================================================
     // General optimization operations
     // ==============================================================================
-    void ComputeControlPointUpdate(double step_size)
+    void ComputeControlPointUpdate(const double StepSize)
     {
         KRATOS_TRY;
 
         // Normalize if specified
         if(mOptimizationSettings["optimization_algorithm"]["line_search"]["normalize_search_direction"].GetBool())
         {
-            double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
+            const double max_norm_search_dir = ComputeMaxNormOfNodalVariable(SEARCH_DIRECTION);
 
             if(max_norm_search_dir>1e-10)
                 for (auto & node_i : mrDesignSurface.Nodes())
@@ -126,7 +121,7 @@ public:
 
         // Compute update
         for (auto & node_i : mrDesignSurface.Nodes())
-            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = step_size * node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
+            noalias(node_i.FastGetSolutionStepValue(CONTROL_POINT_UPDATE)) = StepSize * node_i.FastGetSolutionStepValue(SEARCH_DIRECTION);
 
         KRATOS_CATCH("");
     }
@@ -318,7 +313,7 @@ public:
     }
 
     // --------------------------------------------------------------------------
-    double GetCorrectionScaling()
+    double GetCorrectionScaling() const
     {
         return mCorrectionScaling;
     }
@@ -415,9 +410,9 @@ private:
     // ==============================================================================
     ModelPart& mrDesignSurface;
     Parameters mOptimizationSettings;
-    double mConstraintValue;
-    double mPreviousConstraintValue;
-    double mCorrectionScaling;
+    double mConstraintValue = 0.0;
+    double mPreviousConstraintValue = 0.0;
+    double mCorrectionScaling = 1.0;
 
     ///@}
     ///@name Private Operators
