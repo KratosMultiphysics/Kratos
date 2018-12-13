@@ -54,7 +54,7 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.multigrid.PrepareModelPart() # It creates the cpp utility instance
 
     def AdvanceInTime(self, current_time):
-        divisions = 2**(self.main_model_part.ProcessInfo[Meshing.SUBSCALE_INDEX] * self.multigrid.number_of_divisions_at_subscale)
+        divisions = 2**(self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX) * self.multigrid.number_of_divisions_at_subscale)
         dt = self._ComputeDeltaTime() / divisions
         new_time = current_time + dt
 
@@ -62,6 +62,8 @@ class MultigridSolver(EulerianPrimitiveVarSolver):
         self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] += 1
 
         self.multigrid.ExecuteInitializeSolutionStep()
+
+        self.print_on_rank_zero("::[Multigrid solver]::", "Subscale Index:", self.GetComputingModelPart().GetValue(Meshing.SUBSCALE_INDEX))
 
         return new_time
 
