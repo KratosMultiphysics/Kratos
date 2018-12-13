@@ -47,11 +47,15 @@ class ApplySlipProcess(KratosMultiphysics.Process):
 
         if self.navier_slip_active:
             navier_slip_length = settings["uniform_navier_slip_length"].GetDouble()
-            for node in self.model_part.Nodes:
-                node.SetValue(KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH, navier_slip_length)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                navier_slip_length,
+                self.model_part )
         else:
-            for node in self.model_part.Nodes:
-                node.SetValue(KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH, 1.0e8)
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                1.0e8,
+                self.model_part )
 
 
 
