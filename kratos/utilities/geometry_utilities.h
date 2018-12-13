@@ -428,10 +428,10 @@ public:
             if (distance_gradient_norm < 1e-15) distance_gradient_norm = 1e-15; //avoid division by zero
             distance_gradient /= distance_gradient_norm;
             //We use the first intersection point as reference
-            const auto ref_point = intersection_points[0].Coordinates();
+            const auto &ref_point = intersection_points[0].Coordinates();
             for (unsigned int i = 0; i < TSize; i++) {
                 double d = 0.0;
-                const auto i_coords = rThisGeometry[i].Coordinates();
+                const auto &i_coords = rThisGeometry[i].Coordinates();
                 for (unsigned int Dim = 0; Dim < TSize - 1; Dim++) {
                     d += (i_coords[Dim] - ref_point[Dim]) * distance_gradient[Dim];
                 }
