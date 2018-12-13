@@ -109,9 +109,9 @@ class ApplyInletProcess(KratosMultiphysics.Process):
             # working on the distance-from-inlet field that will be finally stored as a non-historical variable
             KratosMultiphysics.VariableUtils().SetScalarVar( KratosMultiphysics.DISTANCE, -self.inlet_radius, self.inlet_model_part.Nodes)
             if ( self.dimension == 2 ):
-                self.distance_calculator.CalculateDistances2D(self.main_model_part.Elements, KratosMultiphysics.DISTANCE, 0.0, True)
+                self.distance_calculator.CalculateDistances2D(self.main_model_part.Elements, KratosMultiphysics.DISTANCE, 0.0)
             elif ( self.dimension == 3 ):
-                self.distance_calculator.CalculateDistances3D(self.main_model_part.Elements, KratosMultiphysics.DISTANCE, 0.0, True)
+                self.distance_calculator.CalculateDistances3D(self.main_model_part.Elements, KratosMultiphysics.DISTANCE, 0.0)
             # scaling to achieve a value of exactly one at the inlet
             scaling_factor = - 1.0 / self.inlet_radius
             for node in self.main_model_part.Nodes:
