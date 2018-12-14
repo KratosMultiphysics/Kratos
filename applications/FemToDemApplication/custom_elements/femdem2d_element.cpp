@@ -30,6 +30,13 @@ FemDem2DElement::FemDem2DElement(IndexType NewId, GeometryType::Pointer pGeometr
 	: SmallDisplacementElement(NewId, pGeometry, pProperties)
 {
 	mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
+	// Each component == Each edge
+	mNumberOfEdges = 3;
+	mNonConvergedThresholds = ZeroVector(mNumberOfEdges);   // Equivalent stress
+	mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
+	mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
+	mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -351,7 +358,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		const Matrix& C =  Values.GetConstitutiveMatrix();
 
 		Matrix tangent_tensor;
-		if (is_damaging == true && std::abs(strain_vector[0] + strain_vector[0] +strain_vector[0]) > tolerance) {
+		if (is_damaging == true && std::abs(strain_vector[0] + strain_vector[1] + strain_vector[2]) > tolerance) {
 			this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
 		} else {
@@ -473,13 +480,11 @@ void FemDem2DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 
 void FemDem2DElement::CalculateInfinitesimalStrain(Vector &rStrainVector, const Matrix &rDN_DX)
 {
-	KRATOS_TRY
 	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 	Matrix H = zero_matrix<double>(dimension); //[dU/dx_n]
 
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
-
 		array_1d<double, 3> &Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
 		H(0, 0) += Displacement[0] * rDN_DX(i, 0);
@@ -494,8 +499,6 @@ void FemDem2DElement::CalculateInfinitesimalStrain(Vector &rStrainVector, const 
 	rStrainVector[0] = H(0, 0);
 	rStrainVector[1] = H(1, 1);
 	rStrainVector[2] = (H(0, 1) + H(1, 0)); // xy
-
-	KRATOS_CATCH("")
 }
 
 void FemDem2DElement::CalculateStressVector(Vector &rStressVector, const Matrix &rConstitutiveMAtrix, const Vector &rInfinitesimalStrainVector)
@@ -506,8 +509,11 @@ void FemDem2DElement::CalculateStressVector(Vector &rStressVector, const Matrix 
 void FemDem2DElement::CalculatePrincipalStress(Vector &rPrincipalStressVector, const Vector StressVector)
 {
 	rPrincipalStressVector.resize(2);
-	rPrincipalStressVector[0] = 0.5 * (StressVector[0] + StressVector[1]) + std::sqrt(std::pow(0.5 * (StressVector[0] - StressVector[1]), 2) + std::pow(StressVector[2], 2));
-	rPrincipalStressVector[1] = 0.5 * (StressVector[0] + StressVector[1]) - std::sqrt(std::pow(0.5 * (StressVector[0] - StressVector[1]), 2) + std::pow(StressVector[2], 2));
+	rPrincipalStressVector[0] = 0.5 * (StressVector[0] + StressVector[1]) + 
+		std::sqrt(std::pow(0.5 * (StressVector[0] - StressVector[1]), 2) + std::pow(StressVector[2], 2));
+		
+	rPrincipalStressVector[1] = 0.5 * (StressVector[0] + StressVector[1]) - 
+		std::sqrt(std::pow(0.5 * (StressVector[0] - StressVector[1]), 2) + std::pow(StressVector[2], 2));
 }
 
 void FemDem2DElement::FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo)

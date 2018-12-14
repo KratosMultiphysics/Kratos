@@ -120,15 +120,16 @@ class FEMDEM_Solution:
 
                 # we eliminate the nodal DEM forces
                 self.RemoveDummyNodalForces()
+                # neighbour_elemental_finder.ClearNeighbours()
 
             # Perform remeshing
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
-            neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
-            neighbour_elemental_finder.Execute()
-
             if is_remeshing:
                 self.InitializeSolutionAfterRemeshing()
+                neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+                neighbour_elemental_finder.ClearNeighbours()
+                neighbour_elemental_finder.Execute()
 
         self.FEM_Solution.InitializeSolutionStep()
 

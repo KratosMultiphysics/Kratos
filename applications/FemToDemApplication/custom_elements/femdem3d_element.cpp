@@ -462,7 +462,9 @@ void FemDem3DElement::CalculateLocalSystem(
 		this->CalculateDeformationMatrix(B, DN_DX);
 
 		Matrix tangent_tensor;
-		if (is_damaging == true && std::abs(StrainVector[0] + StrainVector[1]) > tolerance) {
+		if (is_damaging == true && std::abs(StrainVector[0] + StrainVector[1] + StrainVector[2]
+			+ StrainVector[3]+ StrainVector[4] + StrainVector[5]) > tolerance) {
+
 			this->CalculateTangentTensor(tangent_tensor, StrainVector, integrated_stress_vector, constitutive_matrix);
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
 		} else {

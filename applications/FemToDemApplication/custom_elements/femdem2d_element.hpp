@@ -186,14 +186,14 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const int Component);
 
        private:
-	int mNumberOfEdges = 3;
+	int mNumberOfEdges;
 	// Each component == Each edge
-	Vector mThresholds = ZeroVector(3); // Stress mThreshold on edge
-	Vector mNonConvergedThresholds = ZeroVector(3); // Stress mThreshold on edge
+	Vector mThresholds; // Stress mThreshold on edge
+	Vector mNonConvergedThresholds; // Stress mThreshold on edge
 	double mThreshold = 0.0;
-	Vector mDamages = ZeroVector(3); // Converged mDamage on each edge
+	Vector mDamages; // Converged mDamage on each edge
 	double mDamage = 0.0;			 // Converged mDamage
-	Vector mNonConvergedDamages = ZeroVector(3); // mDamages on edges of "i" iteration
+	Vector mNonConvergedDamages; // mDamages on edges of "i" iteration
 
 }; // Class FemDem2DElement
 
