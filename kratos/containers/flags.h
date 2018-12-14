@@ -338,33 +338,13 @@ public:
         return (Left.mFlags != Right.mFlags);
     }
 
-    friend Flags operator|(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results |= Right;
-        return results;
-    }
+    friend Flags operator|(const Flags& Left, const Flags& Right );
 
-    friend Flags operator&(const Flags& Left, const Flags& Right )
-    {
-        Flags results(Left);
-        results &= Right;
-        return results;
-    }
+    friend Flags operator&(const Flags& Left, const Flags& Right );
 
-    const Flags& operator|=(const Flags& Other )
-    {
-        mIsDefined |= Other.mIsDefined;
-        mFlags |= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator|=(const Flags& Other );
 
-    const Flags& operator&=(const Flags& Other )
-    {
-        mIsDefined &= Other.mIsDefined;
-        mFlags &= Other.mFlags;
-        return *this;
-    }
+    const Flags& operator&=(const Flags& Other );
 
     ///@}
 
