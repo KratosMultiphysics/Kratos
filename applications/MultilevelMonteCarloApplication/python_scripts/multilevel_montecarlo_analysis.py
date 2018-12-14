@@ -30,9 +30,6 @@ import cmlmc_utilities as mlmc
 # Import refinement library
 import adaptive_refinement_utilities as refinement
 
-# Import compss tasks
-from task_utilities import *
-
 # Import cpickle to pickle the serializer
 try:
     import cpickle as pickle  # Use cPickle on Python 2.7
@@ -52,6 +49,8 @@ more details in Section 5.2 of [PKN17]
 References:
 [PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
 '''
+
+
 class MultilevelMonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
     def __init__(self,input_model,input_parameters,sample):
@@ -101,8 +100,8 @@ function evaluating the QoI of the problem: int_{domain} TEMPERATURE(x,y) dx dy
 right now we are using the midpoint rule to evaluate the integral: improve!
 '''
 def EvaluateQuantityOfInterest(simulation):
-    # '''TODO in future once is ready: declare and initialize NODAL_AREA as non historical variable:
-    # this way I only store the values in the current nodes and not also in the buffer'''
+    '''TODO: in future once is ready: declare and initialize NODAL_AREA as non historical variable:
+    this way I only store the values in the current nodes and not also in the buffer'''
     # KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, simulation._GetSolver().main_model_part.Nodes)
     KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
     Q = 0.0
@@ -110,6 +109,12 @@ def EvaluateQuantityOfInterest(simulation):
         Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
         # print(node.Id,"NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
     return Q
+
+
+# '''this function returns a future object (the result class) and a master integer (the finer level)
+# this would avoid to the user to see lev in the call in the main as an input for the AddResults function'''
+# def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
+#     return ExecuteMultilevelMonteCarloAnalisysAux(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes),finest_level
 
 
 '''
@@ -128,7 +133,7 @@ output:
                              total_MLMC_time   : execution time
 '''
 @ExaquteTask(returns=1)
-def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
+def ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_coarse_model)
     current_model = KratosMultiphysics.Model()
@@ -141,19 +146,23 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
     del(serialized_parameters)
     '''generate the sample'''
     sample = GenerateSample()
+    '''initialize the MultilevelMonteCarloResults class and prepare the results'''
+    mlmc_results_class = mlmc.MultilevelMonteCarloResults()
     QoI = []
     start_MLMC_time = time.time()
+    end_MLMC_time = []
     if(finest_level == 0):
-        QoI.append(0.0)
         simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
         simulation.Run()
         QoI.append(EvaluateQuantityOfInterest(simulation))
         del(simulation)
+        end_MLMC_time.append(time.time())
     else:
         for lev in range(finest_level+1):
             simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
             simulation.Run()
             QoI.append(EvaluateQuantityOfInterest(simulation))
+            end_MLMC_time.append(time.time())
             '''refine if level < finest level exploiting the solution just computed'''
             if (lev < finest_level):
                 '''refine the model Kratos object'''
@@ -164,15 +173,12 @@ def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickle
                 '''update model Kratos object'''
                 current_model = simulation.model
             del(simulation)
-    end_MLMC_time = time.time()
-    '''prepare results of the simulation'''
-    results_simulation = {
-        "QoI_finer_level":QoI[-1],\
-        "QoI_coarser_level":QoI[-2],\
-        "finer_level":finest_level,\
-        "coarser_level":np.maximum(0,finest_level-1),\
-        "total_MLMC_time":end_MLMC_time - start_MLMC_time}
-    return results_simulation
+    '''prepare results of the simulation in the MultilevelMonteCarloResults class'''
+    mlmc_results_class.finer_level = finest_level
+    for lev in range(finest_level+1):
+        mlmc_results_class.time_ML.append(end_MLMC_time[lev]-start_MLMC_time)
+        mlmc_results_class.QoI.append(QoI[lev])
+    return mlmc_results_class
 
 
 '''
@@ -189,22 +195,21 @@ output:
         serialized_parameters : project parameters serialized
 '''
 @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
-def SerializeModelParameters(parameter_file_name):
+def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
-    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = 1.0
     '''initialize'''
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
-    '''save and pickle model and parameters'''
+    '''save model and parameters as StreamSerializer Kratos objects'''
     serialized_model = KratosMultiphysics.StreamSerializer()
     serialized_model.Save("ModelSerialization",simulation.model)
     serialized_parameters = KratosMultiphysics.StreamSerializer()
     serialized_parameters.Save("ParametersSerialization",simulation.project_parameters)
-    # pickle dataserialized_data
+    '''pickle model and parameters'''
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     print("\n############## Serialization completed ##############\n")
@@ -212,7 +217,7 @@ def SerializeModelParameters(parameter_file_name):
 
 
 '''
-function executing the problem
+function executing the refinement of the problem
 input:
         model       : serialization of the model
         parameters  : serialization of the Project Parameters
@@ -222,7 +227,7 @@ output:
         serialized_parameters : parameters serialized
 '''
 @ExaquteTask(returns=2)
-def ExecuteRefinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
+def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
     fake_sample = 1.0
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer_coarse = pickle.loads(pickled_model_coarse)
@@ -258,7 +263,7 @@ output :
         relative_error        : relative error
 '''
 @ExaquteTask(returns=1)
-def CompareMean(AveragedMeanQoI,ExactExpectedValueQoI):
+def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
 
@@ -268,40 +273,38 @@ if __name__ == '__main__':
     '''set the ProjectParameters.json path'''
     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
-    pickled_model,pickled_parameters = SerializeModelParameters(parameter_file_name)
-    
+    pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
     settings_ML_simulation = KratosMultiphysics.Parameters("""
     {
         "tol0"                            : 0.25,
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
-        "number_samples_screening"        : 25,
+        "number_samples_screening"        : 15,
         "Lscreening"                      : 2,
         "Lmax"                            : 4,
-        "mesh_refinement_coefficient"     : 2,
         "initial_mesh_size"               : 0.5
     }
     """)
-
     '''contruct MultilevelMonteCarlo class'''
     mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
-    print("\n ######## SCREENING PHASE ######## \n")
+    ''''start screening phase'''
     for lev in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.number_samples[lev]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
-    
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys_Task(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
+    '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
-
+    '''start MLMC phase'''
     while mlmc_class.convergence is not True:
+        '''initialize MLMC phase'''
         mlmc_class.InitializeMLMCPhase()
         mlmc_class.ScreeningInfoInitializeMLMCPhase()
-        
+        '''MLMC execution phase'''
         for lev in range (mlmc_class.current_number_levels+1):
             for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
-        
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys_Task(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
+        '''finalize MLMC phase'''
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
 
