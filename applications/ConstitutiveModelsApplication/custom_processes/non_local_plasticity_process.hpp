@@ -40,25 +40,25 @@ namespace Kratos
                GaussPoint() {}
 
                GaussPoint( ConstitutiveLaw::Pointer & pConstLaw,
-                     array_1d<double, 3> rCoord)
+                     array_1d<double, 3> rCoord) 
                {
                   pConstitutiveLaw = pConstLaw;
                   Coordinates = rCoord;
-
-                  this->AddNeighbour( pConstLaw, 0);
                }
 
-               void AddNeighbour( ConstitutiveLaw::Pointer &  pConstLaw,
-                     double distance)
+               void AddNeighbour( const int & rID,
+                     double weight)
                {
-                  NeighbourLaws.push_back( pConstLaw);
-                  NeighbourDistances.push_back( distance);
+                  NeighbourGP.push_back( rID);
+                  NeighbourWeight.push_back(weight);
                }
 
                ConstitutiveLaw::Pointer pConstitutiveLaw;
                array_1d<double, 3> Coordinates;
-               std::vector<ConstitutiveLaw::Pointer> NeighbourLaws;
-               std::vector<double>      NeighbourDistances;
+               
+               std::vector< int > NeighbourGP;
+               std::vector<double>  NeighbourWeight;
+
             };
 
          public:

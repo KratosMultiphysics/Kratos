@@ -51,7 +51,7 @@ namespace Kratos
 
       std::vector< std::string> localVariables;
       std::vector< std::string> nonlocalVariables;
-      
+
 
       localVariables.push_back("PLASTIC_VOL_DEF");
       localVariables.push_back("PLASTIC_VOL_DEF_ABS");
@@ -88,58 +88,59 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      std::cout << " plotTheModelPart " << mrModelPart.NumberOfNodes() << std::endl;
-
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
-
       double CharacteristicLength = mCharacteristicLength;
 
-      std::vector< GaussPoint > NeighbourGaussPoint(0);
+      std::vector< GaussPoint > NeighbourGaussPoint;
 
-      std::cout << " tic " << std::endl;
+
+      double start = OpenMPUtils::GetCurrentTime();
+
       this->PerformGaussPointSearch( NeighbourGaussPoint, 3.0*CharacteristicLength);
-      std::cout << " tac " << std::endl;
+      double start2 = OpenMPUtils::GetCurrentTime();
 
-      int NumThreads = OpenMPUtils::GetNumThreads();
-      std::cout << " total number of threads " << NumThreads << std::endl;
-      // And now we should transfer information
 
-      #pragma omp parallel for
-      for ( unsigned int i = 0; i < NeighbourGaussPoint.size() ; i++)
-      {
-         const ConstitutiveLaw::Pointer & rRecieveCL = NeighbourGaussPoint[i].pConstitutiveLaw;
-         const std::vector<ConstitutiveLaw::Pointer > & rNeighLaws = NeighbourGaussPoint[i].NeighbourLaws;
 
-         for ( unsigned int variable = 0; variable < mNonLocalVariables.size(); variable++) {
+      const int numberGaussPoints = NeighbourGaussPoint.size();
+      std::vector< double > LocalVariableVector(numberGaussPoints);
 
-            const Variable<double> & rLocalVariable = mLocalVariables[variable];
-            const Variable<double> & rNonLocalVariable = mNonLocalVariables[variable];
+      for ( unsigned int variable = 0; variable < mNonLocalVariables.size(); variable++) {
 
-            double numerator = 0, denom = 0, value = 0, alpha = 0;
+         const Variable<double> & rLocalVariable = mLocalVariables[variable];
+         const Variable<double> & rNonLocalVariable = mNonLocalVariables[variable];
 
-            for (unsigned int nei = 0; nei < rNeighLaws.size(); nei++)
-            {
-               value = rNeighLaws[nei]->GetValue( rLocalVariable, value);
-               alpha = ComputeWeightFunction( NeighbourGaussPoint[i].NeighbourDistances[nei], CharacteristicLength, alpha);
+         for (unsigned int gp = 0; gp < numberGaussPoints; gp++) {
+            LocalVariableVector[gp] = NeighbourGaussPoint[gp].pConstitutiveLaw->GetValue( rLocalVariable, LocalVariableVector[gp]);
+         }
 
-               numerator += value*alpha;
-               denom += alpha;
+         for (unsigned int gp = 0; gp < numberGaussPoints; gp++) {
+
+            const GaussPoint & rGP = NeighbourGaussPoint[gp];
+
+            double numerator = 0;
+            double denominator = 0;
+            for (unsigned int nei = 0; nei < rGP.NeighbourWeight.size(); nei++) {
+               numerator +=  LocalVariableVector[ rGP.NeighbourGP[nei] ] * rGP.NeighbourWeight[nei]; 
+               denominator += rGP.NeighbourWeight[nei];
             }
 
-            value = numerator / denom;
-            if ( denom > 0) {
-               rRecieveCL->SetValue( rNonLocalVariable, value, rCurrentProcessInfo );
+            if ( denominator > 0) {
+               numerator = numerator / denominator;
+               rGP.pConstitutiveLaw->SetValue( rNonLocalVariable, numerator, rCurrentProcessInfo);
             } else {
-               value = rRecieveCL->GetValue( rLocalVariable, value);
-               rRecieveCL->SetValue( rNonLocalVariable, value, rCurrentProcessInfo);
+               rGP.pConstitutiveLaw->SetValue( rNonLocalVariable, LocalVariableVector[gp], rCurrentProcessInfo);
             }
+
 
          }
 
       }
 
 
-      std::cout << " toc " << std::endl;
+      double start3 = OpenMPUtils::GetCurrentTime();
+
+      std::cout << "        SearchTime " << start2-start << " smooothing " << start3-start2 << " totalTime " << start3-start << std::endl;
+
 
 
       KRATOS_CATCH("")
@@ -152,7 +153,7 @@ namespace Kratos
       KRATOS_TRY
 
       rAlpha = rDistance * exp( - pow(rDistance/rCharacteristicLength, 2) );
-      
+
       return rAlpha;
 
       KRATOS_CATCH("")
@@ -194,7 +195,13 @@ namespace Kratos
 
       }
 
+      double alpha = 0;
+      double zeroDistanceWeight;
+      zeroDistanceWeight = ComputeWeightFunction( 0, mCharacteristicLength, zeroDistanceWeight);
+
       for (unsigned int ii = 0; ii < rNeighbourGP.size(); ii++) {
+         rNeighbourGP[ii].AddNeighbour(ii, zeroDistanceWeight);
+
          const array_1d<double, 3> & rCoordII = rNeighbourGP[ii].Coordinates;
 
          for (unsigned int jj = ii+1; jj < rNeighbourGP.size(); jj++) {
@@ -206,11 +213,11 @@ namespace Kratos
             distance = pow(distance, 0.5);
 
             if ( distance < CharacteristicLength) {
-               rNeighbourGP[ii].AddNeighbour( rNeighbourGP[jj].pConstitutiveLaw, distance);
-               rNeighbourGP[jj].AddNeighbour( rNeighbourGP[ii].pConstitutiveLaw, distance);
+               alpha = ComputeWeightFunction( distance, mCharacteristicLength, alpha); 
+               rNeighbourGP[ii].AddNeighbour( jj, alpha);
+               rNeighbourGP[jj].AddNeighbour( ii, alpha);
             }
          }
-         //std::cout << " jj " << ii << " has neightbours " << rNeighbourGP[ii].NeighbourLaws.size() << std::endl;
       }
 
 
