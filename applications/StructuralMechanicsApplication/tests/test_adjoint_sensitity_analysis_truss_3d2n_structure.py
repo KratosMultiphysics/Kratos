@@ -5,7 +5,6 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
-from KratosMultiphysics.ExternalSolversApplication import *
 
 try:
     from KratosMultiphysics.HDF5Application import *
