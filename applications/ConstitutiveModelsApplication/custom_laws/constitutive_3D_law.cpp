@@ -743,7 +743,7 @@ namespace Kratos
 
       for( unsigned int j = 0; j < number_of_nodes; j++ )
 	{
-	  rVariable += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(rThisVariable);
+	  rVariable += ShapeFunctionsValues[j] * DomainGeometry[j].FastGetSolutionStepValue(rThisVariable);
 	}
     }
     else{

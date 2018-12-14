@@ -623,11 +623,15 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
   //std::cout<<" Calculate local system Skin "<<std::endl;
   SizeType size = this->GetDofsSize(rCurrentProcessInfo);
 
-  rLeftHandSideMatrix.clear();
-  rLeftHandSideMatrix.resize(size,size,false);
+  if ( rLeftHandSideMatrix.size1() != size )
+    rLeftHandSideMatrix.resize( size, size, false );
 
-  rRightHandSideVector.clear();
-  rRightHandSideVector.resize(size,false);
+  noalias( rLeftHandSideMatrix ) = ZeroMatrix( size, size ); //resetting LHS
+
+  if ( rRightHandSideVector.size() != size )
+    rRightHandSideVector.resize( size, false );
+
+  noalias(rRightHandSideVector) = ZeroVector( size ); //resetting RHS
 
   VectorType LocalRightHandSideVector;
   MatrixType LocalLeftHandSideMatrix;
@@ -677,8 +681,10 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 
   SizeType size = this->GetDofsSize(rCurrentProcessInfo);
 
-  rRightHandSideVector.clear();
-  rRightHandSideVector.resize(size,false);
+  if ( rRightHandSideVector.size() != size )
+    rRightHandSideVector.resize( size, false );
+
+  noalias(rRightHandSideVector) = ZeroVector( size ); //resetting RHS
 
   VectorType LocalRightHandSideVector;
 
@@ -714,8 +720,10 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
 
   SizeType size = this->GetDofsSize(rCurrentProcessInfo);
 
-  rLeftHandSideMatrix.clear();
-  rLeftHandSideMatrix.resize(size,size,false);
+  if ( rLeftHandSideMatrix.size1() != size )
+    rLeftHandSideMatrix.resize( size, size, false );
+
+  noalias( rLeftHandSideMatrix ) = ZeroMatrix( size, size ); //resetting LHS
 
   MatrixType LocalLeftHandSideMatrix;
 

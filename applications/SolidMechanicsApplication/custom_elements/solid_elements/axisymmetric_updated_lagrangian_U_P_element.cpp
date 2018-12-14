@@ -669,7 +669,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddPressureForces(Vecto
             // if(i==j)
             //     consistent=2;
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
             rRightHandSideVector[indexp] += (1.0/BulkModulus) * rVariables.N[i] * rVariables.N[j] * Pressure * rIntegrationWeight/ (rVariables.detF0/rVariables.detF);
 
             //rRightHandSideVector[indexp] += consistent * (1.0/BulkModulus) * (1.0/12.0) * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF); //2D
@@ -750,7 +750,7 @@ void AxisymmetricUpdatedLagrangianUPElement::CalculateAndAddStabilizedPressure(V
         for ( SizeType j = 0; j < number_of_nodes; j++ )
         {
 
-            double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+            const double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
             //2D
             if(integration_points == 1)
             {

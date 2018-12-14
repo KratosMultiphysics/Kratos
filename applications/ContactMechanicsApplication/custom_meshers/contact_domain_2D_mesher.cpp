@@ -93,7 +93,6 @@ namespace Kratos
     int base   = 0;
     int direct = 1;
 
-    double Shrink = 0;
     array_1d<double, 3> Offset;
 
     for(unsigned int i = 0; i<rModelPart.NumberOfNodes(); i++)
@@ -107,13 +106,15 @@ namespace Kratos
 
 	}
 
-	array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
-	array_1d<double, 3>& Normal      = (nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
-	Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
+	const array_1d<double, 3>& Coordinates = (nodes_begin + i)->Coordinates();
+	const array_1d<double, 3>& Normal      = (nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
+	const double& Shrink = (nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
 
-	Normal /= norm_2(Normal);
+        double denorm = norm_2(Normal);
+        if(denorm!=0)
+          denorm = 1.0/denorm;
 	for(unsigned int j=0; j<dimension; j++){
-	  Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor);
+	  Offset[j] = ( (-1) * Normal[j] * Shrink * rMeshingVariables.OffsetFactor * denorm );
 	}
 
 	for(unsigned int j=0; j<dimension; j++){
