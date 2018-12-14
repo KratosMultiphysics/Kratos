@@ -35,7 +35,7 @@
 #include "includes/node.h"
 #include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "custom_processes/metis_partitioning_process.h"
 
 extern "C" {
@@ -760,5 +760,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_METIS_PARTITIONING_PROCESS_QUADRATIC_INCLUDED defined
-
-
