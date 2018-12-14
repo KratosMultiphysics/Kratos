@@ -70,9 +70,6 @@ class TestFlags(KratosUnittest.TestCase):
         self.assertTrue(node1.Is(TO_SPLIT))
         self.assertTrue(node1.Is(TO_ERASE))
 
-        self.assertTrue(node1.Is(TO_SPLIT & TO_ERASE))
-        self.assertFalse(node1.Is(TO_SPLIT & MPI_BOUNDARY))
-
     def testFlagFlip(self):
         node = self.model_part.GetNode(1)
 
