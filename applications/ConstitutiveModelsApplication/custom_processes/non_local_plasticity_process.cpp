@@ -91,17 +91,17 @@ namespace Kratos
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double CharacteristicLength = mCharacteristicLength;
 
-      std::vector< GaussPoint > NeighbourGaussPoint;
+      std::vector< GaussPoint > GaussPointsVector;
 
 
       double start = OpenMPUtils::GetCurrentTime();
 
-      this->PerformGaussPointSearch( NeighbourGaussPoint, 3.0*CharacteristicLength);
+      this->PerformGaussPointSearch( GaussPointsVector, 3.0*CharacteristicLength);
       double start2 = OpenMPUtils::GetCurrentTime();
 
 
 
-      const int numberGaussPoints = NeighbourGaussPoint.size();
+      const int numberGaussPoints = GaussPointsVector.size();
       std::vector< double > LocalVariableVector(numberGaussPoints);
 
       for ( unsigned int variable = 0; variable < mNonLocalVariables.size(); variable++) {
@@ -110,12 +110,12 @@ namespace Kratos
          const Variable<double> & rNonLocalVariable = mNonLocalVariables[variable];
 
          for (unsigned int gp = 0; gp < numberGaussPoints; gp++) {
-            LocalVariableVector[gp] = NeighbourGaussPoint[gp].pConstitutiveLaw->GetValue( rLocalVariable, LocalVariableVector[gp]);
+            LocalVariableVector[gp] = GaussPointsVector[gp].pConstitutiveLaw->GetValue( rLocalVariable, LocalVariableVector[gp]);
          }
 
          for (unsigned int gp = 0; gp < numberGaussPoints; gp++) {
 
-            const GaussPoint & rGP = NeighbourGaussPoint[gp];
+            const GaussPoint & rGP = GaussPointsVector[gp];
 
             double numerator = 0;
             double denominator = 0;
@@ -162,7 +162,7 @@ namespace Kratos
 
    //*********************************************************************************************
    // create  a list of the nodes that have an influence
-   void NonLocalPlasticityProcess::PerformGaussPointSearch( std::vector< GaussPoint > & rNeighbourGP, 
+   void NonLocalPlasticityProcess::PerformGaussPointSearch( std::vector< GaussPoint > & rGPVector, 
          const double CharacteristicLength)
    {
       KRATOS_TRY
@@ -190,7 +190,7 @@ namespace Kratos
 
             rGeom.GlobalCoordinates(AuxGlobalCoordinates, AuxLocalCoordinates);
 
-            rNeighbourGP.push_back( GaussPoint( ConstitutiveLawVector[nGP], AuxGlobalCoordinates) );
+            rGPVector.push_back( GaussPoint( ConstitutiveLawVector[nGP], AuxGlobalCoordinates) );
          }
 
       }
@@ -199,13 +199,13 @@ namespace Kratos
       double zeroDistanceWeight;
       zeroDistanceWeight = ComputeWeightFunction( 0, mCharacteristicLength, zeroDistanceWeight);
 
-      for (unsigned int ii = 0; ii < rNeighbourGP.size(); ii++) {
-         rNeighbourGP[ii].AddNeighbour(ii, zeroDistanceWeight);
+      for (unsigned int ii = 0; ii < rGPVector.size(); ii++) {
+         rGPVector[ii].AddNeighbour(ii, zeroDistanceWeight);
 
-         const array_1d<double, 3> & rCoordII = rNeighbourGP[ii].Coordinates;
+         const array_1d<double, 3> & rCoordII = rGPVector[ii].Coordinates;
 
-         for (unsigned int jj = ii+1; jj < rNeighbourGP.size(); jj++) {
-            const array_1d<double, 3> & rCoordJJ = rNeighbourGP[jj].Coordinates;
+         for (unsigned int jj = ii+1; jj < rGPVector.size(); jj++) {
+            const array_1d<double, 3> & rCoordJJ = rGPVector[jj].Coordinates;
 
             double distance = 0;
             for (unsigned int i = 0; i < 3; i++)
@@ -214,8 +214,8 @@ namespace Kratos
 
             if ( distance < CharacteristicLength) {
                alpha = ComputeWeightFunction( distance, mCharacteristicLength, alpha); 
-               rNeighbourGP[ii].AddNeighbour( jj, alpha);
-               rNeighbourGP[jj].AddNeighbour( ii, alpha);
+               rGPVector[ii].AddNeighbour( jj, alpha);
+               rGPVector[jj].AddNeighbour( ii, alpha);
             }
          }
       }
