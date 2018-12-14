@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time as timer
 from gid_output_process import GiDOutputProcess
+import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
 with open("nonlinear_shell_cantilever_surface_load.json",'r') as parameter_file:
     parameters = KratosMultiphysics.Parameters( parameter_file.read())
@@ -62,7 +63,7 @@ RHS_unperturbed = []
 for condition in model_part_primal.Conditions:
     condition.CalculateLocalSystem(LHS_1,RHS_1,model_part_primal.ProcessInfo)
     RHS_unperturbed.append(RHS_1)
-    #print("Id" ,  condition.Id)
+    print("RHS_unperturbed" ,  RHS_1)
 
 i = 1
 perturbation_vector_X = []

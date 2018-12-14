@@ -79,11 +79,21 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
+    
     double CalculateValue(ModelPart& rModelPart) override;
 
     void CalculateResponseIncrement(ModelPart& rModelPart);
 
+    void CalculateGradient(const Element& rAdjointElement,
+                                   const Matrix& rResidualGradient,
+                                   Vector& rResponseGradient,
+                                   const ProcessInfo& rProcessInfo) override;
+
+     void CalculateGradient(const Condition& rAdjointCondition,
+                                   const Matrix& rResidualGradient,
+                                   Vector& rResponseGradient,
+                                   const ProcessInfo& rProcessInfo) override;
+
     void CalculatePartialSensitivity(Element& rAdjointElement,
                                              const Variable<double>& rVariable,
                                              const Matrix& rSensitivityMatrix,
@@ -107,37 +117,6 @@ public:
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
-
-    // void CalculateSensitivityGradient(Element& rAdjointElem,
-    //                                           const Variable<array_1d<double,3>>& rVariable,
-    //                                           const Matrix& rDerivativesMatrix,
-    //                                           Vector& rResponseGradient,
-    //                                           ProcessInfo& rProcessInfo) override;
-
-
-    // void CalculateSensitivityGradient(Element& rAdjointElem,
-    //                                           const Variable<double>& rVariable,
-    //                                           const Matrix& rDerivativesMatrix,
-    //                                           Vector& rResponseGradient,
-    //                                           ProcessInfo& rProcessInfo) override;
-                                              
-    // void CalculateSensitivityGradient(Condition& rAdjointCondition,
-    //                                           const Variable<array_1d<double,3>>& rVariable,
-    //                                           const Matrix& rDerivativesMatrix,
-    //                                           Vector& rResponseGradient,
-    //                                           ProcessInfo& rProcessInfo) override;
-    
-    
-    // void CalculateSensitivityGradient(Condition& rAdjointCondition,
-    //                                 const Variable<double>& rVariable,
-    //                                 const Matrix& rDerivativesMatrix,
-    //                                 Vector& rResponseGradient,
-    //                                 ProcessInfo& rProcessInfo) override;
-    
-    // void CalculateGradient(const Condition& rAdjointCondition,
-    //                     const Matrix& rAdjointMatrix,
-    //                     Vector& rResponseGradient,
-    //                     ProcessInfo& rProcessInfo) ;
 
     ///@}
     ///@name Access
@@ -198,6 +177,10 @@ private:
     // partial derivative at an earlier time step
    // std::vector<Vector> m_partial_derivative;
     Matrix m_partial_derivative_0;
+
+    std::vector<Vector> mConditionsRHS;
+    // vector of poniters to conditions
+    std::vector<Condition::Pointer> mConditions;
 
     ///@}
     ///@name Private Operators

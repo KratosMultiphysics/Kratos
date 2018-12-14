@@ -89,7 +89,7 @@
                     "file_access_mode" : "truncate"
                 },
                 "nodal_solution_step_data_settings" : {
-                    "list_of_variables": ["DISPLACEMENT", "ROTATION"]
+                    "list_of_variables": ["DISPLACEMENT", "ROTATION" , "SURFACE_LOAD"]
                 },
                 "element_data_value_settings" : {
                     "list_of_variables" : ["DISPLACEMENT" , "DENSITY"]
@@ -116,7 +116,7 @@
             "node_output"         : true,
             "skin_output"         : true,
             "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT"],
+            "nodal_results"       : ["DISPLACEMENT" ],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
