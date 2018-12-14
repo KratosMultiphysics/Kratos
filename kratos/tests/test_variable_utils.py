@@ -168,7 +168,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         # First for nodes
         VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Nodes)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Nodes)
-        VariableUtils().ClearNonHistoricalValues(model_part.Nodes)
+        VariableUtils().ClearNonHistoricalData(model_part.Nodes)
 
         ##verify the result
         for node in model_part.Nodes:
@@ -178,7 +178,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
         # Now for conditions (it will work for elements too)
         VariableUtils().SetNonHistoricalVariable(VISCOSITY, viscosity, model_part.Conditions)
         VariableUtils().SetNonHistoricalVariable(DISPLACEMENT, displacement, model_part.Conditions)
-        VariableUtils().ClearNonHistoricalValues(model_part.Conditions)
+        VariableUtils().ClearNonHistoricalData(model_part.Conditions)
 
         ##verify the result
         for cond in model_part.Conditions:
