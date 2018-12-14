@@ -473,8 +473,8 @@ class MultilevelMonteCarlo(object):
     function printing informations about finalizing MLMC phase
     '''
     def ScreeningInfoFinalizeMLMCPhase(self):
-        print("values computed of QoI = ",self.difference_QoI.values)
-        print("values computed time_ML",self.time_ML.values)
+        # print("values computed of QoI = ",self.difference_QoI.values)
+        # print("values computed time_ML",self.time_ML.values)
         print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
         print("mean and variance time_ML",self.time_ML.mean,self.time_ML.sample_variance)
         print("rates coefficient = ",self.rates_error)
