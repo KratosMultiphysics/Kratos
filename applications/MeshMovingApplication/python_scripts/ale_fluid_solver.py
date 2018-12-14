@@ -75,7 +75,7 @@ class AleFluidSolver(PythonSolver):
         # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
         # We use the new utility, therefore explicitly setting it to false!
         if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
-            mesh_motion_solver_settings.SetBool(False)
+            mesh_motion_solver_settings["calculate_mesh_velocities"].SetBool(False)
         else:
             mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
 
@@ -217,7 +217,7 @@ class AleFluidSolver(PythonSolver):
                 KM.MESH_VELOCITY,
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
-            # mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY) # TODO expose in separate PR
+            mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
 
     def __InitializeMeshVelocityComputation(self):
         '''Initializing the helper-class for the time-integration
