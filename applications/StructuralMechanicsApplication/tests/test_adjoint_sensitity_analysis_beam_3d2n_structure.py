@@ -5,6 +5,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.ExternalSolversApplication import *
 
 try:
     from KratosMultiphysics.HDF5Application import *
@@ -43,6 +44,16 @@ def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(this_file_dir, "adjoint_sensitivity_analysis_tests/adjoint_beam_structure_3d2n")
 
+def run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess):
+    while adjoint_analysis.time < adjoint_analysis.end_time:
+        adjoint_analysis.time = adjoint_analysis._GetSolver().AdvanceInTime(adjoint_analysis.time)
+        adjoint_analysis.InitializeSolutionStep()
+        adjoint_analysis._GetSolver().Predict()
+        adjoint_analysis._GetSolver().SolveSolutionStep()
+        adjoint_postprocess.UpdateSensitivities()
+        adjoint_analysis.FinalizeSolutionStep()
+        adjoint_analysis.OutputSolutionStep()
+
 @KratosUnittest.skipUnless(has_hdf5_application,"Missing required application: HDF5Application")
 class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
 
@@ -58,11 +69,18 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             with open("beam_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
+            sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+            ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
-            model_adjoint = Model()
 
+            model_adjoint = Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-            adjoint_analysis.Run()
+
+            adjoint_analysis.Initialize()
+            adjoint_postprocess = AdjointPostprocess(model_adjoint.GetModelPart(model_part_name), adjoint_analysis._GetSolver().response_function, sensitivity_settings)
+            adjoint_postprocess.Initialize()
+            run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess)
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-87.62277093392399, 38.125186783868, 0.6250049974719261, 0.15624887499699122]
@@ -83,13 +101,18 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             with open("beam_test_nodal_disp_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
+            sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+            ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
 
             model_adjoint = Model()
-
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
 
-            adjoint_analysis.Run()
+            adjoint_analysis.Initialize()
+            adjoint_postprocess = AdjointPostprocess(model_adjoint.GetModelPart(model_part_name), adjoint_analysis._GetSolver().response_function, sensitivity_settings)
+            adjoint_postprocess.Initialize()
+            run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess)
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-0.45410279537614157, -0.37821875982596204, -0.006200296058668847, 0.0004340210813670321]
@@ -110,11 +133,18 @@ class TestAdjointSensitivityAnalysisBeamStructure(KratosUnittest.TestCase):
             with open("beam_test_strain_energy_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
+            sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+            ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
 
             model_adjoint = Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-            adjoint_analysis.Run()
+
+            adjoint_analysis.Initialize()
+            adjoint_postprocess = AdjointPostprocess(model_adjoint.GetModelPart(model_part_name), adjoint_analysis._GetSolver().response_function, sensitivity_settings)
+            adjoint_postprocess.Initialize()
+            run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess)
+            adjoint_analysis.Finalize()
 
             # Check sensitivities for the parameter I22
             reference_values = [-9.082055907522943, -7.5643751965193164, -0.12400592117339182, 0.017360843254681547]

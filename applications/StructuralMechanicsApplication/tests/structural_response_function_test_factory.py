@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
-
+from KratosMultiphysics.ExternalSolversApplication import *
 try:
     from KratosMultiphysics.HDF5Application import *
     has_hdf5_application = True

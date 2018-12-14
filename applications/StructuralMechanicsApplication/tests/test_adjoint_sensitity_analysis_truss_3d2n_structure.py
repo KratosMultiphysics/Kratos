@@ -5,6 +5,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import structural_mechanics_analysis
 import KratosMultiphysics.kratos_utilities as kratos_utilities
+from KratosMultiphysics.ExternalSolversApplication import *
 
 try:
     from KratosMultiphysics.HDF5Application import *
@@ -39,6 +40,16 @@ def solve_primal_problem(file_name):
     primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_primal, ProjectParametersPrimal)
     primal_analysis.Run()
 
+def run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess):
+    while adjoint_analysis.time < adjoint_analysis.end_time:
+        adjoint_analysis.time = adjoint_analysis._GetSolver().AdvanceInTime(adjoint_analysis.time)
+        adjoint_analysis.InitializeSolutionStep()
+        adjoint_analysis._GetSolver().Predict()
+        adjoint_analysis._GetSolver().SolveSolutionStep()
+        adjoint_postprocess.UpdateSensitivities()
+        adjoint_analysis.FinalizeSolutionStep()
+        adjoint_analysis.OutputSolutionStep()
+
 def _get_test_working_dir():
     this_file_dir = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(this_file_dir, "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n")
@@ -58,12 +69,19 @@ class TestAdjointSensitivityAnalysisLinearTrussStructure(KratosUnittest.TestCase
             with open("linear_truss_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-            model_adjoint = Model()
-
-            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-            adjoint_analysis.Run()
-
+            sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+            ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
             model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+
+            model_adjoint = Model()
+            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
+
+            adjoint_analysis.Initialize()
+            adjoint_postprocess = AdjointPostprocess(model_adjoint.GetModelPart(model_part_name), adjoint_analysis._GetSolver().response_function, sensitivity_settings)
+            adjoint_postprocess.Initialize()
+            run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess)
+            adjoint_analysis.Finalize()
+
             reference_value = 0.7071067811865476
             sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[1]
             self.assertAlmostEqual(sensitivity_to_check, reference_value, 4)
@@ -93,10 +111,18 @@ class TestAdjointSensitivityAnalysisNonLinearTrussStructure(KratosUnittest.TestC
             with open("nonlinear_truss_test_local_stress_adjoint_parameters.json",'r') as parameter_file:
                 ProjectParametersAdjoint = Parameters( parameter_file.read())
 
-            model_adjoint = Model()
+            sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+            ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
+            model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
 
+            model_adjoint = Model()
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
-            adjoint_analysis.Run()
+
+            adjoint_analysis.Initialize()
+            adjoint_postprocess = AdjointPostprocess(model_adjoint.GetModelPart(model_part_name), adjoint_analysis._GetSolver().response_function, sensitivity_settings)
+            adjoint_postprocess.Initialize()
+            run_solution_loop_adjoint_senstivity_analysis(adjoint_analysis, adjoint_postprocess)
+            adjoint_analysis.Finalize()
 
     # called only once for this class, opposed of tearDown()
     @classmethod

@@ -282,12 +282,17 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
         self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
 
+        self.sensitivity_settings = ProjectParametersAdjoint["solver_settings"]["sensitivity_settings"].Clone()
+        ProjectParametersAdjoint["solver_settings"].RemoveValue("sensitivity_settings")
+
         # TODO find out why it is not possible to use the same model_part
         self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
+        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.adjoint_model_part, self._GetResponseFunctionUtility(), self.sensitivity_settings)
+        self.adjoint_postprocess.Initialize()
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
@@ -323,6 +328,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
         startTime = timer.time()
         self.adjoint_analysis._GetSolver().Predict()
         self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        self.adjoint_postprocess.UpdateSensitivities()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
 
