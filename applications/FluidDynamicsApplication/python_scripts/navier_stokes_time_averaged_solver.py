@@ -124,6 +124,8 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self._set_physical_properties()
             ## Sets the constitutive law
             self._set_constitutive_law()
+            ## Sets averaging time length
+            self._set_averaging_time_length()
 
 
     def Initialize(self):
@@ -177,17 +179,11 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
 
+        averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+        if new_time > averaging_time_length:
+            print("Averaging time length set to ", averaging_time_length, ", droping previous time infomation")
+
         return new_time
-
-
-    def _ComputeIncreasedDt(self, current_dt):
-        dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
-        dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
-        new_dt = current_dt + 0.01
-        if (new_dt >= dt_max):
-            new_dt = dt_max
-        print("New dt is: ", new_dt)
-        return new_dt
 
 
     def Solve(self):
@@ -225,6 +221,21 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         # TODO: Remove this once the "old" embedded elements get the density from the properties (or once we delete them)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DENSITY, rho, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
+
+
+    def _ComputeIncreasedDt(self, current_dt):
+        dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
+        dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
+        new_dt = current_dt + 0.01
+        if (new_dt >= dt_max):
+            new_dt = dt_max
+        print("New dt is: ", new_dt)
+        return new_dt
+
+
+    def _set_averaging_time_length(self):
+        averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+        self.main_model_part.ProcessInfo.SetValue(KratosCFD.AVERAGING_TIME_LENGTH, averaging_time_length)
 
 
     def _set_constitutive_law(self):

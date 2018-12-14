@@ -163,7 +163,7 @@ void KratosFluidDynamicsApplication::Register() {
     // Time Averaged fluid variables
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TIME_AVERAGED_VELOCITY)
     KRATOS_REGISTER_VARIABLE(TIME_AVERAGED_PRESSURE)
-    KRATOS_REGISTER_VARIABLE(TIME_STEP)
+    KRATOS_REGISTER_VARIABLE(AVERAGING_TIME_LENGTH)
 
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention

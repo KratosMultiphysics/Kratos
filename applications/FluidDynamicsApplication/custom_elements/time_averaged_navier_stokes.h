@@ -438,8 +438,8 @@ protected:
 
         // time period considered in the averaging scheme
         // TO DO --> find the way to define the restart time regardless of the problem itself
-        // rData.dts = rCurrentProcessInfo[END_TIME] * 0.5;
-        rData.dts = 10.0;
+        // now it takes user input
+        rData.dts = rCurrentProcessInfo[AVERAGING_TIME_LENGTH];
 
         // parameters for time averaged variables
         if (rData.t <= rData.dts){
