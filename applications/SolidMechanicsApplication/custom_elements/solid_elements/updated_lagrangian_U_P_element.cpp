@@ -364,7 +364,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationGradient(Matrix& rF,
     KRATOS_TRY
 
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
-    const SizeType dimension        = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );
 
