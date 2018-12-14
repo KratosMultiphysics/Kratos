@@ -16,6 +16,11 @@ class PFEM2FluidDynamicsAnalysis(FluidDynamicsAnalysis):
     def __init__(self,model,parameters):
         super(PFEM2FluidDynamicsAnalysis,self).__init__(model,parameters)
 
+    def _CreateSolver(self):
+        solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
+        solver = solver_module.CreateSolver(self.model, self.project_parameters["solver_settings"])
+        return solver
+
     def _GetSimulationName(self):
         return "PFEM2 Fluid Dynamics Analysis"
 

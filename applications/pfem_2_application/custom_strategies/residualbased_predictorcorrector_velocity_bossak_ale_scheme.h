@@ -65,10 +65,12 @@ namespace Kratos {
     /*@{ */
 
     /// Bossak time scheme for the incompressible flow problem.
-    template<class TSparseSpace,
-    class TDenseSpace //= DenseSpace<double>
-    >
+
+    // template<template <class TSparseSpace, class TDenseSpace> class TSchemeType >
+    // class ResidualBasedPredictorCorrectorVelocityBossakAleScheme : public TSchemeType<TSparseSpace, TDenseSpace> {
+    template<class TSparseSpace, class TDenseSpace >
     class ResidualBasedPredictorCorrectorVelocityBossakAleScheme : public ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace> {
+
     public:
         /**@name Type Definitions */
         /*@{ */
@@ -77,7 +79,7 @@ namespace Kratos {
 
         typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
-        typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace> MotherType;
+        typedef ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<TSparseSpace, TDenseSpace> SchemeType;
 
         typedef typename BaseType::TDataType TDataType;
 
@@ -95,7 +97,7 @@ namespace Kratos {
 
         typedef Element::GeometryType  GeometryType;
 
-        using MotherType::mRotationTool;
+        // using SchemeType::mRotationTool;
 
 
         /*@} */
@@ -171,21 +173,16 @@ namespace Kratos {
         {
             KRATOS_TRY;
 
-            mRotationTool.RotateVelocities(r_model_part);
+            SchemeType::Update(r_model_part,rDofSet,A,Dv,b);
 
-            mpDofUpdater->UpdateDofs(rDofSet,Dv);
-
-            mRotationTool.RecoverVelocities(r_model_part);
-
-            // TODO: adapt for ALE
-            this->AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
+            this->Pfem2AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b)
 
             KRATOS_CATCH("")
         }
 
         //***************************************************************************
 
-        void AdditionalUpdateOperations(ModelPart& rModelPart,
+        void Pfem2AdditionalUpdateOperations(ModelPart& rModelPart,
                                         DofsArrayType& rDofSet,
                                         TSystemMatrixType& A,
                                         TSystemVectorType& Dv,
@@ -200,38 +197,15 @@ namespace Kratos {
             //updating time derivatives (nodally for efficiency)
             #pragma omp parallel
             {
-                array_1d<double, 3 > DeltaVel;
-
                 int k = OpenMPUtils::ThisThread();
 
                 ModelPart::NodeIterator NodesBegin = rModelPart.NodesBegin() + NodePartition[k];
                 ModelPart::NodeIterator NodesEnd = rModelPart.NodesBegin() + NodePartition[k + 1];
 
                 for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; itNode++) {
-                    noalias(DeltaVel) = (itNode)->FastGetSolutionStepValue(VELOCITY) - (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
 
-                    array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 0);
-                    array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
-
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
-
-                    if (mMeshVelocity == 2)//Lagrangian
-                    {
-                        if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-                        {
-                            array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-                            array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                            array_1d<double, 3 > & OldVelocity = (itNode)->FastGetSolutionStepValue(VELOCITY, 1);
-
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-                        }
-                        else
-                        {
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = ZeroVector(3);
-                            noalias(itNode->FastGetSolutionStepValue(DISPLACEMENT)) = ZeroVector(3);
-                        }
-                    }
+                    // Pfem2 ALE update to eliminate convective term
+                    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
                 }
             }
 
@@ -249,8 +223,6 @@ namespace Kratos {
                              TSystemVectorType& Dv,
                              TSystemVectorType& b) override
         {
-            // TODO: adapt for ALE
-
             // if (rModelPart.GetCommunicator().MyPID() == 0)
             //     std::cout << "prediction" << std::endl;
 
@@ -296,24 +268,8 @@ namespace Kratos {
 
                     UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
 
-                    if (mMeshVelocity == 2) //Lagrangian
-                    {
-                        array_1d<double, 3 > & OldDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-                        array_1d<double, 3 > & CurrentDisplacement = (itNode)->FastGetSolutionStepValue(DISPLACEMENT, 0);
-
-                    if((itNode)->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET) < 1e-15)
-                        {
-                            noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
-                            UpdateDisplacement(CurrentDisplacement, OldDisplacement, OldVelocity, OldAcceleration, CurrentAcceleration);
-                        }
-                        else
-                        {
-                        itNode->FastGetSolutionStepValue(MESH_VELOCITY_X) = 0.0;
-                        itNode->FastGetSolutionStepValue(MESH_VELOCITY_Y) = 0.0;
-                        itNode->FastGetSolutionStepValue(DISPLACEMENT_X) = 0.0;
-                        itNode->FastGetSolutionStepValue(DISPLACEMENT_Y) = 0.0;
-                        }
-                    }
+                    // Pfem2 ALE update to eliminate convective term
+                    noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
                 }
             }
         }
@@ -386,13 +342,6 @@ namespace Kratos {
         /*@} */
         /**@name Member Variables */
         /*@{ */
-
-        // TODO: this isn't accessible in the derived class...
-
-        //CoordinateTransformationUtils<LocalSystemMatrixType,LocalSystemVectorType,double> mRotationTool;
-        //const Variable<int>& mrPeriodicIdVar;
-        //Process::Pointer mpTurbulenceModel;
-        //typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
         /*@} */
         /**@name Private Operators*/
