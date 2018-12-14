@@ -35,7 +35,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 7,
-            "dynamic_tau": 1.0,
             "echo_level": 0,
             "time_order": 2,
             "compute_reactions": false,
@@ -57,7 +56,10 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "formulation": {
+                "dynamic_tau": 1.0
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -165,7 +167,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
         (self.solver).Check()
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
