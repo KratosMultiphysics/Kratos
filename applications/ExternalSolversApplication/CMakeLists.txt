@@ -97,7 +97,7 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosExternalSolversApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ExternalSolversApplication.py" DESTINATION "KratosMultiphysics/ExternalSolversApplication" RENAME "__init__.py")
 
 #if(${INCLUDE_PASTIX} MATCHES ON)
 #    install( TARGETS kratos_pastix DESTINATION libs)
