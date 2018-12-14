@@ -37,7 +37,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
                 "step_size"                  : 1.0,
-                "approximation_tolerance"    : 0.1,
+                "estimation_tolerance"       : 0.1,
                 "increase_factor"            : 1.1,
                 "max_increase_factor"        : 10.0
             }
@@ -66,7 +66,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
         self.gradient_tolerance = self.algorithm_settings["gradient_tolerance"].GetDouble()
         self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
-        self.approximation_tolerance = self.algorithm_settings["line_search"]["approximation_tolerance"].GetDouble()
+        self.estimation_tolerance = self.algorithm_settings["line_search"]["estimation_tolerance"].GetDouble()
         self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
         self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
         self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
@@ -161,12 +161,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __adjustStepSize(self):
         current_a = self.step_size
 
-        # Compare actual and estimated improvement using linear information
+        # Compare actual and estimated improvement using linear information from the previos step
         dfda1 = 0.0
         for node in self.design_surface.Nodes:
+            # The following variables are not yet updated and therefore contain the information from the previos step
             s1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
             dfds1 = node.GetSolutionStepValue(DF1DX_MAPPED)
-            dfda1 = dfda1 + s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
+            dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
 
         f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
         f1 = self.previos_objective_value
@@ -178,8 +179,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         if f2 < f1:
             estimation_error = (df_actual-df_estimated)/df_actual
 
-            # Increase step size if linear approximation matches the actual improvement within a specified tolerance
-            if estimation_error < self.approximation_tolerance:
+            # Increase step size if estimation based on linear extrapolation matches the actual improvement within a specified tolerance
+            if estimation_error < self.estimation_tolerance:
                 new_a = min(current_a*self.increase_factor, self.max_step_size)
 
             # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained

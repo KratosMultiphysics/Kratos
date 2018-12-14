@@ -188,6 +188,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
     def __logCurrentOptimizationStep(self):
         additional_values_to_log = {}
         additional_values_to_log["correction_scaling"] = self.optimization_utilities.GetCorrectionScaling()
+        additional_values_to_log["step_size"] = self.step_size
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
