@@ -390,7 +390,7 @@ public:
      * @param rContainer Reference to the objective container
      */
     template< class TContainerType>
-    void ClearNonHistoricalValues(TContainerType& rContainer)
+    void ClearNonHistoricalData(TContainerType& rContainer)
     {
         KRATOS_TRY
 
