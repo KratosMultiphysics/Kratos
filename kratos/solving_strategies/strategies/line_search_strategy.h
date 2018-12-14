@@ -257,22 +257,27 @@ protected:
         TSparseSpace::Assign(aux,0.5, Dx);
 
         //compute residual without update
+        Timer::Start("Build_no_update");
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double ro = TSparseSpace::TwoNorm(b);
-
+        Timer::Stop("Build_no_update");
         //compute half step residual
+
+        Timer::Start("Build_half_residual");
         BaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double rh = TSparseSpace::TwoNorm(b);
+        Timer::Stop("Build_half_residual");
 
         //compute full step residual (add another half Dx to the previous half)
+        Timer::Start("Build_full_residual");
         BaseType::UpdateDatabase(A,aux,b,MoveMesh);
         TSparseSpace::SetToZero(b);
         pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), b );
         double rf = TSparseSpace::TwoNorm(b);
-
+        //Timer::Stop("Build_full_residual");
         //compute optimal (limited to the range 0-1)
         //parabola is y = a*x^2 + b*x + c -> min/max for
         //x=0   --> r=ro
@@ -303,6 +308,7 @@ protected:
         //perform final update
         TSparseSpace::Assign(aux,-(1.0-xmax), Dx);
         BaseType::UpdateDatabase(A,aux,b,MoveMesh);
+        Timer::Stop("Build_full_residual");
     }
 
 

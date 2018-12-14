@@ -50,7 +50,8 @@ void  AddTableToPython(pybind11::module& m)
     .def("GetDerivative",&DoubleTableType::GetDerivative)
     .def("GetNearestValue", TableGetNearestValue)
     .def("AddRow", &DoubleTableType::PushBack)
-    .def("__repr__", &DoubleTableType::Info)
+    //.def("__repr__", &DoubleTableType::Info)
+    .def("__repr__", [](const DoubleTableType& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
     ;
 }
 

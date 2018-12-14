@@ -63,7 +63,31 @@ namespace Kratos
 
         Timer::SetOuputFile(Filename + ".time");
     }
+    /// Constructor with Echolevel to write/Not write time.out
+    ModelPartIO::ModelPartIO(std::string const& Filename, int rEchoLevel)
+      : mNumberOfLines(1)
+      , mBaseFilename(Filename)
+      , mFilename(Filename + ".mdpa")
+    {
+        Kratos::shared_ptr<std::fstream> pFile = Kratos::make_shared<std::fstream>();
+        std::fstream::openmode OpenMode;
 
+        // Set the mode
+        OpenMode = std::fstream::in;
+
+        pFile->open(mFilename.c_str(), OpenMode);
+
+        if (!(pFile->is_open()))
+        {
+            KRATOS_THROW_ERROR(std::invalid_argument, "Error opening output file : ", mFilename.c_str());
+        }
+
+        // Store the pointer as a regular std::iostream
+        mpStream = pFile;
+        
+        if (rEchoLevel > 0)
+            Timer::SetOuputFile(Filename + ".time");
+    }
     /// Constructor with stream
     ModelPartIO::ModelPartIO(Kratos::shared_ptr<std::iostream> Stream)
       : mNumberOfLines(1)
