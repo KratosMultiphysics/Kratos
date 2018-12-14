@@ -17,6 +17,7 @@
 
 /* Project includes */
 #include "custom_processes/non_local_plasticity_process.hpp"
+#include "utilities/openmp_utils.h"
 
 namespace Kratos
 {
@@ -32,7 +33,7 @@ namespace Kratos
       {
          "echo_level": 1,
          "model_part_name": "Main_Domain",
-         "characteristic_length": 1.0,
+         "characteristic_length": 0.0,
          "local_variables": ["PLASTIC_VOL_DEF", "PLASTIC_DEV_DEF"],
          "non_local_variables": ["NONLOCAL_PLASTIC_VOL_DEF"]
       } )" );
@@ -40,7 +41,7 @@ namespace Kratos
 
       rParameters.ValidateAndAssignDefaults( default_parameters);
       mCharacteristicLength = rParameters["characteristic_length"].GetDouble();
-      if ( mCharacteristicLength == 1.0) {
+      if ( mCharacteristicLength == 0.0) {
          std::cout << " NonLocalPlasticityProcess:: " << std::endl;
          std::cout << "       using the default value for the characteristic length: DANGEROUS! " << std::endl;
       }
@@ -95,10 +96,15 @@ namespace Kratos
 
       std::vector< GaussPoint > NeighbourGaussPoint(0);
 
+      std::cout << " tic " << std::endl;
       this->PerformGaussPointSearch( NeighbourGaussPoint, 3.0*CharacteristicLength);
+      std::cout << " tac " << std::endl;
 
+      int NumThreads = OpenMPUtils::GetNumThreads();
+      std::cout << " total number of threads " << NumThreads << std::endl;
       // And now we should transfer information
 
+      #pragma omp parallel for
       for ( unsigned int i = 0; i < NeighbourGaussPoint.size() ; i++)
       {
          const ConstitutiveLaw::Pointer & rRecieveCL = NeighbourGaussPoint[i].pConstitutiveLaw;
@@ -113,7 +119,7 @@ namespace Kratos
 
             for (unsigned int nei = 0; nei < rNeighLaws.size(); nei++)
             {
-               value = NeighbourGaussPoint[i].NeighbourLaws[nei]->GetValue( rLocalVariable, value);
+               value = rNeighLaws[nei]->GetValue( rLocalVariable, value);
                alpha = ComputeWeightFunction( NeighbourGaussPoint[i].NeighbourDistances[nei], CharacteristicLength, alpha);
 
                numerator += value*alpha;
@@ -133,6 +139,7 @@ namespace Kratos
       }
 
 
+      std::cout << " toc " << std::endl;
 
 
       KRATOS_CATCH("")
@@ -145,6 +152,7 @@ namespace Kratos
       KRATOS_TRY
 
       rAlpha = rDistance * exp( - pow(rDistance/rCharacteristicLength, 2) );
+      
       return rAlpha;
 
       KRATOS_CATCH("")
