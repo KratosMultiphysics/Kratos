@@ -15,11 +15,12 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
+#include "utilities/geometrical_projection_utilities.h"
+#include "utilities/variable_utils.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
-#include "utilities/geometrical_projection_utilities.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -130,9 +131,18 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 {
+    // Getting the Model
+    Model& r_model = mrOriginMainModelPart.GetModel();
+
+    // Getting the list of model parts
+    std::vector<std::string> model_part_names = mrOriginMainModelPart.GetSubModelPartNames();
+    model_part_names.push_back(mrOriginMainModelPart.Name());
+
     // We iterate over the model parts (in order to have the most extended possible list of variables)
-    for (auto& submodel : mrOriginMainModelPart.SubModelParts()) {
-        auto it_node = submodel.Nodes().begin();
+    for (auto& model_part_name : model_part_names) {
+
+        ModelPart& r_sub_model_part = r_model.GetModelPart(model_part_name);
+        auto it_node = r_sub_model_part.Nodes().begin();
 
         const auto& double_components = KratosComponents<Variable<double>>::GetComponents();
 
