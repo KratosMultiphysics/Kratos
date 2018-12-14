@@ -1,57 +1,39 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from KratosMultiphysics import *
-from KratosMultiphysics.TrilinosApplication import *
 
-#
+def _CheckIfTypeIsDeprecated(config):
+    '''function to translate old/deprecated names to new names
+    needed for backwards-compatibility
+    '''
+    solver_type = config["solver_type"].GetString()
+
+    old_new_name_map = {
+        "CGSolver" : "aztec_cg",
+        "BICGSTABSolver" : "aztec_bicgstab",
+        "GMRESSolver" : "aztec_gmres",
+        "AztecSolver" : "aztec",
+        "MLSolver" : "multi_level",
+        "MultiLevelSolver" : "multi_level",
+        "AmgclMPISolver" : "amgcl_mpi",
+        "AmgclMPISchurComplementSolver" : "amgcl_mpi_schur_complement",
+        "AmesosSolver" : "amesos"
+    }
+
+    if solver_type in old_new_name_map:
+        new_name = old_new_name_map[solver_type]
+        depr_msg  = 'WARNING, using a deprecated "solver_type"!\n'
+        depr_msg += 'Replace "' + solver_type + '" with "' + new_name + '"'
+        import KratosMultiphysics as KM
+        KM.Logger.PrintWarning("Trilinos-Linear-Solver", depr_msg)
+        config["solver_type"].SetString(new_name)
+
 def ConstructSolver(configuration):
 
-    import KratosMultiphysics
+    import KratosMultiphysics as KM
+    import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 
-    if(type(configuration) != KratosMultiphysics.Parameters):
+    if(type(configuration) != KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    solver_type = configuration["solver_type"].GetString()
+    _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
 
-    linear_solver = None
-
-    #
-    if(solver_type == "CGSolver" or  solver_type == "BICGSTABSolver" or solver_type == "GMRESSolver" or solver_type == "AztecSolver" ):
-        linear_solver = AztecSolver(configuration)
-    elif(solver_type == "MLSolver" or solver_type=="MultiLevelSolver" ):
-        linear_solver = MultiLevelSolver(configuration)
-    elif(solver_type == "AmgclMPISolver"):
-        linear_solver = AmgclMPISolver(configuration);
-    elif(solver_type == "AmgclMPISchurComplementSolver"):
-        linear_solver = AmgclMPISchurComplementSolver(configuration);
-    #
-    elif(solver_type == "Deflated Conjugate gradient"):
-        raise Exception("not implemented within trilinos")
-    #
-    elif(solver_type == "GMRES-UP Block"):
-        raise Exception("not implemented within trilinos")
-    #
-    elif(solver_type == "Skyline LU factorization"):
-        raise Exception("not implemented within trilinos")
-    #
-    elif(solver_type == "AmesosSolver"):
-        linear_solver = AmesosSolver(configuration);
-    #
-    elif(solver_type == "SuperLUIterativeSolver"):
-        raise Exception("not implemented within trilinos")
-    #
-    elif(solver_type == "PastixDirect"):
-        raise Exception("not implemented within trilinos")
-    #
-    elif(solver_type == "PastixIterative"):
-        raise Exception("not implemented within trilinos")
-    else:
-        print("*****************************************************************")
-        print("Inexisting solver type. Specified::::::::::: ", solver_type)
-        print(" Possibilities are:")
-        print("............")
-        print("*****************************************************************")
-        raise Exception("please specify a correct solver")
-    # else:
-        # except LogicError:
-
-    return linear_solver
+    return KratosTrilinos.TrilinosLinearSolverFactory().Create(configuration)
