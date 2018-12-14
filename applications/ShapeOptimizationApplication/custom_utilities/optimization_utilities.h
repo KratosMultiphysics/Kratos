@@ -294,7 +294,7 @@ public:
             // Three cases need to be covered
             // 1) In case we have two subsequently decreasing constraint values --> correction is fine --> leave current correction scaling
             // 2) In case the correction jumps over the constraint (change of sign) --> correction was too big --> reduce
-            if(mConstraintValue*mPreviousConstraintValue<0)
+            if(mConstraintValue*mPreviousConstraintValue<0.0)
             {
                 mCorrectionScaling *= 0.5;
                 std::cout << "Correction scaling needs to decrease...." << std::endl;
