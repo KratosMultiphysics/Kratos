@@ -5,8 +5,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Other imports
-from python_solver import PythonSolver
-import python_solvers_wrapper_mesh_motion
+from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers_wrapper
 
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
@@ -79,7 +79,7 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
 
-        self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
+        self.mesh_motion_solver = mesh_mothion_solvers_wrapper.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
         # Getting the min_buffer_size from both solvers
