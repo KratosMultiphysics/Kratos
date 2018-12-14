@@ -15,20 +15,14 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 # Importing the base class
 from analysis_stage import AnalysisStage
 
-# Import pycompss
-# from pycompss.api.task import task
-# from pycompss.api.api import compss_wait_on
-# from pycompss.api.parameter import *
-
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
 # from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
-# get_value_from_remote is the equivalent of compss_wait_on
-# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-
-# Import Monte Carlo library
-# import mc_utilities as mc
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
 
 # Import variables class
 from cmlmc_utilities import StatisticalVariable
@@ -119,7 +113,7 @@ output:
         QoI         : Quantity of Interest
 '''
 @ExaquteTask(returns=1)
-def ExecuteTask(pickled_model, pickled_parameters):
+def ExecuteMonteCarlo_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -147,7 +141,7 @@ output:
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @ExaquteTask(returns=1)
-def ExecuteExactTask(pickled_model, pickled_parameters):
+def ExecuteExactMonteCarlo_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -175,7 +169,7 @@ output:
         serialized_parameters : parameters serialized
 '''
 @ExaquteTask(returns=2)
-def ExecuteRefinement(pickled_model_coarse, pickled_parameters, min_size, max_size):
+def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
     sample = GenerateSample()
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer_coarse = pickle.loads(pickled_model_coarse)
@@ -217,7 +211,7 @@ output:
         serialized_parameters : project parameters serialized
 '''
 @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
-def SerializeModelParameters(parameter_file_name):
+def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
@@ -245,7 +239,7 @@ output :
         relative_error        : relative error
 '''
 @ExaquteTask(returns=1)
-def CompareMean(AveragedMeanQoI,ExactExpectedValueQoI):
+def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
 
@@ -270,13 +264,13 @@ if __name__ == '__main__':
         parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
-    pickled_model,pickled_parameters = SerializeModelParameters(parameter_file_name)
+    pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     print("\n############## Serialization completed ##############\n")
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactTask(pickled_model,pickled_parameters) 
+    ExactExpectedValueQoI = ExecuteExactMonteCarlo_Task(pickled_model,pickled_parameters) 
 
-    number_samples = 5
+    number_samples = 10
 
     QoI = StatisticalVariable(0) # number of levels = 0 (we only have one level), needed using this class
     '''to exploit StatisticalVariable UpdateOnePassMeanVariance function we need to initialize a level 0 in values, mean, sample variance and second moment
@@ -286,21 +280,21 @@ if __name__ == '__main__':
     QoI.second_moment = [[] for i in range (1)]
     QoI.sample_variance = [[] for i in range (1)]
     for instance in range (0,number_samples):
-        QoI.values[0].append(ExecuteTask(pickled_model,pickled_parameters))
+        QoI.values[0].append(ExecuteMonteCarlo_Task(pickled_model,pickled_parameters))
 
     '''Compute mean, second moment and sample variance'''
     for i_sample in range (0,number_samples):
         QoI.UpdateOnepassMeanVariance(0,i_sample)
     '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
-    relative_error = CompareMean(QoI.mean[0],ExactExpectedValueQoI)
+    relative_error = CompareMean_Task(QoI.mean[0],ExactExpectedValueQoI)
     # QoI = get_value_from_remote(QoI)
     for i in range(len(QoI.values[0])):
         QoI.values[0][i] = get_value_from_remote(QoI.values[0][i])
     QoI_mean = get_value_from_remote(QoI.mean[0])
     ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
     relative_error = get_value_from_remote(relative_error)
-    print("values MC = ",QoI.values[0])
-    print("\nMC mean = ",QoI_mean,"exact mean = ",ExactExpectedValueQoI)
+    # print("values MC = ",QoI.values[0])
+    print("MC mean = ",QoI_mean,"exact mean = ",ExactExpectedValueQoI)
     print("relative error: ",relative_error)
 
     end_time = time.time()
@@ -330,4 +324,3 @@ if __name__ == '__main__':
     # error = np.sqrt(error)
     # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
     # print("L2 relative error = ", error/L2norm_analyticalsolution)
-   
