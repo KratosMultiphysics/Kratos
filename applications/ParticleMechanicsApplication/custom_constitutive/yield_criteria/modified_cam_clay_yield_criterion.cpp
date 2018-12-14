@@ -109,9 +109,9 @@ void ModifiedCamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vecto
     preconsolidation_stress = mpHardeningLaw->CalculateHardening(preconsolidation_stress, rAlpha, rOldPreconsolidationPressure);
 
     rFirstDerivative.resize(3, false);
-    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress; // (df/dP)
+    rFirstDerivative[0] = 2.0 * mean_stress_p - preconsolidation_stress;     // (df/dP)
     rFirstDerivative[1] = 2.0 * deviatoric_q / std::pow(shear_M, 2);         // (df/dQ)
-    rFirstDerivative[2] = - mean_stress_p;                              // (df/dP_c)
+    rFirstDerivative[2] = - mean_stress_p;                                   // (df/dP_c)
 }
 
 //*******************************CALCULATE SECOND YIELD FUNCTION DERIVATIVE *****************

@@ -225,8 +225,8 @@ public:
     }
 
     /**
-     * Calculate the exact distances to an isosurface define by a set of initial
-     * distances
+     * Calculate the exact distances to the interface TRIANGLE defined by a set
+     * of initial distances.
      * @param ThisGeometryThe tetrahedra itself. Note: If the geometry is not a
      * tetrahedra the result is undefined and may cause memory error.
      * @param Distances The distances which define the isosurface as input and
@@ -327,10 +327,10 @@ public:
     }
 
     /**
-     * Calculate the exact distances to an isosurface define by a set of initial
-     * distances
+     * Calculate the exact distances to the interface SEGMENT defined by a set 
+     * of initial distances.
      * @param ThisGeometryThe Triangle itself. Note: If the geometry is not a
-     * tetrahedra the result is undefined and may cause memory error.
+     * triangle the result is undefined and may cause memory error.
      * @param Distances The distances which define the isosurface as input and
      * the same argument is used to give the calculated exact distance
      */
@@ -399,6 +399,47 @@ public:
 		}
 
     }
+
+    /**
+     * Calculate the exact distances to the plane interface defined by a set 
+     * of initial distances.
+     * @param ThisGeometry Geometry can be either a triangle or a tetrahedra
+     * @param Distances The distances which define the isosurface as input.
+     * Same argument is used to give the calculated exact distances back
+     */
+    template<std::size_t TSize>
+    static void CalculateExactDistancesToPlane(
+        Element::GeometryType& rThisGeometry,
+        array_1d<double, TSize>& rDistances)
+    {
+        array_1d<Point, TSize> intersection_points;
+        int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(rThisGeometry, rDistances, intersection_points);
+
+		if(number_of_intersection_points == 0) {
+			KRATOS_WARNING("GeometryUtilities") << "Warning: The intersection with interface hasn't found! The distances are" << rDistances << std::endl;
+		}
+        else {
+            BoundedMatrix<double,TSize,TSize-1> DN_DX;
+            array_1d<double, TSize> N;
+            double volume;
+            GeometryUtils::CalculateGeometryData(rThisGeometry, DN_DX, N, volume);
+            array_1d<double, TSize-1> distance_gradient = prod(trans(DN_DX), rDistances);
+            double distance_gradient_norm = norm_2(distance_gradient);
+            if (distance_gradient_norm < 1e-15) distance_gradient_norm = 1e-15; //avoid division by zero
+            distance_gradient /= distance_gradient_norm;
+            //We use the first intersection point as reference
+            const auto &ref_point = intersection_points[0].Coordinates();
+            for (unsigned int i = 0; i < TSize; i++) {
+                double d = 0.0;
+                const auto &i_coords = rThisGeometry[i].Coordinates();
+                for (unsigned int Dim = 0; Dim < TSize - 1; Dim++) {
+                    d += (i_coords[Dim] - ref_point[Dim]) * distance_gradient[Dim];
+                }
+                d = std::abs(d);
+                rDistances[i] = std::min(std::abs(rDistances[i]), d);
+            }
+        }
+	}
 
 
     /**

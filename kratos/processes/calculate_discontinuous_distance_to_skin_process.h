@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		     BSD License
-//					         Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand, Ruben Zorrilla
+//  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
 //
 
 #if !defined(KRATOS_CALCULATE_DISCONTINUOUS_DISTANCE_TO_SKIN_PROCESS_H_INCLUDED )
@@ -20,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "geometries/plane_3d.h"
 #include "includes/checks.h"
 #include "processes/process.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
@@ -120,6 +122,26 @@ public:
      */
     void Execute() override;
 
+    /**
+     * @brief Calculate embedded variable from skin double specialization
+     * This method calls the specialization method for two double variables
+     * @param rVariable origin double variable in the skin mesh
+     * @param rEmbeddedVariable elemental double variable in the volume mesh to be computed
+     */
+    void CalculateEmbeddedVariableFromSkin(
+        const Variable<double> &rVariable,
+        const Variable<double> &rEmbeddedVariable);
+
+    /**
+     * @brief Calculate embedded variable from skin array specialization
+     * This method calls the specialization method for two double variables
+     * @param rVariable origin array variable in the skin mesh
+     * @param rEmbeddedVariable elemental array variable in the volume mesh to be computed
+     */
+    void CalculateEmbeddedVariableFromSkin(
+        const Variable<array_1d<double,3>> &rVariable,
+        const Variable<array_1d<double,3>> &rEmbeddedVariable);
+
     ///@}
     ///@name Access
     ///@{
@@ -143,6 +165,14 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Set the Intersection Plane object
+     * This method returns the plane that defines the element intersection. The 2D
+     * case is considered to be a simplification of the 3D one, so a "fake" extra
+     * point is created by extruding the first point in the z-direction.
+     * @param rIntPtsVector array containing the intersecting points coordinates
+     * @return Plane3D the plane defined by the given intersecting points coordinates
+     */
     Plane3D SetIntersectionPlane(const std::vector<array_1d<double,3>> &rIntPtsVector);
 
     ///@}
@@ -253,6 +283,95 @@ private:
     void inline ComputeIntersectionNormalFromGeometry(
         const Element::GeometryType &rGeometry,
         array_1d<double,3> &rIntObjNormal);
+
+    /**
+     * @brief Computes the value of any embedded variable
+     * For a given array variable in the skin mesh, this method calculates the value
+     * of such variable in the embedded mesh. This is done in each element of the volume 
+     * mesh by computing the average value of all the edges intersections. This value 
+     * is averaged again according to the number of intersected edges.
+     * @tparam TVarType variable type
+     * @param rVariable origin variable in the skin mesh
+     * @param rEmbeddedVariable elemental variable in the volume mesh to be computed
+     */
+    template<class TVarType>
+	void CalculateEmbeddedVariableFromSkinSpecialization(
+		const Variable<TVarType> &rVariable,
+		const Variable<TVarType> &rEmbeddedVariable)
+	{
+		const auto &r_int_obj_vect= this->GetIntersections();
+		const int n_elems = mrVolumePart.NumberOfElements();
+
+		// Check requested variables
+		KRATOS_ERROR_IF(rEmbeddedVariable.Key() == 0) 
+			<< rEmbeddedVariable << " key is 0. Check that the variable is correctly registered." << std::endl;
+
+		KRATOS_ERROR_IF((mrSkinPart.NodesBegin())->SolutionStepsDataHas(rVariable) == false) 
+			<< "Skin model part solution step data missing variable: " << rVariable << std::endl;
+
+		// Initialize embedded variable value
+		#pragma omp parallel for
+		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+			auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
+			it_elem->SetValue(rEmbeddedVariable, rEmbeddedVariable.Zero());
+		}
+
+		// Compute the embedded variable value for each element
+		#pragma omp parallel for schedule(dynamic)
+		for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
+			// Check if the current element has intersecting entities
+			if (r_int_obj_vect[i_elem].size() != 0) {
+				// Initialize the element values
+				unsigned int n_int_edges = 0;
+				auto it_elem = mrVolumePart.ElementsBegin() + i_elem;
+				auto &r_geom = it_elem->GetGeometry();
+				const auto edges = r_geom.Edges();
+
+				// Loop the element of interest edges
+				for (unsigned int i_edge = 0; i_edge < r_geom.EdgesNumber(); ++i_edge) {
+					// Initialize edge values
+					unsigned int n_int_obj = 0;
+					TVarType i_edge_val = rEmbeddedVariable.Zero();
+
+					// Check the edge intersection against all the candidates
+					for (auto &r_int_obj : r_int_obj_vect[i_elem]) {
+						Point intersection_point;
+						const int is_intersected = this->ComputeEdgeIntersection(
+							r_int_obj.GetGeometry(),
+							edges[i_edge][0],
+							edges[i_edge][1],
+							intersection_point);
+
+						// Compute the variable value in the intersection point
+                        if (is_intersected == 1) {
+							n_int_obj++;
+							array_1d<double,3> local_coords;
+                            r_int_obj.GetGeometry().PointLocalCoordinates(local_coords, intersection_point);
+                            Vector int_obj_N;
+                            r_int_obj.GetGeometry().ShapeFunctionsValues(int_obj_N, local_coords);
+                            for (unsigned int i_node = 0; i_node < r_int_obj.GetGeometry().PointsNumber(); ++i_node) {
+                                i_edge_val += r_int_obj.GetGeometry()[i_node].FastGetSolutionStepValue(rVariable) * int_obj_N[i_node];
+                            }
+                        }
+					}
+
+					// Check if the edge is intersected					
+					if (n_int_obj != 0) {
+						// Update the element intersected edges counter
+						n_int_edges++;
+						// Add the average edge value (there might exist cases in where
+						// more than one geometry intersects the edge of interest).
+						it_elem->GetValue(rEmbeddedVariable) += i_edge_val / n_int_obj;
+					}
+				}
+
+				// Average between all the intersected edges
+				if (n_int_edges != 0) {
+					it_elem->GetValue(rEmbeddedVariable) /= n_int_edges;
+				}
+			}
+		}
+	};
 
     ///@}
 

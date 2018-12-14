@@ -24,7 +24,7 @@
 #include "includes/define.h"
 #include "processes/graph_coloring_process.h"
 #include "mpi.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 
 namespace Kratos
 {

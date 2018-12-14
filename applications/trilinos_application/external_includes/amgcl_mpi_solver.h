@@ -14,16 +14,11 @@
 #if !defined(KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED )
 #define  KRATOS_AMGCL_MPI_SOLVER_H_INCLUDED
 
-// #ifndef AMGCL_PARAM_MISSING
-// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
-// #endif
-// KRATOS_ERROR << , #name)
-// Unknown parameter action
 #ifndef AMGCL_PARAM_UNKNOWN
+#include "input_output/logger.h"
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
-      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+    Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
-
 // System includes
 #include <iostream>
 #include <fstream>

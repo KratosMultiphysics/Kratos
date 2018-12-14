@@ -29,23 +29,23 @@
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
-void  AddCustomUtilitiesToPython(pybind11::module& m) 
+void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_< FracturePropagation3DUtilities > 
+    py::class_< FracturePropagation3DUtilities >
     (m, "FracturePropagation3DUtilities")
-    .def(init<>())
+    .def( py::init<>())
     .def("CheckFracturePropagation",&FracturePropagation3DUtilities::CheckFracturePropagation)
     .def("MappingModelParts",&FracturePropagation3DUtilities::MappingModelParts);
-    
-    class_< FracturePropagation2DUtilities >
+
+    py::class_< FracturePropagation2DUtilities >
     (m, "FracturePropagation2DUtilities")
-    .def(init<>())
+    .def( py::init<>())
     .def("CheckFracturePropagation",&FracturePropagation2DUtilities::CheckFracturePropagation)
     .def("MappingModelParts",&FracturePropagation2DUtilities::MappingModelParts);
 }

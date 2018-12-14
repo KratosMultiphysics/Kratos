@@ -37,6 +37,8 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
             "interval"                    : [0.0, 1e30],
             "master_variable_name"        : "DISPLACEMENT",
             "slave_variable_name"         : "",
+            "relation"                    : 1.0,
+            "constant"                    : 0.0,
             "master_node_id"              : 0
         }
         """)
@@ -76,6 +78,8 @@ class ImposeRigidMovementProcess(KratosMultiphysics.Process):
         rigid_parameters.AddValue("new_model_part_name", settings["new_model_part_name"])
         rigid_parameters.AddValue("master_variable_name", settings["master_variable_name"])
         rigid_parameters.AddValue("slave_variable_name", settings["slave_variable_name"])
+        rigid_parameters.AddValue("relation", settings["relation"])
+        rigid_parameters.AddValue("constant", settings["constant"])
         rigid_parameters.AddValue("master_node_id", settings["master_node_id"])
         self.rigid_movement_process = StructuralMechanicsApplication.ImposeRigidMovementProcess(self.computing_model_part, rigid_parameters)
 

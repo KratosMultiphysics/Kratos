@@ -340,7 +340,7 @@ namespace Kratos
 
 		for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); ++i_object){
 			double intersection[3]={0.0, 0.0, 0.0};
-			int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
+			const int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
 			if (is_intersected == 1){ // There is an intersection but not coplanar
 				rIntersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
 			}
@@ -357,7 +357,6 @@ namespace Kratos
         double* pIntersectionPoint)
 	{
 		// Auxiliar arrays 
-		array_1d<double,3> int_pt;
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -366,6 +365,7 @@ namespace Kratos
 		}
 
 		// Call the line - line intersection util
+		array_1d<double,3> int_pt = ZeroVector(3);
 		const double tolerance = 1.0e-6*rGeometry.Length();
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
@@ -390,7 +390,6 @@ namespace Kratos
         double* pIntersectionPoint)
 	{
 		// Auxiliar arrays 
-		array_1d<double,3> int_pt;
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -399,6 +398,7 @@ namespace Kratos
 		}
 
 		// Call the line - triangle intersection util
+		array_1d<double,3> int_pt = ZeroVector(3);
 		const double tolerance = 1.0e-6*std::sqrt(rGeometry.Length());
 		const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
 			rGeometry,

@@ -76,7 +76,7 @@ C_WARN_FLAGS="-Wall"
 CXX_WARN_FLAGS="-Wall -Werror=suggest-override -Werror=unused-variable \
 -Werror=misleading-indentation -Werror=return-type \
 -Werror=sign-compare -Werror=unused-but-set-variable \
--Werror=unused-local-typedefs"
+-Werror=unused-local-typedefs -Werror=reorder"
 
 # Other flags
 #    Indicate any other flag you want to add here

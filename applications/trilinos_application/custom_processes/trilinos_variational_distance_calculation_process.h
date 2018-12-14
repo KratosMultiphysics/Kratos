@@ -139,7 +139,7 @@ public:
         const bool ReformDofAtEachIteration = false;
         const bool CalculateNormDxFlag = false;
 
-        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("DistancePart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("RedistanceCalculationPart");
         (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part, 
             pscheme, 
@@ -162,11 +162,11 @@ public:
     ///@name Operators
     ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+    ///@}base_model_part
+    ///@nbase_model_part
+    ///@{base_model_part
 
-    ///@}
+    ///@}base_model_part
     ///@name Input and output
     ///@{
 
@@ -192,10 +192,10 @@ protected:
         KRATOS_TRY
 
         // Generate distance model part
-        if(!base_model_part.GetModel().HasModelPart("DistancePart"))
-            base_model_part.GetModel().CreateModelPart("DistancePart",2);
+        if(!base_model_part.GetModel().HasModelPart("RedistanceCalculationPart"))
+            base_model_part.GetModel().CreateModelPart("RedistanceCalculationPart",2);
 
-        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("DistancePart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("RedistanceCalculationPart");
         
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
@@ -236,9 +236,6 @@ protected:
                 it_elem->Id(),
                 it_elem->pGetGeometry(),
                 it_elem->pGetProperties());
-
-            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
-            p_element->pGetGeometry() = it_elem->pGetGeometry();
 
             r_distance_model_part.Elements().push_back(p_element);
             pNewComm->LocalMesh().Elements().push_back(p_element);

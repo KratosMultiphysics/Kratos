@@ -53,8 +53,9 @@ typename TVariableType::Type GetValueHelperFunction(TContainerType& el, const TV
 typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
 typedef MeshType::NodeType NodeType;
 typedef MeshType::NodesContainerType NodesContainerType;
-typedef Geometry<Node<3> >::PointsArrayType NodesArrayType;
-typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+typedef Geometry<Node<3> > GeometryType;
+typedef GeometryType::PointsArrayType NodesArrayType;
+typedef GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
 typedef Point::CoordinatesArrayType CoordinatesArrayType;
 
 array_1d<double,3> GetNormalFromCondition(
@@ -62,11 +63,15 @@ array_1d<double,3> GetNormalFromCondition(
     CoordinatesArrayType& LocalCoords
     )
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
+        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
     return( dummy.GetGeometry().UnitNormal(LocalCoords) );
 }
 
 array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetNormal\" is deprecated, please "
+        << "replace this call with \"GetGeometry().UnitNormal()\"" << std::endl;
     CoordinatesArrayType LocalCoords;
     LocalCoords.clear();
     return( dummy.GetGeometry().UnitNormal(LocalCoords) );
@@ -74,11 +79,15 @@ array_1d<double,3> FastGetNormalFromCondition(Condition& dummy)
 
 double GetAreaFromCondition( Condition& dummy )
 {
+    KRATOS_WARNING_FIRST_N("Condition-Python Interface", 10) << "\"GetArea\" is deprecated, please "
+        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
     return( dummy.GetGeometry().Area() );
 }
 
 double GetAreaFromElement( Element& dummy )
 {
+    KRATOS_WARNING_FIRST_N("Element-Python Interface", 10) << "\"GetArea\" is deprecated, please "
+        << "replace this call with \"GetGeometry().Area()\"" << std::endl;
     return( dummy.GetGeometry().Area() );
 }
 
@@ -98,6 +107,12 @@ Properties::Pointer GetPropertiesFromCondition( Condition& pcond )
 void SetPropertiesFromCondition( Condition& pcond, Properties::Pointer pProperties )
 {
      pcond.SetProperties(pProperties) ;
+}
+
+template <class T>
+const GeometryType& GetGeometryFromObject( T& rObject )
+{
+    return rObject.GetGeometry();
 }
 
 NodeType::Pointer GetNodeFromElement( Element& dummy, unsigned int index )
@@ -441,6 +456,8 @@ void  AddMeshToPython(pybind11::module& m)
     py::class_<Element, Element::Pointer, Element::BaseType, Flags  >(m,"Element")
     .def(py::init<Kratos::Element::IndexType>())
     .def_property("Properties", GetPropertiesFromElement, SetPropertiesFromElement)
+    .def("GetGeometry", GetGeometryFromObject<Element>, py::return_value_policy::reference_internal)
+
     .def("__setitem__", SetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Element, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Element, Variable< array_1d<double, 3>  > >)
@@ -507,7 +524,7 @@ void  AddMeshToPython(pybind11::module& m)
     .def("SetValue", SetValueHelperFunction< Element, Variable< std::string > >)
     .def("GetValue", GetValueHelperFunction< Element, Variable< std::string > >)
 
-    .def("GetArea", GetAreaFromElement )
+    .def("GetArea", GetAreaFromElement ) // deprecated, to be removed (see warning in function)
     .def("GetNode", GetNodeFromElement )
     .def("GetNodes", GetNodesFromElement )
     .def("GetIntegrationPoints", GetIntegrationPointsFromElement )
@@ -569,6 +586,8 @@ void  AddMeshToPython(pybind11::module& m)
     py::class_<Condition, Condition::Pointer, Condition::BaseType, Flags  >(m,"Condition")
     .def(py::init<Kratos::Condition::IndexType>())
     .def_property("Properties", GetPropertiesFromCondition, SetPropertiesFromCondition)
+    .def("GetGeometry", GetGeometryFromObject<Condition>, py::return_value_policy::reference_internal)
+
     .def("__setitem__", SetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("__getitem__", GetValueHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
     .def("Has", HasHelperFunction< Condition, Variable< array_1d<double, 3>  > >)
@@ -646,9 +665,9 @@ void  AddMeshToPython(pybind11::module& m)
     //.def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsConstitutiveLaw)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsDouble<Condition>)
     .def("SetValuesOnIntegrationPoints", SetValuesOnIntegrationPointsArray1d<Condition>)
-    .def("GetNormal",GetNormalFromCondition)
-    .def("GetNormal",FastGetNormalFromCondition)
-    .def("GetArea",GetAreaFromCondition)
+    .def("GetNormal",GetNormalFromCondition) // deprecated, to be removed (see warning in function)
+    .def("GetNormal",FastGetNormalFromCondition) // deprecated, to be removed (see warning in function)
+    .def("GetArea",GetAreaFromCondition) // deprecated, to be removed (see warning in function)
 
 //     .def(VariableIndexingPython<Condition, Variable<int> >())
 //     .def(VariableIndexingPython<Condition, Variable<double> >())

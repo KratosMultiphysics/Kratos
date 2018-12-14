@@ -340,10 +340,26 @@ namespace Kratos
      * @tparam TValueType variables value type (double or array_1d<double,3>)
      * @param rModelPart model part in where the distribution is done
      * @param rDistributedVariable destination distributed variable
-     * @return double accurmulated error norm of the distribution
+     * @return double accumulated error norm of the distribution
      */
       template< class TValueType >
       static double SolveDistributionIteration(
+          ModelPart& rModelPart,
+          const Variable< TValueType >& rDistributedVariable);
+
+    /**
+     * @brief Dummy function that solves the distribution problem. It is called at each iteration.
+     * This class does nothing, it is only used in case there is no conditions in the current
+     * partition to perform the communication operations that are done in the "standard" case
+     * Otherwise, the MPI synchronism is broken
+     * 
+     * @tparam TValueType variables value type (double or array_1d<double,3>)
+     * @param rModelPart model part in where the distribution is done
+     * @param rDistributedVariable destination distributed variable
+     * @return double accumulated error norm of the distribution
+     */
+      template< class TValueType >
+      static double DummySolveDistributionIteration(
           ModelPart& rModelPart,
           const Variable< TValueType >& rDistributedVariable);
 

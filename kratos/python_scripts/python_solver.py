@@ -123,8 +123,8 @@ class PythonSolver(object):
         warning_msg += '"SolveSolutionStep" and "FinalizeSolutionStep"'
         self.print_warning_on_rank_zero("::[PythonSolver]::", warning_msg)
         self.Initialize()
-        self.Predict()
         self.InitializeSolutionStep()
+        self.Predict()
         self.SolveSolutionStep()
         self.FinalizeSolutionStep()
 
@@ -140,10 +140,17 @@ class PythonSolver(object):
         if (input_type == "mdpa"):
             problem_path = os.getcwd()
             input_filename = model_part_import_settings["input_filename"].GetString()
+
+            # Setting some mdpa-import-related flags
             import_flags = KratosMultiphysics.ModelPartIO.READ
             if model_part_import_settings.Has("ignore_variables_not_in_solution_step_data"):
                 if model_part_import_settings["ignore_variables_not_in_solution_step_data"].GetBool():
-                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|KratosMultiphysics.ModelPartIO.READ
+                    import_flags = KratosMultiphysics.ModelPartIO.IGNORE_VARIABLES_ERROR|import_flags
+            skip_timer = True
+            if model_part_import_settings.Has("skip_timer"):
+                skip_timer = model_part_import_settings["skip_timer"].GetBool()
+            if skip_timer:
+                import_flags = KratosMultiphysics.ModelPartIO.SKIP_TIMER|import_flags
 
             # Import model part from mdpa file.
             self.print_on_rank_zero("::[PythonSolver]::", "Reading model part from file: " + os.path.join(problem_path, input_filename) + ".mdpa")

@@ -27,16 +27,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosContactMechanicsApplication,m)
 {
 
-  class_<KratosContactMechanicsApplication,
+  py::class_<KratosContactMechanicsApplication,
          KratosContactMechanicsApplication::Pointer,
          KratosApplication>(m,"KratosContactMechanicsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomUtilitiesToPython(m);

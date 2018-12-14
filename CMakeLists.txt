@@ -365,6 +365,7 @@ endif( ZLIB_FOUND )
 if( AMATRIX_DIR )
     message("AMATRIX_DIR : ${AMATRIX_DIR}")
     include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
     message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
@@ -454,17 +455,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	message("installed lapack = " ${LAPACK_LIBRARIES})
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-
-# Kratos Testing. Install everything except sources
-if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)

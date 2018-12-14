@@ -28,7 +28,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
-#include "mesh_moving_application.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos {
 
