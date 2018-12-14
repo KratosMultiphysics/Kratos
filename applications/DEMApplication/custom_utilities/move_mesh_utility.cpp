@@ -22,6 +22,45 @@
 
 namespace  Kratos
 {
+
+
+    void MoveMeshUtility::CalculateDeltaDispCustom(NodesContainerType& rNodes) const
+    {
+        KRATOS_TRY;
+
+        const int num_nodes = static_cast<int>(rNodes.size());
+
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i)
+        {
+            auto it_node = rNodes.begin() + i;
+            noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
+             it_node->GetInitialPosition().Coordinates()+it_node->FastGetSolutionStepValue(DISPLACEMENT)-it_node->Coordinates();
+        }
+
+        KRATOS_INFO("MoveMeshUtility") << " DELTA_DISPLACEMENT successfully set " << std::endl;
+        KRATOS_CATCH("")
+    }
+
+    void MoveMeshUtility::CalculateDeltaDispCustomFromIntermediatePos(NodesContainerType& rNodes) const
+    {
+        KRATOS_TRY;
+
+        const int num_nodes = static_cast<int>(rNodes.size());
+
+        #pragma omp parallel for
+        for(int i = 0; i < num_nodes; ++i)
+        {
+            auto it_node = rNodes.begin() + i;
+            noalias(it_node->FastGetSolutionStepValue(DELTA_DISPLACEMENT)) =
+             it_node->GetInitialPosition().Coordinates()+it_node->FastGetSolutionStepValue(DISPLACEMENT)-it_node->GetIntermediatePosition();
+        }
+
+        KRATOS_INFO("MoveMeshUtility") << " DELTA_DISPLACEMENT successfully set from intermediate position " << std::endl;
+        KRATOS_CATCH("")
+    }
+
+
     void MoveMeshUtility::MoveDemMesh(NodesContainerType& rNodes, const bool& rSetDeltaDisplacement) const
     {
         KRATOS_TRY;

@@ -348,6 +348,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("CheckIsNearToWall", &MoveMeshUtility::CheckIsNearToWall)
         .def("SaveCurrentCoordinates", &MoveMeshUtility::SaveCurrentCoordinates)
         .def("ResetCoordinates", &MoveMeshUtility::ResetCoordinates)
+        .def("CalculateDeltaDispCustom", &MoveMeshUtility::CalculateDeltaDispCustom)
+        .def("CalculateDeltaDispCustomFromIntermediatePos", &MoveMeshUtility::CalculateDeltaDispCustomFromIntermediatePos)
         ;
 
     py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")

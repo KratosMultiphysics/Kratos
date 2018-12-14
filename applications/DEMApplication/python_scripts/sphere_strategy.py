@@ -319,6 +319,24 @@ class ExplicitStrategy(object):
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
+    def SolveSolutionStepCustom(self,step):
+        if step ==0:
+            time = self.spheres_model_part.ProcessInfo[TIME]
+            self.FixDOFsManually(time)
+            (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
+            self.FixExternalForcesManually(time)
+            (self.cplusplus_strategy).InitializeSolutionStep_StrategyCustom()
+        elif step ==1:
+            (self.cplusplus_strategy).PerformTimeIntegrationOfMotion_StrategyCustom()
+        elif step ==2:
+            (self.cplusplus_strategy).ForceOperations_StrategyCustom()
+        elif step ==3:
+            (self.cplusplus_strategy).FinalizeSolutionStep_StrategyCustom()
+        else:
+            print('only step 0->3')
+            quit()
+
+
     def AdvanceInTime(self, step, time):
         step += 1
         time = time + self.dt

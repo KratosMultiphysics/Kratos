@@ -38,6 +38,11 @@ namespace  Kratos
             MoveMeshUtility() {};
             ~MoveMeshUtility() {};
 
+            void CalculateDeltaDispCustom(NodesContainerType& rNodes) const;
+            void CalculateDeltaDispCustomFromIntermediatePos(NodesContainerType& rNodes) const;
+
+
+
             void MoveDemMesh(NodesContainerType& rNodes, const bool& rSetDeltaDisplacement) const;
 
             const bool CheckContact(NodesContainerType& rNodes) const;

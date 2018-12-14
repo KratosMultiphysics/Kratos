@@ -217,6 +217,37 @@ namespace Kratos {
         virtual void GetRigidBodyElementsForce();
         virtual double Solve();
 
+        //custom split of Solve();
+        virtual double InitializeSolutionStep_StrategyCustom(){
+            KRATOS_TRY
+            InitializeSolutionStep();
+            return 0.00;
+            KRATOS_CATCH("")
+        };
+        virtual double PerformTimeIntegrationOfMotion_StrategyCustom(){
+            KRATOS_TRY
+            ModelPart& r_model_part = GetModelPart();
+            SearchDEMOperations(r_model_part);
+            SearchFEMOperations(r_model_part);
+            PerformTimeIntegrationOfMotion();
+            return 0.00;
+            KRATOS_CATCH("")
+        };
+        virtual double ForceOperations_StrategyCustom(){
+            KRATOS_TRY
+            ModelPart& r_model_part = GetModelPart();
+            ForceOperations(r_model_part);
+            return 0.00;
+            KRATOS_CATCH("")
+        };
+        virtual double FinalizeSolutionStep_StrategyCustom(){
+            KRATOS_TRY
+            FinalizeSolutionStep();
+            return 0.00;
+            KRATOS_CATCH("")
+        };
+
+
         virtual double SolveSolutionStep() {KRATOS_ERROR << "'SolveSolutionStep()' not yet implemented for 'ExplicitSolverStrategy'"<< std::endl;}
 
         void SearchDEMOperations(ModelPart& r_model_part, bool has_mpi = true);

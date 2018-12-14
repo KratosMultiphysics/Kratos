@@ -114,6 +114,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def("PrepareContactElementsForPrinting", &ExplicitSolverStrategy::PrepareContactElementsForPrinting)
         .def("SaveOldDataParticles", &ExplicitSolverStrategy::SaveOldDataParticles)
         .def("SetOldDataParticles", &ExplicitSolverStrategy::SetOldDataParticles)
+        .def("InitializeSolutionStep_StrategyCustom", &ExplicitSolverStrategy::InitializeSolutionStep_StrategyCustom)
+        .def("PerformTimeIntegrationOfMotion_StrategyCustom", &ExplicitSolverStrategy::PerformTimeIntegrationOfMotion_StrategyCustom)
+        .def("ForceOperations_StrategyCustom", &ExplicitSolverStrategy::ForceOperations_StrategyCustom)
+        .def("FinalizeSolutionStep_StrategyCustom", &ExplicitSolverStrategy::FinalizeSolutionStep_StrategyCustom)
         ;
 
     py::class_<ContinuumExplicitSolverStrategy, ContinuumExplicitSolverStrategy::Pointer, ExplicitSolverStrategy>(m, "ContinuumExplicitSolverStrategy")

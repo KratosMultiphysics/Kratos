@@ -489,6 +489,9 @@ class Solution(object):
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
 
+    def SolverSolveCustom(self,step):
+        self.solver.SolveSolutionStepCustom(step)
+
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             #Constructing the inlet and initializing it (must be done AFTER the self.spheres_model_part Initialize)
@@ -669,6 +672,10 @@ class Solution(object):
         self.SolverSolve()
         self.AfterSolveOperations()
 
+    def SolveSingleTemporalLoopCustom(self,step):
+        if step==0: self.BeforeSolveOperations(self.time)
+        self.SolverSolveCustom(step)
+        if step==3:self.AfterSolveOperations()
 
 
 
