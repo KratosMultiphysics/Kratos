@@ -23,7 +23,6 @@
 #include "includes/define.h"
 #include "trilinos_space.h"
 #include "includes/linear_solver_factory.h"
-#include "linear_solvers/linear_solver.h"
 
 namespace Kratos
 {
@@ -103,8 +102,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 ///@name Input and output
 
-// void RegisterTrilinosLinearSolvers();
-
 ///@}
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -112,11 +109,17 @@ typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 
 typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> TrilinosLinearSolverFactoryType;
 
-#ifdef KRATOS_REGISTER_LINEAR_SOLVER
-#undef KRATOS_REGISTER_LINEAR_SOLVER
+#ifdef KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER
+#undef KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER
 #endif
-#define KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER(name, reference) \
+#define KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER(name, reference) ; \
     KratosComponents<TrilinosLinearSolverFactoryType>::Add(name, reference);
+
+
+template<class TComponentType>
+typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+
+extern template class KratosComponents<TrilinosLinearSolverFactoryType>;
 
 }  // namespace Kratos.
 
