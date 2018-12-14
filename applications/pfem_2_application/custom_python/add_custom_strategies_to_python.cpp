@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_strategies/explicit_strategy.h"
 #include "custom_strategies/pfem_2_monolithic_slip_scheme.h"
+#include "custom_strategies/residualbased_predictorcorrector_velocity_bossak_ale_scheme.h"
 
 #include "spaces/ublas_space.h"
 
@@ -130,6 +131,16 @@ namespace Kratos
 			  .def("Clear", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
 			  .def("Compute", &FracStepStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Compute)
 			  ;
+
+            py::class_<
+                ResidualBasedPredictorCorrectorVelocityBossakAleScheme<SparseSpaceType, LocalSpaceType>,
+                ResidualBasedPredictorCorrectorVelocityBossakAleScheme<SparseSpaceType, LocalSpaceType>::Pointer,
+                ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
+                (m, "ResidualBasedPredictorCorrectorVelocityBossakAleScheme")
+            .def(py::init<double, double, unsigned int, Process::Pointer>())
+            .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
+            .def(py::init<double, unsigned int, const Kratos::Variable<int> &>()) // constructor without a turbulence model for periodic boundary conditions
+            ;
 
 		}
 

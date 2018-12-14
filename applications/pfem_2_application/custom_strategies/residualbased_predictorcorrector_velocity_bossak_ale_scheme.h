@@ -175,7 +175,7 @@ namespace Kratos {
 
             SchemeType::Update(r_model_part,rDofSet,A,Dv,b);
 
-            this->Pfem2AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b)
+            this->Pfem2AdditionalUpdateOperations(r_model_part, rDofSet, A, Dv, b);
 
             KRATOS_CATCH("")
         }
@@ -266,7 +266,7 @@ namespace Kratos {
                     array_1d<double, 3 > & OldAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION, 1);
                     array_1d<double, 3 > & CurrentAcceleration = (itNode)->FastGetSolutionStepValue(ACCELERATION);
 
-                    UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
+                    SchemeType::UpdateAcceleration(CurrentAcceleration, DeltaVel, OldAcceleration);
 
                     // Pfem2 ALE update to eliminate convective term
                     noalias(itNode->FastGetSolutionStepValue(MESH_VELOCITY)) = itNode->FastGetSolutionStepValue(VELOCITY);
