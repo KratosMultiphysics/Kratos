@@ -24,11 +24,11 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/serializer.h"
-
+#include "mpi/includes/mpi_data_communicator.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosMPICore
 ///@{
 
 ///@name Kratos Globals
@@ -273,6 +273,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_MPI_COLORING_UTILITIES_H_INCLUDED  defined 
+#endif // KRATOS_MPI_COLORING_UTILITIES_H_INCLUDED  defined
 
 
