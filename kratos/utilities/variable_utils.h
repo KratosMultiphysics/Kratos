@@ -399,8 +399,7 @@ public:
         #pragma omp parallel for
         for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
             auto it_cont = it_cont_begin + k;
-            auto& r_data = it_cont->Data();
-            r_data.Clear();
+            it_cont->Data().Clear();
         }
 
         KRATOS_CATCH("")
