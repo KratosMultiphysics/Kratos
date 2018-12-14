@@ -64,18 +64,14 @@ class TestFlags(KratosUnittest.TestCase):
         node1 = self.model_part.GetNode(1)
         node2 = self.model_part.CreateNewNode(2, 1.0, 1.0, 1.0)
 
-        # the AND of two named flags is always nothing
+        # the AND of two named flags sets both
         node1.Set(TO_SPLIT & TO_ERASE)
 
-        self.assertTrue(node1.IsNotDefined(TO_SPLIT))
-        self.assertTrue(node1.IsNotDefined(TO_ERASE))
+        self.assertTrue(node1.Is(TO_SPLIT))
+        self.assertTrue(node1.Is(TO_ERASE))
 
-        # Using AND to check for intersection
-        node1.Set(ACTIVE | MODIFIED)
-        node2.Set(ACTIVE | MPI_BOUNDARY)
-
-        self.assertTrue( (node1 & node2).Is(ACTIVE) )
-        self.assertFalse( (node1 & node2).Is(MPI_BOUNDARY) )
+        self.assertTrue(node1.Is(TO_SPLIT & TO_ERASE))
+        self.assertFalse(node1.Is(TO_SPLIT & MPI_BOUNDARY))
 
     def testFlagFlip(self):
         node = self.model_part.GetNode(1)
