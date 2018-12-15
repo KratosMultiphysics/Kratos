@@ -17,8 +17,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "default_model_part_name",
-            "frequency_of_execution_in_time_steps"   : 5,
-            "compare_to_initial_values"              : true,
+            "correction_frequency_in_time_steps"     : 20,
             "write_to_log_file"                      : true,
             "log_file_name"                          : "mass_conservation.log"
         }  """ )
@@ -30,17 +29,9 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._my_log_file = settings["log_file_name"].GetString()
 
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
-
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
-        # writing first line in file
-        if ( self._write_to_log and self._is_printing_rank ):
-            with open(self._my_log_file, "w") as logFile:
-                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
-
-        if self._is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction of Mass Conservation Check Process finished.")
-
+        print(" --- Finished Constructor --- ")
 
     def Execute(self):
 
@@ -79,7 +70,16 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
 
     def ExecuteInitialize(self):
-        self.mass_conservation_check_process.ExecuteInitialize()
+
+        first_lines_string = self.mass_conservation_check_process.Initialize()
+
+        # writing first line in file
+        if ( self._write_to_log and self._is_printing_rank ):
+            with open(self._my_log_file, "w") as logFile:
+                logFile.write( first_lines_string )
+
+        if self._is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction of Mass Conservation Check Process finished.")
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -92,4 +92,9 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
-        self.Execute()
+        log_line_string = self.mass_conservation_check_process.ExecuteInTimeStep()
+
+        # writing first line in file
+        if ( self._write_to_log and self._is_printing_rank ):
+            with open(self._my_log_file, "a+") as logFile:
+                logFile.write( log_line_string )

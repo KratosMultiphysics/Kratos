@@ -75,7 +75,6 @@ public:
     MassConservationCheckProcess(
         ModelPart& rModelPart,
         const int MassComputationFreq,
-        const bool CompareToInitial,
         const bool WriteToLogFile,
         const std::string LogFileName);
 
@@ -99,6 +98,14 @@ public:
     ///@name Access
     ///@{
 
+    double ComputePositiveVolume();
+
+    double ComputeNegativeVolume();
+
+    double ComputeInterfaceArea();
+
+    double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
+
     /**
      * @brief Get the Update Status object to determine whether the volumes were recaculated
      *
@@ -106,6 +113,11 @@ public:
      * @return false indicates outdated values of the volume fractions
      */
     bool GetUpdateStatus();
+
+    std::string Initialize();
+
+    std::string ExecuteInTimeStep();
+
 
     /**
      * @brief Get the Positive Volume object to obtain the volume fraction with positive distance value
@@ -181,20 +193,23 @@ private:
 
     ModelPart& mrModelPart;
 
-    int mMassComputationFreq;
-    bool mCompareToInitial;
-    bool mWriteToLogFile;
-    std::string mLogFileName;
+    int mCorrectionFreq = 1;
+    bool mWriteToLogFile = true;
+    std::string mLogFileName = "mass_conservation.log";
 
     bool mIsUpdated;
 
-    double mInitialNegativeVolume = 1.0;
-
-    double mInitialPositiveVolume = 1.0;
+    double mInitialNegativeVolume = -1.0;
+    double mInitialPositiveVolume = -1.0;
 
     double mCurrentNegativeVolume = -1.0;
-
     double mCurrentPositiveVolume = -1.0;
+
+    double mTheoreticalNegativeVolume = -1.0;
+
+    double mQNet0 = 0.0;      // for the current time step (t)
+    double mQNet1 = 0.0;      // for the past time step (t - 1)
+    double mQNet2 = 0.0;      // for the past time step (t - 2)
 
     ///@}
     ///@name Protected Operators
@@ -204,13 +219,13 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * @brief Computes the fractions of the fluid domain with positive or negative values of the distance functions
-     *
-     * @param positiveVolume volume ("Air") with positive distance function (output)
-     * @param negativeVolume volume ("Water") with negative distance function (output)
-     */
-    void ComputeVolumesOfFluids( double& posVolume, double& negVolume );
+    void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea );
+
+    void CalculateNormal2D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
+
+    void CalculateNormal3D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
+
+    void ShiftDistanceField( double deltaDist );
 
     ///@}
     ///@name Private  Access
