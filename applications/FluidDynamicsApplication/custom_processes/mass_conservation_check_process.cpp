@@ -187,7 +187,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
             // all nodes are negative (pointer is necessary to maintain polymorphism of DomainSize())
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
-        else {
+        else if ( 0 < pt_count_neg && 0 < pt_count_pos ){
             // element is cut by the surface (splitting)
             ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             Vector w_gauss_pos_side(3, 0.0);
@@ -196,7 +196,11 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                Distance[i] = rGeom.GetPoint(i).FastGetSolutionStepValue(DISTANCE);
+                // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" not yet executed )
+                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
+                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
+                }
+                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
