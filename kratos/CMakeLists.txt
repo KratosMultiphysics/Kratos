@@ -19,6 +19,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mat_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/legacy_structural_app_vars.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/variables.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_core.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/integration_rules.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;

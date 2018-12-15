@@ -86,14 +86,14 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     virtual void Register()
     {
-        RegisterVariables();
+        RegisterKratosCore();
     }
 
-    void RegisterVariables();
+    void RegisterKratosCore();
 
     ///////////////////////////////////////////////////////////////////
-    void
-    RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
+    void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
+    void RegisterDeprecatedVariables();  //TODO: remove, this variables should not be there
     void RegisterC2CVariables();                  //TODO: move to application
     void RegisterCFDVariables();                  //TODO: move to application
     void RegisterALEVariables();                  //TODO: move to application
