@@ -321,7 +321,7 @@ class ExplicitStrategy(object):
 
     def AdvanceInTime(self, step, time, is_time_to_print = False):
         step += 1
-        time = time + self.dt
+        time += self.dt
         self.UpdateTimeInModelParts(time, step, is_time_to_print)
         return step, time
 
@@ -374,17 +374,20 @@ class ExplicitStrategy(object):
     def AddClusterVariables(self, spheres_model_part, DEM_parameters):
         pass
 
-    def AddDofs(self, spheres_model_part):
+    def AddDofs(self, spheres_model_part=None):
 
-        for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X)
-            node.AddDof(VELOCITY_Y)
-            node.AddDof(VELOCITY_Z)
-            node.AddDof(ANGULAR_VELOCITY_X)
-            node.AddDof(ANGULAR_VELOCITY_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z)
+        if spheres_model_part == None:
+            pass
+        else:
+            for node in spheres_model_part.Nodes:
+                node.AddDof(VELOCITY_X)
+                node.AddDof(VELOCITY_Y)
+                node.AddDof(VELOCITY_Z)
+                node.AddDof(ANGULAR_VELOCITY_X)
+                node.AddDof(ANGULAR_VELOCITY_Y)
+                node.AddDof(ANGULAR_VELOCITY_Z)
 
-        Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+            Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
@@ -602,3 +605,11 @@ class ExplicitStrategy(object):
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+    def ImportModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def PrepareModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def GetComputingModelPart(self):
+        return self.spheres_model_part

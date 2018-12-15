@@ -84,10 +84,10 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
 
     def __init__(self, model, parameters):
-        super(DEMBenchamarksAnalysisStage, self).__init__(model, parameters)
-        self.nodeplotter = False
         self.LoadParametersFile()
+        super(DEMBenchamarksAnalysisStage, self).__init__(model, parameters)
         self.main_path = os.getcwd()
+        self.nodeplotter = False
 
     def GetProblemTypeFilename(self):
         return benchmark

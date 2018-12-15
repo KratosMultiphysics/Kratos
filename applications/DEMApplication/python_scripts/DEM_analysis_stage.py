@@ -38,9 +38,16 @@ class DEMAnalysisStage(AnalysisStage):
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()
-        self.project_parameters = self.GetInputParameters()
+        self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
+
+    def FixParametersInconsistencies(self): # TODO: This is here to avoid inconsistencies until the jsons become standard
+        final_time = self.DEM_parameters["FinalTime"].GetDouble()
+        problem_name = self.DEM_parameters["problem_name"].GetString()
+        self.project_parameters["problem_data"]["end_time"].SetDouble(final_time)
+        self.project_parameters["problem_data"]["problem_name"].SetString(problem_name)
 
     @classmethod
     def GetDefaultInputParameters(self):
@@ -299,7 +306,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
         #Strategy Initialization
-
         self.SolverInitialize()
 
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
@@ -323,6 +329,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
+
+        super(DEMAnalysisStage, self).Initialize()
+
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def AddAllDofs(self):
@@ -446,9 +455,6 @@ class DEMAnalysisStage(AnalysisStage):
 
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
-
-    def _GetSolver(self):
-        return self.solver
 
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
