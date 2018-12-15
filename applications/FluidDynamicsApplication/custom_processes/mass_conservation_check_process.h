@@ -106,53 +106,10 @@ public:
 
     double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
 
-    /**
-     * @brief Get the Update Status object to determine whether the volumes were recaculated
-     *
-     * @return true indicates a recent recomputation of the volume fractions
-     * @return false indicates outdated values of the volume fractions
-     */
-    bool GetUpdateStatus();
 
     std::string Initialize();
 
     std::string ExecuteInTimeStep();
-
-
-    /**
-     * @brief Get the Positive Volume object to obtain the volume fraction with positive distance value
-     *
-     * @return double volume
-     */
-    double GetPositiveVolume(){
-        return mCurrentPositiveVolume;
-    };
-
-    /**
-     * @brief Get the Negative Volume object to obtain the volume fraction with negative distance value
-     *
-     * @return double volume
-     */
-    double GetNegativeVolume(){
-        return mCurrentNegativeVolume;
-    };
-    /**
-     * @brief Get the Initial Positive Volume object to obtain the positive volume fraction at the beginning
-     *
-     * @return double volume
-     */
-    double GetInitialPositiveVolume(){
-        return mInitialPositiveVolume;
-    };
-
-    /**
-     * @brief Get the Initial Negative Volume object to obtain the negative volume fraction at the beginning
-     *
-     * @return double volume
-     */
-    double GetInitialNegativeVolume(){
-        return mInitialNegativeVolume;
-    };
 
     // ///@}
     // ///@name Inquiry
@@ -187,23 +144,20 @@ private:
     ///@name Static Member Variables
     ///@{
 
+
     ///@}
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    const ModelPart& mrModelPart;
 
     int mCorrectionFreq = 1;
     bool mWriteToLogFile = true;
     std::string mLogFileName = "mass_conservation.log";
 
-    bool mIsUpdated;
-
     double mInitialNegativeVolume = -1.0;
-    double mInitialPositiveVolume = -1.0;
 
-    double mCurrentNegativeVolume = -1.0;
-    double mCurrentPositiveVolume = -1.0;
+    double mInitialPositiveVolume = -1.0;
 
     double mTheoreticalNegativeVolume = -1.0;
 

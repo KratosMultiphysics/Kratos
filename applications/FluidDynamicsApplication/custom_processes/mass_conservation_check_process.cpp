@@ -146,33 +146,7 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 }
 
 
-/////////////////// try to delete ///////////////////////////////////////////
-bool MassConservationCheckProcess::GetUpdateStatus(){
 
-    const int time_step = mrModelPart.GetProcessInfo()[STEP];
-
-    if ( true && time_step == 1){
-        // getting initial values and storing as reference
-        // this->ComputeVolumes( mInitialPositiveVolume, mInitialNegativeVolume );
-    }
-
-    if ( time_step % this->mCorrectionFreq == 0){
-
-        // writing an output at a given frequncy
-        // this->ComputeVolumes( mCurrentPositiveVolume, mCurrentNegativeVolume );
-        mIsUpdated = true;
-        return true;
-
-    } else {
-
-        mCurrentPositiveVolume = -1.0;
-        mCurrentNegativeVolume = -1.0;
-        return false;
-    }
-}; /////////////////////////////////////////////////////////////////////////////
-
-
-/* Private functions ****************************************************/
 
 void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea ){
 
