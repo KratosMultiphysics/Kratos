@@ -74,7 +74,8 @@ public:
     /// Constructor.
     MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const int MassComputationFreq,
+        const bool PerformCorrections,
+        const int CorrectionFreq,
         const bool WriteToLogFile,
         const std::string LogFileName);
 
@@ -153,6 +154,7 @@ private:
 
     int mCorrectionFreq = 1;
     bool mWriteToLogFile = true;
+    bool mPerformCorrections = true;
     std::string mLogFileName = "mass_conservation.log";
 
     double mInitialNegativeVolume = -1.0;

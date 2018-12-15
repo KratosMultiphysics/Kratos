@@ -17,6 +17,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "default_model_part_name",
+            "perform_corrections"                    : true,
             "correction_frequency_in_time_steps"     : 20,
             "write_to_log_file"                      : true,
             "log_file_name"                          : "mass_conservation.log"
@@ -30,43 +31,6 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
-
-        print(" --- Finished Constructor --- ")
-
-    def Execute(self):
-
-        updated = int( self.mass_conservation_check_process.GetUpdateStatus() )
-
-        # force a pause until the last process has its status
-        self._fluid_model_part.GetCommunicator().Barrier()
-
-        # would take the value "0" if one is not updated
-        updated = self._fluid_model_part.GetCommunicator().MinAll( updated )
-
-        if ( updated > 0 ):
-
-            posVol = self.mass_conservation_check_process.GetPositiveVolume()
-            negVol = self.mass_conservation_check_process.GetNegativeVolume()
-            initPosVol = self.mass_conservation_check_process.GetInitialPositiveVolume()
-            initNegVol = self.mass_conservation_check_process.GetInitialNegativeVolume()
-
-            self._fluid_model_part.GetCommunicator().Barrier()
-            posVol = self._fluid_model_part.GetCommunicator().SumAll( posVol )
-            negVol = self._fluid_model_part.GetCommunicator().SumAll( negVol )
-            initPosVol = self._fluid_model_part.GetCommunicator().SumAll( initPosVol )
-            initNegVol = self._fluid_model_part.GetCommunicator().SumAll( initNegVol )
-
-            # find the printing rank
-            if ( self._is_printing_rank ):
-                # managing the output to the console
-                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
-                KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
-                KratosMultiphysics.Logger.Flush()
-
-                # adds additional lines to the log file
-                if ( self._write_to_log ):
-                    with open(self._my_log_file, "a+") as logFile:
-                        logFile.write( str(posVol) + "\t" + str(negVol) + "\n" )
 
 
     def ExecuteInitialize(self):

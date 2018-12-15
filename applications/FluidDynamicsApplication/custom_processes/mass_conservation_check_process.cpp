@@ -32,6 +32,7 @@ namespace Kratos
 /// constructor
 MassConservationCheckProcess::MassConservationCheckProcess(
         ModelPart& rModelPart,
+        const bool PerformCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
         const std::string LogFileName)
@@ -40,7 +41,9 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     mCorrectionFreq = CorrectionFreq;
     mWriteToLogFile = WriteToLogFile;
     mLogFileName = LogFileName;
+    mPerformCorrections = PerformCorrections;
 }
+
 
 /// constructor (direct input of settings)
 MassConservationCheckProcess::MassConservationCheckProcess(
@@ -51,6 +54,7 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     Parameters default_parameters( R"(
     {
         "model_part_name"                        : "default_model_part_name",
+        "perform_corrections"                    : true,
         "correction_frequency_in_time_steps"     : 20,
         "write_to_log_file"                      : true,
         "log_file_name"                          : "mass_conservation.log"
@@ -60,24 +64,26 @@ MassConservationCheckProcess::MassConservationCheckProcess(
 
     mCorrectionFreq = rParameters["correction_frequency_in_time_steps"].GetInt();
     mWriteToLogFile = rParameters["write_to_log_file"].GetBool();
+    mPerformCorrections = rParameters["perform_corrections"].GetBool();
     mLogFileName = rParameters["log_file_name"].GetString();
 }
 
 
+/// Initialization function to find the initial volumes and print first lines in the log-file
 std::string MassConservationCheckProcess::Initialize(){
 
-    double posVol = 0.0;
-    double negVol = 0.0;
-    double interArea = 0.0;
+    double pos_vol = 0.0;
+    double neg_vol = 0.0;
+    double inter_area = 0.0;
     const auto& comm = mrModelPart.GetCommunicator();
 
-    ComputeVolumesAndInterface( posVol, negVol, interArea );
+    ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    if ( comm.SumAll(posVol) && comm.SumAll(negVol) && comm.SumAll(interArea)  ){
-        // communication was successful
-        this->mInitialPositiveVolume = posVol;
-        this->mInitialNegativeVolume = negVol;
-        this->mTheoreticalNegativeVolume = negVol;
+    if ( comm.SumAll(pos_vol) && comm.SumAll(neg_vol) && comm.SumAll(inter_area)  ){
+        // if communication was successful
+        this->mInitialPositiveVolume = pos_vol;
+        this->mInitialNegativeVolume = neg_vol;
+        this->mTheoreticalNegativeVolume = neg_vol;
     } else {
         KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::Initialize()";
     }
@@ -85,14 +91,13 @@ std::string MassConservationCheckProcess::Initialize(){
     std::string output_line =   "------ Initial values ----------------- \n";
     output_line +=              "  positive volume (air)   = " + std::to_string(this->mInitialPositiveVolume) + "\n";
     output_line +=              "  negative volume (water) = " + std::to_string(this->mInitialNegativeVolume) + "\n";
-    output_line +=              "  fluid interface (area)  = " + std::to_string(interArea) + "\n\n";
+    output_line +=              "  fluid interface (area)  = " + std::to_string(inter_area) + "\n\n";
     output_line +=              "------ Time step values --------------- \n";
     output_line +=              "sim_time \t\twater_vol \t\tair_vol \t\twater_err \t\tnet_inf \t\t";
     output_line +=              "net_outf \t\tint_area \t\tcorr_shift \n";
 
     return output_line;
 }
-
 
 
 std::string MassConservationCheckProcess::ExecuteInTimeStep(){
@@ -118,16 +123,15 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
 
     // adding time-integrated net inflow ( = new water volume ) to the theoretical value
-    // TODO: UNTIL NOW ONLY LINEAR INTEGRATION !!!
-
-    mTheoreticalNegativeVolume += current_dt * 0.5 * ( mQNet0 + mQNet1 );
+    // The value of the integral is evaluated following the idea of the Adams-Moulton-Procedure (s=2)
+    mTheoreticalNegativeVolume += current_dt * ( 5.0*mQNet0 + 8.0*mQNet1 - 1.0*mQNet2 ) / 12.0;
 
     // calculation of the "missing" water volume
     const double water_volume_error = mTheoreticalNegativeVolume - neg_vol;
 
     double shift_for_correction = 0.0;
-    // check if it is time for a correction
-    if ( mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
+    // check if it is time for a correction (if wished for)
+    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
         // if water is missing, a shift into negative direction increases the water volume
         shift_for_correction = - water_volume_error / inter_area;
         ShiftDistanceField( shift_for_correction );
@@ -147,7 +151,6 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
 
 
-
 void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea ){
 
     // initalisation (necessary because no reduction for type reference)
@@ -164,23 +167,23 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
 
         const auto rGeom = it_elem->GetGeometry();
-        unsigned int ptCountPos = 0;
-        unsigned int ptCountNeg = 0;
+        unsigned int pt_count_pos = 0;
+        unsigned int pt_count_neg = 0;
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
             if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                ptCountPos++;
+                pt_count_pos++;
             } else {
-                ptCountNeg++;
+                pt_count_neg++;
             }
         }
 
-        if ( ptCountPos == rGeom.PointsNumber() ){
+        if ( pt_count_pos == rGeom.PointsNumber() ){
             // all nodes are positive (pointer is necessary to maintain polymorphism of DomainSize())
             pos_vol += it_elem->pGetGeometry()->DomainSize();
         }
-        else if ( ptCountNeg == rGeom.PointsNumber() ){
+        else if ( pt_count_neg == rGeom.PointsNumber() ){
             // all nodes are negative (pointer is necessary to maintain polymorphism of DomainSize())
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
@@ -256,19 +259,19 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
 
         const auto rGeom = it_elem->GetGeometry();
-        unsigned int ptCountPos = 0;
-        unsigned int ptCountNeg = 0;
+        unsigned int pt_count_pos = 0;
+        unsigned int pt_count_neg = 0;
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
             if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                ptCountPos++;
+                pt_count_pos++;
             } else {
-                ptCountNeg++;
+                pt_count_neg++;
             }
         }
 
-        if ( ptCountPos == rGeom.PointsNumber() || ptCountNeg == rGeom.PointsNumber() ){
+        if ( pt_count_pos == rGeom.PointsNumber() || pt_count_neg == rGeom.PointsNumber() ){
             // all nodes are on one side and the element is not split
             continue;
         }
@@ -298,9 +301,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
             }
         }
     }
-    // communication via MPI
-    const auto& comm = mrModelPart.GetCommunicator();
-    KRATOS_ERROR_IF_NOT( comm.SumAll( int_area ) ) << "MPI commincation failed";
+
     return int_area;
 }
 
@@ -318,23 +319,23 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
         Matrix shape_functions;
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
         const auto rGeom = it_elem->GetGeometry();
-        unsigned int ptCountPos = 0;
-        unsigned int ptCountNeg = 0;
+        unsigned int pt_count_pos = 0;
+        unsigned int pt_count_neg = 0;
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
             if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                ptCountPos++;
+                pt_count_pos++;
             } else {
-                ptCountNeg++;
+                pt_count_neg++;
             }
         }
 
-        if ( ptCountPos == rGeom.PointsNumber() ){
+        if ( pt_count_pos == rGeom.PointsNumber() ){
             // jump into next iteration
             continue;
         }
-        else if ( ptCountNeg == rGeom.PointsNumber() ){
+        else if ( pt_count_neg == rGeom.PointsNumber() ){
             // all nodes are negative
             neg_vol += it_elem->pGetGeometry()->DomainSize();
         }
@@ -365,9 +366,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
             }
         }
     }
-    // communication via MPI
-    const auto& comm = mrModelPart.GetCommunicator();
-    KRATOS_ERROR_IF_NOT( comm.SumAll( neg_vol ) ) << "MPI commincation failed";
+
     return neg_vol;
 }
 
@@ -384,23 +383,23 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
         Matrix shape_functions;
         GeometryType::ShapeFunctionsGradientsType shape_derivatives;
         const auto rGeom = it_elem->GetGeometry();
-        unsigned int ptCountPos = 0;
-        unsigned int ptCountNeg = 0;
+        unsigned int pt_count_pos = 0;
+        unsigned int pt_count_neg = 0;
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
             if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
-                ptCountPos++;
+                pt_count_pos++;
             } else {
-                ptCountNeg++;
+                pt_count_neg++;
             }
         }
 
-        if ( ptCountPos == rGeom.PointsNumber() ){
+        if ( pt_count_pos == rGeom.PointsNumber() ){
             // all nodes are positive
             pos_vol += it_elem->pGetGeometry()->DomainSize();;
         }
-        else if ( ptCountNeg == rGeom.PointsNumber() ){
+        else if ( pt_count_neg == rGeom.PointsNumber() ){
             // jump into the next iteration
             continue;
         }
@@ -431,9 +430,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
             }
         }
     }
-    // communication via MPI
-    const auto& comm = mrModelPart.GetCommunicator();
-    KRATOS_ERROR_IF_NOT( comm.SumAll( pos_vol ) ) << "MPI commincation failed";
+
     return pos_vol;
 }
 
@@ -609,6 +606,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
 void MassConservationCheckProcess::ShiftDistanceField( double deltaDist ){
 
+    // negative shift = "more water"
+    // positive shift = "less water"
     ModelPart::NodesContainerType rNodes = mrModelPart.Nodes();
     #pragma omp parallel for
     for(int count = 0; count < static_cast<int>(rNodes.size()); count++){
