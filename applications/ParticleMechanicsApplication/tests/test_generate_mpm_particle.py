@@ -30,7 +30,7 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
         # Create element and nodes for initial meshes
         sub_mp = initial_material_model_part.CreateSubModelPart("test")
-        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLE_PER_ELEMENT, num_particle)
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
