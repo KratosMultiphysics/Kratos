@@ -97,9 +97,9 @@ void PeriodicCondition::EquationIdVector(EquationIdVectorType& rResult, const Pr
     rResult.resize(0);
 }
 
-void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo)
+void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
 {
-    GeometryType& rGeom = this->GetGeometry();
+    const GeometryType& rGeom = this->GetGeometry();
     PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
     const unsigned int BlockSize = rPeriodicVariables.size();
     const unsigned int NumNodes = rGeom.PointsNumber();

@@ -43,9 +43,9 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /// Tests
         // TODO: Create test for the other components
@@ -53,23 +53,23 @@ namespace Kratos
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        
+
         // The direct solver
         typedef Reorderer<SparseSpaceType,  LocalSpaceType > ReordererType;
         typedef DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType > DirectSolverType;
         typedef LinearSolver<SparseSpaceType,LocalSpaceType> LinearSolverType;
         typedef SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType > SkylineLUFactorizationSolverType;
-        
+
         // The builder ans solver type
         typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
         typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
-        
+
         // The time scheme
         typedef Scheme< SparseSpaceType, LocalSpaceType >  SchemeType;
         typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType> ResidualBasedIncrementalUpdateStaticSchemeType;
-        
+
         /**
          * @brief It generates a truss structure with an expected solution
          */
@@ -102,9 +102,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -192,7 +192,7 @@ namespace Kratos
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 18, pgeom18, p_prop));
             GeometryType::Pointer pgeom19 = Kratos::make_shared<Line2D2<NodeType>>(PointerVector<NodeType>{std::vector<NodeType::Pointer>({pnode2, pnode4})});
             rModelPart.AddElement(Kratos::make_shared<TestBarElement>( 19, pgeom19, p_prop));
-            
+
             /// Add dof
             for (auto& node : rModelPart.Nodes()) {
                 node.AddDof(DISPLACEMENT_X, REACTION_X);
@@ -201,9 +201,9 @@ namespace Kratos
             }
 
             /// Initialize elements
-            auto& r_process_info = rModelPart.GetProcessInfo();
+            const auto& r_process_info = rModelPart.GetProcessInfo();
             for (auto& elem : rModelPart.Elements()) {
-                elem.Initialize();
+                elem.Initialize(r_process_info);
                 elem.InitializeSolutionStep(r_process_info);
             }
 
@@ -273,7 +273,7 @@ namespace Kratos
 //                 }
 //             }
 //         }
-     
+
         /**
          * Checks if the block builder and solver performs correctly the assemble of the system
          */
@@ -780,7 +780,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,17) - -370113971.6357653141021729)/rA(18,17)), tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs((rA(18,18) - 185056985.8178827166557312)/rA(18,18)), tolerance);
         }
-        
+
     } // namespace Testing
 }  // namespace Kratos.
 

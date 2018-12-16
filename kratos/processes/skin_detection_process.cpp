@@ -168,6 +168,7 @@ void SkinDetectionProcess<TDim>::Execute()
         (it_begin + i)->SetId(i + 1);
 
     IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
+    const auto& r_current_process_info = mrModelPart.GetProcessInfo();
 
     // The indexes of the nodes of the skin
     std::unordered_set<IndexType> nodes_in_the_skin;

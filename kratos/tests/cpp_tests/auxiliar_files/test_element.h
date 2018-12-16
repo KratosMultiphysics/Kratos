@@ -135,7 +135,7 @@ namespace Kratos
         void GetDofList(
             DofsVectorType& rElementalDofList,
             const ProcessInfo& rCurrentProcessInfo
-            ) override;
+            ) const override;
 
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom

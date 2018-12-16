@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
@@ -29,7 +29,7 @@ namespace Kratos
     //************************************************************************************//
 
     TestBarElement::TestBarElement(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         )
         : Element( NewId, pGeometry )
@@ -42,7 +42,7 @@ namespace Kratos
     //************************************************************************************//
 
     TestBarElement::TestBarElement(
-        IndexType NewId, GeometryType::Pointer pGeometry, 
+        IndexType NewId, GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         )
         : Element( NewId, pGeometry, pProperties )
@@ -75,12 +75,12 @@ namespace Kratos
     //************************************************************************************//
 
     Element::Pointer TestBarElement::Create(
-        IndexType NewId, 
-        NodesArrayType const& rThisNodes, 
-        PropertiesType::Pointer pProperties 
+        IndexType NewId,
+        NodesArrayType const& rThisNodes,
+        PropertiesType::Pointer pProperties
         ) const
     {
-        //NEEDED TO CREATE AN ELEMENT   
+        //NEEDED TO CREATE AN ELEMENT
         return Kratos::make_shared<TestBarElement>( NewId, GetGeometry().Create( rThisNodes ), pProperties );
     }
 
@@ -89,8 +89,8 @@ namespace Kratos
     //************************************************************************************//
 
     Element::Pointer TestBarElement::Clone(
-        IndexType NewId, 
-        NodesArrayType const& rThisNodes 
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
         ) const
     {
         //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
@@ -114,12 +114,12 @@ namespace Kratos
     //************************************************************************************//
 
     void TestBarElement::GetDofList(
-        DofsVectorType& rElementalDofList, 
-        ProcessInfo& rCurrentProcessInfo
-        )
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
-        //NEEDED TO DEFINE THE DOFS OF THE ELEMENT 
-        
+        //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
+
         rElementalDofList.resize( 0 );
 
         rElementalDofList.push_back( GetGeometry()[0].pGetDof( DISPLACEMENT_X ) );
@@ -132,9 +132,9 @@ namespace Kratos
     //************************************************************************************//
 
     void TestBarElement::EquationIdVector(
-        EquationIdVectorType& rResult, 
-        ProcessInfo& rCurrentProcessInfo
-        )
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
     {
         //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
 
@@ -150,7 +150,7 @@ namespace Kratos
     //*********************************DISPLACEMENT***************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetValuesVector( Vector& rValues, int Step )
+    void TestBarElement::GetValuesVector( Vector& rValues, int Step ) const
     {
         //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
         if ( rValues.size() != 4 )
@@ -166,7 +166,7 @@ namespace Kratos
     //************************************VELOCITY****************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+    void TestBarElement::GetFirstDerivativesVector( Vector& rValues, int Step )const
     {
         //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
         if ( rValues.size() != 4 )
@@ -181,7 +181,7 @@ namespace Kratos
     //*********************************ACCELERATION***************************************//
     //************************************************************************************//
 
-    void TestBarElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+    void TestBarElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
     {
         //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
         if ( rValues.size() != 4 )
@@ -197,7 +197,7 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
-    void TestBarElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
 
         KRATOS_TRY;
@@ -216,7 +216,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void TestBarElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
     {
         // Resizing as needed the RHS
         const unsigned int system_size = 4;
@@ -232,7 +232,7 @@ namespace Kratos
     //***********************************************************************************
     //***********************************************************************************
 
-    void TestBarElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         // Resizing as needed the LHS
         const unsigned int system_size = 4;
@@ -277,7 +277,7 @@ namespace Kratos
     //************************************************************************************//
     //************************************************************************************//
 
-    void TestBarElement::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+    void TestBarElement::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
     {
         KRATOS_TRY
 
@@ -296,8 +296,8 @@ namespace Kratos
     //************************************************************************************//
 
     void TestBarElement::CalculateDampingMatrix(
-        MatrixType& rDampingMatrix, 
-        ProcessInfo& rCurrentProcessInfo 
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
         )
     {
         KRATOS_TRY;
@@ -314,23 +314,23 @@ namespace Kratos
     //************************************************************************************//
 
     int TestBarElement::Check( const ProcessInfo& rCurrentProcessInfo )
-    {    
+    {
         KRATOS_TRY
-        
+
         // Check that all required variables have been registered
         KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
         KRATOS_CHECK_VARIABLE_KEY(VELOCITY)
         KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
         KRATOS_CHECK_VARIABLE_KEY(NODAL_AREA)
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS)
-        
+
         KRATOS_ERROR_IF_NOT(GetProperties().Has(YOUNG_MODULUS)) << "YOUNG_MODULUS not defined" << std::endl;
         KRATOS_ERROR_IF_NOT(GetProperties().Has(NODAL_AREA)) << "NODAL_AREA not defined" << std::endl;
 
         // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
         for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
             Node<3>& rnode = this->GetGeometry()[i];
-            
+
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
@@ -339,7 +339,7 @@ namespace Kratos
             KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
             KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
         }
-        
+
         return 0;
 
         KRATOS_CATCH( "Problem in the Check in the TestBarElement" )

@@ -216,7 +216,7 @@ public:
      * @param rCurrentProcessInfo ProcessInfo instance (unused)
      */
     void GetDofList(DofsVectorType& ElementalDofList,
-                    const ProcessInfo& CurrentProcessInfo) override;
+                    const ProcessInfo& CurrentProcessInfo) const override;
 
     /// Returns the values of the unknowns for each node
     void GetValuesVector(Vector& Values, int Step = 0) const override;
