@@ -365,6 +365,45 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     } else { // Surfaces
         num_array_conditions[0] = conditions_array.size();
         num_array_elements[0]   = elements_array.size();
+//         /* Elements */
+//         std::size_t num_tri_elem = 0, num_prisms = 0;
+//         #pragma omp parallel for reduction(+:num_tri_elem,num_prisms)
+//         for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
+//             auto it_elem = elements_array.begin() + i;
+//
+//             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+//                 num_tri_elem += 1;
+//             } else if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Prism3D6) { // Prisms
+//                 num_prisms += 1;
+//             } else
+//                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_elem->GetGeometry().PointsNumber() <<" NODES CAN NOT BE REMESHED" << std::endl;
+//         }
+//
+//         num_array_elements[0] = num_tri_elem; // Triangle (element)
+//         num_array_elements[1] = num_prisms;   // Prisms
+//
+//         KRATOS_INFO_IF("MmgProcess", ((num_tri_elem + num_prisms) < elements_array.size()) && mEchoLevel > 0) <<
+//         "Number of Elements: " << elements_array.size() << " Number of Triangles: " << num_tri_elem << " Number of Prisms: " << num_prisms << std::endl;
+//
+//         /* Conditions */
+//         std::size_t num_line = 0, num_tri_cond = 0;
+//         #pragma omp parallel for reduction(+:num_line, num_tri_cond)
+//         for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
+//             auto it_cond = conditions_array.begin() + i;
+//
+//             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2) { // Lines
+//                 num_line += 1;
+//             } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
+//                 num_tri_cond += 1;
+//             } else
+//                 KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
+//         }
+//
+//         num_array_conditions[0] = num_line;  //  Lines
+//         num_array_conditions[1] = num_tri_cond; // Triangles (conditions)
+//
+//         KRATOS_INFO_IF("MmgProcess", ((num_line + num_tri_cond) < conditions_array.size()) && mEchoLevel > 0) <<
+//         "Number of Conditions: " << conditions_array.size() << " Number of Lines: " << num_line << " Number of Triangles: " << num_tri_cond << std::endl;
     }
 
     SetMeshSize(nodes_array.size(), num_array_elements, num_array_conditions);
