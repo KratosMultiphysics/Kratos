@@ -100,7 +100,7 @@ class FSIAnalysis(AnalysisStage):
         if is_restarted:
             fluid_time = self.fluid_main_model_part.ProcessInfo[Kratos.TIME]
             structure_time = self.structure_main_model_part.ProcessInfo[Kratos.TIME]
-            if (fluid_time != structure_time):
+            if (abs(fluid_time - structure_time) > 1.0e-12):
                 err_msg = 'Fluid restarting time is:' + str(fluid_time) + '\n'
                 err_msg += 'Structure restarting time is:' + \
                     str(structure_time) + '\n'
