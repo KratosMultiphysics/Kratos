@@ -456,8 +456,11 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
         if ( p_condition->Is( boundaryFlag ) ){
 
-            const int dim = p_condition->GetGeometry().Dimension();
+            KRATOS_WATCH( p_condition->Is( OUTLET ) )
+            KRATOS_WATCH( p_condition->Is( INLET ) )
+
             const auto& rGeom = p_condition->GetGeometry();
+            const int dim = rGeom.PointsNumber();
             Vector distance( rGeom.PointsNumber(), 0.0 );
 
             unsigned int neg_count = 0;
@@ -569,6 +572,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
                     const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
+                    // inflow_over_boundary = 0.0;
+
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const Vector N = row(n_container, i_gauss);
                         double const wGauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
@@ -578,20 +583,63 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
+                    KRATOS_WATCH( "Complete ---------------------------------- " )
+                    KRATOS_WATCH( inflow_over_boundary )
 
                 } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){      // the condition is cut
 
+                    // TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > aux_element( mrModelPart.NumberOfElements()+5, rGeom );
                     Matrix r_shape_functions;
                     GeometryType::ShapeFunctionsGradientsType r_shape_derivatives;
                     Vector w_gauss_neg_side;
+
+                    // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
+                    array_1d<double,3> vec_u = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+                    vec_u /= norm_2( vec_u );
+                    // KRATOS_WATCH( vec_u )
+
+                    array_1d<double,3> vec_w;
+                    MathUtils<double>::CrossProduct(vec_w, vec_u, ( rGeom[2].Coordinates() - rGeom[0].Coordinates() ) );
+                    vec_w /= norm_2( vec_w );
+                    // KRATOS_WATCH( vec_w )
+
+                    array_1d<double,3> vec_v;
+                    MathUtils<double>::CrossProduct(vec_v, vec_u, vec_w );
+                    // KRATOS_WATCH( vec_v )
+
+                    Matrix rot_mat = ZeroMatrix(3,3);
+                    for (unsigned int i = 0; i < 3; i++){
+                        rot_mat(0,i) = vec_u[i];
+                        rot_mat(1,i) = vec_v[i];
+                        rot_mat(2,i) = vec_w[i];
+                    }
+                    // KRATOS_WATCH( rot_mat )
+
+                    array_1d<double,3> coord1_transformed = prod( rot_mat, rGeom[0].Coordinates() );
+                    array_1d<double,3> coord2_transformed = prod( rot_mat, rGeom[1].Coordinates() );
+                    array_1d<double,3> coord3_transformed = prod( rot_mat, rGeom[2].Coordinates() );
+
+
+                    Kratos::shared_ptr<Kratos::Node<3UL>> node1 = Kratos::make_shared<Kratos::Node<3UL>>( 0, coord1_transformed[0], coord1_transformed[1] );
+                    Kratos::shared_ptr<Kratos::Node<3UL>> node2 = Kratos::make_shared<Kratos::Node<3UL>>( 1, coord2_transformed[0], coord2_transformed[1] );
+                    Kratos::shared_ptr<Kratos::Node<3UL>> node3 = Kratos::make_shared<Kratos::Node<3UL>>( 2, coord3_transformed[0], coord3_transformed[1] );
+
+                    const auto aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+
                     ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-                    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(p_condition->pGetGeometry(), distance);
+                    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
+
+                    // inflow_over_boundary = 0.0;
 
                     p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
                         r_shape_functions,                  // N
                         r_shape_derivatives,                // DN
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
-                        GeometryData::GI_GAUSS_2);          // first order Gauss integration
+                        GeometryData::GI_GAUSS_2);          // second order Gauss integration
+
+                    // KRATOS_WATCH( r_shape_functions )
+                    KRATOS_WATCH( r_shape_derivatives )     // PROBLEM: Here only zeros (but not needed)
+                    KRATOS_WATCH( w_gauss_neg_side )        // PROBLEM: Here only zeros !!!!
 
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
@@ -600,8 +648,12 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
                             interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        inflow_over_boundary -= w_gauss_neg_side[i_gauss] * inner_prod( normal, interpolated_velocity );
+                        // KRATOS_WATCH( interpolated_velocity )
+                        // KRATOS_WATCH( normal )
+                        inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
+                    KRATOS_WATCH( "Cut --------------------------------- " )
+                    KRATOS_WATCH( inflow_over_boundary )
                 }
             }
         }
