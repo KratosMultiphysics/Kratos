@@ -230,8 +230,8 @@ public:
                         particles_per_element = 1;
                     }
 
-                    Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
-                    GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
+                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
                     {
