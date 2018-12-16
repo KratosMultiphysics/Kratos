@@ -65,7 +65,7 @@ namespace Kratos
 	//*******************************************************************************************
 	//*******************************************************************************************
 
-        void MeshDataTransferUtilities::InitializeBoundaryData(Condition::Pointer rCurrentCondition,
+        void MeshDataTransferUtilities::InitializeBoundaryData(Condition* rCurrentCondition,
 							       const TransferParameters& rTransferVariables,
 							       const ProcessInfo& rCurrentProcessInfo)
 	{
@@ -89,7 +89,7 @@ namespace Kratos
   	//*******************************************************************************************
 	//*******************************************************************************************
 
-        void MeshDataTransferUtilities::TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
+        void MeshDataTransferUtilities::TransferInitialBoundaryData(Condition* rCurrentCondition,
 								    const TransferParameters& rTransferVariables,
 								    BoundaryVariables& rVariables)
 	{
@@ -130,8 +130,8 @@ namespace Kratos
   	//*******************************************************************************************
 	//*******************************************************************************************
 
-        void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element::Pointer rCurrentElement,
-								    Condition::Pointer rCurrentCondition,
+        void MeshDataTransferUtilities::TransferCurrentBoundaryData(Element* rCurrentElement,
+								    Condition* rCurrentCondition,
 								    const TransferParameters& rTransferVariables,
 								    BoundaryVariables& rVariables,
 								    BoundaryVariableArrays& rVariableArrays,
@@ -247,8 +247,8 @@ namespace Kratos
 	//*******************************************************************************************
 	//*******************************************************************************************
 
-        void MeshDataTransferUtilities::TransferBoundaryData(Element::Pointer rCurrentElement,
-							     Condition::Pointer rCurrentCondition,
+        void MeshDataTransferUtilities::TransferBoundaryData(Element* rCurrentElement,
+							     Condition* rCurrentCondition,
 							     const TransferParameters& rTransferVariables,
 							     const ProcessInfo& rCurrentProcessInfo)
 	{
@@ -302,7 +302,7 @@ namespace Kratos
 		//initialize to zero all skin master-conditions = (used instead of master-nodes)
 		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
 		  {
-		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);
+		    this->TransferInitialBoundaryData(&(*ic), rTransferVariables, Variables);
 		  }
 
 		//std::cout<<"  TRANSFER DONE "<<std::endl;
@@ -325,7 +325,7 @@ namespace Kratos
 		//initialize to zero all skin master-conditions = (used instead of master-nodes)
 		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
 		  {
-		    this->TransferInitialBoundaryData(*(ic.base()), rTransferVariables, Variables);
+		    this->TransferInitialBoundaryData(&(*ic), rTransferVariables, Variables);
 		  }
 
 
@@ -339,8 +339,8 @@ namespace Kratos
 
 		      //std::cout<<" Transfer: Cond: "<<ic->Id()<<" is Active "<<std::endl;
 
-		      Element::Pointer   MasterElement   = ic->GetValue(MASTER_ELEMENTS)(0).lock();
-		      Condition::Pointer MasterCondition = ic->GetValue(MASTER_CONDITION);
+		      Element*           MasterElement   = ic->GetValue(MASTER_ELEMENT);
+		      Condition*         MasterCondition = ic->GetValue(MASTER_CONDITION);
 
 		      unsigned int integration_points_number = (MasterElement->pGetGeometry())->IntegrationPointsNumber(MasterElement->GetIntegrationMethod());
 
@@ -831,7 +831,7 @@ namespace Kratos
 		  //fill variables that are non assigned vectors
 		  this->FillVectorData(variables_list, *(in.base()));
 
-	    	  WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+	    	  ElementPointerVectorType& neighb_elems = in->GetValue(NEIGHBOR_ELEMENTS);
 
 	    	  double Area         = 0;
 	    	  double ElementArea  = 0;
@@ -874,7 +874,7 @@ namespace Kratos
 	    	  for(unsigned int ne=0; ne < neighb_elems.size(); ++ne)
 	    	    {
 
-		      Geometry<Node<3> > & rGeometry   = neighb_elems[ne].GetGeometry();
+		      Geometry<Node<3> > & rGeometry   = neighb_elems[ne]->GetGeometry();
 		      ElementArea = rGeometry.Area();
 		      Area += ElementArea;
 
@@ -882,7 +882,7 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.DoubleVariables.size(); ++i)
 			{
 			  //elemental value
-			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne]->GetValueOnIntegrationPoints(*(rTransferVariables.DoubleVariables[i]),ElementDoubleVariableArray,CurrentProcessInfo);
 			  for(unsigned int j=0; j<integration_points_number; ++j)
 			    {
 			      NodesDoubleVariableArray[i] += ElementDoubleVariableArray[j] * ElementArea/double(integration_points_number);
@@ -893,7 +893,7 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.Array1DVariables.size(); ++i)
 			{
 			  //elemental value
-			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne]->GetValueOnIntegrationPoints(*(rTransferVariables.Array1DVariables[i]),ElementArray1DVariableArray,CurrentProcessInfo);
 			  for(unsigned int j=0; j<integration_points_number; ++j)
 			    {
 			      NodesArray1DVariableArray[i] += ElementArray1DVariableArray[j] * ElementArea/double(integration_points_number);
@@ -904,7 +904,7 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.VectorVariables.size(); ++i)
 			{
 			  //elemental value
-			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne]->GetValueOnIntegrationPoints(*(rTransferVariables.VectorVariables[i]),ElementVectorVariableArray,CurrentProcessInfo);
 			  for(unsigned int j=0; j<integration_points_number; ++j)
 			    {
 			      NodesVectorVariableArray[i] += ElementVectorVariableArray[j] * ElementArea/double(integration_points_number);
@@ -915,7 +915,7 @@ namespace Kratos
 		      for(unsigned int i=0; i<rTransferVariables.MatrixVariables.size(); ++i)
 			{
 			  //elemental value
-			  neighb_elems[ne].GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
+			  neighb_elems[ne]->GetValueOnIntegrationPoints(*(rTransferVariables.MatrixVariables[i]),ElementMatrixVariableArray,CurrentProcessInfo);
 			  for(unsigned int j=0; j<integration_points_number; ++j)
 			    {
 			      NodesMatrixVariableArray[i] += ElementMatrixVariableArray[j] * ElementArea/double(integration_points_number);

@@ -460,14 +460,11 @@ void ThermalElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
 
     std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector;
 
-    if( this->Has(MASTER_ELEMENTS) ){
+    if( this->Has(MASTER_ELEMENT) ){
 
       thermo_mechanical = true;
 
-      if( GetValue(MASTER_ELEMENTS).size() != 1 )
-        KRATOS_ERROR<< " Multiple Thermal Element MASTER ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<std::endl;
-
-      Element::ElementType& MechanicalElement = GetValue(MASTER_ELEMENTS).back();
+      Element::ElementType& MechanicalElement = *GetValue(MASTER_ELEMENT);
 
       MechanicalElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo);
 
@@ -760,7 +757,7 @@ inline void ThermalElement::CalculateAndAddThermalForces(GeneralVariables & rVar
     }
 
     // std::cout<<std::endl;
-    // std::cout<<" Fint ["<<GetValue(MASTER_ELEMENTS).back().Id()<<"] "<<rRightHandSideVector-Fh<<" [ Dissipation: "<<rVariables.PlasticDissipation<<" , HeatConductivity: "<<rVariables.HeatConductivity<<" , HeatCapacity: "<<rVariables.HeatCapacity<<" ]"<<std::endl;
+    // std::cout<<" Fint ["<<GetValue(MASTER_ELEMENTS).back()->Id()<<"] "<<rRightHandSideVector-Fh<<" [ Dissipation: "<<rVariables.PlasticDissipation<<" , HeatConductivity: "<<rVariables.HeatConductivity<<" , HeatCapacity: "<<rVariables.HeatCapacity<<" ]"<<std::endl;
 
     // if( rVariables.PlasticDissipation > 0 ){
     //   std::cout<<" ThermalElement Id["<<this->Id()<<"] Dissipation "<<rVariables.PlasticDissipation<<" Fint "<<rRightHandSideVector-Fh<<std::endl;

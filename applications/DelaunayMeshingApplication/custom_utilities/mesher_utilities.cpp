@@ -609,14 +609,14 @@ namespace Kratos
 	  if( rGeometry[i].Is(NEW_ENTITY) )
 	    return MesherUtilities::Undefined;
 
-	  WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+	  NodePointerVectorType& rN = rGeometry[i].GetValue(NEIGHBOR_NODES);
 
 	  for(unsigned int n=0; n<rN.size(); ++n)
 	    {
 	      for(unsigned int j=i+1; j<size; ++j)
 		{
 
-		  if( rN[n].Id() == rGeometry[j].Id() )
+		  if( rN[n]->Id() == rGeometry[j].Id() )
 		    {
 		      NeighbourVertices[i] +=1;
 		      NeighbourVertices[j] +=1;
@@ -935,7 +935,7 @@ namespace Kratos
 
     double havg = 0.00;
 
-    if((BoundaryPoint.GetValue(NEIGHBOUR_NODES)).size() != 0)
+    if((BoundaryPoint.GetValue(NEIGHBOR_NODES)).size() != 0)
       {
 	double xc = BoundaryPoint.X();
 	double yc = BoundaryPoint.Y();
@@ -943,13 +943,13 @@ namespace Kratos
 
 	double h_nodes = 0;
 	double h = 1000.0;
-	for( WeakPointerVector< Node<3> >::iterator i = BoundaryPoint.GetValue(NEIGHBOUR_NODES).begin();
-	     i !=  BoundaryPoint.GetValue(NEIGHBOUR_NODES).end(); ++i)
+	for( NodePointerVectorType::iterator i = BoundaryPoint.GetValue(NEIGHBOR_NODES).begin();
+	     i !=  BoundaryPoint.GetValue(NEIGHBOR_NODES).end(); ++i)
 	  {
-	    if( i->Is(BOUNDARY) ){
-	      double x = i->X();
-	      double y = i->Y();
-	      double z = i->Z();
+	    if( (*i)->Is(BOUNDARY) ){
+	      double x = (*i)->X();
+	      double y = (*i)->Y();
+	      double z = (*i)->Z();
 	      double l = (x-xc)*(x-xc);
 	      l += (y-yc)*(y-yc);
 	      l += (z-zc)*(z-zc);

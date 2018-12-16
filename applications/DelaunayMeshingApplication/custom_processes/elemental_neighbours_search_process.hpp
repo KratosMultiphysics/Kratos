@@ -24,7 +24,7 @@
 #include "delaunay_meshing_application_variables.h"
 
 ///VARIABLES used:
-//Data:     NEIGHBOUR_ELEMENTS(set)
+//Data:     NEIGHBOR_ELEMENTS(set)
 //StepData:
 //Flags:    (checked) BOUNDARY
 //          (set)     BOUNDARY(set)
@@ -44,7 +44,9 @@ namespace Kratos
   typedef  ModelPart::NodesContainerType NodesContainerType;
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
 
-
+  typedef std::vector<Node<3>*>             NodePointerVectorType;
+  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef std::vector<Condition*>      ConditionPointerVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -152,13 +154,13 @@ namespace Kratos
       NodesContainerType& rNodes = mrModelPart.Nodes();
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end());
         }
       ElementsContainerType& rElems = mrModelPart.Elements();
       for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ++ie)
         {
-	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end());
         }
     }
@@ -256,6 +258,22 @@ namespace Kratos
     ///@name Private Operators
     ///@{
 
+    template< class TDataType > void  AddUniquePointer
+    (std::vector< TDataType >& v, const typename TDataType::Pointer candidate)
+    {
+      typename std::vector< TDataType >::iterator i = v.begin();
+      typename std::vector< TDataType >::iterator endit = v.end();
+      while ( i != endit && (i)->Id() != (candidate)->Id())
+	{
+	  i++;
+	}
+      if( i == endit )
+	{
+	  v.push_back(&candidate);
+	}
+
+    }
+
     //******************************************************************************************
     //******************************************************************************************
     template< class TDataType > void  AddUniqueWeakPointer
@@ -275,78 +293,78 @@ namespace Kratos
     }
 
 
-    Element::WeakPointer CheckForNeighbourElems1D (unsigned int Id_1, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
+    Element* CheckForNeighbourElems1D (unsigned int Id_1, ElementPointerVectorType& neighbour_elem, ElementsContainerType::iterator elem)
     {
       //look for the faces around node Id_1
-      for( WeakPointerVector< Element >::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
+      for( ElementPointerVectorType::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
         {
 	  //look for the nodes of the neighbour faces
-	  Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
+	  Geometry<Node<3> >& neigh_elem_geometry = (*i)->GetGeometry();
           if( neigh_elem_geometry.LocalSpaceDimension() == 1 ){
             for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); ++node_i)
             {
 	      if (neigh_elem_geometry[node_i].Id() == Id_1)
               {
-                if(i->Id() != elem->Id())
+                if((*i)->Id() != elem->Id())
                 {
-                  return *(i.base());
+                  return (*i);
                 }
               }
             }
           }
         }
-      return *(elem.base());
+      return (*(elem.base())).get();
     }
 
 
-    Element::WeakPointer CheckForNeighbourElems2D (unsigned int Id_1, unsigned int Id_2, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
+    Element* CheckForNeighbourElems2D (unsigned int Id_1, unsigned int Id_2, ElementPointerVectorType& neighbour_elem, ElementsContainerType::iterator elem)
     {
       //look for the faces around node Id_1
-      for( WeakPointerVector< Element >::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
-        {
-	  //look for the nodes of the neighbour faces
-	  Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
-          if( neigh_elem_geometry.LocalSpaceDimension() == 2 ){
-            for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); ++node_i)
+      for( ElementPointerVectorType::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
+      {
+        //look for the nodes of the neighbour faces
+        Geometry<Node<3> >& neigh_elem_geometry = (*i)->GetGeometry();
+        if( neigh_elem_geometry.LocalSpaceDimension() == 2 ){
+          for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); ++node_i)
+          {
+            if (neigh_elem_geometry[node_i].Id() == Id_2)
             {
-	      if (neigh_elem_geometry[node_i].Id() == Id_2)
+              if((*i)->Id() != elem->Id())
               {
-                if(i->Id() != elem->Id())
-                    {
-		      return *(i.base());
-                    }
+                return (*i);
               }
             }
           }
         }
-      return *(elem.base());
+      }
+      return (*(elem.base())).get();
     }
 
-    Element::WeakPointer CheckForNeighbourElems3D (unsigned int Id_1, unsigned int Id_2, unsigned int Id_3, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
+    Element* CheckForNeighbourElems3D (unsigned int Id_1, unsigned int Id_2, unsigned int Id_3, ElementPointerVectorType& neighbour_elem, ElementsContainerType::iterator elem)
     {
       //look for the faces around node Id_1
-      for( WeakPointerVector< Element >::iterator i = neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
-        {
-	  //look for the nodes of the neighbour faces
-	  Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
-          if( neigh_elem_geometry.LocalSpaceDimension() == 3 ){
-            for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); ++node_i)
+      for( ElementPointerVectorType::iterator i = neighbour_elem.begin(); i != neighbour_elem.end(); ++i)
+      {
+        //look for the nodes of the neighbour faces
+        Geometry<Node<3> >& neigh_elem_geometry = (*i)->GetGeometry();
+        if( neigh_elem_geometry.LocalSpaceDimension() == 3 ){
+          for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); ++node_i)
+          {
+            if (neigh_elem_geometry[node_i].Id() == Id_2)
             {
-	      if (neigh_elem_geometry[node_i].Id() == Id_2)
+              for( unsigned int node_j = 0 ; node_j < neigh_elem_geometry.size(); ++node_j)
               {
-                for( unsigned int node_j = 0 ; node_j < neigh_elem_geometry.size(); ++node_j)
-                {
-                  if (neigh_elem_geometry[node_j].Id() == Id_3)
-                    if(i->Id() != elem->Id())
-                    {
-                      return *(i.base());
-                    }
-                }
+                if (neigh_elem_geometry[node_j].Id() == Id_3)
+                  if((*i)->Id() != elem->Id())
+                  {
+                    return (*i);
+                  }
               }
             }
           }
         }
-      return *(elem.base());
+      }
+      return (*(elem.base())).get();
     }
 
 
@@ -375,8 +393,8 @@ namespace Kratos
       //*************  Erase old node neighbours  *************//
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); ++in)
         {
-          (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(mAverageElements);
-	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+          (in->GetValue(NEIGHBOR_ELEMENTS)).reserve(mAverageElements);
+	  ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end());
 
 	  ResetFlagOptions(*in);
@@ -388,10 +406,10 @@ namespace Kratos
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  int size= pGeom.FacesNumber();
 
-	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
 	  rE.erase(rE.begin(),rE.end() );
 
-	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(size);
+	  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(size);
 
 	  ResetFlagOptions(*ie);
         }
@@ -412,10 +430,10 @@ namespace Kratos
         {
 	  std::cout<<"["<<in->Id()<<"]:"<<std::endl;
 	  std::cout<<"( ";
-	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
 	  for(unsigned int i = 0; i < rE.size(); ++i)
             {
-	      std::cout<< rE[i].Id()<<", ";
+	      std::cout<< rE[i]->Id()<<", ";
             }
 	  std::cout<<" )"<<std::endl;
         }
@@ -428,10 +446,10 @@ namespace Kratos
         {
 	  std::cout<<"["<<ie->Id()<<"]:"<<std::endl;
 	  std::cout<<"( ";
-	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
 	  for(unsigned int i = 0; i < rE.size(); ++i)
             {
-	      std::cout<< rE[i].Id()<<", ";
+	      std::cout<< rE[i]->Id()<<", ";
             }
 	  std::cout<<" )"<<std::endl;
         }
@@ -465,7 +483,7 @@ namespace Kratos
 	  Element::GeometryType& pGeom = ie->GetGeometry();
           for(unsigned int i = 0; i < pGeom.size(); ++i)
           {
-            (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+            (pGeom[i].GetValue(NEIGHBOR_ELEMENTS)).push_back( (*(ie.base())).get() );
           }
         }
 
@@ -485,24 +503,24 @@ namespace Kratos
 	      if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given face
-		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
-		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		if( ie->GetValue(NEIGHBOR_ELEMENTS).size() != 3 )
+		  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(3);
 
-		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+		ElementPointerVectorType& neighb_elems = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 1-2 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[0] = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over edge 2-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[1] = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over edge 0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[2] = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOR_ELEMENTS), ie);
 
 		unsigned int iface=0;
-		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+		for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
-		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
+		    if ((*ne)->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
 		      {
 
 			ie->Set(BOUNDARY);
@@ -524,22 +542,22 @@ namespace Kratos
 	      else if( rGeometry.FacesNumber() == 2 ){
 
 		//vector of the 2 faces around the given face
-		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
-		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
+		if( ie->GetValue(NEIGHBOR_ELEMENTS).size() != 2 )
+		  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(2);
 
-		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+		ElementPointerVectorType& neighb_elems = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 0 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[0] = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over edge 1 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems1D(rGeometry[1].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[1] = CheckForNeighbourElems1D(rGeometry[1].Id(), rGeometry[1].GetValue(NEIGHBOR_ELEMENTS), ie);
 
 		unsigned int iface=0;
-		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+		for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
-		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
+		    if ((*ne)->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
 		      {
 
 			ie->Set(BOUNDARY);
@@ -572,27 +590,27 @@ namespace Kratos
 	      if( rGeometry.FacesNumber() == 4 ){
 
 		//vector of the 4 faces around the given element (3D tetrahedron)
-		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 4 )
-		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(4);
+		if( ie->GetValue(NEIGHBOR_ELEMENTS).size() != 4 )
+		  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(4);
 
-		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+		ElementPointerVectorType& neighb_elems = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over face 1-2-3 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems3D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[0] = CheckForNeighbourElems3D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[1].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over face 2-3-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems3D(rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[1] = CheckForNeighbourElems3D(rGeometry[2].Id(), rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over face 3-0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems3D(rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[3].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[2] = CheckForNeighbourElems3D(rGeometry[3].Id(), rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[3].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over face 0-1-2 of element ic;
-		neighb_elems(3) = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[3] = CheckForNeighbourElems3D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[0].GetValue(NEIGHBOR_ELEMENTS), ie);
 
 
 		unsigned int iface=0;
-		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+		for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
-		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
+		    if ((*ne)->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
                     {
 
                       ie->Set(BOUNDARY);
@@ -614,24 +632,24 @@ namespace Kratos
 	      else if( rGeometry.FacesNumber() == 3 ){
 
 		//vector of the 3 faces around the given element (3D triangle)
-		if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 3 )
-		  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(3);
+		if( ie->GetValue(NEIGHBOR_ELEMENTS).size() != 3 )
+		  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(3);
 
-		WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+		ElementPointerVectorType& neighb_elems = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 		//neighb_face is the vector containing pointers to the three faces around ic:
 
 		// neighbour element over edge 1-2 of element ic;
-		neighb_elems(0) = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[0] = CheckForNeighbourElems2D(rGeometry[1].Id(), rGeometry[2].Id(), rGeometry[1].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over edge 2-0 of element ic;
-		neighb_elems(1) = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[1] = CheckForNeighbourElems2D(rGeometry[2].Id(), rGeometry[0].Id(), rGeometry[2].GetValue(NEIGHBOR_ELEMENTS), ie);
 		// neighbour element over edge 0-1 of element ic;
-		neighb_elems(2) = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+		neighb_elems[2] = CheckForNeighbourElems2D(rGeometry[0].Id(), rGeometry[1].Id(), rGeometry[0].GetValue(NEIGHBOR_ELEMENTS), ie);
 
 		unsigned int iface=0;
-		for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+		for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 		  {
-		    if (ne->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
+		    if ((*ne)->Id() == ie->Id())  // If there is no shared element in face nf (the Id coincides)
 		      {
 
 			ie->Set(BOUNDARY);
@@ -694,7 +712,7 @@ namespace Kratos
           if(pGeom.LocalSpaceDimension() == mrModelPart.GetProcessInfo()[SPACE_DIMENSION]){
             for(unsigned int i = 0; i < pGeom.size(); ++i)
             {
-	      (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+	      (pGeom[i].GetValue(NEIGHBOR_ELEMENTS)).push_back( (*(ie.base())).get() );
             }
           }
         }
@@ -740,7 +758,7 @@ namespace Kratos
 	      nnofa=lnofa(nf);
 
 	      //Initially assign the same element as a neighbour
-	      rElems[el].GetValue(NEIGHBOUR_ELEMENTS)(nf) =  Element::WeakPointer( rElems(el) );
+	      rElems[el].GetValue(NEIGHBOR_ELEMENTS)[nf] = rElems(el).get();
 
 	      //constant vector, depends on the element
 	      for (unsigned int t=0; t<nnofa; ++t)
@@ -751,11 +769,11 @@ namespace Kratos
 
 	      ipoin=lhelp(1);   //select a point
 
-	      WeakPointerVector< Element >& n_elems = rNodes[ipoin].GetValue(NEIGHBOUR_ELEMENTS);
+	      ElementPointerVectorType& n_elems = rNodes[ipoin].GetValue(NEIGHBOR_ELEMENTS);
 
 	      for(unsigned int esp=0; esp<n_elems.size(); ++esp)  //loop over elements surronding a point
                 {
-		  jelem=n_elems[esp].Id();
+		  jelem=n_elems[esp]->Id();
 		  unsigned int iel  =rElems[el].Id();
 
 		  if(jelem!=iel)
@@ -778,7 +796,7 @@ namespace Kratos
 			      if(icoun==nnofa)
                                 {
 				  //store the element
-				  rElems[el].GetValue(NEIGHBOUR_ELEMENTS)(nf) =  Element::WeakPointer( rElems(jelem) );
+				  rElems[el].GetValue(NEIGHBOR_ELEMENTS)[nf] = rElems(jelem).get();
 				  //std::cout<<" el "<<el<<" shared "<<jelem<<std::endl;
                                 }
                             }
@@ -787,7 +805,7 @@ namespace Kratos
                 }
 
 
-	      if (rElems[el].GetValue(NEIGHBOUR_ELEMENTS)[nf].Id() == rElems[el].Id())  // If there is no shared element in face nf (the Id coincides)
+	      if (rElems[el].GetValue(NEIGHBOR_ELEMENTS)[nf]->Id() == rElems[el].Id())  // If there is no shared element in face nf (the Id coincides)
                 {
 
 		  rElems[el].Set(BOUNDARY);

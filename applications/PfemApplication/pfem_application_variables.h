@@ -29,6 +29,7 @@
 #include "includes/kratos_flags.h"
 
 #include "solid_mechanics_application_variables.h"
+#include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
 {

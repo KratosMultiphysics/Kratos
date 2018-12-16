@@ -39,7 +39,7 @@
 
 
 //VARIABLES used:
-//Data:     NEIGHBOUR_NODES
+//Data:     NEIGHBOR_NODES
 //StepData: DISPLACEMENT, CONTACT_FORCE, NORMAL, OFFSET
 //Flags:    (checked) BOUNDARY, TO_ERASE, INSIDE
 //          (set)
@@ -131,7 +131,7 @@ namespace Kratos
       const unsigned int nds = element_begin->GetGeometry().size();
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
@@ -609,7 +609,7 @@ namespace Kratos
 
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());

@@ -59,6 +59,9 @@ namespace Kratos
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef std::vector<Node<3>::Pointer >                       PointPointerVector;
 
+    typedef std::vector<Node<3>*>             NodePointerVectorType;
+    typedef std::vector<Element*>          ElementPointerVectorType;
+    typedef std::vector<Condition*>      ConditionPointerVectorType;
     /**
      * Flags related to the meshing parameters
      */
@@ -221,7 +224,7 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void InitializeBoundaryData(Condition::Pointer rCurrentCondition,
+    void InitializeBoundaryData(Condition* rCurrentCondition,
 				const TransferParameters& rTransferVariables,
 				const ProcessInfo& rCurrentProcessInfo);
 
@@ -230,15 +233,15 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferInitialBoundaryData(Condition::Pointer rCurrentCondition,
+    void TransferInitialBoundaryData(Condition* rCurrentCondition,
 				     const TransferParameters& rTransferVariables,
 				     BoundaryVariables& rVariables);
 
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferCurrentBoundaryData(Element::Pointer rCurrentElement,
-				     Condition::Pointer rCurrentCondition,
+    void TransferCurrentBoundaryData(Element* rCurrentElement,
+				     Condition* rCurrentCondition,
 				     const TransferParameters& rTransferVariables,
 				     BoundaryVariables& rVariables,
 				     BoundaryVariableArrays& rVariableArrays,
@@ -256,8 +259,8 @@ namespace Kratos
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void TransferBoundaryData(Element::Pointer rCurrentElement,
-			      Condition::Pointer rCurrentCondition,
+    void TransferBoundaryData(Element* rCurrentElement,
+			      Condition* rCurrentCondition,
 			      const TransferParameters& rTransferVariables,
 			      const ProcessInfo& rCurrentProcessInfo);
 

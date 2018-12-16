@@ -207,7 +207,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponsePK2( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
         if( self.Kirchhoff ):
             self.initialize_calculation_variables()
@@ -219,7 +218,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
         if( self.Cauchy ):
             self.initialize_calculation_variables()
@@ -231,8 +229,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
-
     #
     def _set_basic_parameters(self):
 

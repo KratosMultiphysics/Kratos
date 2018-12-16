@@ -58,7 +58,7 @@ public:
     typedef ElementType::GeometryType         GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
-
+    typedef std::vector<Element*> ElementPointerVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -248,8 +248,8 @@ public:
         }
       }
 
-      WeakPointerVector<Element> MasterElements;
-      MasterElements.push_back(Element::WeakPointer(pRigidBodyElement));
+      ElementPointerVectorType MasterElements;
+      MasterElements.push_back(pRigidBodyElement.get());
 
       for(ModelPart::NodesContainerType::iterator j_node = rModelPart.NodesBegin(); j_node != rModelPart.NodesEnd(); ++j_node)
       {

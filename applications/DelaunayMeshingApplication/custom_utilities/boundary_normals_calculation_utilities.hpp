@@ -59,6 +59,9 @@ class BoundaryNormalsCalculationUtilities
   typedef ModelPart::ConditionsContainerType ConditionsContainerType;
   typedef ModelPart::MeshType                               MeshType;
 
+  typedef std::vector<Node<3>*>             NodePointerVectorType;
+  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef std::vector<Condition*>      ConditionPointerVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -628,7 +631,7 @@ protected:
     bool neighsearch=false;
     unsigned int number_of_nodes = rElems.begin()->GetGeometry().PointsNumber();
     for(unsigned int i=0; i<number_of_nodes; ++i)
-      if( (rElems.begin()->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS)).size() > 1 )
+      if( (rElems.begin()->GetGeometry()[i].GetValue(NEIGHBOR_ELEMENTS)).size() > 1 )
         neighsearch=true;
 
     if( !neighsearch )
@@ -640,7 +643,7 @@ protected:
 
       if(!neighsearch){
         //*************  Neigbours of nodes search  ************//
-        WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+        ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
         rE.erase(rE.begin(),rE.end() );
         in->Reset(BOUNDARY);
         //*************  Neigbours of nodes search ************//
@@ -656,7 +659,7 @@ protected:
         Element::GeometryType& pGeom = ie->GetGeometry();
         for(unsigned int i = 0; i < pGeom.size(); ++i)
         {
-          (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+          (pGeom[i].GetValue(NEIGHBOR_ELEMENTS)).push_back( (*(ie.base())).get() );
         }
       }
       //*************  Neigbours of nodes search ************//
@@ -682,12 +685,12 @@ protected:
 
       //if(in->Is(BOUNDARY)){
 
-      WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+      ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
 
-      for(WeakPointerVector<Element >::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
+      for(ElementPointerVectorType::iterator ie= rE.begin(); ie!=rE.end(); ++ie)
       {
 
-        Element::GeometryType& rGeometry = ie->GetGeometry();
+        Element::GeometryType& rGeometry = (*ie)->GetGeometry();
 
         if( rGeometry.EdgesNumber() > 1 &&  rGeometry.LocalSpaceDimension() == dimension ){
 
@@ -838,7 +841,7 @@ protected:
       //add the neighbour boundary conditions to all the nodes in the mesh
       ModelPart::ConditionsContainerType& rConditions = rModelPart.Conditions();
 
-      std::vector<WeakPointerVector<Condition> > Neighbours(rNodes.size()+1);
+      std::vector<ConditionPointerVectorType > Neighbours(rNodes.size()+1);
 
       unsigned int id = 1;
       for(ModelPart::ConditionsContainerType::iterator i_cond = rConditions.begin(); i_cond!=rConditions.end(); ++i_cond)
@@ -859,11 +862,11 @@ protected:
 
             if(NodeNeighboursIds[pGeometry[i].Id()]==0){
               NodeNeighboursIds[pGeometry[i].Id()]=id;
-              Neighbours[id].push_back( Condition::WeakPointer( *(i_cond.base()) ) );
+              Neighbours[id].push_back( (*(i_cond.base())).get() );
               id++;
             }
             else{
-              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( Condition::WeakPointer( *(i_cond.base()) ) );
+              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( (*(i_cond.base())).get() );
             }
 
           }
@@ -907,7 +910,7 @@ protected:
       //add the neighbour boundary elements to all the nodes in the mesh
       ModelPart::ElementsContainerType& rElements = rModelPart.Elements();
 
-      std::vector<WeakPointerVector<Element> > Neighbours(rNodes.size()+1);
+      std::vector<ElementPointerVectorType> Neighbours(rNodes.size()+1);
 
       unsigned int id = 1;
       for(ModelPart::ElementsContainerType::iterator i_elem = rElements.begin(); i_elem!=rElements.end(); ++i_elem)
@@ -928,11 +931,11 @@ protected:
 
             if(NodeNeighboursIds[pGeometry[i].Id()]==0){
               NodeNeighboursIds[pGeometry[i].Id()]=id;
-              Neighbours[id].push_back( Element::WeakPointer( *(i_elem.base()) ) );
+              Neighbours[id].push_back( (*(i_elem.base())).get() );
               id++;
             }
             else{
-              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( Element::WeakPointer( *(i_elem.base()) ) );
+              Neighbours[NodeNeighboursIds[pGeometry[i].Id()]].push_back( (*(i_elem.base())).get() );
             }
 
           }
@@ -964,7 +967,7 @@ protected:
   //**************************************************************************
 
   template<class TClassType>
-  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<WeakPointerVector<TClassType> >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
+  void ComputeBoundaryShrinkage(ModelPart::NodesContainerType& rNodes, const std::vector<std::vector<TClassType* > >& rNeighbours, const std::vector<int>& rNodeNeighboursIds, const unsigned int& dimension )
   {
     KRATOS_TRY
 
@@ -1006,7 +1009,7 @@ protected:
         std::cout<<" Id "<<Id<<" normals size "<<NumberOfNeighbourNormals<<" normal "<<rNormal<<" shrink "<<rShrinkFactor<<std::endl;
         for (unsigned int i_norm=0; i_norm<NumberOfNeighbourNormals; ++i_norm)//loop over node neighbour faces
         {
-          std::cout<<" normal ["<<i_norm<<"]["<<(iNode)->Id()<<"]: "<<rNeighbours[Id][i_norm].GetValue(NORMAL)<<std::endl;
+          std::cout<<" normal ["<<i_norm<<"]["<<(iNode)->Id()<<"]: "<<rNeighbours[Id][i_norm]->GetValue(NORMAL)<<std::endl;
         }
       }
 
@@ -1021,7 +1024,7 @@ protected:
       for(unsigned int i_norm=0; i_norm<NumberOfNeighbourNormals; ++i_norm)//loop over node neighbour faces
       {
 
-        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions-elements
+        const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions-elements
 
         if( FaceNormals[i_norm] != 1 ){ //if is not marked as coincident
 
@@ -1029,7 +1032,7 @@ protected:
           for (unsigned int j_norm=i_norm+1; j_norm<NumberOfNeighbourNormals; ++j_norm)//loop over node neighbour faces
           {
 
-            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions-elements
+            const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm]->GetValue(NORMAL); //conditions-elements
 
             ProjectionValue = inner_prod(rEntityNormal,rNormalVector);
 
@@ -1087,7 +1090,7 @@ protected:
           {
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]==0){ //tip normal and no coincident, no similar face normal
 
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               SingleFaces+=1;
             }
@@ -1109,13 +1112,13 @@ protected:
 
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=1){ //tip normal and no coincident face normal
 
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
 
               for (unsigned int j_norm=0;j_norm<NumberOfNeighbourNormals;++j_norm) //loop over node neighbour faces to check the most coplanar ones
               {
                 if(TipNormals[j_norm]>=1 && FaceNormals[j_norm]!=1 && i_norm!=j_norm){ //tip normal and no coincident face normal
 
-                  const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm].GetValue(NORMAL); //conditions
+                  const array_1d<double,3>& rNormalVector = rNeighbours[Id][j_norm]->GetValue(NORMAL); //conditions
                   Projection=inner_prod(rEntityNormal,rNormalVector);
 
                   if(MaxProjection<Projection && Projection>0.3){ //most coplanar normals with a projection largest than 0.3
@@ -1144,7 +1147,7 @@ protected:
 
               if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=1){ //tip normal and no coincident face normal
 
-                array_1d<double,3> EntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+                array_1d<double,3> EntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
 
                 if(FaceNormals[i_norm]!=0) // similar face normal
                   EntityNormal*=FaceNormals[i_norm];
@@ -1155,7 +1158,7 @@ protected:
 
                     if(i_norm==(unsigned int)SignificativeNormals[j_norm]){ //i_norm is a significative normal with a close coincident projection
 
-                      const array_1d<double,3>& rNormalVector = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+                      const array_1d<double,3>& rNormalVector = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
 
                       if(FaceNormals[i_norm]!=0){ // similar face normal
                         EntityNormal+=rNormalVector*FaceNormals[i_norm]; //product with the quotient
@@ -1190,13 +1193,13 @@ protected:
               break;
 
             if(TipNormals[i_norm]>=1 && FaceNormals[i_norm]!=0 && FaceNormals[i_norm]!=1){ //tip normal and similar face normal
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               ++SingleFaces;
             }
 
             if(TipNormals[i_norm]==0 && FaceNormals[i_norm]==0 && SingleFaces>0){ //if only two of the tip normals are acute one is not set
-              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+              const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
               NormalsTriad[SingleFaces]=rEntityNormal;
               ++SingleFaces;
             }
@@ -1262,7 +1265,7 @@ protected:
         // unsigned int inverted = 0;
         // for (unsigned int i_norm=0;i_norm<NumberOfNeighbourNormals;++i_norm)//loop over node neighbour faces
         // {
-        //   const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+        //   const array_1d<double,3>& rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
         //   if( inner_prod(rEntityNormal,rNormal) < 0 )
         //     ++inverted;
         // }
@@ -1286,7 +1289,7 @@ protected:
         {
           if (FaceNormals[i_norm]!=1){ //not coincident normal
 
-            array_1d<double,3> rEntityNormal = rNeighbours[Id][i_norm].GetValue(NORMAL); //conditions
+            array_1d<double,3> rEntityNormal = rNeighbours[Id][i_norm]->GetValue(NORMAL); //conditions
 
             if(norm_2(rEntityNormal))
               rEntityNormal/=norm_2(rEntityNormal);

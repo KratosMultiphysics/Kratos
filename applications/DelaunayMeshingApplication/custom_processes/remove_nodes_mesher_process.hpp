@@ -25,7 +25,7 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
+//Data:     NORMAL, MASTER_NODES, NEIGHBOR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR, CONTACT_FORCE
 //Flags:    (checked) TO_ERASE, BOUNDARY, CONTACT, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)(set), INSIDE(nodes)(set)
@@ -74,6 +74,11 @@ class RemoveNodesMesherProcess
   typedef Bucket<3, Node<3>, std::vector<Node<3>::Pointer>, Node<3>::Pointer, std::vector<Node<3>::Pointer>::iterator, std::vector<double>::iterator > BucketType;
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
+
+  typedef std::vector<Node<3>*>             NodePointerVectorType;
+  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef std::vector<Condition*>      ConditionPointerVectorType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -578,11 +583,11 @@ class RemoveNodesMesherProcess
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
     {
 
-      WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+      NodePointerVectorType& rN = in->GetValue(NEIGHBOR_NODES);
       int erased_nodes =0;
       for(unsigned int i = 0; i < rN.size(); ++i)
       {
-        if(rN[i].Is(TO_ERASE))
+        if(rN[i]->Is(TO_ERASE))
           erased_nodes += 1;
       }
 
@@ -592,13 +597,13 @@ class RemoveNodesMesherProcess
         double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
         MeanError = NodalError[nodes_ids[in->Id()]];
 
-        WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+        ElementPointerVectorType& neighb_elems = in->GetValue(NEIGHBOR_ELEMENTS);
         double mean_node_radius = 0;
-        for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+        for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
         {
-          mean_node_radius+= mMesherUtilities.CalculateElementRadius(ne->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-          //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius(ne->GetGeometry());
-          //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius(ne->GetGeometry());
+          mean_node_radius+= mMesherUtilities.CalculateElementRadius((*ne)->GetGeometry()); //Triangle 2D, Tetrahedron 3D
+          //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius((*ne)->GetGeometry());
+          //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius((*ne)->GetGeometry());
         }
 
         mean_node_radius /= double(neighb_elems.size());

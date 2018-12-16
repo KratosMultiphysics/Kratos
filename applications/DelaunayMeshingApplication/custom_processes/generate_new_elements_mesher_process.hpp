@@ -37,7 +37,7 @@ namespace Kratos
   ///@}
   ///@name Type Definitions
   ///@{
-
+  typedef  ModelPart::ElementsContainerType ElementsContainerType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -445,8 +445,8 @@ namespace Kratos
 	  //Id = ie->Id()-1;
 
 	  unsigned int number_of_faces = ie->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
-	  WeakPointerVector< Element >& neighb = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(number_of_faces);
+	  ElementPointerVectorType& neighb = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 	  int index = 0;
 	  for(unsigned int iface = 0; iface<number_of_faces; ++iface)
@@ -464,13 +464,11 @@ namespace Kratos
 
 	      if(index > 0)
 		{
-		  //neighb(iface) = (mrModelPart.Elements()).find( elements_begin->Id() + index -1 );
-		  neighb(iface) = *((element_begin + index -1 ).base());
+		  neighb[iface] = (*((element_begin + index -1).base())).get();
 		}
 	      else
 		{
-		  //neighb(iface) = Element::WeakPointer();
-		  neighb(iface) = *(ie.base());
+		  neighb[iface] = (*((ie).base())).get();
 		  facecounter++;
 		}
 	    }
@@ -480,7 +478,7 @@ namespace Kratos
 
       if( mEchoLevel > 0 ){
 	std::cout<<"   Final Faces : "<<facecounter<<std::endl;
-	std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+	std::cout<<"   SET ELEMENT NEIGHBORS ]; "<<std::endl;
       }
 
       KRATOS_CATCH( "" )
