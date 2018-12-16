@@ -588,48 +588,14 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
                 } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){      // the condition is cut
 
-                    // TwoFluidNavierStokes< TwoFluidNavierStokesData<2, 3> > aux_element( mrModelPart.NumberOfElements()+5, rGeom );
                     Matrix r_shape_functions;
                     GeometryType::ShapeFunctionsGradientsType r_shape_derivatives;
                     Vector w_gauss_neg_side;
 
-                    // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
-                    array_1d<double,3> vec_u = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-                    vec_u /= norm_2( vec_u );
-                    // KRATOS_WATCH( vec_u )
+                    // generating an auxiliary Triangle2D3 geometry the "Triangle2D3ModifiedShapeFunctions" can work with
+                    const auto aux_2D_triangle = GenerateTriangle2D( rGeom );
 
-                    array_1d<double,3> vec_w;
-                    MathUtils<double>::CrossProduct(vec_w, vec_u, ( rGeom[2].Coordinates() - rGeom[0].Coordinates() ) );
-                    vec_w /= norm_2( vec_w );
-                    // KRATOS_WATCH( vec_w )
-
-                    array_1d<double,3> vec_v;
-                    MathUtils<double>::CrossProduct(vec_v, vec_u, vec_w );
-                    // KRATOS_WATCH( vec_v )
-
-                    Matrix rot_mat = ZeroMatrix(3,3);
-                    for (unsigned int i = 0; i < 3; i++){
-                        rot_mat(0,i) = vec_u[i];
-                        rot_mat(1,i) = vec_v[i];
-                        rot_mat(2,i) = vec_w[i];
-                    }
-                    // KRATOS_WATCH( rot_mat )
-
-                    array_1d<double,3> coord1_transformed = prod( rot_mat, rGeom[0].Coordinates() );
-                    array_1d<double,3> coord2_transformed = prod( rot_mat, rGeom[1].Coordinates() );
-                    array_1d<double,3> coord3_transformed = prod( rot_mat, rGeom[2].Coordinates() );
-
-
-                    Kratos::shared_ptr<Kratos::Node<3UL>> node1 = Kratos::make_shared<Kratos::Node<3UL>>( 0, coord1_transformed[0], coord1_transformed[1] );
-                    Kratos::shared_ptr<Kratos::Node<3UL>> node2 = Kratos::make_shared<Kratos::Node<3UL>>( 1, coord2_transformed[0], coord2_transformed[1] );
-                    Kratos::shared_ptr<Kratos::Node<3UL>> node3 = Kratos::make_shared<Kratos::Node<3UL>>( 2, coord3_transformed[0], coord3_transformed[1] );
-
-                    const auto aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
-
-                    ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
-                    p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
-
-                    // inflow_over_boundary = 0.0;
+                    const auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
 
                     p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
                         r_shape_functions,                  // N
@@ -648,8 +614,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
                             interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
                         }
-                        // KRATOS_WATCH( interpolated_velocity )
-                        // KRATOS_WATCH( normal )
+                        // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
                         inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
                     KRATOS_WATCH( "Cut --------------------------------- " )
@@ -699,6 +664,48 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
 
     MathUtils<double>::CrossProduct(An,v1,v2);
     An *= 0.5;
+}
+
+/// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
+Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::GenerateTriangle2D( const Geometry<Node<3> >& rGeom ){
+
+    // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
+
+    // vectors that will form the rows of the rotation matrix
+    array_1d<double,3> vec_u = rGeom[1].Coordinates() - rGeom[0].Coordinates();
+    vec_u /= norm_2( vec_u );
+
+    array_1d<double,3> vec_w;
+    MathUtils<double>::CrossProduct(vec_w, vec_u, ( rGeom[2].Coordinates() - rGeom[0].Coordinates() ) );
+    vec_w /= norm_2( vec_w );
+
+    array_1d<double,3> vec_v;
+    MathUtils<double>::CrossProduct(vec_v, vec_u, vec_w );
+
+    // assembly of the rotation matrix
+    Matrix rot_mat = ZeroMatrix(3,3);
+    for (unsigned int i = 0; i < 3; i++){
+        rot_mat(0,i) = vec_u[i];
+        rot_mat(1,i) = vec_v[i];
+        rot_mat(2,i) = vec_w[i];
+    }
+
+    // rotating the original geometry into a position parallel to the x-y plane by applying the rotation matrix
+    // the z-coordinates are then equal and will be neglected afterwards (check is performed before)
+    array_1d<double,3> coord1_transformed = prod( rot_mat, rGeom[0].Coordinates() );
+    array_1d<double,3> coord2_transformed = prod( rot_mat, rGeom[1].Coordinates() );
+    array_1d<double,3> coord3_transformed = prod( rot_mat, rGeom[2].Coordinates() );
+    KRATOS_DEBUG_ERROR_IF_NOT( std::abs(coord1_transformed[2] - coord2_transformed[2])<1.0e-7 &&
+                            std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
+
+    // creating auxiliary nodes based on the transformed position
+    Kratos::shared_ptr<Kratos::Node<3UL>> node1 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Kratos::shared_ptr<Kratos::Node<3UL>> node2 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Kratos::shared_ptr<Kratos::Node<3UL>> node3 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+
+    // finally dreating the desired Triangle2D3 based on the nodes
+    Kratos::shared_ptr< Triangle2D3<Node<3>> > aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+    return aux_2D_triangle;
 }
 
 

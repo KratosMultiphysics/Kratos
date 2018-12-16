@@ -183,6 +183,8 @@ private:
 
     void ShiftDistanceField( double deltaDist );
 
+    Kratos::shared_ptr< Triangle2D3<Node<3>> > GenerateTriangle2D( const Geometry<Node<3> >& rGeom );
+
     ///@}
     ///@name Private  Access
     ///@{
