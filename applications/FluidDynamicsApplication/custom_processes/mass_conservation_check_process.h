@@ -183,7 +183,13 @@ private:
 
     void ShiftDistanceField( double deltaDist );
 
-    Kratos::shared_ptr< Triangle2D3<Node<3>> > GenerateTriangle2D( const Geometry<Node<3> >& rGeom );
+    Kratos::shared_ptr< Triangle2D3<Node<3>> > GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
+
+    void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
+                            const Vector& distance,
+                            Kratos::shared_ptr< Line3D2<IndexedPoint> >& p_aux_line,
+                            array_1d<double, 3>& aux_velocity1,
+                            array_1d<double, 3>& aux_velocity2 );
 
     ///@}
     ///@name Private  Access

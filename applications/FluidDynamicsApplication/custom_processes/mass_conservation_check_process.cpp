@@ -505,54 +505,37 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 // the condition is cut (2D)
                 } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){
 
-                    // Compute the relative coordinate of the intersection point over the edge
-                    const double aux_node_rel_location = std::abs ( distance[0] /( distance[1]-distance[0] ));
-                    // Shape function values at the position where the surface cuts the element
-                    Vector n_cut = ZeroVector(2);
-                    n_cut[0] = 1.0 - aux_node_rel_location;
-                    n_cut[1] = aux_node_rel_location;
+                    array_1d<double, 3> aux_velocity1, aux_velocity2;
 
-                    // Creation of an auxiliary geometry which covers the negative volume domain only
-                    // (imitation of the splitting mechanism for triangles)
-                    PointerVectorSet<IndexedPoint, IndexedObject> aux_point_container;
-                    aux_point_container.reserve(2);
-                    array_1d<double, 3> aux_point1_coords, aux_point2_coords, aux_velocity1, aux_velocity2;
+                    KRATOS_WATCH( "Before" )
 
-                    IndexedPoint::Pointer paux_point1 = nullptr;
-                    IndexedPoint::Pointer paux_point2 = nullptr;
-                    // Modify the node with the positive distance
-                    for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); i_node++){
-                        if ( rGeom[i_node].GetSolutionStepValue( DISTANCE ) > 0.0 ){
-                            // interpolating position for the new node
-                            aux_point1_coords[0] = n_cut[0] * rGeom[0].X() + n_cut[1] * rGeom[1].X();
-                            aux_point1_coords[1] = n_cut[0] * rGeom[0].Y() + n_cut[1] * rGeom[1].Y();
-                            aux_point1_coords[2] = n_cut[0] * rGeom[0].Z() + n_cut[1] * rGeom[1].Z();
-                            paux_point1 = Kratos::make_shared<IndexedPoint>(aux_point1_coords, mrModelPart.NumberOfNodes()+1);
-                            aux_velocity1 = n_cut[0] * rGeom[0].GetSolutionStepValue( VELOCITY ) + n_cut[1] * rGeom[1].GetSolutionStepValue( VELOCITY );
-                        } else {
-                            aux_point2_coords[0] = rGeom[i_node].X();
-                            aux_point2_coords[1] = rGeom[i_node].Y();
-                            aux_point2_coords[2] = rGeom[i_node].Z();
-                            paux_point2 = Kratos::make_shared<IndexedPoint>(aux_point2_coords, mrModelPart.NumberOfNodes()+2);
-                            aux_velocity2 = rGeom[i_node].GetSolutionStepValue( VELOCITY );
-                        }
-                    }
+                    Kratos::shared_ptr< Line3D2<IndexedPoint> > p_aux_line = nullptr;
+                    GenerateAuxLine( rGeom, distance, p_aux_line, aux_velocity1, aux_velocity2 );
 
-                    const Geometry <IndexedPoint>::Pointer p_aux_line = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
+                    KRATOS_WATCH( "After - 0" )
+
                     // Gauss point information for auxiliary geometry
                     const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::GI_GAUSS_2 );
+                    KRATOS_WATCH( "After - 0 a" )
                     const unsigned int num_gauss = IntegrationPoints.size();
+                    KRATOS_WATCH( "After - 0 b" )
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
+                    KRATOS_WATCH( "After - 0 c" )
                     p_aux_line->DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
+                    KRATOS_WATCH( "After - 0 d" )
                     const Matrix n_container = p_aux_line->ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
+
+                    KRATOS_WATCH( "After - 1" )
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const Vector N = row(n_container, i_gauss);
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
 
                         const array_1d<double,3> interpolatedVelocity = N[0] * aux_velocity1 + N[1] * aux_velocity2;
-                        inflow_over_boundary -= w_gauss * inner_prod( normal, interpolatedVelocity );
+                        inflow_over_boundary -= std::abs( w_gauss ) * inner_prod( normal, interpolatedVelocity );
                     }
+
+                    KRATOS_WATCH( "After - 2" )
                 }
             }
 
@@ -565,14 +548,12 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 else { normal /= norm_2( normal ); }
 
                 if ( neg_count == rGeom.PointsNumber() ){       // the condition is completely on the negative side
-                    // Gauss point information
+
                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int num_gauss = IntegrationPoints.size();
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
                     rGeom.DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
                     const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
-
-                    // inflow_over_boundary = 0.0;
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const Vector N = row(n_container, i_gauss);
@@ -593,8 +574,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     Vector w_gauss_neg_side;
 
                     // generating an auxiliary Triangle2D3 geometry the "Triangle2D3ModifiedShapeFunctions" can work with
-                    const auto aux_2D_triangle = GenerateTriangle2D( rGeom );
-
+                    const auto aux_2D_triangle = GenerateAuxTriangle( rGeom );
+                    // passing the auxiliary triangle
                     const auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
 
                     p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
@@ -604,8 +585,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         GeometryData::GI_GAUSS_2);          // second order Gauss integration
 
                     // KRATOS_WATCH( r_shape_functions )
-                    KRATOS_WATCH( r_shape_derivatives )     // PROBLEM: Here only zeros (but not needed)
-                    KRATOS_WATCH( w_gauss_neg_side )        // PROBLEM: Here only zeros !!!!
+                    KRATOS_WATCH( r_shape_derivatives )
+                    KRATOS_WATCH( w_gauss_neg_side )
 
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
@@ -615,6 +596,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                             interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
                         }
                         // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
+                        // the normal still comes from the oiginal triangle
                         inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
                     KRATOS_WATCH( "Cut --------------------------------- " )
@@ -666,8 +648,10 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
     An *= 0.5;
 }
 
+
+
 /// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
-Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::GenerateTriangle2D( const Geometry<Node<3> >& rGeom ){
+Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
 
     // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
 
@@ -706,6 +690,53 @@ Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::Generat
     // finally dreating the desired Triangle2D3 based on the nodes
     Kratos::shared_ptr< Triangle2D3<Node<3>> > aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
     return aux_2D_triangle;
+}
+
+
+
+void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
+                                                    const Vector& distance,
+                                                    Kratos::shared_ptr< Line3D2<IndexedPoint> >& p_aux_line,
+                                                    array_1d<double, 3>& aux_velocity1,
+                                                    array_1d<double, 3>& aux_velocity2 ){
+
+    // Compute the relative coordinate of the intersection point over the edge
+    const double aux_node_rel_location = std::abs ( distance[0] /( distance[1]-distance[0] ));
+    // Shape function values at the position where the surface cuts the element
+    Vector n_cut = ZeroVector(2);
+    n_cut[0] = 1.0 - aux_node_rel_location;
+    n_cut[1] = aux_node_rel_location;
+
+    // Creation of an auxiliary geometry which covers the negative volume domain only
+    // (imitation of the splitting mechanism for triangles)
+    PointerVectorSet<IndexedPoint, IndexedObject> aux_point_container;
+    aux_point_container.reserve(2);
+    array_1d<double, 3> aux_point1_coords, aux_point2_coords;
+
+    IndexedPoint::Pointer paux_point1 = nullptr;
+    IndexedPoint::Pointer paux_point2 = nullptr;
+    // Modify the node with the positive distance
+    for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); i_node++){
+        if ( rGeom[i_node].GetSolutionStepValue( DISTANCE ) > 0.0 ){
+            // interpolating position for the new node
+            aux_point1_coords[0] = n_cut[0] * rGeom[0].X() + n_cut[1] * rGeom[1].X();
+            aux_point1_coords[1] = n_cut[0] * rGeom[0].Y() + n_cut[1] * rGeom[1].Y();
+            aux_point1_coords[2] = n_cut[0] * rGeom[0].Z() + n_cut[1] * rGeom[1].Z();
+            paux_point1 = Kratos::make_shared<IndexedPoint>(aux_point1_coords, mrModelPart.NumberOfNodes()+1);
+            aux_velocity1 = n_cut[0] * rGeom[0].GetSolutionStepValue( VELOCITY ) + n_cut[1] * rGeom[1].GetSolutionStepValue( VELOCITY );
+        } else {
+            aux_point2_coords[0] = rGeom[i_node].X();
+            aux_point2_coords[1] = rGeom[i_node].Y();
+            aux_point2_coords[2] = rGeom[i_node].Z();
+            paux_point2 = Kratos::make_shared<IndexedPoint>(aux_point2_coords, mrModelPart.NumberOfNodes()+2);
+            aux_velocity2 = rGeom[i_node].GetSolutionStepValue( VELOCITY );
+        }
+    }
+
+    p_aux_line = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
+
+    const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::GI_GAUSS_2 );
+    KRATOS_WATCH( IntegrationPoints )
 }
 
 
