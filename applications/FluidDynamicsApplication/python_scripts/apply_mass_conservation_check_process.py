@@ -32,6 +32,9 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
+        if self._is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction finished.")
+
 
     def ExecuteInitialize(self):
 
@@ -43,7 +46,7 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
                 logFile.write( first_lines_string )
 
         if self._is_printing_rank:
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction of Mass Conservation Check Process finished.")
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
 
 
     def ExecuteBeforeSolutionLoop(self):
