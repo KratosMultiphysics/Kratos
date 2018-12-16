@@ -89,7 +89,7 @@ public:
     }
 
     /// Destructor
-    ~LocalRefineGeometryMesh()
+    virtual ~LocalRefineGeometryMesh()
     = default;
 
     ///@}

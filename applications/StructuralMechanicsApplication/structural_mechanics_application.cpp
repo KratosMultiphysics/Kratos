@@ -179,10 +179,10 @@ void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    KRATOS_INFO("") << "     KRATOS   ___|  |                   |                   |                     " << std::endl
-                    << "            \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                   " << std::endl
-                    << "                  | |   |    |   | (    |   |   | |   (   | |                     " << std::endl
-                    << "            _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS     " << std::endl;
+    KRATOS_INFO("") << "    KRATOS   ___|  |                   |                   |                    " << std::endl
+                    << "           \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                  " << std::endl
+                    << "                 | |   |    |   | (    |   |   | |   (   | |                    " << std::endl
+                    << "           _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS    " << std::endl;
 
     // General pourpose
     KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element
@@ -357,6 +357,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EQUIVALENT_PLASTIC_STRAIN)
     KRATOS_REGISTER_VARIABLE(KINEMATIC_PLASTICITY_PARAMETERS)
     KRATOS_REGISTER_VARIABLE(KINEMATIC_HARDENING_TYPE)
+    KRATOS_REGISTER_VARIABLE(CONSIDER_PERTURBATION_THRESHOLD)
+    KRATOS_REGISTER_VARIABLE(TANGENT_OPERATOR_ESTIMATION)
 
     // D+D- Damage Constitutive laws variables
     KRATOS_REGISTER_VARIABLE(DAMAGE_TENSION)

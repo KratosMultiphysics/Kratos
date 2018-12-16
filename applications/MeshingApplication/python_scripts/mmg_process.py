@@ -12,13 +12,11 @@ except ImportError as e:
     # extract name of the missing application from the error message
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+                                     '{0}'.format(e)).group(1)
 
 from json_utilities import *
 import json
 import os
-
-KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
