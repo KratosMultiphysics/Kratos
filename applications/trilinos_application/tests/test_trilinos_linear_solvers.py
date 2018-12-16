@@ -135,7 +135,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "aztec_cg",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -146,7 +146,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "aztec_cg",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -157,7 +157,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "aztec_cg",
+                        "solver_type": "cg",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "None",
@@ -176,7 +176,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                        "solver_type": "aztec_gmres",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILU0",
@@ -187,7 +187,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "aztec_gmres",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILUT",
@@ -198,7 +198,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "trilinos_preconditioner_parameter_list": {}
                     },
                     {
-                        "solver_type": "aztec_gmres",
+                        "solver_type": "gmres",
                         "tolerance" : 1.0e-9,
                         "max_iteration" : 200,
                         "preconditioner_type" : "ILUT",
@@ -297,7 +297,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "amgcl_mpi",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"cg",
@@ -312,7 +312,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "amgcl_mpi",
+                    "solver_type": "amgcl",
                     "scaling":false,
                     "tolerance":1.0e-9,
                     "krylov_type":"bicgstab",
@@ -327,7 +327,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "amgcl_mpi",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"bicgstabl",
@@ -342,7 +342,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             {
                 "test_list" : [
                     {
-                    "solver_type": "amgcl_mpi",
+                    "solver_type": "amgcl",
                     "tolerance":1.0e-9,
                     "scaling":false,
                     "krylov_type":"gmres",

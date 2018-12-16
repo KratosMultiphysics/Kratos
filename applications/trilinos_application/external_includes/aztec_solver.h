@@ -94,15 +94,15 @@ public:
             maztec_parameter_list.set("AZ_output", settings["verbosity"].GetInt());
 
         //choose the solver type
-        if(settings["solver_type"].GetString() == "CGSolver" || settings["solver_type"].GetString() == "aztec_cg")
+        if(settings["solver_type"].GetString() == "CGSolver" || settings["solver_type"].GetString() == "cg")
         {
             maztec_parameter_list.set("AZ_solver", "AZ_cg");
         }
-        else if(settings["solver_type"].GetString() == "BICGSTABSolver" || settings["solver_type"].GetString() == "aztec_bicgstab")
+        else if(settings["solver_type"].GetString() == "BICGSTABSolver" || settings["solver_type"].GetString() == "bicgstab")
         {
             maztec_parameter_list.set("AZ_solver", "AZ_bicgstab");
         }
-        else if(settings["solver_type"].GetString() == "GMRESSolver" || settings["solver_type"].GetString() == "aztec_gmres")
+        else if(settings["solver_type"].GetString() == "GMRESSolver" || settings["solver_type"].GetString() == "gmres")
         {
             maztec_parameter_list.set("AZ_solver", "AZ_gmres");
             maztec_parameter_list.set("AZ_kspace", settings["gmres_krylov_space_dimension"].GetInt());

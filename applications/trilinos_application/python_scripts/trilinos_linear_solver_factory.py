@@ -7,14 +7,14 @@ def _CheckIfTypeIsDeprecated(config):
     solver_type = config["solver_type"].GetString()
 
     old_new_name_map = {
-        "CGSolver" : "aztec_cg",
-        "BICGSTABSolver" : "aztec_bicgstab",
-        "GMRESSolver" : "aztec_gmres",
+        "CGSolver" : "cg",
+        "BICGSTABSolver" : "bicgstab",
+        "GMRESSolver" : "gmres",
         "AztecSolver" : "aztec",
         "MLSolver" : "multi_level",
         "MultiLevelSolver" : "multi_level",
-        "AmgclMPISolver" : "amgcl_mpi",
-        "AmgclMPISchurComplementSolver" : "amgcl_mpi_schur_complement",
+        "AmgclMPISolver" : "amgcl",
+        "AmgclMPISchurComplementSolver" : "amgcl_schur_complement",
         "AmesosSolver" : "amesos"
     }
 

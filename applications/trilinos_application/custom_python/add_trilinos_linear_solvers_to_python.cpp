@@ -92,9 +92,9 @@ void  AddLinearSolvers(pybind11::module& m)
     .def("SetScalingType", &AztecSolverType::SetScalingType)
     ;
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec", AztecSolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec_cg", AztecSolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec_bicgstab", AztecSolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec_gmres", AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("cg", AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("bicgstab", AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("gmres", AztecSolverFactory);
 
     typedef AmesosSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmesosSolverType;
     static auto AmesosSolverFactory = TrilinosLinearSolverFactory<TrilinosSparseSpaceType,TrilinosLocalSpaceType,AmesosSolverType>();
@@ -122,7 +122,7 @@ void  AddLinearSolvers(pybind11::module& m)
     (m,"AmgclMPISolver")
     .def( py::init<Parameters>())
     ;
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl_mpi", AmgclMPISolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl", AmgclMPISolverFactory);
 
 #if 0
     typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
@@ -137,7 +137,7 @@ void  AddLinearSolvers(pybind11::module& m)
     (m,"AmgclMPISchurComplementSolver")
     .def( py::init<Parameters>())
     ;
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl_mpi_schur_complement", AmgclMPISchurComplementSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl_schur_complement", AmgclMPISchurComplementSolverFactory);
 
     py::enum_<AztecScalingType>(m,"AztecScalingType")
     .value("NoScaling", NoScaling)
