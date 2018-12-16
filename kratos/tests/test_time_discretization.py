@@ -106,8 +106,8 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
 
     def test_Bossak(self):
         gen_alpha = KM.Bossak()
-        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.2)
-        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.1225)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.4225)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.8)
         self.assertAlmostEqual(gen_alpha.GetAlphaM(), -0.3)
 
         self.assertEqual(KM.GetMinimumBufferSize(gen_alpha), 2)
@@ -115,8 +115,8 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
     def test_GeneralizedAlpha(self):
         gen_alpha = KM.GeneralizedAlpha()
 
-        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.2)
-        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.1225)
+        self.assertAlmostEqual(gen_alpha.GetBeta(), 0.4225)
+        self.assertAlmostEqual(gen_alpha.GetGamma(), 0.8)
         self.assertAlmostEqual(gen_alpha.GetAlphaM(), -0.3)
         self.assertAlmostEqual(gen_alpha.GetAlphaF(), 0.0)
 
