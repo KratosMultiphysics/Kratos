@@ -79,6 +79,7 @@ std::string MassConservationCheckProcess::Initialize(){
 
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
+    comm.Barrier();
     if ( comm.SumAll(pos_vol) && comm.SumAll(neg_vol) && comm.SumAll(inter_area)  ){
         // if communication was successful
         this->mInitialPositiveVolume = pos_vol;
@@ -112,6 +113,8 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
 
     // computing global quantities via MPI communication
     const auto& comm = mrModelPart.GetCommunicator();
+
+    comm.Barrier();
     KRATOS_ERROR_IF_NOT( comm.SumAll(pos_vol) && comm.SumAll(neg_vol) && comm.SumAll(inter_area) && comm.SumAll(net_inflow_inlet) && comm.SumAll(net_inflow_outlet) )
     << "Communication failed in MassConservationCheckProcess::ExecuteInTimeStep()";
 
@@ -196,7 +199,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" not yet executed )
+                // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
                 if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
                     it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
                 }
