@@ -93,6 +93,21 @@ public:
     ///@{
 
     /**
+     * @brief Constructor. The BDF method (parameters)
+     * @param ThisParameters Parameters with the integration order
+     */
+    explicit ResidualBasedBDFDisplacementScheme(Parameters ThisParameters)
+        : ResidualBasedBDFDisplacementScheme(ThisParameters.Has("integration_order") ? static_cast<std::size_t>(ThisParameters["integration_order"].GetInt()) : 2)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "integration_order" : 2
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
      * @brief Constructor. The BDF method
      * @param Order The integration order
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
@@ -295,6 +310,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBDFDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

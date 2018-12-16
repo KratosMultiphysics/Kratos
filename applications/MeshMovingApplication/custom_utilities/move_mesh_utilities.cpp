@@ -99,15 +99,20 @@ void CalculateMeshVelocities(ModelPart &rMeshModelPart,
 
 //******************************************************************************
 //******************************************************************************
-void MoveMesh(const ModelPart::NodesContainerType &rNodes) {
-  KRATOS_TRY;
+void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+    KRATOS_TRY;
 
-  for (auto &rnode : rNodes) {
-    noalias(rnode.Coordinates()) = rnode.GetInitialPosition()
-                     + rnode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
-  }
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
 
-  KRATOS_CATCH("");
+    #pragma omp parallel for
+    for (int i=0; i<num_nodes; i++) {
+        const auto it_node  = nodes_begin + i;
+        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
+            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    }
+
+    KRATOS_CATCH("");
 }
 
 //******************************************************************************
@@ -129,7 +134,7 @@ ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName) {
   KRATOS_TRY;
 
-  ModelPart* pmesh_model_part = &(rModelPart.GetOwnerModel().CreateModelPart("MeshPart", 1));
+  ModelPart* pmesh_model_part = &(rModelPart.GetModel().CreateModelPart("MeshPart", 1));
 
   // initializing mesh nodes and variables
   pmesh_model_part->Nodes() = rModelPart.Nodes();

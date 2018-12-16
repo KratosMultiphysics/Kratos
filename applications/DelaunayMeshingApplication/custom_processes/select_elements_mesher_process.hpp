@@ -479,16 +479,12 @@ class SelectElementsMesherProcess
     //reset domain flags in nodes before new assignment
     if( rModelPart.Is(FLUID) ){
       //reset domain flags in nodes before new assignment
-      unsigned int count_rigid = 0;
-      unsigned int count_free_surface = 0;
-      unsigned int count_positive_pressure = 0;
+      unsigned int count_rigid;
       for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin() ; i_elem != rModelPart.ElementsEnd() ; ++i_elem)
       {
         PointsArrayType& vertices=i_elem->GetGeometry().Points();
 
         count_rigid = 0;
-        count_free_surface = 0;
-        count_positive_pressure = 0;
         for(unsigned int i=0; i<vertices.size(); ++i)
         {
           if( vertices[i].Is(RIGID) )
@@ -668,13 +664,13 @@ class SelectElementsMesherProcess
   void CheckIds(const int* OutElementList, const int& OutNumberOfElements, const unsigned int number_of_vertices)
   {
 
-    int max_out_id = 0;
+    unsigned int max_out_id = 0;
     for(int el=0; el<OutNumberOfElements; ++el)
     {
       for(unsigned int pn=0; pn<number_of_vertices; ++pn)
       {
         unsigned int id = el*number_of_vertices+pn;
-        if( max_out_id < OutElementList[id] )
+        if( int(max_out_id) < OutElementList[id] )
           max_out_id = OutElementList[id];
       }
     }

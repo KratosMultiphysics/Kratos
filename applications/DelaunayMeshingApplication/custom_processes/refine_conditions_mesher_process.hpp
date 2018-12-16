@@ -884,8 +884,10 @@ public:
       unsigned int count = 0;
       for( unsigned int i = 0; i<rGeometry.size(); i++ )
 	{
+      if ( rGeometry[i].SolutionStepsDataHas(CONTACT_FORCE) ) {
 	  if( norm_2(rGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE)) == 0 )
 	    count++;
+      }
 	}
 
       if( count )

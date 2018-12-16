@@ -157,8 +157,8 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
             exfreq = exfreq + df
 
     def test_damped_mdof_harmonic(self):
-        current_model = KratosMultiphysics.Model()        
-        
+        current_model = KratosMultiphysics.Model()
+
         #analytic solution taken from Humar - Dynamics of Structures p. 677
 
         #material properties
@@ -213,12 +213,13 @@ class HarmonicAnalysisTests(KratosUnittest.TestCase):
 
             exfreq = exfreq + df
 
+class HarmonicAnalysisTestsWithHDF5(KratosUnittest.TestCase):
     def test_harmonic_mdpa_input(self):
         try:
             import KratosMultiphysics.HDF5Application as HDF5Application
         except ImportError as e:
             self.skipTest("HDF5Application not found: Skipping harmonic analysis mdpa test")
-        
+
         import structural_mechanics_analysis
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             #run simulation and write to hdf5 file

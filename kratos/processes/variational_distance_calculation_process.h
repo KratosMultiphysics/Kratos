@@ -71,6 +71,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     ///@name Type Definitions
     ///@{
@@ -121,12 +122,12 @@ public:
     VariationalDistanceCalculationProcess(
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
-        unsigned int max_iterations = 10)
-        :mr_base_model_part(base_model_part)
+        unsigned int max_iterations = 10,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        :mr_base_model_part(base_model_part),
+         mOptions(Options)
     {
         KRATOS_TRY
-
-
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -158,7 +159,7 @@ public:
         bool CalculateNormDxFlag = false;
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
 
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
@@ -180,7 +181,7 @@ public:
     ~VariationalDistanceCalculationProcess() override
     {
 
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         if(current_model.HasModelPart("RedistanceCalculationPart"))
             current_model.DeleteModelPart("RedistanceCalculationPart");
     };
@@ -206,7 +207,7 @@ public:
             ReGenerateDistanceModelPart(mr_base_model_part);
         }
 
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
 
         // TODO: check flag    PERFORM_STEP1
@@ -258,10 +259,16 @@ public:
             // The element is cut by the interface
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
-                if(TDim==3){
-                    GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                } else {
-                    GeometryUtils::CalculateTriangleDistances(geom, distances);
+                if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
+                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
+                }
+                else {
+                    if(TDim==3){
+                        GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                    } 
+                    else {
+                        GeometryUtils::CalculateTriangleDistances(geom, distances);
+                    }
                 }
 
                 // Assign the sign using the original distance values
@@ -345,7 +352,7 @@ public:
 
     virtual void Clear()
     {
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
@@ -413,6 +420,7 @@ protected:
     unsigned int mmax_iterations;
 
     ModelPart& mr_base_model_part;
+    Flags mOptions;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -428,7 +436,7 @@ protected:
     {
         KRATOS_TRY
 
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         if(current_model.HasModelPart("RedistanceCalculationPart"))
             current_model.DeleteModelPart("RedistanceCalculationPart");
 
@@ -529,7 +537,7 @@ private:
     }
 
     void SynchronizeDistance(){
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         auto &r_communicator = r_distance_model_part.GetCommunicator();
 
@@ -559,7 +567,7 @@ private:
     }
 
     void SynchronizeFixity(){
-        Model& current_model = mr_base_model_part.GetOwnerModel();
+        Model& current_model = mr_base_model_part.GetModel();
         ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
                 auto &r_communicator = r_distance_model_part.GetCommunicator();
 
@@ -611,7 +619,11 @@ const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDen
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2, false));
 
 ///@}
 

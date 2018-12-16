@@ -54,7 +54,7 @@ namespace Kratos
  * @todo Replace generalized inverse for QR decomposition
  * @author Vicente Mataix Ferrandiz
  */
-class IntegrationValuesExtrapolationToNodesProcess
+class KRATOS_API(MESHING_APPLICATION) IntegrationValuesExtrapolationToNodesProcess
     : public Process
 {
 public:

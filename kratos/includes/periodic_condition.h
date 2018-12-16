@@ -109,9 +109,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
-
     ///@}
     ///@name Life Cycle
     ///@{

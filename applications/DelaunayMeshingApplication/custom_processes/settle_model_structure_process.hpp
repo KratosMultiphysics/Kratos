@@ -481,7 +481,10 @@ class SettleModelStructureProcess
             }
 
             i_node->Set(TO_REFINE,false);
-            i_node->Set(NEW_ENTITY,false);
+
+            if ( i_node->IsNot(BOUNDARY)) {
+                  i_node->Set(NEW_ENTITY,false);
+            }
 
             // if( (i_node->Is(BLOCKED) || i_node->Is(ISOLATED) ) && i_node->IsNot(TO_ERASE) ){
             //   (i_mp->Nodes()).push_back(*(i_node.base()));
@@ -928,7 +931,7 @@ class SettleModelStructureProcess
     // rComputingModelPart.Conditions().Sort();
 
     //Unique
-    // rComputingModelPart.Nodes().Unique();
+    rComputingModelPart.Nodes().Unique();
     // rComputingModelPart.Elements().Unique();
     // rComputingModelPart.Conditions().Unique();
 

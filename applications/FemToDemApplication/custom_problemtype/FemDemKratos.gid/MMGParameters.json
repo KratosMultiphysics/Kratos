@@ -1,0 +1,62 @@
+{
+            "mesh_id"                          : 0,
+            "filename"                         : "Voladizo",
+            "model_part_name"                  : "MainModelPart",
+            "strategy"                         : "Hessian",
+            "level_set_strategy_parameters"              :{
+                "scalar_variable"                  : "DISTANCE",
+                "gradient_variable"                : "DISTANCE_GRADIENT"
+            },
+            "framework"                            : "Lagrangian",
+            "internal_variables_parameters"        :
+            {
+                "allocation_size"                      : 1000,
+                "bucket_size"                          : 4, 
+                "search_factor"                        : 2, 
+                "interpolation_type"                   : "CPT",
+                "internal_variable_interpolation_list" :["DAMAGE_ELEMENT","STRESS_THRESHOLD"]
+            },
+            "hessian_strategy_parameters"              :{
+                "metric_variable"                  : ["EQUIVALENT_NODAL_STRESS"],
+                "estimate_interpolation_error"     : false,
+                "interpolation_error"              : 0.001, 
+                "mesh_dependent_constant"          : 0.28125
+            },
+            "enforce_current"                  : false,
+            "initial_step"                     : 1,
+            "step_frequency"                   : 30,
+            "automatic_remesh"                 : true,
+            "automatic_remesh_parameters"      :{
+                "automatic_remesh_type"            : "Ratio",
+                "min_size_ratio"                   : 0.01,
+                "max_size_ratio"                   : 2.0,
+                "refer_type"                       : "Mean"
+            },
+            "initial_remeshing"                : false,
+            "fix_contour_model_parts"          : [],
+            "minimal_size"                     : 0.01,
+            "maximal_size"                     : 1.0,
+            "force_min"                        : false,
+            "force_max"                        : false,
+            "advanced_parameters"                  :
+            {
+                "hausdorff_value"                     : 0.001,
+                "no_move_mesh"                        : false,
+                "no_surf_mesh"                        : false,
+                "no_insert_mesh"                      : false,
+                "no_swap_mesh"                        : false,
+                "deactivate_detect_angle"             : false,
+                "gradation_value"                     : 1.0
+            },
+            "anisotropy_remeshing"             : false,
+            "anisotropy_parameters":{
+                "hmin_over_hmax_anisotropic_ratio" : 0.01,
+                "boundary_layer_max_distance"      : 1.0,
+                "boundary_layer_min_size_ratio"    : 2.0,
+                "interpolation"                    : "Linear"
+            },
+            "save_external_files"              : false,
+            "max_number_of_searchs"            : 1000,
+            "debug_mode"                       : false,
+            "echo_level"                       : 0
+        }

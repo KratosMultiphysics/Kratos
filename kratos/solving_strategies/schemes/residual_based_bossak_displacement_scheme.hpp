@@ -87,9 +87,25 @@ public:
     ///@{
 
     /**
+     * @brief Constructor. (with parameters)
+     * @detail The bossak method
+     * @param ThisParameters The parameters containing the configuration
+     */
+    explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
+        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "damp_factor_m" : -0.3
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
      * @brief Constructor.
      * @detail The bossak method
-     * @rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
+     * @param rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
      */
     explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
         :ImplicitBaseType()
@@ -386,6 +402,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBossakDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

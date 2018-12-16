@@ -81,7 +81,8 @@ class TestObjectPrinting(KratosUnittest.TestCase):
         self.assertMultiLineEqual(str(prop), prop_str)
 
     def test_ModelPart_str(self):
-        model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("test_model_part_io_read"))

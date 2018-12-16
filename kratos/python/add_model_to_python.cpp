@@ -20,30 +20,25 @@
 #include "containers/model.h"
 #include "python/add_model_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
+namespace Kratos {
+namespace Python {
 
 void  AddModelToPython(pybind11::module& m)
 {
-    class_<Model >(m,"Model")
-    .def(init<>())
+    namespace py = pybind11;
+    py::class_<Model >(m,"Model")
+    .def(py::init<>())
     .def("Reset", &Model::Reset)
-    .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, return_value_policy::reference_internal )
-    .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, return_value_policy::reference_internal )
+    .def("CreateModelPart", [&](Model& self, const std::string& Name){return &self.CreateModelPart(Name);}, py::return_value_policy::reference_internal )
+    .def("CreateModelPart", [&](Model& self, const std::string& Name, unsigned int BufferSize){return &self.CreateModelPart(Name, BufferSize);}, py::return_value_policy::reference_internal )
     .def("DeleteModelPart", &Model::DeleteModelPart)
-    .def("GetModelPart", &Model::GetModelPart, return_value_policy::reference_internal)
+    .def("GetModelPart", &Model::GetModelPart, py::return_value_policy::reference_internal)
     .def("HasModelPart", &Model::HasModelPart)
-    .def("__getitem__", &Model::GetModelPart, return_value_policy::reference_internal)
-    .def("__repr__", [](const Model& self) -> const std::string { std::stringstream ss;  ss << self; return ss.str(); })
+    .def("__getitem__", &Model::GetModelPart, py::return_value_policy::reference_internal)
+    .def("__str__", PrintObject<Model>)
     ;
 }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

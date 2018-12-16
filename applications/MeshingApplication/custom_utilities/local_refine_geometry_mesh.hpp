@@ -61,7 +61,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-class LocalRefineGeometryMesh
+class KRATOS_API(MESHING_APPLICATION) LocalRefineGeometryMesh
 {
 public:
 
@@ -89,7 +89,7 @@ public:
     }
 
     /// Destructor
-    ~LocalRefineGeometryMesh()
+    virtual ~LocalRefineGeometryMesh()
     = default;
 
     ///@}

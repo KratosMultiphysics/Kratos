@@ -60,7 +60,7 @@ public:
     }
 
     /// Destructor
-    ~LocalRefinePrismMesh()
+    ~LocalRefinePrismMesh() override
     = default;
 
     ///@}

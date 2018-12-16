@@ -46,8 +46,12 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
         with open(settings["materials_filename"].GetString(), 'r') as parameter_file:
             materials = KratosMultiphysics.Parameters(parameter_file.read())
 
-        for i in range(materials["properties"].size()):
-            self._AssignPropertyBlock(materials["properties"][i])
+        props = materials["properties"]
+
+        CheckUniqueMaterialAssignment(props)
+
+        for i in range(props.size()):
+            self._AssignPropertyBlock(props[i])
 
         KratosMultiphysics.Logger.PrintInfo("::[Reading materials process]:: ", "Finished")
 
@@ -215,3 +219,24 @@ class ReadMaterialsProcess(KratosMultiphysics.Process):
                 new_table.AddRow(table["data"][i][0].GetDouble(), table["data"][i][1].GetDouble())
 
             prop.SetTable(input_var,output_var,new_table)
+
+def CheckUniqueMaterialAssignment(properties_block):
+    """This function check if the materials are assigned uniquely
+    I.e. defining materials multiple times for the same ModelPart is not allowed
+    Also defining materials for parent- and submodelparts is not allowed
+    """
+    model_part_names = [properties_block[i]["model_part_name"].GetString() for i in range(properties_block.size())]
+
+    for name in model_part_names:
+        if model_part_names.count(name) > 1:
+            raise Exception('Error: Materials for ModelPart "' + name + '" are specified multiple times!')
+
+        parent_model_part_name = name
+
+        while "." in parent_model_part_name:
+            parent_model_part_name = parent_model_part_name[:parent_model_part_name.rfind(".")]
+            if parent_model_part_name in model_part_names:
+                err_msg  = 'Error: Materials for ModelPart "' + name + '" are specified multiple times!\n'
+                err_msg += 'Overdefined due to also specifying the materials for Parent-ModelPart "'
+                err_msg += parent_model_part_name + '"!'
+                raise Exception(err_msg)

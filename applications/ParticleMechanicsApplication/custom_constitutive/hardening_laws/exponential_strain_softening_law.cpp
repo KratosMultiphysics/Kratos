@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
 
@@ -33,7 +33,7 @@ namespace Kratos
 ExponentialStrainSofteningLaw::ExponentialStrainSofteningLaw()
 	:MPMHardeningLaw()
 {
-   
+
 }
 
 

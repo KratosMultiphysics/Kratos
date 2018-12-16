@@ -65,7 +65,7 @@ public:
     }
 
     /// Destructor
-    ~LocalRefineTriangleMesh()
+    ~LocalRefineTriangleMesh() override
     = default;
 
     ///@}

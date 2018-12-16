@@ -9,7 +9,9 @@ def Factory(settings, Model):
     default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name" : "MainModelPart",
-                "file_settings" : {},
+                "file_settings" : {
+                    "file_access_mode" : "read_only"
+                },
                 "nodal_solution_step_data_settings" : {},
                 "element_data_value_settings" : {},
                 "nodal_data_value_settings": {},

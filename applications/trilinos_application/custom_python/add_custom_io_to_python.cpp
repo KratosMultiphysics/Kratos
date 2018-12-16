@@ -10,12 +10,9 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
-
-
 
 // Project includes
 
@@ -112,16 +109,14 @@ void (GidIOType::*pointer_to_array1d_write_nodal_results)(
 
 void  AddCustomIOToPython(pybind11::module& m)
 {
+    namespace py = pybind11;
 
-
-    using namespace pybind11;
-
-    class_<GidIOType, GidIOType::Pointer, IO>(m,"TrilinosGidIO")
-    .def(init<std::string const&, GiD_PostMode,
+    py::class_<GidIOType, GidIOType::Pointer, IO>(m,"TrilinosGidIO")
+    .def(py::init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
-    //.def(init<std::string const&>())
+    //.def(py::init<std::string const&>())
     .def("WriteMesh",WriteMesh)
     .def("WriteNodeMesh",WriteNodeMesh)
 
