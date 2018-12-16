@@ -71,7 +71,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
+    /**
+     * @brief Constructor with separate paramters
+     *
+     * @param rModelPart Complete model part (including boundaries) for the process to operate on
+     * @param PerformCorrections Choice if only logging is required (false) or if corrections by shifting the distance field shall be performed (true)
+     * @param CorrectionFreq Frequency of the correction (if wished) in time steps
+     * @param WriteToLogFile Choice if results shall be written to a log file in every time step
+     * @param LogFileName Name of the log file (if wished)
+     */
     MassConservationCheckProcess(
         ModelPart& rModelPart,
         const bool PerformCorrections,
@@ -79,7 +87,12 @@ public:
         const bool WriteToLogFile,
         const std::string LogFileName);
 
-    /// Constructor with Kratos parameters.
+    /**
+     * @brief Constructor with Kratos parameters
+     *
+     * @param rModelPart Complete model part (including boundaries) for the process to operate on
+     * @param rParameters Parameters for the process
+     */
     MassConservationCheckProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
@@ -99,17 +112,47 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Function to compute only the positive volume ("air") inside the domain
+     *
+     * @return double Volume with a positive value of the distance field
+     */
     double ComputePositiveVolume();
 
+    /**
+     * @brief Function to compute only the negative volume inside ("water") the domain
+     *
+     * @return double Volume with a negative value of the distance field
+     */
     double ComputeNegativeVolume();
 
+    /**
+     * @brief Function to compute the area of the interface between both fluids
+     *
+     * @return double Area of the interface
+     */
     double ComputeInterfaceArea();
 
+    /**
+     * @brief Function to compute the "negative" (water) volume flow over a specified boundary
+     *
+     * @param boundaryFlag Boundary to consider
+     * @return double Volume flow computed over boundary in regions with negative distance field
+     */
     double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
 
-
+    /**
+     * @brief Initialization of the process including computation of inital volumes
+     *
+     * @return std::string Output message (can appear in log-file)
+     */
     std::string Initialize();
 
+    /**
+     * @brief Execution of the process in each time step
+     *
+     * @return std::string Output message (can appear in log-file)
+     */
     std::string ExecuteInTimeStep();
 
     // ///@}
@@ -150,19 +193,25 @@ private:
     ///@name Member Variables
     ///@{
 
+    // Reference to the model part
     const ModelPart& mrModelPart;
 
+    // Process parameters
     int mCorrectionFreq = 1;
     bool mWriteToLogFile = true;
     bool mPerformCorrections = true;
     std::string mLogFileName = "mass_conservation.log";
 
+    // Inital volume with negative distance field ("water" volume)
     double mInitialNegativeVolume = -1.0;
-
+    // Inital volume with positive distance field ("air" volume)
     double mInitialPositiveVolume = -1.0;
 
+    // Balance parameter resulting from an integration of the net inflow into the domain over time
+    // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
     double mTheoreticalNegativeVolume = -1.0;
 
+    // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
     double mQNet1 = 0.0;      // for the past time step (t - 1)
     double mQNet2 = 0.0;      // for the past time step (t - 2)
@@ -175,16 +224,55 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Computing volumes and interface in a common procedure (most efficient)
+     *
+     * @param positiveVolume "Air" volume
+     * @param negativeVolume "Water" volume
+     * @param interfaceArea Area of the two fluid interface
+     */
     void ComputeVolumesAndInterface( double& positiveVolume, double& negativeVolume, double& interfaceArea );
 
+    /**
+     * @brief Computation of normal (non-unit) vector on a line
+     *
+     * @param An Normal vector
+     * @param pGeometry Geometry to be considered
+     */
     void CalculateNormal2D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
 
+    /**
+     * @brief Computation of normal (non-unit) vector on a triangle
+     *
+     * @param An Normal vector (norm represents area)
+     * @param pGeometry Geometry to be considered
+     */
     void CalculateNormal3D( array_1d<double,3>& An, const Geometry<Node<3> >& pGeometry );
 
+    /**
+     * @brief Function to shift the distance field to perform a volume correction
+     *
+     * @param deltaDist Distance for the shift ( negative = more "water", positive = more "air")
+     */
     void ShiftDistanceField( double deltaDist );
 
+    /**
+     * @brief Generating a 2D triangle of type Triangle2D3 out of a Triangle3D3 geometry
+     * A rotation to a position parallel to the x,y plane is performed.
+     * @param rGeom Original triangle geometry
+     * @return Kratos::shared_ptr< Triangle2D3<Node<3>> > Pointer to the resulting triangle of type Triangle2D3
+     */
     Kratos::shared_ptr< Triangle2D3<Node<3>> > GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
 
+    /**
+     * @brief Function to generate an auxiliary line segment that covers only the negative part of the original geometry
+     *
+     * @param rGeom Reference to original geometry
+     * @param distance Distance of the initial boundary nodes
+     * @param p_aux_line Resulting line segment (output)
+     * @param aux_velocity1 Velocity at the first node of the new line segment(output)
+     * @param aux_velocity2 Velocity at the second node of the new line segment (output)
+     */
     void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
                             const Vector& distance,
                             Kratos::shared_ptr< Line3D2<IndexedPoint> >& p_aux_line,
