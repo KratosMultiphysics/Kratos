@@ -456,9 +456,6 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
 
         if ( p_condition->Is( boundaryFlag ) ){
 
-            KRATOS_WATCH( p_condition->Is( OUTLET ) )
-            KRATOS_WATCH( p_condition->Is( INLET ) )
-
             const auto& rGeom = p_condition->GetGeometry();
             const int dim = rGeom.PointsNumber();
             Vector distance( rGeom.PointsNumber(), 0.0 );
@@ -484,7 +481,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 if( norm_2( normal ) < epsilon ){ continue; }
                 else { normal /= norm_2( normal ); }
 
-                // the condition is completely on the negative side (2D)
+                // --- the condition is completely on the negative side (2D)
                 if ( neg_count == rGeom.PointsNumber() ){
                     const auto& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int num_gauss = IntegrationPoints.size();
@@ -502,40 +499,28 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         inflow_over_boundary -= w_gauss * inner_prod( normal, interpolated_velocity );
                     }
 
-                // the condition is cut (2D)
+                // --- the condition is cut (2D)
                 } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){
 
                     array_1d<double, 3> aux_velocity1, aux_velocity2;
 
-                    KRATOS_WATCH( "Before" )
-
+                    // Generation of an auxiliary line that only covers the negative fraction ("transferring the splitting mechanism to 1D")
                     Kratos::shared_ptr< Line3D2<IndexedPoint> > p_aux_line = nullptr;
                     GenerateAuxLine( rGeom, distance, p_aux_line, aux_velocity1, aux_velocity2 );
 
-                    KRATOS_WATCH( "After - 0" )
-
-                    // Gauss point information for auxiliary geometry
+                    // Gauss point information for auxiliary line geometry
                     const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::GI_GAUSS_2 );
-                    KRATOS_WATCH( "After - 0 a" )
                     const unsigned int num_gauss = IntegrationPoints.size();
-                    KRATOS_WATCH( "After - 0 b" )
                     Vector gauss_pts_det_jabobian = ZeroVector(num_gauss);
-                    KRATOS_WATCH( "After - 0 c" )
                     p_aux_line->DeterminantOfJacobian(gauss_pts_det_jabobian, GeometryData::GI_GAUSS_2);
-                    KRATOS_WATCH( "After - 0 d" )
                     const Matrix n_container = p_aux_line->ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
-
-                    KRATOS_WATCH( "After - 1" )
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
                         const Vector N = row(n_container, i_gauss);
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
-
                         const array_1d<double,3> interpolatedVelocity = N[0] * aux_velocity1 + N[1] * aux_velocity2;
                         inflow_over_boundary -= std::abs( w_gauss ) * inner_prod( normal, interpolatedVelocity );
                     }
-
-                    KRATOS_WATCH( "After - 2" )
                 }
             }
 
@@ -547,7 +532,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                 if( norm_2( normal ) < epsilon ){ continue; }
                 else { normal /= norm_2( normal ); }
 
-                if ( neg_count == rGeom.PointsNumber() ){       // the condition is completely on the negative side
+                // --- the condition is completely on the negative side (3D)
+                if ( neg_count == rGeom.PointsNumber() ){
 
                     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                     const unsigned int num_gauss = IntegrationPoints.size();
@@ -564,10 +550,9 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
-                    KRATOS_WATCH( "Complete ---------------------------------- " )
-                    KRATOS_WATCH( inflow_over_boundary )
 
-                } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){      // the condition is cut
+                // --- the condition is cut
+                } else if ( neg_count < rGeom.PointsNumber() && pos_count < rGeom.PointsNumber() ){
 
                     Matrix r_shape_functions;
                     GeometryType::ShapeFunctionsGradientsType r_shape_derivatives;
@@ -584,10 +569,6 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
                         GeometryData::GI_GAUSS_2);          // second order Gauss integration
 
-                    // KRATOS_WATCH( r_shape_functions )
-                    KRATOS_WATCH( r_shape_derivatives )
-                    KRATOS_WATCH( w_gauss_neg_side )
-
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
                         const array_1d<double,3>& N = row(r_shape_functions, i_gauss);
@@ -599,8 +580,6 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         // the normal still comes from the oiginal triangle
                         inflow_over_boundary -= std::abs( w_gauss_neg_side[i_gauss] ) * inner_prod( normal, interpolated_velocity );
                     }
-                    KRATOS_WATCH( "Cut --------------------------------- " )
-                    KRATOS_WATCH( inflow_over_boundary )
                 }
             }
         }
@@ -734,9 +713,6 @@ void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rG
     }
 
     p_aux_line = Kratos::make_shared< Line3D2 < IndexedPoint > >( paux_point1, paux_point2 );
-
-    const auto& IntegrationPoints = p_aux_line->IntegrationPoints( GeometryData::GI_GAUSS_2 );
-    KRATOS_WATCH( IntegrationPoints )
 }
 
 
