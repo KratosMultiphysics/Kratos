@@ -77,9 +77,6 @@ public:
 
     /// The definition of the node
     typedef Node<3> NodeType;
-
-    /// The definition of the node iterator
-    typedef ModelPart::NodeIterator NodeIterator;
     
     /// Pointer definition of CalculateNodalAreaProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalAreaProcess);
