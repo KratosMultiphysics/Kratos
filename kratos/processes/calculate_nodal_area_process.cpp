@@ -79,8 +79,11 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
         }
     }
 
+    // Synchronize data
     if (THistorical) {
         mrModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
+    } else {
+        mrModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
     }
 
     KRATOS_CATCH("");
