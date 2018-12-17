@@ -175,7 +175,7 @@ void CalculateDistancesDefault2D(ParallelDistanceCalculator<2>& rParallelDistanc
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 }
-
+    
 void CalculateDistancesFlag2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
@@ -185,7 +185,7 @@ void CalculateDistancesDefault3D(ParallelDistanceCalculator<3>& rParallelDistanc
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
 }
-
+    
 void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
 {
     rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
@@ -841,7 +841,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     std::size_t (*GetMinimumBufferSizeBDF6)(const TimeDiscretization::BDF6&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeNewmark)(const TimeDiscretization::Newmark&) = &TimeDiscretization::GetMinimumBufferSize;
     std::size_t (*GetMinimumBufferSizeBossak)(const TimeDiscretization::Bossak&) = &TimeDiscretization::GetMinimumBufferSize;
-    std::size_t (*GetMinimumBufferSizeGneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
+    std::size_t (*GetMinimumBufferSizeGeneralizedAlpha)(const TimeDiscretization::GeneralizedAlpha&) = &TimeDiscretization::GetMinimumBufferSize;
 
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF1 );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF2 );
@@ -851,7 +851,7 @@ void AddUtilitiesToPython(pybind11::module& m)
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBDF6 );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeNewmark );
     m.def("GetMinimumBufferSize", GetMinimumBufferSizeBossak );
-    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGneralizedAlpha );
+    m.def("GetMinimumBufferSize", GetMinimumBufferSizeGeneralizedAlpha );
 }
 
 } // namespace Python.

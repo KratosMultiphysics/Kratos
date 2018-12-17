@@ -60,6 +60,7 @@ namespace Kratos
 /// Short class definition.
 /**takes a model part full of SIMPLICIAL ELEMENTS (triangles and tetras) and recomputes a signed distance function
 mantaining as much as possible the position of the zero of the function prior to the call.
+
 This is achieved by minimizing the function  ( 1 - norm( gradient( distance ) )**2
 with the restriction that "distance" is a finite elment function
 */
@@ -109,8 +110,10 @@ public:
          krylov_type = "CG"
          smoother_type = "SPAI0"
          verbosity = 0
+
      import linear_solver_factory
      distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
+
      max_iterations=1
      distance_calculator = VariationalDistanceCalculationProcess2D(fluid_model_part, distance_linear_solver, max_iterations)
      distance_calculator.Execute()
@@ -262,7 +265,7 @@ public:
                 else {
                     if(TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                    }
+                    } 
                     else {
                         GeometryUtils::CalculateTriangleDistances(geom, distances);
                     }
@@ -655,3 +658,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
+
+

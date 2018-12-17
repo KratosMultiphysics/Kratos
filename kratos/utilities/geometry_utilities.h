@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//                   Multi-Physics 
 //
-//  License:		 BSD License
+//  License:		 BSD License 
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//
+//                    
 //
 
 
@@ -29,7 +29,6 @@
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/element.h"
-#include "geometries/plane.h"
 
 
 namespace Kratos
@@ -328,7 +327,7 @@ public:
     }
 
     /**
-     * Calculate the exact distances to the interface SEGMENT defined by a set
+     * Calculate the exact distances to the interface SEGMENT defined by a set 
      * of initial distances.
      * @param ThisGeometryThe Triangle itself. Note: If the geometry is not a
      * triangle the result is undefined and may cause memory error.
@@ -393,16 +392,16 @@ public:
 		}
 		else
 		{
-			std::cout << "This is a triangle with more than two intersections!" << std::endl;
-			std::cout << "Warning: Too many intersections: " << number_of_intersection_points << std::endl;
+			std::cout << "This is a triangle with more than two intersections!" << std::endl;	
+			std::cout << "Warning: Too many intersections: " << number_of_intersection_points << std::endl;		
 			std::cout << "Warning: The distances are: " << Distances << std::endl;
-
+			
 		}
 
     }
 
     /**
-     * Calculate the exact distances to the plane interface defined by a set
+     * Calculate the exact distances to the plane interface defined by a set 
      * of initial distances.
      * @param ThisGeometry Geometry can be either a triangle or a tetrahedra
      * @param Distances The distances which define the isosurface as input.
@@ -822,7 +821,7 @@ public:
 
     /**
      * @brief Calculate the deformation gradient.
-     *
+     * 
      * See, e.g., P. Wriggers, Nonlinear Finite Element Methods, Springer, 2008.
      * @param rJ element Jacobian.
      * @param rInvJ0 inverse of the element Jacobian of the initial configuration.
@@ -837,7 +836,7 @@ public:
 
     /**
      * @brief Calculate the Jacobian on the initial configuration.
-     *
+     * 
      * @param rGeom element geometry.
      * @param rCoords local coordinates of the current integration point.
      * @param rJ0 Jacobian on the initial configuration.
@@ -857,4 +856,6 @@ public:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined
+#endif // KRATOS_GEOMETRY_UTILITIES_INCLUDED  defined 
+
+
