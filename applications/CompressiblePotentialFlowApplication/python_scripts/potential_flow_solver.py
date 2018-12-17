@@ -80,37 +80,9 @@ class LaplacianSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL)
 
-        # Flow field magnitudes
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_INFINITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.VELOCITY_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.PRESSURE_LOWER)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.POTENTIAL_JUMP)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ENERGY_NORM_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.POTENTIAL_ENERGY_REFERENCE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_ENERGY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_ENERGY)
-
-        # Markers
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.KUTTA)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.UPPER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LOWER_SURFACE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.UPPER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.LOWER_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.AIRFOIL)
-
         # Kratos variables
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
-
-        #To be removed
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.DECOUPLED_TRAILING_EDGE_ELEMENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.DEACTIVATED_WAKE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ALL_TRAILING_EDGE)
-        self.main_model_part.AddNodalSolutionStepVariable(KCPFApp.ZERO_VELOCITY_CONDITION)
 
     def AddDofs(self):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.VELOCITY_POTENTIAL, self.main_model_part)
@@ -118,7 +90,7 @@ class LaplacianSolver(PythonSolver):
 
     def Initialize(self):
         # Construct the linear solvers
-        import linear_solver_factory
+        from KratosMultiphysics import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

@@ -85,7 +85,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 max_x_coordinate = node.X
                 self.te = node
 
-        self.te.SetSolutionStepValue(CPFApp.TRAILING_EDGE, True)
+        self.te.SetValue(CPFApp.TRAILING_EDGE, True)
 
     def MarkWakeElements(self):
         # This function checks which elements are cut by the wake
@@ -118,7 +118,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # edge and saves them in the trailing_edge_model_part for
         # further computations
         for elnode in elem.GetNodes():
-            if(elnode.GetSolutionStepValue(CPFApp.TRAILING_EDGE)):
+            if(elnode.GetValue(CPFApp.TRAILING_EDGE)):
                 elem.SetValue(CPFApp.TRAILING_EDGE, True)
                 self.trailing_edge_model_part.Elements.append(elem)
                 break
