@@ -61,7 +61,6 @@ public:
     struct ElementalData
     {
         array_1d<double,TNumNodes> phis, distances;
-        double rho;
         double vol;
 
         bounded_matrix<double, TNumNodes, TDim > DN_DX;
@@ -87,7 +86,7 @@ public:
     /**
      * Constructor.
      */
-    CompressiblePotentialFlowElement(IndexType NewId = 0) {};
+    explicit CompressiblePotentialFlowElement(IndexType NewId = 0) {};
 
     /**
      * Constructor using an array of nodes
@@ -447,8 +446,7 @@ public:
 
         if (rVariable == PRESSURE)
         {
-            double p = 0.0;
-            p = ComputePressure(rCurrentProcessInfo);
+            double p = ComputePressure(rCurrentProcessInfo);
             rValues[0] = p;
         }
     }
@@ -673,7 +671,6 @@ protected:
 
     double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        double pressure = 0.0;
         const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -684,14 +681,13 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityNormalElement(v);
 
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
         return pressure;
     }
 
     double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
     {
-        double pressure = 0.0;
         const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
         const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -702,7 +698,7 @@ protected:
         array_1d<double, Dim> v;
         ComputeVelocityLowerWakeElement(v);
 
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
+        double pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
 
         return pressure;
     }

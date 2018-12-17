@@ -183,14 +183,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
 
     if (rVariable == PRESSURE)
     {
-        double p = 0.0;
-        p = ComputePressureUpper(rCurrentProcessInfo);
+        double p = ComputePressureUpper(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == PRESSURE_LOWER)
     {
-        double p = 0.0;
-        p = ComputePressureLower(rCurrentProcessInfo);
+        double p = ComputePressureLower(rCurrentProcessInfo);
         rValues[0] = p;
     }
     else if (rVariable == WAKE)
@@ -565,15 +563,11 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(Pro
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    double aux_potential;
-    double potential;
-    double potential_jump;
-
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        aux_potential = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
-        potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
-        potential_jump = aux_potential - potential;
+        double aux_potential = GetGeometry()[i].FastGetSolutionStepValue(AUXILIARY_VELOCITY_POTENTIAL);
+        double potential = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_POTENTIAL);
+        double potential_jump = aux_potential - potential;
 
         if (distances[i] > 0)
         {
