@@ -90,10 +90,9 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     '''load settings (Kratos Parameters object) from SteramSerializer Kratos object'''
     aux_settings = KratosMultiphysics.Parameters()
     aux_settings_serialized.Load("ParametersSerialization",aux_settings)
-    '''create an auxiliary object auxiliary_MLMC_object equivalent to the current one of the problem'''
-    auxiliary_settings = KratosMultiphysics.Parameters("""{ }""")
-    auxiliary_MLMC_object = ConstructorCallback(auxiliary_settings)
-    auxiliary_MLMC_object.settings = aux_settings
+    '''create an auxiliary object auxiliary_MLMC_object equivalent to the current one of the problem
+    construct the class with the aux_settings settings passed from outside'''
+    auxiliary_MLMC_object = ConstructorCallback(aux_settings)
     auxiliary_MLMC_object.difference_QoI.mean = difference_QoI_mean
     auxiliary_MLMC_object.difference_QoI.sample_variance = difference_QoI_sample_variance
     auxiliary_MLMC_object.time_ML.mean = time_ML_mean
@@ -322,11 +321,11 @@ class MultilevelMonteCarlo(object):
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
         '''compute i_E, number of iterations of Multilevel Monte Carlo algorithm'''
         self.ComputeNumberIterationsMLMC()
-        # '''following commented lines are the functions we execute in FinalizePhase_Task'''
-        # '''compute parameters by least square fit to estimate Bayesian VAR'''
-        # self.ComputeRatesLS()
-        # '''compute Bayesian VAR V^c[Y_l]'''
-        # self.EstimateBayesianVariance(self.current_number_levels)
+        '''the following lines represent the functions we execute in FinalizePhase_Task
+        compute parameters by least square fit to estimate Bayesian VAR
+        self.ComputeRatesLS()
+        compute Bayesian VAR V^c[Y_l]
+        self.EstimateBayesianVariance(self.current_number_levels)'''
         '''store lists in synchro_element to execute FinalizePhase_Task'''
         synchro_elements = [x for x in self.difference_QoI.mean]
         synchro_elements.extend(["%%%"])
@@ -336,7 +335,8 @@ class MultilevelMonteCarlo(object):
         '''create a StreamSerializer Kratos object containing the problem settings'''
         serial_settings = KratosMultiphysics.StreamSerializer()
         serial_settings.Save("ParametersSerialization", self.settings)
-        '''compute remaining MLMC finalize process operations'''
+        '''compute remaining MLMC finalize process operations
+        observation: we are passing self.settings and we will exploit it to construct the class'''
         self.rates_error,self.BayesianVariance,self.mean_mlmc_QoI,\
         self.TErr,self.number_samples\
         = FinalizePhase_Task(MultilevelMonteCarlo,
@@ -395,15 +395,15 @@ class MultilevelMonteCarlo(object):
                 self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
         '''update number of levels'''
         self.previous_number_levels = self.current_number_levels
-        # '''following commented lines are the functions we execute in FinalizePhase_Task'''
-        # '''compute estimatior MLMC mean QoI'''
-        # self.ComputeMeanMLMCQoI()
-        # '''compute parameters by least square fit'''
-        # self.ComputeRatesLS()
-        # '''compute Bayesian variance'''
-        # self.EstimateBayesianVariance(self.current_number_levels)
-        # '''compute total error of the MLMC simulation'''
-        # self.ComputeTotalErrorMLMC()
+        '''the following commented lines represent the functions we execute in FinalizePhase_Task
+        compute estimatior MLMC mean QoI
+        self.ComputeMeanMLMCQoI()
+        compute parameters by least square fit
+        self.ComputeRatesLS()
+        compute Bayesian variance
+        self.EstimateBayesianVariance(self.current_number_levels)
+        compute total error of the MLMC simulation
+        self.ComputeTotalErrorMLMC()'''
         '''store lists in synchro_element to execute FinalizePhase_Task'''
         synchro_elements = [x for x in self.difference_QoI.mean]
         synchro_elements.extend(["%%%"])
@@ -413,7 +413,8 @@ class MultilevelMonteCarlo(object):
         '''create a StreamSerializer Kratos object containing the problem settings'''
         serial_settings = KratosMultiphysics.StreamSerializer()
         serial_settings.Save("ParametersSerialization", self.settings)
-        '''compute remaining MLMC finalize process operations'''
+        '''compute remaining MLMC finalize process operations
+        observation: we are passing self.settings and we will exploit it to construct the class'''
         self.rates_error,self.BayesianVariance,self.mean_mlmc_QoI,\
         self.TErr,self.number_samples\
         = FinalizePhase_Task(MultilevelMonteCarlo,
@@ -447,7 +448,7 @@ class MultilevelMonteCarlo(object):
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
         print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
-        print("mean and variance time_ML",self.time_ML.mean,self.time_ML.sample_variance)
+        print("mean time_ML",self.time_ML.mean)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.BayesianVariance)
         print("minimum number of MLMC iterations = ",self.number_iterations_iE)
@@ -476,7 +477,7 @@ class MultilevelMonteCarlo(object):
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
         print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
-        print("mean and variance time_ML",self.time_ML.mean,self.time_ML.sample_variance)
+        print("mean time_ML",self.time_ML.mean)
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.BayesianVariance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
