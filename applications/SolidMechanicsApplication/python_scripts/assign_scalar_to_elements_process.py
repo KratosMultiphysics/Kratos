@@ -23,13 +23,46 @@ class AssignScalarToElementsProcess(BaseProcess.AssignScalarToNodesProcess):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.model_part.ProcessInfo.SetValue(KratosMultiphysics.INTERVAL_END_TIME, self.interval[1])
 
         # set processes
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", self.settings["model_part_name"])
+        params.AddValue("compound_assignment", self.settings["compound_assignment"])
 
+        self.CreateAssignmentProcess(params)
+
+        self.SetCurrentTime()
+        if( self.IsInsideInterval() and self.interval_string == "initial" ):
+            self.AssignValueProcess.Execute()
+
+
+    def ExecuteFinalizeSolutionStep(self):
+
+        if not self.interval_ended:
+            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+
+            #arithmetic floating point tolerance
+            tolerance = delta_time * 0.001
+
+            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
+                self.interval_ended = True
+                if not self.finalized :
+                    self.AssignValueProcess.ExecuteFinalize()
+                    self.finalized = True
+
+
+    def ExecuteAssignment(self):
+        if self.IsInsideInterval():
+            self.AssignValueProcess.Execute()
+
+    def ExecuteUnAssignment(self):
+        if self.IsInsideInterval():
+            self.UnAssignValueProcess.Execute()
+
+    def CreateAssignmentProcess(self, params):
         if( self.value_is_numeric ):
             params.AddValue("variable_name", self.settings["variable_name"])
             params.AddValue("value", self.settings["value"])
@@ -48,27 +81,9 @@ class AssignScalarToElementsProcess(BaseProcess.AssignScalarToNodesProcess):
             params.AddEmptyValue("entity_type").SetString("ELEMENTS")
             self.AssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)
 
-        if( self.IsInsideInterval() and self.interval_string == "initial" ):
-            self.AssignValueProcess.Execute()
-
-
-    def ExecuteInitializeSolutionStep(self):
-
-        if self.IsInsideInterval():
-            self.AssignValueProcess.Execute()
-
-
-    def ExecuteFinalizeSolutionStep(self):
-
-        if not self.interval_ended:
-            current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-            delta_time   = self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-
-            #arithmetic floating point tolerance
-            tolerance = delta_time * 0.001
-
-            if( (current_time + delta_time) > (self.interval[1] + tolerance) ):
-                self.interval_ended = True
-                if not self.finalized :
-                    self.AssignValueProcess.ExecuteFinalize()
-                    self.finalized = True
+    def CreateUnAssignmentProcess(self, params):
+        params["compound_assignment"].SetString(self.GetInverseAssigment(self.settings["compound_assignment"].GetString()))
+        if( self.value_is_numeric ):
+            self.UnAssignValueProcess = KratosSolid.AssignScalarToEntitiesProcess(self.model_part, params)
+        else:
+            self.UnAssignValueProcess = KratosSolid.AssignScalarFieldToEntitiesProcess(self.model_part, self.compiled_function, "function", self.value_is_spatial_function, params)

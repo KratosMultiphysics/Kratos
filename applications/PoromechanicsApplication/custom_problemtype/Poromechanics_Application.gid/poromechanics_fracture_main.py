@@ -46,8 +46,16 @@ tol = delta_time*1.0e-10
 
 ## Model part ------------------------------------------------------------------------------------------------
 
-# Defining the model part
-main_model_part = KratosMultiphysics.ModelPart(ProjectParameters["solver_settings"]["model_part_name"].GetString())
+# Defining the model
+PoroModel = KratosMultiphysics.Model()
+
+# Defining model part
+original_model_part_name = ProjectParameters["solver_settings"]["model_part_name"].GetString()
+model_part_number = 0
+model_part_name = str(original_model_part_name) + '_' + str(model_part_number)
+
+main_model_part = PoroModel.CreateModelPart(model_part_name,2)
+
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
 main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, delta_time)
@@ -65,15 +73,6 @@ solver.ImportModelPart()
 
 # Add degrees of freedom
 solver.AddDofs()
-
-# Creation of Kratos model (build submodels and submeshes)
-PoroModel = KratosMultiphysics.Model()
-PoroModel.AddModelPart(main_model_part)
-
-# Build sub_model_parts (save the list of the submodel part in the object Model)
-#for i in range(ProjectParameters["solver_settings"]["processes_sub_model_part_list"].size()):
-#    part_name = ProjectParameters["solver_settings"]["processes_sub_model_part_list"][i].GetString()
-#    PoroModel.AddModelPart(main_model_part.GetSubModelPart(part_name))
 
 # Print model_part and properties
 if(echo_level > 1):
@@ -134,7 +133,10 @@ gid_output.ExecuteBeforeSolutionLoop()
 
 # Initialize Fracture Propagation Utility
 import poromechanics_fracture_propagation_utility
-fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(domain_size,
+fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(PoroModel,
+                                                                                         original_model_part_name,
+                                                                                         model_part_number,
+                                                                                         domain_size,
                                                                                          problem_name,
                                                                                          ProjectParameters["solver_settings"]["move_mesh_flag"].GetBool())
 

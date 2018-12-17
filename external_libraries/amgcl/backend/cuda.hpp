@@ -183,6 +183,12 @@ class cuda_hyb_matrix {
         size_t rows()     const { return nrows; }
         size_t cols()     const { return ncols; }
         size_t nonzeros() const { return nnz;   }
+        size_t bytes()    const {
+            return
+                sizeof(int)  * (nrows + 1) +
+                sizeof(int)  * nnz +
+                sizeof(real) * nnz;
+        }
     private:
         size_t nrows, ncols, nnz;
 
@@ -380,27 +386,9 @@ struct nonzeros_impl< cuda_hyb_matrix<V> > {
 };
 
 template < typename V >
-struct bytes_impl< cuda_hyb_matrix<V> > {
-    static size_t get(const cuda_hyb_matrix<V> &A) {
-        // the cusparse HYB format is opaque; we can only guess here:
-        return
-            sizeof(int) * (A.rows() + 1) +
-            sizeof(int) * A.nonzeros() +
-            sizeof(V)   * A.nonzeros();
-    }
-};
-
-template < typename V >
 struct bytes_impl< thrust::device_vector<V> > {
     static size_t get(const thrust::device_vector<V> &v) {
         return v.size() * sizeof(V);
-    }
-};
-
-template < typename V >
-struct bytes_impl< solver::cuda_skyline_lu<V> > {
-    static size_t get(const solver::cuda_skyline_lu<V> &s) {
-        return s.bytes();
     }
 };
 

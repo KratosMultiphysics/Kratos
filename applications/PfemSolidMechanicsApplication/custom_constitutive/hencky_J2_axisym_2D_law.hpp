@@ -33,7 +33,7 @@ namespace Kratos
 
 
 
-class HenckyJ2PlasticAxisym2DLaw 
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) HenckyJ2PlasticAxisym2DLaw 
   : public NonLinearHenckyElasticPlasticAxisym2DLaw
 
 {

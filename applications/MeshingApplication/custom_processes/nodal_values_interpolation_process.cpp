@@ -15,10 +15,12 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
+#include "utilities/geometrical_projection_utilities.h"
+#include "utilities/variable_utils.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
-#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -38,6 +40,7 @@ NodalValuesInterpolationProcess<TDim>::NodalValuesInterpolationProcess(
         "max_number_of_searchs"      : 1000,
         "interpolate_non_historical" : true,
         "extrapolate_contour_values" : true,
+        "surface_elements"           : false,
         "search_parameters"          : {
             "allocation_size"           : 1000,
             "bucket_size"               : 4,
@@ -63,44 +66,58 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     // Iterate in the nodes
     NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
-    const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
+    const SizeType num_nodes = nodes_array.size();
 
     if (mThisParameters["interpolate_non_historical"].GetBool())
         GetListNonHistoricalVariables();
 
     // We check if we extrapolate values
     const bool extrapolate_values = mThisParameters["extrapolate_contour_values"].GetBool();
+
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
-    /* Nodes */
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    #pragma omp parallel
+    {
+        // Creating a buffer for parallel vector fill
+        std::vector<NodeType::Pointer> to_extrapolate_nodes_buffer;
 
-        Vector shape_functions;
-        Element::Pointer p_element;
+        /* Nodes */
+        #pragma omp for firstprivate(point_locator)
+        for(int i = 0; i < static_cast<int>(num_nodes); ++i) {
+            auto it_node = nodes_array.begin() + i;
 
-        const array_1d<double, 3>& coordinates = it_node->Coordinates();
-        const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+            Vector shape_functions;
+            Element::Pointer p_element;
 
-        if (!is_found) {
-            if (extrapolate_values) to_extrapolate_nodes.push_back(*(it_node.base()));
-            if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
-                KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+            const array_1d<double, 3>& coordinates = it_node->Coordinates();
+            const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
+
+            if (!is_found) {
+                if (extrapolate_values) to_extrapolate_nodes_buffer.push_back(*(it_node.base()));
+                if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
+                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
+                    KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
+                }
+            } else {
+                if (mThisParameters["interpolate_non_historical"].GetBool())
+                    CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
+                for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                    CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
             }
-        } else {
-            if (mThisParameters["interpolate_non_historical"].GetBool())
-                CalculateData<Element>(*(it_node.base()), p_element, shape_functions);
-            for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
-                CalculateStepData<Element>(*(it_node.base()), p_element, shape_functions, i_step);
+        }
+
+        // Combine buffers together
+        #pragma omp critical
+        {
+            std::move(to_extrapolate_nodes_buffer.begin(),to_extrapolate_nodes_buffer.end(),back_inserter(to_extrapolate_nodes));
         }
     }
 
     // In case interpolate fails we extrapolate values
     if (extrapolate_values) {
-        GenerateBoundary();
-        ExtrapolateValues(to_extrapolate_nodes);
+        const std::string name_auxiliar_model_part = "SKIN_MODEL_PART_TO_LATER_REMOVE";
+        GenerateBoundary(name_auxiliar_model_part);
+        ExtrapolateValues(name_auxiliar_model_part, to_extrapolate_nodes);
     }
 }
 
@@ -110,37 +127,22 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 {
+    // Getting the Model
+    Model& r_model = mrOriginMainModelPart.GetModel();
+
+    // Getting the list of model parts
+    std::vector<std::string> model_part_names = mrOriginMainModelPart.GetSubModelPartNames();
+    model_part_names.push_back(mrOriginMainModelPart.Name());
+
     // We iterate over the model parts (in order to have the most extended possible list of variables)
-    for (auto& submodel : mrOriginMainModelPart.SubModelParts()) {
-        auto it_node = submodel.Nodes().begin();
+    for (auto& model_part_name : model_part_names) {
+        ModelPart& r_sub_model_part = r_model.GetModelPart(model_part_name);
+        if (r_sub_model_part.Nodes().size() > 0) {
+            auto it_node = r_sub_model_part.Nodes().begin();
 
-        const auto& double_components = KratosComponents<Variable<double>>::GetComponents();
-
-        for (auto& comp : double_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListDoublesVariables.insert(*(comp.second));
-            }
-        }
-        const auto& array_components = KratosComponents<Variable<array_1d<double, 3>>>::GetComponents();
-
-        for (auto& comp : array_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListArraysVariables.insert(*(comp.second));
-            }
-        }
-        const auto& vector_components = KratosComponents<Variable<Vector>>::GetComponents();
-
-        for (auto& comp : vector_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListVectorVariables.insert(*(comp.second));
-            }
-        }
-        const auto& matrix_components = KratosComponents<Variable<Matrix>>::GetComponents();
-
-        for (auto& comp : matrix_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListMatrixVariables.insert(*(comp.second));
-            }
+            auto& data = it_node->Data();
+            for(auto i = data.begin() ; i != data.end() ; ++i)
+                mListVariables.insert((i->first)->Name());
         }
     }
 }
@@ -149,37 +151,101 @@ void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 /***********************************************************************************/
 
 template<SizeType TDim>
-void NodalValuesInterpolationProcess<TDim>::GenerateBoundary()
+void NodalValuesInterpolationProcess<TDim>::GenerateBoundary(const std::string& rAuxiliarNameModelPart)
 {
+    // Auxiliar zero array
+    const array_1d<double, 3> zero_array = ZeroVector(3);
+
+    // Initialize values of Normal
+    /* Origin model part */
+    NodesArrayType& nodes_array_origin = mrOriginMainModelPart.Nodes();
+    const int num_nodes_origin = static_cast<int>(nodes_array_origin.size());
+    NodesArrayType& nodes_array_destiny = mrDestinationMainModelPart.Nodes();
+    const int num_nodes_destiny = static_cast<int>(nodes_array_destiny.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes_origin; ++i)
+        (nodes_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+    #pragma omp parallel for
+    for(int i = 0; i < num_nodes_destiny; ++i)
+        (nodes_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+
+    /* Destination model part */
+    ConditionsArrayType& conditions_array_origin = mrOriginMainModelPart.Conditions();
+    const int num_conditions_origin = static_cast<int>(conditions_array_origin.size());
+    ConditionsArrayType& conditions_array_destiny = mrDestinationMainModelPart.Conditions();
+    const int num_conditions_destiny = static_cast<int>(conditions_array_destiny.size());
+
+    #pragma omp parallel for
+    for(int i = 0; i < num_conditions_origin; ++i)
+        (conditions_array_origin.begin() + i)->SetValue(NORMAL, zero_array);
+    #pragma omp parallel for
+    for(int i = 0; i < num_conditions_destiny; ++i)
+        (conditions_array_destiny.begin() + i)->SetValue(NORMAL, zero_array);
+
     Parameters skin_parameters = Parameters(R"(
     {
-        "name_auxiliar_model_part" : "SKIN_MODEL_PART_TO_LATER_REMOVE"
+        "name_auxiliar_model_part" : ""
     })" );
+    skin_parameters["name_auxiliar_model_part"].SetString(rAuxiliarNameModelPart);
 
     /* Destination skin */
-    auto boundary_process_origin = SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters);
-    boundary_process_origin.Execute();
+    if (mThisParameters["surface_elements"].GetBool() == false) {
+        auto boundary_process_origin = SkinDetectionProcess<TDim>(mrOriginMainModelPart, skin_parameters);
+        boundary_process_origin.Execute();
+    } else {
+        GenerateBoundaryFromElements(mrOriginMainModelPart, rAuxiliarNameModelPart);
+    }
     // Compute normal in the skin
-    ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart& r_model_part_origin = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
     ComputeNormalSkin(r_model_part_origin);
 
     /* Destination skin */
-    auto boundary_process_destination = SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters);
-    boundary_process_destination.Execute();
+    if (mThisParameters["surface_elements"].GetBool() == false) {
+        auto boundary_process_destination = SkinDetectionProcess<TDim>(mrDestinationMainModelPart, skin_parameters);
+        boundary_process_destination.Execute();
+    } else {
+        GenerateBoundaryFromElements(mrDestinationMainModelPart, rAuxiliarNameModelPart);
+    }
     // Compute normal in the skin
-    ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+    ModelPart& r_model_part_destination = mrDestinationMainModelPart.GetSubModelPart(rAuxiliarNameModelPart);
     ComputeNormalSkin(r_model_part_destination);
-    mrDestinationMainModelPart.RemoveSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE");
+    mrDestinationMainModelPart.RemoveSubModelPart(rAuxiliarNameModelPart);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template<SizeType TDim>
-void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes)
+void NodalValuesInterpolationProcess<TDim>::GenerateBoundaryFromElements(
+    ModelPart& rModelPart,
+    const std::string& rAuxiliarNameModelPart
+    )
+{
+    ModelPart& r_new_model_part = rModelPart.HasSubModelPart(rAuxiliarNameModelPart) ? rModelPart.GetSubModelPart(rAuxiliarNameModelPart) : rModelPart.CreateSubModelPart(rAuxiliarNameModelPart);
+
+    IndexType new_id = rModelPart.GetRootModelPart().NumberOfConditions();
+
+    auto& r_elements_array = rModelPart.Elements();
+    for(IndexType i=0; i< r_elements_array.size(); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
+        r_new_model_part.CreateNewCondition("Condition3D", new_id + 1, it_elem->GetGeometry(), it_elem->pGetProperties());
+        ++new_id;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TDim>
+void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(
+    const std::string& rAuxiliarNameModelPart,
+    std::vector<NodeType::Pointer>& rToExtrapolateNodes
+    )
 {
     // We compute the NODAL_H
-    FindNodalHProcess find_h_process = FindNodalHProcess(mrDestinationMainModelPart);
+    VariableUtils().SetNonHistoricalVariable(NODAL_H, 0.0, mrDestinationMainModelPart.Nodes());
+    auto find_h_process = FindNodalHProcess<FindNodalHSettings::SaveAsNonHistoricalVariable>(mrDestinationMainModelPart);
     find_h_process.Execute();
 
     // We initialize some values
@@ -193,7 +259,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
     point_list_destination.clear();
 
     // Iterate in the conditions
-    ConditionsArrayType& origin_conditions_array = mrOriginMainModelPart.GetSubModelPart("SKIN_MODEL_PART_TO_LATER_REMOVE").Conditions();
+    ConditionsArrayType& origin_conditions_array = mrOriginMainModelPart.GetSubModelPart(rAuxiliarNameModelPart).Conditions();
 
     // Creating a buffer for parallel vector fill
     const int num_threads = OpenMPUtils::GetNumThreads();
@@ -233,7 +299,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
         // Initialize values
         PointVector points_found(allocation_size);
 
-        const double search_radius = search_factor * std::sqrt(p_node->FastGetSolutionStepValue(NODAL_H));
+        const double search_radius = search_factor * std::sqrt(p_node->GetValue(NODAL_H));
 
         const SizeType number_points_found = tree_points.SearchInRadius(p_node->Coordinates(), search_radius, points_found.begin(), allocation_size);
 
@@ -258,7 +324,7 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
                     // Finally we interpolate
                     if (mThisParameters["interpolate_non_historical"].GetBool())
                         CalculateData<Condition>(p_node, p_cond_origin, shape_functions);
-                    for(IndexType i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
+                    for(int i_step = 0; i_step < mThisParameters["buffer_size"].GetInt(); ++i_step)
                         CalculateStepData<Condition>(p_node, p_cond_origin, shape_functions, i_step);
 
                     break;
@@ -275,16 +341,6 @@ void NodalValuesInterpolationProcess<TDim>::ExtrapolateValues(std::vector<NodeTy
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelPart)
 {
-    NodesArrayType& nodes_array = rModelPart.Nodes();
-    const int num_nodes = static_cast<int>(nodes_array.size());
-
-    // Auxiliar zero array
-    const array_1d<double, 3> zero_array = ZeroVector(3);
-
-    #pragma omp parallel for
-    for(int i = 0; i < num_nodes; ++i)
-        (nodes_array.begin() + i)->SetValue(NORMAL, zero_array);
-
     // Sum all the nodes normals
     ConditionsArrayType& conditions_array = rModelPart.Conditions();
 
@@ -312,6 +368,9 @@ void NodalValuesInterpolationProcess<TDim>::ComputeNormalSkin(ModelPart& rModelP
             }
         }
     }
+
+    NodesArrayType& nodes_array = rModelPart.Nodes();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {

@@ -298,24 +298,16 @@ struct bytes_impl< vex::vector<V> > {
     }
 };
 
-template < typename V >
-struct bytes_impl< solver::vexcl_skyline_lu<V> > {
-    static size_t get(const solver::vexcl_skyline_lu<V> &s) {
-        return s.bytes();
-    }
-};
-
-template < typename Alpha, typename Beta, typename V, typename C, typename P >
+template < typename Alpha, typename Beta, typename Va, typename Vx, typename Vy, typename C, typename P >
 struct spmv_impl<
-    Alpha, vex::sparse::distributed<vex::sparse::matrix<V,C,P>>, vex::vector<V>,
-    Beta,  vex::vector<V>
+    Alpha, vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>, vex::vector<Vx>,
+    Beta,  vex::vector<Vy>
     >
 {
-    typedef vex::sparse::distributed<vex::sparse::matrix<V,C,P>> matrix;
-    typedef vex::vector<V> vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;
 
-    static void apply(Alpha alpha, const matrix &A, const vector &x,
-            Beta beta, vector &y)
+    static void apply(Alpha alpha, const matrix &A, const vex::vector<Vx> &x,
+            Beta beta, vex::vector<Vy> &y)
     {
         if (beta)
             y = alpha * (A * x) + beta * y;
@@ -324,19 +316,18 @@ struct spmv_impl<
     }
 };
 
-template < typename V, typename C, typename P >
+template < typename Va, typename Vf, typename Vx, typename Vr, typename C, typename P >
 struct residual_impl<
-    vex::sparse::distributed<vex::sparse::matrix<V,C,P>>,
-    vex::vector<V>,
-    vex::vector<V>,
-    vex::vector<V>
+    vex::sparse::distributed<vex::sparse::matrix<Va,C,P>>,
+    vex::vector<Vf>,
+    vex::vector<Vx>,
+    vex::vector<Vr>
     >
 {
-    typedef vex::sparse::distributed<vex::sparse::matrix<V,C,P>> matrix;
-    typedef vex::vector<V> vector;
+    typedef vex::sparse::distributed<vex::sparse::matrix<Va,C,P>> matrix;
 
-    static void apply(const vector &rhs, const matrix &A, const vector &x,
-            vector &r)
+    static void apply(const vex::vector<Vf> &rhs, const matrix &A, const vex::vector<Vx> &x,
+            vex::vector<Vr> &r)
     {
         r = rhs - A * x;
     }
@@ -391,12 +382,12 @@ struct inner_product_impl<
     }
 };
 
-template < typename A, typename B, typename V >
+template < typename A, typename B, typename V1, typename V2 >
 struct axpby_impl<
-    A, vex::vector<V>,
-    B, vex::vector<V>
+    A, vex::vector<V1>,
+    B, vex::vector<V2>
     > {
-    static void apply(A a, const vex::vector<V> &x, B b, vex::vector<V> &y)
+    static void apply(A a, const vex::vector<V1> &x, B b, vex::vector<V2> &y)
     {
         if (b)
             y = a * x + b * y;
@@ -405,17 +396,17 @@ struct axpby_impl<
     }
 };
 
-template < typename A, typename B, typename C, typename V >
+template < typename A, typename B, typename C, typename V1, typename V2, typename V3 >
 struct axpbypcz_impl<
-    A, vex::vector<V>,
-    B, vex::vector<V>,
-    C, vex::vector<V>
+    A, vex::vector<V1>,
+    B, vex::vector<V2>,
+    C, vex::vector<V3>
     >
 {
     static void apply(
-            A a, const vex::vector<V> &x,
-            B b, const vex::vector<V> &y,
-            C c,       vex::vector<V> &z
+            A a, const vex::vector<V1> &x,
+            B b, const vex::vector<V2> &y,
+            C c,       vex::vector<V3> &z
             )
     {
         if (c)
@@ -425,14 +416,14 @@ struct axpbypcz_impl<
     }
 };
 
-template < typename A, typename B, typename V >
+template < typename A, typename B, typename Vx, typename Vy, typename Vz >
 struct vmul_impl<
-    A, vex::vector<V>, vex::vector<V>,
-    B, vex::vector<V>
+    A, vex::vector<Vx>, vex::vector<Vy>,
+    B, vex::vector<Vz>
     >
 {
-    static void apply(A a, const vex::vector<V> &x, const vex::vector<V> &y,
-            B b, vex::vector<V> &z)
+    static void apply(A a, const vex::vector<Vx> &x, const vex::vector<Vy> &y,
+            B b, vex::vector<Vz> &z)
     {
         if (b)
             z = a * x * y + b * z;

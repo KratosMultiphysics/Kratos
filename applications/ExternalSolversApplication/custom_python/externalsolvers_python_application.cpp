@@ -19,33 +19,23 @@
 #include "custom_python/add_linear_solvers_to_python.h"
 
 
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
-
-
+namespace Kratos {
+namespace Python {
 
 PYBIND11_MODULE(KratosExternalSolversApplication,m)
 {
+    namespace py = pybind11;
 
-    class_<KratosExternalSolversApplication,
-           KratosExternalSolversApplication::Pointer,
-           KratosApplication >(m,"KratosExternalSolversApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosExternalSolversApplication,
+        KratosExternalSolversApplication::Pointer,
+        KratosApplication >(m,"KratosExternalSolversApplication")
+        .def(py::init<>())
+        ;
 
     AddLinearSolversToPython(m);
-
-
 }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

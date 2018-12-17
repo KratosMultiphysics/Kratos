@@ -9,8 +9,8 @@ KratosMultiphysics.CheckForPreviousImport()
 # Import the mechanical solver base class
 import solid_mechanics_implicit_dynamic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return StaticMonolithicSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return StaticMonolithicSolver(Model, custom_settings)
 
 class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
     """The solid mechanics static solver.
@@ -21,7 +21,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
     See solid_mechanics_monolithic_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
 
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
@@ -42,7 +42,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
 
         # Construct the base solver.
         # Calling base class of ImplicitMonolithicSolver it is ok.
-        super(BaseSolver.ImplicitMonolithicSolver, self).__init__(custom_settings)
+        super(BaseSolver.ImplicitMonolithicSolver, self).__init__(Model, custom_settings)
 
 
     #### Solver internal methods ####
@@ -58,7 +58,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
                 mechanical_solver = self._create_newton_raphson_strategy()
             else:
                 mechanical_solver = self._create_linear_strategy()
-
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 

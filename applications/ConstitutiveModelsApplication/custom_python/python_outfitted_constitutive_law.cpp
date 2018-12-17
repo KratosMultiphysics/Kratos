@@ -148,7 +148,7 @@ void PythonOutfittedConstitutiveLaw::SetValue( const Variable<Matrix>& rThisVari
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rProperties,
         const GeometryType& rElementGeometry,
         const Vector& rShapeFunctionsValues )
 {
@@ -162,7 +162,7 @@ void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rMate
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& rProperties,
         const GeometryType& rElementGeometry, //this is just to give the array of nodes
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -174,7 +174,7 @@ void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& r
 //************************************************************************************
 
 
-void PythonOutfittedConstitutiveLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
+void PythonOutfittedConstitutiveLaw::FinalizeSolutionStep( const Properties& rProperties,
         const GeometryType& rElementGeometry, //this is just to give the array of nodes
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
@@ -394,11 +394,11 @@ void PythonOutfittedConstitutiveLaw::GetLawFeatures(Features& rFeatures)
 }
 
 
-int PythonOutfittedConstitutiveLaw::Check(const Properties& rMaterialProperties,
+int PythonOutfittedConstitutiveLaw::Check(const Properties& rProperties,
 					  const GeometryType& rElementGeometry,
 					  const ProcessInfo& rCurrentProcessInfo)
 {
-  return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"Check", boost::ref<const Properties>(rMaterialProperties),boost::ref<const GeometryType>(rElementGeometry),boost::ref<const ProcessInfo>(rCurrentProcessInfo));
+  return boost::python::call_method<int>(mpPyConstitutiveLaw->ptr(),"Check", boost::ref<const Properties>(rProperties),boost::ref<const GeometryType>(rElementGeometry),boost::ref<const ProcessInfo>(rCurrentProcessInfo));
 }
 
 } // Namespace Kratos

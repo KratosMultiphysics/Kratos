@@ -19,8 +19,6 @@ class PostRefiningMesher(mesher.Mesher):
 
         mesher.Mesher.__init__(self, main_model_part, meshing_parameters)
 
-        print("::[PostRefining_Mesher]:: -BUILT-")
-
     #
     def InitializeMeshing(self):
 

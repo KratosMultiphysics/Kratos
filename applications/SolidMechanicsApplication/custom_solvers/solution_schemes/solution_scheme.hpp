@@ -93,33 +93,33 @@ class SolutionScheme : public Flags
   ///@{
 
   /// Default Constructor.
-  SolutionScheme() : Flags() {}
+  SolutionScheme() : Flags() {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {}
+  SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods) : Flags(), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods) : Flags(), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
                  Flags& rOptions)
-      : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+      : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
-      : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+      : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Copy contructor.
   SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions)
@@ -145,12 +145,11 @@ class SolutionScheme : public Flags
   ///@name Operations
   ///@{
 
-
   /**
-   * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
-   * @details This is intended to be called just once when the strategy is initialized
+   * @brief SetDefaultSchemeFlags.
+   * @details This is intended to be called with the constructor
    */
-  virtual void Initialize(ModelPart& rModelPart)
+  void SetDefaultFlags()
   {
     KRATOS_TRY
 
@@ -163,9 +162,16 @@ class SolutionScheme : public Flags
     if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
       mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION,true); //default : dof is the variable increment
 
-    this->InitializeElements(rModelPart);
+    KRATOS_CATCH("")
+  }
 
-    this->InitializeConditions(rModelPart);
+  /**
+   * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+   * @details This is intended to be called just once when the strategy is initialized
+   */
+  virtual void Initialize(ModelPart& rModelPart)
+  {
+    KRATOS_TRY
 
     for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
         it!=mTimeVectorIntegrationMethods.end(); ++it)
@@ -174,6 +180,10 @@ class SolutionScheme : public Flags
     for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
         it!=mTimeScalarIntegrationMethods.end(); ++it)
       (*it)->SetParameters(rModelPart.GetProcessInfo());
+
+    this->InitializeElements(rModelPart);
+
+    this->InitializeConditions(rModelPart);
 
     this->Set(LocalFlagType::INITIALIZED, true);
 

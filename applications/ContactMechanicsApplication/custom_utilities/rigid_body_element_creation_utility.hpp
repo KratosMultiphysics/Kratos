@@ -40,7 +40,7 @@ namespace Kratos
  * The RigidBodyElement is defined from a mesh of RigidBodyGeometricalElements
  * The RigidBodyProperties given by the RigidBodyBoundingBox, calculated or passed as given data to it.
  */
-class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyElementCreationUtility
+class RigidBodyElementCreationUtility
 {
 public:
 
@@ -317,8 +317,8 @@ private:
       NodeCenterOfGravity->GetSolutionStepValue(VOLUME_ACCELERATION) = rRigidBodyModelPart.Nodes().back().GetSolutionStepValue(VOLUME_ACCELERATION);
 
       // set node flags
-      NodeCenterOfGravity->Set(MASTER);
-      NodeCenterOfGravity->Set(RIGID);
+      NodeCenterOfGravity->Set(MASTER,true);
+      NodeCenterOfGravity->Set(RIGID,true);
 
       // set node to the spatial bounding box
       pRigidBodyBox->SetRigidBodyCenter(NodeCenterOfGravity);
@@ -363,18 +363,30 @@ private:
       // NodeIds.push_back(LastNodeId);
       // rRigidBodyModelPart.CreateNewElement(ElementName,LastElementId, NodeIds, pProperties);
 
+      if(BodyIsFixed){
+        pRigidBodyElement->Set(RIGID,true);
+        pRigidBodyElement->Set(ACTIVE,false);
+      }
+
       rRigidBodyModelPart.AddElement(pRigidBodyElement);
       rRigidBodyModelPart.AddNode(NodeCenterOfGravity);
 
-      //add rigid body element to computing model part:
-      for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
+      if(BodyIsFixed){
+        pRigidBodyElement->Set(RIGID,true);
+        pRigidBodyElement->Set(ACTIVE,false);
+      }
+      else{
+        //add rigid body element to computing model part:
+        for(ModelPart::SubModelPartIterator i_mp= rMainModelPart.SubModelPartsBegin() ; i_mp!=rMainModelPart.SubModelPartsEnd(); i_mp++)
 	{
+          std::cout<<" Add Rigid Body to Solving model part "<<std::endl;
 	  if( (i_mp->Is(ACTIVE)) ){ //computing_domain
 	    pRigidBodyElement->Set(ACTIVE,true);
 	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddElement(pRigidBodyElement);
 	    rMainModelPart.GetSubModelPart(i_mp->Name()).AddNode(NodeCenterOfGravity);
 	  }
 	}
+      }
 
       std::cout<<"  [ "<<ElementName<<" Created : [NodeId:"<<LastNodeId<<"] [ElementId:"<<LastElementId<<"] CG("<<NodeCenterOfGravity->X()<<","<<NodeCenterOfGravity->Y()<<","<<NodeCenterOfGravity->Z()<<") ]"<<std::endl;
 

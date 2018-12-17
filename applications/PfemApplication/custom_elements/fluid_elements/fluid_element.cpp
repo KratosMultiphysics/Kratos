@@ -541,6 +541,28 @@ unsigned int FluidElement::GetDofsSize()
 //************************************************************************************
 //************************************************************************************
 
+bool FluidElement::IsSliver()
+{
+  //const SizeType number_of_nodes = this->GetGeometry().PointsNumber();
+  //bool is_sliver = true;
+  // for( SizeType i=0; i<number_of_nodes; ++i)
+  // {
+  //   if( this->GetGeometry()[i].IsNot(SELECTED) ){
+  //     is_sliver = false;
+  //     break;
+  //   }
+  // }
+  //return is_sliver;
+  if( this->IsDefined(SELECTED) )
+    return this->Is(SELECTED);
+  else
+    return false;
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
 void FluidElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 					    VectorType& rRightHandSideVector,
 					    Flags& rCalculationFlags)
@@ -638,17 +660,20 @@ void FluidElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem
         Variables.IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         Variables.IntegrationWeight = this->CalculateIntegrationWeight( Variables.IntegrationWeight );
 
+        if( !IsSliver() ){
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+          {
             //contributions to stiffness matrix calculated on the reference config
 	    this->CalculateAndAddLHS ( rLocalSystem, Variables );
-        }
+          }
 
-        if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
-        {
+          if ( rLocalSystem.CalculationFlags.Is(FluidElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+          {
             //contribution to external forces
 	    this->CalculateAndAddRHS ( rLocalSystem, Variables );
+          }
+
         }
 
 	//for debugging purposes
@@ -1179,6 +1204,11 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     this->Set(FluidElement::FINALIZED_STEP,true);
 
+    if(this->Is(SELECTED) && this->Is(ACTIVE)){
+      this->Set(SELECTED,false);
+      KRATOS_WARNING("")<<" Undo SELECTED Element "<<this->Id()<<std::endl;
+    }
+
     KRATOS_CATCH( "" )
 }
 
@@ -1199,8 +1229,15 @@ void FluidElement::CalculateAndAddKvvm(MatrixType& rLeftHandSideMatrix,
 {
     KRATOS_TRY
 
-    //contributions to stiffness matrix calculated on the reference config
+    // contributions to stiffness matrix calculated on the reference config
     noalias( rLeftHandSideMatrix ) += rVariables.IntegrationWeight * prod( trans( rVariables.B ), Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
+
+    // optimized matrix triple multiplication: (slower)
+    // for(SizeType i=0; i<rVariables.B.size2(); ++i)
+    //   for(SizeType j=0; j<rVariables.B.size1(); ++j)
+    //     for(SizeType k=0; k<rVariables.B.size1(); ++k)
+    //       for(SizeType l=0; l<rVariables.B.size2(); ++l)
+    //         rLeftHandSideMatrix(i,l) += rVariables.IntegrationWeight * rVariables.B(j,i) * rVariables.ConstitutiveMatrix(j,k) * rVariables.B(k,l);
 
     //std::cout << "Kvvm" << rLeftHandSideMatrix << "(" << this->Id() << ")" << std::endl;
 

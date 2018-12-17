@@ -27,14 +27,6 @@
 
 namespace Kratos
 {
-/**
- * Flags related to the condition computation
- */
-// Avoiding using the macro since this has a template parameter. If there was no template plase use the KRATOS_CREATE_LOCAL_FLAG macro
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR(Kratos::Flags::Create(0));
-template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TNormalVariation, SizeType TNumNodesMaster>
-const Kratos::Flags AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX(Kratos::Flags::Create(1));
 
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -165,10 +157,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 {
     KRATOS_TRY;
 
-    // Calculation flags
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX, true );
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR, true );
-
     // Resizing as needed
     ResizeLHS(rLeftHandSideMatrix);
     ResizeRHS(rRightHandSideVector);
@@ -188,10 +176,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Calculation flags
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX, true );
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR, false);
-
     // Resizing as needed
     ResizeLHS(rLeftHandSideMatrix);
 
@@ -199,7 +183,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     VectorType aux_right_hand_side_vector = Vector();
 
     // Calculate condition system
-    CalculateConditionSystem(rLeftHandSideMatrix, aux_right_hand_side_vector, rCurrentProcessInfo );
+    CalculateConditionSystem(rLeftHandSideMatrix, aux_right_hand_side_vector, rCurrentProcessInfo, true, false );
 }
 
 /***********************************************************************************/
@@ -211,10 +195,6 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    // Calculation flags
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX, false);
-    mCalculationFlags.Set( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR, true);
-
     // Creating an auxiliar matrix
     MatrixType aux_left_hand_side_matrix = Matrix();
 
@@ -222,7 +202,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
     ResizeRHS(rRightHandSideVector);
 
     // Calculate condition system
-    CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo );
+    CalculateConditionSystem(aux_left_hand_side_matrix, rRightHandSideVector, rCurrentProcessInfo, false );
 }
 
 /***********************************************************************************/
@@ -363,12 +343,16 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional,
 
         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
             const array_1d<double, 3>& normal = slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
+            array_1d<double, TDim> aux_normal;
+            for (IndexType i_dim = 0; i_dim < TDim; ++i_dim) {
+                aux_normal[i_dim] = normal[i_dim];
+            }
             const array_1d<double, TDim> aux_array = row(D_x1_M_x2, i_node);
 
             double& weighted_gap = slave_geometry[i_node].FastGetSolutionStepValue(WEIGHTED_GAP);
 
             #pragma omp atomic
-            weighted_gap += inner_prod(aux_array, - subrange(normal, 0, TDim));
+            weighted_gap += inner_prod(aux_array, - aux_normal);
         }
 
         // We reset the flag
@@ -388,7 +372,9 @@ template< SizeType TDim, SizeType TNumNodes, FrictionalCase TFrictional, bool TN
 void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictional, TNormalVariation, TNumNodesMaster>::CalculateConditionSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool ComputeLHS,
+    const bool ComputeRHS
     )
 {
     KRATOS_TRY;
@@ -483,7 +469,7 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
 
                     const double integration_weight = integration_points_slave[point_number].Weight() * GetAxisymmetricCoefficient(rVariables);
 
-                    if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX )) {
+                    if ( ComputeLHS) {
                         /* Update the derivatives */
                         // Update the derivative of the integration vertex (just in 3D)
                         if (TDim == 3) DerivativesUtilitiesType::CalculateDeltaCellVertex(rVariables, rDerivativeData, belong_array, consider_normal_variation, slave_geometry, master_geometry, normal_slave);
@@ -503,22 +489,22 @@ void AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, TFrictiona
         const IndexType active_inactive = GetActiveInactiveValue(slave_geometry);
 
         // Assemble of the matrix is required
-        if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX ) )
+        if ( ComputeLHS )
             this->CalculateLocalLHS( rLeftHandSideMatrix, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
 
         // Assemble of the vector is required
-        if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR ))
+        if ( ComputeRHS)
             this->CalculateLocalRHS(rRightHandSideVector, rThisMortarConditionMatrices, rDerivativeData, active_inactive, rCurrentProcessInfo);
 
     } else { //If not inside we fill we zero the local matrices
         this->Set(ISOLATED, true); // We set the corresponding flag
 
         // Assemble of the matrix is required
-        if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_LHS_MATRIX ) )
+        if ( ComputeLHS )
             ZeroLHS(rLeftHandSideMatrix);
 
         // Assemble of the vector is required
-        if ( mCalculationFlags.Is( AugmentedLagrangianMethodMortarContactCondition<TDim,TNumNodes,TFrictional, TNormalVariation,TNumNodesMaster>::COMPUTE_RHS_VECTOR ))
+        if ( ComputeRHS)
             ZeroRHS(rRightHandSideVector);
     }
 

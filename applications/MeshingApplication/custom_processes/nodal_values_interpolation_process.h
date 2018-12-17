@@ -29,6 +29,7 @@
 
 /* Utilities */
 #include "utilities/binbased_fast_point_locator.h"
+#include "utilities/openmp_utils.h"
 
 /* Tree structures */
 // #include "spatial_containers/bounding_volume_tree.h" // k-DOP
@@ -201,7 +202,7 @@ private:
  * @author Vicente Mataix Ferrandiz
  */
 template<SizeType TDim>
-class KRATOS_API(KRATOS_MESHING_APPLICATION) NodalValuesInterpolationProcess
+class KRATOS_API(MESHING_APPLICATION) NodalValuesInterpolationProcess
     : public Process
 {
 public:
@@ -354,13 +355,10 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrOriginMainModelPart;      /// The origin model part
-    ModelPart& mrDestinationMainModelPart; /// The destination model part
-    Parameters mThisParameters;            /// Here the configuration parameters are stored
-    std::unordered_set<Variable<double>, VariableHasher<Variable<double>>, VariableComparator<Variable<double>>> mListDoublesVariables;             /// List of double non-historical variables
-    std::unordered_set<Variable<array_1d<double, 3>>, VariableHasher<Variable<array_1d<double, 3>>>, VariableComparator<Variable<array_1d<double, 3>>>> mListArraysVariables; /// List of array non-historical variables
-    std::unordered_set<Variable<Vector>, VariableHasher<Variable<Vector>>, VariableComparator<Variable<Vector>>> mListVectorVariables;              /// List of vector non-historical variables
-    std::unordered_set<Variable<Matrix>, VariableHasher<Variable<Matrix>>, VariableComparator<Variable<Matrix>>> mListMatrixVariables;              /// List of matrix non-historical variables
+    ModelPart& mrOriginMainModelPart;               /// The origin model part
+    ModelPart& mrDestinationMainModelPart;          /// The destination model part
+    Parameters mThisParameters;                     /// Here the configuration parameters are stored
+    std::unordered_set<std::string> mListVariables; /// List of non-historical variables
 
     ///@}
     ///@name Private Operators
@@ -400,73 +398,64 @@ private:
         const Vector& rShapeFunctions
         )
     {
-        // The nodal data (non-historical)
-        DataValueContainer& data = pNode->Data();
-
         // The nodal data (non-historical) of each node of the original mesh
-        GeometryType& geom = pEntity->GetGeometry();
-        const SizeType number_of_nodes = geom.size();
-        std::vector<DataValueContainer> node_data(number_of_nodes);
-        for (IndexType i = 0; i < number_of_nodes; ++i) {
-            node_data[i] = geom[i].Data();
-        }
+        GeometryType& r_geometry = pEntity->GetGeometry();
+        const SizeType number_of_nodes = r_geometry.size();
 
         // Now we interpolate the values of each node
-        double aux_coeff;
-        for (auto& var : mListDoublesVariables) {
-            aux_coeff = 0.0;
-            for (IndexType i = 0; i < number_of_nodes; ++i) {
-                if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
-            }
-            if (aux_coeff > 0.0) {
-                aux_coeff = 1.0/aux_coeff;
-                double aux_value = 0.0;
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
-                }
-                data.SetValue(var, aux_coeff * aux_value);
-            }
+        double aux_coeff = 0.0;
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            aux_coeff += rShapeFunctions[i];
         }
-        for (auto& var : mListArraysVariables) {
-                aux_coeff = 0.0;
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+        for (auto& var_name : mListVariables) {
+            if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const Variable<double>& var = KratosComponents<Variable<double>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    double aux_value = 0.0;
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
                 }
-            if (aux_coeff > 0.0)  {
-                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-                array_1d<double, 3> aux_value(3, 0.0);
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+                const Variable<array_1d<double, 3>>& var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    array_1d<double, 3> aux_value = ZeroVector(3);
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
                 }
-                data.SetValue<array_1d<double, 3>>(var, aux_coeff * aux_value);
-            }
-        }
-        for (auto& var : mListVectorVariables) {
-                aux_coeff = 0.0;
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
+            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+                const Variable<Vector>& var = KratosComponents<Variable<Vector>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    Vector aux_value = ZeroVector(r_geometry[0].GetValue(var).size());
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
                 }
-            if (aux_coeff > 0.0)  {
-                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-                Vector aux_value = ZeroVector(node_data[0].GetValue(var).size());
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
+            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+                const Variable<Matrix>& var = KratosComponents<Variable<Matrix>>::Get(var_name);
+                if (std::abs(aux_coeff) > std::numeric_limits<double>::epsilon()) {
+                    aux_coeff = 1.0/aux_coeff;
+                    Matrix aux_value = ZeroMatrix(r_geometry[0].GetValue(var).size1(), r_geometry[0].GetValue(var).size2());
+                    for (IndexType i = 0; i < number_of_nodes; ++i) {
+                        if (r_geometry[i].Has(var)) {
+                            aux_value += rShapeFunctions[i] * r_geometry[i].GetValue(var);
+                        }
+                    }
+                    pNode->SetValue(var, aux_coeff * aux_value);
                 }
-                data.SetValue<Vector>(var, aux_coeff * aux_value);
-            }
-        }
-        for (auto& var : mListMatrixVariables) {
-                aux_coeff = 0.0;
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    if (node_data[i].Has(var)) aux_coeff += rShapeFunctions[i];
-                }
-            if (aux_coeff > 0.0)  {
-                if (aux_coeff > 0.0) aux_coeff = 1.0/aux_coeff;
-                Matrix aux_value = ZeroMatrix(node_data[0].GetValue(var).size1(), node_data[0].GetValue(var).size2());
-                for (IndexType i = 0; i < number_of_nodes; ++i) {
-                    aux_value += rShapeFunctions[i] * node_data[i].GetValue(var);
-                }
-                data.SetValue<Matrix>(var, aux_coeff * aux_value);
             }
         }
     }
@@ -493,7 +482,7 @@ private:
     {
         // The nodal data (historical)
         double* step_data = pNode->SolutionStepData().Data(Step);
-        for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
+        for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j)
             step_data[j] = 0;
 
         // The nodal data (historical) of each node of the original mesh
@@ -502,7 +491,7 @@ private:
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             const double* nodal_data = geom[i].SolutionStepData().Data(Step);
             // Now we interpolate the values of each node
-            for (IndexType j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
+            for (int j = 0; j < mThisParameters["step_data_size"].GetInt(); ++j) {
                 step_data[j] += rShapeFunctions[i] * nodal_data[j];
             }
         }
@@ -510,13 +499,29 @@ private:
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void GenerateBoundary();
+    void GenerateBoundary(const std::string& rAuxiliarNameModelPart);
 
     /**
      * @brief This methoid a boundary model part in the reference and target model part
+     * @param rModelPart The model part to compute
+     * @param rAuxiliarNameModelPart The name of the model part to be created
      */
-    void ExtrapolateValues(std::vector<NodeType::Pointer>& rToExtrapolateNodes);
+    void GenerateBoundaryFromElements(
+        ModelPart& rModelPart,
+        const std::string& rAuxiliarNameModelPart
+        );
+
+    /**
+     * @brief This methoid a boundary model part in the reference and target model part
+     * @param rAuxiliarNameModelPart The name of the model part to be created
+     * @param rToExtrapolateNodes The list of nodes to extrapolate
+     */
+    void ExtrapolateValues(
+        const std::string& rAuxiliarNameModelPart,
+        std::vector<NodeType::Pointer>& rToExtrapolateNodes
+        );
 
     /**
      * @brief This method computes the normal in a skin model part (saved in non historical variables)

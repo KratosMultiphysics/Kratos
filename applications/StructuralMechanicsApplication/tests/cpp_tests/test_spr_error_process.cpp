@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "testing/testing.h"
@@ -196,10 +197,10 @@ namespace Kratos
         * Test triangle 
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess1, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -245,10 +246,10 @@ namespace Kratos
         * Test tetrahedra
         */
 
-        KRATOS_TEST_CASE_IN_SUITE(TestSPRErrorProcess2, KratosStructuralMechanicsFastSuite)
+        KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model current_model;
+            ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);

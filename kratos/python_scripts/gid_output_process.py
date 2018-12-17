@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != Parameters):
@@ -84,6 +83,7 @@ class GiDOutputProcess(Process):
                     }
 
     def __init__(self,model_part,file_name,param = None):
+        Process.__init__(self)
 
         if param is None:
             param = self.defaults

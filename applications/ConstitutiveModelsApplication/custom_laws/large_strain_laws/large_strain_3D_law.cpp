@@ -28,7 +28,7 @@ namespace Kratos
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
 
@@ -49,7 +49,7 @@ namespace Kratos
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
     KRATOS_CATCH(" ")
@@ -184,21 +184,21 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
-  void LargeStrain3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void LargeStrain3DLaw::InitializeMaterial( const Properties& rProperties,
 					     const GeometryType& rElementGeometry,
 					     const Vector& rShapeFunctionsValues )
   {
     KRATOS_TRY
 
-    ConstitutiveLaw::InitializeMaterial(rMaterialProperties,rElementGeometry,rShapeFunctionsValues);
+    ConstitutiveLaw::InitializeMaterial(rProperties,rElementGeometry,rShapeFunctionsValues);
 
     //member variables initialization
     mTotalDeformationDet = 1.0;
 
-    MatrixType Identity = identity_matrix<double>(3);
+    MatrixType Identity = IdentityMatrix(3);
     noalias(mInverseTotalDeformationMatrix) = Identity;
 
-    mpModel->InitializeMaterial(rMaterialProperties);
+    mpModel->InitializeMaterial(rProperties);
 
     KRATOS_CATCH(" ")
   }
@@ -210,8 +210,15 @@ namespace Kratos
   {
     KRATOS_TRY
 
+    if(rValues.GetMaterialProperties().Has(PROPERTIES_LAYOUT))
+    {
+      PropertiesLayout::Pointer pPropertiesLayout = rValues.GetMaterialProperties()[PROPERTIES_LAYOUT].Clone();
+      pPropertiesLayout->Configure(rValues.GetMaterialProperties(),rValues.GetElementGeometry(),rValues.GetShapeFunctionsValues());
+      rModelValues.SetPropertiesLayout(pPropertiesLayout);
+    }
+
     rModelValues.SetOptions(rValues.GetOptions());
-    rModelValues.SetMaterialProperties(rValues.GetMaterialProperties());
+    rModelValues.SetProperties(rValues.GetMaterialProperties());
     rModelValues.SetProcessInfo(rValues.GetProcessInfo());
     rModelValues.SetVoigtSize(this->GetStrainSize());
     rModelValues.SetVoigtIndexTensor(this->GetVoigtIndexTensor());
@@ -294,7 +301,7 @@ namespace Kratos
     ModelDataType rModelValues;
 
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
-    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_PK2; //required stress measure
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasureType::StressMeasure_PK2; //required stress measure
 
     this->InitializeModelData(rValues, rModelValues);
 
@@ -374,7 +381,7 @@ namespace Kratos
 
     //1.- Initialize hyperelastic model parameters
     LawDataType& rVariables = rModelValues.rConstitutiveLawData();
-    rVariables.StressMeasure = ConstitutiveModelData::StressMeasure_Kirchhoff; //set required stress measure
+    rVariables.StressMeasure = ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff; //set required stress measure
 
     this->InitializeModelData(rValues, rModelValues);
 
@@ -556,17 +563,17 @@ namespace Kratos
 
       mpModel->GetDomainVariablesList(ScalarVariables, ComponentVariables);
 
-      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); cv_it++)
+      for(std::vector<Variable<array_1d<double,3> > >::iterator cv_it=ComponentVariables.begin(); cv_it != ComponentVariables.end(); ++cv_it)
 	{
 	  if( *cv_it == DISPLACEMENT ){
-	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); sv_it++)
+	    for(std::vector<Variable<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); ++sv_it)
 	      {
 		if( *sv_it == PRESSURE )
 		  rFeatures.mOptions.Set( U_P_LAW );
 	      }
 	  }
 	  // if( *cv_it == VELOCITY ){
-	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); )
+	  //   for(std::vector<Variables<double> >::iterator sv_it=ScalarVariables.begin(); sv_it != ScalarVariables.end(); ++sv_it)
 	  //     {
 	  // 	if( *sv_it == PRESSURE )
 	  // 	  rFeatures.mOptions.Set( V_P_LAW );
@@ -578,21 +585,20 @@ namespace Kratos
     }
 
 
-
     KRATOS_CATCH(" ")
   }
 
   //************************************************************************************
   //************************************************************************************
 
-  int LargeStrain3DLaw::Check(const Properties& rMaterialProperties,
+  int LargeStrain3DLaw::Check(const Properties& rProperties,
 			       const GeometryType& rElementGeometry,
 			       const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 
 
-    mpModel->Check(rMaterialProperties,rCurrentProcessInfo);
+    mpModel->Check(rProperties,rCurrentProcessInfo);
 
     return 0;
 

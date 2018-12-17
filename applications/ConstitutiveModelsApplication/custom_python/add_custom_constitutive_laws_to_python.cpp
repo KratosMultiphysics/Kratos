@@ -71,7 +71,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 typedef ConstitutiveLaw                                              ConstitutiveLawBaseType;
 typedef ConstitutiveLaw::Pointer                                      ConstitutiveLawPointer;
@@ -86,203 +86,203 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
   //outfitted python laws
-  // class_< PythonOutfittedConstitutiveLaw, typename PythonOutfittedConstitutiveLaw::Pointer, ConstitutiveLawBaseType >
+  // py::class_< PythonOutfittedConstitutiveLaw, typename PythonOutfittedConstitutiveLaw::Pointer, ConstitutiveLawBaseType >
   //  	(m, "PythonOutfittedConstitutiveLaw")
-  //  	.def( init<>() )
+  //  	.def( py::init<>() )
   //  	.def(init<PyObject* >())
   //  	;
 
   //general constitutive laws
 
   //small strain laws
-  class_< SmallStrain3DLaw, typename SmallStrain3DLaw::Pointer, ConstitutiveLawBaseType >(m, "SmallStrain3DLaw")
-      .def( init<>() )
-      .def( init<ConstitutiveModelPointer>() )
+  py::class_< SmallStrain3DLaw, typename SmallStrain3DLaw::Pointer, ConstitutiveLawBaseType >(m, "SmallStrain3DLaw")
+      .def( py::init<>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< SmallStrainOrthotropic3DLaw, typename SmallStrainOrthotropic3DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< SmallStrainOrthotropic3DLaw, typename SmallStrainOrthotropic3DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "SmallStrainOrthotropic3DLaw")
-      .def( init<>() )
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< SmallStrainPlaneStrain2DLaw, typename SmallStrainPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< SmallStrainPlaneStrain2DLaw, typename SmallStrainPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "SmallStrainPlaneStrain2DLaw")
-      .def( init<>() )
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< SmallStrainPlaneStress2DLaw, typename SmallStrainPlaneStress2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< SmallStrainPlaneStress2DLaw, typename SmallStrainPlaneStress2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "SmallStrainPlaneStress2DLaw")
-      .def( init<>() )
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< SmallStrainAxisymmetric2DLaw, typename SmallStrainAxisymmetric2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< SmallStrainAxisymmetric2DLaw, typename SmallStrainAxisymmetric2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "SmallStrainAxisymmetric2DLaw")
-      .def( init<>() )
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
 
 
   //large strain laws
-  class_< LargeStrain3DLaw, typename LargeStrain3DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< LargeStrain3DLaw, typename LargeStrain3DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "LargeStrain3DLaw")
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< LargeStrainPlaneStrain2DLaw, typename LargeStrainPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< LargeStrainPlaneStrain2DLaw, typename LargeStrainPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "LargeStrainPlaneStrain2DLaw")
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< LargeStrainAxisymmetric2DLaw, typename LargeStrainAxisymmetric2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< LargeStrainAxisymmetric2DLaw, typename LargeStrainAxisymmetric2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "LargeStrainAxisymmetric2DLaw")
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
 
   //strain rate laws
-  class_< StrainRate3DLaw, typename StrainRate3DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< StrainRate3DLaw, typename StrainRate3DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "StrainRate3DLaw")
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< StrainRatePlaneStrain2DLaw, typename StrainRatePlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
+  py::class_< StrainRatePlaneStrain2DLaw, typename StrainRatePlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >
       (m, "StrainRatePlaneStrain2DLaw")
-      .def( init<ConstitutiveModelPointer>() )
+      .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
-      .def( init<>() )
+  py::class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
+      .def( py::init<>() )
       ;
 
-  class_< NewtonianPlaneStrain2DLaw, typename NewtonianPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianPlaneStrain2DLaw")
-      .def( init<>() )
+  py::class_< NewtonianPlaneStrain2DLaw, typename NewtonianPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianPlaneStrain2DLaw")
+      .def( py::init<>() )
       ;
 
   //general constitutive models
-  class_< ConstitutiveModelBaseType, ConstitutiveModelPointer>(m, "ConstitutiveModelModel")
-      .def( init<>() )
+  py::class_< ConstitutiveModelBaseType, ConstitutiveModelPointer>(m, "ConstitutiveModelModel")
+      .def( py::init<>() )
       ;
 
 
   //elasticity models
-  class_< LinearElasticModel, typename LinearElasticModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< LinearElasticModel, typename LinearElasticModel::Pointer, ConstitutiveModelBaseType >
       (m, "LinearElasticModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< SaintVenantKirchhoffModel, typename SaintVenantKirchhoffModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< SaintVenantKirchhoffModel, typename SaintVenantKirchhoffModel::Pointer, ConstitutiveModelBaseType >
       (m, "SaintVenantKirchhoffModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< NeoHookeanModel, typename NeoHookeanModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< NeoHookeanModel, typename NeoHookeanModel::Pointer, ConstitutiveModelBaseType >
       (m, "NeoHookeanModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< NeoHookeanLnJSquaredModel, typename NeoHookeanLnJSquaredModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< NeoHookeanLnJSquaredModel, typename NeoHookeanLnJSquaredModel::Pointer, ConstitutiveModelBaseType >
       (m, "NeoHookeanLnJSquaredModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< NeoHookeanJ_1SquaredModel, typename NeoHookeanJ_1SquaredModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< NeoHookeanJ_1SquaredModel, typename NeoHookeanJ_1SquaredModel::Pointer, ConstitutiveModelBaseType >
       (m, "NeoHookeanJ_1SquaredModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IsochoricNeoHookeanModel, typename IsochoricNeoHookeanModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IsochoricNeoHookeanModel, typename IsochoricNeoHookeanModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricNeoHookeanModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IsochoricNeoHookeanLnJSquaredModel, typename IsochoricNeoHookeanLnJSquaredModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IsochoricNeoHookeanLnJSquaredModel, typename IsochoricNeoHookeanLnJSquaredModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricNeoHookeanLnJSquaredModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IncompressibleNeoHookeanModel, typename IncompressibleNeoHookeanModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IncompressibleNeoHookeanModel, typename IncompressibleNeoHookeanModel::Pointer, ConstitutiveModelBaseType >
       (m, "IncompressibleNeoHookeanModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< BorjaModel, typename BorjaModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< BorjaModel, typename BorjaModel::Pointer, ConstitutiveModelBaseType >
       (m, "BorjaModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< OgdenModel, typename OgdenModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< OgdenModel, typename OgdenModel::Pointer, ConstitutiveModelBaseType >
       (m, "OgdenModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IsochoricOgdenModel, typename IsochoricOgdenModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IsochoricOgdenModel, typename IsochoricOgdenModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricOgdenModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< HypoElasticModel, typename HypoElasticModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< HypoElasticModel, typename HypoElasticModel::Pointer, ConstitutiveModelBaseType >
       (m, "HypoElasticModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IsochoricHypoElasticModel, typename IsochoricHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IsochoricHypoElasticModel, typename IsochoricHypoElasticModel::Pointer, ConstitutiveModelBaseType >
       (m, "IsochoricHypoElasticModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< IncompressibleHypoElasticModel, typename IncompressibleHypoElasticModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< IncompressibleHypoElasticModel, typename IncompressibleHypoElasticModel::Pointer, ConstitutiveModelBaseType >
       (m, "IncompressibleHypoElasticModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
   //plasticity models
-  class_< VonMisesLinearElasticPlasticityModel, typename VonMisesLinearElasticPlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< VonMisesLinearElasticPlasticityModel, typename VonMisesLinearElasticPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "VonMisesLinearElasticPlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< VonMisesNeoHookeanPlasticityModel, typename VonMisesNeoHookeanPlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< VonMisesNeoHookeanPlasticityModel, typename VonMisesNeoHookeanPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "VonMisesNeoHookeanPlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< SimoJ2PlasticityModel, typename SimoJ2PlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< SimoJ2PlasticityModel, typename SimoJ2PlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "SimoJ2PlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< SimoJ2ThermoPlasticityModel, typename SimoJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< SimoJ2ThermoPlasticityModel, typename SimoJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "SimoJ2ThermoPlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< JohnsonCookJ2ThermoPlasticityModel, typename JohnsonCookJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< JohnsonCookJ2ThermoPlasticityModel, typename JohnsonCookJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "JohnsonCookJ2ThermoPlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< BakerJohnsonCookJ2ThermoPlasticityModel, typename BakerJohnsonCookJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< BakerJohnsonCookJ2ThermoPlasticityModel, typename BakerJohnsonCookJ2ThermoPlasticityModel::Pointer, ConstitutiveModelBaseType >
       (m, "BakerJohnsonCookJ2ThermoPlasticityModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< CamClayModel, typename CamClayModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< CamClayModel, typename CamClayModel::Pointer, ConstitutiveModelBaseType >
       (m, "CamClayModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< SimoJuExponentialDamageModel, typename SimoJuExponentialDamageModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< SimoJuExponentialDamageModel, typename SimoJuExponentialDamageModel::Pointer, ConstitutiveModelBaseType >
       (m, "SimoJuExponentialDamageModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 
-  class_< SimoJuModifiedExponentialDamageModel, typename SimoJuModifiedExponentialDamageModel::Pointer, ConstitutiveModelBaseType >
+  py::class_< SimoJuModifiedExponentialDamageModel, typename SimoJuModifiedExponentialDamageModel::Pointer, ConstitutiveModelBaseType >
       (m, "SimoJuModifiedExponentialDamageModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 }
 

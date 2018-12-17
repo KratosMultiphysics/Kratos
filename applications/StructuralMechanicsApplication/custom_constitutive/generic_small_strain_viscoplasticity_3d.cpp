@@ -72,13 +72,15 @@ void GenericSmallStrainViscoplasticity3D::CalculateMaterialResponseCauchy(Consti
 
     strain_vector = strain_for_visco;
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
-    viscolaw->CalculateMaterialResponseCauchy(rValues); // Relaxes the Stress...
+    viscolaw->CalculateMaterialResponseCauchy(rValues); // Viscous Process
 
     strain_vector = initial_strain_vector;
     rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    // Flag to tell the plasticity to take the predictor from the viscous law
     rValues.GetOptions().Set(ConstitutiveLaw::U_P_LAW, true);
 
-    plaw->CalculateMaterialResponseCauchy(rValues); // Plastification occurs...
+    plaw->CalculateMaterialResponseCauchy(rValues); // Plastic Process
 
 } // End CalculateMaterialResponseCauchy
 
@@ -168,12 +170,9 @@ double &GenericSmallStrainViscoplasticity3D::GetValue(
     const Variable<double> &rThisVariable,
     double &rValue)
 {
-    if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    if (rThisVariable == UNIAXIAL_STRESS) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(UNIAXIAL_STRESS, rValue);
-    }
-    else if (rThisVariable == PLASTIC_DISSIPATION)
-    {
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, rValue);
     }
     return rValue;
@@ -186,8 +185,7 @@ Vector &GenericSmallStrainViscoplasticity3D::GetValue(
     const Variable<Vector> &rThisVariable,
     Vector &rValue)
 {
-    if (rThisVariable == PLASTIC_STRAIN_VECTOR)
-    {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
         rValue = mpPlasticityConstitutiveLaw->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
     }
     return rValue;
@@ -198,15 +196,11 @@ Vector &GenericSmallStrainViscoplasticity3D::GetValue(
 
 bool GenericSmallStrainViscoplasticity3D::Has(const Variable<double> &rThisVariable)
 {
-    if (rThisVariable == UNIAXIAL_STRESS)
-    {
+    if (rThisVariable == UNIAXIAL_STRESS) {
+        return true;
+    } else if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
     }
-    else if (rThisVariable == PLASTIC_DISSIPATION)
-    {
-        return true;
-    }
-
     return false;
 }
 

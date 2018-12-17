@@ -63,6 +63,11 @@ class TestAdjointSensitivityAnalysisLinearTrussStructure(KratosUnittest.TestCase
             adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model_adjoint, ProjectParametersAdjoint)
             adjoint_analysis.Run()
 
+            model_part_name = ProjectParametersAdjoint["solver_settings"]["model_part_name"].GetString()
+            reference_value = 0.7071067811865476
+            sensitivity_to_check = model_adjoint.GetModelPart(model_part_name).Conditions[1].GetValue(POINT_LOAD_SENSITIVITY)[1]
+            self.assertAlmostEqual(sensitivity_to_check, reference_value, 4)
+
     # called only once for this class, opposed of tearDown()
     @classmethod
     def tearDownClass(cls):

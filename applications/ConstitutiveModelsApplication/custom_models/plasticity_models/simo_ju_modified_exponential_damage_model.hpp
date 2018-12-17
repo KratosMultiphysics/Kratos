@@ -47,7 +47,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJuModifiedExponentialDamageModel : public DamageModel<LinearElasticModel, SimoJuYieldSurface<ModifiedExponentialDamageHardeningRule> >
+  class SimoJuModifiedExponentialDamageModel : public DamageModel<LinearElasticModel, SimoJuYieldSurface<ModifiedExponentialDamageHardeningRule> >
   {
   public:
 

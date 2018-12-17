@@ -62,8 +62,8 @@ class TestMPICommunicator(KratosUnittest.TestCase):
         
         
     def test_assemble_variable_in_model_part(self):
-        
-        main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
                 
         self._read_model_part_mpi(main_model_part)
@@ -109,8 +109,8 @@ class TestMPICommunicator(KratosUnittest.TestCase):
             
                 
     def test_assemble_variable_in_sub_model_part(self):
-        
-        main_model_part = KratosMultiphysics.ModelPart("MainModelPart")
+        current_model = KratosMultiphysics.Model()
+        main_model_part = current_model.CreateModelPart("MainModelPart")
         main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
          
         self._read_model_part_mpi(main_model_part)

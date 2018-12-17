@@ -26,10 +26,10 @@ namespace Python
 //
 void  AddMemoryInfoToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    class_<MemoryInfo, MemoryInfo::Pointer>(m, "MemoryInfo")
-    .def(init<>())
+    py::class_<MemoryInfo, MemoryInfo::Pointer>(m, "MemoryInfo")
+    .def(py::init<>())
     .def_static("GetPeakMemoryUsage", &MemoryInfo::GetPeakMemoryUsage)
 	.def_static("GetCurrentMemoryUsage", &MemoryInfo::GetCurrentMemoryUsage)
     ;

@@ -1,16 +1,18 @@
 {
     "problem_data"             : {
         "problem_name"    : "rigid_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
         "solver_type"                        : "Static",
+        "domain_size"     : 2,
+        "model_part_name" : "Structure",
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
@@ -31,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","LOAD_PointLoad_Auto1","GENERIC_Add_SubModelPart_Auto1"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -73,7 +76,7 @@
                 "value"           : 4.205191156013166e-6,
                 "tolerance_rank"  : 8
         }
-    }],
+    }]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

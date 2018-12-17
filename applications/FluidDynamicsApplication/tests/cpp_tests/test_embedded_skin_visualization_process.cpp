@@ -17,6 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "includes/cfd_variables.h"
 
@@ -141,11 +142,12 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleStandard, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTriangleModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart&  visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -191,11 +193,12 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTriangleAusas, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTriangleModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -241,11 +244,12 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronStandard, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart("MainModelPart");
             SetUniqueTetrahedronModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);
@@ -303,11 +307,12 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(EmbeddedSkinVisualizationProcessUniqueTetrahedronAusas, FluidDynamicsApplicationFastSuite)
 		{
             // Set the test model part
-            ModelPart main_model_part("MainModelPart");
+            Model model;
+            ModelPart& main_model_part = model.CreateModelPart ("MainModelPart");
             SetUniqueTetrahedronModelPart(main_model_part);
 
             // Create the visualization model part
-            ModelPart visualization_model_part("VisualizationModelPart");
+            ModelPart& visualization_model_part = model.CreateModelPart("VisualizationModelPart");
             visualization_model_part.AddNodalSolutionStepVariable(DISTANCE);
             visualization_model_part.AddNodalSolutionStepVariable(VELOCITY);
             visualization_model_part.AddNodalSolutionStepVariable(PRESSURE);

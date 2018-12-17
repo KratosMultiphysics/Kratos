@@ -366,17 +366,6 @@ struct wrapper {
 
 } // namespace relaxation
 } // namespace runtime
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< runtime::relaxation::wrapper<Backend> > {
-    static size_t get(const runtime::relaxation::wrapper<Backend> &R) {
-        return R.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

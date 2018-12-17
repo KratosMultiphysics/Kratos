@@ -35,7 +35,7 @@ namespace Kratos
 
 
 
-   class AxisymUpdatedLagrangianUJElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) AxisymUpdatedLagrangianUJElement
       : public UpdatedLagrangianUJElement
    {
       public:

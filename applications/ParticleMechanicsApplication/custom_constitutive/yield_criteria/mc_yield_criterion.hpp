@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/yield_criteria/MPM_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -48,7 +48,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class MCYieldCriterion
-    : public YieldCriterion
+    : public MPMYieldCriterion
 {
 public:
     ///@name Type Definitions
@@ -87,6 +87,15 @@ public:
     ///@name Operations
     ///@{
 
+
+    /*
+    * @brief This function return the Mohr Coulomb yield criterion at the given principal stress condition
+    * @param[in/out] rStateFunction Mohr coulomb yield criterion
+    * @param[in] rStressVector Principal stresses
+    * @param[in] rCohesion Current cohesion value
+    * @param[in] rFrictionAngle Current internal friction angle
+    * @return Mohr coulomb yield criterion
+    */
     double& CalculateYieldCondition(double & rStateFunction, const Vector& rStressVector, const double& rCohesion, const double& rFrictionAngle) override;
 
     ///@name Access
@@ -129,7 +138,7 @@ protected:
     ///@{
 
     double GetPI();
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -191,7 +200,7 @@ private:
 
     ///@}
 
-}; 
+};
 
 ///@}
 
@@ -224,6 +233,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_TRESCA_YIELD_CRITERION_H_INCLUDED  defined
 
 

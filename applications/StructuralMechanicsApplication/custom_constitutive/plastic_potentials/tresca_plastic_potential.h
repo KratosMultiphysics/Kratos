@@ -48,7 +48,7 @@ namespace Kratos
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template <SizeType TVoigtSize = 6>
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
+class TrescaPlasticPotential
 {
   public:
     ///@name Type Definitions
@@ -223,18 +223,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TrescaPlasticPotential
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    // Serialization
-
-    friend class Serializer;
-
-    void save(Serializer &rSerializer) const
-    {
-    }
-
-    void load(Serializer &rSerializer)
-    {
-    }
 
     ///@}
 

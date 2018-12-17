@@ -166,8 +166,8 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     KRATOS_TRY
 
     //set implex
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
+    if(this->mOptions.Is(LocalFlagType::IMPLEX))
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, true);
 
     BaseType::InitializeSolutionStep();
 
@@ -184,9 +184,10 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     //Finalization of the solution step, operations to be done after achieving convergence
 
     //set implex calculation
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX)){
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
-      this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart(), (*this->mpb));
+    if(this->mOptions.Is(LocalFlagType::IMPLEX)){
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, false);
+      if(this->mOptions.IsNot(LocalFlagType::COMPUTE_REACTIONS))
+        this->mpBuilderAndSolver->BuildRHS(this->mpScheme, this->GetModelPart(), (*this->mpb));
     }
 
     BaseType::FinalizeSolutionStep();
@@ -222,7 +223,8 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
     //plots a warning if the maximum number of iterations is exceeded
     if(iteration_number >= mMaxIterationNumber)
     {
-      KRATOS_WARNING("Max Iterations Exceeded") << " **** Maximum iterations Exceeded [" << iteration_number << "] ****\n";
+      if( this->GetEchoLevel() >= 0 )
+        KRATOS_INFO("  [Iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
     }
 
     return (this->Is(LocalFlagType::CONVERGED));

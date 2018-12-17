@@ -183,13 +183,13 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-					const Properties& rMaterialProperties) override
+					const Properties& rProperties) override
       {
 	KRATOS_TRY
 
 	// Lame constants
-	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
-	const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
+	const double& rYoungModulus          = rProperties[YOUNG_MODULUS];
+	const double& rPoissonCoefficient    = rProperties[POISSON_RATIO];
 
 	// Plane strain constitutive matrix
 	rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2.0*rPoissonCoefficient)));

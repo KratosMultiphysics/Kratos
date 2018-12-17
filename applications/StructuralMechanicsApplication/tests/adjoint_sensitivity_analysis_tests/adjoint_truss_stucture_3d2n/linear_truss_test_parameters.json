@@ -2,7 +2,6 @@
     "problem_data"             : {
         "problem_name"    : "Linear_Truss",
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -13,6 +12,9 @@
         "analysis_type"                      : "linear",
         "model_part_name"                    : "Structure",
         "domain_size"                        : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "linear_truss_structure"
@@ -31,6 +33,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -89,5 +92,5 @@
                 "list_of_variables": ["DISPLACEMENT"]
             }
         }
-    }]
+    }]}
 }

@@ -9,15 +9,14 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 1,
-        "analysis_type"                      : "non_linear",
+        "analysis_type"                      : "linear",
         "model_part_name" : "structure",
         "domain_size"     : 3,
         "time_stepping" : {
             "time_step"       : 1.1
         },
         "model_import_settings"              : {
-            "input_type"     : "use_input_model_part",
-            "input_filename" : "structure"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings"           : {
             "materials_filename" : "material.json"

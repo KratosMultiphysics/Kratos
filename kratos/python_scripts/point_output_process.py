@@ -24,6 +24,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
     Furthermore it can be used for testing in MPI where the node numbers can change
     """
     def __init__(self, model, params):
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters('''{
             "help"            : "This process writes results from a geometrical position (point) in the model to a file. It first searches the entity containing the requested output location and then interpolates the requested variable(s). The output can be requested for elements, conditions and nodes. For nodes no geometrical interpolation is performed, the exact coordinates have to be specified. This process works in MPI as well as with restarts. It can serve as a basis for other processes (e.g. MultiplePointsOutputProcess). Furthermore it can be used for testing in MPI where the node numbers can change",
@@ -31,6 +32,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             "entity_type"       : "element",
             "position"          : [],
             "output_variables"  : [],
+            "historical_value"  : true,
             "print_format"      : "",
             "output_file_settings": {}
         }''')
@@ -48,6 +50,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.output_variables = []
 
         self.format = self.params["print_format"].GetString()
+        self.historical_value = self.params["historical_value"].GetBool()
 
     def ExecuteInitialize(self):
         # getting the ModelPart from the Model
@@ -146,7 +149,7 @@ class PointOutputProcess(KratosMultiphysics.Process):
             # in the file writer when restarting
             out = str(time)
             for var in var_list:
-                value = Interpolate(var, ent, coord)
+                value = Interpolate(var, ent, coord, self.historical_value)
 
                 if IsArrayVariable(var):
                     out += " " + " ".join( format(v,self.format) for v in value )
@@ -195,16 +198,25 @@ def GetFileHeader(entity_type, entity_id, point, output_variables):
 
     return header
 
-def Interpolate(variable, entity, sf_values):
+def Interpolate(variable, entity, sf_values, historical_value):
     if type(entity) == KratosMultiphysics.Node:
-        return entity.GetSolutionStepValue(variable)
+        if historical_value:
+            return entity.GetSolutionStepValue(variable)
+        else:
+            return entity.GetValue(variable)
     else: # entity is element or condition
         nodes = entity.GetNodes()
         # Initializing 'value' like this, i don't need to know its type
         # => this way it works both for scalar and array3 variables
-        value = nodes[0].GetSolutionStepValue(variable) * sf_values[0]
-        for n,c in zip(nodes[1:], sf_values[1:]):
-            value = value + c * n.GetSolutionStepValue(variable)
+        if historical_value:
+            value = nodes[0].GetSolutionStepValue(variable) * sf_values[0]
+            for n,c in zip(nodes[1:], sf_values[1:]):
+                value = value + c * n.GetSolutionStepValue(variable)
+        else:
+            value = nodes[0].GetValue(variable) * sf_values[0]
+            for n,c in zip(nodes[1:], sf_values[1:]):
+                value = value + c * n.GetValue(variable)
+
 
         return value
 

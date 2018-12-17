@@ -163,7 +163,7 @@ private:
      */
     double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        const unsigned int PointNumber,
+        const SizeType PointNumber,
         const double detJ
         ) override;
 

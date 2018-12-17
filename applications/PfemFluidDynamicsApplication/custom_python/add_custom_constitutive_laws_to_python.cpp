@@ -42,7 +42,7 @@ namespace Kratos
   namespace Python
   {
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
 

@@ -14,9 +14,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # SMALL TESTS
 import SmallTests
-
 # NIGTHLY TESTS
 import NightTests
+# VALIDATION TESTS
+import ValidationTests
 
 def AssambleTestSuites():
 
@@ -32,13 +33,16 @@ def AssambleTestSuites():
     # inlude small suite in night suite
     night_suite.addTests(small_suite)
 
+    # VALIDATION TESTS
+    validation_suite = ValidationTests.SetTestSuite(suites)
+
     # ALL TESTS
     all_suite = suites['all']
 
     all_suite.addTests(night_suite)
+    all_suite.addTests(validation_suite)
 
     return suites
 
 if __name__ == '__main__':
     KratosUnittest.runTests(AssambleTestSuites())
-

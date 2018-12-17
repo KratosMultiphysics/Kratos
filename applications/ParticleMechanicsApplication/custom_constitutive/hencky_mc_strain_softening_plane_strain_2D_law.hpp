@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/hencky_plastic_plane_strain_2d_law.hpp"
+#include "custom_constitutive/hencky_plastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/flow_rules/mc_strain_softening_plastic_flow_rule.hpp"
 #include "custom_constitutive/yield_criteria/mc_yield_criterion.hpp"
 #include "custom_constitutive/hardening_laws/exponential_strain_softening_law.hpp"
@@ -50,8 +50,8 @@ public:
     typedef std::size_t             SizeType;
 
     typedef MPMFlowRule::Pointer                MPMFlowRulePointer;
-    typedef YieldCriterion::Pointer    YieldCriterionPointer;
-    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef MPMYieldCriterion::Pointer    YieldCriterionPointer;
+    typedef MPMHardeningLaw::Pointer        HardeningLawPointer;
     typedef Properties::Pointer            PropertiesPointer;
 
     /**

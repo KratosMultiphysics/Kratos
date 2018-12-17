@@ -12,12 +12,9 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
 
     def __base_test_mapping(self, input_filename, num_nodes, master_num_nodes, pure_implicit, inverted):
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        self.main_model_part = KratosMultiphysics.ModelPart("Structure")
-        self.main_model_part.SetBufferSize(2)
+        self.StructureModel = KratosMultiphysics.Model()
 
-        ## Creation of the Kratos model (build sub_model_parts or submeshes)
-        self.model = KratosMultiphysics.Model()
-        self.model.AddModelPart(self.main_model_part)
+        self.main_model_part = self.StructureModel.CreateModelPart("Structure",2)
 
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
@@ -119,7 +116,7 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         else:
             check_parameters["input_file_name"].SetString(input_filename+".json")
 
-        check = from_json_check_result_process.FromJsonCheckResultProcess(self.model, check_parameters)
+        check = from_json_check_result_process.FromJsonCheckResultProcess(self.StructureModel, check_parameters)
         check.ExecuteInitialize()
         check.ExecuteBeforeSolutionLoop()
         check.ExecuteFinalizeSolutionStep()
@@ -141,10 +138,14 @@ class TestMortarMapperCore(KratosUnittest.TestCase):
         #else:
             #out_parameters["output_file_name"].SetString(input_filename+".json")
 
-        #out = json_output_process.JsonOutputProcess(self.model, out_parameters)
+        #out = json_output_process.JsonOutputProcess(self.StructureModel, out_parameters)
         #out.ExecuteInitialize()
         #out.ExecuteBeforeSolutionLoop()
         #out.ExecuteFinalizeSolutionStep()
+
+    def test_less_basic_mortar_mapping_triangle_pure_implicit(self):
+        input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"
+        self._mapper_tests(input_filename, 3, 3, True)
 
     def test_less_basic_mortar_mapping_triangle(self):
         input_filename = os.path.dirname(os.path.realpath(__file__)) + "/mortar_mapper_python_tests/test_integration_several_triangles"

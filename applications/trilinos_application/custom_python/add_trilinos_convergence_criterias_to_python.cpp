@@ -15,7 +15,6 @@
 #if defined(KRATOS_PYTHON)
 // External includes
 #include <pybind11/pybind11.h>
-
 #include "custom_python/add_trilinos_convergence_criterias_to_python.h"
 
 //Trilinos includes
@@ -29,7 +28,6 @@
 #include "Epetra_FEVector.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
-
 
 // Project includes
 #include "includes/define.h"
@@ -47,6 +45,7 @@
 //#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 //
 #include "custom_strategies/convergencecriterias/trilinos_displacement_criteria.h"
+#include "custom_strategies/convergencecriterias/trilinos_residual_criteria.h"
 #include "custom_strategies/convergencecriterias/trilinos_up_criteria.h"
 
 //teuchos parameter list
@@ -58,8 +57,7 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
+namespace py = pybind11;
 
 void  AddConvergenceCriterias(pybind11::module& m)
 {
@@ -77,8 +75,8 @@ void  AddConvergenceCriterias(pybind11::module& m)
 
     typedef typename ConvergenceCriteria< TrilinosSparseSpaceType, TrilinosLocalSpaceType > ::Pointer TrilinosConvergenceCriteriaPointer;
 
-    class_< TrilinosConvergenceCriteria, TrilinosConvergenceCriteriaPointer > (m,"TrilinosConvergenceCriteria")
-    .def(init<>())
+    py::class_< TrilinosConvergenceCriteria, TrilinosConvergenceCriteriaPointer > (m,"TrilinosConvergenceCriteria")
+    .def(py::init<>())
     .def("SetActualizeRHSFlag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetActualizeRHSFlag)
     .def("GetActualizeRHSflag", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::GetActualizeRHSflag)
     .def("PreCriteria", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::PreCriteria)
@@ -90,34 +88,34 @@ void  AddConvergenceCriterias(pybind11::module& m)
     .def("SetEchoLevel", &ConvergenceCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::SetEchoLevel)
     ;
 
-    class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+    py::class_< TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename TrilinosDisplacementCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>(m,"TrilinosDisplacementCriteria")
-            .def(init< double, double >());
+            .def(py::init< double, double >());
 
-    class_< TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+    py::class_< TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename TrilinosUPCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
             (m,"TrilinosUPCriteria")
-            .def(init< double, double, double, double >());
+            .def(py::init< double, double, double, double >());
 
-    class_< ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
-            typename ResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
+    py::class_< TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+            typename TrilinosResidualCriteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria >
             (m,"TrilinosResidualCriteria")
-            .def(init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
+            .def(py::init< TrilinosSparseSpaceType::DataType, TrilinosSparseSpaceType::DataType >());
 
-    class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+    py::class_<And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename And_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>
             (m,"TrilinosAndCriteria")
-            .def(init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
+            .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
 
-    class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
+    py::class_<Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >,
             typename Or_Criteria<TrilinosSparseSpaceType, TrilinosLocalSpaceType >::Pointer,
             TrilinosConvergenceCriteria>
             (m,"TrilinosOrCriteria")
-            .def(init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
+            .def(py::init<TrilinosConvergenceCriteriaPointer, TrilinosConvergenceCriteriaPointer > ());
 }
 
 

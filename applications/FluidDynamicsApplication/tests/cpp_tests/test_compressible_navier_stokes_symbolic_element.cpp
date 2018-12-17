@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "includes/properties.h"
 #include "includes/model_part.h"
+#include "containers/model.h"
 #include "custom_elements/compressible_navier_stokes.h"
 
 namespace Kratos {
@@ -34,8 +35,9 @@ namespace Kratos {
 		 */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NConstant, FluidDynamicsApplicationFastSuite)
 		{
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+            std::cout<<"\n\nSupersonic Test For Constant Variables"<<std::endl;
+            Model model;
+            ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -138,8 +140,9 @@ namespace Kratos {
 		 */
         KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		{
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+            std::cout<<"\n\nSupersonic Test For Stationary Rigid Movements"<<std::endl;
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -310,8 +313,9 @@ namespace Kratos {
 		 */
 		KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes2D3NStationarySubsonic, FluidDynamicsApplicationFastSuite)
 		{
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+            std::cout<<"\n\nSubsonic Test For Stationary Rigid Movements"<<std::endl;
+			Model model;
+			ModelPart& modelPart = model.CreateModelPart("Main", 3);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -482,8 +486,9 @@ namespace Kratos {
 		 */
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NConstant, FluidDynamicsApplicationFastSuite)
 		 {
-			 ModelPart modelPart("Main");
-			 modelPart.SetBufferSize(3);
+			 std::cout<<"\n\nSupersonic Test For 3D Constant Variables"<<std::endl;
+			 Model model;
+			 ModelPart& modelPart = model.CreateModelPart("Main", 3);
  
 			 // Variables addition
 			 modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -587,8 +592,9 @@ namespace Kratos {
 		 */
 		 KRATOS_TEST_CASE_IN_SUITE(ElementCompressibleNavierStokes3D4NStationarySupersonic, FluidDynamicsApplicationFastSuite)
 		 {
-			 ModelPart modelPart("Main");
-			 modelPart.SetBufferSize(3);
+			 std::cout<<"\n\nSupersonic Test For 3D Stationary Rigid Movements"<<std::endl;
+			 Model model;
+			 ModelPart& modelPart = model.CreateModelPart("Main", 3);
  
 			 // Variables addition
 			 modelPart.AddNodalSolutionStepVariable(BODY_FORCE);

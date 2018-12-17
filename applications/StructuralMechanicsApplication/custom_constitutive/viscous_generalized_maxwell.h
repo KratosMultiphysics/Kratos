@@ -52,6 +52,7 @@ namespace Kratos
  *                Spring (K)   Damper (C)
  * The Maxwell law requires the definition of the following properties:
  * - VISCOUS_PARAMETER: It is the material coefficient of viscosity. This model describes the damper as a Newtonian fluid and models the spring with Hooke's law. 
+ * @param TElasticBehaviourLaw Defines the elastic behaviour of the constitutive law (can be hyperelastic or just linear elastic, or any desired elastic behaviour)
  * @author Alejandro Cornejo & Lucia Barbu
  */
 template<class TElasticBehaviourLaw>

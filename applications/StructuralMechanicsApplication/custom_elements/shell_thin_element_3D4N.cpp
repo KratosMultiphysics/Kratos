@@ -611,76 +611,6 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
 }
 
 void ShellThinElement3D4N::CalculateOnIntegrationPoints(
-    const Variable<Vector>& rVariable,
-    std::vector<Vector>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rVariable == LOCAL_AXIS_1)
-    {
-        // LOCAL_AXIS_1 output DOES NOT include the effect of section
-        // orientation, which rotates the entrire element section in-plane
-        // and is used in element stiffness calculation.
-
-        if (rValues.size() != 4)
-            rValues.resize(4);
-
-        for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
-        // Initialize common calculation variables
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-        for (SizeType GP = 0; GP < 4; GP++)
-        {
-            rValues[GP] = localCoordinateSystem.Vx();
-        }
-    }
-    else if (rVariable == LOCAL_MATERIAL_ORIENTATION_VECTOR_1)
-    {
-        // LOCAL_MATERIAL_ORIENTATION_VECTOR_1 output DOES include the effect of
-        // section orientation, which rotates the entrire element section
-        // in-plane and is used in element stiffness calculation.
-
-        // Resize output
-        if (rValues.size() != 4) rValues.resize(4);
-
-        for (int i = 0; i < 4; ++i) rValues[i] = ZeroVector(3);
-
-        // Initialize common calculation variables
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            mpCoordinateTransformation->CreateReferenceCoordinateSystem());
-
-        // Get local axis 1 in flattened LCS space
-        Vector3 localAxis1 = localCoordinateSystem.P2() - localCoordinateSystem.P1();
-
-        // Perform rotation of local axis 1 to fiber1 in flattened LCS space
-        Matrix localToFiberRotation = Matrix(3, 3, 0.0);
-        double fiberSectionRotation = mSections[0]->GetOrientationAngle();
-        double c = std::cos(fiberSectionRotation);
-        double s = std::sin(fiberSectionRotation);
-
-        localToFiberRotation(0, 0) = c;
-        localToFiberRotation(0, 1) = -s;
-        localToFiberRotation(1, 0) = s;
-        localToFiberRotation(1, 1) = c;
-        localToFiberRotation(2, 2) = 1.0;
-
-        Vector3 temp = prod(localToFiberRotation, localAxis1);
-
-        // Basic rotation without warpage correction
-        Matrix localToGlobalSmall = localCoordinateSystem.Orientation();
-
-        Vector3 fiberAxis1 = prod(trans(localToGlobalSmall), temp);
-        fiberAxis1 /= std::sqrt(inner_prod(fiberAxis1, fiberAxis1));
-
-        //write results
-        for (SizeType dir = 0; dir < 1; dir++)
-            rValues[dir] = fiberAxis1;
-    }
-}
-
-void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     const Variable<Matrix>& rVariable,
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -691,11 +621,19 @@ void ShellThinElement3D4N::CalculateOnIntegrationPoints(
 
 void ShellThinElement3D4N::CalculateOnIntegrationPoints(
     const Variable<array_1d<double, 3> >& rVariable,
-    std::vector<array_1d<double, 3> >& rValues,
+    std::vector<array_1d<double, 3> >& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    if (TryCalculateOnIntegrationPoints_MaterialOrientation(rVariable,
-        rValues, rCurrentProcessInfo)) return;
+    if (rVariable == LOCAL_AXIS_1 ||
+        rVariable == LOCAL_AXIS_2 ||
+        rVariable == LOCAL_AXIS_3) {
+        BaseShellElement::ComputeLocalAxis(rVariable, rOutput, mpCoordinateTransformation);
+    }
+    else if (rVariable == LOCAL_MATERIAL_AXIS_1 ||
+             rVariable == LOCAL_MATERIAL_AXIS_2 ||
+             rVariable == LOCAL_MATERIAL_AXIS_3) {
+        BaseShellElement::ComputeLocalMaterialAxis(rVariable, rOutput, mpCoordinateTransformation);
+    }
 }
 
 void ShellThinElement3D4N::Calculate(const Variable<Matrix>& rVariable, Matrix & Output, const ProcessInfo & rCurrentProcessInfo)
@@ -2126,71 +2064,6 @@ void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     // Add body forces contributions. This doesn't depend on the coordinate
     // system
     AddBodyForces(data, rRightHandSideVector);
-}
-
-bool ShellThinElement3D4N::TryCalculateOnIntegrationPoints_MaterialOrientation
-(const Variable<array_1d<double, 3> >& rVariable,
-    std::vector<array_1d<double, 3> >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    // Check the required output
-
-    int ijob = 0;
-    if (rVariable == MATERIAL_ORIENTATION_DX)
-        ijob = 1;
-    else if (rVariable == MATERIAL_ORIENTATION_DY)
-        ijob = 2;
-    else if (rVariable == MATERIAL_ORIENTATION_DZ)
-        ijob = 3;
-
-    // quick return
-
-    if (ijob == 0) return false;
-
-    // resize output
-
-    SizeType size = 4;
-    if (rValues.size() != size)
-        rValues.resize(size);
-
-    // Compute the local coordinate system.
-
-    ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-        mpCoordinateTransformation->CreateLocalCoordinateSystem());
-
-    Vector3Type eZ = localCoordinateSystem.Vz();
-
-    // Gauss Loop
-
-    if (ijob == 1)
-    {
-        Vector3Type eX = localCoordinateSystem.Vx();
-        for (int i = 0; i < 4; i++)
-        {
-            QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1),
-                eZ(2), mSections[i]->GetOrientationAngle());
-            q.RotateVector3(eX, rValues[i]);
-        }
-    }
-    else if (ijob == 2)
-    {
-        Vector3Type eY = localCoordinateSystem.Vy();
-        for (int i = 0; i < 4; i++)
-        {
-            QuaternionType q = QuaternionType::FromAxisAngle(eZ(0), eZ(1),
-                eZ(2), mSections[i]->GetOrientationAngle());
-            q.RotateVector3(eY, rValues[i]);
-        }
-    }
-    else if (ijob == 3)
-    {
-        for (int i = 0; i < 4; i++)
-        {
-            noalias(rValues[i]) = eZ;
-        }
-    }
-
-    return true;
 }
 
 bool ShellThinElement3D4N::

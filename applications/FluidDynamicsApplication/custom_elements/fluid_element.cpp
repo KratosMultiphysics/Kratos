@@ -476,6 +476,11 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
         VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
     }
+    else if (rVariable == UPDATE_STATISTICS)
+    {
+        KRATOS_DEBUG_ERROR_IF(!rCurrentProcessInfo.Has(STATISTICS_CONTAINER)) << "Trying to compute turbulent statistics, but ProcessInfo does not have STATISTICS_CONTAINER defined." << std::endl;
+        rCurrentProcessInfo.GetValue(STATISTICS_CONTAINER)->UpdateStatistics(this);
+    }
 }
 
 template <class TElementData>
@@ -689,12 +694,12 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void FluidElement<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     KRATOS_TRY;
 
-    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryTraction "
                     "implementation. This method is not supported by your "
                     "element."
                  << std::endl;
