@@ -32,8 +32,6 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "custom_processes/metis_partitioning_process.h"
