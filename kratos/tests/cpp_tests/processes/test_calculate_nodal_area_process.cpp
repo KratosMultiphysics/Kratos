@@ -103,9 +103,9 @@ namespace Kratos
             Element::Pointer p_elem_2 = this_model_part.CreateNewElement("Element2D3N", 3, triangle_2, p_elem_prop);
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
 
-            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> NodalArea;
-            NodalArea process = NodalArea(this_model_part);
-            process.Execute();
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+            HistNodalAreaProcess hist_process(this_model_part);
+            hist_process.Execute();
 
 //             // DEBUG
 //             GiDIODebugNodalArea(this_model_part);
@@ -115,6 +115,15 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/6.0, tolerance);
+
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            nonhist_process.Execute();
+
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->GetValue(NODAL_AREA)) - 1.0/6.0, tolerance);
         }
 
         /**
@@ -252,9 +261,9 @@ namespace Kratos
             Element::Pointer p_elem_11 = this_model_part.CreateNewElement("Element3D4N", 12, tetrahedra_11, p_elem_prop);
 
             // Calculate nodal area
-            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> NodalArea;
-            NodalArea process = NodalArea(this_model_part);
-            process.Execute();
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+            HistNodalAreaProcess hist_process(this_model_part);
+            hist_process.Execute();
 
 //             // DEBUG
 //             GiDIODebugNodalArea(this_model_part);
@@ -268,6 +277,19 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_10->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_11->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            nonhist_process.Execute();
+
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_9->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_10->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_11->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
         }
 
         /**
@@ -315,9 +337,9 @@ namespace Kratos
             Element::Pointer p_elem_0 = this_model_part.CreateNewElement("Element2D4N", 1, quadrilateral_0, p_elem_prop);
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D4N", 2, quadrilateral_1, p_elem_prop);
                          
-            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> NodalArea;
-            NodalArea process = NodalArea(this_model_part);
-            process.Execute();
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+            HistNodalAreaProcess hist_process(this_model_part);
+            hist_process.Execute();
             
 //             // DEBUG
 //             GiDIODebugNodalArea(this_model_part);
@@ -329,6 +351,17 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            nonhist_process.Execute();
+
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->GetValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->GetValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->GetValue(NODAL_AREA)) - 0.25, tolerance);
         }
         
         /** 
@@ -394,12 +427,12 @@ namespace Kratos
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element3D8N", 2, hexahedra_1, p_elem_prop);
                       
             // Calculate nodal area
-            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> NodalArea;
-            NodalArea process = NodalArea(this_model_part);
-            process.Execute();
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
+            HistNodalAreaProcess hist_process(this_model_part);
+            hist_process.Execute();
             
 //             // DEBUG
-            GiDIODebugNodalArea(this_model_part);
+//             GiDIODebugNodalArea(this_model_part);
             
             const double tolerance = 1.0e-8;
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
@@ -414,6 +447,23 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_10->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_11->FastGetSolutionStepValue(NODAL_AREA)) - 0125, tolerance);
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+
+            typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
+            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            nonhist_process.Execute();
+
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_5->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_7->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_8->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_9->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_10->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_11->GetValue(NODAL_AREA)) - 0125, tolerance);
+            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->GetValue(NODAL_AREA)) - 0.125, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.
