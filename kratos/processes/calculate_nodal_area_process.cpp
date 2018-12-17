@@ -28,6 +28,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     KRATOS_TRY
 
     // Check if variables are available
+    KRATOS_ERROR_IF(mrModelPart.Nodes().size() == 0) << "No nodes in the model part" << std::endl;
     if (THistorical) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas( NODAL_AREA )) << "Variable NODAL_AREA not in the model part!" << std::endl;
     }
