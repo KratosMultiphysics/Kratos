@@ -21,6 +21,7 @@
 
 // Project includes
 #include "containers/array_1d.h"
+#include "containers/flags.h"
 #include "includes/define.h"
 
 namespace Kratos
@@ -521,6 +522,16 @@ class DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const
     {}
+
+    virtual Kratos::Flags AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    {
+        return Values;
+    }
 
     // Scan operations
 

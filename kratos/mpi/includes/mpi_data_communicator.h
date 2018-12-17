@@ -187,6 +187,10 @@ class MPIDataCommunicator: public DataCommunicator
         const std::vector<double>& rLocalValues,
         std::vector<double>& rGlobalValues) const override;
 
+    Kratos::Flags AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
+    Kratos::Flags OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const override;
+
     // Scan operations
 
     int ScanSum(const int rLocalValue) const override;

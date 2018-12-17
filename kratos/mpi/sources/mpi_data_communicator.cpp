@@ -366,6 +366,22 @@ void MPIDataCommunicator::MaxAll(
     AllReduceDetail(rLocalValues,rGlobalValues,MPI_MAX);
 }
 
+
+Kratos::Flags MPIDataCommunicator::AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+{
+    Flags out;
+    Flags::BlockType defined = Values.GetDefined();
+    out.SetDefined(defined);
+    Flags::BlockType flags = Values.GetValues();
+    out.SetValues(flags);
+    return out;
+}
+
+Kratos::Flags MPIDataCommunicator::OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+{
+    return Values;
+}
+
 // Scan operations
 
 int MPIDataCommunicator::ScanSum(const int rLocalValue) const
