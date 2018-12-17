@@ -29,15 +29,9 @@ namespace Kratos
     class BrepJsonIO
   {
   public:
-    ///@name Type Definitions
-    ///@{
-
     /// Pointer definition of KratosNurbsTestcaseApplication
     KRATOS_CLASS_POINTER_DEFINITION(BrepJsonIO);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
     void WriteIntegrationDomainJson(
         ModelPart& rModelPart, 
         const std::string& rOutputFileName);
@@ -47,12 +41,15 @@ namespace Kratos
         Parameters rNurbsBrepGeometryJson);
 
     /// Constructor.
-    BrepJsonIO() {};
+    BrepJsonIO(const int EchoLevel = 0)
+        :mEchoLevel(EchoLevel)
+    {};
 
     /// Destructor.
     virtual ~BrepJsonIO() {};
 
-    ///@}
+  private:
+      int mEchoLevel;
   }; // Class BrepJsonIO
 }  // namespace Kratos.
 

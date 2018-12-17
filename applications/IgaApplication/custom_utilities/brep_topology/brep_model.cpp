@@ -53,7 +53,6 @@ namespace Kratos
         const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
@@ -63,8 +62,8 @@ namespace Kratos
         {
             if (mBrepFaces[i].Id() == brep_id)
             {
-                mBrepFaces[i].GetGeometryIntegration(
-                    rModelPart, rType, rName, rPropertiesId, 
+                mBrepFaces[i].GetGeometryIntegrationTrimmed(
+                    rModelPart, rType, rName,
                     rShapeFunctionDerivativesOrder, rVariables);
                 return true;
             }
@@ -75,7 +74,7 @@ namespace Kratos
             if (mBrepEdges[i].Id() == brep_id)
             {
                 mBrepFaces[i].GetGeometryIntegration(
-                    rModelPart, rType, rName, rPropertiesId, 
+                    rModelPart, rType, rName, 
                     rShapeFunctionDerivativesOrder, rVariables);
                 return true;
             }
@@ -89,7 +88,6 @@ namespace Kratos
         const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
@@ -105,7 +103,7 @@ namespace Kratos
                     {
                         mBrepFaces[j].GetIntegrationBrepEdge(
                             rModelPart, edge_topology.trim_index,
-                            rType, rName, rPropertiesId,
+                            rType, rName,
                             rShapeFunctionDerivativesOrder,
                             rVariables);
                         return true;
@@ -127,7 +125,7 @@ namespace Kratos
                         mBrepEdges[j].GetIntegrationBrep(
                             rModelPart, 
                             vertex_topology.trim_index, 
-                            rType, rName, rPropertiesId, 
+                            rType, rName, 
                             rShapeFunctionDerivativesOrder, 
                             rVariables);
                         return true;
@@ -142,7 +140,6 @@ namespace Kratos
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
@@ -158,9 +155,7 @@ namespace Kratos
                 GetIntegrationBrepCouplingEdge(
                     master, slave,
                     rModelPart,
-                    rType,
-                    rName,
-                    rPropertiesId,
+                    rType, rName,
                     rShapeFunctionDerivativesOrder,
                     rVariables);
 
@@ -175,7 +170,6 @@ namespace Kratos
         const int brep_id,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
@@ -184,19 +178,17 @@ namespace Kratos
         {
             if (mBrepEdges[i].Id() == brep_id)
             {
-                BrepEdge::EdgeTopology edge_topology = mBrepEdges[i].GetEdgeTopology(0);
-                if (mBrepFaces[i].Id() == edge_topology.brep_id)
-                {
-                    mBrepFaces[i].GetIntegrationBrepEdge(
-                        rModelPart, 
-                        edge_topology.trim_index,
-                        rType, 
-                        rName, 
-                        rPropertiesId,
-                        rShapeFunctionDerivativesOrder,
-                        rVariables);
-                    return true;
-                }
+                auto master = mBrepEdges[i].GetEdgeTopology(0);
+                auto slave = mBrepEdges[i].GetEdgeTopology(1);
+
+                GetIntegrationBrepCouplingEdge(
+                    master, slave,
+                    rModelPart,
+                    rType,
+                    rName,
+                    rShapeFunctionDerivativesOrder,
+                    rVariables);
+                return true;
             }
         }
         return success;
@@ -209,12 +201,9 @@ namespace Kratos
         ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int rPropertiesId,
         const int rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables) const
     {
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         const BrepFace& face_1 = GetFace(master.brep_id);
         auto surface_1 = face_1.GetSurface();
         auto curve_2d_1 = face_1.GetTrimCurve(master.trim_index);
@@ -285,30 +274,32 @@ namespace Kratos
                         shape_function_slave, shape_function_derivative_slave, shape_function_second_derivative_slave);
 
                     int id = 0;
-                    if (rModelPart.GetRootModelPart().Elements().size() > 0)
-                        id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
+                    if (rModelPart.GetRootModelPart().Conditions().size() > 0)
+                        id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
 
-                    auto element = rModelPart.CreateNewElement(rName, id, control_points, this_property);
+                    rModelPart.AddNodes(control_points.begin(), control_points.end());
 
-                    element->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
+                    auto condition = rModelPart.CreateNewCondition(rName, id, control_points, 0);
+
+                    condition->SetValue(SHAPE_FUNCTION_VALUES, shape_function);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_derivative);
+                    //condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, shape_function_second_derivative);
 
                     Vector tangents(2);
                     tangents[0] = derivatives[1][0];
                     tangents[1] = derivatives[1][1];
-                    element->SetValue(TANGENTS, tangents);
+                    condition->SetValue(TANGENTS, tangents);
 
-                    element->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
+                    condition->SetValue(INTEGRATION_WEIGHT, integration_points[ip].weight);
 
-                    element->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
-                    element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
+                    condition->SetValue(SHAPE_FUNCTION_VALUES_SLAVE, shape_function_slave);
+                    condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_derivative_slave);
+                    //condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_SLAVE, shape_function_second_derivative_slave);
 
                     Vector tangents_slave(2);
                     tangents_slave[0] = point_2d_slave[1][0];
                     tangents_slave[1] = point_2d_slave[1][1];
-                    element->SetValue(TANGENTS_SLAVE, tangents_slave);
+                    condition->SetValue(TANGENTS_SLAVE, tangents_slave);
                 }
             }
         }

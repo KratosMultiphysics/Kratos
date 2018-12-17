@@ -34,6 +34,7 @@ class PlotIntegrationDomain(KratosMultiphysics.Process):
 
         for element in self.model_part.Elements:
             coords = element.Calculate(IgaApplication.COORDINATES, self.model_part.ProcessInfo)
+            print(coords)
             x_coords.append(coords[0])
             y_coords.append(coords[1])
             z_coords.append(coords[2])

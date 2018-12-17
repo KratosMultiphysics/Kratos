@@ -10,8 +10,10 @@
 //  Main authors:    Tobias Teschemacher
 //
 
-#if !defined(KRATOS_LOAD_CURVE_DISCRETE_CONDITION_H_INCLUDED )
-#define  KRATOS_LOAD_CURVE_DISCRETE_CONDITION_H_INCLUDED
+
+#if !defined(KRATOS_SUPPORT_PENALTY_CURVE_DISCRETE_CONDITION_H_INCLUDED )
+#define  KRATOS_SUPPORT_PENALTY_CURVE_DISCRETE_CONDITION_H_INCLUDED
+
 
 
 // System includes
@@ -19,56 +21,47 @@
 // External includes
 
 // Project includes
-#include "iga_application_variables.h"
-
-#include "custom_conditions/base_discrete_condition.h"
-
-#include "custom_utilities/geometry_utilities/iga_curve_on_surface_utilities.h"
-
 #include "includes/define.h"
 #include "includes/condition.h"
+#include "includes/variables.h"
+
+#include "custom_utilities/iga_flags.h"
+
+#include "iga_application_variables.h"
+#include "custom_conditions/base_discrete_condition.h"
+
+#include "custom_utilities/geometry_utilities/iga_surface_utilities.h"
+#include "custom_utilities/geometry_utilities/iga_curve_on_surface_utilities.h"
 
 namespace Kratos
 {
-    class LoadCurveDiscreteCondition
+    class SupportPenaltyCurveDiscreteCondition
         : public BaseDiscreteCondition
     {
     public:
+        /// Counted pointer of SupportPenaltyCurveDiscreteCondition
+        KRATOS_CLASS_POINTER_DEFINITION(SupportPenaltyCurveDiscreteCondition);
 
-        /// Counted pointer of LoadCurveDiscreteCondition
-        KRATOS_CLASS_POINTER_DEFINITION(LoadCurveDiscreteCondition);
-
-        /// Default constructor
-        LoadCurveDiscreteCondition(
-            IndexType NewId,
-            GeometryType::Pointer pGeometry)
+        /// Default constructor.
+        SupportPenaltyCurveDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry)
             : BaseDiscreteCondition(NewId, pGeometry)
         {};
 
-        LoadCurveDiscreteCondition(
-            IndexType NewId,
-            GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties)
+        // with properties
+        SupportPenaltyCurveDiscreteCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
             : BaseDiscreteCondition(NewId, pGeometry, pProperties)
         {};
 
-        LoadCurveDiscreteCondition() : BaseDiscreteCondition()
+        SupportPenaltyCurveDiscreteCondition() : BaseDiscreteCondition()
         {};
 
-        /// Destructor
-        virtual ~LoadCurveDiscreteCondition() override
+        /// Destructor.
+        virtual ~SupportPenaltyCurveDiscreteCondition() override
         {};
 
-        Condition::Pointer Create(
-            IndexType NewId,
-            NodesArrayType const& ThisNodes,
-            PropertiesType::Pointer pProperties
-        ) const override
+        Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override
         {
-            return Kratos::make_shared<LoadCurveDiscreteCondition>(
-                NewId, 
-                GetGeometry().Create(ThisNodes), 
-                pProperties);
+            return Kratos::make_shared< SupportPenaltyCurveDiscreteCondition >(NewId, GetGeometry().Create(ThisNodes), pProperties);
         };
 
         /**
@@ -107,18 +100,24 @@ namespace Kratos
             const bool CalculateResidualVectorFlag
         );
 
+        /**
+        * @brief Called to initialize the element. Sets the base vectors of the 
+        * integration point on the underlying surface.
+        */
+        void Initialize() override;
+
         /// Turn back information as a string.
         std::string Info() const override
         {
             std::stringstream buffer;
-            buffer << "\"LoadCurveDiscreteCondition\" #" << Id();
+            buffer << "\"SupportPenaltyCurveDiscreteCondition\" #" << Id();
             return buffer.str();
         }
 
         /// Print information about this object.
         void PrintInfo(std::ostream& rOStream) const override
         {
-            rOStream << "\"LoadCurveDiscreteCondition\" #" << Id();
+            rOStream << "\"SupportPenaltyCurveDiscreteCondition\" #" << Id();
         }
 
         /// Print object's data.
@@ -128,21 +127,30 @@ namespace Kratos
 
     private:
 
+        array_1d<double, 3> mG10;
+        array_1d<double, 3> mG20;
+        array_1d<double, 3> mG30;
+
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override
         {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseDiscreteCondition);
+            rSerializer.save("mG10", mG10);
+            rSerializer.save("mG20", mG20);
+            rSerializer.save("mG30", mG30);
         }
 
         virtual void load(Serializer& rSerializer) override
         {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseDiscreteCondition);
+            rSerializer.load("mG10", mG10);
+            rSerializer.load("mG20", mG20);
+            rSerializer.load("mG30", mG30);
         }
-        ///@}
 
-    }; // Class LoadCurveDiscreteCondition
+    }; // Class SupportPenaltyCurveDiscreteCondition
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LOAD_CURVE_DISCRETE_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_SUPPORT_PENALTY_CURVE_DISCRETE_CONDITION_H_INCLUDED  defined 

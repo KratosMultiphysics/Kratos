@@ -25,8 +25,10 @@ KratosIgaApplication::KratosIgaApplication()
     , mShellKLDiscreteElement(0, Element::GeometryType::Pointer(
         new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
 
-    //, mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
-    //    new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mCouplingPenaltyDiscreteCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+    , mSupportPenaltyCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSurfaceDiscreteCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCurveDiscreteCondition(0, Condition::GeometryType::Pointer(
@@ -41,7 +43,8 @@ void KratosIgaApplication::Register() {
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 
-    //KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
+    KRATOS_REGISTER_CONDITION("CouplingPenaltyDiscreteCondition", mCouplingPenaltyDiscreteCondition)
+    KRATOS_REGISTER_CONDITION("SupportPenaltyCurveDiscreteCondition", mSupportPenaltyCurveDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadSurfaceDiscreteCondition", mLoadSurfaceDiscreteCondition)
     KRATOS_REGISTER_CONDITION("LoadCurveDiscreteCondition", mLoadCurveDiscreteCondition)
 

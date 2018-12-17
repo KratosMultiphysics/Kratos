@@ -20,8 +20,6 @@
 // Project includes
 #include "custom_elements/shell_kl_discrete_element.h"
 
-// Application includes
-#include "iga_application_variables.h"
 
 namespace Kratos
 {

@@ -23,7 +23,6 @@ namespace Kratos
 {
     void NurbsBrepModeler::ImportGeometry(BrepJsonIO& rBrepJsonIO, Parameters& rNurbsBrepGeometryJson)
     {
-        std::cout << "ImportGeometry in of geometry" << std::endl;
         std::vector<BrepModel> brep_model_vector = rBrepJsonIO.ImportNurbsBrepGeometry(m_model_part, rNurbsBrepGeometryJson);
         for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); ++brep_model)
         {
@@ -50,9 +49,11 @@ namespace Kratos
                 for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
                 {
                     int brep_id = element_parameter["brep_ids"][j].GetInt();
-                    Vector parameter = element_parameter["parameters"]["local_parameters"].GetVector();
+                    KRATOS_INFO("Nurbs Brep Modeler") << "brep id: " << brep_id << std::endl;
+                    int parameter_1 = element_parameter["parameters"]["local_parameters"][0].GetInt();
+                    int parameter_2 = element_parameter["parameters"]["local_parameters"][1].GetInt();
                     success = m_brep_model_vector[0].GetNodesGeometry(
-                        sub_model_part, brep_id, parameter[0], parameter[1]);
+                        sub_model_part, brep_id, parameter_1, parameter_2);
                 }
                 continue;
             }
@@ -60,7 +61,7 @@ namespace Kratos
             {
                 std::string type = element_parameter["parameters"]["type"].GetString();
                 std::string name = element_parameter["parameters"]["name"].GetString();
-                int property_id = element_parameter["parameters"]["properties_id"].GetInt();
+
                 int shape_function_derivatives_order = element_parameter["parameters"]["shape_function_derivatives_order"].GetInt();
 
 
@@ -75,18 +76,25 @@ namespace Kratos
                     for (int j = 0; j < element_parameter["brep_ids"].size(); ++j)
                     {
                         int brep_id = element_parameter["brep_ids"][j].GetInt();
+                        KRATOS_INFO("Nurbs Brep Modeler") << "brep id: " << brep_id << std::endl;
                         if (geometry_type == "Geometry3D")
+                        {
                             bool success = m_brep_model_vector[0].GetIntegrationDomainGeometry(
                                 sub_model_part, brep_id, type, name,
-                                property_id, shape_function_derivatives_order, variable_list);
+                                shape_function_derivatives_order, variable_list);
+                        }
                         if (geometry_type == "BrepCoupling")
+                        {
                             bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
                                 sub_model_part, brep_id, type, name,
-                                property_id, shape_function_derivatives_order, variable_list);
+                                shape_function_derivatives_order, variable_list);
+                        }
                         if (geometry_type == "Brep")
+                        {
                             bool success = m_brep_model_vector[0].GetIntegrationDomainBrep(
                                 sub_model_part, brep_id, type, name,
-                                property_id, shape_function_derivatives_order, variable_list);
+                                shape_function_derivatives_order, variable_list);
+                        }
                     }
                 }
                 else
@@ -94,7 +102,7 @@ namespace Kratos
                     if (geometry_type == "BrepCoupling")
                         bool success = m_brep_model_vector[0].GetIntegrationDomainBrepCoupling(
                             sub_model_part, type, name,
-                            property_id, shape_function_derivatives_order, variable_list);
+                            shape_function_derivatives_order, variable_list);
                 }
             }
         }

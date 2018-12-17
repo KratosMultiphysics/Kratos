@@ -36,12 +36,9 @@ namespace Kratos
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {
-        Properties::Pointer this_property = rModelPart.pGetProperties(rPropertiesId);
-
         //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
         //{
             //auto this_curve = Kratos::make_unique<Kratos::Curve<3>>(
@@ -82,7 +79,7 @@ namespace Kratos
                         if (rModelPart.GetRootModelPart().Elements().size() > 0)
                             id = rModelPart.GetRootModelPart().Elements().back().Id() + 1;
 
-                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, this_property);
+                        auto element = rModelPart.CreateNewElement(rName, id, non_zero_control_points, 0);
 
                         element->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         element->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -93,7 +90,7 @@ namespace Kratos
                         int id = 0;
                         if (rModelPart.GetRootModelPart().Conditions().size() > 0)
                             int id = rModelPart.GetRootModelPart().Conditions().back().Id() + 1;
-                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, this_property);
+                        auto condition = rModelPart.CreateNewCondition(rName, id, non_zero_control_points, 0);
 
                         condition->SetValue(SHAPE_FUNCTION_VALUES, N_0);
                         condition->SetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES, N_1);
@@ -120,7 +117,6 @@ namespace Kratos
         const int& trim_index,
         const std::string& rType,
         const std::string& rName,
-        const int& rPropertiesId,
         const int& rShapeFunctionDerivativesOrder,
         std::vector<std::string> rVariables)
     {

@@ -322,14 +322,6 @@ class IgaSolver(PythonSolver):
         else:
             self.print_on_rank_zero("::[IgaSolver]:: ", "Constitutive law was not imported.")
 
-        # Import constitutive laws.
-        #self.import_constitutive_laws()
-        #materials_imported = self.import_constitutive_laws()
-        #if materials_imported:
-        #    KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Constitutive law was successfully imported.")
-        #else:
-        #    KratosMultiphysics.Logger.PrintInfo("::[IgaSolver]:: ", "Constitutive law was not imported.")
-
     def _set_and_fill_buffer(self):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal

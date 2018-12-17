@@ -35,7 +35,6 @@ namespace Kratos
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -44,7 +43,6 @@ namespace Kratos
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -53,7 +51,6 @@ namespace Kratos
             const int brep_id,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -61,7 +58,6 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
@@ -71,7 +67,6 @@ namespace Kratos
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
-            const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
 
