@@ -104,7 +104,7 @@ namespace Kratos
             Element::Pointer p_elem_3 = this_model_part.CreateNewElement("Element2D3N", 4, triangle_3, p_elem_prop);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
-            HistNodalAreaProcess hist_process(this_model_part);
+            HistNodalAreaProcess hist_process(this_model_part, 2);
             hist_process.Execute();
 
 //             // DEBUG
@@ -117,7 +117,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/6.0, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
-            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
             nonhist_process.Execute();
 
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
@@ -262,7 +262,7 @@ namespace Kratos
 
             // Calculate nodal area
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
-            HistNodalAreaProcess hist_process(this_model_part);
+            HistNodalAreaProcess hist_process(this_model_part, 3);
             hist_process.Execute();
 
 //             // DEBUG
@@ -279,7 +279,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
-            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
             nonhist_process.Execute();
 
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
@@ -338,7 +338,7 @@ namespace Kratos
             Element::Pointer p_elem_1 = this_model_part.CreateNewElement("Element2D4N", 2, quadrilateral_1, p_elem_prop);
                          
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
-            HistNodalAreaProcess hist_process(this_model_part);
+            HistNodalAreaProcess hist_process(this_model_part, 2);
             hist_process.Execute();
             
 //             // DEBUG
@@ -353,7 +353,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_6->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
-            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
             nonhist_process.Execute();
 
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 0.25, tolerance);
@@ -428,7 +428,7 @@ namespace Kratos
                       
             // Calculate nodal area
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable> HistNodalAreaProcess;
-            HistNodalAreaProcess hist_process(this_model_part);
+            HistNodalAreaProcess hist_process(this_model_part, 3);
             hist_process.Execute();
             
 //             // DEBUG
@@ -449,7 +449,7 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_12->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
-            NonHistNodalAreaProcess nonhist_process(this_model_part);
+            NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
             nonhist_process.Execute();
 
             KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->GetValue(NODAL_AREA)) - 0.125, tolerance);
