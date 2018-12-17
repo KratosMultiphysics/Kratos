@@ -621,14 +621,13 @@ class VolumeShapingProcess : public Process
     std::fill( rVariables.NodalVolume.begin(), rVariables.NodalVolume.end(), 0 );
 
     const unsigned int dimension = rModelPart.GetProcessInfo()[SPACE_DIMENSION];
-    double TotalSurface = 0;
 
     if( dimension == 2 ){
 
       ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
       int NumberOfNodes = rModelPart.NumberOfNodes();
 
-      #pragma omp parallel for reduction(+:TotalSurface)
+      #pragma omp parallel for
       for (int i=0; i<NumberOfNodes; ++i)
       {
         ModelPart::NodesContainerType::iterator i_node = it_begin + i;

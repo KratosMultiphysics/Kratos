@@ -48,6 +48,8 @@ class RefineElementsInEdgesMesherProcess
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
+  typedef std::vector<Element*>          ElementPointerVectorType;
+
   ///@}
   ///@name Life Cycle
   ///@{
@@ -225,14 +227,14 @@ class RefineElementsInEdgesMesherProcess
     for(ModelPart::ElementsContainerType::iterator i_elem = rBoundaryEdgedElements.begin();
         i_elem != rBoundaryEdgedElements.end(); ++i_elem)
     {
-      WeakPointerVector<Element>& neighb_elems = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+      ElementPointerVectorType& neighb_elems = i_elem->GetValue(NEIGHBOR_ELEMENTS);
 
       unsigned int face=0;
       bool accepted_face = false;
-      for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+      for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
       {
 
-        if (ne->Id() != i_elem->Id())  // If there is a shared element in face nf
+        if ((*ne)->Id() != i_elem->Id())  // If there is a shared element in face nf
         {
           accepted_face = true;
 

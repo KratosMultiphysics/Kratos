@@ -33,9 +33,10 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType                      NodesContainerType;
-typedef  ModelPart::ElementsContainerType                ElementsContainerType;
-typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+typedef ModelPart::NodesContainerType                      NodesContainerType;
+typedef ModelPart::ElementsContainerType                ElementsContainerType;
+typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
+typedef std::vector<Node<3>*>                            NodePointerVectorType;
 
 
 ///@}
@@ -225,8 +226,8 @@ class AdaptiveTimeIntervalProcess
           }
           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
           double unsafetyFactor=0;
-          WeakPointerVector< Node < 3 > >& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
-          for (WeakPointerVector< Node <3> >::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
+          NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+          for (NodePointerVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
           {
             array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
             double squaredDistance=0;
