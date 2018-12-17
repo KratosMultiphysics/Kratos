@@ -32,10 +32,14 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
             "name"               : "steepest_descent",
             "max_iterations"     : 100,
             "relative_tolerance" : 1e-3,
+            "gradient_tolerance" : 1e-5,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 1.0
+                "step_size"                  : 1.0,
+                "estimation_tolerance"       : 0.1,
+                "increase_factor"            : 1.1,
+                "max_increase_factor"        : 10.0
             }
         }""")
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
@@ -56,8 +60,16 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
 
+        self.previos_objective_value = None
+
         self.max_iterations = self.algorithm_settings["max_iterations"].GetInt() + 1
         self.relative_tolerance = self.algorithm_settings["relative_tolerance"].GetDouble()
+        self.gradient_tolerance = self.algorithm_settings["gradient_tolerance"].GetDouble()
+        self.line_search_type = self.algorithm_settings["line_search"]["line_search_type"].GetString()
+        self.estimation_tolerance = self.algorithm_settings["line_search"]["estimation_tolerance"].GetDouble()
+        self.step_size = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        self.increase_factor = self.algorithm_settings["line_search"]["increase_factor"].GetDouble()
+        self.max_step_size = self.step_size*self.algorithm_settings["line_search"]["max_increase_factor"].GetDouble()
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(SEARCH_DIRECTION)
@@ -102,6 +114,9 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
             self.__analyzeShape()
 
+            if self.line_search_type == "adaptive_stepping" and self.optimization_iteration > 1:
+                self.__adjustStepSize()
+
             self.__computeShapeUpdate()
 
             self.__logCurrentOptimizationStep()
@@ -143,20 +158,63 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
 
     # --------------------------------------------------------------------------
+    def __adjustStepSize(self):
+        current_a = self.step_size
+
+        # Compare actual and estimated improvement using linear information from the previos step
+        dfda1 = 0.0
+        for node in self.design_surface.Nodes:
+            # The following variables are not yet updated and therefore contain the information from the previos step
+            s1 = node.GetSolutionStepValue(SEARCH_DIRECTION)
+            dfds1 = node.GetSolutionStepValue(DF1DX_MAPPED)
+            dfda1 += s1[0]*dfds1[0] + s1[1]*dfds1[1] + s1[2]*dfds1[2]
+
+        f2 = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        f1 = self.previos_objective_value
+
+        df_actual = f2 - f1
+        df_estimated = current_a*dfda1
+
+        # Adjust step size if necessary
+        if f2 < f1:
+            estimation_error = (df_actual-df_estimated)/df_actual
+
+            # Increase step size if estimation based on linear extrapolation matches the actual improvement within a specified tolerance
+            if estimation_error < self.estimation_tolerance:
+                new_a = min(current_a*self.increase_factor, self.max_step_size)
+
+            # Leave step size unchanged if a nonliner change in the objective is observed but still a descent direction is obtained
+            else:
+                new_a = current_a
+        else:
+            # Search approximation of optimal step using interpolation
+            a = current_a
+            corrected_step_size = - 0.5 * dfda1 * a**2 / (f2 - f1 - dfda1 * a )
+
+            # Starting from the new design, and assuming an opposite gradient direction, the step size to the approximated optimum behaves reciprocal
+            new_a = current_a-corrected_step_size
+
+        self.step_size = new_a
+
+    # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
         self.mapper.Update()
         self.mapper.InverseMap(DF1DX, DF1DX_MAPPED)
 
         self.optimization_utilities.ComputeSearchDirectionSteepestDescent()
-        self.optimization_utilities.ComputeControlPointUpdate()
+        self.optimization_utilities.ComputeControlPointUpdate(self.step_size)
 
         self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
+        self.previos_objective_value = self.communicator.getStandardizedValue(self.objectives[0]["identifier"].GetString())
+        self.norm_obj_gradient = self.optimization_utilities.ComputeL2NormOfNodalVariable(DF1DX_MAPPED)
+
         additional_values_to_log = {}
-        additional_values_to_log["step_size"] = self.algorithm_settings["line_search"]["step_size"].GetDouble()
+        additional_values_to_log["step_size"] = self.step_size
+        additional_values_to_log["norm_obj_gradient"] = self.norm_obj_gradient
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 
@@ -164,11 +222,18 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __isAlgorithmConverged(self):
 
         if self.optimization_iteration > 1 :
-
             # Check if maximum iterations were reached
             if self.optimization_iteration == self.max_iterations:
                 print("\n> Maximal iterations of optimization problem reached!")
                 return True
+
+            # Check gradient norm
+            if self.optimization_iteration == 2:
+                self.initial_norm_obj_gradient = self.norm_obj_gradient
+            else:
+                if self.norm_obj_gradient < self.gradient_tolerance*self.initial_norm_obj_gradient:
+                    print("\n> Optimization problem converged as gradient norm reached specified tolerance of ",self.gradient_tolerance)
+                    return True
 
             # Check for relative tolerance
             relativeChangeOfObjectiveValue = self.data_logger.GetValue("rel_change_obj", self.optimization_iteration)
