@@ -284,8 +284,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ViscousGeneralizedMaxwell
     ///@{
 
     // Converged values
-    Vector mPrevStressVector = ZeroVector(6);
-    Vector mPrevStrainVector = ZeroVector(6);
+    Vector mPrevStressVector = ZeroVector(VoigtSize);
+    Vector mPrevStrainVector = ZeroVector(VoigtSize);
 
     ///@}
     ///@name Private Operators
