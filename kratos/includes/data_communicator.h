@@ -523,12 +523,12 @@ class DataCommunicator
         std::vector<double>& rGlobalValues) const
     {}
 
-    virtual Kratos::Flags AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    virtual Kratos::Flags AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
         return Values;
     }
 
-    virtual Kratos::Flags OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+    virtual Kratos::Flags OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
     {
         return Values;
     }

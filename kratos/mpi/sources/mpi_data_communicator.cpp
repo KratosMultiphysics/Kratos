@@ -367,7 +367,7 @@ void MPIDataCommunicator::MaxAll(
 }
 
 
-Kratos::Flags MPIDataCommunicator::AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+Kratos::Flags MPIDataCommunicator::AndReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
     Flags::BlockType defined = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType reduced_defined;
@@ -382,7 +382,7 @@ Kratos::Flags MPIDataCommunicator::AndAll(const Kratos::Flags Values, const Krat
     return out;
 }
 
-Kratos::Flags MPIDataCommunicator::OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
+Kratos::Flags MPIDataCommunicator::OrReduceAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
     Flags::BlockType defined = Values.GetDefined() & Mask.GetDefined();
     Flags::BlockType reduced_defined;

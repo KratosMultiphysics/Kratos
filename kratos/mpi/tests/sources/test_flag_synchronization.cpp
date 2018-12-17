@@ -30,7 +30,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite
     test_flag.Set(STRUCTURE, rank == 0);
     test_flag.Set(INLET, rank == 0);
 
-    Kratos::Flags synchronized_flag = mpi_world_communicator.AndAll(test_flag, STRUCTURE);
+    Kratos::Flags synchronized_flag = mpi_world_communicator.AndReduceAll(test_flag, STRUCTURE);
 
     KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), (size == 1)); // true for single-rank runs, false for multiple ranks.
     KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFast
     }
     test_flag.Set(INLET, rank == 0);
 
-    Kratos::Flags synchronized_flag = mpi_world_communicator.AndAll(test_flag, STRUCTURE);
+    Kratos::Flags synchronized_flag = mpi_world_communicator.AndReduceAll(test_flag, STRUCTURE);
 
     if (size > 1)
     {
@@ -74,7 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
     test_flag.Set(STRUCTURE, rank == 0);
     test_flag.Set(INLET, rank == 0);
 
-    Kratos::Flags synchronized_flag = mpi_world_communicator.OrAll(test_flag, STRUCTURE);
+    Kratos::Flags synchronized_flag = mpi_world_communicator.OrReduceAll(test_flag, STRUCTURE);
 
     KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true);
     KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
@@ -94,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastS
     }
     test_flag.Set(INLET, rank == 0);
 
-    Kratos::Flags synchronized_flag = mpi_world_communicator.OrAll(test_flag, STRUCTURE);
+    Kratos::Flags synchronized_flag = mpi_world_communicator.OrReduceAll(test_flag, STRUCTURE);
 
     if (size > 1)
     {
