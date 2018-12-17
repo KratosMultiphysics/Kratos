@@ -115,7 +115,7 @@ namespace Kratos
 
     const double & rPS     = rVariables.Internal.Variables[3];
     const double & rPT     = rVariables.Internal.Variables[4];
-    //const double & rPCstar = rVariables.Internal.Variables[5];
+    const double & rPCstar = rVariables.Internal.Variables[5];
     const double & rhos = rMaterialProperties[RHOS];
     const double & rhot = rMaterialProperties[RHOT];
     const double & k = rMaterialProperties[KSIM];
@@ -129,7 +129,6 @@ namespace Kratos
     double TracePlasticPotDerivative = 0.0;
     for (unsigned int i = 0; i < 3; i++)
        TracePlasticPotDerivative += rPlasticPotentialDerivative(i,i);
-    
 
     MatrixType DevPlasticPotDerivative = rPlasticPotentialDerivative;
     for (unsigned int i = 0; i <3; i++)
@@ -147,9 +146,13 @@ namespace Kratos
     const double & chit = rMaterialProperties[CHIT];
 
     rDeltaHardening = (-MeanStressT) * rhos * (+rPS )* (TracePlasticPotDerivative + chis * sqrt(2.0/3.0) * NormPlasticPotDerivative );
- rDeltaHardening += (-MeanStressT) * ( 1.0 + k) * (rhot) * (-rPT) * ( fabs(TracePlasticPotDerivative) + chit*sqrt(2.0/3.0) * NormPlasticPotDerivative);
+    double term1= (-MeanStressT) * ( 1.0 + k) * (rhot) * (-rPT) * ( fabs(TracePlasticPotDerivative) + chit*sqrt(2.0/3.0) * NormPlasticPotDerivative);
+    double term2 = (MeanStressT * ( 1.0 - k) - rPCstar) * (rhot) * (-rPT) * ( fabs(TracePlasticPotDerivative) + chit*sqrt(2.0/3.0) * NormPlasticPotDerivative);
+    
+    //std::cout << " term1 " << term1 << " term2 " << term2 << " H1 " << rDeltaHardening << " HH " << rDeltaHardening + term2 << std::endl;
 
 
+    rDeltaHardening += term2;
     return rDeltaHardening;	
 
     KRATOS_CATCH(" ")

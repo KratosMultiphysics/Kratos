@@ -649,7 +649,7 @@ namespace Kratos
                      return;
                   }
                }
-
+               std::cout << " theStressPointDidNotReturnedCorrectly " << YieldSurface << std::endl;
 
                KRATOS_CATCH("")
             }

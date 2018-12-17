@@ -101,7 +101,7 @@ namespace Kratos
 
 
 
-      const int numberGaussPoints = GaussPointsVector.size();
+      const unsigned int numberGaussPoints = GaussPointsVector.size();
       std::vector< double > LocalVariableVector(numberGaussPoints);
 
       for ( unsigned int variable = 0; variable < mNonLocalVariables.size(); variable++) {
@@ -152,8 +152,11 @@ namespace Kratos
    {
       KRATOS_TRY
 
+      // Galavi & Schweiger
       rAlpha = rDistance * exp( - pow(rDistance/rCharacteristicLength, 2) );
 
+      // Gaussian function
+      //rAlpha =  exp( - pow(rDistance/rCharacteristicLength, 2) );
       return rAlpha;
 
       KRATOS_CATCH("")

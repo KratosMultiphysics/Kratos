@@ -155,6 +155,7 @@ namespace Kratos
                {
                   double p, J2;
                   StressInvariantsUtilities::CalculateStressInvariants(mStressMatrix , p, J2, rValue);
+                  rValue *= -180.0/3.14159;
                }
                else if ( rThisVariable == PLASTIC_VOL_DEF) {
                   rValue = mInternal.Variables[1];

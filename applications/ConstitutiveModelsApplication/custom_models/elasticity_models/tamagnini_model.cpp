@@ -83,7 +83,8 @@ namespace Kratos
       const double & rPoissonRatio = rMaterialProperties[POISSON_RATIO];
       const double & rReferencePressure = rMaterialProperties[REFERENCE_PRESSURE];
 
-      MatrixType HenckyStrain = rVariables.Strain.Matrix;
+      MatrixType HenckyStrain(3,3);
+      HenckyStrain  = rVariables.Strain.Matrix;
 
       if ( mSetStressState )
       {
@@ -278,7 +279,9 @@ namespace Kratos
       MatrixType  EigenV;
       noalias( EigenStressM ) = ZeroMatrix(3,3);
       noalias( EigenV) = ZeroMatrix(3,3);
-
+      MatrixType OriginalHencky;
+      noalias( OriginalHencky) = ZeroMatrix(3,3);
+      OriginalHencky = rHenckyStrain;
 
       //SolidMechanicsMathUtilities<double>::EigenVectors( StressMat, EigenV, EigenStress);
       MathUtils<double>::EigenSystem<3> ( StressMat, EigenV, EigenStressM);
@@ -320,6 +323,8 @@ namespace Kratos
 
       noalias( rHenckyStrain ) = prod( trans(EigenV), rHenckyStrain);
       noalias( rHenckyStrain ) = prod( rHenckyStrain, EigenV);
+
+      rHenckyStrain += OriginalHencky;
 
       Vector NewHistoryVector(6);
       NewHistoryVector = ConstitutiveModelUtilities::StrainTensorToVector( ElasticLeftCauchy, NewHistoryVector);
