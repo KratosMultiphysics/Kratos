@@ -98,9 +98,8 @@ public:
     {
         // In case is not provided we will take from the model part
         if (mDomainSize == 0) {
-            const auto& it_element_begin = mrModelPart.ElementsBegin();
-            const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-            mDomainSize = r_first_element_geometry.WorkingSpaceDimension();
+            KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo if using this constructor!" << std::endl;
+            mDomainSize = rModelPart.GetProcessInfo()[DOMAIN_SIZE]
         }
     }
 
