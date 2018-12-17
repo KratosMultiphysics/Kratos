@@ -131,6 +131,16 @@ class MPIDataCommunicator: public DataCommunicator
         std::vector<double>& rGlobalValues,
         const int Root) const override;
 
+    Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
+    Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const override;
+
     // Allreduce operations
 
     int SumAll(const int rLocalValue) const override;

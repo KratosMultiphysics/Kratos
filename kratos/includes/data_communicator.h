@@ -311,6 +311,22 @@ class DataCommunicator
         const int Root) const
     {}
 
+    virtual Kratos::Flags AndReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
+    virtual Kratos::Flags OrReduce(
+        const Kratos::Flags Values,
+        const Kratos::Flags Mask,
+        const int Root) const
+    {
+        return Values;
+    }
+
     // Allreduce operations
 
     /// Sum rLocalValue across all ranks in the Communicator (int version).
