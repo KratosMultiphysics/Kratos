@@ -231,22 +231,6 @@ private:
      */
     double& GetAreaValue(NodeType& rNode);
 
-    /**
-     * @brief This method sets the current value of the NODAL_AREA to the given one
-     * @param rNode The node iterator to be get
-     * @param Value The current value of NODAL_AREA
-     */
-    void SetAreaValue(
-        NodeType& rNode,
-        const double Value
-        );
-
-    /**
-     * @brief This method sets the current value of the NODAL_AREA to the maximum
-     * @param itNode The node iterator to be set
-     */
-    void SetInitialValue(NodeIterator itNode);
-
     ///@}
     ///@name Private  Access
     ///@{

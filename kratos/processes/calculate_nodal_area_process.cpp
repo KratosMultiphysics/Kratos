@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/geometry_utilities.h"
+#include "utilities/variable_utils.h"
 #include "processes/calculate_nodal_area_process.h"
 
 namespace Kratos
@@ -34,30 +35,36 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     }
 
     // Set to zero the nodal area
-    const auto it_node_begin = mrModelPart.NodesBegin();
-    #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i) {
-        auto it_node = it_node_begin + i;
-        SetInitialValue(it_node);
+    if (THistorical) {
+        VariableUtils().SetVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
+    } else {
+        VariableUtils().SetNonHistoricalVariable(NODAL_AREA, 0.0, mrModelPart.Nodes());
     }
 
+    // We create the N and J0
+    Vector N;
+    Matrix J0;
+
+    // Iterate over the elements
     const auto& it_element_begin = mrModelPart.GetCommunicator().LocalMesh().ElementsBegin();
-    const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-    const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
-    const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
-
-    // The integration points
-    const auto& integration_method = r_first_element_geometry.GetDefaultIntegrationMethod();
-    const auto& integration_points = r_first_element_geometry.IntegrationPoints(integration_method);
-    const std::size_t number_of_integration_points = integration_points.size();
-
-    Vector N = ZeroVector(number_of_nodes);
-    Matrix J0 = ZeroMatrix(mDomainSize, local_space_dimension);
-
     #pragma omp parallel for firstprivate(N, J0)
     for(int i=0; i<static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++i) {
         auto it_elem = it_element_begin + i;
         auto& r_geometry = it_elem->GetGeometry();
+
+        const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_geometry.PointsNumber();
+
+        // The integration points
+        const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
+        const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+        const std::size_t number_of_integration_points = integration_points.size();
+
+        // Resize the N and J0
+        if (N.size() != number_of_nodes)
+            N.resize(number_of_nodes);
+        if (J0.size1() != mDomainSize || J0.size2() != local_space_dimension)
+            J0.resize(mDomainSize, local_space_dimension);
 
         // The containers of the shape functions
         const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
@@ -105,48 +112,6 @@ template<>
 double& CalculateNodalAreaProcess<false>::GetAreaValue(NodeType& rNode)
 {
     return rNode.GetValue(NODAL_AREA);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void CalculateNodalAreaProcess<true>::SetAreaValue(
-    NodeType& rNode,
-    const double Value
-    )
-{
-    rNode.FastGetSolutionStepValue(NODAL_AREA) = Value;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void CalculateNodalAreaProcess<false>::SetAreaValue(
-    NodeType& rNode,
-    const double Value
-    )
-{
-    rNode.SetValue(NODAL_AREA, Value);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void CalculateNodalAreaProcess<true>::SetInitialValue(NodeIterator itNode)
-{
-    itNode->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void CalculateNodalAreaProcess<false>::SetInitialValue(NodeIterator itNode)
-{
-    itNode->SetValue(NODAL_AREA, 0.0);
 }
 
 /***********************************************************************************/
