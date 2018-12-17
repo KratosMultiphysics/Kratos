@@ -59,7 +59,7 @@ public:
         array_1d<double, TNumNodes> phis, distances;
         double vol;
 
-        bounded_matrix<double, TNumNodes, TDim> DN_DX;
+        BoundedMatrix<double, TNumNodes, TDim> DN_DX;
         array_1d<double, TNumNodes> N;
     };
 

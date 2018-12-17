@@ -446,12 +446,12 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
 
     // Subdivide the element
     constexpr unsigned int nvolumes = 3 * (Dim - 1);
-    bounded_matrix<double, NumNodes, Dim> Points;
+    BoundedMatrix<double, NumNodes, Dim> Points;
     array_1d<double, nvolumes> PartitionsSign;
-    bounded_matrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
+    BoundedMatrix<double, nvolumes, NumNodes> GPShapeFunctionValues;
     array_1d<double, nvolumes> Volumes;
     std::vector<Matrix> GradientsValue(nvolumes);
-    bounded_matrix<double, nvolumes, 2> NEnriched;
+    BoundedMatrix<double, nvolumes, 2> NEnriched;
     for (unsigned int i = 0; i < GradientsValue.size(); ++i)
         GradientsValue[i].resize(2, Dim, false);
     for (unsigned int i = 0; i < NumNodes; ++i)
