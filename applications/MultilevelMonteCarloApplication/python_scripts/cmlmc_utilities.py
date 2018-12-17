@@ -487,13 +487,12 @@ class MultilevelMonteCarlo(object):
     '''
     function adding the QoI and MLMC time values to the corresponding level and object of the variable
     '''
-    def AddResults(self,simulation_results,level):
-        #'''the following two commented lines may be needed in case we do not pass level as input of
-        # AddResults but inside simulation_results = [MultilevelMonteCarloResults class, level (integer type, not compss.future)]'''
-        # actual_result = simulation_results[0]
-        # level = simulation_results[1]
+    def AddResults(self,simulation_results):
+        '''simulation_results = [MultilevelMonteCarloResults class, level (integer type, not compss.future)]'''
+        simulation_results_class = simulation_results[0]
+        level = simulation_results[1]
         for lev in range (level+1):
-            difference_QoI_value, time_ML_value = AddResultsAux_Task(simulation_results,lev)
+            difference_QoI_value, time_ML_value = AddResultsAux_Task(simulation_results_class,lev)
             '''update values of difference QoI and time ML pe each level'''
             self.difference_QoI.values[lev] = np.append(self.difference_QoI.values[lev], difference_QoI_value)
             self.time_ML.values[lev] = np.append(self.time_ML.values[lev],time_ML_value)
