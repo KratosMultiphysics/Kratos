@@ -98,7 +98,7 @@ public:
     {
         // In case is not provided we will take from the model part
         if (mDomainSize == 0) {
-            KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo if using this constructor!" << std::endl;
+            KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo" << std::endl;
             mDomainSize = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
         }
     }
