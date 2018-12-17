@@ -28,17 +28,39 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite
 
     Kratos::Flags test_flag;
     test_flag.Set(STRUCTURE, rank == 0);
+    test_flag.Set(INLET, rank == 0);
+
+    Kratos::Flags synchronized_flag = mpi_world_communicator.AndAll(test_flag, STRUCTURE);
+
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), (size == 1)); // true for single-rank runs, false for multiple ranks.
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
+    KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAllUnset, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int rank = mpi_world_communicator.Rank();
+    const int size = mpi_world_communicator.Size();
+
+    Kratos::Flags test_flag;
+    if (rank != size - 1) // last rank does not define a value
+    {
+        test_flag.Set(STRUCTURE, true);
+    }
+    test_flag.Set(INLET, rank == 0);
 
     Kratos::Flags synchronized_flag = mpi_world_communicator.AndAll(test_flag, STRUCTURE);
 
     if (size > 1)
     {
-        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), false);
+        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true); // all ranks (including last) are set.
     }
-    else // if there is only one rank, result should be true
+    else
     {
-        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true);
+        KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(STRUCTURE), false); // only one rank, which did not set it.
     }
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
@@ -50,10 +72,39 @@ KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
 
     Kratos::Flags test_flag;
     test_flag.Set(STRUCTURE, rank == 0);
+    test_flag.Set(INLET, rank == 0);
 
     Kratos::Flags synchronized_flag = mpi_world_communicator.OrAll(test_flag, STRUCTURE);
 
     KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true);
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
+    KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAllUnset, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_SELF);
+    const int rank = mpi_world_communicator.Rank();
+    const int size = mpi_world_communicator.Size();
+
+    Kratos::Flags test_flag;
+    if (rank != size - 1) // last rank does not define a value
+    {
+        test_flag.Set(STRUCTURE, true);
+    }
+    test_flag.Set(INLET, rank == 0);
+
+    Kratos::Flags synchronized_flag = mpi_world_communicator.OrAll(test_flag, STRUCTURE);
+
+    if (size > 1)
+    {
+        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true); // all ranks (including last) are set.
+    }
+    else
+    {
+        KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(STRUCTURE), false); // only one rank, which did not set it.
+    }
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(INLET), (rank == 0)); // This value does not participate in the synchronization
     KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
