@@ -55,7 +55,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
     Matrix J0 = ZeroMatrix(mDomainSize, local_space_dimension);
 
     #pragma omp parallel for firstprivate(N, J0)
-    for(int i=0; i<static_cast<int>(mrModelPart.Elements().size()); ++i) {
+    for(int i=0; i<static_cast<int>(mrModelPart.GetCommunicator().LocalMesh().NumberOfElements()); ++i) {
         auto it_elem = it_element_begin + i;
         auto& r_geometry = it_elem->GetGeometry();
 
