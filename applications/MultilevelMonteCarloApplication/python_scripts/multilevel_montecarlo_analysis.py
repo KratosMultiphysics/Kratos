@@ -77,7 +77,6 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
 
-
 ###########################################################
 ######## END OF CLASS MULTILEVELMONTECARLOANALYSIS ########
 ###########################################################
@@ -111,14 +110,23 @@ def EvaluateQuantityOfInterest(simulation):
     return Q
 
 
-# '''this function returns a future object (the result class) and a master integer (the finer level)
-# this would avoid to the user to see lev in the call in the main as an input for the AddResults function'''
-# def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
-#     return ExecuteMultilevelMonteCarloAnalisysAux(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes),finest_level
+'''
+function called in the main returning a future object (the result class) and an integer (the finer level)
+input:
+        finest_level              : current Multilevel MOnte Carlo level we are solving
+        pickled_coarse_model      : pickled model
+        pickled_coarse_parameters : pickled parameters
+        size_meshes               : mesh sizes for all levels
+output:
+        MultilevelMonteCarloResults class : class of the simulation results
+        finest_level                      : level of the current MLMC simulation
+'''
+def ExecuteMultilevelMonteCarloAnalisys(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
+    return ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes),finest_level
 
 
 '''
-function evaluationg the QoI and the cost of simulation, computing the mesh of level finest_level
+function evaluating the QoI and the cost of simulation, computing the mesh of level finest_level
 refining recursively from the coarsest mesh
 input:
         finest_level              : current Multilevel MOnte Carlo level we are solving
@@ -126,11 +134,9 @@ input:
         pickled_coarse_parameters : pickled parameters
         size_meshes               : mesh sizes for all levels
 output:
-        results_simulation : QoI_finer_level   : QoI of level fisest_level
-                             QoI_coarser_level : QoI of level finest_level - 1
-                             finer_level       : finest level
-                             coarser_level     : finest_level - 1
-                             total_MLMC_time   : execution time
+        mlmc_results_class : QoI         : list of QoI for all levels computed in the current simulation
+                             finer_level : finest level
+                             time_ML     : list of MLMC time for all levels computed in the current simulation
 '''
 @ExaquteTask(returns=1)
 def ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes):
@@ -191,8 +197,8 @@ iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
 input:
         parameter_file_name   : path of the Project Parameters file
 output:
-        serialized_model      : model serialized
-        serialized_parameters : project parameters serialized
+        pickled_model      : model serializaton
+        pickled_parameters : project parameters serialization
 '''
 @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def SerializeModelParameters_Task(parameter_file_name):
@@ -219,12 +225,13 @@ def SerializeModelParameters_Task(parameter_file_name):
 '''
 function executing the refinement of the problem
 input:
-        model       : serialization of the model
-        parameters  : serialization of the Project Parameters
+        pickled_model_coarse : serialization of the model with coarser model part
+        pickled_parameters   : serialization of the Project Parameters
+        min_size             : minimum size of the refined model part
+        max_size             : maximum size of the refined mesh
 output:
         QoI                   : Quantity of Interest
-        serialized_model      : model serialized
-        serialized_parameters : parameters serialized
+        pickled_model_refined : serialization of the model with refined model part
 '''
 @ExaquteTask(returns=2)
 def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
@@ -272,6 +279,7 @@ if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
     parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+    # parameter_file_name = "/home/ramela/Documents/Kratos_3/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
@@ -291,7 +299,7 @@ if __name__ == '__main__':
     ''''start screening phase'''
     for lev in range(mlmc_class.current_number_levels+1):
         for instance in range (mlmc_class.number_samples[lev]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys_Task(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
     '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -303,7 +311,7 @@ if __name__ == '__main__':
         '''MLMC execution phase'''
         for lev in range (mlmc_class.current_number_levels+1):
             for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys_Task(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh),lev)
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
         '''finalize MLMC phase'''
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
