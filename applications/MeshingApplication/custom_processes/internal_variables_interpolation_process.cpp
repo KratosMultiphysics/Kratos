@@ -21,23 +21,23 @@
 namespace Kratos
 {
 InternalVariablesInterpolationProcess::InternalVariablesInterpolationProcess(
-        ModelPart& rOriginMainModelPart,
-        ModelPart& rDestinationMainModelPart,
-        Parameters ThisParameters
-        ):mrOriginMainModelPart(rOriginMainModelPart),
-        mrDestinationMainModelPart(rDestinationMainModelPart),
-        mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
+    ModelPart& rOriginMainModelPart,
+    ModelPart& rDestinationMainModelPart,
+    Parameters ThisParameters
+    ):mrOriginMainModelPart(rOriginMainModelPart),
+    mrDestinationMainModelPart(rDestinationMainModelPart),
+    mDimension(rDestinationMainModelPart.GetProcessInfo()[DOMAIN_SIZE])
 {
-    Parameters DefaultParameters = Parameters(R"(
-        {
-            "allocation_size"                      : 1000,
-            "bucket_size"                          : 4,
-            "search_factor"                        : 2,
-            "interpolation_type"                   : "LST",
-            "internal_variable_interpolation_list" :[]
-        })" );
+    Parameters default_parameters = Parameters(R"(
+    {
+        "allocation_size"                      : 1000,
+        "bucket_size"                          : 4,
+        "search_factor"                        : 2,
+        "interpolation_type"                   : "LST",
+        "internal_variable_interpolation_list" :[]
+    })" );
 
-    ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
     mAllocationSize = ThisParameters["allocation_size"].GetInt();
     mBucketSize = ThisParameters["bucket_size"].GetInt();
@@ -96,21 +96,19 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
 
     // Iterate in the elements
     ElementsArrayType& elements_array = ThisModelPart.Elements();
-    int num_elements = ThisModelPart.NumberOfElements();
+    const int num_elements = static_cast<int>(elements_array.size());
 
     const ProcessInfo& current_process_info = ThisModelPart.GetProcessInfo();
-
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<PointVector> points_buffer(num_threads);
+    const auto it_elem_begin = elements_array.begin();
 
     #pragma omp parallel
     {
-        const int id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        PointVector points_buffer;
 
-        #pragma omp for
+        #pragma omp for firstprivate(this_integration_method)
         for(int i = 0; i < num_elements; ++i) {
-            auto it_elem = elements_array.begin() + i;
+            auto it_elem = it_elem_begin + i;
 
             // Getting the geometry
             GeometryType& r_this_geometry = it_elem->GetGeometry();
@@ -161,15 +159,14 @@ PointVector InternalVariablesInterpolationProcess::CreateGaussPointList(ModelPar
                 }
 
                 // Finally we push over the the buffer vector
-                (points_buffer[id]).push_back(p_point);
+                points_buffer.push_back(p_point);
             }
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& point_buffer : points_buffer)
-                std::move(point_buffer.begin(),point_buffer.end(),back_inserter(this_point_vector));
+            std::move(points_buffer.begin(),points_buffer.end(),back_inserter(this_point_vector));
         }
     }
 
@@ -293,9 +290,9 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 
         // Iterate over the destination elements
         ElementsArrayType& elements_array = mrDestinationMainModelPart.Elements();
-        auto num_elements = elements_array.end() - elements_array.begin();
+        const int num_elements = static_cast<int>(elements_array.size());
 
-        //#pragma omp for
+//         #pragma omp for firstprivate(this_integration_method)
         for(int i = 0; i < num_elements; ++i)
         {
             auto it_elem = elements_array.begin() + i;
@@ -378,7 +375,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Iterate in the nodes to initialize the values
     NodesArrayType& nodes_array = mrOriginMainModelPart.Nodes();
-    auto num_nodes = nodes_array.end() - nodes_array.begin();
+    const int num_nodes = static_cast<int>(nodes_array.size());
 
     /* Nodes */
     #pragma omp parallel for
@@ -397,12 +394,12 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Iterate in the elements to ponderate the values
     ElementsArrayType& elements_array = mrOriginMainModelPart.Elements();
-    auto num_elements = elements_array.end() - elements_array.begin();
+    int num_elements = static_cast<int>(elements_array.size());
 
     const ProcessInfo& origin_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    #pragma omp parallel for
+    #pragma omp parallel for firstprivate(this_integration_method)
     for(int i = 0; i < num_elements; ++i) {
         auto it_elem = elements_array.begin() + i;
 
@@ -524,12 +521,12 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
         }
     } else {
         // We create the locator
-        BinBasedFastPointLocator<3> point_locator = BinBasedFastPointLocator<3>(mrOriginMainModelPart);
+        BinBasedFastPointLocator<3> point_locator(mrOriginMainModelPart);
         point_locator.UpdateSearchDatabase();
 
         // Iterate in the nodes
         NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
-        auto num_nodes = nodes_array.end() - nodes_array.begin();
+        const int num_nodes = static_cast<int>(nodes_array.size());
 
         /* Nodes */
         #pragma omp parallel for
@@ -563,12 +560,12 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsShapeFunctionT
 
     // Finally we interpolate to the new GP
     ElementsArrayType& elements_array_destination = mrDestinationMainModelPart.Elements();
-    num_elements = elements_array_destination.end() - elements_array_destination.begin();
+    num_elements = static_cast<int>(elements_array_destination.size());
 
     const ProcessInfo& destination_process_info = mrOriginMainModelPart.GetProcessInfo();
 
     /* Elements */
-    #pragma omp parallel for
+    #pragma omp parallel for firstprivate(this_integration_method)
     for(int i = 0; i < num_elements; ++i) {
         auto it_elem = elements_array_destination.begin() + i;
 
