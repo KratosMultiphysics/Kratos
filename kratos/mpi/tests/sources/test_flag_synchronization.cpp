@@ -22,17 +22,39 @@ namespace Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsAndAll, KratosMPICoreFastSuite)
 {
-    MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
-    //const int rank = mpi_self_communicator.Rank();
-    //const int size = mpi_self_communicator.Size();
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int rank = mpi_world_communicator.Rank();
+    const int size = mpi_world_communicator.Size();
 
     Kratos::Flags test_flag;
-    test_flag.Set(STRUCTURE, true);
+    test_flag.Set(STRUCTURE, rank == 0);
 
-    Kratos::Flags out = mpi_self_communicator.AndAll(test_flag, STRUCTURE);
+    Kratos::Flags synchronized_flag = mpi_world_communicator.AndAll(test_flag, STRUCTURE);
 
-    KRATOS_CHECK_EQUAL(test_flag.Is(STRUCTURE), true);
-    KRATOS_CHECK_EQUAL(test_flag.IsDefined(PERIODIC), false);
+    if (size > 1)
+    {
+        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), false);
+    }
+    else // if there is only one rank, result should be true
+    {
+        KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true);
+    }
+    KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MPIDataCommunicatorFlagsOrAll, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_SELF);
+    const int rank = mpi_world_communicator.Rank();
+    //const int size = mpi_world_communicator.Size();
+
+    Kratos::Flags test_flag;
+    test_flag.Set(STRUCTURE, rank == 0);
+
+    Kratos::Flags synchronized_flag = mpi_world_communicator.OrAll(test_flag, STRUCTURE);
+
+    KRATOS_CHECK_EQUAL(synchronized_flag.Is(STRUCTURE), true);
+    KRATOS_CHECK_EQUAL(synchronized_flag.IsDefined(PERIODIC), false);
 }
 
 }
