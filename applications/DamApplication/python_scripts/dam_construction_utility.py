@@ -20,7 +20,8 @@ class DamConstructionUtility:
         self.activate_check_temperature = parameters["activate_check_temperature"]
         if (self.activate_check_temperature):
             self.check_temperature_parameters.AddValue("maximum_temperature_increment",parameters["maximum_temperature_increment"])
-            self.check_temperature_parameters.AddValue("minimum_temperature",parameters["minimum_temperature"])
+            self.check_temperature_parameters.AddValue("maximum_ambient_temperature",parameters["maximum_ambient_temperature"])
+            self.check_temperature_parameters.AddValue("minimum_ambient_temperature",parameters["minimum_ambient_temperature"])
 
         self.heat_source_parameters = Parameters("{}")
         if (parameters["source_type"].GetString() == "Adiabatic"):

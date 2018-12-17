@@ -431,7 +431,8 @@ class ConstructionUtility
 
         // Getting CheckTemperature Values
         const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
-        const double minimum_temperature = CheckTemperatureParameters["minimum_temperature"].GetDouble();
+        const double maximum_ambient_temperature = CheckTemperatureParameters["maximum_ambient_temperature"].GetDouble();
+        const double minimum_ambient_temperature = CheckTemperatureParameters["minimum_ambient_temperature"].GetDouble();
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -442,16 +443,30 @@ class ConstructionUtility
 
             if (it->Is(ACTIVE) && it->IsNot(SOLID))
             {
-                double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, ambient_temp);
+                double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, maximum_ambient_temperature);
                 double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 
                 if (current_temperature > maximum_temperature)
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
                 }
-                else if (current_temperature < minimum_temperature)
+                else if (current_temperature < minimum_ambient_temperature)
                 {
-                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_ambient_temperature;
+                }
+            }
+            else if (it->Is(ACTIVE) && it->Is(SOLID))
+            {
+                double maximum_temperature = maximum_ambient_temperature;
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
+                }
+                else if (current_temperature < minimum_ambient_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_ambient_temperature;
                 }
             }
         }
