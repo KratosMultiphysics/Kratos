@@ -103,7 +103,7 @@ public:
     /** Admits an Id as a parameter.
       @param NewId Index for the new condition
       */
-    PotentialWallCondition(IndexType NewId = 0):
+    explicit PotentialWallCondition(IndexType NewId = 0):
         Condition(NewId)
     {
     }
@@ -483,7 +483,6 @@ private:
         ///@{
 
         bool mInitializeWasPerformed = false;
-        double mMinEdgeLength;
         ElementWeakPointerType mpElement;
 
         void CalculateNormal2D(array_1d<double, 3> &An)

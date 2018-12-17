@@ -565,8 +565,6 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePotentialJump(Pro
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
 
-    const GeometryType& geom = GetGeometry();
-
     double aux_potential;
     double potential;
     double potential_jump;
@@ -742,40 +740,30 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWake
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo)
 {
-    double pressure = 0.0;
-
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int& wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        pressure = ComputePressureNormalElement(rCurrentProcessInfo);
+        return ComputePressureNormalElement(rCurrentProcessInfo);
     else
-        pressure = ComputePressureUpperWakeElement(rCurrentProcessInfo);
-
-    return pressure;
+        return ComputePressureUpperWakeElement(rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo)
 {
-    double pressure = 0.0;
-
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int& wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
-        pressure = ComputePressureNormalElement(rCurrentProcessInfo);
+        return ComputePressureNormalElement(rCurrentProcessInfo);
     else
-        pressure = ComputePressureLowerWakeElement(rCurrentProcessInfo);
-
-    return pressure;
+        return ComputePressureLowerWakeElement(rCurrentProcessInfo);
 }
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
 {
-    double pressure = 0.0;
-
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -786,17 +774,15 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalE
     array_1d<double, Dim> v;
     ComputeVelocityNormalElement(v);
 
-    pressure = (vinfinity_norm2 - inner_prod(v, v)) /
+    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
-    return pressure;
+    return pressure_coefficient;
 }
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    double pressure = 0.0;
-
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -807,18 +793,16 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWa
     array_1d<double, Dim> v;
     ComputeVelocityUpperWakeElement(v);
 
-    pressure = (vinfinity_norm2 - inner_prod(v, v)) /
+    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
 
-    return pressure;
+    return pressure_coefficient;
 }
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    double pressure = 0.0;
-
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
 
@@ -829,10 +813,10 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWa
     array_1d<double, Dim> v;
     ComputeVelocityLowerWakeElement(v);
 
-    pressure = (vinfinity_norm2 - inner_prod(v, v)) /
+    double pressure_coefficient = (vinfinity_norm2 - inner_prod(v, v)) /
                vinfinity_norm2; // 0.5*(norm_2(vinfinity) - norm_2(v));
 
-    return pressure;
+    return pressure_coefficient;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

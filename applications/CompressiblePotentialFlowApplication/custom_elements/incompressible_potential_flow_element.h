@@ -57,7 +57,6 @@ public:
     struct ElementalData
     {
         array_1d<double, TNumNodes> phis, distances;
-        double rho;
         double vol;
 
         bounded_matrix<double, TNumNodes, TDim> DN_DX;
@@ -84,7 +83,7 @@ public:
     /**
      * @param NewId Index number of the new element (optional)
      */
-    IncompressiblePotentialFlowElement(IndexType NewId = 0){};
+    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){};
 
     /**
      * Constructor using an array of nodes
@@ -109,7 +108,12 @@ public:
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther){};
+    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther) = delete;
+
+    /**
+     * Move Constructor
+     */
+    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement&& rOther) = delete;
 
     /**
      * Destructor
@@ -122,6 +126,14 @@ public:
 
     /// Assignment operator.
     IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
+    {
+        BaseType::operator=(rOther);
+        Flags::operator=(rOther);
+        return *this;
+    }
+
+    /// Move operator.
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement&& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
