@@ -47,4 +47,25 @@ const Flags& Flags::operator&=(const Flags& Other )
     return *this;
 }
 
+
+Flags::BlockType Flags::GetDefined() const
+{
+    return mIsDefined;
+}
+
+void Flags::SetDefined(const BlockType& rDefined)
+{
+    mIsDefined = rDefined;
+}
+
+Flags::BlockType Flags::GetValues() const
+{
+    return mFlags;
+}
+
+void Flags::SetValues(const BlockType& rValues)
+{
+    mFlags = rValues;
+}
+
 }

@@ -407,6 +407,16 @@ private:
     ///@name Private Operations
     ///@{
 
+    friend class MPIDataCommunicator;
+
+    BlockType GetDefined() const;
+
+    void SetDefined(const BlockType& rDefined);
+
+    BlockType GetValues() const;
+
+    void SetValues(const BlockType& rValues);
+
     ///@}
     ///@name Serialization
     ///@{
