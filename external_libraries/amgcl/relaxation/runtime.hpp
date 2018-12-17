@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,15 @@ THE SOFTWARE.
  * \brief  Runtime-configurable smoother as standalone preconditioner.
  */
 
+#include <type_traits>
+
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
+#include <boost/property_tree/ptree.hpp>
+
+#include <amgcl/util.hpp>
 #include <amgcl/relaxation/gauss_seidel.hpp>
 #include <amgcl/relaxation/ilu0.hpp>
 #include <amgcl/relaxation/iluk.hpp>
@@ -39,7 +48,6 @@ THE SOFTWARE.
 #include <amgcl/relaxation/spai0.hpp>
 #include <amgcl/relaxation/spai1.hpp>
 #include <amgcl/relaxation/chebyshev.hpp>
-#include <amgcl/relaxation/as_preconditioner.hpp>
 
 namespace amgcl {
 namespace runtime {
@@ -109,217 +117,255 @@ inline std::istream& operator>>(std::istream &in, type &r)
     return in;
 }
 
-namespace detail {
-
-template <
-    class Backend,
-    template <class> class Relaxation,
-    class Func
-    >
-inline
-typename boost::enable_if<
-    typename backend::relaxation_is_supported<Backend, Relaxation>::type,
-    void
->::type
-process_rap(const Func &func) {
-    typedef amgcl::relaxation::as_preconditioner<Backend, Relaxation> RAP;
-    func.template process<RAP>();
-}
-
-template <
-    class Backend,
-    template <class> class Relaxation,
-    class Func
-    >
-inline
-typename boost::disable_if<
-    typename backend::relaxation_is_supported<Backend, Relaxation>::type,
-    void
->::type
-process_rap(const Func&) {
-    throw std::logic_error("The relaxation scheme is not supported by the backend");
-}
-
-template <class Backend, class Func>
-void process_rap(runtime::relaxation::type relaxation, const Func &func) {
-    switch (relaxation) {
-        case runtime::relaxation::gauss_seidel:
-            process_rap<Backend, amgcl::relaxation::gauss_seidel>(func);
-            break;
-        case runtime::relaxation::ilu0:
-            process_rap<Backend, amgcl::relaxation::ilu0>(func);
-            break;
-        case runtime::relaxation::iluk:
-            process_rap<Backend, amgcl::relaxation::iluk>(func);
-            break;
-        case runtime::relaxation::ilut:
-            process_rap<Backend, amgcl::relaxation::ilut>(func);
-            break;
-        case runtime::relaxation::damped_jacobi:
-            process_rap<Backend, amgcl::relaxation::damped_jacobi>(func);
-            break;
-        case runtime::relaxation::spai0:
-            process_rap<Backend, amgcl::relaxation::spai0>(func);
-            break;
-#ifndef AMGCL_RUNTIME_DISABLE_SPAI1
-        case runtime::relaxation::spai1:
-            process_rap<Backend, amgcl::relaxation::spai1>(func);
-            break;
-#endif
-#ifndef AMGCL_RUNTIME_DISABLE_CHEBYSHEV
-        case runtime::relaxation::chebyshev:
-            process_rap<Backend, amgcl::relaxation::chebyshev>(func);
-            break;
-#endif
-        default:
-            precondition(false, "Unsupported relaxation value");
-    }
-}
-
-template <class Backend, class Matrix>
-struct rap_create {
-    typedef boost::property_tree::ptree params;
-    typedef typename Backend::params backend_params;
-
-    void * &handle;
-    const Matrix &A;
-    const params &p;
-    const backend_params &bp;
-
-    rap_create(void* &handle, const Matrix &A, const params &p, const backend_params &bp)
-        : handle(handle), A(A), p(p), bp(bp) {}
-
-    template <class RAP>
-    void process() const {
-        handle = static_cast<void*>(new RAP(A, p, bp));
-    }
-};
-
-struct rap_destroy {
-    void * handle;
-
-    rap_destroy(void *handle) : handle(handle) {}
-
-    template <class RAP>
-    void process() const {
-        delete static_cast<RAP*>(handle);
-    }
-};
-
-template <class Vec1, class Vec2>
-struct rap_apply {
-    void * handle;
-    Vec1 const &rhs;
-    Vec2 &x;
-
-    rap_apply(void *handle, const Vec1 &rhs, Vec2 &x)
-        : handle(handle), rhs(rhs), x(x) {}
-
-    template <class RAP>
-    void process() const {
-        static_cast<RAP*>(handle)->apply(rhs, x);
-    }
-};
-
-template <class Matrix>
-struct rap_matrix {
-    void * handle;
-    const Matrix * &A;
-
-    rap_matrix(void *handle, const Matrix * &A) : handle(handle), A(A) {}
-
-    template <class RAP>
-    void process() const {
-        A = &(static_cast<RAP*>(handle)->system_matrix());
-    }
-};
-
-}
-
-/// Use one of AMGCL smoothers as standalone preconditioner.
-/**
- * The exact smoother is selected at runtime through prm.type parameter
- */
 template <class Backend>
-class as_preconditioner {
-    public:
-        typedef Backend backend_type;
+struct wrapper {
+    typedef boost::property_tree::ptree params;
+    typedef typename Backend::params    backend_params;
+    type r;
+    void *handle;
 
-        typedef typename Backend::matrix  matrix;
+    template <class Matrix>
+    wrapper(const Matrix &A, params prm = params(),
+            const backend_params &bprm = backend_params()
+            )
+      : r(prm.get("type", runtime::relaxation::spai0)), handle(0)
+    {
+        if (!prm.erase("type")) AMGCL_PARAM_MISSING("type");
 
-        typedef boost::property_tree::ptree params;
-        typedef typename Backend::params  backend_params;
+        switch(r) {
 
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                handle = call_constructor<amgcl::relaxation::type>(A, prm, bprm); \
+                break
 
-        template <class Matrix>
-        as_preconditioner(
-                const Matrix &A,
-                params prm = params(),
-                const backend_params &bprm = backend_params()
-                )
-            : relaxation(prm.get("type", runtime::relaxation::spai0)),
-              handle(0)
-        {
-            if (!prm.erase("type")) AMGCL_PARAM_MISSING("type");
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
 
-            runtime::relaxation::detail::process_rap<Backend>(
-                    relaxation,
-                    runtime::relaxation::detail::rap_create<Backend, Matrix>(
-                        handle, A, prm, bprm
-                        )
-                    );
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
         }
+    }
 
-        ~as_preconditioner() {
-            runtime::relaxation::detail::process_rap<Backend>(
-                    relaxation,
-                    runtime::relaxation::detail::rap_destroy(handle)
-                    );
+    ~wrapper() {
+        switch(r) {
+
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                delete static_cast<amgcl::relaxation::type<Backend>*>(handle); \
+                break
+
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
         }
+    }
 
-        template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
-            runtime::relaxation::detail::process_rap<Backend>(
-                    relaxation,
-                    runtime::relaxation::detail::rap_apply<Vec1, Vec2>(
-                        handle, rhs, x
-                        )
-                    );
+    template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    void apply_pre(
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
+            ) const
+    {
+        switch(r) {
+
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                call_apply_pre<amgcl::relaxation::type>(A, rhs, x, tmp); \
+                break
+
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
         }
+    }
 
-        const matrix& system_matrix() const {
-            const matrix *A = 0;
+    template <class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    void apply_post(
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp
+            ) const
+    {
+        switch(r) {
 
-            runtime::relaxation::detail::process_rap<Backend>(
-                    relaxation,
-                    runtime::relaxation::detail::rap_matrix<matrix>(handle, A)
-                    );
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                call_apply_post<amgcl::relaxation::type>(A, rhs, x, tmp); \
+                break
 
-            return *A;
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
         }
-    private:
-        runtime::relaxation::type relaxation;
-        void * handle;
+    }
 
-        friend std::ostream& operator<<(std::ostream &os, const as_preconditioner &p)
-        {
-            os << "Using " << p.relaxation << " as preconditioner" << std::endl;
-            os << "  unknowns: " << backend::rows(p.system_matrix()) << std::endl;
-            os << "  nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
-            return os;
+    template <class Matrix, class VectorRHS, class VectorX>
+    void apply( const Matrix &A, const VectorRHS &rhs, VectorX &x) const
+    {
+        switch(r) {
+
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                call_apply<amgcl::relaxation::type>(A, rhs, x); \
+                break
+
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
         }
+    }
+
+    size_t bytes() const {
+        switch(r) {
+
+#define AMGCL_RUNTIME_RELAXATION(type) \
+            case type: \
+                return backend::bytes(*static_cast<amgcl::relaxation::type<Backend>*>(handle))
+
+            AMGCL_RUNTIME_RELAXATION(gauss_seidel);
+            AMGCL_RUNTIME_RELAXATION(ilu0);
+            AMGCL_RUNTIME_RELAXATION(iluk);
+            AMGCL_RUNTIME_RELAXATION(ilut);
+            AMGCL_RUNTIME_RELAXATION(damped_jacobi);
+            AMGCL_RUNTIME_RELAXATION(spai0);
+            AMGCL_RUNTIME_RELAXATION(spai1);
+            AMGCL_RUNTIME_RELAXATION(chebyshev);
+
+#undef AMGCL_RUNTIME_RELAXATION
+
+            default:
+                throw std::invalid_argument("Unsupported relaxation type");
+        }
+    }
+
+    template <template <class> class Relaxation, class Matrix>
+    typename std::enable_if<
+        backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void*
+    >::type
+    call_constructor(
+            const Matrix &A, const params &prm, const backend_params &bprm)
+    {
+        return static_cast<void*>(new Relaxation<Backend>(A, prm, bprm));
+    }
+
+    template <template <class> class Relaxation, class Matrix>
+    typename std::enable_if<
+        !backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void*
+    >::type
+    call_constructor(const Matrix&, const params&, const backend_params&)
+    {
+        throw std::logic_error("The relaxation is not supported by the backend");
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    typename std::enable_if<
+        backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply_pre(
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp) const
+    {
+        static_cast<Relaxation<Backend>*>(handle)->apply_pre(A, rhs, x, tmp);
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    typename std::enable_if<
+        !backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply_pre(const Matrix&, const VectorRHS&, VectorX&, VectorTMP&) const {
+        throw std::logic_error("The relaxation is not supported by the backend");
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    typename std::enable_if<
+        backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply_post(
+            const Matrix &A, const VectorRHS &rhs, VectorX &x, VectorTMP &tmp) const
+    {
+        static_cast<Relaxation<Backend>*>(handle)->apply_post(A, rhs, x, tmp);
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX, class VectorTMP>
+    typename std::enable_if<
+        !backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply_post(const Matrix&, const VectorRHS&, VectorX&, VectorTMP&) const {
+        throw std::logic_error("The relaxation is not supported by the backend");
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX>
+    typename std::enable_if<
+        backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply(
+            const Matrix &A, const VectorRHS &rhs, VectorX &x) const
+    {
+        static_cast<Relaxation<Backend>*>(handle)->apply(A, rhs, x);
+    }
+
+    template <template <class> class Relaxation, class Matrix, class VectorRHS, class VectorX>
+    typename std::enable_if<
+        !backend::relaxation_is_supported<Backend, Relaxation>::value,
+        void
+    >::type
+    call_apply(const Matrix&, const VectorRHS&, VectorX&) const {
+        throw std::logic_error("The relaxation is not supported by the backend");
+    }
+
 };
 
-}
-}
-}
+} // namespace relaxation
+} // namespace runtime
+} // namespace amgcl
 
 #endif

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -61,17 +61,19 @@ class pointwise_aggregates {
 
             params() : block_size(1) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : plain_aggregates::params(p),
                   AMGCL_PARAMS_IMPORT_VALUE(p, block_size)
             {
-                AMGCL_PARAMS_CHECK(p, (eps_strong)(block_size));
+                check_params(p, {"eps_strong", "block_size"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
                 plain_aggregates::params::get(p, path);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, block_size);
             }
+#endif
         };
 
         static const ptrdiff_t undefined = -1;
@@ -105,7 +107,8 @@ class pointwise_aggregates {
                 strong_connection.resize( nonzeros(A) );
                 id.resize( rows(A) );
 
-                backend::crs<scalar_type> Ap = pointwise_matrix(A, prm.block_size);
+                auto ap = backend::pointwise_matrix(A, prm.block_size);
+                backend::crs<scalar_type> &Ap = *ap;
 
                 plain_aggregates pw_aggr(Ap, prm);
 
@@ -116,27 +119,36 @@ class pointwise_aggregates {
 
 #pragma omp parallel
                 {
-                    std::vector<ptrdiff_t> marker(Ap.nrows, -1);
+                    std::vector<ptrdiff_t> j(prm.block_size);
+                    std::vector<ptrdiff_t> e(prm.block_size);
 
 #pragma omp for
                     for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(Ap.nrows); ++ip) {
                         ptrdiff_t ia = ip * prm.block_size;
-                        ptrdiff_t row_beg = Ap.ptr[ip];
-                        ptrdiff_t row_end = row_beg;
 
                         for(unsigned k = 0; k < prm.block_size; ++k, ++ia) {
                             id[ia] = prm.block_size * pw_aggr.id[ip] + k;
 
-                            for(ptrdiff_t ja = A.ptr[ia], ea = A.ptr[ia+1]; ja < ea; ++ja) {
-                                ptrdiff_t cp = A.col[ja] / prm.block_size;
+                            j[k] = A.ptr[ia];
+                            e[k] = A.ptr[ia+1];
+                        }
 
-                                if (marker[cp] < row_beg) {
-                                    marker[cp] = row_end;
-                                    strong_connection[ja] = pw_aggr.strong_connection[row_end];
-                                    ++row_end;
-                                } else {
-                                    strong_connection[ja] = pw_aggr.strong_connection[ marker[cp] ];
+                        for(ptrdiff_t jp = Ap.ptr[ip], ep = Ap.ptr[ip+1]; jp < ep; ++jp) {
+                            ptrdiff_t cp = Ap.col[jp];
+                            bool      sp = (cp == ip) || pw_aggr.strong_connection[jp];
+
+                            ptrdiff_t col_end = (cp + 1) * prm.block_size;
+
+                            for(unsigned k = 0; k < prm.block_size; ++k) {
+                                ptrdiff_t beg = j[k];
+                                ptrdiff_t end = e[k];
+
+                                while(beg < end && A.col[beg] < col_end) {
+                                    strong_connection[beg] = sp && A.col[beg] != (ia + k);
+                                    ++beg;
                                 }
+
+                                j[k] = beg;
                             }
                         }
                     }
@@ -177,84 +189,6 @@ class pointwise_aggregates {
                 ptrdiff_t id = aggr.id[i];
                 if (id != removed) aggr.id[i] = count[id];
             }
-        }
-
-        template <class Matrix>
-        static backend::crs<
-            typename math::scalar_of<
-                typename backend::value_type<Matrix>::type
-                >::type
-            >
-        pointwise_matrix(const Matrix &A, size_t block_size) {
-            typedef typename backend::value_type<Matrix>::type V;
-            typedef typename math::scalar_of<V>::type S;
-            typedef typename backend::row_iterator<Matrix>::type row_iterator;
-
-            const size_t n  = backend::rows(A);
-            const size_t m  = backend::cols(A);
-            const size_t np = n / block_size;
-            const size_t mp = m / block_size;
-
-            precondition(n % block_size == 0 && m % block_size == 0,
-                    "Matrix size should be divisible by block_size");
-
-            backend::crs<S> Ap;
-            Ap.set_size(np, mp, true);
-
-#pragma omp parallel
-            {
-                std::vector<ptrdiff_t> marker(mp, -1);
-
-                // Count number of nonzeros in block matrix.
-#pragma omp for
-                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
-                    ptrdiff_t ia = ip * block_size;
-
-                    for(unsigned k = 0; k < block_size; ++k, ++ia) {
-                        for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
-                            ptrdiff_t cp = a.col() / block_size;
-                            if (marker[cp] != ip) {
-                                marker[cp] = ip;
-                                ++Ap.ptr[ip + 1];
-                            }
-                        }
-                    }
-                }
-            }
-
-            std::partial_sum(Ap.ptr, Ap.ptr + np + 1, Ap.ptr);
-            Ap.set_nonzeros();
-
-#pragma omp parallel
-            {
-                std::vector<ptrdiff_t> marker(mp, -1);
-
-                // Fill the reduced matrix. Use max norm for blocks.
-#pragma omp for
-                for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
-                    ptrdiff_t ia = ip * block_size;
-                    ptrdiff_t row_beg = Ap.ptr[ip];
-                    ptrdiff_t row_end = row_beg;
-
-                    for(unsigned k = 0; k < block_size; ++k, ++ia) {
-                        for(row_iterator a = backend::row_begin(A, ia); a; ++a) {
-                            ptrdiff_t cb = a.col() / block_size;
-                            S va = math::norm(a.value());
-
-                            if (marker[cb] < row_beg) {
-                                marker[cb] = row_end;
-                                Ap.col[row_end] = cb;
-                                Ap.val[row_end] = va;
-                                ++row_end;
-                            } else {
-                                Ap.val[marker[cb]] = std::max(Ap.val[marker[cb]], va);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return Ap;
         }
 };
 

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,13 +43,16 @@ Bi-orthogonality Properties. ACM Transactions on Mathematical Software, Vol.
 #include <vector>
 #include <algorithm>
 
-#include <boost/tuple/tuple.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/normal_distribution.hpp>
+#include <tuple>
+#include <random>
 
 #include <amgcl/backend/interface.hpp>
 #include <amgcl/solver/detail/default_inner_product.hpp>
 #include <amgcl/util.hpp>
+
+#ifdef MPI_VERSION
+#  include <amgcl/mpi/util.hpp>
+#endif
 
 #ifdef _OPENMP
 #  include <omp.h>
@@ -100,7 +103,7 @@ class idrs {
              * Determines the residual replacement strategy.
              *    If |r| > 1E3 |b| TOL/EPS) (EPS is the machine precision)
              *    the recursively computed residual is replaced by the true residual
-             *    once |r| < |b| (to reduce the effect of large intermediate residuals 
+             *    once |r| < |b| (to reduce the effect of large intermediate residuals
              *    on the final accuracy).
              * Default: No residual replacement.
              */
@@ -121,6 +124,7 @@ class idrs {
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, s),
                   AMGCL_PARAMS_IMPORT_VALUE(p, omega),
@@ -130,7 +134,7 @@ class idrs {
                   AMGCL_PARAMS_IMPORT_VALUE(p, tol),
                   AMGCL_PARAMS_IMPORT_VALUE(p, abstol)
             {
-                AMGCL_PARAMS_CHECK(p, (s)(omega)(smoothing)(replacement)(maxiter)(tol)(abstol));
+                check_params(p, {"s", "omega", "smoothing", "replacement", "maxiter", "tol", "abstol"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -142,6 +146,7 @@ class idrs {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, tol);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, abstol);
             }
+#endif
         } prm;
 
         /// Preallocates necessary data structures for the system of size \p n.
@@ -152,7 +157,7 @@ class idrs {
                 const InnerProduct &inner_product = InnerProduct()
              )
             : prm(prm), n(n), inner_product(inner_product),
-              M(boost::extents[prm.s][prm.s]),
+              M(prm.s, prm.s),
               f(prm.s), c(prm.s),
               r(Backend::create_vector(n, bprm)),
               v(Backend::create_vector(n, bprm)),
@@ -178,16 +183,24 @@ class idrs {
             {
                 std::vector<rhs_type> p(n);
 
+#ifdef MPI_VERSION
+                int pid = amgcl::mpi::communicator(MPI_COMM_WORLD).rank;
+#else
+                int pid = 0;
+#endif
+
 #pragma omp parallel
                 {
 #ifdef _OPENMP
                     int tid = omp_get_thread_num();
+                    int nt = omp_get_max_threads();
 #else
                     int tid = 0;
+                    int nt = 1;
 #endif
 
-                    boost::random::mt19937 rng(tid);
-                    boost::random::normal_distribution<scalar_type> rnd;
+                    std::mt19937 rng(pid * nt + tid);
+                    std::uniform_real_distribution<scalar_type> rnd(-1, 1);
 
                     for(unsigned j = 0; j < prm.s; ++j) {
 #pragma omp for
@@ -214,7 +227,7 @@ class idrs {
 
         /* Computes the solution for the given system matrix \p A and the
          * right-hand side \p rhs.  Returns the number of iterations made and
-         * the achieved residual as a ``boost::tuple``. The solution vector
+         * the achieved residual as a ``std::tuple``. The solution vector
          * \p x provides initial approximation in input and holds the computed
          * solution on output.
          *
@@ -225,7 +238,7 @@ class idrs {
          * good preconditioner for several subsequent time steps [DeSh12]_.
          */
         template <class Matrix, class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
+        std::tuple<size_t, scalar_type> operator()(
                 Matrix  const &A,
                 Precond const &Prec,
                 Vec1    const &rhs,
@@ -238,7 +251,7 @@ class idrs {
             scalar_type norm_rhs = norm(rhs);
             if (norm_rhs < amgcl::detail::eps<scalar_type>(n)) {
                 backend::clear(x);
-                return boost::make_tuple(0, norm_rhs);
+                return std::make_tuple(0, norm_rhs);
             }
 
             scalar_type eps = std::max(prm.tol * norm_rhs, prm.abstol);
@@ -249,7 +262,7 @@ class idrs {
             scalar_type res_norm = norm(*r);
             if (res_norm <= eps) {
                 // Initial guess is a good enough solution.
-                return boost::make_tuple(0, res_norm / norm_rhs);
+                return std::make_tuple(0, res_norm / norm_rhs);
             }
 
             if (prm.smoothing) {
@@ -265,7 +278,7 @@ class idrs {
                 backend::clear(*U[i]);
 
                 for(unsigned j = 0; j < prm.s; ++j)
-                    M[i][j] = (i == j);
+                    M(i, j) = (i == j);
             }
 
             scalar_type eps_replace = norm_rhs / (
@@ -289,8 +302,8 @@ class idrs {
                     for(unsigned i = k; i < prm.s; ++i) {
                         c[i] = f[i];
                         for(unsigned j = k; j < i; ++j)
-                            c[i] -= M[i][j] * c[j];
-                        c[i] = math::inverse(M[i][i]) * c[i];
+                            c[i] -= M(i, j) * c[j];
+                        c[i] = math::inverse(M(i, i)) * c[i];
 
                         backend::axpby(-c[i], *G[i], one, *v);
                     }
@@ -307,7 +320,7 @@ class idrs {
 
                     // Bi-Orthogonalise the new basis vectors:
                     for(unsigned i = 0; i < k; ++i) {
-                        coef_type alpha = inner_product(*G[k], *P[i]) / M[i][i];
+                        coef_type alpha = inner_product(*G[k], *P[i]) / M(i, i);
 
                         backend::axpby(-alpha, *G[i], one, *G[k]);
                         backend::axpby(-alpha, *U[i], one, *U[k]);
@@ -315,12 +328,12 @@ class idrs {
 
                     // New column of M = P'*G  (first k-1 entries are zero)
                     for(unsigned i = k; i < prm.s; ++i)
-                        M[i][k] = backend::inner_product(*G[k], *P[i]);
+                        M(i, k) = inner_product(*G[k], *P[i]);
 
-                    precondition(!math::is_zero(M[k][k]), "IDR(s) breakdown: zero M[k,k]");
+                    precondition(!math::is_zero(M(k, k)), "IDR(s) breakdown: zero M[k,k]");
 
                     // Make r orthogonal to q_i, i = [0..k)
-                    coef_type beta = math::inverse(M[k][k]) * f[k];
+                    coef_type beta = math::inverse(M(k, k)) * f[k];
                     backend::axpby(-beta, *G[k], one, *r);
                     backend::axpby( beta, *U[k], one,  x);
 
@@ -342,7 +355,7 @@ class idrs {
 
                     // New f = P'*r (first k  components are zero)
                     for(unsigned i = k + 1; i < prm.s; ++i)
-                        f[i] -= beta * M[i][k];
+                        f[i] -= beta * M(i, k);
                 }
 
                 if (res_norm <= eps || iter >= prm.maxiter) break;
@@ -385,18 +398,18 @@ class idrs {
             if (prm.smoothing)
                 backend::copy(*x_s, x);
 
-            return boost::make_tuple(iter, res_norm / norm_rhs);
+            return std::make_tuple(iter, res_norm / norm_rhs);
         }
 
         /* Computes the solution for the given right-hand side \p rhs. The
          * system matrix is the same that was used for the setup of the
          * preconditioner \p P.  Returns the number of iterations made and the
-         * achieved residual as a ``boost::tuple``. The solution vector \p x
+         * achieved residual as a ``std::tuple``. The solution vector \p x
          * provides initial approximation in input and holds the computed
          * solution on output.
          */
         template <class Precond, class Vec1, class Vec2>
-        boost::tuple<size_t, scalar_type> operator()(
+        std::tuple<size_t, scalar_type> operator()(
                 Precond const &P,
                 Vec1    const &rhs,
                 Vec2          &x
@@ -405,8 +418,34 @@ class idrs {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += M.size() * sizeof(coef_type);
+
+            b += backend::bytes(f);
+            b += backend::bytes(c);
+
+            b += backend::bytes(*r);
+            b += backend::bytes(*v);
+            b += backend::bytes(*t);
+
+            if (x_s) b += backend::bytes(*x_s);
+            if (r_s) b += backend::bytes(*r_s);
+
+            for(const auto &v : P) b += backend::bytes(*v);
+            for(const auto &v : G) b += backend::bytes(*v);
+            for(const auto &v : U) b += backend::bytes(*v);
+
+            return b;
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const idrs &s) {
-            return os << "IDR(" << s.prm.s << "): " << s.n << " unknowns";
+            return os
+                << "Type:             IDR(" << s.prm.s << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
 
     private:
@@ -414,7 +453,7 @@ class idrs {
 
         InnerProduct inner_product;
 
-        mutable boost::multi_array<coef_type,2> M;
+        mutable multi_array<coef_type,2> M;
         mutable std::vector<coef_type> f, c;
 
         std::shared_ptr<vector> r, v, t;
