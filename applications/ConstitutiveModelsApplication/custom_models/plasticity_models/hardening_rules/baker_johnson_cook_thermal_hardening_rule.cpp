@@ -82,16 +82,16 @@ namespace Kratos
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
     //Constant Parameters of the -- Johnson and Cook --:
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    const double& K = rMaterialProperties[JC_PARAMETER_K];
-    const double& C = rMaterialProperties[JC_PARAMETER_C];
+    const Properties& rProperties  = rModelData.GetProperties();
+    const double& K = rProperties[JC_PARAMETER_K];
+    const double& C = rProperties[JC_PARAMETER_C];
 
-    const double& n = rMaterialProperties[JC_PARAMETER_n];
-    const double& m = rMaterialProperties[JC_PARAMETER_m];
+    const double& n = rProperties[JC_PARAMETER_n];
+    const double& m = rProperties[JC_PARAMETER_m];
 
-    const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
-    const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
-    const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
+    const double& rReferenceTemperature = rProperties[REFERENCE_TEMPERATURE];
+    const double& rMeldTemperature      = rProperties[MELD_TEMPERATURE];
+    const double& rPlasticStrainRate    = rProperties[PLASTIC_STRAIN_RATE];
 
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;
@@ -140,16 +140,16 @@ namespace Kratos
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
     //Constant Parameters of the -- Johnson and Cook --:
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    const double& K = rMaterialProperties[JC_PARAMETER_K];
-    const double& C = rMaterialProperties[JC_PARAMETER_C];
+    const Properties& rProperties  = rModelData.GetProperties();
+    const double& K = rProperties[JC_PARAMETER_K];
+    const double& C = rProperties[JC_PARAMETER_C];
 
-    const double& n = rMaterialProperties[JC_PARAMETER_n];
-    const double& m = rMaterialProperties[JC_PARAMETER_m];
+    const double& n = rProperties[JC_PARAMETER_n];
+    const double& m = rProperties[JC_PARAMETER_m];
 
-    const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
-    const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
-    const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
+    const double& rReferenceTemperature = rProperties[REFERENCE_TEMPERATURE];
+    const double& rMeldTemperature      = rProperties[MELD_TEMPERATURE];
+    const double& rPlasticStrainRate    = rProperties[PLASTIC_STRAIN_RATE];
 
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;
@@ -199,16 +199,16 @@ namespace Kratos
     const double& rDeltaTime               = rModelData.GetProcessInfo()[DELTA_TIME];
 
     //Constant Parameters of the -- Baker Johnson and Cook --:
-    const Properties& rMaterialProperties  = rModelData.GetMaterialProperties();
-    const double& K = rMaterialProperties[JC_PARAMETER_K];
-    const double& C = rMaterialProperties[JC_PARAMETER_C];
+    const Properties& rProperties  = rModelData.GetProperties();
+    const double& K = rProperties[JC_PARAMETER_K];
+    const double& C = rProperties[JC_PARAMETER_C];
 
-    const double& n = rMaterialProperties[JC_PARAMETER_n];
-    const double& m = rMaterialProperties[JC_PARAMETER_m];
+    const double& n = rProperties[JC_PARAMETER_n];
+    const double& m = rProperties[JC_PARAMETER_m];
 
-    const double& rReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
-    const double& rMeldTemperature      = rMaterialProperties[MELD_TEMPERATURE];
-    const double& rPlasticStrainRate    = rMaterialProperties[PLASTIC_STRAIN_RATE];
+    const double& rReferenceTemperature = rProperties[REFERENCE_TEMPERATURE];
+    const double& rMeldTemperature      = rProperties[MELD_TEMPERATURE];
+    const double& rPlasticStrainRate    = rProperties[PLASTIC_STRAIN_RATE];
 
     if(rTemperature - rReferenceTemperature < 0){
       std::cout<<" Initial Temperature conditions not defined properly ("<<rTemperature<<" < "<<rReferenceTemperature<<")"<<std::endl;

@@ -39,7 +39,7 @@ namespace Kratos
 {
 
 
-   class StressInvariantsUtilities
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) StressInvariantsUtilities
    {
 
       public:

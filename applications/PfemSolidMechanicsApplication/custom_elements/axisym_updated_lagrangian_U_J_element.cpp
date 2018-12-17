@@ -230,6 +230,8 @@ namespace Kratos
       // copy from a non-derived class
       const unsigned int number_of_nodes = GetGeometry().size();
 
+      rVariables.Initialize(4, 2, 3);
+
       rVariables.detF  = 1;
 
       rVariables.detF0 = 1;

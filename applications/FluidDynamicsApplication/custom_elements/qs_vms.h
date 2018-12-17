@@ -285,7 +285,7 @@ protected:
         MatrixType& rMassMatrix) override;
 
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
-    void AddBoundaryIntegral(
+    void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,

@@ -275,13 +275,13 @@ class EigensystemSolver
         // eigenvector is normalized such that eigenvector^T * B * eigenvector = 1
         if(mParam["normalize_eigenvectors"].GetBool())
         {
-            if (echo_level > 0)
-                std::cout << "EigensystemSolver: Eigenvectors are normalized." << std::endl;
             for (int i = 0; i != nroot; ++i)
             {
                 const double tmp = eigvecs.row(i) * b * eigvecs.row(i).transpose();
-                const double factor = std::sqrt(1/tmp);
+                const double factor = 1.0 / std::sqrt(tmp);
                 eigvecs.row(i) *=  factor;
+                if (echo_level > 0)
+                    std::cout << "EigensystemSolver: Eigenvector " << i+1 << " is normalized - used factor: " << factor << std::endl;
             }
         }
 

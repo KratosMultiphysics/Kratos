@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_borja_cam_clay_plane_strain_2D_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -31,8 +31,8 @@ namespace Kratos
 HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2DLaw()
     : HenckyElasticPlasticPlaneStrain2DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new CamClayHardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpHardeningLaw   = MPMHardeningLaw::Pointer( new CamClayHardeningLaw() );
+    mpYieldCriterion = MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule    = MPMFlowRule::Pointer( new BorjaCamClayPlasticFlowRule(mpYieldCriterion) );
 }
 
@@ -43,7 +43,7 @@ HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2
 HenckyBorjaCamClayPlasticPlaneStrain2DLaw::HenckyBorjaCamClayPlasticPlaneStrain2DLaw(FlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
+    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new ModifiedCamClayYieldCriterion(mpHardeningLaw) );
     mpMPMFlowRule     =  pMPMFlowRule;
 }
 
@@ -86,7 +86,7 @@ int HenckyBorjaCamClayPlasticPlaneStrain2DLaw::Check(const Properties& rProperti
     KRATOS_ERROR_IF(NORMAL_COMPRESSION_SLOPE.Key() == 0 || rProperties[NORMAL_COMPRESSION_SLOPE] <= 0.00) << "NORMAL_COMPRESSION_SLOPE has Key zero or invalid value " << std::endl;
     KRATOS_ERROR_IF(CRITICAL_STATE_LINE.Key() == 0 || rProperties[CRITICAL_STATE_LINE] <= 0.00) << "CRITICAL_STATE_LINE has Key zero or invalid value " << std::endl;
     KRATOS_ERROR_IF(INITIAL_SHEAR_MODULUS.Key() == 0 || rProperties[INITIAL_SHEAR_MODULUS] <= 0.00) << "INITIAL_SHEAR_MODULUS has Key zero or invalid value " << std::endl;
-    
+
     KRATOS_ERROR_IF(ALPHA_SHEAR.Key() == 0 ) << "ALPHA_SHEAR has Key zero " << std::endl;
 
     return 0;

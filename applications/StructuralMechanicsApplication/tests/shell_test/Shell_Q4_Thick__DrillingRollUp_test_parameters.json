@@ -1,17 +1,19 @@
 {
     "problem_data"             : {
         "problem_name"    : "Shell_Q4_Thick__DrillingRollUp_test",
-        "model_part_name" : "SolidDomain",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.1,
         "start_time"      : 0.001,
         "end_time"        : 1.00,
         "echo_level"      : 0
     },
-        "solver_settings"          : {
+    "solver_settings"          : {
             "solver_type"                        : "Static",
             "analysis_type"                      : "non_linear",
+            "model_part_name" : "Structure",
+            "domain_size"     : 3,
+            "time_stepping"                      : {
+                "time_step" : 0.1
+            },
             "echo_level"                         : 0,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
@@ -34,23 +36,10 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1"]
     },
+    "processes" : {
     "constraints_process_list" : [],
     "loads_process_list" : [],
     "list_other_processes" :[],
-    "_json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_X","REACTION_X"],
-            "output_file_name" : "shell_test/Shell_Q4_Thick__DrillingRollUp_test_results.json",
-            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
-            "time_frequency"   : 0.01
-        }
-    }
-    ],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
@@ -66,15 +55,19 @@
     }
     ],
     "check_analytic_results_process" : [],
-    "apply_custom_function_process" : [],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : true,
-        "incremental_displacement" : true
+    "apply_custom_function_process" : []},
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_X","REACTION_X"],
+            "output_file_name" : "shell_test/Shell_Q4_Thick__DrillingRollUp_test_results.json",
+            "model_part_name"  : "DISPLACEMENT_Displacement_Auto1",
+            "time_frequency"   : 0.01
+        }
     }
+    ]
 }

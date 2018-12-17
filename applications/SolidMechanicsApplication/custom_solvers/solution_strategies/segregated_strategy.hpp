@@ -146,8 +146,8 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     KRATOS_TRY
 
     //set implex
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 1;
+    if(this->mOptions.Is(LocalFlagType::IMPLEX))
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, true);
 
     //prints informations about the current time
     //KRATOS_INFO("") << "  [STEP:" << this->GetModelPart().GetProcessInfo()[STEP] << "  TIME: "<< this->GetModelPart().GetProcessInfo()[TIME]<< "]\n" << LoggerMessage::Category::STATUS;
@@ -173,8 +173,8 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     //Finalization of the solution step, operations to be done after achieving convergence
 
     //set implex calculation
-    if(this->mOptions.Is(LocalFlagType::IMPLEX) && this->GetModelPart().GetProcessInfo().Has(IMPLEX))
-      this->GetModelPart().GetProcessInfo()[IMPLEX] = 0;
+    if(this->mOptions.Is(LocalFlagType::IMPLEX))
+      this->GetModelPart().GetProcessInfo().SetValue(IMPLEX, false);
 
     int counter = 0;
     for(StrategiesContainerIteratorType it= mStrategies.begin(); it!= mStrategies.end(); ++it)
@@ -229,7 +229,7 @@ class SegregatedStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TL
     if(iteration_number >= MaxIterationNumber)
     {
       if( this->GetEchoLevel() >= 0 )
-        KRATOS_INFO("  [The iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
+        KRATOS_INFO("  [Iterative loop interrupted] ") << "[" << iteration_number << " iterations performed] \n";
     }
 
     return (this->Is(LocalFlagType::CONVERGED));

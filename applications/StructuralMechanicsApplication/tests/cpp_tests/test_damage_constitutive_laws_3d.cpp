@@ -16,6 +16,7 @@
 // Project includes
 #include "includes/process_info.h"
 #include "testing/testing.h"
+#include "containers/model.h"
 
 // Application includes
 
@@ -66,7 +67,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     Properties material_properties;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -107,6 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageLinear, KratosStru
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);
@@ -175,7 +179,9 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     Properties material_properties;
     Vector stress_vector, strain_vector;
 
-    ModelPart test_model_part("Main");
+    Model current_model;
+
+    ModelPart& test_model_part = current_model.CreateModelPart("Main");
 
     NodeType::Pointer p_node_1 = test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     NodeType::Pointer p_node_2 = test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
@@ -216,6 +222,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressDamageExponential, Krato
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     cl_parameters.SetElementGeometry(Geom);
+    cl_parameters.SetProcessInfo(test_model_part.GetProcessInfo());
     cl_parameters.SetMaterialProperties(material_properties);
     cl_parameters.SetStrainVector(strain_vector);
     cl_parameters.SetStressVector(stress_vector);

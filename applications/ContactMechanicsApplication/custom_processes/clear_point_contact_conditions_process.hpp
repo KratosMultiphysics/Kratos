@@ -57,7 +57,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) ClearPointContactConditionsProcess
+  class ClearPointContactConditionsProcess
     : public Process
   {
   public:

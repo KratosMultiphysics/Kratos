@@ -65,7 +65,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void Newtonian3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+  void Newtonian3DLaw::InitializeMaterial( const Properties& rProperties,
                                            const GeometryType& rElementGeometry,
                                            const Vector& rShapeFunctionsValues )
   {
@@ -90,7 +90,7 @@ namespace Kratos
 
     //2.-Calculate Total kirchhoff stress and  Constitutive Matrix related to Cauchy stress
 
-    const Properties& rMaterialProperties  = rValues.GetMaterialProperties();
+    const Properties& rProperties  = rValues.GetMaterialProperties();
 
     // Calculate total Kirchhoff stress
 
@@ -98,13 +98,13 @@ namespace Kratos
 
       Vector& rStrainVector                  = rValues.GetStrainVector();
       Vector& rStressVector                  = rValues.GetStressVector();
-      this->CalculateStress(rStressVector, rStrainVector, rMaterialProperties);
+      this->CalculateStress(rStressVector, rStrainVector, rProperties);
 
     }
     if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-      this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+      this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rProperties);
 
     }
 
@@ -123,11 +123,11 @@ namespace Kratos
 
 void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
                                        const Vector & rStrainVector,
-                                       const Properties& rMaterialProperties)
+                                       const Properties& rProperties)
   {
     KRATOS_TRY
 
-    const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
+    const double& rViscosity = rProperties[DYNAMIC_VISCOSITY];
 
     const double pressure = (rStrainVector[0]+rStrainVector[1]+rStrainVector[2])/3.0;
 
@@ -150,12 +150,12 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
 
 
   void Newtonian3DLaw::CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-                                                   const Properties& rMaterialProperties)
+                                                   const Properties& rProperties)
   {
     KRATOS_TRY
 
     // Viscosity
-    const double& rViscosity = rMaterialProperties[DYNAMIC_VISCOSITY];
+    const double& rViscosity = rProperties[DYNAMIC_VISCOSITY];
 
     const double diagonal_component = 4.0 * rViscosity / 3.0;
     const double side_component = -0.5 * diagonal_component;
@@ -229,7 +229,7 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
   //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
   //************************************************************************************
 
-  int Newtonian3DLaw::Check(const Properties& rMaterialProperties,
+  int Newtonian3DLaw::Check(const Properties& rProperties,
                             const GeometryType& rElementGeometry,
                             const ProcessInfo& rCurrentProcessInfo)
   {
@@ -237,8 +237,8 @@ void Newtonian3DLaw::CalculateStress(Vector& rStressVector,
 
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
-    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 )
-      KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+    if( rProperties[DYNAMIC_VISCOSITY] <= 0.00 )
+      KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian3DLaw: " << rProperties[DYNAMIC_VISCOSITY] << std::endl;
 
     return 0;
 

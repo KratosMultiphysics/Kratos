@@ -101,6 +101,8 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
 
+    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::AverageElementSize(r_geometry);
+
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
     noalias(rhs) = ZeroVector(TNumNodes*(TDim+1));
 }
@@ -112,7 +114,6 @@ void UpdateGeometryValues(
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
     FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
-    ElementSize = ElementSizeCalculator<TDim,TNumNodes>::GradientsElementSize(rDN_DX);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

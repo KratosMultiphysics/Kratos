@@ -3,10 +3,10 @@ import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 from compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-def Factory(settings, Model):
+def Factory(settings, current_model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
-    return CompareTwoFilesCheckProcessMPI(Model, settings["Parameters"])
+    return CompareTwoFilesCheckProcessMPI(settings["Parameters"])
 
 class CompareTwoFilesCheckProcessMPI(CompareTwoFilesCheckProcess):
     """Inserts MPI barrier before check to ensure results files are present."""

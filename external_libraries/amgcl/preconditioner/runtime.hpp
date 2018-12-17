@@ -304,6 +304,48 @@ class preconditioner {
             return backend::rows( system_matrix() );
         }
 
+        size_t bytes() const {
+            switch(_class) {
+                case precond_class::amg:
+                    {
+                        typedef
+                            amgcl::amg<Backend, runtime::coarsening::wrapper, runtime::relaxation::wrapper>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::relaxation:
+                    {
+                        typedef
+                            amgcl::relaxation::as_preconditioner<Backend, runtime::relaxation::wrapper>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::dummy:
+                    {
+                        typedef
+                            amgcl::preconditioner::dummy<Backend>
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                case precond_class::nested:
+                    {
+                        typedef
+                            make_solver<
+                                preconditioner,
+                                runtime::solver::wrapper<Backend>
+                                >
+                            Precond;
+
+                        return backend::bytes(*static_cast<Precond*>(handle));
+                    }
+                default:
+                    throw std::invalid_argument("Unsupported preconditioner class");
+            }
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const preconditioner &p)
         {
             switch(p._class) {

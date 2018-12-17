@@ -1,17 +1,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "3D_contact_simplest_patch_matching_adaptative_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.3,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 3,
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -26,6 +25,9 @@
             "adaptative_strategy"            : true,
             "split_factor"                   : 11.0,
             "max_number_splits"              : 1
+        },
+        "time_stepping"                      : {
+            "time_step" : 1.3
         },
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -43,56 +45,81 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,null],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module"   : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"          : "AssignScalarVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT_Z",
+                "value"          : "-1.0*t"
+            }
+        }],
+        "loads_process_list"       : [],
+        "contact_process_list" :[
+        {
+            "python_module"   : "alm_contact_process",
+            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "help"                  : "",
+            "process_name"          : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
+                "contact_type"                : "Frictionless"
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,null],
-            "interval"        : [0.0,"End"]
+        ],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"      : ["DISPLACEMENT_Y"],
+                "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test_results.json",
+                "model_part_name"      : "Contact_Part",
+                "time_frequency"       : 0.1
+            }
         }
-    },{
-        "python_module"   : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"          : "AssignScalarVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT_Z",
-            "value"          : "-1.0*t"
-        }
-    }],
-    "loads_process_list"       : [],
-    "contact_process_list" :[
-    {
-        "python_module"   : "alm_contact_process",
-        "kratos_module"   : "ContactStructuralMechanicsApplication",
-        "help"                  : "",
-        "process_name"          : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "contact_model_part"          : { "0" : ["Contact_Part"]},
-            "contact_type"                : "Frictionless"
-        }
-    }
-    ],
-    "_output_configuration"     : {
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -111,22 +138,8 @@
             "nodal_flags_results": ["ACTIVE"],
             "gauss_point_results" : []
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"      : ["DISPLACEMENT_Y"],
-            "input_file_name"      : "ALM_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_adaptative_test_results.json",
-            "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 0.1
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

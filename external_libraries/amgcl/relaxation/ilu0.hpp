@@ -216,17 +216,6 @@ struct ilu0 {
 };
 
 } // namespace relaxation
-
-namespace backend {
-
-template <class Backend>
-struct bytes_impl< relaxation::ilu0<Backend> > {
-    static size_t get(const relaxation::ilu0<Backend> &R) {
-        return R.bytes();
-    }
-};
-
-} // namespace backend
 } // namespace amgcl
 
 #endif

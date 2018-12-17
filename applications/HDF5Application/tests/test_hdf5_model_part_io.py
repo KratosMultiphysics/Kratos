@@ -156,12 +156,13 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            write_model_part = ModelPart("write")
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            read_model_part = ModelPart("read")
+            read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
             # Check nodes (node order should be preserved on read/write to ensure consistency with nodal results)
             self.assertEqual(read_model_part.NumberOfNodes(), write_model_part.NumberOfNodes())
@@ -206,14 +207,15 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5NodalSolutionStepDataIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            write_model_part = ModelPart("write")
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
             hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part.Nodes, 0)
-            read_model_part = ModelPart("read")
+            read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator(), 0)
 
@@ -228,14 +230,15 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ElementDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            write_model_part = ModelPart("write")
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_element_data_value_io = self._get_element_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
             hdf5_element_data_value_io.WriteElementResults(write_model_part.Elements)
-            read_model_part = ModelPart("read")
+            read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements)
 
@@ -247,14 +250,15 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            write_model_part = ModelPart("write")
+            model = Model()
+            write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_data_value_io = self._get_nodal_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
             hdf5_nodal_data_value_io.WriteNodalResults(write_model_part.Nodes)
-            read_model_part = ModelPart("read")
+            read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_data_value_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator())
 

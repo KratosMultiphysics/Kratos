@@ -273,7 +273,8 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
 
     // Check the NODAL_H
     NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
-    VariableUtils().CheckVariableExists(NODAL_H, nodes_array);
+    for (auto& i_node : nodes_array)
+        KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
     
     //#pragma omp parallel firstprivate(mPointListOrigin)
     //{
@@ -317,7 +318,7 @@ void InternalVariablesInterpolationProcess::InterpolateGaussPointsLeastSquareTra
             // We get the NODAL_H vector
             Vector nodal_h_vector(r_this_geometry.size());
             for (std::size_t i_node = 0; i_node < r_this_geometry.size(); ++i_node)
-                nodal_h_vector[i_node] = r_this_geometry[i_node].FastGetSolutionStepValue(NODAL_H);
+                nodal_h_vector[i_node] = r_this_geometry[i_node].GetValue(NODAL_H);
 
             for (std::size_t i_gauss_point = 0; i_gauss_point < integration_points_number; ++i_gauss_point ) {
                 // We compute the global coordinates

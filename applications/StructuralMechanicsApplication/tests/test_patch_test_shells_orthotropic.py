@@ -167,8 +167,8 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         self.assertAlmostEqual(stress[2,2], reference_stress_results[5], 10)
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, tsai_wu_result,do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_shell_test(self, current_model, element_name, displacement_results, rotation_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, tsai_wu_result,do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -216,8 +216,10 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [-0.4936295259123 , 0.2914348407351 , 0.0 , -0.5256560385672 , 0.0 , 0.0]
         tsai_wu_result = 39.6023549141987
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -233,8 +235,10 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [-0.5442976284974 , -0.1011836349433 , 0.2347447591457 , -2.8139010064313 , -1.5033148859134 , 0.0]
         tsai_wu_result = 15.0065495746848
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
@@ -250,9 +254,11 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [10.340621141106 , 5.6934270260323 , 0.0 , -2.973608875272 , 0.0 , 0.0]
         tsai_wu_result = 3.828332205752
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
-                                rotation_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
+                                rotation_results, 
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,
                                 tsai_wu_result,
@@ -267,8 +273,10 @@ class TestPatchTestShellsOrthotropic(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [5.2113212123242 , -0.2324161069908 , -2.4426862077188 , -11.6664322521041 , 1.6354826554283 , 0.0]
         tsai_wu_result = 3.4966651118454
 
-        self.execute_shell_test(element_name,
-                                displacement_results,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
+                                displacement_results, 
                                 rotation_results,
                                 shell_stress_top_surface_results,
                                 shell_stress_bottom_surface_results,

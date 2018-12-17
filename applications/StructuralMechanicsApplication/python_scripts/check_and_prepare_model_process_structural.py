@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 
@@ -23,6 +20,7 @@ class CheckAndPrepareModelProcess(KM.Process):
     Conditions are added from the processes sub model parts.
     """
     def __init__(self, Model, Parameters):
+        KM.Process.__init__(self)
         self.model_part_name = Parameters["model_part_name"].GetString()
         self.main_model_part = Model[self.model_part_name]
         self.model = Model

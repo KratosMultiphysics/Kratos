@@ -23,6 +23,9 @@ class TestLoader(TestLoader):
 
 class TestCase(TestCase):
 
+    def run(self, result=None):
+        super(TestCase,self).run(result)
+
     def failUnlessEqualWithTolerance(self, first, second, tolerance, msg=None):
         ''' fails if first and second have a difference greater than
         tolerance '''
@@ -37,7 +40,7 @@ def SupressConsoleOutput():
     with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stdout = old_stdout
@@ -47,7 +50,7 @@ def SupressConsoleError():
     with open(os.devnull, "w") as devnull:
         old_stderr = sys.stderr
         sys.stderr = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stderr = old_stderr
@@ -59,7 +62,7 @@ def SupressAllConsole():
         old_stdout = sys.stdout
         sys.stderr = devnull
         sys.stdout = devnull
-        try:  
+        try:
             yield
         finally:
             sys.stderr = old_stderr
@@ -143,3 +146,9 @@ KratosSuites = {
     'mpi_all': TestSuite(),
     'mpi_validation': TestSuite(),
 }
+
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
+    '''Same implementation as math.isclose
+    self-implemented bcs msth.isclose was only introduced in python3.5
+    '''
+    return abs(a - b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)

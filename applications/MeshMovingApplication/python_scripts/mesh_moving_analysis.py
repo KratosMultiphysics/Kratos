@@ -4,18 +4,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
-
 # Importing the base class
 from analysis_stage import AnalysisStage
 
@@ -49,12 +37,6 @@ class MeshMovingAnalysis(AnalysisStage):
             solver_settings.AddEmptyValue("echo_level")
             solver_settings["echo_level"].SetInt(0)
 
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-
         super(MeshMovingAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
@@ -75,7 +57,7 @@ class MeshMovingAnalysis(AnalysisStage):
             processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:

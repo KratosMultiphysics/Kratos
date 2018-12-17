@@ -870,8 +870,8 @@ namespace Kratos
 
     if( dimension == 2 ){
 
-      bounded_matrix<double,2,2> mJ;    //local jacobian
-      bounded_matrix<double,2,2> mJinv; //inverse jacobian
+      BoundedMatrix<double,2,2> mJ;    //local jacobian
+      BoundedMatrix<double,2,2> mJinv; //inverse jacobian
 
       //calculation of the jacobian  //coordinate center point 0
       for(unsigned int i = 0; i < dimension; ++i)
@@ -919,9 +919,9 @@ namespace Kratos
     }
     else if( dimension == 3 ){
 
-      bounded_vector<double,3>   mRHS;  //center pos
-      bounded_matrix<double,3,3> mJ;    //local jacobian
-      bounded_matrix<double,3,3> mJinv; //inverse jacobian
+      BoundedVector<double,3>   mRHS;  //center pos
+      BoundedMatrix<double,3,3> mJ;    //local jacobian
+      BoundedMatrix<double,3,3> mJinv; //inverse jacobian
 
 
       //calculation of the jacobian  //coordinate center point 0
@@ -1040,7 +1040,7 @@ namespace Kratos
 	  }
 	else
 	  {
-	    // std::cout<<"  ERASED!"<<std::endl;
+	    //std::cout<<"  ERASED! "<<Radius<<" < "<<AlphaRadius<<" MeanMeshSize "<<MeanMeshSize<<" Alpha "<<AlphaParameter<<std::endl;
 	    return false;
 	  }
       }
@@ -1217,6 +1217,215 @@ namespace Kratos
       }
 
     KRATOS_CATCH( "" )
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckRelativeVelocities(Geometry<Node<3> >& rVertices, const double& rRelativeFactor)
+  {
+    KRATOS_TRY
+
+    const unsigned int NumberOfVertices = rVertices.size();
+
+    std::vector<double> VelocityModulus(NumberOfVertices);
+
+    for(unsigned int i = 0; i<NumberOfVertices; ++i)
+    {
+      VelocityModulus[i]=norm_2(rVertices[i].FastGetSolutionStepValue(VELOCITY));
+    }
+
+    for(unsigned int i = 0; i<NumberOfVertices-1; ++i)
+    {
+      for(unsigned int j = i+1; j<NumberOfVertices; ++j)
+      {
+        if( VelocityModulus[i]/VelocityModulus[j]>rRelativeFactor || VelocityModulus[j]/VelocityModulus[i]>rRelativeFactor ){
+          return true;
+        }
+      }
+    }
+
+    return false;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckVolumeDecrease(GeometryType& rVertices, const unsigned int& rDimension,const double& rTolerance, double& VolumeChange)
+  {
+    bool accepted = false;
+    if(rDimension==2){
+      Triangle2D3<Node<3> > CurrentTriangle(rVertices);
+      double CurrentArea = CurrentTriangle.Area();
+
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedArea = GetMovedVolume(rVertices,rDimension,1.0);
+
+      //std::cout<<" control fluid  "<<MovedArea<<" "<<CurrentArea<<std::endl;
+      VolumeChange = CurrentArea-MovedArea;
+
+      if(MovedArea+rTolerance<CurrentArea){
+        accepted = true;
+      }
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > CurrentTetrahedron(rVertices);
+      double CurrentVolume = CurrentTetrahedron.Volume();
+
+      //new volume with a 1.0 * DeltaDisplacement
+      double MovedVolume = GetMovedVolume(rVertices,rDimension,1.0);
+
+      //std::cout<<" control fluid  "<<MovedVolume<<" "<<CurrentVolume<<std::endl;
+      VolumeChange = CurrentVolume-MovedVolume;
+
+      if(MovedVolume+rTolerance<CurrentVolume){
+        accepted = true;
+      }
+    }
+
+    return accepted;
+  }
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetMovedVolume(GeometryType& rVertices, const unsigned int& rDimension, double MovementFactor)
+  {
+    double MovedVolume = 0.0;
+    if(rDimension==2){
+
+      //Triangle geometry
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+
+      MovedVolume = 0.5 * ( x10 * y20 - y10 * x20 );
+
+    }
+    else if(rDimension==3){
+
+      //Tetrahedron geometry
+      const double onesixth = 1.0/6.0;
+
+      array_1d<double,3> P0;
+      noalias(P0) = rVertices[0].Coordinates() + MovementFactor * (rVertices[0].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[0].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      array_1d<double,3> P1;
+      noalias(P1) = rVertices[1].Coordinates() + MovementFactor * (rVertices[1].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[1].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x10 = P1[0] - P0[0];
+      double y10 = P1[1] - P0[1];
+      double z10 = P1[2] - P0[2];
+
+      noalias(P1) = rVertices[2].Coordinates() + MovementFactor * (rVertices[2].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[2].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x20 = P1[0] - P0[0];
+      double y20 = P1[1] - P0[1];
+      double z20 = P1[2] - P0[2];
+
+     noalias(P1)  = rVertices[3].Coordinates() + MovementFactor * (rVertices[3].FastGetSolutionStepValue(DISPLACEMENT) - rVertices[3].FastGetSolutionStepValue(DISPLACEMENT,1));
+
+      double x30 = P1[0] - P0[0];
+      double y30 = P1[1] - P0[1];
+      double z30 = P1[2] - P0[2];
+
+      MovedVolume = onesixth * (x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30);
+
+      // if(MovedVolume<0)
+      //   std::cout<<" VOLUME negative "<<std::endl;
+    }
+
+    return MovedVolume;
+  }
+
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  double MesherUtilities::GetDeformationGradientDeterminant(GeometryType& rVertices, const unsigned int& rDimension)
+  {
+    //Deformation Gradient determinant
+    unsigned int number_of_nodes = rVertices.size();
+
+    //Configuration increment
+    Matrix DeltaPosition(number_of_nodes,rDimension);
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const array_1d<double, 3 > & CurrentDisplacement  = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & PreviousDisplacement = rVertices[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < rDimension; j++ )
+        {
+          DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    //Compute cartesian derivatives [dN/dx_n]
+    Matrix DN_DX;
+
+    if(rDimension==2){
+      Triangle2D3<Node<3> > Triangle(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Triangle.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Triangle.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+
+    }
+    else if(rDimension==3){
+
+      Tetrahedra3D4<Node<3> > Tetrahedron(rVertices);
+
+      DenseVector<Matrix> J;
+      J = Tetrahedron.Jacobian( J, GeometryData::GI_GAUSS_1, DeltaPosition );
+
+      //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+      Matrix InvJ;
+      double detJ;
+      MathUtils<double>::InvertMatrix( J[0], InvJ, detJ);
+
+      const Matrix& DN_De = Tetrahedron.ShapeFunctionLocalGradient(0,GeometryData::GI_GAUSS_1);
+      DN_DX = prod( DN_De, InvJ );
+    }
+
+
+    Matrix F(rDimension,rDimension);
+    noalias(F) = ZeroMatrix(rDimension,rDimension);
+    for (unsigned int i = 0; i < rDimension; i++)
+    {
+      for (unsigned int j = 0; j < rDimension; j++)
+      {
+        for (unsigned int k = 0; k < number_of_nodes; k++)
+        {
+          F(i,j)+= rVertices[k].Coordinates()[i]*DN_DX(k,j);
+        }
+      }
+    }
+    double detF  = MathUtils<double>::Det(F);
+
+    if(detF<0)
+      std::cout<<" NEGATIVE ELEMENT (DET_F: "<<detF<<")"<<std::endl;
+
+    return detF;
   }
 
 
@@ -1461,10 +1670,10 @@ namespace Kratos
       std::cout<<" ]"<<std::endl;
 
     }
-    else{
+    // else{
 
-      std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
-    }
+    //   std::cout<<"    [Face Elements: "<<face_elements<<" Edge Elements: "<<edge_elements<<"]"<<std::endl;
+    // }
 
 
     return pMasterCondition;
@@ -1649,8 +1858,8 @@ namespace Kratos
 
       }
 
-    //if( minimum_h < rCriticalRadius )
-    //  std::cout<<"  [ FAULT :: CRITICAL MESH SIZE :: supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
+    if( minimum_h < rCriticalRadius )
+      KRATOS_INFO(" CRITICAL MESH SIZE ")<<" supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
 
     return minimum_h;
 

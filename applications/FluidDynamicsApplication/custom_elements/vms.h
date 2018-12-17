@@ -30,7 +30,6 @@
 #include "includes/serializer.h"
 #include "includes/cfd_variables.h"
 #include "utilities/geometry_utilities.h"
-#include "boost/make_shared.hpp"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -141,8 +140,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     typedef array_1d<double, TNumNodes> ShapeFunctionsType;
     typedef BoundedMatrix<double, TNumNodes, TDim> ShapeFunctionDerivativesType;

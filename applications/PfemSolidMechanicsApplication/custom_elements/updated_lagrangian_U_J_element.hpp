@@ -39,7 +39,7 @@ namespace Kratos
    /// Updated Lagrangian Large Displacement Lagrangian U-wP Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 
-   class UpdatedLagrangianUJElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUJElement
       : public LargeDisplacementElement
    {
       public:
@@ -263,9 +263,9 @@ namespace Kratos
           */
          Vector mDeterminantF0;
 
-         /**** 
+         /****
           * Some double member variable
-          ****/    
+          ****/
          double mElementStabilizationNumber;
 
 
@@ -276,7 +276,7 @@ namespace Kratos
          /**
           * Get element size from the dofs
           */
-         virtual unsigned int GetDofsSize() override;
+         virtual SizeType GetDofsSize() override;
 
          /**
           * Calculates the elemental contributions
@@ -417,7 +417,7 @@ namespace Kratos
          /**
           * Get the Historical Deformation Gradient to calculate after finalize the step
           */
-         void GetHistoricalVariables( ElementDataType& rVariables, 
+         void GetHistoricalVariables( ElementDataType& rVariables,
                const double& rPointNumber ) override;
 
          /**
@@ -428,7 +428,7 @@ namespace Kratos
          /*
           * Function to modify the deformation gradient to the constitutitve equation
           */
-         virtual void ComputeConstitutiveVariables( ElementDataType& rVariables, Matrix& rFT, double& rdetFT); 
+         virtual void ComputeConstitutiveVariables( ElementDataType& rVariables, Matrix& rFT, double& rdetFT);
 
          ///@}
          ///@name Protected  Access
@@ -491,4 +491,3 @@ namespace Kratos
 
 } // namespace Kratos
 #endif // KRATOS_UPDATED_LAGRANGIAN_U_J_ELEMENT_H_INCLUDED
-

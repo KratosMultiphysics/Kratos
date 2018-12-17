@@ -27,9 +27,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
-/** This function assigns a value to a variable belonging to all of the nodes in a given mesh
-*/
+/// Process for managing the time integration of variables for isolated nodes
 class ManageIsolatedNodesProcess : public Process
 {
 public:
@@ -103,19 +101,25 @@ public:
         ModelPart::NodesContainerType::iterator it_begin =
             mrModelPart.NodesBegin();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nnodes; ++i)
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-          if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID)) ) ){
+          if( it->Is(ISOLATED) || (it->Is(RIGID) && (it->IsNot(SOLID) && it->IsNot(FLUID))) ){
 
-	    it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
-	    it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+            if(it->SolutionStepsDataHas(PRESSURE)){
+              it->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+            }
+            if(it->SolutionStepsDataHas(PRESSURE_VELOCITY)){
+              it->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+            }
+            if(it->SolutionStepsDataHas(PRESSURE_ACCELERATION)){
+              it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+              it->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+            }
 
           }
         }
@@ -133,10 +137,11 @@ public:
       const double TimeStep = mrModelPart.GetProcessInfo()[DELTA_TIME];
       if (nnodes != 0)
       {
-        ModelPart::NodesContainerType::iterator it_begin =
-            mrModelPart.NodesBegin();
+        this->SetSemiIsolatedNodes(mrModelPart);
 
-#pragma omp parallel for
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+
+        #pragma omp parallel for
         for (int i = 0; i < nnodes; ++i)
         {
           ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -157,11 +162,30 @@ public:
             // std::cout<<"POST POSITION "<<it->Coordinates()<<"  ACCELERATION "<<it->FastGetSolutionStepValue(ACCELERATION)<<std::endl;
             // std::cout<<"DISPLACEMENT "<<it->FastGetSolutionStepValue(DISPLACEMENT)<<"  VELOCITY "<<it->FastGetSolutionStepValue(VELOCITY)<<std::endl;
 
+            //std::cout<<" ISOLATED Node ["<<it->Id()<<"] Displacement"<<it->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
+
             if( !mBoundingBox.IsInside( it->Coordinates() ) )
               it->Set(TO_ERASE);
           }
+          else if( it->Is(VISITED) ){
+
+            if(it->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+              const array_1d<double,3>& VolumeAcceleration = it->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+              noalias(it->FastGetSolutionStepValue(ACCELERATION)) = VolumeAcceleration;
+            }
+
+            noalias(it->FastGetSolutionStepValue(VELOCITY)) = 0.5 * (it->FastGetSolutionStepValue(VELOCITY) + it->FastGetSolutionStepValue(VELOCITY,1) + it->FastGetSolutionStepValue(ACCELERATION)*TimeStep);
+            noalias(it->Coordinates()) -= it->FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(it->FastGetSolutionStepValue(DISPLACEMENT)) = 0.5 * (it->FastGetSolutionStepValue(DISPLACEMENT) + it->FastGetSolutionStepValue(DISPLACEMENT,1) + it->FastGetSolutionStepValue(VELOCITY)*TimeStep + 0.5*it->FastGetSolutionStepValue(ACCELERATION)*TimeStep*TimeStep);
+            noalias(it->Coordinates()) += it->FastGetSolutionStepValue(DISPLACEMENT);
+
+          }
         }
+
+        this->ResetSemiIsolatedNodes(mrModelPart);
+
       }
+
       KRATOS_CATCH("")
     }
 
@@ -268,6 +292,62 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    void SetSemiIsolatedNodes(ModelPart& rModelPart)
+    {
+
+     const int nnodes = mrModelPart.Nodes().size();
+
+      if (nnodes != 0)
+      {
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i)
+        {
+          ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+          if( it->Is(FREE_SURFACE) ){
+
+            WeakPointerVector<Node<3> >& rN = it->GetValue(NEIGHBOUR_NODES);
+            unsigned int NumberOfNeighbours = rN.size();
+            unsigned int rigid = 0;
+            for(unsigned int j = 0; j < NumberOfNeighbours; ++j)
+	    {
+              if(rN[j].Is(RIGID))
+                ++rigid;
+	    }
+            if( rigid == NumberOfNeighbours )
+              it->Set(VISITED,true);
+          }
+        }
+      }
+
+
+    }
+
+    void ResetSemiIsolatedNodes(ModelPart& rModelPart)
+    {
+
+      const int nnodes = mrModelPart.Nodes().size();
+
+      if (nnodes != 0)
+      {
+        ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i)
+        {
+          ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+          if(it->Is(VISITED))
+            it->Set(VISITED,false);
+        }
+      }
+
+    }
+
+
     ///@}
     ///@name Private  Access
     ///@{

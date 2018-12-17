@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -19,6 +16,7 @@ def Factory(settings, Model):
 
 class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings):
+        KratosMultiphysics.Process.__init__(self)
         self.settings = settings;
         self.Model = Model
 

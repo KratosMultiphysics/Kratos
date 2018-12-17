@@ -43,6 +43,7 @@ namespace relaxation {
 
 template <class Backend>
 struct spai0 {
+    typedef Backend                                    backend_type;
     typedef typename Backend::value_type               value_type;
     typedef typename Backend::matrix_diagonal          matrix_diagonal;
     typedef typename math::scalar_of<value_type>::type scalar_type;

@@ -241,7 +241,7 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 100,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1,
+                        "verbosity" : 0,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
@@ -265,12 +265,96 @@ class TestLinearSolvers(KratosUnittest.TestCase):
                         "max_iteration": 300,
                         "provide_coordinates": false,
                         "gmres_krylov_space_dimension": 100,
-                        "verbosity" : 1 ,
+                        "verbosity" : 0 ,
                         "tolerance": 1e-6,
                         "scaling": false,
                         "block_size": 1,
                         "use_block_matrices_if_possible" : true,
                         "coarse_enough" : 100
+                    }
+                ]
+            }
+            """)
+
+    def test_amgcl_unpreconditioned(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "bicgstab",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "gmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "preconditioner_type": "dummy",
+                        "verbosity" : 1
+                    }
+                ]
+            }
+            """)
+
+    def test_amgcl_no_amg_only_preconditioner(self):
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"ilu0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1,
+                        "block_size" : 2
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"iluk",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"spai0",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"damped_jacobi",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"gauss_seidel",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
+                    },
+                    {
+                        "solver_type" : "AMGCL",
+                        "krylov_type": "lgmres",
+                        "smoother_type":"chebyshev",
+                        "preconditioner_type": "relaxation",
+                        "verbosity" : 1
                     }
                 ]
             }

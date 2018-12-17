@@ -55,14 +55,14 @@ namespace Kratos
       rMeshingVariables.OffsetFactor = nodal_h_min*hnodal_offset_conversion;
     }
 
-    std::cout<<"   Minimum Nodal_h "<<nodal_h_min<<" OffsetFactor "<<rMeshingVariables.OffsetFactor<<std::endl;
+    //std::cout<<"   Minimum Nodal_h "<<nodal_h_min<<" OffsetFactor "<<rMeshingVariables.OffsetFactor<<std::endl;
 
     std::vector<PointType> BoxVertices;
     BoxVertices.resize(0);
     //*********************************************************************
     if(rMeshingVariables.Options.Is(MesherUtilities::CONSTRAINED)){
 
-      std::cout<<"   Constrained Contact Meshing "<<std::endl;
+      //std::cout<<"   Constrained Contact Meshing "<<std::endl;
 
       //PART 1: node list
       double extra_radius = rMeshingVariables.OffsetFactor*4;
@@ -197,7 +197,9 @@ namespace Kratos
 
     ModelPart::ConditionsContainerType::iterator conditions_begin = rModelPart.ConditionsBegin();
 
-
+    for(unsigned int i = 0; i<in.numberofsegments; i++)
+      in.segmentmarkerlist[i] = 0;
+    
     int base = 0;
     for(unsigned int i = 0; i<rModelPart.Conditions().size(); i++)
       {
@@ -205,7 +207,7 @@ namespace Kratos
 	in.segmentlist[base]   = rGeometry[0].Id();
 	in.segmentlist[base+1] = rGeometry[1].Id();
 	//std::cout<<" Facet["<<i<<"]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
-
+                
 	base+=2;
       }
 
@@ -219,7 +221,7 @@ namespace Kratos
 	in.segmentlist[base]   = i;
 	in.segmentlist[base+1] = i+1;
 
-	//std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
+        //std::cout<<" BFacet[]: ("<<in.segmentlist[base]<<" "<<in.segmentlist[base+1]<<")"<<std::endl;
 	base+=2;
       }
 

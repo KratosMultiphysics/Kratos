@@ -16,8 +16,7 @@
             "time_step"       : 1.1
         },
         "model_import_settings"              : {
-            "input_type"     : "use_input_model_part",
-            "input_filename" : "structure"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings"           : {
             "materials_filename" : "material.json"

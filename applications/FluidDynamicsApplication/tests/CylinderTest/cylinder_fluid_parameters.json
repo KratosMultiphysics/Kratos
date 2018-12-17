@@ -1,8 +1,6 @@
 {
     "problem_data"                     : {
         "problem_name"    : "cylinder_2d",
-        "model_part_name" : "MainModelPart",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0,
         "start_time"      : 0.0,
@@ -20,10 +18,10 @@
             "input_type"     : "mdpa",
             "input_filename" : "cylinder_2d"
         },
+        "model_part_name"             : "MainModelPart",
+        "domain_size"                 : 2,
         "echo_level"                  : 0,
         "compute_reactions"           : true,
-        "dynamic_tau"                 : 1.0,
-        "oss_switch"                  : 0,
         "maximum_iterations"          : 10,
         "relative_velocity_tolerance" : 0.001,
         "absolute_velocity_tolerance" : 1e-5,
@@ -45,6 +43,11 @@
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : 0.1
+        },
+        "formulation" : {
+            "element_type"             : "vms",
+            "use_orthogonal_subscales" : false,
+            "dynamic_tau"              : 1.0
         }
     },
     "initial_conditions_process_list"  : [],
@@ -143,8 +146,8 @@
             "output_file_name"    : "cylinder_test_probe1.dat",
             "reference_file_name" : "cylinder_test_probe1_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-            "decimal_places"      : 5
+            "remove_output_file"  : true,
+            "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -155,8 +158,8 @@
             "output_file_name"    : "cylinder_test_probe2.dat",
             "reference_file_name" : "cylinder_test_probe2_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-	        "decimal_places"      : 5
+            "remove_output_file"  : true,
+	        "tolerance"           : 1e-5
         }
     },{
         "python_module"   : "compare_two_files_check_process",
@@ -167,8 +170,8 @@
             "output_file_name"    : "NoSlip2D_cylinder_drag.dat",
             "reference_file_name" : "NoSlip2D_cylinder_drag_ref.dat",
             "comparison_type"     : "dat_file",
-            "remove_output_file"    : true,
-	        "decimal_places"      : 5
+            "remove_output_file"  : true,
+	        "tolerance"           : 1e-5
         }
     }]
 }

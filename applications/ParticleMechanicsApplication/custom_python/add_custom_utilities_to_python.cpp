@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
 
@@ -22,29 +22,17 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
+#include "custom_utilities/mpm_search_element_utility.h"
 
-namespace Kratos
-{
+namespace Kratos{
+namespace Python{
 
-namespace Python
-{
-
-using namespace pybind11;
-
-void  AddCustomUtilitiesToPython(pybind11::module& m)
-{
-    //typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    //typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    //typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
-
-}
-
-
-
-
+    void  AddCustomUtilitiesToPython(pybind11::module& m)
+    {
+        m.def("SearchElement2D", &MPMSearchElementUtility::SearchElement< 2 >);
+        m.def("SearchElement3D", &MPMSearchElementUtility::SearchElement< 3 >);
+    }
 
 }  // namespace Python.
-
 } // Namespace Kratos
 

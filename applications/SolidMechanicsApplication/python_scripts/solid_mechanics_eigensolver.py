@@ -8,8 +8,8 @@ KratosMultiphysics.CheckForPreviousImport()
 
 import solid_mechanics_monolithic_solver as BaseSolver
 
-def CreateSolver(custom_settings):
-    return EigenSolver(custom_settings)
+def CreateSolver(custom_settings, Model):
+    return EigenSolver(Model, custom_settings)
 
 
 class EigenSolver(BaseSolver.MonolithicSolver):
@@ -23,7 +23,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
 
     See solid_mechanics_solver.py for more information.
     """
-    def __init__(self, custom_settings):
+    def __init__(self, Model, custom_settings):
         # Set defaults and validate custom settings.
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
@@ -53,7 +53,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         self.eigensolver_settings.RemoveValue("compute_modal_contribution")
 
         # Construct the base solver.
-        super(EigenSolver, self).__init__(custom_settings)
+        super(EigenSolver, self).__init__(Model, custom_settings)
 
         print("::[----Eigen_Scheme---]:: "+self.settings["time_integration_settings"]["integration_method"].GetString()+" Scheme Ready")
 
@@ -98,9 +98,13 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-        return KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
 
-        #return KratosSolid.EigensolverStrategy(self.model_part,
+        mechanical_solver = KratosSolid.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
+
+        # mechanical_solver = KratosSolid.EigensolverStrategy(self.model_part,
         #                                       eigen_scheme,
         #                                       builder_and_solver,
         #                                       self.compute_modal_contribution)
+
+        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        return mechanical_solver

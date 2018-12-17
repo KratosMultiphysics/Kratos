@@ -9,7 +9,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -52,7 +52,7 @@ namespace Kratos
   //Application Constructor:
 
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
-    KratosApplication("PfemSolidMechanicsApplication"), 
+    KratosApplication("PfemSolidMechanicsApplication"),
     mTotalUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mTotalUpdatedLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4 ) ) ) ),
     mTotalUpdatedLagrangianElement2D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6 ) ) ) ),
@@ -104,9 +104,9 @@ namespace Kratos
     mAxisymUpdatedLagrangianUJWwPDMEElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPressureElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
     mAxisymUpdatedLagrangianUPwPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) )
-   
+
   {}
-  
+
   void KratosPfemSolidMechanicsApplication::Register()
   {
     // calling base class register to register Kratos components
@@ -118,7 +118,7 @@ namespace Kratos
     std::cout << "           |  _/  _/ -_) '  \\\\__ \\/ _ \\ | / _` |         " << std::endl;
     std::cout << "           |_| |_| \\___|_|_|_|___/\\___/_|_\\__,_|MECHANICS" << std::endl;
     std::cout << "Initializing KratosPfemSolidMechanicsApplication...      " << std::endl;
-    
+
     //Register Variables (variables created in pfem_solid_mechanics_application_variables.cpp)
 
     //scheme
@@ -130,13 +130,14 @@ namespace Kratos
 
     KRATOS_REGISTER_VARIABLE( JACOBIAN )
     KRATOS_REGISTER_VARIABLE( REACTION_JACOBIAN )
-    
+
     //material
     KRATOS_REGISTER_VARIABLE( WATER_BULK_MODULUS )
     KRATOS_REGISTER_VARIABLE( PERMEABILITY )
     KRATOS_REGISTER_VARIABLE( KOZENY_CARMAN )
     KRATOS_REGISTER_VARIABLE( INITIAL_POROSITY )
     KRATOS_REGISTER_VARIABLE( VOID_RATIO )
+    KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )
 
     //element
     KRATOS_REGISTER_VARIABLE( TOTAL_CAUCHY_STRESS )
@@ -159,7 +160,7 @@ namespace Kratos
 
     //geometrical
 
-    //domain definition    
+    //domain definition
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )
     KRATOS_REGISTER_VARIABLE( WALL_TIP_RADIUS )
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( WALL_REFERENCE_POINT )
@@ -274,7 +275,5 @@ namespace Kratos
     Serializer::Register("CamClayHardeningLaw", mCamClayHardeningLaw);
 
   }
-  
+
 }  // namespace Kratos.
-
-

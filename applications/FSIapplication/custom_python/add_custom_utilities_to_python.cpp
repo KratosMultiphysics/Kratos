@@ -32,26 +32,26 @@ namespace Python
 
 void AddCustomUtilitiesToPython(pybind11::module &m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
     typedef UblasSpace<double, Matrix, Vector > TSpace;
     typedef NodalUpdateBaseClass< 2 > NodalUpdateBaseClass2DType;
     typedef NodalUpdateBaseClass< 3 > NodalUpdateBaseClass3DType;
 
-    class_<FSIUtils>(m,"FSIUtils")
-        .def(init<>())
+    py::class_<FSIUtils>(m,"FSIUtils")
+        .def(py::init<>())
         .def("CheckPressureConvergence",&FSIUtils::CheckPressureConvergence)
         .def("StructuralPressurePrediction",&FSIUtils::StructuralPressurePrediction)
         ;
 
-    class_<AitkenUtils>(m,"AitkenUtils")
-        .def(init<>())
+    py::class_<AitkenUtils>(m,"AitkenUtils")
+        .def(py::init<>())
         .def("ComputeAitkenFactor",&AitkenUtils::ComputeAitkenFactor)
         .def("ComputeRelaxedDisplacement",&AitkenUtils::ComputeRelaxedDisplacement)
         ;
 
-    class_<PartitionedFSIUtilities<TSpace,2>, PartitionedFSIUtilities<TSpace,2>::Pointer>(m,"PartitionedFSIUtilities2D")
-        .def(init<>())
+    py::class_<PartitionedFSIUtilities<TSpace,2>, PartitionedFSIUtilities<TSpace,2>::Pointer>(m,"PartitionedFSIUtilities2D")
+        .def(py::init<>())
         .def("GetInterfaceArea",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceArea)
         .def("GetInterfaceResidualSize",&PartitionedFSIUtilities<TSpace,2>::GetInterfaceResidualSize)
         .def("UpdateInterfaceValues",&PartitionedFSIUtilities<TSpace,2>::UpdateInterfaceValues)
@@ -63,8 +63,8 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesStructure",&PartitionedFSIUtilities<TSpace,2>::CheckCurrentCoordinatesStructure)
         ;
 
-    class_<PartitionedFSIUtilities<TSpace,3>, PartitionedFSIUtilities<TSpace,3>::Pointer>(m,"PartitionedFSIUtilities3D")
-        .def(init<>())
+    py::class_<PartitionedFSIUtilities<TSpace,3>, PartitionedFSIUtilities<TSpace,3>::Pointer>(m,"PartitionedFSIUtilities3D")
+        .def(py::init<>())
         .def("GetInterfaceArea", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &PartitionedFSIUtilities<TSpace, 3>::GetInterfaceResidualSize)
         .def("UpdateInterfaceValues", &PartitionedFSIUtilities<TSpace, 3>::UpdateInterfaceValues)
@@ -75,23 +75,23 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
         .def("CheckCurrentCoordinatesFluid", &PartitionedFSIUtilities<TSpace, 3>::CheckCurrentCoordinatesFluid)
         .def("CheckCurrentCoordinatesStructure", &PartitionedFSIUtilities<TSpace, 3>::CheckCurrentCoordinatesStructure);
 
-    class_<NodalUpdateBaseClass<2>>(m,"BaseNodalUpdate2D")
-        .def(init<>())
+    py::class_<NodalUpdateBaseClass<2>>(m,"BaseNodalUpdate2D")
+        .def(py::init<>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<2>::UpdateMeshTimeDerivatives)
         .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<2>::SetMeshTimeDerivativesOnInterface);
 
-    class_<NodalUpdateBaseClass<3>>(m,"BaseNodalUpdate3D")
-        .def(init<>())
+    py::class_<NodalUpdateBaseClass<3>>(m,"BaseNodalUpdate3D")
+        .def(py::init<>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateBaseClass<3>::UpdateMeshTimeDerivatives)
         .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateBaseClass<3>::SetMeshTimeDerivativesOnInterface);
 
-    class_<NodalUpdateNewmark<2>, NodalUpdateBaseClass2DType>(m,"NodalUpdateNewmark2D")
-        .def(init<const double>())
+    py::class_<NodalUpdateNewmark<2>, NodalUpdateBaseClass2DType>(m,"NodalUpdateNewmark2D")
+        .def(py::init<const double>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<2>::UpdateMeshTimeDerivatives)
         .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<2>::SetMeshTimeDerivativesOnInterface);
 
-    class_<NodalUpdateNewmark<3>, NodalUpdateBaseClass3DType>(m,"NodalUpdateNewmark3D")
-        .def(init<const double>())
+    py::class_<NodalUpdateNewmark<3>, NodalUpdateBaseClass3DType>(m,"NodalUpdateNewmark3D")
+        .def(py::init<const double>())
         .def("UpdateMeshTimeDerivatives", &NodalUpdateNewmark<3>::UpdateMeshTimeDerivatives)
         .def("SetMeshTimeDerivativesOnInterface", &NodalUpdateNewmark<3>::SetMeshTimeDerivativesOnInterface);
 }

@@ -108,8 +108,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
-
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -212,7 +210,7 @@ public:
     @return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
         return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -745,6 +743,18 @@ public:
      * these methods are: OPTIONAL
      */
 
+    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                          std::vector<bool>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                          std::vector<int>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
@@ -782,6 +792,18 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
 
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -808,14 +830,20 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
+    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
@@ -868,18 +896,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions
-     * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
 
     /**
      * this is called during the assembling process in order

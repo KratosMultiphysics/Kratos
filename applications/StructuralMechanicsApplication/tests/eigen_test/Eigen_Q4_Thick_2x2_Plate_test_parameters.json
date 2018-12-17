@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "Eigen_Q4_Thick_2x2_Plate_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "eigen_value",
         "scheme_type"                        : "dynamic",
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "echo_level"                         : 0,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -29,13 +31,14 @@
         "lambda_max": 1.0e4,
         "search_dimension": 9,
         "linear_solver_settings":{
-            "solver_type": "complex_skyline_lu_solver"
+            "solver_type": "SkylineLUComplexSolver"
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_plate"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support"],
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -59,5 +62,5 @@
 	    "variable_name"   : "EIGENVALUE_VECTOR",
             "reference_values": "[88.96614452368635, 3955.0855388258715, 7796.83946434412]"
         }
-    }]
+    }]}
 }

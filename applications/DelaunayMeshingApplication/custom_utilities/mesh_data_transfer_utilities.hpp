@@ -11,7 +11,6 @@
 #define KRATOS_MESH_DATA_TRANSFER_UTILITIES_H_INCLUDED
 
 // System includes
-#include <stdlib.h>
 
 // Project includes
 #include "includes/variables.h"
@@ -154,7 +153,7 @@ namespace Kratos
 	Array1DVariable.clear();
 	VectorVariable.resize(voigt_size);
 	noalias(VectorVariable) = ZeroVector(voigt_size);
-	MatrixVariable.resize(dimension, dimension);
+	MatrixVariable.resize(dimension, dimension,false);
 	noalias(MatrixVariable) = IdentityMatrix(dimension);
       }
 

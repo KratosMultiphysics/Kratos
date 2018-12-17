@@ -92,11 +92,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     /// Type for shape function values container
-    #ifdef KRATOS_USE_AMATRIX
-    typedef AMatrix::MatrixRow< Matrix > ShapeFunctionsType;
-    #else
-    typedef boost::numeric::ublas::matrix_row< Matrix > ShapeFunctionsType;
-    #endif
+    typedef MatrixRow< Matrix > ShapeFunctionsType;
 
     /// Type for a matrix containing the shape function gradients
     typedef Kratos::Matrix ShapeFunctionDerivativesType;
@@ -433,7 +429,20 @@ protected:
         TElementData& rData,
         MatrixType& rMassMatrix);
 
-    virtual void AddBoundaryIntegral(
+    /**
+     * @brief Adds the boundary traction component along a cut plane for embedded formulations.
+     * This method adds the boundary traction component to the LHS and RHS arrays.
+     * Such boundary integral must be implemented in all the fluid dynamics elements
+     * deriving from this one in accordance to the formulation used. This method is
+     * intended to be called from the derived elements to add the contribution of the
+     * tractions on the elemental cuts to enforce equilibrium. This means that what we
+     * call external traction is nothing but minus the base formulation boundary term.
+     * @param rData Element data structure
+     * @param rUnitNormal Outwards unit normal vector for the cut plane
+     * @param rLHS Reference to the Left Hand Side matrix
+     * @param rRHS Reference to the Right Hand Side vector
+     */
+    virtual void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,

@@ -15,7 +15,6 @@
 
 
 // External includes
-#include "boost/make_shared.hpp"
 
 
 // Project includes
@@ -28,35 +27,17 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, ALL_ENTITIES, 0);
 KRATOS_CREATE_LOCAL_FLAG(ModelPart, OVERWRITE_ENTITIES, 1);
 
-/// Default constructor.
-ModelPart::ModelPart()
+ModelPart::ModelPart(std::string const& NewName, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(1)
     , mpProcessInfo(new ProcessInfo())
     , mIndices(1, 0)
-    , mpVariablesList(new VariablesList)
+    , mpVariablesList(new VariablesList())
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
-{
-    mName = "Default";
-    MeshType mesh;
-    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
-    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
-}
-
-/// Constructor with name
-ModelPart::ModelPart(std::string const& NewName)
-    : DataValueContainer()
-    , Flags()
-    , mBufferSize(1)
-    , mpProcessInfo(new ProcessInfo())
-    , mIndices(1, 0)
-    , mpVariablesList(new VariablesList)
-    , mpCommunicator(new Communicator)
-    , mpParentModelPart(NULL)
-    , mSubModelParts()
+    , mrModel(rOwnerModel)
 {
     KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
     mName = NewName;
@@ -65,19 +46,73 @@ ModelPart::ModelPart(std::string const& NewName)
     mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
 }
 
+/// Default constructor.
+ModelPart::ModelPart(VariablesList* pVariablesList, Model& rOwnerModel)
+    : DataValueContainer()
+    , Flags()
+    , mBufferSize(1)
+    , mpProcessInfo(new ProcessInfo())
+    , mIndices(1, 0)
+    , mpVariablesList(pVariablesList)
+    , mpCommunicator(new Communicator)
+    , mpParentModelPart(NULL)
+    , mSubModelParts()
+    , mrModel(rOwnerModel)
+{
+    mName = "Default";
+    MeshType mesh;
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
+}
+
+/// Constructor with name
+ModelPart::ModelPart(std::string const& NewName,VariablesList* pVariablesList, Model& rOwnerModel)
+    : DataValueContainer()
+    , Flags()
+    , mBufferSize(1)
+    , mpProcessInfo(new ProcessInfo())
+    , mIndices(1, 0)
+    , mpVariablesList(pVariablesList)
+    , mpCommunicator(new Communicator)
+    , mpParentModelPart(NULL)
+    , mSubModelParts()
+    , mrModel(rOwnerModel)
+{
+    KRATOS_ERROR_IF( NewName.empty() )
+        << "Please don't use empty names (\"\") when creating a ModelPart"
+        << std::endl;
+
+    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
+        << "Please don't use names containing (\".\") when creating a ModelPart"
+        << std::endl;
+
+    mName = NewName;
+    MeshType mesh;
+    mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
+    mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
+}
+
 /// Constructor with name and bufferSize
-ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize)
+ModelPart::ModelPart(std::string const& NewName, IndexType NewBufferSize,VariablesList* pVariablesList, Model& rOwnerModel)
     : DataValueContainer()
     , Flags()
     , mBufferSize(NewBufferSize)
     , mpProcessInfo(new ProcessInfo())
     , mIndices(NewBufferSize, 0)
-    , mpVariablesList(new VariablesList)
+    , mpVariablesList(pVariablesList)
     , mpCommunicator(new Communicator)
     , mpParentModelPart(NULL)
     , mSubModelParts()
+    , mrModel(rOwnerModel)
 {
-    KRATOS_ERROR_IF( NewName.empty() ) << "Please don't use empty names (\"\") when creating a ModelPart" << std::endl;
+    KRATOS_ERROR_IF( NewName.empty() )
+        << "Please don't use empty names (\"\") when creating a ModelPart"
+        << std::endl;
+
+    KRATOS_ERROR_IF_NOT( NewName.find(".") == std::string::npos )
+        << "Please don't use names containing (\".\") when creating a ModelPart"
+        << std::endl;
+
     mName = NewName;
     MeshType mesh;
     mMeshes.push_back(Kratos::make_shared<MeshType>(mesh.Clone()));
@@ -102,8 +137,8 @@ ModelPart::~ModelPart()
       i_mesh->Clear();
 
 
-    if (!IsSubModelPart())
-      delete mpVariablesList;
+//     if (!IsSubModelPart())
+//       delete mpVariablesList;
 }
 
 ModelPart::IndexType ModelPart::CreateSolutionStep()
@@ -1423,10 +1458,9 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
 {
     if (mSubModelParts.find(NewSubModelPartName) == mSubModelParts.end())
     {
-        Kratos::shared_ptr<ModelPart>  p_model_part = Kratos::make_shared<ModelPart>(NewSubModelPartName);
+        ModelPart* praw = new ModelPart(NewSubModelPartName, this->mpVariablesList, this->GetModel());
+        Kratos::shared_ptr<ModelPart>  p_model_part(praw); //we need to construct first a raw pointer
         p_model_part->SetParentModelPart(this);
-        delete p_model_part->mpVariablesList;
-        p_model_part->mpVariablesList = mpVariablesList;
         p_model_part->mBufferSize = this->mBufferSize;
         p_model_part->mpProcessInfo = this->mpProcessInfo;
         mSubModelParts.insert(p_model_part);
@@ -1438,9 +1472,20 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-void ModelPart::AddSubModelPart(Kratos::shared_ptr<ModelPart> pThisSubModelPart)
+KRATOS_DEPRECATED void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
 {
-   KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
+    KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
+//     if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
+//         // Here a warning would be enough. To be disscussed. Pooyan.
+//         KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
+//
+//     if (IsSubModelPart())
+//     {
+//         mpParentModelPart->AddSubModelPart(pThisSubModelPart);
+//         return;
+//     }
+//
+//     pThisSubModelPart->SetParentModelPart(this);
 }
 /** Remove a sub modelpart with given name.
 */
@@ -1518,6 +1563,9 @@ int ModelPart::Check(ProcessInfo& rCurrentProcessInfo) const
         err = elem_iterator->Check(rCurrentProcessInfo);
     for (ConditionConstantIterator condition_iterator = ConditionsBegin(); condition_iterator != ConditionsEnd(); condition_iterator++)
         err = condition_iterator->Check(rCurrentProcessInfo);
+    for (MasterSlaveConstraintConstantIteratorType constraint_iterator = MasterSlaveConstraintsBegin();
+            constraint_iterator != MasterSlaveConstraintsEnd(); constraint_iterator++)
+        err = constraint_iterator->Check(rCurrentProcessInfo);
     return err;
     KRATOS_CATCH("");
 }
@@ -1548,7 +1596,7 @@ void ModelPart::PrintData(std::ostream& rOStream) const
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << "    Mesh " << i << " : " << std::endl;
+        rOStream << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, "    ");
     }
     rOStream << std::endl;
@@ -1581,7 +1629,7 @@ void ModelPart::PrintData(std::ostream& rOStream, std::string const& PrefixStrin
     rOStream << std::endl;
     for (IndexType i = 0; i < mMeshes.size(); i++)
     {
-        rOStream << PrefixString << "    Mesh " << i << " : " << std::endl;
+        rOStream << PrefixString << "    Mesh " << i << " :" << std::endl;
         GetMesh(i).PrintData(rOStream, PrefixString + "    ");
     }
 
@@ -1601,25 +1649,52 @@ void ModelPart::save(Serializer& rSerializer) const
     rSerializer.save("Buffer Size", mBufferSize);
     rSerializer.save("ProcessInfo", mpProcessInfo);
     rSerializer.save("Tables", mTables);
-    //const VariablesList* p_list = &mVariablesList;
-    // I'm saving it as pointer so the nodes pointers will point to it as stored pointer. Pooyan.
     rSerializer.save("Variables List", mpVariablesList);
     rSerializer.save("Meshes", mMeshes);
-    rSerializer.save("SubModelParts", mSubModelParts);
+
+    rSerializer.save("NumberOfSubModelParts", NumberOfSubModelParts());
+
+    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+         rSerializer.save("SubModelPartName", i_sub_model_part->Name());
+
+    for (SubModelPartConstantIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
+        rSerializer.save("SubModelPart", *(i_sub_model_part));
 }
 
 void ModelPart::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DataValueContainer);
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-    rSerializer.load("Name", mName);
+    std::string ModelPartName;
+    rSerializer.load("Name", ModelPartName);
+
+    if(ModelPartName != mName) //checking if the name is correct
+    {
+        KRATOS_ERROR << "trying to load a modelpart called :   " << ModelPartName << "    into an object named :   " << mName << " the two names should coincide but do not" << std::endl;
+    }
+
     rSerializer.load("Buffer Size", mBufferSize);
     rSerializer.load("ProcessInfo", mpProcessInfo);
     rSerializer.load("Tables", mTables);
-    //VariablesList* p_list = &mVariablesList;
     rSerializer.load("Variables List", mpVariablesList);
     rSerializer.load("Meshes", mMeshes);
-    rSerializer.load("SubModelParts", mSubModelParts);
+
+    SizeType number_of_submodelparts;
+    rSerializer.load("NumberOfSubModelParts", number_of_submodelparts);
+
+    std::vector< std::string > submodel_part_names;
+    for(SizeType i=0; i<number_of_submodelparts; ++i)
+    {
+        std::string name;
+        rSerializer.load("SubModelPartName",name);
+        submodel_part_names.push_back(name);
+    }
+
+    for(const auto& name : submodel_part_names)
+    {
+        auto& subpart = CreateSubModelPart(name);
+        rSerializer.load("SubModelPart",subpart);
+    }
 
     for (SubModelPartIterator i_sub_model_part = SubModelPartsBegin(); i_sub_model_part != SubModelPartsEnd(); i_sub_model_part++)
         i_sub_model_part->SetParentModelPart(this);

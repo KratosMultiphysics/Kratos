@@ -1,73 +1,15 @@
 {
     "optimization_settings" : {
-        "objectives" : [{
-            "identifier" : "mass",
-            "type"       : "minimization",
-            "use_kratos" : true,
-            "kratos_response_settings":{
-                "response_type"          : "mass",
-                "material_import_settings" :{
-                    "materials_filename": "materials_3D.json"
-                },
-                "model_import_settings"              : {
-                    "input_type"     : "use_input_model_part",
-                    "input_filename" : "3D_Hook"
-                },
-                "gradient_mode"          : "finite_differencing",
-                "step_size"              : 1e-8,
-                "consider_discretization": false
+        "model_settings" : {
+            "domain_size"           : 3,
+            "model_part_name"       : "3D_Hook",
+            "model_import_settings" : {
+                "input_type"     : "mdpa",
+                "input_filename" : "3D_Hook"
             },
-            "project_gradient_on_surface_normals" : true
-        }],
-        "constraints" : [{
-            "identifier" : "strain_energy",
-            "type"       : "=",
-            "reference"  : "initial_value",
-            "use_kratos" : true,
-            "kratos_response_settings":{
-                "response_type"          : "strain_energy",
-                "primal_settings"        : "primal_parameters.json",
-                "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-5,
-                "consider_discretization": false
-            },
-            "project_gradient_on_surface_normals" : true
-        }],
-        "design_variables" : {
-            "type"                               : "vertex_morphing",
-            "optimization_model_part_name"       : "3D_Hook",
             "design_surface_sub_model_part_name" : "design_surface",
-            "domain_size"                        : 3,
-            "filter" : {
-                "filter_function_type"       : "linear",
-                "filter_radius"              : 30.0,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : true
-            },
-            "mesh_motion" : {
-                "apply_mesh_solver" : true,
-                "solver_settings" : {
-                    "solver_type": "mesh_solver_structural_similarity",
-                    "model_import_settings"              : {
-                        "input_type"     : "use_input_model_part",
-                        "input_filename" : "3D_Hook"
-                    },
-                    "mesh_motion_linear_solver_settings"  : {
-                        "solver_type"         : "AMGCL",
-                        "max_iteration"       : 500,
-                        "tolerance"           : 1e-7,
-                        "provide_coordinates" : false,
-                        "smoother_type"       : "ilu0",
-                        "krylov_type"         : "bicgstab",
-                        "coarsening_type"     : "aggregation",
-                        "scaling"             : false,
-                        "verbosity"           : 1
-                    },
-                    "compute_reactions"     : true
-                }
-            },
             "damping" : {
-                "perform_damping" : true,
+                "apply_damping" : true,
                 "damping_regions" : [{
                         "sub_model_part_name"   : "support",
                         "damp_X"                : true,
@@ -90,6 +32,75 @@
                         "damping_function_type" : "linear",
                         "damping_radius"        : 20.0
                 }]
+            },
+            "mesh_motion" : {
+                "apply_mesh_solver" : true,
+                "solver_settings" : {
+                    "solver_type": "mesh_solver_structural_similarity",
+                    "model_part_name"    : "3D_Hook",
+                    "model_import_settings"              : {
+                        "input_type"     : "use_input_model_part"
+                    },
+                    "time_stepping" : {
+                        "time_step"       : 1.0
+                    },
+                    "domain_size"     : 3,
+                    "mesh_motion_linear_solver_settings"  : {
+                        "solver_type"         : "AMGCL",
+                        "max_iteration"       : 500,
+                        "tolerance"           : 1e-7,
+                        "provide_coordinates" : false,
+                        "smoother_type"       : "ilu0",
+                        "krylov_type"         : "bicgstab",
+                        "coarsening_type"     : "aggregation",
+                        "scaling"             : false,
+                        "verbosity"           : 1
+                    },
+                    "compute_reactions"     : false
+                },
+                "boundary_conditions_process_list" : []
+            }
+        },
+        "objectives" : [{
+            "identifier" : "mass",
+            "type"       : "minimization",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"         : "mass",
+                "model_part_name"       : "3D_Hook",
+                "model_import_settings" : {
+                    "input_type" : "use_input_model_part"
+                },
+                "material_import_settings" :{
+                    "materials_filename": "materials_3D.json"
+                },
+                "gradient_mode"          : "finite_differencing",
+                "step_size"              : 1e-8,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : true
+        }],
+        "constraints" : [{
+            "identifier" : "strain_energy",
+            "type"       : "=",
+            "reference"  : "initial_value",
+            "use_kratos" : true,
+            "kratos_response_settings":{
+                "response_type"          : "strain_energy",
+                "primal_settings"        : "primal_parameters.json",
+                "gradient_mode"          : "semi_analytic",
+                "step_size"              : 1e-5,
+                "consider_discretization": false
+            },
+            "project_gradient_on_surface_normals" : true
+        }],
+        "design_variables" : {
+            "type"                : "vertex_morphing",
+            "filter" : {
+                "filter_function_type"        : "linear",
+                "filter_radius"               : 30.0,
+                "max_nodes_in_filter_radius"  : 10000,
+                "matrix_free_filtering" : true
             }
         },
         "optimization_algorithm" : {
@@ -120,15 +131,7 @@
                                 "SHAPE_CHANGE",
                                 "MESH_CHANGE" ],
             "output_format" : {
-                "name"              : "gid",
-                "gid_configuration" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary"
-                        },
-                        "output_frequency"    : 1.0
-                    }
-                }
+                "name": "gid"
             }
         }
     }

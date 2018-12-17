@@ -112,7 +112,7 @@ class DamSelfweightSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_JOINT_WIDTH)

@@ -34,8 +34,7 @@ class RemeshFluidDomainsProcess(remesh_domains_process.RemeshDomainsProcess):
         self.mesher_utils = KratosDelaunay.MesherUtilities()
         meshing_options.Set(self.mesher_utils.KEEP_ISOLATED_NODES, True)
 
-        #retur KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
-        return KratosPfem.FluidModelStructure(self.main_model_part, meshing_options, self.echo_level)
+        return KratosDelaunay.ModelStructure(self.main_model_part, meshing_options, self.echo_level)
 
     #
     @classmethod

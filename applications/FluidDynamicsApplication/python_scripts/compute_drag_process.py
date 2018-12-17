@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # other imports
 from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
@@ -26,7 +23,7 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         Auxiliary class to output total flow forces over obstacles
         in fluid dynamics problems for a body fitted model part.
         """
-        super(ComputeDragProcess,self).__init__()
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {

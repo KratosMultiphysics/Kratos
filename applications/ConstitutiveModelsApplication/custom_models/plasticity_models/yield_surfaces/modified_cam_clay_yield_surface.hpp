@@ -47,7 +47,7 @@ namespace Kratos
   /** Detail class definition.
    */
   template<class THardeningRule>
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) ModifiedCamClayYieldSurface : public YieldSurface<THardeningRule>
+  class ModifiedCamClayYieldSurface : public YieldSurface<THardeningRule>
   {
   public:
 
@@ -115,9 +115,9 @@ namespace Kratos
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       // Material Parameters
-      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-      const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
-      //const double & rFriction = rMaterialProperties[INTERNAL_FRICTION_ANGLE];
+      const Properties& rProperties = rModelData.GetProperties();
+      const double& rShearM = rProperties[CRITICAL_STATE_LINE];
+      //const double & rFriction = rProperties[INTERNAL_FRICTION_ANGLE];
 
 
       // compute something with the hardening rule
@@ -153,8 +153,8 @@ namespace Kratos
       const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
       // Material Parameters
-      const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
-      const double& rShearM = rMaterialProperties[CRITICAL_STATE_LINE];
+      const Properties& rProperties = rModelData.GetProperties();
+      const double& rShearM = rProperties[CRITICAL_STATE_LINE];
 
       // compute something with the hardening rule
       double PreconsolidationStress;

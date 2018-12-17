@@ -20,9 +20,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
-#include "custom_elements/truss_discrete_element.h"
+#include "custom_elements/iga_truss_element.h"
 #include "custom_elements/shell_kl_discrete_element.h"
 
 namespace Kratos {
@@ -76,7 +75,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
     ///@}
     ///@name Access
@@ -91,18 +90,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {
+    std::string Info() const override
+    {
         return "KratosIgaApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override
+    {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
@@ -160,7 +162,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const TrussDiscreteElement mTrussDiscreteElement;
+    const IgaTrussElement mIgaTrussElement;
     const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     ///@}

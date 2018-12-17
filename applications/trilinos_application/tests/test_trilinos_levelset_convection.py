@@ -1,10 +1,15 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import os
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.MetisApplication as MetisApplication
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-import os
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
+import trilinos_import_model_part_utility
+import trilinos_linear_solver_factory
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -22,39 +27,40 @@ def ConvectionVelocity(x, y, z):
 
 class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
+    def setUp(self):
+        self.parameters = """{
+            "echo_level" : 0,
+            "model_import_settings" : {
+                "input_type" : "mdpa",
+                "input_filename" : "levelset_convection_process_mesh"
+            }
+        } """
+
     def tearDown(self):
         my_pid = self.model_part.GetCommunicator().MyPID()
 
         # Remove the .time file
         if (my_pid == 0):
-            try:
-                os.remove('levelset_convection_process_mesh.time')
-            except FileNotFoundError as e:
-                pass
+            KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh.time")
 
         # Remove the Metis partitioning files
-        try:
-            os.remove('levelset_convection_process_mesh_' + str(my_pid) + '.time')
-            os.remove('levelset_convection_process_mesh_' + str(my_pid) + '.mdpa')
-        except FileNotFoundError as e:
-            pass
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh_" + str(my_pid) + ".time")
+        KratosUtils.DeleteFileIfExisting("levelset_convection_process_mesh_" + str(my_pid) + ".mdpa")
+
+        # While compining in debug, in memory partitioner also writes down the mpda in plain text
+        # and needs to be cleaned.
+        KratosUtils.DeleteFileIfExisting("debug_modelpart_" + str(my_pid) + ".mdpa")
 
     def test_trilinos_levelset_convection(self):
-        self.model_part = KratosMultiphysics.ModelPart("Main")
+        current_model = KratosMultiphysics.Model()
+        self.model_part = current_model.CreateModelPart("Main",2)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
 
 
         # Import the model part, perform the partitioning and create communicators
-        import_settings = KratosMultiphysics.Parameters("""{
-            "echo_level" : 0,
-            "model_import_settings" : {
-                "input_type" : "mdpa",
-                "input_filename" : "levelset_convection_process_mesh"
-            }
-        }""")
-        import trilinos_import_model_part_utility
+        import_settings = KratosMultiphysics.Parameters(self.parameters)
         TrilinosModelPartImporter = trilinos_import_model_part_utility.TrilinosImportModelPartUtility(self.model_part, import_settings)
         TrilinosModelPartImporter.ImportModelPart()
         TrilinosModelPartImporter.CreateCommunicators()
@@ -73,9 +79,9 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
                 node.Fix(KratosMultiphysics.DISTANCE)
 
         # Set the Trilinos linear solver and Epetra communicator
-        import trilinos_linear_solver_factory
         trilinos_linear_solver = trilinos_linear_solver_factory.ConstructSolver(
-            KratosMultiphysics.Parameters("""{"solver_type" : "AmesosSolver" }"""))
+            KratosMultiphysics.Parameters("""{"solver_type" : "AmesosSolver" }""")
+        )
 
         epetra_comm = TrilinosApplication.CreateCommunicator()
 
@@ -92,6 +98,7 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
         # Check the obtained values
         max_distance = -1.0
         min_distance = +1.0
+
         for node in self.model_part.Nodes:
             d =  node.GetSolutionStepValue(KratosMultiphysics.DISTANCE)
             max_distance = max(max_distance, d)
@@ -102,6 +109,18 @@ class TestTrilinosLevelSetConvection(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.7904255118014996)
         self.assertAlmostEqual(min_distance,-0.11710292469993094)
+
+class TestTrilinosLevelSetConvectionInMemory(TestTrilinosLevelSetConvection):
+
+    def setUp(self):
+        self.parameters = """{
+            "echo_level" : 0,
+            "model_import_settings" : {
+                "input_type" : "mdpa",
+                "input_filename" : "levelset_convection_process_mesh",
+                "partition_in_memory" : true
+            }
+        } """
 
 if __name__ == '__main__':
     KratosUnittest.main()

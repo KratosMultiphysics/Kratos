@@ -135,35 +135,45 @@ void LargeDisplacementElement::SetElementData(ElementDataType& rVariables,
       this->GetHistoricalVariables(rVariables,rPointNumber);
     }
 
+    //to be accurate calculus must stop
     if(rVariables.detF<0){
 
-	std::cout<<" Element: "<<this->Id()<<std::endl;
+      KRATOS_WARNING(" [Element Ignored]") << "LargeDispElement["<<this->Id()<<"] (|F|=" << rVariables.detF <<")  (Iter:"<<rVariables.GetProcessInfo()[NL_ITERATION_NUMBER]<<")"<<std::endl;
+      rVariables.detJ = 0;
 
-	SizeType number_of_nodes  = GetGeometry().PointsNumber();
+      SizeType number_of_nodes  = GetGeometry().PointsNumber();
 
-	for ( SizeType i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	    array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
-	    std::cout<<" NODE ["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<" (Cur: "<<CurrentPosition<<") "<<std::endl;
-	    std::cout<<" ---Disp: "<<CurrentDisplacement<<" (Pre: "<<PreviousDisplacement<<")"<<std::endl;
-	  }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        array_1d<double, 3> & CurrentPosition      = GetGeometry()[i].Coordinates();
+        array_1d<double, 3> & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3> & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+        array_1d<double, 3> PreviousPosition       = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+        KRATOS_WARNING("")<<" Node["<<GetGeometry()[i].Id()<<"]: (Position: (pre)"<<PreviousPosition<<",(cur)"<<CurrentPosition<<")"<<std::endl;
+        //KRATOS_WARNING("")<<" (Displacement: (pre)"<<CurrentDisplacement<<",(cur)"<<PreviousDisplacement<<")"<<std::endl;
+      }
+      for ( SizeType i = 0; i < number_of_nodes; i++ )
+      {
+        if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
+          array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
+          array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+          KRATOS_WARNING("")<<" (Contact: (pre)"<<PreContactForce<<",(cur)"<<ContactForce<<")["<<GetGeometry()[i].Id()<<"]"<<std::endl;
+        }
 
-	for ( SizeType i = 0; i < number_of_nodes; i++ )
-	  {
-	    if( GetGeometry()[i].SolutionStepsDataHas(CONTACT_FORCE) ){
-	      array_1d<double, 3 > & PreContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE,1);
-	      array_1d<double, 3 > & ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
-	      std::cout<<" ---Contact_Force: (Pre:"<<PreContactForce<<", Cur:"<<ContactForce<<") "<<std::endl;
-	    }
-	    else{
-	      std::cout<<" ---Contact_Force: NULL "<<std::endl;
-	    }
-	  }
+      }
 
-        KRATOS_THROW_ERROR( std::invalid_argument," LARGE DISPLACEMENT ELEMENT INVERTED: |F|<0  detF = ", rVariables.detF )
+      this->Set(SELECTED,true);
+
+      KRATOS_ERROR<<" [Element Failed] ["<<this->Id()<<"]"<<std::endl;
+
+    }
+    else{
+
+      if(this->Is(SELECTED) && this->Is(ACTIVE)){
+        this->Set(SELECTED,false);
+        KRATOS_WARNING("")<<" Undo SELECTED LargeDispElement "<<this->Id()<<std::endl;
+      }
+
     }
 
     //Compute F and detF (from 0 to n+1) : store it in H variable and detH
@@ -387,11 +397,11 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
 	    }
 
             //Compute Green-Lagrange Strain
-
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
 	      this->CalculateGreenLagrangeStrain( Variables.H, Variables.StrainVector );
             else
 	      this->CalculateAlmansiStrain( Variables.H, Variables.StrainVector );
+
 
             if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
