@@ -122,4 +122,4 @@ def WriteXdmfFile(file_name, rel_path_h5_files=""):
 
 if __name__ == '__main__':
     file_name = sys.argv[1]
-    WriteXdmfFile(file_name, sys.argv[2])
+    WriteXdmfFile(file_name)
