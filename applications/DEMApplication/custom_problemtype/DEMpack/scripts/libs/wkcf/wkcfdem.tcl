@@ -3000,16 +3000,8 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
 	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
 	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+		foreach {ExternalFX ExternalFY ExternalFZ ExternalMX ExternalMY ExternalMZ} {0.0 0.0 0.0 0.0 0.0 0.0} {}
 		foreach {TableNumberFX TableNumberFY TableNumberFZ TableNumberMX TableNumberMY TableNumberMZ} {0 0 0 0 0 0} {}
-	    if {$external_force_X=="None"} {
-		    set ExternalFX 0.0
-	    }
-	    if {$external_force_Y=="None"} {
-		    set ExternalFY 0.0
-	    }
-	    if {$external_force_Z=="None"} {
-		    set ExternalFZ 0.0
-	    }
 	    if {$external_force_X=="Constant"} {
 	        set ExternalFX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FX" dv]
 		}
@@ -3031,15 +3023,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 			incr demfem_motion_table
 	        set TableNumberFZ $demfem_motion_table
 		}
-	    if {$external_moment_X=="None"} {
-		    set ExternalMX 0.0
-	    }
-	    if {$external_moment_Y=="None"} {
-		    set ExternalMY 0.0
-	    }
-	    if {$external_moment_Z=="None"} {
-		    set ExternalMZ 0.0
-	    }
 	    if {$external_moment_X=="Constant"} {
 	        set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MX" dv]
 	    }
@@ -3273,24 +3256,12 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
 	    }
         #External forces
-	    if {$external_force_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
-		}
-        if {$external_force_Y=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
-		}
-        if {$external_force_Z=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
+	    if {$external_force_X=="Constant" || $external_force_Y=="Constant" || $external_force_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX, $ExternalFY, $ExternalFZ)"
 		}
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE \[3\] ($TableNumberFX,$TableNumberFY,$TableNumberFZ)"
-	    if {$external_moment_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
-		}
-	    if {$external_moment_Y=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
-		}
-	    if {$external_moment_Z=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
+	    if {$external_moment_X=="Constant" || $external_moment_Y=="Constant" || $external_moment_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX, $ExternalMY, $ExternalMZ)"
 		}
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT \[3\] ($TableNumberMX,$TableNumberMY,$TableNumberMZ)"
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
