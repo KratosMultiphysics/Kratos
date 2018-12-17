@@ -56,11 +56,12 @@
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 20,
-            "relative_tolerance" : 1e-0,
+            "relative_tolerance" : 1e-2,
+            "gradient_tolerance" : 0.8,
             "line_search" : {
-                "line_search_type"           : "manual_stepping",
+                "line_search_type"           : "adaptive_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 0.2
+                "step_size"                  : 0.1
             }
         },
         "output" : {

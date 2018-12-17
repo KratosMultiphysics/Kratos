@@ -12,7 +12,6 @@
 
 // System includes
 #include <set>
-#include <unordered_set>
 
 // External includes
 // The includes related with the MMG library
@@ -25,7 +24,6 @@
 #include "custom_processes/mmg_process.h"
 #include "containers/model.h"
 #include "utilities/assign_unique_model_part_collection_tag_utility.h"
-#include "utilities/variable_utils.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
@@ -822,11 +820,15 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         }
 
         /* We interpolate the internal variables */
-        InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
-        InternalVariablesInterpolation.Execute();
+        InternalVariablesInterpolationProcess internal_variables_interpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
+        internal_variables_interpolation.Execute();
     }
 
-    // We remove the auxiliar old model part
+    // We set to zero the variables contained on the elements and conditions
+    SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
+    SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
+
+    // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
