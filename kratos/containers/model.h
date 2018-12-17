@@ -85,13 +85,18 @@ public:
         //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
 
-    Model & operator=(const Model&) = delete;
     Model(const Model&) = delete;
-
 
     ///@}
     ///@name Operators
     ///@{
+
+    Model & operator=(const Model&) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
     void Reset();
 
     ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
@@ -104,10 +109,7 @@ public:
 
     bool HasModelPart(const std::string& rFullModelPartName) const;
 
-    ///@}
-    ///@name Operations
-    ///@{
-
+    std::vector<std::string> GetModelPartNames();
 
     ///@}
     ///@name Access
@@ -184,18 +186,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
 
-    std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
-    {
-    static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
-    return mListOfVariablesLists;
-    }
-    friend class Serializer;
-
-    void save(Serializer& rSerializer) const;
-    void load(Serializer& rSerializer);
-
+    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
 
     ///@}
     ///@name Private Operators
@@ -210,6 +202,11 @@ private:
 
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
+    std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+    {
+        static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
+        return mListOfVariablesLists;
+    }
 
     ///@}
     ///@name Private  Access
@@ -231,6 +228,15 @@ private:
     /// Copy constructor.
 //       Model(Model const& rOther);
 
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     ///@}
 

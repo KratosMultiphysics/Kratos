@@ -168,6 +168,20 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    std::vector<std::string> Model::GetModelPartNames()
+    {
+        std::vector<std::string> model_parts_names(mRootModelPartMap.size());
+
+        // We fill the vector
+        std::size_t index = 0;
+        for (auto& mps : mRootModelPartMap) {
+            model_parts_names[index] = mps.first;
+            ++index;
+        }
+
+        return model_parts_names;
+    }
+
     std::string Model::Info() const
     {
         std::stringstream ss;
