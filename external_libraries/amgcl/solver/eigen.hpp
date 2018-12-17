@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,8 @@ THE SOFTWARE.
 #include <Eigen/Dense>
 #include <Eigen/SparseCore>
 
+#include <type_traits>
+
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
 
@@ -48,16 +50,37 @@ class EigenSolver {
 
         typedef amgcl::detail::empty_params params;
 
+        static size_t coarse_enough() {
+            return 3000 / math::static_rows<value_type>::value;
+        }
+
         template <class Matrix>
         EigenSolver(const Matrix &A, const params& = params())
             : n( backend::rows(A) )
         {
+            typedef
+                typename std::remove_const<
+                    typename std::remove_pointer<
+                        typename backend::col_data_impl<Matrix>::type
+                        >::type
+                    >::type
+                col_type;
+
+            typedef
+                typename std::remove_const<
+                    typename std::remove_pointer<
+                        typename backend::ptr_data_impl<Matrix>::type
+                        >::type
+                    >::type
+                ptr_type;
+
             S.compute(
                     MatrixType(
-                        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, int>(
+                        Eigen::MappedSparseMatrix<value_type, Eigen::RowMajor, ptrdiff_t>(
                             backend::rows(A), backend::cols(A), backend::nonzeros(A),
-                            const_cast<int*>(A.ptr), const_cast<int*>(A.col),
-                            const_cast<value_type*>(A.val)
+                            const_cast<ptr_type*>(backend::ptr_data(A)),
+                            const_cast<col_type*>(backend::col_data(A)),
+                            const_cast<value_type*>(backend::val_data(A))
                             )
                         )
                     );

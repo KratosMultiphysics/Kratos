@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -32,9 +32,7 @@ THE SOFTWARE.
  */
 
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/multi_array.hpp>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -44,13 +42,11 @@ namespace preconditioner {
 
 template <class PPrecond, class SPrecond>
 class cpr {
-    BOOST_STATIC_ASSERT_MSG(
-            (
-             boost::is_same<
-                 typename PPrecond::backend_type,
-                 typename SPrecond::backend_type
-                 >::value
-            ),
+    static_assert(
+            std::is_same<
+                typename PPrecond::backend_type,
+                typename SPrecond::backend_type
+                >::value,
             "Backends for pressure and flow preconditioners should coinside!"
             );
     public:
@@ -75,13 +71,14 @@ class cpr {
 
             params() : block_size(2), active_rows(0) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, pprecond),
                   AMGCL_PARAMS_IMPORT_CHILD(p, sprecond),
                   AMGCL_PARAMS_IMPORT_VALUE(p, block_size),
                   AMGCL_PARAMS_IMPORT_VALUE(p, active_rows)
             {
-                AMGCL_PARAMS_CHECK(p, (pprecond)(sprecond)(block_size)(active_rows));
+                check_params(p, {"pprecond", "sprecond", "block_size", "active_rows"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
@@ -91,6 +88,7 @@ class cpr {
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, block_size);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, active_rows);
             }
+#endif
         } prm;
 
         template <class Matrix>
@@ -113,15 +111,7 @@ class cpr {
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             S->apply(rhs, x);
             backend::residual(rhs, S->system_matrix(), x, *rs);
 
@@ -129,6 +119,10 @@ class cpr {
             P->apply(*rp, *xp);
 
             backend::spmv(1, *Scatter, *xp, 1, x);
+        }
+
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return S->system_matrix_ptr();
         }
 
         const matrix& system_matrix() const {
@@ -152,12 +146,12 @@ class cpr {
 
             np = N / B;
 
-            std::shared_ptr<build_matrix> fpp = std::make_shared<build_matrix>();
+            auto fpp = std::make_shared<build_matrix>();
             fpp->set_size(np, n);
             fpp->set_nonzeros(n);
             fpp->ptr[0] = 0;
 
-            std::shared_ptr<build_matrix> App = std::make_shared<build_matrix>();
+            auto App = std::make_shared<build_matrix>();
             App->set_size(np, np, true);
 
             // Get the pressure matrix nonzero pattern,
@@ -165,7 +159,7 @@ class cpr {
 #pragma omp parallel
             {
                 std::vector<row_iterator> k; k.reserve(B);
-                boost::multi_array<value_type, 2> v(boost::extents[B][B]);
+                multi_array<value_type, 2> v(B, B);
 
 #pragma omp for
                 for(ptrdiff_t ip = 0; ip < static_cast<ptrdiff_t>(np); ++ip) {
@@ -201,11 +195,11 @@ class cpr {
                             // Capture its (transposed) value,
                             // invert it and put the relevant row into fpp.
                             for(int i = 0; i < B; ++i)
-                                for(int j = 0; j < B; ++j) v[i][j] = 0;
+                                for(int j = 0; j < B; ++j) v(i,j) = 0;
 
                             for(int i = 0; i < B; ++i)
                                 for(; k[i] && k[i].col() < end; ++k[i])
-                                    v[k[i].col() % B][i] = k[i].value();
+                                    v(k[i].col() % B, i) = k[i].value();
 
                             invert(v, &fpp->val[ik]);
                         } else {
@@ -232,10 +226,9 @@ class cpr {
                 }
             }
 
-            std::partial_sum(App->ptr, App->ptr + np + 1, App->ptr);
-            App->set_nonzeros();
+            App->set_nonzeros(App->scan_row_sizes());
 
-            std::shared_ptr<build_matrix> scatter = std::make_shared<build_matrix>();
+            auto scatter = std::make_shared<build_matrix>();
             scatter->set_size(n, np);
             scatter->set_nonzeros(np);
             scatter->ptr[0] = 0;
@@ -326,18 +319,18 @@ class cpr {
 
         // Inverts dense matrix A;
         // Returns the first column of the inverted matrix.
-        void invert(boost::multi_array<value_type, 2> &A, value_type *y)
+        void invert(multi_array<value_type, 2> &A, value_type *y)
         {
             const int B = prm.block_size;
 
             // Perform LU-factorization of A in-place
             for(int k = 0; k < B; ++k) {
-                value_type d = A[k][k];
+                value_type d = A(k,k);
                 assert(!math::is_zero(d));
                 for(int i = k+1; i < B; ++i) {
-                    A[i][k] /= d;
+                    A(i,k) /= d;
                     for(int j = k+1; j < B; ++j)
-                        A[i][j] -= A[i][k] * A[k][j];
+                        A(i,j) -= A(i,k) * A(k,j);
                 }
             }
 
@@ -346,15 +339,15 @@ class cpr {
             for(int i = 0; i < B; ++i) {
                 value_type b = static_cast<value_type>(i == 0);
                 for(int j = 0; j < i; ++j)
-                    b -= A[i][j] * y[j];
+                    b -= A(i,j) * y[j];
                 y[i] = b;
             }
 
             // Upper triangular solve:
             for(int i = B; i --> 0; ) {
                 for(int j = i+1; j < B; ++j)
-                    y[i] -= A[i][j] * y[j];
-                y[i] /= A[i][i];
+                    y[i] -= A(i,j) * y[j];
+                y[i] /= A(i,i);
             }
         }
 
