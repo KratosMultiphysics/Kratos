@@ -51,7 +51,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         CalculateLocalSystemNormalElement(rLeftHandSideMatrix, rRightHandSideVector);
@@ -73,14 +73,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::EquationIdVector(
     EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element
     {
         if (rResult.size() != NumNodes)
             rResult.resize(NumNodes, false);
 
-        const int& kutta = r_this.GetValue(KUTTA);
+        const int kutta = r_this.GetValue(KUTTA);
 
         if (kutta == 0)
             GetEquationIdVectorNormalElement(rResult);
@@ -101,14 +101,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofList(DofsVectorTyp
                                                                    ProcessInfo& CurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element
     {
         if (rElementalDofList.size() != NumNodes)
             rElementalDofList.resize(NumNodes);
 
-        const int& kutta = r_this.GetValue(KUTTA);
+        const int kutta = r_this.GetValue(KUTTA);
 
         if (kutta == 0)
             GetDofListNormalElement(rElementalDofList);
@@ -132,7 +132,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::FinalizeSolutionStep(Pro
         active = (this)->Is(ACTIVE);
 
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake != 0 && active == true)
     {
@@ -587,7 +587,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
     array_1d<double, Dim> velocity;
 
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0) // Normal element (non-wake) - eventually an embedded
         ComputeVelocityNormalElement(velocity);
@@ -603,7 +603,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElem
     array_1d<double, NumNodes>& phis)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& kutta = r_this.GetValue(KUTTA);
+    const int kutta = r_this.GetValue(KUTTA);
 
     if (kutta == 0)
         for (unsigned int i = 0; i < NumNodes; i++)
@@ -661,7 +661,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(arr
     velocity.clear();
 
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
         ComputeVelocityNormalElement(velocity);
@@ -675,7 +675,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(arr
     velocity.clear();
 
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
         ComputeVelocityNormalElement(velocity);
@@ -735,7 +735,7 @@ template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
         return ComputePressureNormalElement(rCurrentProcessInfo);
@@ -747,7 +747,7 @@ template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo)
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
-    const int& wake = r_this.GetValue(WAKE);
+    const int wake = r_this.GetValue(WAKE);
 
     if (wake == 0)
         return ComputePressureNormalElement(rCurrentProcessInfo);
