@@ -171,9 +171,6 @@ void RomFemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 
 			// Compute predictive stresses for the concrete and steel
 			this->CalculatePredictiveStresses(StrainVector);
-
-			this->CalculateDeformationMatrix(B, DN_DX);
-			this->SetBMatrix(B);
 		}
 	}
 
@@ -189,7 +186,7 @@ void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &StrainVector)
 
 	//const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) * 0.5;
+	unsigned int voigt_size = dimension * (dimension + 1) / 2;
 	Matrix ConstitutiveMatrixConcrete = ZeroMatrix(voigt_size, voigt_size);
 	Matrix ConstitutiveMatrixSteel = ZeroMatrix(voigt_size, voigt_size);
 
@@ -200,12 +197,10 @@ void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &StrainVector)
 	Vector StressVectorConcrete = prod(ConstitutiveMatrixConcrete, StrainVector);
 
 	Vector StressVectorSteel;
-	if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0)
-	{
-		Vector ElasticStrainVector = StrainVector - this->GetPlasticDeformation(); // E-Ep
+	if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
+		Vector ElasticStrainVector = StrainVector - mPlasticDeformation; // E-Ep
 		StressVectorSteel = prod(ConstitutiveMatrixSteel, ElasticStrainVector);
-	}
-	else
+	} else
 		StressVectorSteel = ZeroVector(voigt_size);
 
 	// Predictive Stresses
@@ -220,20 +215,9 @@ void RomFemDem3DElement::CalculateAverageStressOnEdge(Vector &rAverageVector, co
 	rAverageVector = CurrentElementStress;
 	int counter = 0;
 
-	for (int elem = 0; elem < VectorOfElems.size(); elem++)
-	{
-		// Only take into account the active elements
-		bool is_active = true;
-		if (VectorOfElems[elem]->IsDefined(ACTIVE))
-		{
-			is_active = VectorOfElems[elem]->Is(ACTIVE);
-		}
-
-		if (is_active == true)
-		{
-			rAverageVector += VectorOfElems[elem]->GetValue(CONCRETE_STRESS_VECTOR);
-			counter++;
-		}
+	for (unsigned int elem = 0; elem < VectorOfElems.size(); elem++) {
+		rAverageVector += VectorOfElems[elem]->GetValue(CONCRETE_STRESS_VECTOR);
+		counter++;
 	}
 	rAverageVector /= (counter + 1);
 }
@@ -243,14 +227,15 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	VectorType &rRightHandSideVector,
 	ProcessInfo &rCurrentProcessInfo)
 {
+//*****************************
 	KRATOS_TRY
 
+	//1.-Initialize sizes for the system components:
 	const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-	unsigned int voigt_size = dimension * (dimension + 1) * 0.5;
+	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int system_size = number_of_nodes * dimension;
 
-	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
-	unsigned int system_size = number_of_nodes * dimension;
 	if (rLeftHandSideMatrix.size1() != system_size)
 		rLeftHandSideMatrix.resize(system_size, system_size, false);
 	noalias(rLeftHandSideMatrix) = ZeroMatrix(system_size, system_size);
@@ -259,10 +244,39 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		rRightHandSideVector.resize(system_size, false);
 	noalias(rRightHandSideVector) = ZeroVector(system_size);
 
+	Vector StrainVector(voigt_size);
+	noalias(StrainVector) = ZeroVector(voigt_size);
+	Vector StressVector(voigt_size);
+	noalias(StressVector) = ZeroVector(voigt_size);
+	Matrix ConstitutiveMatrix(voigt_size, voigt_size);
+	noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
+	Matrix B(voigt_size, dimension * number_of_nodes);
+	noalias(B) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+	Matrix DN_DX(number_of_nodes, dimension);
+	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+
+	//deffault values for the infinitessimal theory
+	double detF = 1;
+	Matrix F(dimension, dimension);
+	noalias(F) = identity_matrix<double>(dimension);
+
+	//3.-Calculate elemental system:
+
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+
+	//get the shape functions [N] (for the order of the default integration method)
+	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+
+	//get the shape functions parent coodinates derivative [dN/d�] (for the order of the default integration method)
+	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+	//calculate delta position (here coincides with the current displacement)
 	Matrix DeltaPosition(number_of_nodes, dimension);
 	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
 	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
+	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
@@ -278,42 +292,43 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
+		//compute cartesian derivatives for this integration point  [dN/dx_n]
+		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+
 		double IntegrationWeight = integration_points[PointNumber].Weight() * detJ;
-		const Matrix &B = this->GetBMatrix();
 		Vector IntegratedStressVectorConcrete = ZeroVector(voigt_size);
-		Vector DamagesOnEdges = ZeroVector(6);
+		Vector damages_edges = ZeroVector(6);
+		bool is_damaging = false;
 
 		// Loop over edges of the element
-		for (int edge = 0; edge < 6; edge++) {
+		const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+		for (unsigned int edge = 0; edge < 6; edge++) {
 			const std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
 
 			Vector AverageStressVectorConcrete, AverageStrainVectorConcrete, IntegratedStressVectorOnEdge;
 			this->CalculateAverageStressOnEdge(AverageStressVectorConcrete, EdgeNeighbours);
 			this->CalculateAverageStrainOnEdge(AverageStrainVectorConcrete, EdgeNeighbours);
 
-			double DamageEdge = 0.0;
-			double Lchar = this->Get_l_char(edge);
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
 
 			// Integrate the stress on edge DAMAGE
-			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, DamageEdge,
-												 AverageStrainVectorConcrete, AverageStressVectorConcrete, edge, Lchar);
-
-			this->SetNonConvergedDamages(DamageEdge, edge);
-			DamagesOnEdges[edge] = DamageEdge;
-
+			this->IntegrateStressDamageMechanics(threshold,
+												 damage_edge,
+												 AverageStrainVectorConcrete, 
+												 AverageStressVectorConcrete, 
+												 edge, 
+												 characteristic_lengths[edge],
+												 is_damaging);
+			mNonConvergedDamages[edge] = damage_edge;
+			mNonConvergedThresholds[edge] = threshold;
 		} // End loop over edges
 
 		// Compute elemental damage
-		double damage_element = this->CalculateElementalDamage(DamagesOnEdges);
-		if (damage_element >= 0.999)
-		{
-			damage_element = 0.999;
-		}
-		this->SetNonConvergedDamages(damage_element);
+		double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
 		const Vector &StressVectorConcrete = this->GetValue(CONCRETE_STRESS_VECTOR);
 		noalias(IntegratedStressVectorConcrete) = (1.0 - damage_element) * StressVectorConcrete;
-		this->SetIntegratedStressVector(IntegratedStressVectorConcrete);
 
 		// Linear elastic const matrix concrete
 		Matrix ConstitutiveMatrixConcrete = ZeroMatrix(voigt_size, voigt_size);
@@ -328,9 +343,8 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		this->CalculateConstitutiveMatrix(ConstitutiveMatrixSteel, Es, nus);
 
 		const double k = this->GetProperties()[STEEL_VOLUMETRIC_PART];
-
+		this->CalculateDeformationMatrix(B, DN_DX);
 		Matrix CompositeTangentMatrix = k * ConstitutiveMatrixSteel + (1.0 - k) * (1.0 - damage_element) * ConstitutiveMatrixConcrete;
-
 		noalias(rLeftHandSideMatrix) += prod(trans(B), IntegrationWeight * Matrix(prod(CompositeTangentMatrix, B))); // LHS
 
 		Vector VolumeForce = ZeroVector(dimension);
@@ -421,7 +435,7 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	}
 	else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED)
 	{
-		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetIntegratedStressVector());
+		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * this->GetValue(CONCRETE_STRESS_VECTOR));
 	}
 }
 
@@ -471,26 +485,22 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 	this->CalculatePlasticParameters(PredictiveStress, Yield, Kp,
 									 PlasticDenominator, FluxVector, Capap,
 									 PlasticStrainIncr, C);
-
 	double F = Yield - Kp;
 
-	if (F <= std::abs(1.0e-8 * Kp))
-	{ // Elastic
+	if (F <= std::abs(1.0e-4 * Kp)) { // Elastic
 		rIntegratedStress = PredictiveStress;
 		this->SetNonConvergedKp(Kp);
 		this->SetNonConvergedCapap(Capap);
 		this->SetNonConvergedPlasticDeformation(PlasticStrain);
 
 		this->SetValue(EQUIVALENT_STRESS_VM, Yield);
-	}
-	else
-	{ // Plastic case
+	} else { // Plastic case
 		noalias(rIntegratedStress) = PredictiveStress;
 		double DLambda;
 		Vector DS = ZeroVector(6), DESIG = ZeroVector(6);
 
 		int iteration = 0;
-		const int iter_max = 9000;
+		const int iter_max = 100;
 		bool is_converged = false;
 
 		while (is_converged == false && iteration <= iter_max) {
@@ -510,7 +520,7 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 
 			F = Yield - Kp;
 
-			if (F < std::abs(1.0e-8 * Kp)) {// Has converged
+			if (F < std::abs(1.0e-4 * Kp)) {// Has converged
 				is_converged = true;
 				// Update Int Vars
 				this->SetNonConvergedKp(Kp);
@@ -800,65 +810,27 @@ void RomFemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	double current_equivalent_stress = 0.0, damage_element = 0.0;
 
 	//Loop over edges
-	for (int cont = 0; cont < 3; cont++) {
-		this->SetConvergedDamages(this->GetNonConvergedDamages(cont), cont);
-		this->SetConvergedEquivalentStress(this->GetNonConvergedEquivalentStress(cont), cont);
-		current_equivalent_stress = this->GetConvergedEquivalentStress(cont);
-		if (current_equivalent_stress > this->GetThreshold(cont))
-		{
-			this->SetThreshold(current_equivalent_stress, cont);
-		}
+	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+		mDamages[edge] = mNonConvergedDamages[edge];
+		mThresholds[edge] = mNonConvergedThresholds[edge];
 	} // End Loop over edges
 
-	damage_element = this->GetNonConvergedDamage();
-	this->SetConvergedDamage(damage_element);
+	mDamage = this->CalculateElementalDamage(mDamages);
+	mThreshold = this->CalculateElementalDamage(mThresholds);
 
-	if (damage_element >= 0.98)
-	{
-		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0)
-		{
-			if (this->GetCapap() > 0.98)
-			{
+	if (damage_element >= 0.98) {
+		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
+			if (this->GetCapap() > 0.98) {
 				this->Set(ACTIVE, false);
-				double old_threshold = this->GetValue(STRESS_THRESHOLD);
-				this->SetValue(INITIAL_THRESHOLD, old_threshold);
 			}
-		}
-		else
-		{
+		} else {
 			this->Set(ACTIVE, false);
-			double old_threshold = this->GetValue(STRESS_THRESHOLD);
-			this->SetValue(INITIAL_THRESHOLD, old_threshold);
 		}
 	}
-
-	this->ResetNonConvergedVars();
-	this->SetToZeroIteration();
-
-	// computation of the equivalent damage threshold and damage of the element for AMR mapping
-	Vector thresholds = this->GetThresholds();
-
-	Vector TwoMinValues;
-	this->Get2MaxValues(TwoMinValues, thresholds[0], thresholds[1], thresholds[2]); // todo ojo con la funcion modificada
-	double EqThreshold = 0.5 * (TwoMinValues[0] + TwoMinValues[1]);					// El menor o mayor?? TODO
-
-	this->SetValue(STRESS_THRESHOLD, EqThreshold); // AMR
-	this->SetThreshold(EqThreshold);
-	this->SetValue(DAMAGE_ELEMENT, damage_element);
 
 	// plasticity
 	this->UpdateAndSaveInternalVariables();
 	this->ResetNonConvergedVarsPlast();
-
-	// Reset the nodal force flag for the next time step
-	Geometry<Node<3>> &NodesElement = this->GetGeometry();
-	for (int i = 0; i < 3; i++)
-	{
-		#pragma omp critical
-		{
-			NodesElement[i].SetValue(NODAL_FORCE_APPLIED, false);
-		}
-	}
 }
 
 // Double values
@@ -867,8 +839,10 @@ void RomFemDem3DElement::GetValueOnIntegrationPoints(
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == DAMAGE_ELEMENT || rVariable == IS_DAMAGED || rVariable == STRESS_THRESHOLD || rVariable == PLASTIC_DISSIPATION_CAPAP)
-	{
+	if (rVariable == DAMAGE_ELEMENT ||
+	    rVariable == IS_DAMAGED || 
+		rVariable == STRESS_THRESHOLD || 
+		rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	}
 }
@@ -879,45 +853,34 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	std::vector<double> &rOutput,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == DAMAGE_ELEMENT)
-	{
+	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
 		}
 	}
 
-	if (rVariable == IS_DAMAGED)
-	{
+	if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
 		}
 	}
 
-	if (rVariable == STRESS_THRESHOLD)
-	{
+	if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-		{
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
 		}
 	}
 
-	if (rVariable == PLASTIC_DISSIPATION_CAPAP)
-	{
+	if (rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		rOutput.resize(1);
-		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0)
-		{
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++)
-			{
+		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
+			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 				rOutput[PointNumber] = double(this->GetCapap());
 			}
-		}
-		else
-		{
+		} else {
 			double dummy = 0.0;
 			rOutput[0] = dummy;
 		}
