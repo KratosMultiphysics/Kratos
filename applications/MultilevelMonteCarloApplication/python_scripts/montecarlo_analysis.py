@@ -158,15 +158,17 @@ def ExecuteExactMonteCarlo_Task(pickled_model, pickled_parameters):
     ExactExpectedValueQoI = 0.25 * EvaluateQuantityOfInterest(simulation)
     return ExactExpectedValueQoI
 
+
 '''
-function executing the problem
+function executing the refinement of the problem
 input:
-        model       : serialization of the model
-        parameters  : serialization of the Project Parameters
+        pickled_model_coarse : serialization of the model with coarser model part
+        pickled_parameters   : serialization of the Project Parameters
+        min_size             : minimum size of the refined model part
+        max_size             : maximum size of the refined mesh
 output:
         QoI                   : Quantity of Interest
-        serialized_model      : model serialized
-        serialized_parameters : parameters serialized
+        pickled_model_refined : serialization of the model with refined model part
 '''
 @ExaquteTask(returns=2)
 def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
@@ -196,19 +198,18 @@ def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, m
     return QoI,pickled_model_refined
 
 
-
 '''
-function serializing the model and the parameters of the problem
+function serializing and pickling the model and the parameters of the problem
 the idea is the following:
-first from Model/Parameters Kratos object to StreamSerializer Kratos object
-second from StreamSerializer Kratos object to pickle string
-third from pickle string to StreamSerializer Kratos object
-fourth from StreamSerializer Kratos object to Model/Parameters Kratos object
+i)   from Model/Parameters Kratos object to StreamSerializer Kratos object
+ii)  from StreamSerializer Kratos object to pickle string
+iii) from pickle string to StreamSerializer Kratos object
+iv)  from StreamSerializer Kratos object to Model/Parameters Kratos object
 input:
         parameter_file_name   : path of the Project Parameters file
 output:
-        serialized_model      : model serialized
-        serialized_parameters : project parameters serialized
+        pickled_model      : model serializaton
+        pickled_parameters : project parameters serialization
 '''
 @ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def SerializeModelParameters_Task(parameter_file_name):
