@@ -56,7 +56,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(ElementPointerVectorType,     NEIGHBOR_ELEMENTS )
   KRATOS_CREATE_VARIABLE(ConditionPointerVectorType, NEIGHBOR_CONDITIONS )
 
-  KRATOS_CREATE_VARIABLE(std::vector<std::string>, MODEL_PART_NAME_VECTOR )
+  KRATOS_CREATE_VARIABLE(std::vector<std::string>,      MODEL_PART_NAMES )
 
   //condition variables
   KRATOS_CREATE_VARIABLE(ConditionContainerType,     CHILDREN_CONDITIONS )

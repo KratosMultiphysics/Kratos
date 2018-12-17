@@ -62,10 +62,11 @@ namespace Kratos
     typedef std::vector<Node<3>*>             NodePointerVectorType;
     typedef std::vector<Element*>          ElementPointerVectorType;
     typedef std::vector<Condition*>      ConditionPointerVectorType;
+
+
     /**
      * Flags related to the meshing parameters
      */
-
     KRATOS_DEFINE_LOCAL_FLAG( NODE_TO_ELEMENT );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_NODE );
     KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_ELEMENT );
@@ -437,37 +438,34 @@ namespace Kratos
 
 
     void FillVectorData( VariablesList& rVariablesList,
-			 Node<3>::Pointer pnode);
+			 Node<3>::Pointer pnode );
 
-    void Interpolate2Nodes( Geometry<Node<3> > &geom,
-			    const std::vector<double>& N,
-			    VariablesList& rVariablesList,
-			    Node<3>& pnode);
 
     void Interpolate( Geometry<Node<3> >& geom,
 		      const std::vector<double>& N,
 		      VariablesList& rVariablesList,
 		      Node<3>::Pointer pnode,
-		      double& alpha);
+		      double alpha = 1.0 );
+
 
     VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
 							  const std::vector<double>& N,
 							  VariablesList& rVariablesList,
 							  Node<3>::Pointer pnode,
-							  double& alpha);
-
+							  double alpha = 1.0 );
+    //doubles only
     void InterpolateData( Geometry<Node<3> >& geom,
 			  const std::vector<double>& N,
 			  unsigned int step_data_size,
 			  Node<3>::Pointer pnode,
-			  double& alpha);
+			  double alpha = 1.0 );
 
 
     VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
 							      const std::vector<double>& N,
 							      unsigned int step_data_size,
 							      Node<3>::Pointer pnode,
-							      double& alpha);
+							      double alpha = 1.0 );
 
 
     ///@}

@@ -957,8 +957,8 @@ class RemoveNodesMesherProcess
 
             //node in id Node1;
 
-            Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
-            Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
+            Node<3>::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
+            Node<3>::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
 
             node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
             node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
@@ -968,8 +968,8 @@ class RemoveNodesMesherProcess
 
             Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 
-            Node0.Set(MODIFIED);
-            Node2.Set(MODIFIED);
+            pNode0->Set(MODIFIED);
+            pNode2->Set(MODIFIED);
 
             //create new condition Node0-NodeB
             Condition::NodesArrayType face;
@@ -1165,8 +1165,8 @@ class RemoveNodesMesherProcess
 
             //node in id Node1;
 
-            Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
-            Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
+            Node<3>::Pointer pNode0 = rConditionGeom1(0); // other node in condition [1]
+            Node<3>::Pointer pNode2 = rConditionGeom2(1); // other node in condition [2]
 
 
             // std::cout<<"     Node0: "<<rConditionGeom1[0].Id()<<" Node 1: "<<rConditionGeom1[1].Id()<<std::endl;
@@ -1206,8 +1206,8 @@ class RemoveNodesMesherProcess
 
               Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 
-              Node0.Set(MODIFIED);
-              Node2.Set(MODIFIED);
+              pNode0->Set(MODIFIED);
+              pNode2->Set(MODIFIED);
 
               //create new condition Node0-NodeB
               Condition::NodesArrayType face;
@@ -1269,8 +1269,8 @@ class RemoveNodesMesherProcess
                 //review this flag it is reused in laplacian smoothing....
                 in->Set(INSIDE);
 
-                Node0.Set(INSIDE);
-                Node2.Set(INSIDE);
+                pNode0->Set(INSIDE);
+                pNode2->Set(INSIDE);
 
               }
 
@@ -1284,24 +1284,22 @@ class RemoveNodesMesherProcess
                 node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
 
                 in->Set(TO_ERASE);    //release Node1*
-                Node2.Set(TO_ERASE);  //release Node2
+                pNode2->Set(TO_ERASE);  //release Node2
 
                 if( mEchoLevel > 0 ){
                   std::cout<<"     Node Release/Modify  i "<<in->Id()<<std::endl;
-                  std::cout<<"     Node Release/Modify  j "<<Node2.Id()<<std::endl;
+                  std::cout<<"     Node Release/Modify  j "<<pNode2->Id()<<std::endl;
                 }
 
                 //set Node0 to a new position (between 0 and 2)
-                Node0.X() = 0.5 * ( Node0.X() + Node2.X() );
-                Node0.Y() = 0.5 * ( Node0.Y() + Node2.Y() );
-                Node0.Z() = 0.5 * ( Node0.Z() + Node2.Z() );
+                pNode0->Coordinates() = 0.5 * (pNode0->Coordinates() + pNode2->Coordinates());
 
                 //assign data to dofs
                 VariablesList& variables_list = rModelPart.GetNodalSolutionStepVariablesList();
 
                 PointsArrayType  PointsArray;
                 PointsArray.push_back( *(in.base()) );
-                //PointsArray.push_back( &Node2 );
+                //PointsArray.push_back( pNode2 );
                 PointsArray.push_back( rConditionGeom2(1) );
 
                 Geometry<Node<3> > geom( PointsArray );
@@ -1312,45 +1310,25 @@ class RemoveNodesMesherProcess
                 ShapeFunctionsN[1] = 0.5;
 
                 MeshDataTransferUtilities DataTransferUtilities;
-                DataTransferUtilities.Interpolate2Nodes( geom, ShapeFunctionsN, variables_list, Node0);
+                DataTransferUtilities.Interpolate( geom, ShapeFunctionsN, variables_list, pNode0);
 
-                // unsigned int buffer_size = Node0.GetBufferSize();
-                // unsigned int step_data_size = rModelPart.GetNodalSolutionStepDataSize();
-
-                // for(unsigned int step = 0; step<buffer_size; ++step)
-                // 	{
-                // 	  //getting the data of the solution step
-                // 	  double* step_data = Node0.SolutionStepData().Data(step);
-
-                // 	  double* node0_data = Node0.SolutionStepData().Data(step);
-                // 	  double* node1_data = Node2.SolutionStepData().Data(step);
-
-                // 	  //copying this data in the position of the vector we are interested in
-                // 	  for(unsigned int j= 0; j<step_data_size; ++j)
-                // 	    {
-                // 	      step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-                // 	    }
-                // 	}
 
                 //recover the original position of the node
-                const array_1d<double,3>& disp = Node0.FastGetSolutionStepValue(DISPLACEMENT);
-                Node0.X0() = Node0.X() - disp[0];
-                Node0.Y0() = Node0.Y() - disp[1];
-                Node0.Z0() = Node0.Z() - disp[2];
+                pNode0->GetInitialPosition() = pNode0->Coordinates() - pNode0->FastGetSolutionStepValue(DISPLACEMENT);
 
                 //search shared condition of Node0 and Node A
-                if(node_shared_conditions[Node0.Id()][0]->Id() == Node0.Id()){
+                if(node_shared_conditions[pNode0->Id()][0]->Id() == pNode0->Id()){
                   i = 1;
                 }
                 else{
                   i = 0;
                 }
 
-                Geometry<Node<3> >& rConditionGeom0 = node_shared_conditions[Node0.Id()][i]->GetGeometry();
-                Node<3> & NodeA = rConditionGeom0[0];
+                Geometry<Node<3> >& rConditionGeom0 = node_shared_conditions[pNode0->Id()][i]->GetGeometry();
+                Node<3>::Pointer pNodeA = rConditionGeom0(0);
 
                 //search shared condition of Node2 and Node B
-                if(node_shared_conditions[Node2.Id()][0]->Id() == Node2.Id()){
+                if(node_shared_conditions[pNode2->Id()][0]->Id() == pNode2->Id()){
                   i = 0;
                 }
                 else{
@@ -1359,14 +1337,14 @@ class RemoveNodesMesherProcess
 
                 //New conditions profile in 2D:  (NodeA) ---[0]--- (Node0**) ---[3]--- (NodeB)   where (Node0**) is (Node0) in another position
 
-                Condition::Pointer NewCond = node_shared_conditions[Node2.Id()][i];
+                Condition::Pointer NewCond = node_shared_conditions[pNode2->Id()][i];
                 NewCond->Set(TO_ERASE);
                 Geometry<Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
-                Node<3> & NodeB = rConditionGeom3[1];
+                Node<3>::Pointer pNodeB = rConditionGeom3(1);
 
-                NodeA.Set(MODIFIED);
-                NodeB.Set(MODIFIED);
-                Node0.Set(MODIFIED);
+                pNodeA->Set(MODIFIED);
+                pNodeB->Set(MODIFIED);
+                pNode0->Set(MODIFIED);
 
                 //create new condition Node0-NodeB
                 Condition::NodesArrayType face;

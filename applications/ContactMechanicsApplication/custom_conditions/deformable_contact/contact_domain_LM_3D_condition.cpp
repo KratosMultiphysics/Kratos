@@ -1321,7 +1321,7 @@ namespace Kratos
     unsigned int slave1=mContactVariables.slaves[0];
     unsigned int slave2=mContactVariables.slaves[1];
 
-    Condition* MasterCondition = GetValue(MASTER_CONDITION);
+    //Condition* MasterCondition = GetValue(MASTER_CONDITION);
 
     //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix(3,3);

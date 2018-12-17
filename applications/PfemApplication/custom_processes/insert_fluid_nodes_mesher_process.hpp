@@ -720,7 +720,7 @@ class InsertFluidNodesMesherProcess
       ShapeFunctionsN[1] = 0.5;
 
       MeshDataTransferUtilities DataTransferUtilities;
-      DataTransferUtilities.Interpolate2Nodes( LineGeometry, ShapeFunctionsN, rVariablesList, *pnode);
+      DataTransferUtilities.Interpolate(LineGeometry, ShapeFunctionsN, rVariablesList, pnode);
 
       if( PointsArray[0].Is(FREE_SURFACE) && PointsArray[1].Is(FREE_SURFACE) )
         pnode->Set(FREE_SURFACE);

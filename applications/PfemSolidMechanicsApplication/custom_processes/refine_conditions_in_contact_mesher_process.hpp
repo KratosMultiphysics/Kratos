@@ -372,28 +372,10 @@ private:
 	  N[1] = 0.5;
 
 	  MeshDataTransferUtilities DataTransferUtilities;
-	  DataTransferUtilities.Interpolate2Nodes( geom, N, variables_list, *pnode);
+	  DataTransferUtilities.Interpolate( geom, N, variables_list, pnode);
 
 	  // //int cond_id = list_of_points[i].Id();
 	  // //Geometry< Node<3> >& rConditionGeometry = (*(rModelPart.Conditions().find(cond_id).base()))->GetGeometry();
-
-	  // unsigned int buffer_size = pnode->GetBufferSize();
-
-	  // for(unsigned int step = 0; step<buffer_size; step++)
-	  //   {
-          //     //getting the data of the solution step
-          //     double* step_data = (pnode)->SolutionStepData().Data(step);
-
-          //     double* node0_data = rConditionGeometry[0].SolutionStepData().Data(step);
-          //     double* node1_data = rConditionGeometry[1].SolutionStepData().Data(step);
-
-          //     //copying this data in the position of the vector we are interested in
-          //     for(unsigned int j= 0; j<step_data_size; j++)
-	  // 	{
-	  // 	  step_data[j] = 0.5*node0_data[j] + 0.5*node1_data[j];
-	  // 	}
-	  //   }
-
 
 	  //set specific control values and flags:
 	  pnode->Set(BOUNDARY);

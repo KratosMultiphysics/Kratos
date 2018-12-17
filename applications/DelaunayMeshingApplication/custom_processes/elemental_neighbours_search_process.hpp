@@ -259,36 +259,18 @@ namespace Kratos
     ///@{
 
     template< class TDataType > void  AddUniquePointer
-    (std::vector< TDataType >& v, const typename TDataType::Pointer candidate)
+    (std::vector< TDataType* >& v, const typename TDataType::Pointer candidate)
     {
-      typename std::vector< TDataType >::iterator i = v.begin();
-      typename std::vector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate)->Id())
+      typename std::vector< TDataType* >::iterator i = v.begin();
+      typename std::vector< TDataType* >::iterator endit = v.end();
+      while ( i != endit && (*i)->Id() != (candidate)->Id())
 	{
 	  i++;
 	}
       if( i == endit )
 	{
-	  v.push_back(&candidate);
+	  v.push_back(candidate.get());
 	}
-
-    }
-
-    //******************************************************************************************
-    //******************************************************************************************
-    template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
-    {
-      typename WeakPointerVector< TDataType >::iterator i = v.begin();
-      typename WeakPointerVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-        {
-	  ++i;
-        }
-      if( i == endit )
-        {
-	  v.push_back(candidate);
-        }
 
     }
 
