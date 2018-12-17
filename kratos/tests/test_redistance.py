@@ -49,6 +49,124 @@ class TestRedistance(KratosUnittest.TestCase):
 
         self.assertAlmostEqual(max_distance, 0.44556526310761013)
         self.assertAlmostEqual(min_distance,-0.504972246827639)
+
+    def test_variational_redistance_maintain_plane_2d(self):
+        current_model = KratosMultiphysics.Model()
+        free_surface_level = 0.25
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+
+        model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
+        model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
+        model_part.CreateNewNode(3, -1.0 , 1.0 , 0.0)
+        model_part.CreateNewNode(4, 2.0 , 1.0 , 0.0)
+
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
+
+        model_part.CreateNewElement("Element2D3N", 1, [1,2,3], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element2D3N", 2, [1,4,2], model_part.GetProperties()[1])
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
+        
+        import new_linear_solver_factory
+        linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
+
+        model_part.CloneTimeStep(1.0)
+
+        max_iterations = 2
+        KratosMultiphysics.VariationalDistanceCalculationProcess2D(
+            model_part,
+            linear_solver,
+            max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
+        
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
+    
+    def test_variational_redistance_maintain_plane_3d(self):
+        current_model = KratosMultiphysics.Model()
+        free_surface_level = 0.25
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
+
+        model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
+        model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
+        model_part.CreateNewNode(3, -1.0 , 1.0 , 0.0)
+        model_part.CreateNewNode(4, 2.0 , 1.0 , 0.0)
+        model_part.CreateNewNode(5, 2.0 , 2.0 , 1.0)
+
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
+
+        model_part.CreateNewElement("Element3D4N", 1, [1,2,3,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element3D4N", 2, [1,4,2,5], model_part.GetProperties()[1])
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
+        
+        import new_linear_solver_factory
+        linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
+
+        model_part.CloneTimeStep(1.0)
+
+        max_iterations = 2
+        KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+            model_part,
+            linear_solver,
+            max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
+        
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
+    
+    def test_parallel_redistance_maintain_plane_3d(self):
+        current_model = KratosMultiphysics.Model()
+        free_surface_level = 0.25
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_VOLUME)
+
+        model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0)
+        model_part.CreateNewNode(2, 1.0 , 2.0 , 0.0)
+        model_part.CreateNewNode(3, -1.0 , 1.0 , 0.0)
+        model_part.CreateNewNode(4, 2.0 , 1.0 , 0.0)
+        model_part.CreateNewNode(5, 2.0 , 2.0 , 1.0)
+
+        model_part.AddProperties(KratosMultiphysics.Properties(1))
+
+        model_part.CreateNewElement("Element3D4N", 1, [1,2,3,5], model_part.GetProperties()[1])
+        model_part.CreateNewElement("Element3D4N", 2, [1,4,2,5], model_part.GetProperties()[1])
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
+            node.SetValue(KratosMultiphysics.NODAL_VOLUME, 0.0)
+        
+        for element in model_part.Elements:
+            el_vol = element.GetGeometry().Area()
+            for node in element.GetNodes():
+                nodal_volume = node.GetValue(KratosMultiphysics.NODAL_VOLUME) + el_vol*0.25
+                node.SetValue(KratosMultiphysics.NODAL_VOLUME, nodal_volume)
+
+        model_part.CloneTimeStep(1.0)
+
+        distance_calculator = KratosMultiphysics.ParallelDistanceCalculator3D()
+        distance_calculator.CalculateDistances(
+            model_part,
+            KratosMultiphysics.DISTANCE,
+            KratosMultiphysics.NODAL_VOLUME,
+            2,
+            2.0,
+            KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        
+        for node in model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
+
+
         
         
 if __name__ == '__main__':

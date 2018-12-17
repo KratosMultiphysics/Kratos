@@ -3,6 +3,7 @@
 BSD license: HDF5Application/license.txt
 """
 from abc import ABCMeta, abstractmethod
+import os
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_defaults
@@ -30,6 +31,9 @@ class HDF5SerialFileFactory(FileFactory):
                 "echo_level" : 0
             }
             """)
+        if os.name == "nt":
+            default_settings["file_driver"].SetString("windows")
+
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings.AddEmptyValue("file_name")

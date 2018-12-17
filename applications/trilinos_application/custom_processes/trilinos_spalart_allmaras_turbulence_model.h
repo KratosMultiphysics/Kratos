@@ -23,7 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/communicator.h"
-#include "includes/mpi_communicator.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"

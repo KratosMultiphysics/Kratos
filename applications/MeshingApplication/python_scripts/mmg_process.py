@@ -12,13 +12,11 @@ except ImportError as e:
     # extract name of the missing application from the error message
     import re
     missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+                                     '{0}'.format(e)).group(1)
 
 from json_utilities import *
 import json
 import os
-
-KratosMultiphysics.CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -142,6 +140,7 @@ class MmgProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         # Calculate NODAL_H
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, self.model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.model_part.Nodes)
         self.find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.model_part)
         self.find_nodal_h.Execute()
 

@@ -26,6 +26,9 @@
 #include "mapping_application.h"
 #include "mapping_application_variables.h"
 
+#include "custom_utilities/mapper_typedefs.h"
+
+#include "geometries/point_3d.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/prism_3d_6.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -35,8 +38,37 @@
 #include "custom_mappers/nearest_neighbor_mapper.h"
 #include "custom_mappers/nearest_element_mapper.h"
 
-#ifdef KRATOS_USING_MPI
+// Macro to register the mapper WITHOUT MPI
+#define KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)                                         \
+    {                                                                                                 \
+    Model current_model;                                                                              \
+    ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
+    MapperFactory::Register<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>    \
+        (MapperName, Kratos::make_shared<MapperType<                                                  \
+        MapperDefinitions::SparseSpaceType,MapperDefinitions::DenseSpaceType>>                        \
+        (dummy_model_part, dummy_model_part));                                                        \
+    }
+
+#ifdef KRATOS_USING_MPI // mpi-parallel compilation
 #include "mpi.h"
+    // Macro to register the mapper WITH MPI
+    #define KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)                                            \
+        {                                                                                                 \
+        Model current_model;                                                                              \
+        ModelPart& dummy_model_part = current_model.CreateModelPart("dummy");                             \
+        MapperFactory::Register<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType> \
+            (MapperName, Kratos::make_shared<MapperType<                                                  \
+            MapperDefinitions::MPISparseSpaceType,MapperDefinitions::DenseSpaceType>>                     \
+            (dummy_model_part, dummy_model_part));                                                        \
+        }
+    // Macro to register the mapper WITH and WITHOUT MPI
+    #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+        KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)                                         \
+        KRATOS_REGISTER_MAPPER_MPI(MapperType, MapperName)
+    #else
+    // Macro to register the mapper WITH and WITHOUT MPI
+    #define KRATOS_REGISTER_MAPPER(MapperType, MapperName)                                            \
+        KRATOS_REGISTER_MAPPER_SERIAL(MapperType, MapperName)
 #endif
 
 namespace Kratos
@@ -44,7 +76,7 @@ namespace Kratos
 
 KratosMappingApplication::KratosMappingApplication() :
     KratosApplication("MappingApplication"),
-    mInterfaceObject(0.0, 0.0, 0.0),
+    mInterfaceObject(array_1d<double, 3>(0.0)),
     mInterfaceNode(),
     mInterfaceGeometryObject()
 {}
@@ -69,21 +101,15 @@ void KratosMappingApplication::Register()
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     int mpi_initialized = 0;
     MPI_Initialized(&mpi_initialized);
-    if (mpi_initialized)   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    if (mpi_initialized) MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
 
     if (rank == 0) std::cout << banner.str();
 
-    Model dummy_model;
+    // registering the mappers using the registration-macro
+    KRATOS_REGISTER_MAPPER(NearestNeighborMapper, "nearest_neighbor");
+    KRATOS_REGISTER_MAPPER(NearestElementMapper,  "nearest_element");
 
-    ModelPart& dummy_model_part = dummy_model.CreateModelPart("dummy");
-
-    MapperFactory::Register("nearest_neighbor", Kratos::make_shared<NearestNeighborMapper>(dummy_model_part, dummy_model_part));
-    MapperFactory::Register("nearest_element",  Kratos::make_shared<NearestElementMapper>(dummy_model_part, dummy_model_part));
-
-    // Needed to exchange Information abt the found neighbors (i.e. only for debugging)
-    KRATOS_REGISTER_VARIABLE( NEIGHBOR_RANK )
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NEIGHBOR_COORDINATES )
-
+    KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
 }
 }  // namespace Kratos.
