@@ -58,12 +58,12 @@ void Flags::SetDefined(const BlockType& rDefined)
     mIsDefined = rDefined;
 }
 
-Flags::BlockType Flags::GetValues() const
+Flags::BlockType Flags::GetFlags() const
 {
     return mFlags;
 }
 
-void Flags::SetValues(const BlockType& rValues)
+void Flags::SetFlags(const BlockType& rValues)
 {
     mFlags = rValues;
 }

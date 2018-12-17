@@ -413,9 +413,9 @@ private:
 
     void SetDefined(const BlockType& rDefined);
 
-    BlockType GetValues() const;
+    BlockType GetFlags() const;
 
-    void SetValues(const BlockType& rValues);
+    void SetFlags(const BlockType& rValues);
 
     ///@}
     ///@name Serialization
