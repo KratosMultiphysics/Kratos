@@ -1353,8 +1353,8 @@ namespace Kratos
 		// inside of the loop create the element, set the variables, and push_back the new element to the model part
 		Element::Pointer new_element = (*pe.base())->Clone((*i_center)->Id(), list_of_new_vertices[(*i_center)->Id()-1]);
 
-		//set transfer variables
-		new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
+		//set transfer variables (commented December 2019:: adding MODEL_PART_NAME to elements, assigned when cloned)
+		//new_element->SetValue(MODEL_PART_NAME,vertices[0].GetValue(MODEL_PART_NAME)); //MODEL_PART_NAME set as a variable
 		new_element->AssignFlags(*(*pe.base()));
 
 		//check

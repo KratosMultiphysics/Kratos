@@ -28,6 +28,9 @@ class DomainUtilities(object):
             # set the domain labels to conditions
             mesher_utils.SetModelPartNameToConditions(model_part)
 
+            # set the domain labels to elements
+            mesher_utils.SetModelPartNameToElements(model_part)
+
             # find skin and boundary normals
             if( model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == False ):
                 # build boundary of a volumetric body domain

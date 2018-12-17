@@ -903,6 +903,8 @@ public:
     ///@name Operations
     ///@{
 
+    void SetModelPartNameToElements (ModelPart& rModelPart);
+
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);

@@ -479,7 +479,7 @@ class SettleModelStructureProcess
             i_node->Set(TO_REFINE,false);
 
             if ( i_node->IsNot(BOUNDARY)) {
-                  i_node->Set(NEW_ENTITY,false);
+              i_node->Set(NEW_ENTITY,false);
             }
 
             // if( (i_node->Is(BLOCKED) || i_node->Is(ISOLATED) ) && i_node->IsNot(TO_ERASE) ){
@@ -553,7 +553,6 @@ class SettleModelStructureProcess
     KRATOS_CATCH(" ")
   }
 
-
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -591,24 +590,17 @@ class SettleModelStructureProcess
                   {
                     if( i_cond->GetGeometry()[i].Is(NEW_ENTITY) ){
                       (i_mp->Nodes()).push_back(i_cond->GetGeometry()(i));
-                      //i_cond->GetGeometry()[i].Set(NEW_ENTITY,false); //reset if was new
                     }
                   }
-                  //i_cond->Set(NEW_ENTITY,false); //reset here if the condition is inserted
                 }
-
               }
-
             }
-
           }
         }
-
       }
-
     }
 
-    // Set new nodes to the dirichlet sub model parts (works in 2D. not shure in 3D).  Must be reviewed
+    // Set new nodes to the dirichlet sub model parts (works in 2D. not sure in 3D).  Must be reviewed
     for(ModelPart::SubModelPartIterator i_model_part = mrMainModelPart.SubModelPartsBegin() ; i_model_part != mrMainModelPart.SubModelPartsEnd(); ++i_model_part)
     {
       if( i_model_part->IsNot(BOUNDARY) &&  i_model_part->IsNot(ACTIVE) && i_model_part->IsNot(RIGID) ){
@@ -648,10 +640,8 @@ class SettleModelStructureProcess
 
             if(list_of_neighbour_nodes.size() == 0){
               //std::cout << "Warning: New Node["<<NodeId<<"] does not have any new neighbour" << std::endl;
-              // aqui falta un continue o algu ( no un break)
               continue;
             }
-
 
             // unique and sort
             std::sort(list_of_neighbour_nodes.begin(), list_of_neighbour_nodes.end() );
@@ -680,13 +670,9 @@ class SettleModelStructureProcess
                   i_mp->Nodes().push_back( *(i_node.base() ) );
               }
             }
-
           }
         }
-
-
       }
-
     }
 
     //reset NEW_ENTITIES in conditions
@@ -700,7 +686,6 @@ class SettleModelStructureProcess
         }
       }
     }
-
 
     //add new nodes: ( BOUNDARY model parts ) and remove erased nodes
     for(ModelPart::SubModelPartIterator i_mp= mrMainModelPart.SubModelPartsBegin() ; i_mp!=mrMainModelPart.SubModelPartsEnd(); ++i_mp)
@@ -721,7 +706,6 @@ class SettleModelStructureProcess
           std::cout<<"    [ SUBMODEL PART ["<<i_mp->Name()<<"]  final [Elems="<<i_mp->NumberOfElements()<<"|Nodes="<<i_mp->NumberOfNodes()<<"|Conds="<<i_mp->NumberOfConditions()<<"] ] "<<std::endl;
       }
     }
-
 
     //add boundary domain conditions to preserved conditions
     for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
@@ -847,7 +831,6 @@ class SettleModelStructureProcess
     // 	  if(i_cond->IsNot(TO_ERASE))
     // 	    rModelPart.Conditions().push_back(*(i_cond.base()));
     // 	}
-
 
 
     KRATOS_CATCH( "" )

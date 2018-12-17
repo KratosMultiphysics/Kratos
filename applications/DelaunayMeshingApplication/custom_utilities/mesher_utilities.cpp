@@ -78,6 +78,32 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SET_DOF,                             10 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, PASS_ALPHA_SHAPE,                    11 );
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MesherUtilities::SetModelPartNameToElements(ModelPart& rModelPart)
+  {
+
+    unsigned int start=0;
+    unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
+
+
+    if(NumberOfSubModelParts>0){
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      {
+        if( i_mp->NumberOfElements() != 0 ){
+          if( i_mp->Is(BOUNDARY) || i_mp->IsNot(ACTIVE) ){ //wall elements or domain elements (unique model part)
+            for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
+            {
+              i_elem->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+          }
+
+        }
+      }
+    }
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -88,17 +114,19 @@ namespace Kratos
     unsigned int start=0;
     unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
 
-
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	    if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
-	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
-		{
-		  i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
-		}
-	    }
-	}
+      {
+        if( i_mp->NumberOfConditions() != 0 ){
+          if( i_mp->Is(BOUNDARY) && i_mp->NumberOfElements() == 0 ){ // only model parts with conditions (unique model part)
+            for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
+            {
+              i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+
+          }
+        }
+      }
     }
 
   }
@@ -116,15 +144,26 @@ namespace Kratos
 
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
-	      {
-		i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
-	      }
-	  }
-	}
+      {
+
+        if( i_mp->NumberOfNodes() != 0 ){
+          if( i_mp->Is(BOUNDARY) ){ // shared model parts for nodes in boundary conditions
+            for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
+            {
+              i_node->GetValue(MODEL_PART_NAMES).push_back(i_mp->Name());
+            }
+
+          }
+          else if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){ //unique domain model part
+            for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
+            {
+              i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+          }
+        }
+      }
     }
+
 
   }
 
