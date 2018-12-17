@@ -3,7 +3,7 @@ from create_xdmf_file import WriteXdmfFile
 import os
 
 class XdmfOutput(IOObject):
-    """Provides the interface for writing a model part to a file."""
+    """Output that creates the xdmf-file for the given h5-files"""
 
     def Execute(self, model_part, hdf5_file):
         model_part.GetCommunicator().Barrier()
