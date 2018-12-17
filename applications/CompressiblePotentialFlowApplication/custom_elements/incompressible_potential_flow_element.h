@@ -30,7 +30,6 @@
 #include "utilities/enrichment_utilities.h"
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -53,7 +52,7 @@ namespace Kratos
 template <int Dim, int NumNodes>
 class IncompressiblePotentialFlowElement : public Element
 {
-  public:
+public:
     template <unsigned int TNumNodes, unsigned int TDim>
     struct ElementalData
     {
@@ -79,7 +78,7 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Life Cycle
     ///@{
 
-    //Constructors.
+    // Constructors.
 
     /// Default constuctor.
     /**
@@ -90,26 +89,27 @@ class IncompressiblePotentialFlowElement : public Element
     /**
      * Constructor using an array of nodes
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType &ThisNodes) : Element(NewId, ThisNodes){};
+    IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
+        : Element(NewId, ThisNodes){};
 
     /**
      * Constructor using Geometry
      */
-    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry){};
+    IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
+        : Element(NewId, pGeometry){};
 
     /**
      * Constructor using Properties
      */
-    IncompressiblePotentialFlowElement(
-        IndexType NewId,
-        GeometryType::Pointer pGeometry,
-        PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties){};
+    IncompressiblePotentialFlowElement(IndexType NewId,
+                                       GeometryType::Pointer pGeometry,
+                                       PropertiesType::Pointer pProperties)
+        : Element(NewId, pGeometry, pProperties){};
 
     /**
      * Copy Constructor
      */
-    IncompressiblePotentialFlowElement(
-        IncompressiblePotentialFlowElement const &rOther){};
+    IncompressiblePotentialFlowElement(IncompressiblePotentialFlowElement const& rOther){};
 
     /**
      * Destructor
@@ -121,8 +121,7 @@ class IncompressiblePotentialFlowElement : public Element
     ///@{
 
     /// Assignment operator.
-    IncompressiblePotentialFlowElement &operator=(
-        IncompressiblePotentialFlowElement const &rOther)
+    IncompressiblePotentialFlowElement& operator=(IncompressiblePotentialFlowElement const& rOther)
     {
         BaseType::operator=(rOther);
         Flags::operator=(rOther);
@@ -133,60 +132,50 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Operations
     ///@{
 
-    Element::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const &ThisNodes,
-        PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId,
+                            NodesArrayType const& ThisNodes,
+                            PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(IndexType NewId,
+                            GeometryType::Pointer pGeom,
+                            PropertiesType::Pointer pProperties) const override;
 
-    Element::Pointer Clone(
-        IndexType NewId,
-        NodesArrayType const &ThisNodes) const override;
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
 
-    void CalculateLocalSystem(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                              VectorType& rRightHandSideVector,
+                              ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
-        VectorType &rRightHandSideVector,
-        ProcessInfo &rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(
-        EquationIdVectorType &rResult,
-        ProcessInfo &CurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override;
 
-    void GetDofList(
-        DofsVectorType &rElementalDofList,
-        ProcessInfo &rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access
     ///@{
 
-    void GetValueOnIntegrationPoints(const Variable<double> &rVariable,
-                                     std::vector<double> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                     std::vector<double>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<int> &rVariable,
-                                     std::vector<int> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
+                                     std::vector<int>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>> &rVariable,
-                                     std::vector<array_1d<double, 3>> &rValues,
-                                     const ProcessInfo &rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
+                                     std::vector<array_1d<double, 3>>& rValues,
+                                     const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    int Check(const ProcessInfo &rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Input and output
@@ -196,10 +185,10 @@ class IncompressiblePotentialFlowElement : public Element
     std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream &rOStream) const override;
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream &rOStream) const override;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -207,7 +196,7 @@ class IncompressiblePotentialFlowElement : public Element
 
     ///@}
 
-  protected:
+protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -237,7 +226,7 @@ class IncompressiblePotentialFlowElement : public Element
 
     ///@}
 
-  private:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -249,94 +238,83 @@ class IncompressiblePotentialFlowElement : public Element
     ///@name Private Operators
     ///@{
 
-    void GetWakeDistances(array_1d<double, NumNodes> &distances);
+    void GetWakeDistances(array_1d<double, NumNodes>& distances);
 
-    void GetEquationIdVectorNormalElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult);
 
-    void GetEquationIdVectorKuttaElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult);
 
-    void GetEquationIdVectorWakeElement(EquationIdVectorType &rResult);
+    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult);
 
-    void GetDofListNormalElement(DofsVectorType &rElementalDofList);
+    void GetDofListNormalElement(DofsVectorType& rElementalDofList);
 
-    void GetDofListKuttaElement(DofsVectorType &rElementalDofList);
+    void GetDofListKuttaElement(DofsVectorType& rElementalDofList);
 
-    void GetDofListWakeElement(DofsVectorType &rElementalDofList);
+    void GetDofListWakeElement(DofsVectorType& rElementalDofList);
 
-    void CalculateLocalSystemNormalElement(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector);
+    void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
+                                           VectorType& rRightHandSideVector);
 
-    void CalculateLocalSystemWakeElement(
-        MatrixType &rLeftHandSideMatrix,
-        VectorType &rRightHandSideVector);
+    void CalculateLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
+                                         VectorType& rRightHandSideVector);
 
-    void CalculateLocalSystemSubdividedElement(
-        Matrix &lhs_positive,
-        Matrix &lhs_negative);
+    void CalculateLocalSystemSubdividedElement(Matrix& lhs_positive, Matrix& lhs_negative);
 
-    void ComputeLHSGaussPointContribution(
-        const double weight,
-        Matrix &lhs,
-        const ElementalData<NumNodes, Dim> &data);
+    void ComputeLHSGaussPointContribution(const double weight,
+                                          Matrix& lhs,
+                                          const ElementalData<NumNodes, Dim>& data);
 
-    void AssignLocalSystemSubdividedElement(
-        MatrixType &rLeftHandSideMatrix,
-        Matrix &lhs_positive,
-        Matrix &lhs_negative,
-        Matrix &lhs_total,
-        const ElementalData<NumNodes, Dim> &data);
+    void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
+                                            Matrix& lhs_positive,
+                                            Matrix& lhs_negative,
+                                            Matrix& lhs_total,
+                                            const ElementalData<NumNodes, Dim>& data);
 
-    void AssignLocalSystemWakeElement(
-        MatrixType &rLeftHandSideMatrix,
-        Matrix &lhs_total,
-        const ElementalData<NumNodes, Dim> &data);
+    void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
+                                      Matrix& lhs_total,
+                                      const ElementalData<NumNodes, Dim>& data);
 
-    void AssignLocalSystemWakeNode(
-        MatrixType &rLeftHandSideMatrix,
-        Matrix &lhs_total,
-        const ElementalData<NumNodes, Dim> &data,
-        unsigned int &row);
+    void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
+                                   Matrix& lhs_total,
+                                   const ElementalData<NumNodes, Dim>& data,
+                                   unsigned int& row);
 
     void CheckWakeCondition();
 
-    void ComputePotentialJump(ProcessInfo &rCurrentProcessInfo);
+    void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes> &phis);
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis);
 
-    void GetPotentialOnWakeElement(
-        Vector &split_element_values,
-        const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnWakeElement(Vector& split_element_values,
+                                   const array_1d<double, NumNodes>& distances);
 
-    void GetPotentialOnUpperWakeElement(
-        array_1d<double, NumNodes> &upper_phis,
-        const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
+                                        const array_1d<double, NumNodes>& distances);
 
-    void GetPotentialOnLowerWakeElement(
-        array_1d<double, NumNodes> &lower_phis,
-        const array_1d<double, NumNodes> &distances);
+    void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
+                                        const array_1d<double, NumNodes>& distances);
 
-    void ComputeVelocityUpper(array_1d<double, Dim> &velocity);
+    void ComputeVelocityUpper(array_1d<double, Dim>& velocity);
 
-    void ComputeVelocityLower(array_1d<double, Dim> &velocity);
+    void ComputeVelocityLower(array_1d<double, Dim>& velocity);
 
-    void ComputeVelocityNormalElement(array_1d<double, Dim> &velocity);
+    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity);
 
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim> &velocity);
+    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity);
 
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim> &velocity);
+    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity);
 
-    double ComputePressureUpper(const ProcessInfo &rCurrentProcessInfo);
+    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputePressureLower(const ProcessInfo &rCurrentProcessInfo);
+    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputePressureNormalElement(const ProcessInfo &rCurrentProcessInfo);
+    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputePressureUpperWakeElement(const ProcessInfo &rCurrentProcessInfo);
+    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo);
 
-    double ComputePressureLowerWakeElement(const ProcessInfo &rCurrentProcessInfo);
+    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Private Operations
@@ -348,9 +326,9 @@ class IncompressiblePotentialFlowElement : public Element
 
     friend class Serializer;
 
-    void save(Serializer &rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer &rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
