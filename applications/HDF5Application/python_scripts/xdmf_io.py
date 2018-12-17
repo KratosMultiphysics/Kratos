@@ -1,27 +1,15 @@
-import KratosMultiphysics
 from hdf5_io import IOObject
 from create_xdmf_file import WriteXdmfFile
 import os
 
-
-
 class XdmfOutput(IOObject):
     """Provides the interface for writing a model part to a file."""
 
-    def __init__(self, settings):
-        default_settings = KratosMultiphysics.Parameters("""
-        {
-            "file_name" : ""
-        }
-        """)
-
-        self.settings = settings.Clone()
-        self.settings.ValidateAndAssignDefaults(default_settings)
-
     def Execute(self, model_part, hdf5_file):
-        path, file_name = os.path.split(hdf5_file.GetFileName())
-        print(os.path.split(hdf5_file.GetFileName()))
-        print(file_name[:7])
-        print(os.getcwd())
-        WriteXdmfFile(file_name[:7]+".h5", os.path.join(os.getcwd(),path))
+        model_part.GetCommunicator().Barrier()
+        if model_part.GetCommunicator().MyPID() == 0:
+            # write xdmf only on one rank!
+            file_path, file_name = os.path.split(hdf5_file.GetFileName())
+            base_file_name = "-".join(file_name.split("-")[:-1]) + ".h5"
+            WriteXdmfFile(base_file_name, file_path)
 
