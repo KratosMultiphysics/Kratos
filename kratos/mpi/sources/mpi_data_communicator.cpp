@@ -369,17 +369,32 @@ void MPIDataCommunicator::MaxAll(
 
 Kratos::Flags MPIDataCommunicator::AndAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
-    Flags out;
     Flags::BlockType defined = Values.GetDefined();
-    out.SetDefined(defined);
-    Flags::BlockType flags = Values.GetValues();
-    out.SetValues(flags);
+    Flags::BlockType reduced_defined;
+    MPI_Allreduce(&defined, &reduced_defined, 1, MPI_INT64_T, MPI_BOR, mComm);
+    Flags::BlockType flags = Values.GetFlags();
+    Flags::BlockType reduced_flags;
+    MPI_Allreduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BAND, mComm);
+
+    Flags out;
+    out.SetDefined(reduced_defined);
+    out.SetFlags(reduced_flags);
     return out;
 }
 
 Kratos::Flags MPIDataCommunicator::OrAll(const Kratos::Flags Values, const Kratos::Flags Mask) const
 {
-    return Values;
+    Flags::BlockType defined = Values.GetDefined();
+    Flags::BlockType reduced_defined;
+    MPI_Allreduce(&defined, &reduced_defined, 1, MPI_INT64_T, MPI_BOR, mComm);
+    Flags::BlockType flags = Values.GetFlags();
+    Flags::BlockType reduced_flags;
+    MPI_Allreduce(&flags, &reduced_flags, 1, MPI_INT64_T, MPI_BOR, mComm);
+
+    Flags out;
+    out.SetDefined(reduced_defined);
+    out.SetFlags(reduced_flags);
+    return out;
 }
 
 // Scan operations
