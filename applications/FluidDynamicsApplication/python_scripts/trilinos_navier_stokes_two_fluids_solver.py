@@ -73,7 +73,8 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
         return settings
 
     def __init__(self, model, custom_settings):
-        super(NavierStokesMPITwoFluidsSolver, self).__init__(model,custom_settings)
+        # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
+        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver, self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
