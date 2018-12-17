@@ -82,4 +82,4 @@ install(TARGETS KratosUmatCore DESTINATION libs )
 install(TARGETS KratosUmatApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/UmatApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/UmatApplication.py" DESTINATION "KratosMultiphysics/UmatApplication" RENAME "__init__.py")

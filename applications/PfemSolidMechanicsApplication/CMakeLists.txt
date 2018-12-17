@@ -179,4 +179,4 @@ install(TARGETS KratosPfemSolidMechanicsCore DESTINATION libs )
 install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/PfemSolidMechanicsApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemSolidMechanicsApplication.py" DESTINATION "KratosMultiphysics/PfemSolidMechanicsApplication" RENAME "__init__.py")

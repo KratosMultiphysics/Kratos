@@ -91,4 +91,4 @@ install(TARGETS KratosPfemCore DESTINATION libs )
 install(TARGETS KratosPfemApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/PfemApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PfemApplication.py" DESTINATION "KratosMultiphysics/PfemApplication" RENAME "__init__.py")

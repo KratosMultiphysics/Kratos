@@ -142,4 +142,4 @@ install(TARGETS KratosContactMechanicsCore DESTINATION libs )
 install(TARGETS KratosContactMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/ContactMechanicsApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactMechanicsApplication.py" DESTINATION "KratosMultiphysics/ContactMechanicsApplication" RENAME "__init__.py")
