@@ -41,7 +41,7 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
         SetInitialValue(it_node);
     }
 
-    const auto& it_element_begin = mrModelPart.ElementsBegin();
+    const auto& it_element_begin = mrModelPart.GetCommunicator().LocalMesh().ElementsBegin();
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
     const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
