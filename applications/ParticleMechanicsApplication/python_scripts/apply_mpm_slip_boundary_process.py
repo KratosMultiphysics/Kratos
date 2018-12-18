@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication
+import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
 def Factory(settings, Model):
     if(not isinstance(settings, KratosMultiphysics.Parameters)):
