@@ -273,11 +273,11 @@ namespace Kratos
 
             for(ElementPointerVectorType::iterator ie = rE1.begin(); ie!=rE1.end(); ++ie)
             {
-              if( (ie.base())!=nullptr ){
+              if( (*ie)!=nullptr ){
 
                 for(ElementPointerVectorType::iterator ne = rE2.begin(); ne!=rE2.end(); ++ne)
                 {
-                  if( (ne.base())!=nullptr ){
+                  if( (*ne)!=nullptr ){
 
                     if((*ne)->Id() == (*ie)->Id() && !found){
                       ElementPointerVectorType MasterElements;
@@ -355,15 +355,15 @@ namespace Kratos
 
             for(ElementPointerVectorType::iterator ie = rE1.begin(); ie!=rE1.end(); ++ie)
             {
-              if( (ie.base())!=nullptr ){
+              if( (*ie)!=nullptr ){
                 for(ElementPointerVectorType::iterator je = rE2.begin(); je!=rE2.end(); ++je)
                 {
-                  if( (je.base())!=nullptr ){
+                  if( (*je)!=nullptr ){
                     if((*je)->Id() == (*ie)->Id() && !found)
                     {
                       for(ElementPointerVectorType::iterator ke = rE3.begin(); ke!=rE3.end(); ++ke)
                       {
-                        if( (ke.base())!=nullptr ){
+                        if( (*ke)!=nullptr ){
                           if((*ke)->Id() == (*ie)->Id() && !found)
                           {
 

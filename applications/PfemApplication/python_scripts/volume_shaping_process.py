@@ -40,8 +40,6 @@ class VolumeShapingProcess(KratosMultiphysics.Process):
         # set model part
         self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
-        echo_level = 0;
-
         params = KratosMultiphysics.Parameters("{}")
         params.AddValue("variable_name", self.settings["variable_name"])
         params.AddValue("flags_list", self.settings["flags_list"])

@@ -468,7 +468,7 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
 
 void RigidBodyPointLinkCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 							   LocalSystemComponents& rLinkedSystem,
-							   Element::Pointer& pSlaveElement,
+							   Element* pSlaveElement,
 							   ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY
@@ -621,8 +621,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
     //std::cout<<"[LINK]: "<<ie->Id()<<std::endl;
     //Calculate condition system
-    Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -787,8 +786,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -861,8 +859,7 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandS
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    Element::Pointer pSlaveElement = ElementType::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -935,8 +932,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
 
     //Calculate condition system
-    Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -1006,8 +1002,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    Element::Pointer pSlaveElement = Element::Pointer(*(ie.base()));
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, pSlaveElement, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
 
     //assemble the local system into the global system
 

@@ -346,7 +346,7 @@ class Solution(object):
         processes_variables = self.processes.GetVariables()
         self.model.SetVariables(processes_variables)
 
-    def _get_model(self):
+    def _get_model(self, Model):
         import model_manager
         return model_manager.ModelManager(Model, self.ProjectParameters["model_settings"])
 

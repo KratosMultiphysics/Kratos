@@ -117,6 +117,7 @@ class RigidBody(object):
     ###
 
     #
+    @classmethod
     def _get_upper_point(self, model_part):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
@@ -139,6 +140,7 @@ class RigidBody(object):
             return [max_x, max_y, max_z]
 
     #
+    @classmethod
     def _get_lower_point(self, model_part):
 
         dimension = model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]

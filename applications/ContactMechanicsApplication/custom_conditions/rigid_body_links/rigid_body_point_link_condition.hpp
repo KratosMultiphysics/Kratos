@@ -90,7 +90,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkCondition
     BoundedMatrix<double,3,3>               SlaveSkewSymDistance;
     std::vector<BoundedMatrix<double,3,3>> RigidSkewSymDistances;
 
-    Element::Pointer   pSlaveElement;
+    Element*   pSlaveElement;
 
   } GeneralVariables;
 
@@ -367,7 +367,7 @@ class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkCondition
    */
   virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
                                         LocalSystemComponents& rLinkedSystem,
-                                        Element::Pointer& rSlaveElement,
+                                        Element* rSlaveElement,
                                         ProcessInfo& rCurrentProcessInfo);
   /**
    * Calculation and addition of the matrices of the LHS
