@@ -167,7 +167,7 @@ void VtkOutputProcess::WriteConditionsAndElements(ModelPart &rModelPart)
     // write Conditions
     for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
-        ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
+        auto& condition_geometry = condition_i->GetGeometry();
         const unsigned int numberOfNodes = condition_geometry.size();
 
         outputFile << numberOfNodes;
