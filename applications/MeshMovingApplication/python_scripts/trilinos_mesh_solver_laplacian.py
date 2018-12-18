@@ -4,18 +4,17 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-# Other imports
-import trilinos_mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
 
 
 def CreateSolver(mesh_model_part, custom_settings):
     return TrilinosMeshSolverComponentwise(mesh_model_part, custom_settings)
 
 
-class TrilinosMeshSolverComponentwise(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
+class TrilinosMeshSolverComponentwise(TrilinosMeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         if custom_settings.Has("buffer_size"):
             buffer_size = custom_settings["buffer_size"]
