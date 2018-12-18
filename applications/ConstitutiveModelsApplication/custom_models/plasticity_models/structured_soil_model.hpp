@@ -29,6 +29,9 @@
 // 4. pt (ageing)
 // 5. pcSTAR = ps + (1+k) p_t
 // 6. Plastic Volumetric deformation Absolut Value
+// 7. NonLocal Plastic Vol Def
+// 8. NonLocal Plastic Dev Def
+// 9. NonLocal Plastic Vol Def ABS
 // ... (the number now is then..., xD)
 
 namespace Kratos
@@ -58,6 +61,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
+   template<class TElasticityModel, class TYieldSurface>
    class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) StructuredSoilModel : public NonAssociativePlasticityModel<TElasticityModel, TYieldSurface >
    {
       public:
@@ -71,20 +75,25 @@ namespace Kratos
          //yield surface
          typedef TYieldSurface                                     YieldSurfaceType;
 
+
+         // derived type
+         typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  DerivedType;
+
          //base type
-         typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
+         typedef PlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
 
          //common types
-         typedef BaseType::Pointer                         BaseTypePointer;
-         typedef BaseType::SizeType                               SizeType;
-         typedef BaseType::VoigtIndexType                   VoigtIndexType;
-         typedef BaseType::MatrixType                           MatrixType;
-         typedef BaseType::ModelDataType                     ModelDataType;
-         typedef BaseType::MaterialDataType               MaterialDataType;
-         typedef BaseType::PlasticDataType                 PlasticDataType;
-         typedef BaseType::InternalVariablesType     InternalVariablesType;
+         typedef typename BaseType::Pointer                         BaseTypePointer;
+         typedef typename BaseType::SizeType                               SizeType;
+         typedef typename BaseType::VoigtIndexType                   VoigtIndexType;
+         typedef typename BaseType::MatrixType                           MatrixType;
+         typedef typename BaseType::VectorType                           VectorType;
+         typedef typename BaseType::ModelDataType                     ModelDataType;
+         typedef typename BaseType::MaterialDataType               MaterialDataType;
+         typedef typename BaseType::PlasticDataType                 PlasticDataType;
+         typedef typename BaseType::InternalVariablesType     InternalVariablesType;
 
-
+         
          /// Pointer definition of StructuredSoilModel
          KRATOS_CLASS_POINTER_DEFINITION( StructuredSoilModel );
 
@@ -93,15 +102,15 @@ namespace Kratos
          ///@{
 
          /// Default constructor.
-         StructuredSoilModel() : BaseType() { mInitialized = false; }
+         StructuredSoilModel() : DerivedType() { mInitialized = false; }
 
          /// Copy constructor.
-         StructuredSoilModel(StructuredSoilModel const& rOther) : BaseType(rOther), mInitialized(rOther.mInitialized) {}
+         StructuredSoilModel(StructuredSoilModel const& rOther) : DerivedType(rOther), mInitialized(rOther.mInitialized) {}
 
          /// Assignment operator.
          StructuredSoilModel& operator=(StructuredSoilModel const& rOther)
          {
-            BaseType::operator=(rOther);
+            DerivedType::operator=(rOther);
             return *this;
          }
 
@@ -155,7 +164,7 @@ namespace Kratos
 
                mInitialized = true;
             }
-            mElasticityModel.InitializeModel( rValues );
+            this->mElasticityModel.InitializeModel( rValues );
 
             KRATOS_CATCH("")
          }
@@ -200,13 +209,13 @@ namespace Kratos
             KRATOS_TRY
 
             if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
-               mInternal.Variables[7] = rValue;
+               this->mInternal.Variables[7] = rValue;
             }
             else if ( rVariable == NONLOCAL_PLASTIC_DEV_DEF) {
-               mInternal.Variables[8] = rValue;
+               this->mInternal.Variables[8] = rValue;
             }
             else if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS) {
-               mInternal.Variables[9] = rValue;
+               this->mInternal.Variables[9] = rValue;
             }
 
             KRATOS_CATCH("")
@@ -228,7 +237,7 @@ namespace Kratos
             }
             else if (rThisVariable==DELTA_PLASTIC_STRAIN)
             {
-               rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
+               rValue = this->mInternal.Variables[0]-this->mPreviousInternal.Variables[0];
             }
             else if ( rThisVariable == PS)
             {
@@ -267,7 +276,7 @@ namespace Kratos
                rValue = this->mInternal.Variables[9];
             }
             else {
-               rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+               //rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
             }
             return rValue;
 
@@ -330,53 +339,9 @@ namespace Kratos
          ///@}
          ///@name Protected Operations
          ///@{
-            // Calculate Stress and constitutive tensor
-            void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
-            {
-               KRATOS_TRY
 
-               // integrate "analytically" ps and pt from plastic variables. Then update the internal variables.
-
-               PlasticDataType Variables;
-               this->InitializeVariables( rValues, Variables);
-
-               const ModelDataType & rModelData = Variables.GetModelData();
-               const Properties & rMaterialProperties = rModelData.GetProperties();
-
-               const double & rPs0 = rMaterialProperties[PS];
-               const double & rPt0 = rMaterialProperties[PT];
-               const double & rChis = rMaterialProperties[CHIS];
-               const double & rChit = rMaterialProperties[CHIT];
-               const double & rhos = rMaterialProperties[RHOS];
-               const double & rhot = rMaterialProperties[RHOT];
-               const double & k = rMaterialProperties[KSIM];
-
-               const double & rPlasticVolDef = Variables.Internal.Variables[1]; 
-               const double & rPlasticDevDef = Variables.Internal.Variables[2];
-               const double & rPlasticVolDefAbs = Variables.Internal.Variables[6];
-
-               double sq2_3 = sqrt(2.0/3.0);
-
-               double ps;
-               ps = rPlasticVolDef + sq2_3 * rChis * rPlasticDevDef; 
-               ps = (-rPs0) * std::exp( -rhos*ps);
-
-               double pt;
-               pt = rPlasticVolDefAbs + sq2_3 * rChit * rPlasticDevDef; 
-               pt = (-rPt0) * std::exp( rhot*pt);
-
-               double pm;
-               pm = ps + (1.0+k)*pt;
-
-
-               mInternal.Variables[3] = ps;
-               mInternal.Variables[4] = pt;
-               mInternal.Variables[5] = pm;
-
-               NonAssociativePlasticityModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
-
-               KRATOS_CATCH("")
-            }
+         
+         
             //***************************************************************************************
             //***************************************************************************************
             // Compute Elasto Plastic Matrix
@@ -456,7 +421,7 @@ namespace Kratos
 
                MatrixType StrainMatrix = prod( rDeltaDeformationMatrix, trans( rDeltaDeformationMatrix) );
                VectorType StrainVector; 
-               ConvertCauchyGreenTensorToHenckyVector( StrainMatrix, StrainVector);
+               this->ConvertCauchyGreenTensorToHenckyVector( StrainMatrix, StrainVector);
 
                VectorType AuxVector;
                AuxVector = prod( ElasticMatrix, StrainVector);
@@ -471,7 +436,7 @@ namespace Kratos
                   DeltaGamma = 0;
 
                MatrixType UpdateMatrix;
-               ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
+               this->ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
                UpdateMatrix = prod( rDeltaDeformationMatrix, UpdateMatrix);
 
 
@@ -513,13 +478,13 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               mPreviousInternal.Variables[6] = mInternal.Variables[6];
-               mInternal.Variables[6] = mInternal.Variables[6] + fabs( rVariables.Internal.Variables[1] - mInternal.Variables[1]);
+               this->mPreviousInternal.Variables[6] = this->mInternal.Variables[6];
+               this->mInternal.Variables[6] = this->mInternal.Variables[6] + fabs( rVariables.Internal.Variables[1] - this->mInternal.Variables[1]);
                for (unsigned int i = 0; i < 6; i++) {
                   double & rCurrentPlasticVariable = rVariables.Internal.Variables[i]; 
-                  double & rPreviousPlasticVariable    = mInternal.Variables[i];
+                  double & rPreviousPlasticVariable    = this->mInternal.Variables[i];
 
-                  mPreviousInternal.Variables[i] = rPreviousPlasticVariable;
+                  this->mPreviousInternal.Variables[i] = rPreviousPlasticVariable;
                   rPreviousPlasticVariable = rCurrentPlasticVariable;
                }
 
@@ -538,8 +503,8 @@ namespace Kratos
 
                double Tolerance = 1e-7;
 
-                  MatrixType StressMatrix;
-                  this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
+               MatrixType StressMatrix;
+               this->mElasticityModel.CalculateStressTensor( rValues, StressMatrix);
                double YieldSurface = this->mYieldSurface.CalculateYieldCondition( rVariables, YieldSurface);
 
                if ( fabs(YieldSurface) < Tolerance)
@@ -578,7 +543,7 @@ namespace Kratos
                   DeltaGamma /= ( H + MathUtils<double>::Dot( DeltaStressYieldCondition, prod(ElasticMatrix, PlasticPotentialDerivative) ) );
 
                   MatrixType UpdateMatrix;
-                  ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
+                  this->ConvertHenckyVectorToCauchyGreenTensor( -DeltaGamma * PlasticPotentialDerivative / 2.0, UpdateMatrix);
 
                   rValues.StrainMatrix = prod( UpdateMatrix, rValues.StrainMatrix);
                   rValues.StrainMatrix = prod( rValues.StrainMatrix, trans(UpdateMatrix));
@@ -672,12 +637,12 @@ namespace Kratos
 
          virtual void save(Serializer& rSerializer) const override
          {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DerivedType )
          }
 
          virtual void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DerivedType )
          }
 
          ///@}

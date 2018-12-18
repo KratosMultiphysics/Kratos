@@ -821,7 +821,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType HenckyTensor;
+               MatrixType HenckyTensor;
                HenckyTensor.clear();
 
                ConstitutiveModelUtilities::StrainVectorToTensor( rHenckyVector, HenckyTensor);
@@ -837,7 +837,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-      MatrixType EigenVectors;
+               MatrixType EigenVectors;
                EigenVectors.clear();
 
                rStrainMatrix.clear();
