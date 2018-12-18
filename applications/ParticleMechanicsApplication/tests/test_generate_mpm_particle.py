@@ -23,8 +23,14 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
         grid_model_part = current_model.CreateModelPart("Background_Grid")
         grid_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, dimension)
 
-        # Create element and nodes
+        # Create element and nodes for background grids
+        sub_background = grid_model_part.CreateSubModelPart("test_background")
+        self._create_nodes(sub_background, dimension, geometry_element)
+        self._create_elements(sub_background,dimension, geometry_element)
+
+        # Create element and nodes for initial meshes
         sub_mp = initial_material_model_part.CreateSubModelPart("test")
+        sub_mp.GetProperties()[1].SetValue(KratosParticle.PARTICLES_PER_ELEMENT, num_particle)
         self._create_nodes(sub_mp, dimension, geometry_element)
         self._create_elements(sub_mp,dimension, geometry_element)
 
@@ -45,9 +51,9 @@ class TestGenerateMPMParticle(KratosUnittest.TestCase):
 
         # Initialize solver
         if(dimension==2):
-            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", geometry_element, num_particle, False, False)
+            self.solver = KratosParticle.MPM2D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", False, False)
         else:
-            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", geometry_element, num_particle, False, False)
+            self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, False, "static", False, False)
 
         # Check total number of element
         particle_counter = len(material_model_part.Elements)
