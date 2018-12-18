@@ -31,4 +31,5 @@ export PYTHONPATH="$3/kratos/Lib/python27":"$3/kratos"
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosDEM.py
-"$3/kratos/runkratos" KratosDEM.py > "$2/$1.info" 2> "$2/$1.err"
+#"$3/kratos/runkratos" KratosDEM.py > "$2/$1.info" 2> "$2/$1.err"
+python3 KratosDEM.py
