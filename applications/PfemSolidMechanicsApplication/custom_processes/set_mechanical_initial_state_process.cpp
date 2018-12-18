@@ -166,6 +166,15 @@ namespace Kratos
 
       ProcessInfo SomeProcessInfo;
 
+      ModelPart::ElementsContainerType::const_iterator  pFirstElement = rModelPart.ElementsBegin();
+      Element::GeometryType& rGeom = pFirstElement->GetGeometry();
+      GeometryData::IntegrationMethod MyIntegrationMethod = pFirstElement->GetIntegrationMethod();
+      const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
+      unsigned int numberOfGP = IntegrationPoints.size();
+      for (unsigned int i = 0; i < numberOfGP; i++)
+         StressVector.push_back(ThisVector);
+
+
       for (ModelPart::ElementsContainerType::const_iterator pElement = rModelPart.ElementsBegin(); pElement != rModelPart.ElementsEnd() ; pElement++)
       {
          pElement->SetValueOnIntegrationPoints( ELASTIC_LEFT_CAUCHY_FROM_KIRCHHOFF_STRESS, StressVector, SomeProcessInfo); 

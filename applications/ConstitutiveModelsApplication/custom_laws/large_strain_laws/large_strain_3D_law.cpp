@@ -169,15 +169,31 @@ namespace Kratos
 
     if(rThisVariable == DETERMINANT_F){
       rValue = mTotalDeformationDet;
-    } else {
-       rValue = mpModel->GetValue(rThisVariable,rValue);
     }
+    else {
+       rValue = mpModel->GetValue(rThisVariable,rValue);
+    } 
 
     return rValue;
 
     KRATOS_CATCH(" ")
   }
 
+  Matrix& LargeStrain3DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+  {
+    KRATOS_TRY
+
+    if(rThisVariable == INVERSE_DEFORMATION_GRADIENT){
+      rValue = mInverseTotalDeformationMatrix;
+    }
+    else {
+       rValue = Constitutive3DLaw::GetValue(rThisVariable,rValue);
+    } 
+
+    return rValue;
+
+    KRATOS_CATCH(" ")
+  }
   //************* STARTING - ENDING  METHODS
   //************************************************************************************
   //************************************************************************************

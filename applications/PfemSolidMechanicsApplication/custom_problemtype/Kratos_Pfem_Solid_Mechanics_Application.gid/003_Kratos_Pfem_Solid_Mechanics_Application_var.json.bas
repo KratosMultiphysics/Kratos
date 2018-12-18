@@ -980,15 +980,20 @@
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
 *endif
-				      "STRESS_INV_P",
-				      "STRESS_INV_J2",
-				      "STRESS_INV_THETA",
-				      "PLASTIC_STRAIN",
-				      "DELTA_PLASTIC_STRAIN",
-				      "PS",
-				      "PM",
-				      "PT",
-                                      "INCR_SHEAR_PLASTIC"	
+                                      "STRESS_INV_P",
+                                      "STRESS_INV_J2",
+                                      "STRESS_INV_THETA",
+                                      "PLASTIC_STRAIN",
+                                      "DELTA_PLASTIC_STRAIN",
+				      "PLASTIC_VOL_DEF",
+				      "NONLOCAL_PLASTIC_VOL_DEF",
+				      "PLASTIC_DEV_DEF",
+				      "NONLOCAL_PLASTIC_DEV_DEF",
+				      "PLASTIC_VOL_DEF_ABS",
+				      "NONLOCAL_PLASTIC_VOL_DEF_ABS",
+                                      "PS",
+                                      "PM",
+                                      "PT"
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)
