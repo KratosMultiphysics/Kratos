@@ -40,8 +40,9 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
 
         if self.settings["save_output_files_in_folder"].GetBool() :
             if(os.path.isdir(folder_name)):
-                import shutil
-                shutil.rmtree(folder_name)
+                if(not model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
+                    import shutil
+                    shutil.rmtree(folder_name)
             os.mkdir(folder_name)
 
 
