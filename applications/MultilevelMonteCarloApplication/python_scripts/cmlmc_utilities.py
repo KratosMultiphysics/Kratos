@@ -5,8 +5,8 @@ import time
 import copy
 
 # Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
 # from exaqute.ExaquteTaskLocal import *      # to execute with python3
 '''
 get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
