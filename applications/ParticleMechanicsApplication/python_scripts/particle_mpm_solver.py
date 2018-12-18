@@ -171,9 +171,7 @@ class ParticleMPMSolver(PythonSolver):
 
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
-        self.compute_contact_forces = self.settings["compute_contact_forces"].GetBool()
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
-        self.line_search            = self.settings["line_search"].GetBool()
         self.implex                 = self.settings["implex"].GetBool()
         self.axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
@@ -218,12 +216,12 @@ class ParticleMPMSolver(PythonSolver):
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.compute_reactions,
-                                self.block_builder, self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.solver_type, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.compute_reactions,
-                                self.block_builder, self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.solver_type, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level
         self._set_echo_level()
