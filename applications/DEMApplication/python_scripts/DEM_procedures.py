@@ -1679,20 +1679,19 @@ class DEMIo(object):
         self.post_utility.AddSpheresNotBelongingToClustersToMixModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, self.spheres_model_part)
         self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, self.cluster_model_part)
 
-
     def InitializeMesh(self, all_model_parts):
         if self.filesystem == MultiFileFlag.SingleFile:
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(0.0)
-            self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
+            self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
             if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-                self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
-                self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
 
             if self.contact_mesh_option:
-                self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteMesh(all_model_parts.Get("ContactPart").GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, self.mixed_model_part.GetCommunicator().LocalMesh())
