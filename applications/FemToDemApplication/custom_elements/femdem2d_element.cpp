@@ -431,9 +431,6 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
 	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
 
-	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
-	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-
 	// Loop Over Integration Points
 	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
 		Matrix InvJ(dimension, dimension);
