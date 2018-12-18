@@ -122,9 +122,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
                                                      self.DEM_parameters,
                                                      self.procedures)
 
-    def SetFinalTime(self):
-        self.end_time = end_time
-
     def SetDt(self):
         self.solver.dt = dt
 
@@ -164,12 +161,12 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
 
     def BeforeSolveOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self).BeforeSolveOperations(time)
-        benchmark.ApplyNodalRotation(time, self.dt, self.spheres_model_part)
+        benchmark.ApplyNodalRotation(time, self.solver.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
         super(DEMBenchamarksAnalysisStage, self).BeforePrintingOperations(time)
         self.SetDt()
-        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.dt)
+        benchmark.generate_graph_points(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part, time, self.graph_print_interval, self.solver.dt)
 
     def Finalize(self):
         benchmark.get_final_data(self.spheres_model_part, self.rigid_face_model_part, self.cluster_model_part)
@@ -202,10 +199,13 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt = DEMBenchamarksAnalysisStage(model, parameters)
         slt.iteration = iteration
         slt.dt = dt
-        slt.end_time = end_time
+
         slt.graph_print_interval = graph_print_interval
         slt.number_of_points_in_the_graphic = number_of_points_in_the_graphic
         slt.number_of_coeffs_of_restitution = number_of_coeffs_of_restitution
+        slt.DEM_parameters["FinalTime"].SetDouble(end_time)
+        slt.project_parameters["problem_data"]["end_time"].SetDouble(end_time)
+        slt.DEM_parameters["MaxTimeStep"].SetDouble(dt)
         slt.Run()
         del slt
     end = timer.time()

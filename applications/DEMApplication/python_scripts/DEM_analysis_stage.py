@@ -305,9 +305,6 @@ class DEMAnalysisStage(AnalysisStage):
         #self.creator_destructor.SetMaxNodeId(max_Id)
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
-        #Strategy Initialization
-        self.SolverInitialize()
-
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         self.SetInlet()
