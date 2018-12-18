@@ -852,6 +852,16 @@ public:
         return true;
     }
 
+    virtual bool ReduceOrNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
+    virtual bool ReduceAndNodalFlags(const Flags& TheFlags)
+    {
+        return true;
+    }
+
     void Clear()
     {
         mNumberOfColors = 0;
