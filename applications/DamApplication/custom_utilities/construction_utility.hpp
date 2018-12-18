@@ -425,10 +425,6 @@ class ConstructionUtility
 
         const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
 
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
-        time = time / mTimeUnitConverter;
-        const double ambient_temp = mrTableAmbientTemp.GetValue(time);
-
         // Getting CheckTemperature Values
         const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
         const double maximum_ambient_temperature = CheckTemperatureParameters["maximum_ambient_temperature"].GetDouble();
