@@ -1715,13 +1715,13 @@ public:
 
   inline static VectorType range(const unsigned int start,  const unsigned int end)
   {
-    unsigned int size = end-start;
+    int size = end-start;
     if(size<0)
       KRATOS_ERROR<<" range out of bounds start:"<<start<<" end:"<<end<<std::endl;
 
     VectorType b(size);
 
-    for(unsigned int i = 0; i<size; ++i)
+    for(int i = 0; i<size; ++i)
       b[i] = start + i;
 
     return b;
