@@ -32,10 +32,8 @@
 #include "includes/define.h"
 #include "processes/process.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 
 extern "C" {
     //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
@@ -728,5 +726,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_METIS_CONTACTmContactNodes[i]_PARTITIONING_PROCESS_INCLUDED defined
-
-

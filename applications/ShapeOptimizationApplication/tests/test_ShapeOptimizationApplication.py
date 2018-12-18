@@ -44,6 +44,7 @@ from shape_optimization_test_factory import algorithm_penalized_projection_test 
 from shape_optimization_test_factory import algorithm_trust_region_test as algorithm_trust_region_test
 from shape_optimization_test_factory import trust_region_projector_test as trust_region_projector_test
 from shape_optimization_test_factory import algorithm_bead_optimization_test as algorithm_bead_optimization_test
+from shape_optimization_test_factory import opt_process_step_adaption_test as opt_process_step_adaption_test
 from shape_optimization_test_factory import mapper_test as mapper_test
 
 # Niglty tests
@@ -81,6 +82,7 @@ def AssembleTestSuites():
     smallSuite.addTest(algorithm_trust_region_test('test_execution'))
     smallSuite.addTest(trust_region_projector_test('test_execution'))
     smallSuite.addTest(algorithm_bead_optimization_test('test_execution'))
+    smallSuite.addTest(opt_process_step_adaption_test('test_execution'))
     smallSuite.addTest(mapper_test('test_execution'))
 
     # Adding nightly tests (tests that take < 10min)

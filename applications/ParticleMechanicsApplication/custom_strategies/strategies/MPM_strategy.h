@@ -157,10 +157,9 @@ public:
     /*@{ */
 
     MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
-        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle",
-        int NumPar = 3, bool BlockBuilder = false, bool isMixedFormulation = false)
+        Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", bool BlockBuilder = false, bool isMixedFormulation = false)
         : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
-        mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
+        mr_mpm_model_part(mpm_model_part)
     {
 
         // Assigning the nodes to the new model part
@@ -193,10 +192,13 @@ public:
 
         KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
-        unsigned int k = 0;
-        const unsigned int number_elements = grid_model_part.NumberOfElements();
+        const unsigned int number_elements = grid_model_part.NumberOfElements() + initial_model_part.NumberOfElements();
         const unsigned int number_nodes = grid_model_part.NumberOfNodes();
-        int new_element_id = 0;
+        unsigned int last_element_id;
+        if (number_nodes>number_elements)
+            last_element_id = number_nodes + 1;
+        else
+            last_element_id = number_elements + 1;
 
         // Loop over the submodelpart of initial_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = initial_model_part.SubModelPartsBegin();
@@ -217,11 +219,23 @@ public:
                     const int material_id = i->GetProperties().Id();
                     const double density  = i->GetProperties()[DENSITY];
 
-                    Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    unsigned int particles_per_element;
+                    if (i->GetProperties().Has( PARTICLES_PER_ELEMENT )){
+                        particles_per_element = i->GetProperties()[PARTICLES_PER_ELEMENT];
+                    }
+                    else{
+                        std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
+                        warning_msg += "1 Particle per element is assumed.";
+                        KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                        particles_per_element = 1;
+                    }
+
+                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    if (m_GeometryElement == "Triangle")
+                    if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
                     {
-                        switch (m_NumPar)
+                        switch (particles_per_element)
                         {
                             case 1:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
@@ -246,7 +260,7 @@ public:
                                     break;
                                 }
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
                                 warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                                 warning_msg += "The default number of particle: 3 is currently assumed.";
@@ -254,9 +268,9 @@ public:
                                 break;
                         }
                     }
-                    else if(m_GeometryElement == "Quadrilateral")
+                    else if(rGeoType == GeometryData::Kratos_Hexahedra3D8  || rGeoType == GeometryData::Kratos_Quadrilateral2D4)
                     {
-                        switch (m_NumPar)
+                        switch (particles_per_element)
                         {
                             case 1:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
@@ -271,13 +285,19 @@ public:
                                 shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                 break;
                             default:
-                                std::string warning_msg = "The input number of particle: " + std::to_string(m_NumPar);
+                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
                                 warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
                                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                                 warning_msg += "The default number of particle: 4 is currently assumed.";
                                 KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                 break;
                         }
+                    }
+                    else{
+                        std::string error_msg = "The Geometry type of the Element given is invalid or currently not available. ";
+                        error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
+                        error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
+                        KRATOS_ERROR << error_msg << std::endl;
                     }
 
                     // Number of MP per elements
@@ -295,17 +315,11 @@ public:
                     MP_Volume = area / integration_point_per_elements;
 
                     // Loop over the material points that fall in each grid element
+                    unsigned int new_element_id = 0;
                     for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
                     {
-                        if(number_elements > number_nodes)
-                        {
-                            new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
-                        }
-                        else
-                        {
-                            new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
-                        }
-                        Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
+                        new_element_id = last_element_id + PointNumber;
+                        Element::Pointer p_element = NewElement.Create(new_element_id, grid_model_part.ElementsBegin()->GetGeometry(), properties);
                         const double MP_Density  = density;
                         const int MP_Material_Id = material_id;
 
@@ -345,7 +359,7 @@ public:
                         mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
                     }
 
-                    k +=1;
+                    last_element_id += integration_point_per_elements;
 
                 }
 
@@ -838,8 +852,6 @@ protected:
     ModelPart& mr_grid_model_part;
     ModelPart& mr_initial_model_part;
     ModelPart& mr_mpm_model_part;
-    std::string m_GeometryElement;
-    int m_NumPar;
 
     SolvingStrategyType::Pointer mp_solving_strategy;
 
