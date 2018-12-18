@@ -79,6 +79,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/rule_of_mixtures_law.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/composite_vanishing_fibre_law.cpp
 
   ## ELEMENTS
   #Adding truss element

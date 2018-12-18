@@ -74,8 +74,9 @@
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
-// Rules of mixtures
+// Composite laws
 #include "custom_constitutive/rule_of_mixtures_law.h"
+#include "custom_constitutive/composite_vanishing_fibre_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -633,6 +634,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< RuleOfMixturesLaw, typename RuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
     (m,"RuleOfMixturesLaw").def(py::init<>())
+    ;
+    
+    py::class_< CompositeVanishingFibreLaw, typename CompositeVanishingFibreLaw::Pointer,  ConstitutiveLaw  >
+    (m,"CompositeVanishingFibreLaw").def(py::init<>())
     ;
 
     py::class_< GenericSmallStrainDplusDminusDamage<GenericTensionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>, GenericCompressionConstitutiveLawIntegratorDplusDminusDamage<ModifiedMohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>,

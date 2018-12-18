@@ -709,7 +709,8 @@ void KratosStructuralMechanicsApplication::Register() {
 	KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageDruckerPragerTresca3D", mSmallStrainDplusDminusDamageDruckerPragerTresca3D);
 	KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainDplusDminusDamageDruckerPragerDruckerPrager3D", mSmallStrainDplusDminusDamageDruckerPragerDruckerPrager3D);
   
-  // Rules of mixtures
+  // Composite laws
   KRATOS_REGISTER_CONSTITUTIVE_LAW("RuleOfMixturesLaw", mRuleOfMixturesLaw);
+  KRATOS_REGISTER_CONSTITUTIVE_LAW("CompositeVanishingFibreLaw", mCompositeVanishingFibreLaw);
 }
 }  // namespace Kratos.
