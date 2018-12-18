@@ -7,8 +7,8 @@
 //
 //
 
-#if !defined(KRATOS_NONLOCAL_V2_GENS_NOVA_MODEL_H_INCLUDED )
-#define  KRATOS_NONLOCAL_V2_GENS_NOVA_MODEL_H_INCLUDED
+#if !defined(KRATOS_STRUCTURED_SOIL_MODEL_H_INCLUDED )
+#define      KRATOS_STRUCTURED_SOIL_MODEL_H_INCLUDED
 
 // System includes
 
@@ -18,10 +18,6 @@
 
 // Project includes
 #include "custom_models/plasticity_models/non_associative_plasticity_model.hpp"
-#include "custom_models/plasticity_models/hardening_rules/gens_nova_hardening_rule.hpp"
-#include "custom_models/plasticity_models/yield_surfaces/gens_nova_yield_surface.hpp"
-#include "custom_models/elasticity_models/borja_model.hpp"
-#include "custom_models/elasticity_models/tamagnini_model.hpp"
 
 
 
@@ -33,9 +29,6 @@
 // 4. pt (ageing)
 // 5. pcSTAR = ps + (1+k) p_t
 // 6. Plastic Volumetric deformation Absolut Value
-// 7. NonLocal Plastic Vol Def
-// 8. NonLocal Plastic Dev Def
-// 9. NonLocal Plastic Vol Def ABS
 // ... (the number now is then..., xD)
 
 namespace Kratos
@@ -65,7 +58,7 @@ namespace Kratos
    /// Short class definition.
    /** Detail class definition.
     */
-   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) NonlocalV2GensNovaModel : public NonAssociativePlasticityModel<TamagniniModel, GensNovaYieldSurface<GensNovaHardeningRule> >
+   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) StructuredSoilModel : public NonAssociativePlasticityModel<TElasticityModel, TYieldSurface >
    {
       public:
 
@@ -73,14 +66,10 @@ namespace Kratos
          ///@{
 
          //elasticity model
-         //typedef BorjaModel                                     ElasticityModelType;
-         typedef TamagniniModel                                     ElasticityModelType;
-         typedef ElasticityModelType::Pointer                ElasticityModelPointer;
+         typedef TElasticityModel                               ElasticityModelType;
 
          //yield surface
-         typedef GensNovaHardeningRule                             HardeningRuleType;
-         typedef GensNovaYieldSurface<HardeningRuleType>    YieldSurfaceType;
-         typedef YieldSurfaceType::Pointer                      YieldSurfacePointer;
+         typedef TYieldSurface                                     YieldSurfaceType;
 
          //base type
          typedef NonAssociativePlasticityModel<ElasticityModelType,YieldSurfaceType>  BaseType;
@@ -96,21 +85,21 @@ namespace Kratos
          typedef BaseType::InternalVariablesType     InternalVariablesType;
 
 
-         /// Pointer definition of NonlocalV2GensNovaModel
-         KRATOS_CLASS_POINTER_DEFINITION( NonlocalV2GensNovaModel );
+         /// Pointer definition of StructuredSoilModel
+         KRATOS_CLASS_POINTER_DEFINITION( StructuredSoilModel );
 
          ///@}
          ///@name Life Cycle
          ///@{
 
          /// Default constructor.
-         NonlocalV2GensNovaModel() : BaseType() { mInitialized = false; }
+         StructuredSoilModel() : BaseType() { mInitialized = false; }
 
          /// Copy constructor.
-         NonlocalV2GensNovaModel(NonlocalV2GensNovaModel const& rOther) : BaseType(rOther), mInitialized(rOther.mInitialized) {}
+         StructuredSoilModel(StructuredSoilModel const& rOther) : BaseType(rOther), mInitialized(rOther.mInitialized) {}
 
          /// Assignment operator.
-         NonlocalV2GensNovaModel& operator=(NonlocalV2GensNovaModel const& rOther)
+         StructuredSoilModel& operator=(StructuredSoilModel const& rOther)
          {
             BaseType::operator=(rOther);
             return *this;
@@ -119,11 +108,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return ( NonlocalV2GensNovaModel::Pointer(new NonlocalV2GensNovaModel(*this)) );
+            return ( StructuredSoilModel::Pointer(new StructuredSoilModel(*this)) );
          }
 
          /// Destructor.
-         virtual ~NonlocalV2GensNovaModel() {}
+         virtual ~StructuredSoilModel() {}
 
 
          ///@}
@@ -298,20 +287,20 @@ namespace Kratos
          virtual std::string Info() const override
          {
             std::stringstream buffer;
-            buffer << "NonlocalV2GensNovaModel" ;
+            buffer << "StructuredSoilModel" ;
             return buffer.str();
          }
 
          /// Print information about this object.
          virtual void PrintInfo(std::ostream& rOStream) const override
          {
-            rOStream << "NonlocalV2GensNovaModel";
+            rOStream << "StructuredSoilModel";
          }
 
          /// Print object's data.
          virtual void PrintData(std::ostream& rOStream) const override
          {
-            rOStream << "NonlocalV2GensNovaModel Data";
+            rOStream << "StructuredSoilModel Data";
          }
 
 
@@ -345,21 +334,6 @@ namespace Kratos
             void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
             {
                KRATOS_TRY
-
-               { // modify the internal variables to make it nonlocal
-               }
-
-               double LocalPlasticVolStrain = mInternal.Variables[1];
-               double NonLocalPlasticVolStrain = mInternal.Variables[7];
-               mInternal.Variables[1] = mInternal.Variables[7];
-
-               double LocalPlasticDevStrain = mInternal.Variables[2];
-               double NonLocalPlasticDevStrain = mInternal.Variables[8];
-               mInternal.Variables[2] = mInternal.Variables[8];
-
-               double LocalPlasticVolStrainAbs = mInternal.Variables[6];
-               double NonLocalPlasticVolStrainAbs = mInternal.Variables[9];
-               mInternal.Variables[6] = mInternal.Variables[9];
 
                // integrate "analytically" ps and pt from plastic variables. Then update the internal variables.
 
@@ -400,18 +374,6 @@ namespace Kratos
                mInternal.Variables[5] = pm;
 
                NonAssociativePlasticityModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
-
-               if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
-                  mInternal.Variables[1] = LocalPlasticVolStrain + ( mInternal.Variables[1] -  NonLocalPlasticVolStrain);
-                  mInternal.Variables[2] = LocalPlasticDevStrain + ( mInternal.Variables[2] -  NonLocalPlasticDevStrain);
-                  mInternal.Variables[6] = LocalPlasticVolStrainAbs + ( mInternal.Variables[6] -  NonLocalPlasticVolStrainAbs);
-               } else {
-                  mInternal.Variables[1] = LocalPlasticVolStrain;
-                  mInternal.Variables[2] = LocalPlasticDevStrain;
-                  mInternal.Variables[6] = LocalPlasticVolStrainAbs;
-               }
-
-
 
                KRATOS_CATCH("")
             }
@@ -725,7 +687,7 @@ namespace Kratos
 
          ///@}
 
-   }; // Class NonlocalV2GensNovaModel
+   }; // Class StructuredSoilModel
 
    ///@}
 
@@ -750,6 +712,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_NONLOCAL_V2_GENS_NOVA_MODEL_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURED_SOIL_MODEL_H_INCLUDED  defined 
 
 

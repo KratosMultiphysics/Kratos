@@ -432,33 +432,6 @@ namespace Kratos
                KRATOS_TRY
             
 
-               /*{ // debugging, or whatever
-                  const ModelDataType & rModelData = rVariables.GetModelData();
-                  const Properties & rMaterialProperties = rModelData.GetProperties();
-                  const double & rPs0 = rMaterialProperties[PS];
-                  const double & rPt0 = rMaterialProperties[PT];
-                  const double & rChis = rMaterialProperties[CHIS];
-                  const double & rChit = rMaterialProperties[CHIT];
-                  const double & rhos = rMaterialProperties[RHOS];
-                  const double & rhot = rMaterialProperties[RHOT];
-
-                  double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
-                  double & rPlasticDevDef = rVariables.Internal.Variables[2];
-                  double & rPS     = rVariables.Internal.Variables[3];
-                  double & rPT     = rVariables.Internal.Variables[4];
-                  double & rPlasticVolDefAbs = rVariables.Internal.Variables[6];
-
-                  double ps;
-                  ps = rPlasticVolDef + rChis * rPlasticDevDef; 
-                  ps = (-rPs0) * std::exp( -rhos*ps);
-
-                  double pt;
-                  pt = rPlasticVolDefAbs + rChit * rPlasticDevDef; 
-                  pt = (-rPt0) * std::exp( rhot*pt);
-                  
-
-               }*/
-
                const ModelDataType & rModelData = rVariables.GetModelData();
                const Properties & rMaterialProperties = rModelData.GetProperties();
                const double & rhos = rMaterialProperties[RHOS];

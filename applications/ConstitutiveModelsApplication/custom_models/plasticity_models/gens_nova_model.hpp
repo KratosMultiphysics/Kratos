@@ -459,6 +459,8 @@ namespace Kratos
                const Properties & rMaterialProperties = rModelData.GetProperties();
                double rhos = rMaterialProperties[RHOS];
                double rhot = rMaterialProperties[RHOT];
+               double chis = rMaterialProperties[CHIS];
+               double chit = rMaterialProperties[CHIT];
                double k =  rMaterialProperties[KSIM];
                // evaluate constitutive matrix and plastic flow
                double & rPlasticVolDef = rVariables.Internal.Variables[1]; 
@@ -503,11 +505,12 @@ namespace Kratos
                      DevPlasticIncr += pow( DeltaGamma * DeltaStressYieldCondition(i) - VolPlasticIncr/3.0, 2.0);
                   for (unsigned int i = 3; i < 6; i++)
                      DevPlasticIncr += 2.0 * pow( DeltaGamma *  DeltaStressYieldCondition(i) /2.0 , 2.0);
-                  rPlasticDevDef += sqrt(DevPlasticIncr);
+                  DevPlasticIncr = DeltaGamma/fabs(DeltaGamma) * sqrt(DevPlasticIncr);
+                  rPlasticDevDef += DevPlasticIncr;
 
-
-                  double hs =  rhos * rPS * (VolPlasticIncr + 0.0);
-                  double ht = rhot * rPT * ( -fabs(VolPlasticIncr)  + 0.0);
+       
+                  double hs =  rhos * rPS * (VolPlasticIncr + chis * sqrt(2.0/3.0)* DevPlasticIncr);
+                  double ht = rhot * (-rPT) * ( fabs(VolPlasticIncr)  + chit*sqrt(2.0/3.0)*DevPlasticIncr);
                   rPS -= hs;
                   rPT -= ht;
 
@@ -521,7 +524,7 @@ namespace Kratos
                      return;
                   }
                }
-
+               std::cout << " theStressPointDidNotReturnedCorrectly " << YieldSurface << std::endl;
 
                KRATOS_CATCH("")
             }
