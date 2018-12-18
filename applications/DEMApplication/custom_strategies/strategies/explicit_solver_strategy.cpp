@@ -1362,13 +1362,12 @@ namespace Kratos {
 
         #pragma omp parallel
         {
-            DenseVector<int> mTempNeighboursIds;
-            std::vector<array_1d<double, 3> > mTempNeighbourElasticContactForces;
-            std::vector<array_1d<double, 3> > mTempNeighbourTotalContactForces;
+            DenseVector<int> temp_neighbours_ids;
+            std::vector<array_1d<double, 3> > temp_neighbour_elastic_contact_forces;
 
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(mTempNeighboursIds, mTempNeighbourElasticContactForces);
+                mListOfSphericParticles[i]->ComputeNewNeighboursHistoricalData(temp_neighbours_ids, temp_neighbour_elastic_contact_forces);
             }
         }
 

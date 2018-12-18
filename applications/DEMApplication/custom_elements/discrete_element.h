@@ -1,5 +1,5 @@
-//   
-//   Project Name:        Kratos       
+//
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: pooyan $
 //   Date:                $Date: 2006-11-27 16:07:33 $
 //   Revision:            $Revision: 1.1.1.1 $
@@ -14,10 +14,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 #include <cmath>
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/define.h"
@@ -56,27 +56,27 @@ namespace Kratos {
 
         virtual void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& r_process_info) override {
             if (rRightHandSideVector.size() != 0)
-                rRightHandSideVector.resize(0);
+                rRightHandSideVector.resize(0, false);
         }
 
         virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& r_process_info) override {
             if (rResult.size() != 0)
-                rResult.resize(0);
+                rResult.resize(0, false);
         }
 
         virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& r_process_info) override {
             if (rMassMatrix.size1() != 0)
-                rMassMatrix.resize(0, 0);
+                rMassMatrix.resize(0, 0, false);
         }
 
         virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& r_process_info) override {
             if (rDampingMatrix.size1() != 0)
-                rDampingMatrix.resize(0, 0);
+                rDampingMatrix.resize(0, 0, false);
         }
 
         virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) override {
             if (ElementalDofList.size() != 0)
-                ElementalDofList.resize(0);
+                ElementalDofList.resize(0, false);
         }
 
         using Element::InitializeSolutionStep;
@@ -111,9 +111,9 @@ namespace Kratos {
         virtual void load(Serializer& rSerializer) override {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
         }
-   
 
-    }; // Class DiscreteElement 
+
+    }; // Class DiscreteElement
 
 
     /// input stream function
@@ -134,4 +134,4 @@ namespace Kratos {
 
 } // namespace Kratos.
 
-#endif // KRATOS_DISCRETE_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_DISCRETE_ELEMENT_H_INCLUDED  defined

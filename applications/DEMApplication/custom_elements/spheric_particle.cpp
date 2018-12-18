@@ -382,41 +382,41 @@ void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& r_angul
     noalias(r_angular_momentum) = moment_of_inertia * ang_vel;
 }
 
-void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& mTempNeighboursIds,
-                                                         std::vector<array_1d<double, 3> >& mTempNeighbourElasticContactForces)
+void SphericParticle::ComputeNewNeighboursHistoricalData(DenseVector<int>& temp_neighbours_ids,
+                                                         std::vector<array_1d<double, 3> >& temp_neighbour_elastic_contact_forces)
 {
-    std::vector<array_1d<double, 3> > mTempNeighbourElasticExtraContactForces;
+    std::vector<array_1d<double, 3> > temp_neighbour_elastic_extra_contact_forces;
     unsigned int new_size = mNeighbourElements.size();
     array_1d<double, 3> vector_of_zeros = ZeroVector(3);
-    mTempNeighboursIds.resize(new_size);
-    mTempNeighbourElasticContactForces.resize(new_size);
-    mTempNeighbourElasticExtraContactForces.resize(new_size);
+    temp_neighbours_ids.resize(new_size, false);
+    temp_neighbour_elastic_contact_forces.resize(new_size);
+    temp_neighbour_elastic_extra_contact_forces.resize(new_size);
 
     DenseVector<int>& vector_of_ids_of_neighbours = GetValue(NEIGHBOUR_IDS);
 
     for (unsigned int i = 0; i < new_size; i++) {
-        noalias(mTempNeighbourElasticContactForces[i]) = vector_of_zeros;
-        noalias(mTempNeighbourElasticExtraContactForces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_elastic_contact_forces[i]) = vector_of_zeros;
+        noalias(temp_neighbour_elastic_extra_contact_forces[i]) = vector_of_zeros;
 
         if (mNeighbourElements[i] == NULL) { // This is required by the continuum sphere which reorders the neighbors
-            mTempNeighboursIds[i] = -1;
+            temp_neighbours_ids[i] = -1;
             continue;
         }
 
-        mTempNeighboursIds[i] = mNeighbourElements[i]->Id();
+        temp_neighbours_ids[i] = mNeighbourElements[i]->Id();
 
         for (unsigned int j = 0; j < vector_of_ids_of_neighbours.size(); j++) {
-            if (int(mTempNeighboursIds[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
-                noalias(mTempNeighbourElasticContactForces[i]) = mNeighbourElasticContactForces[j];
-                noalias(mTempNeighbourElasticExtraContactForces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
+            if (int(temp_neighbours_ids[i]) == vector_of_ids_of_neighbours[j] && vector_of_ids_of_neighbours[j] != -1) {
+                noalias(temp_neighbour_elastic_contact_forces[i]) = mNeighbourElasticContactForces[j];
+                noalias(temp_neighbour_elastic_extra_contact_forces[i]) = mNeighbourElasticExtraContactForces[j]; //TODO: remove this from discontinuum!!
                 break;
             }
         }
     }
 
-    vector_of_ids_of_neighbours.swap(mTempNeighboursIds);
-    mNeighbourElasticContactForces.swap(mTempNeighbourElasticContactForces);
-    mNeighbourElasticExtraContactForces.swap(mTempNeighbourElasticExtraContactForces);
+    vector_of_ids_of_neighbours.swap(temp_neighbours_ids);
+    mNeighbourElasticContactForces.swap(temp_neighbour_elastic_contact_forces);
+    mNeighbourElasticExtraContactForces.swap(temp_neighbour_elastic_extra_contact_forces);
 }
 
 void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()

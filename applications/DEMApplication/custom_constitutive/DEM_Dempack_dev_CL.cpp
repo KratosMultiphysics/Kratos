@@ -30,7 +30,7 @@ namespace Kratos {
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         unsigned int old_size = v.size();
-        v.resize(old_size + 1);
+        v.resize(old_size + 1, false);
         v[old_size]=a;
         return a;
     }

@@ -39,7 +39,7 @@ namespace Kratos {
         double a = 0.0;
         CalculateContactArea(radius, other_radius, a);
         unsigned int old_size = v.size();
-        v.resize(old_size + 1);
+        v.resize(old_size + 1, false);
         v[old_size] = a;
         return a;
     }
@@ -104,7 +104,7 @@ namespace Kratos {
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
-        
+
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
         double initial_dist = radius_sum - initial_delta;
