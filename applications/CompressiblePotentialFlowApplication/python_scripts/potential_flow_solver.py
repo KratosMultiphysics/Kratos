@@ -1,4 +1,5 @@
-from __future__ import print_function, absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+# makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -12,11 +13,12 @@ from KratosMultiphysics.python_solver import PythonSolver
 def CreateSolver(model, custom_settings):
     return LaplacianSolver(model, custom_settings)
 
+
 class LaplacianSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(LaplacianSolver, self).__init__(model, custom_settings)
         self.MoveMeshFlag = False
-        
+
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
