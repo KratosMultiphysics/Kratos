@@ -54,7 +54,7 @@ class ParticleMPMSolver(PythonSolver):
             "reform_dof_set_at_each_step"        : false,
             "line_search"                        : false,
             "implex"                             : false,
-            "compute_reactions"                  : true,
+            "compute_reactions"                  : false,
             "compute_contact_forces"             : false,
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
@@ -218,12 +218,12 @@ class ParticleMPMSolver(PythonSolver):
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
-                                self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
-                                self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs)
 
         # Set echo level
         self._set_echo_level()
