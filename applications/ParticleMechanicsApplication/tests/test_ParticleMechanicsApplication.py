@@ -1,6 +1,5 @@
 # import Kratos
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 import run_cpp_unit_tests
 
 # Import Kratos "wrapper" for unittests
