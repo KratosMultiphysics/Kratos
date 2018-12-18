@@ -4,13 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-<<<<<<< HEAD
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
-=======
-//  License:         BSD License
-//                     Kratos default license: kratos/license.txt
->>>>>>> 61091919f77070882f0af7fb46d2ef02aac47296
 //
 //  Main authors:    Aditya Ghantasala
 //
