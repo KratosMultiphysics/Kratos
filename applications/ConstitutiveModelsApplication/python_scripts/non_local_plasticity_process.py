@@ -25,9 +25,7 @@ class NonLocalPlasticityProcess(KratosMultiphysics.Process):
         {
             "echo_level"            : 1,
             "model_part_name"       : "Main_Domain",
-            "characteristic_length": 1.0,
-            "non_local_variables": ["DISPLACEMENT"],
-            "local_variables": ["DISPLACEMENT"]
+            "characteristic_length": 1.0
         }
         """)
 

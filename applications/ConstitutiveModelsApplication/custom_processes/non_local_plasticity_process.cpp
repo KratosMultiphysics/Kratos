@@ -34,8 +34,12 @@ namespace Kratos
          "echo_level": 1,
          "model_part_name": "Main_Domain",
          "characteristic_length": 0.0,
-         "local_variables": ["PLASTIC_VOL_DEF", "PLASTIC_DEV_DEF"],
-         "non_local_variables": ["NONLOCAL_PLASTIC_VOL_DEF"]
+         "local_variables": ["PLASTIC_VOL_DEF", 
+                             "PLASTIC_VOL_DEF_ABS", 
+                             "PLASTIC_DEV_DEF"],
+         "non_local_variables": ["NONLOCAL_PLASTIC_VOL_DEF",
+                                 "NONLOCAL_PLASTIC_VOL_DEF_ABS", 
+                                 "NONLOCAL_PLASTIC_DEV_DEF"]
       } )" );
 
 
@@ -46,27 +50,21 @@ namespace Kratos
          std::cout << "       using the default value for the characteristic length: DANGEROUS! " << std::endl;
       }
 
+      if ( rParameters["non_local_variables"].size() != rParameters["local_variables"].size() ) {
+         KRATOS_ERROR << " NonLocalPlasticityProcess :: the number of local and nonlocal variables is not correct " << std::endl;
+      }
 
-      //std::vector< std::string > var = rParameters["local_variables"];
+      for (unsigned int ii = 0; ii < rParameters["non_local_variables"].size(); ii++) {
+         const std::string & rLocalVariable = rParameters["local_variables"][ii].GetString();
+         const std::string & rNonLocalVariable = rParameters["non_local_variables"][ii].GetString();
 
-      std::vector< std::string> localVariables;
-      std::vector< std::string> nonlocalVariables;
+         const Variable<double> & rThisLocalVariable = KratosComponents< Variable<double> >::Get( rLocalVariable);
+         const Variable<double> & rThisNonLocalVariable = KratosComponents< Variable<double> >::Get( rNonLocalVariable);
 
-
-      localVariables.push_back("PLASTIC_VOL_DEF");
-      localVariables.push_back("PLASTIC_VOL_DEF_ABS");
-      localVariables.push_back("PLASTIC_DEV_DEF");
-
-      nonlocalVariables.push_back("NONLOCAL_PLASTIC_VOL_DEF");
-      nonlocalVariables.push_back("NONLOCAL_PLASTIC_VOL_DEF_ABS");
-      nonlocalVariables.push_back("NONLOCAL_PLASTIC_DEV_DEF");
-
-      for (unsigned int var = 0; var < nonlocalVariables.size() ; var++) {
-         const Variable<double> & rThisLocalVariable = KratosComponents< Variable<double> >::Get(localVariables[var]);
-         const Variable<double> & rThisNonLocalVariable = KratosComponents< Variable<double> >::Get(nonlocalVariables[var]);
          mLocalVariables.push_back( rThisLocalVariable );
          mNonLocalVariables.push_back( rThisNonLocalVariable );
       }
+
 
       if ( mLocalVariables.size() != mNonLocalVariables.size() ) {
          KRATOS_ERROR << " NonLocalPlasticityProcess :: the number of local and nonlocal variables is not correct " << std::endl;

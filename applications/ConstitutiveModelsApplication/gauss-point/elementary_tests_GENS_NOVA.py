@@ -124,7 +124,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF( self.detF )
         self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
 
         import numpy as np
@@ -181,7 +180,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
         stress = self.parameters.GetStressVector();
         self.strain = self.parameters.GetStrainVector();
         strain = self.ComputeStrainFromF(self.F)
@@ -265,7 +263,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
             stress = self.parameters.GetStressVector();
             self.strain = self.parameters.GetStrainVector();
             strain = self.ComputeStrainFromF(self.F)
@@ -337,7 +334,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF( self.detF )
         self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
 
         import numpy as np
@@ -394,7 +390,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
         stress = self.parameters.GetStressVector();
         self.strain = self.parameters.GetStrainVector();
         strain = self.ComputeStrainFromF(self.F)
@@ -483,7 +478,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
             stress = self.parameters.GetStressVector();
             self.strain = self.parameters.GetStrainVector();
             strain = self.ComputeStrainFromF(self.F)
@@ -533,7 +527,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF( self.detF )
         self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
 
         import numpy as np
@@ -590,7 +583,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
 
         self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-        self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
         stress = self.parameters.GetStressVector();
         self.strain = self.parameters.GetStrainVector();
         strain = self.ComputeStrainFromF(self.F)
@@ -604,7 +596,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         self.parameters.SetDeterminantF(self.detF)
         self.material_law.CalculateMaterialResponseKirchhoff(self.parameters)
         self.material_law.FinalizeMaterialResponseKirchhoff(self.parameters)
-        self.material_law.FinalizeSolutionStep(self.properties, self.geometry, self.N, self.model_part.ProcessInfo)
 
         import numpy as np 
         pp = 1.1*np.arange( nIncr)
@@ -626,7 +617,6 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
             self.parameters.SetDeterminantF( self.detF )
             self.material_law.CalculateMaterialResponseKirchhoff( self.parameters )
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, self.geometry, self.N, self.model_part.ProcessInfo )
 
             self.stress = self.parameters.GetStressVector()
             pp[step], qq[step] = self._calculate_invariants()

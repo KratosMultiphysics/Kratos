@@ -93,7 +93,7 @@ namespace Kratos
                Lode = 30.0*Globals::Pi / 180.0;
             }
             else {
-               Lode = std::asin( -Lode) / 3.0;
+               Lode = std::asin( -Lode) / 3.0 * (Globals::Pi / 180.0);
             }
 
             //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress <<
@@ -152,7 +152,7 @@ namespace Kratos
                C2(i) = 2.0*rStress(i);
 
             if ( J2 > 1E-5) {
-               C2 /= 2.0 * J2;
+               C2 /= (2.0 * J2);
             }
             else {
                C2 = ZeroVector(6);
