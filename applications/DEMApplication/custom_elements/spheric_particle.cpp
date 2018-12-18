@@ -175,9 +175,6 @@ void SphericParticle::Initialize(const ProcessInfo& r_process_info)
         CalculateLocalAngularMomentum(angular_momentum);
         noalias(node.GetSolutionStepValue(ANGULAR_MOMENTUM)) = angular_momentum;
 
-        array_1d<double, 3>& angular_velocity = node.GetSolutionStepValue(ANGULAR_VELOCITY);
-        angular_velocity = ZeroVector(3);
-
         array_1d<double, 3>& delta_rotation = node.GetSolutionStepValue(DELTA_ROTATION);
         delta_rotation = ZeroVector(3);
 
