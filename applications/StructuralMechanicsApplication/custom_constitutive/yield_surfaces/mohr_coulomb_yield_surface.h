@@ -120,9 +120,19 @@ public:
         ConstitutiveLaw::Parameters& rValues
         )
     {
+        double I1, J2, J3, lode_angle;
+        array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
 
+        ConstitutiveLawUtilities<VoigtSize>::CalculateI1Invariant(rPredictiveStressVector, I1);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(deviator, J3);
+        ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double friction_angle = r_material_properties[FRICTION_ANGLE];
 
+        rEquivalentStress = (std::cos(lode_angle) - std::sin(lode_angle) * std::sin(friction_angle) / std::sqrt(3.0)) * std::sqrt(J2) +
+            I1 * std::sin(friction_angle) / 3.0;
     }
 
     /**
@@ -135,7 +145,11 @@ public:
         double& rThreshold
         )
     {
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+        const double cohesion = r_material_properties[COHESION];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE];
 
+        rThreshold = cohesion * std::cos(friction_angle);
     }
 
     /**
