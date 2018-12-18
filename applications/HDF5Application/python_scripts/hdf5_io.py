@@ -20,6 +20,8 @@ class IOObject(metaclass=ABCMeta):
     @abstractmethod
     def Execute(self, model_part, hdf5_file): pass
 
+    def ExecutePostOutput(self, model_part, hdf5_file_name): pass
+
 
 class HDF5SerialFileFactory(FileFactory):
 
@@ -244,12 +246,20 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
         delta_time = self._model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         self._output_time += delta_time
         self._output_step += 1
+
         if self._output_time >= self._output_time_frequency or self._output_step == self._output_step_frequency:
             hdf5_file = self._hdf5_file_factory.Open(self._get_current_file_name())
             for output in self._list_of_outputs:
                 output.Execute(self._model_part, hdf5_file)
             self._output_time = 0.0
             self._output_step = 0
+
+            del hdf5_file # force closing of file
+
+        if self._output_step == 0: # this is an output step
+            for output in self._list_of_outputs:
+                output.ExecutePostOutput(self._model_part, self._get_current_file_name())
+
 
     def _get_current_file_name(self):
         fmt = "{:." + str(self._time_tag_precision) + "f}"
