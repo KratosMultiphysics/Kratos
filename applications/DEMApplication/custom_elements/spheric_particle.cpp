@@ -955,6 +955,8 @@ void SphericParticle::ComputeBallToRigidFaceContactForce(SphericParticle::Partic
             DeltVel[1] = velocity[1] - wall_velocity_at_contact_point[1];
             DeltVel[2] = velocity[2] - wall_velocity_at_contact_point[2];
 
+            //123
+
             // For translation movement delta displacement
             const array_1d<double, 3>& delta_displ  = this->GetGeometry()[0].FastGetSolutionStepValue(DELTA_DISPLACEMENT);
             DeltDisp[0] = delta_displ[0] - wall_delta_disp_at_contact_point[0];
