@@ -208,8 +208,8 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetValueOnIntegrationPoi
         rValues[0] = this->GetValue(TRAILING_EDGE);
     else if (rVariable == KUTTA)
         rValues[0] = this->GetValue(KUTTA);
-    else if (rVariable == ALL_TRAILING_EDGE)
-        rValues[0] = this->GetValue(ALL_TRAILING_EDGE);
+    else if (rVariable == WAKE)
+        rValues[0] = this->GetValue(WAKE);
     else if (rVariable == ZERO_VELOCITY_CONDITION)
         rValues[0] = this->GetValue(ZERO_VELOCITY_CONDITION);
     else if (rVariable == TRAILING_EDGE_ELEMENT)
