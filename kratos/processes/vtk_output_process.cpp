@@ -526,7 +526,7 @@ void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &rModelPart
         else if (numberOfNodes == 1)
             element_type = 1;
         else
-            KRATOS_THROW_ERROR(std::runtime_error, "Modelpart contains conditions with geometries for which no VTK-output is implemented!", "")
+            KRATOS_ERROR << "Modelpart contains conditions with geometries for which no VTK-output is implemented!" << std::endl;
 
         ForceBigEndian((unsigned char *)&element_type);
         outputFile.write((char *)(&element_type), sizeof(int));
