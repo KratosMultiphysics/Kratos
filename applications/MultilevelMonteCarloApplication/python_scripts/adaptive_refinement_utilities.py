@@ -13,8 +13,14 @@ try:
 except ImportError:
     import pickle
 
+<<<<<<< HEAD
 '''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
 def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,serialized_parameters_coarse):
+=======
+
+'''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
+def compute_refinement_from_analysisstage_object(simulation_coarse,minimal_size_value,maximal_size_value):
+>>>>>>> 154aa88215... Update serializer and pickle and working adaptive remeshing algorithm
 
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "refinement started")
     '''calculate NODAL_H'''
@@ -32,7 +38,11 @@ def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,s
             "enforce_current"                   : false,
             "anisotropy_remeshing"              : true,
             "anisotropy_parameters":{
+<<<<<<< HEAD
                 "reference_variable_name"          : "DISTANCE",
+=======
+                "reference_variable_name"          : "TEMPERATURE",
+>>>>>>> 154aa88215... Update serializer and pickle and working adaptive remeshing algorithm
                 "hmin_over_hmax_anisotropic_ratio" : 0.15,
                 "boundary_layer_max_distance"      : 1.0,
                 "interpolation"                    : "Linear"
@@ -54,6 +64,7 @@ def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,s
 
     '''the refinement process empties the coarse model part object and fill it with the refined model part
     the solution on the refined grid is obtained from the interpolation of the coarse solution
+<<<<<<< HEAD
     there are not other operations, so to build the new model serialized we just need to change the model part of the coarse model serialized'''
 
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "start saving refined model and parameters")
@@ -62,11 +73,109 @@ def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,s
     serialized_model_refined = KratosMultiphysics.StreamSerializer()
     current_model_refined = simulation_coarse.model
     
+=======
+    there are not other operations, so to build the new model we just need to take the updated coarse model'''
+
+    simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "start saving refined model and parameters")
+
+    current_model_refined = simulation_coarse.model
+
+    return current_model_refined
+
+
+'''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
+def compute_refinement(serialized_model_coarse,minimal_size_value,maximal_size_value,serialized_parameters_coarse,name_model_part):
+
+    #pickle dataserialized_data
+    pickled_data = pickle.dumps(serialized_model_coarse, 2) #second argument is the protocol and is NECESSARY (according to pybind11 docs)
+    #overwrite the old serializer with the unpickled one
+    serialized_model_coarse = pickle.loads(pickled_data)
+    current_model = KratosMultiphysics.Model()
+    serialized_model_coarse.Load("ModelSerialization",current_model)
+    del(serialized_model_coarse)
+
+    '''serialize model refined'''
+    serialized_model_refined = KratosMultiphysics.StreamSerializer()
+    serialized_model_refined.Save("ModelSerialization",current_model)
+
+    '''calculate NODAL_H'''
+    find_nodal_h = KratosMultiphysics.FindNodalHProcess(current_model.GetModelPart(name_model_part))
+    # find_nodal_h.Execute()
+
+    '''calculate the gradient of the distance variable'''
+    metric_param = KratosMultiphysics.Parameters(
+        """{
+            "hessian_strategy_parameters"              :{
+                    "estimate_interpolation_error"     : false,
+                    "interpolation_error"              : 0.004,
+                    "mesh_dependent_constant"          : 0.28125
+            },
+            "enforce_current"                   : false,
+            "anisotropy_remeshing"              : true,
+            "anisotropy_parameters":{
+                "reference_variable_name"          : "TEMPERATURE",
+                "hmin_over_hmax_anisotropic_ratio" : 0.15,
+                "boundary_layer_max_distance"      : 1.0,
+                "interpolation"                    : "Linear"
+            }
+        }"""
+        )
+    metric_param.AddEmptyValue("minimal_size")
+    metric_param["minimal_size"].SetDouble(minimal_size_value)
+    metric_param.AddEmptyValue("maximal_size")
+    metric_param["maximal_size"].SetDouble(maximal_size_value)
+
+    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess2D(current_model.GetModelPart(name_model_part), KratosMultiphysics.TEMPERATURE, metric_param)
+    # local_gradient.Execute()
+
+    '''create the remeshing process'''
+    remesh_param = KratosMultiphysics.Parameters("""{ }""")
+    MmgProcess = MeshingApplication.MmgProcess2D(current_model.GetModelPart(name_model_part), remesh_param)
+    # MmgProcess.Execute()
+
+    # Finally we export to GiD
+    from gid_output_process import GiDOutputProcess
+    gid_output = GiDOutputProcess(current_model.GetModelPart(name_model_part),
+                                "gid_output",
+                                KratosMultiphysics.Parameters("""
+                                    {
+                                        "result_file_configuration" : {
+                                            "gidpost_flags": {
+                                                "GiDPostMode": "GiD_PostBinary",
+                                                "WriteDeformedMeshFlag": "WriteUndeformed",
+                                                "WriteConditionsFlag": "WriteConditions",
+                                                "MultiFileFlag": "SingleFile"
+                                            },        
+                                            "nodal_results"       : ["TEMPERATURE","NODAL_H"]
+                                        }
+                                    }
+                                    """)
+                                )
+
+    gid_output.ExecuteInitialize()
+    gid_output.ExecuteBeforeSolutionLoop()
+    gid_output.ExecuteInitializeSolutionStep()
+    gid_output.PrintOutput()
+    gid_output.ExecuteFinalizeSolutionStep()
+    gid_output.ExecuteFinalize()
+
+    print(current_model.GetModelPart(name_model_part))
+
+    for prop in current_model.GetModelPart(name_model_part).Properties:
+        print(prop.GetValue(KratosMultiphysics.CONDUCTIVITY))
+
+
+    '''the refinement process empties the coarse model part object and fill it with the refined model part
+    the solution on the refined grid is obtained from the interpolation of the coarse solution
+    there are not other operations, so to build the new model serialized we just need to change the model part of the coarse model serialized'''
+
+>>>>>>> 154aa88215... Update serializer and pickle and working adaptive remeshing algorithm
     '''try to reset the process info, GetPreviousSolutionStepInfo seems to allow to write again a gid file'''
     # current_model_refined.GetModelPart("MLMCLaplacianModelPart").ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0)
     # current_model_refined.GetModelPart("MLMCLaplacianModelPart").ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
     # current_model_refined.GetModelPart("MLMCLaplacianModelPart").ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
     # current_model_refined.GetModelPart("MLMCLaplacianModelPart").ProcessInfo.SetValue(KratosMultiphysics.PRINTED_STEP, 0)
+<<<<<<< HEAD
     current_model_refined.GetModelPart("MLMCLaplacianModelPart").ProcessInfo.GetPreviousSolutionStepInfo()
     '''serialize model refined'''
     serialized_model_refined.Save("ModelSerialization",current_model_refined)
@@ -78,6 +187,17 @@ def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,s
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "refinement ended")
     del(simulation_coarse)
 
+=======
+    # current_model.GetModelPart(name_model_part).ProcessInfo.GetPreviousSolutionStepInfo()
+
+    '''serialize model refined'''
+    serialized_model_refined = KratosMultiphysics.StreamSerializer()
+    serialized_model_refined.Save("ModelSerialization",current_model)
+
+    # '''build serializer refined parameters'''
+    serialized_parameters_refined = serialized_parameters_coarse # check there is no reference (apparently not)
+
+>>>>>>> 154aa88215... Update serializer and pickle and working adaptive remeshing algorithm
     '''exploiting this second way I add manually the nodes, elements, etc, the problem is I am not able to load automatically the SubModelParts'''
     # current_model_refined = KratosMultiphysics.Model()
     # serialized_model_coarse.Load("ModelSerialization",current_model_refined)
@@ -94,4 +214,8 @@ def compute_refinement(simulation_coarse,minimal_size_value,maximal_size_value,s
     # '''here I should do the same for all the sub model parts'''    
     # ...
 
+<<<<<<< HEAD
     return serialized_model_refined,serialized_parameters_refined
+=======
+    return serialized_model_refined,serialized_parameters_refined
+>>>>>>> 154aa88215... Update serializer and pickle and working adaptive remeshing algorithm
