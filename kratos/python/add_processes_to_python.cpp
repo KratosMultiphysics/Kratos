@@ -52,6 +52,7 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "includes/node.h"
+#include "processes/skin_detection_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -168,6 +169,7 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
     class_<VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, VariationalDistanceCalculationProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"VariationalDistanceCalculationProcess3D")
             .def(init<ModelPart&, LinearSolverType::Pointer, unsigned int>())
+            .def("SetEchoLevel", &VariationalDistanceCalculationProcess<3, SparseSpaceType, LocalSpaceType, LinearSolverType >::SetEchoLevel)
     ;
 
     class_<LevelSetConvectionProcess<2>, LevelSetConvectionProcess<2>::Pointer, Process>(m,"LevelSetConvectionProcess2D")
@@ -179,6 +181,7 @@ void  AddProcessesToPython(pybind11::module& m)
             .def(init<Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double>())
             .def(init< Variable<double>& , ModelPart& , LinearSolverType::Pointer ,double, double>())
 			.def(init< Variable<double>&, ModelPart&, LinearSolverType::Pointer, double, double,int>())
+            .def("SetEchoLevel",&LevelSetConvectionProcess<3>::SetEchoLevel)
     ;
 
     class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
@@ -525,6 +528,17 @@ void  AddProcessesToPython(pybind11::module& m)
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
     FastTransferBetweenModelPartsProcess_Scope.def(init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
     FastTransferBetweenModelPartsProcess_Scope.def("Execute",&FastTransferBetweenModelPartsProcess::Execute);
+ 
+    
+    // Adding Skin Detection Process
+    class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters& >())
+        ;
+    class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
+        .def(init<ModelPart&>())
+        .def(init<ModelPart&, Parameters& >())
+        ;
 
     // Adding FastTransferBetweenModelPartsProcess related enums
     enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")

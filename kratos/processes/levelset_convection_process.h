@@ -156,6 +156,7 @@ public:
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
+        mEchoLevel = 1;
 
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<SparseSpaceType,LocalSpaceType,LinearSolverType>(plinear_solver) );
         mp_solving_strategy = typename SolvingStrategyType::Pointer( new ResidualBasedLinearStrategy<SparseSpaceType,LocalSpaceType,LinearSolverType >(*mp_distance_model_part,pscheme,plinear_solver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
@@ -222,7 +223,8 @@ public:
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
         for(unsigned int step = 1; step<=nsubstep; step++)
         {
-            std::cout << "doing step "<< step << " of " << nsubstep << std::endl;
+            if (mEchoLevel > 0)
+                std::cout << "doing step "<< step << " of " << nsubstep << std::endl;
             //compute shape functions of old and new step
             double Nold = 1.0-static_cast<double>(step)/static_cast<double>(nsubstep);
             double Nnew = 1.0-Nold;
@@ -288,6 +290,10 @@ public:
     ///@name Access
     ///@{
 
+    void SetEchoLevel(int Level)
+    {
+        mEchoLevel = Level;
+    }
 
     ///@}
     ///@name Inquiry
@@ -341,6 +347,7 @@ protected:
     unsigned int mmax_iterations;
     ModelPart::Pointer mp_distance_model_part;
 	int mMaxSubsteps;
+    int mEchoLevel;
 
     std::vector< double > mold_dist;
     std::vector< array_1d<double,3> > mv, mvold;

@@ -84,8 +84,10 @@ public:
 			const TValueType Zero):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlagVariable(rVariable),
-	mZero(Zero)
+	mrFlagVariable(&rVariable),
+	mZero(Zero),
+    mUseFlag(false),
+    mpFlag(NULL)
 	{}
 
 	/// Constructor.
@@ -98,9 +100,24 @@ public:
 			const Variable<TValueType> &rVariable):
 	mDomainSize(DomainSize),
 	mBlockSize(NumRowsPerNode),
-	mrFlagVariable(rVariable),
-	mZero(TValueType())
+	mrFlagVariable(&rVariable),
+	mZero(TValueType()),
+    mUseFlag(false),
+    mpFlag(NULL)
 	{}
+
+    CoordinateTransformationUtils(const unsigned int DomainSize,
+                                  const unsigned int NumRowsPerNode,
+                                  const Flags &rFlag) :
+        mDomainSize(DomainSize),
+        mBlockSize(NumRowsPerNode),
+        mrFlagVariable(NULL),
+        mZero(TValueType()),
+        mUseFlag(true),
+        mpFlag(&rFlag)
+    {
+        KRATOS_WATCH("Using FLAG!!!!!")
+    }
 
 	/// Destructor.
 	virtual ~CoordinateTransformationUtils() {}
@@ -721,7 +738,7 @@ protected:
 
 	bool IsSlip(const Node<3>& rNode) const
 	{
-		return rNode.FastGetSolutionStepValue(mrFlagVariable) != mZero;
+		return ( mUseFlag ? rNode.Is(*mpFlag) : rNode.FastGetSolutionStepValue(*mrFlagVariable) != mZero);
 	}
 
 	/// Normalize a vector.
@@ -775,15 +792,20 @@ private:
 
 	/// Number of spatial dimensions
 	const unsigned int mDomainSize;
+	const unsigned int mBlockSize;
+	const Variable<TValueType>* mrFlagVariable;
+	const TValueType mZero;
+    const bool mUseFlag;
+    const Flags* mpFlag;
 
 	/// Number of matrix or vector rows associated to each node.
 	/** @note Velocity Dofs are assumed to be the first mDomainSize rows.
 	 */
-	const unsigned int mBlockSize;
+	
 
-	const Variable<TValueType>& mrFlagVariable;
+	
 
-	const TValueType mZero;
+	
 
 	///@}
 	///@name Private Operators

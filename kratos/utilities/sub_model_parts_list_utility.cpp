@@ -247,11 +247,11 @@ void SubModelPartsListUtility::IntersectColors(
     std::unordered_map<std::vector<std::string>, int, KeyHasherRange<std::vector<std::string>>, KeyComparorRange<std::vector<std::string>>> aux_colors;
 
     // Generate the intersections map
-    for (SizeType i = 0; i < rColors.size(); i++)
+    for (int i = 0; i < (int)rColors.size(); i++)
     {
-        for (SizeType j = i; j < rColors.size(); j++)
+        for (int j = i; j < (int)rColors.size(); j++)
         {
-            std::pair<int,int> intersection_key = {i,j};
+            std::pair<int,int> intersection_key = {i, j};
             if (i==0)
             {
                 rIntersections[intersection_key] = 0;

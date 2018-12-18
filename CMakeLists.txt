@@ -380,6 +380,14 @@ if(DEFINED ENV{KRATOS_INT_APP})
     endforeach(APPLICATION_PATH $ENV{KRATOS_INT_APP})
 endif(DEFINED ENV{KRATOS_INT_APP})
 
+# Add kratos applications by directory (Kratos apps, located in ./applications)
+message("-- This kratos applications will be compiled:")
+if(DEFINED KRATOS_INT_APP)
+    foreach(APPLICATION_PATH ${KRATOS_INT_APP})
+        message("\t${APPLICATION_PATH}")
+    endforeach(APPLICATION_PATH ${KRATOS_INT_APP})
+endif(DEFINED KRATOS_INT_APP)
+
 # Add external applications by directory (Thrid party apps, located elsewhere)
 message("-- This external applications will be compiled:")
 if(DEFINED ENV{KRATOS_EXT_APP})
@@ -388,6 +396,15 @@ if(DEFINED ENV{KRATOS_EXT_APP})
         message("\t${APPLICATION_NAME}")
     endforeach(APPLICATION_PATH $ENV{KRATOS_EXT_APP})
 endif(DEFINED ENV{KRATOS_EXT_APP})
+
+# Add external applications by directory (Thrid party apps, located elsewhere)
+message("-- This external applications will be compiled:")
+if(DEFINED KRATOS_EXT_APP)
+    foreach(APPLICATION_PATH ${KRATOS_EXT_APP})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        message("\t${APPLICATION_NAME}")
+    endforeach(APPLICATION_PATH ${KRATOS_EXT_APP})
+endif(DEFINED KRATOS_EXT_APP)
 
 # Configure kratos applications
 message("-- Configuring kratos applications:")
@@ -398,6 +415,14 @@ if(DEFINED ENV{KRATOS_INT_APP})
 endif(DEFINED ENV{KRATOS_INT_APP})
 
 # Configure kratos applications
+message("-- Configuring kratos applications:")
+if(DEFINED KRATOS_INT_APP)
+    foreach(APPLICATION_PATH ${KRATOS_INT_APP})
+        add_subdirectory(applications/${APPLICATION_PATH})
+    endforeach(APPLICATION_PATH ${KRATOS_INT_APP})
+endif(DEFINED KRATOS_INT_APP)
+
+# Configure kratos applications
 message("-- Configuring external applications:")
 if(DEFINED ENV{KRATOS_EXT_APP})
     foreach(APPLICATION_PATH $ENV{KRATOS_EXT_APP})
@@ -405,6 +430,15 @@ if(DEFINED ENV{KRATOS_EXT_APP})
         add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
     endforeach(APPLICATION_PATH $ENV{KRATOS_EXT_APP})
 endif(DEFINED ENV{KRATOS_EXT_APP})
+
+# Configure kratos applications
+message("-- Configuring external applications:")
+if(DEFINED KRATOS_EXT_APP)
+    foreach(APPLICATION_PATH ${KRATOS_EXT_APP})
+        get_filename_component(APPLICATION_NAME ${APPLICATION_PATH} NAME)
+        add_subdirectory(${APPLICATION_PATH} ${CMAKE_CURRENT_BINARY_DIR}/applications/${APPLICATION_NAME})
+    endforeach(APPLICATION_PATH ${KRATOS_EXT_APP})
+endif(DEFINED KRATOS_EXT_APP)
 
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )

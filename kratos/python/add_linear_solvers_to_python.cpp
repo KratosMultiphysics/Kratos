@@ -31,7 +31,7 @@
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
-#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
+//#include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "linear_solvers/scaling_solver.h"
 #include "linear_solvers/mixedup_linear_solver.h"
 
@@ -79,7 +79,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef TLocalSpaceType<std::complex<double>> ComplexDenseSpaceType;
     typedef TLinearSolverType<std::complex<double>> ComplexLinearSolverType;
     typedef TDirectSolverType<std::complex<double>> ComplexDirectSolverType;
-    typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
+    //typedef SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType> ComplexSkylineLUSolverType;
 
     bool (LinearSolverType::*pointer_to_solve)(LinearSolverType::SparseMatrixType& rA, LinearSolverType::VectorType& rX, LinearSolverType::VectorType& rB) = &LinearSolverType::Solve;
     void (LinearSolverType::*pointer_to_solve_eigen)(LinearSolverType::SparseMatrixType& rK, LinearSolverType::SparseMatrixType& rM,LinearSolverType::DenseVectorType& Eigenvalues, LinearSolverType::DenseMatrixType& Eigenvectors) = &LinearSolverType::Solve;
@@ -214,11 +214,11 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def("__repr__", &SkylineLUFactorizationSolverType::Info )
     ;
 
-    class_<ComplexSkylineLUSolverType, typename ComplexSkylineLUSolverType::Pointer, ComplexDirectSolverType>(m,"ComplexSkylineLUSolver")
-    .def(init< >())
-    .def(init<Parameters&>())
-    .def("__repr__", &ComplexSkylineLUSolverType::Info )
-    ;
+    //class_<ComplexSkylineLUSolverType, typename ComplexSkylineLUSolverType::Pointer, ComplexDirectSolverType>(m,"ComplexSkylineLUSolver")
+    //.def(init< >())
+    //.def(init<Parameters&>())
+    //.def("__repr__", &ComplexSkylineLUSolverType::Info )
+    //;
 
     class_<DeflatedCGSolverType, DeflatedCGSolverType::Pointer,IterativeSolverType>(m,"DeflatedCGSolver")
     .def(init<double,bool,int>())

@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014-2015, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,18 +35,15 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-#include <boost/multi_array.hpp>
-#include <boost/function.hpp>
+#include <memory>
+#include <functional>
 
 #include <mpi.h>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/adapter/crs_tuple.hpp>
 #include <amgcl/mpi/util.hpp>
-#include <amgcl/mpi/skyline_lu.hpp>
+#include <amgcl/mpi/direct_solver/skyline_lu.hpp>
 #include <amgcl/mpi/inner_product.hpp>
 #include <amgcl/mpi/distributed_matrix.hpp>
 
@@ -111,7 +108,7 @@ sdd_projected_matrix<SDD, Matrix> make_sdd_projected_matrix(const SDD &S, const 
 template <
     class LocalPrecond,
     template <class, class> class IterativeSolver,
-    class DirectSolver = mpi::skyline_lu<typename LocalPrecond::backend_type::value_type>
+    class DirectSolver = mpi::direct::skyline_lu<typename LocalPrecond::backend_type::value_type>
     >
 class subdomain_deflation {
     public:
@@ -128,10 +125,11 @@ class subdomain_deflation {
             unsigned num_def_vec;
 
             // Value of deflation vector at the given row and column.
-            boost::function<double(ptrdiff_t, unsigned)> def_vec;
+            std::function<double(ptrdiff_t, unsigned)> def_vec;
 
             params() {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, local),
                   AMGCL_PARAMS_IMPORT_CHILD(p, isolver),
@@ -145,9 +143,9 @@ class subdomain_deflation {
                         "Error in subdomain_deflation parameters: "
                         "def_vec is not set");
 
-                def_vec = *static_cast<boost::function<double(ptrdiff_t, unsigned)>*>(ptr);
+                def_vec = *static_cast<std::function<double(ptrdiff_t, unsigned)>*>(ptr);
 
-                AMGCL_PARAMS_CHECK(p, (local)(isolver)(dsolver)(num_def_vec)(def_vec));
+                check_params(p, {"local", "isolver", "dsolver", "num_def_vec", "def_vec"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path) const {
@@ -156,6 +154,7 @@ class subdomain_deflation {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, dsolver);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, num_def_vec);
             }
+#endif
         };
 
         typedef typename backend_type::value_type value_type;
@@ -166,26 +165,48 @@ class subdomain_deflation {
 
         template <class Matrix>
         subdomain_deflation(
-                MPI_Comm mpi_comm,
+                communicator comm,
                 const Matrix &Astrip,
                 const params &prm = params(),
                 const backend_params &bprm = backend_params()
                 )
-        : comm(mpi_comm),
+        : comm(comm),
           nrows(backend::rows(Astrip)), ndv(prm.num_def_vec),
           dtype( datatype<value_type>() ), dv_start(comm.size + 1, 0),
-          Z( ndv ), master_rank(0),
-          q( backend_type::create_vector(nrows, bprm) ),
-          S(nrows, prm.isolver, bprm, mpi::inner_product(mpi_comm))
+          Z( ndv ), q( backend_type::create_vector(nrows, bprm) ),
+          S(nrows, prm.isolver, bprm, mpi::inner_product(comm))
+        {
+            A = std::make_shared<matrix>(comm, Astrip, nrows);
+            init(prm, bprm);
+        }
+
+        subdomain_deflation(
+                communicator comm,
+                std::shared_ptr<matrix> A,
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                )
+        : comm(comm),
+          nrows(A->loc_rows()), ndv(prm.num_def_vec),
+          dtype( datatype<value_type>() ), A(A), dv_start(comm.size + 1, 0),
+          Z( ndv ), q( backend_type::create_vector(nrows, bprm) ),
+          S(nrows, prm.isolver, bprm, mpi::inner_product(comm))
+        {
+            init(prm, bprm);
+        }
+
+        void init(
+                const params &prm = params(),
+                const backend_params &bprm = backend_params()
+                )
         {
             AMGCL_TIC("setup deflation");
             typedef backend::crs<value_type, ptrdiff_t>                build_matrix;
-            typedef typename backend::row_iterator<Matrix>::type       row_iterator1;
-            typedef typename backend::row_iterator<build_matrix>::type row_iterator2;
 
             // Lets see how many deflation vectors are there.
             std::vector<ptrdiff_t> dv_size(comm.size);
             MPI_Allgather(&ndv, 1, datatype<ptrdiff_t>(), &dv_size[0], 1, datatype<ptrdiff_t>(), comm);
+
             std::partial_sum(dv_size.begin(), dv_size.end(), dv_start.begin() + 1);
             nz = dv_start.back();
 
@@ -193,15 +214,13 @@ class subdomain_deflation {
             dx.resize(ndv);
             dd = backend_type::create_vector(ndv, bprm);
 
-            std::shared_ptr<build_matrix> a_loc  = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> a_rem  = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> az_loc = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> az_rem = std::make_shared<build_matrix>();
+            auto az_loc = std::make_shared<build_matrix>();
+            auto az_rem = std::make_shared<build_matrix>();
 
-            // Get sizes of each domain in comm.
-            std::vector<ptrdiff_t> domain = mpi::exclusive_sum(comm, nrows);
-            ptrdiff_t loc_beg = domain[comm.rank];
-            ptrdiff_t loc_end = domain[comm.rank + 1];
+            auto a_loc = A->local();
+            auto a_rem = A->remote();
+
+            const comm_pattern<backend_type> &Acp = A->cpat();
 
             // Fill deflation vectors.
             AMGCL_TIC("copy deflation vectors");
@@ -217,128 +236,65 @@ class subdomain_deflation {
             AMGCL_TOC("copy deflation vectors");
 
             AMGCL_TIC("first pass");
-            // First pass over Astrip rows:
-            // 1. Count local and remote nonzeros
-            a_loc->set_size(nrows, nrows, true);
             az_loc->set_size(nrows, ndv, true);
-            // ncols for remote parts are not known at this point,
-            // will update later:
-            a_rem->set_size(nrows, 0, true);
+            az_loc->set_nonzeros(nrows * dv_size[comm.rank]);
             az_rem->set_size(nrows, 0, true);
-
+            // 1. Build local part of AZ matrix.
+            // 2. Count remote nonzeros
 #pragma omp parallel
             {
-                std::vector<ptrdiff_t> marker(nz, -1);
+                std::vector<ptrdiff_t> marker(Acp.recv.nbr.size(), -1);
 
 #pragma omp for
                 for(ptrdiff_t i = 0; i < nrows; ++i) {
-                    for(row_iterator1 a = backend::row_begin(Astrip, i); a; ++a) {
-                        ptrdiff_t c = a.col();
+                    ptrdiff_t az_loc_head = i * ndv;
+                    az_loc->ptr[i+1] = az_loc_head + ndv;
 
-#ifdef AMGCL_SANITY_CHECK
-                        precondition(comm, c >= 0 && c < domain.back(), "Column number is out of bounds");
-#endif
+                    for(ptrdiff_t j = 0; j < ndv; ++j) {
+                        az_loc->col[az_loc_head + j] = j;
+                        az_loc->val[az_loc_head + j] = math::zero<value_type>();
+                    }
 
-                        ptrdiff_t d = comm.rank; // domain the column belongs to
-                        bool local = (loc_beg <= c && c < loc_end);
+                    for(ptrdiff_t j = a_loc->ptr[i], e = a_loc->ptr[i+1]; j < e; ++j) {
+                        ptrdiff_t  c = a_loc->col[j];
+                        value_type v = a_loc->val[j];
 
-                        if (local) {
-                            ++a_loc->ptr[i+1];
-                        } else {
-                            ++a_rem->ptr[i+1];
-                            d = std::upper_bound(domain.begin(), domain.end(), c) - domain.begin() - 1;
-                        }
+                        for(ptrdiff_t j = 0; j < ndv; ++j)
+                            az_loc->val[az_loc_head + j] += v * prm.def_vec(c, j);
+                    }
+
+                    for(ptrdiff_t j = a_rem->ptr[i], e = a_rem->ptr[i+1]; j < e; ++j) {
+                        int d = Acp.domain(a_rem->col[j]);
 
                         if (marker[d] != i) {
                             marker[d] = i;
-
-                            if (local)
-                                az_loc->ptr[i+1] += dv_size[d];
-                            else
-                                az_rem->ptr[i+1] += dv_size[d];
+                            az_rem->ptr[i+1] += dv_size[d];
                         }
                     }
                 }
             }
+            az_rem->set_nonzeros(az_rem->scan_row_sizes());
             AMGCL_TOC("first pass");
 
-            AMGCL_TIC("second pass");
-            // Second pass over Astrip rows:
-            // 1. Build local and remote matrix parts.
-            // 2. Build local part of AZ matrix.
-            std::partial_sum(a_loc->ptr, a_loc->ptr + nrows + 1, a_loc->ptr);
-            std::partial_sum(a_rem->ptr, a_rem->ptr + nrows + 1, a_rem->ptr);
-            std::partial_sum(az_loc->ptr, az_loc->ptr + nrows + 1, az_loc->ptr);
-            std::partial_sum(az_rem->ptr, az_rem->ptr + nrows + 1, az_rem->ptr);
-
-            a_loc->set_nonzeros(a_loc->ptr[nrows]);
-            a_rem->set_nonzeros(a_rem->ptr[nrows]);
-            az_loc->set_nonzeros(az_loc->ptr[nrows]);
-            az_rem->set_nonzeros(az_rem->ptr[nrows]);
-
-#pragma omp parallel
-            {
-                std::vector<ptrdiff_t> marker(ndv, -1);
-
-#pragma omp for
-                for(ptrdiff_t i = 0; i < nrows; ++i) {
-                    ptrdiff_t a_loc_head = a_loc->ptr[i];
-                    ptrdiff_t a_rem_head = a_rem->ptr[i];
-
-                    ptrdiff_t az_loc_head = az_loc->ptr[i];
-                    ptrdiff_t az_loc_tail = az_loc_head;
-
-                    for(row_iterator1 a = backend::row_begin(Astrip, i); a; ++a) {
-                        ptrdiff_t  c = a.col();
-                        value_type v = a.value();
-
-                        if (loc_beg <= c && c < loc_end) {
-                            ptrdiff_t loc_c = c - loc_beg;
-                            a_loc->col[a_loc_head] = loc_c;
-                            a_loc->val[a_loc_head] = v;
-                            ++a_loc_head;
-
-                            for(ptrdiff_t j = 0; j < ndv; ++j) {
-                                if (marker[j] < az_loc_head) {
-                                    marker[j] = az_loc_tail;
-                                    assert(static_cast<unsigned int>(az_loc_tail) < az_loc->nnz);
-                                    az_loc->col[az_loc_tail] = j;
-                                    az_loc->val[az_loc_tail] = v * prm.def_vec(loc_c, j);
-                                    ++az_loc_tail;
-                                } else {
-                                    az_loc->val[marker[j]] += v * prm.def_vec(loc_c, j);
-                                }
-                            }
-                        } else {
-                            a_rem->col[a_rem_head] = c;
-                            a_rem->val[a_rem_head] = v;
-                            ++a_rem_head;
-                        }
-                    }
-                }
-            }
-            AMGCL_TOC("second pass");
-
             // Create local preconditioner.
+            AMGCL_TIC("local preconditioner");
             P = std::make_shared<LocalPrecond>( *a_loc, prm.local, bprm );
+            AMGCL_TOC("local preconditioner");
 
-            // Analyze communication pattern for A, create distributed matrix.
-            Acp = std::make_shared< comm_pattern<backend_type> >(comm, nrows, a_rem->nnz, a_rem->col, bprm);
-            a_rem->ncols = Acp->renumber(a_rem->nnz, a_rem->col);
-            Arem = backend_type::copy_matrix(a_rem, bprm);
-            A = std::make_shared<matrix>(*Acp, P->system_matrix(), *Arem);
+            A->set_local(P->system_matrix_ptr());
+            A->move_to_backend(bprm);
 
             AMGCL_TIC("remote(A*Z)");
             /* Construct remote part of AZ */
             // Exchange deflation vectors
-            std::vector<ptrdiff_t> zrecv_ptr(Acp->recv.nbr.size() + 1, 0);
+            std::vector<ptrdiff_t> zrecv_ptr(Acp.recv.nbr.size() + 1, 0);
             std::vector<ptrdiff_t> zcol_ptr;
-            zcol_ptr.reserve(Acp->recv.val.size() + 1);
+            zcol_ptr.reserve(Acp.recv.count() + 1);
             zcol_ptr.push_back(0);
 
-            for(size_t i = 0; i < Acp->recv.nbr.size(); ++i) {
-                ptrdiff_t ncols = Acp->recv.ptr[i + 1] - Acp->recv.ptr[i];
-                ptrdiff_t nvecs = dv_size[Acp->recv.nbr[i]];
+            for(size_t i = 0; i < Acp.recv.nbr.size(); ++i) {
+                ptrdiff_t ncols = Acp.recv.ptr[i + 1] - Acp.recv.ptr[i];
+                ptrdiff_t nvecs = dv_size[Acp.recv.nbr[i]];
                 ptrdiff_t size = nvecs * ncols;
                 zrecv_ptr[i + 1] = zrecv_ptr[i] + size;
 
@@ -347,27 +303,27 @@ class subdomain_deflation {
             }
 
             std::vector<value_type> zrecv(zrecv_ptr.back());
-            std::vector<value_type> zsend(Acp->send.val.size() * ndv);
+            std::vector<value_type> zsend(Acp.send.count() * ndv);
 
-            for(size_t i = 0; i < Acp->recv.nbr.size(); ++i) {
+            for(size_t i = 0; i < Acp.recv.nbr.size(); ++i) {
                 ptrdiff_t begin = zrecv_ptr[i];
                 ptrdiff_t size  = zrecv_ptr[i + 1] - begin;
 
-                MPI_Irecv(&zrecv[begin], size, dtype, Acp->recv.nbr[i],
-                        tag_exc_vals, comm, &Acp->recv.req[i]);
+                MPI_Irecv(&zrecv[begin], size, dtype, Acp.recv.nbr[i],
+                        tag_exc_vals, comm, &Acp.recv.req[i]);
             }
 
-            for(size_t i = 0, k = 0; i < Acp->send.col.size(); ++i)
+            for(size_t i = 0, k = 0; i < Acp.send.count(); ++i)
                 for(ptrdiff_t j = 0; j < ndv; ++j, ++k)
-                    zsend[k] = prm.def_vec(Acp->send.col[i], j);
+                    zsend[k] = prm.def_vec(Acp.send.col[i], j);
 
-            for(size_t i = 0; i < Acp->send.nbr.size(); ++i)
+            for(size_t i = 0; i < Acp.send.nbr.size(); ++i)
                 MPI_Isend(
-                        &zsend[ndv * Acp->send.ptr[i]], ndv * (Acp->send.ptr[i+1] - Acp->send.ptr[i]),
-                        dtype, Acp->send.nbr[i], tag_exc_vals, comm, &Acp->send.req[i]);
+                        &zsend[ndv * Acp.send.ptr[i]], ndv * (Acp.send.ptr[i+1] - Acp.send.ptr[i]),
+                        dtype, Acp.send.nbr[i], tag_exc_vals, comm, &Acp.send.req[i]);
 
-            MPI_Waitall(Acp->recv.req.size(), &Acp->recv.req[0], MPI_STATUSES_IGNORE);
-            MPI_Waitall(Acp->send.req.size(), &Acp->send.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(Acp.recv.req.size(), &Acp.recv.req[0], MPI_STATUSES_IGNORE);
+            MPI_Waitall(Acp.send.req.size(), &Acp.send.req[0], MPI_STATUSES_IGNORE);
 
 #pragma omp parallel
             {
@@ -379,14 +335,14 @@ class subdomain_deflation {
                     ptrdiff_t az_rem_head = az_rem->ptr[i];
                     ptrdiff_t az_rem_tail = az_rem_head;
 
-                    for(row_iterator2 a = backend::row_begin(*a_rem, i); a; ++a) {
+                    for(auto a = backend::row_begin(*a_rem, i); a; ++a) {
                         ptrdiff_t  c = a.col();
                         value_type v = a.value();
 
                         // Domain the column belongs to
-                        ptrdiff_t d = Acp->recv.nbr[
-                            std::upper_bound(Acp->recv.ptr.begin(), Acp->recv.ptr.end(), c) -
-                                Acp->recv.ptr.begin() - 1];
+                        ptrdiff_t d = Acp.recv.nbr[
+                            std::upper_bound(Acp.recv.ptr.begin(), Acp.recv.ptr.end(), c) -
+                                Acp.recv.ptr.begin() - 1];
 
                         value_type *zval = &zrecv[ zcol_ptr[c] ];
                         for(ptrdiff_t j = 0, k = dv_start[d]; j < dv_size[d]; ++j, ++k) {
@@ -404,198 +360,112 @@ class subdomain_deflation {
             }
             AMGCL_TOC("remote(A*Z)");
 
-
-            /* Build deflated matrix E. */
+            /* Build solver for the deflated matrix E. */
             AMGCL_TIC("assemble E");
-            // Who is responsible for solution of coarse problem
-            int nmasters = std::min(comm.size, DirectSolver::comm_size(nz, prm.dsolver));
-            int nslaves  = (comm.size + nmasters - 1) / nmasters;
-            int cgroup_beg = 0, cgroup_end = 0;
-            std::vector<int> slaves(nmasters + 1, 0);
-            for(int p = 1; p <= nmasters; ++p) {
-                slaves[p] = std::min(p * nslaves, comm.size);
-                if (slaves[p-1] <= comm.rank && comm.rank < slaves[p]) {
-                    cgroup_beg  = slaves[p - 1];
-                    cgroup_end  = slaves[p];
-                    master_rank = slaves[p-1];
-                    nslaves     = cgroup_end - cgroup_beg;
-                }
-            }
-
-            // Communicator for masters (used to solve the coarse problem):
-            MPI_Comm_split(comm,
-                    comm.rank == master_rank ? 0 : MPI_UNDEFINED,
-                    comm.rank, &masters_comm
-                    );
-
-            // Communicator for slaves (used to send/recv coarse data):
-            MPI_Comm_split(comm, master_rank, comm.rank, &slaves_comm);
 
             // Count nonzeros in E.
-            std::vector<int> eptr(ndv + 1, 0);
-            for(int j = 0; j < comm.size; ++j) {
-                if (j == comm.rank || Acp->talks_to(j)) {
-                    for(int k = 0; k < ndv; ++k)
-                        eptr[k + 1] += dv_size[j];
-                }
-            }
+            std::vector<int> nbrs; // processes we are talking to
+            nbrs.reserve(1 + Acp.send.nbr.size() + Acp.recv.nbr.size());
+            std::set_union(
+                    Acp.send.nbr.begin(), Acp.send.nbr.end(),
+                    Acp.recv.nbr.begin(), Acp.recv.nbr.end(),
+                    std::back_inserter(nbrs));
+            nbrs.push_back(comm.rank);
 
-            sstart.resize(nslaves);
-            ssize.resize(nslaves);
-            for(int p = cgroup_beg, i = 0, offset = dv_start[p]; p < cgroup_end; ++p, ++i) {
-                sstart[i] = dv_start[p] - offset;
-                ssize[i]  = dv_start[p + 1] - dv_start[p];
-            }
-
-
-            std::vector<int> Eptr;
-            if (comm.rank == master_rank) {
-                Eptr.resize(dv_start[cgroup_end] - dv_start[cgroup_beg] + 1, 0);
-
-                MPI_Gatherv(
-                        &eptr[1], ndv, MPI_INT, &Eptr[0] + 1,
-                        const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
-                        MPI_INT, 0, slaves_comm
-                        );
-            } else {
-                MPI_Gatherv(
-                        &eptr[1], ndv, MPI_INT, NULL, NULL, NULL,
-                        MPI_INT, 0, slaves_comm
-                        );
-            }
-
-            std::partial_sum(eptr.begin(), eptr.end(), eptr.begin());
-            std::partial_sum(Eptr.begin(), Eptr.end(), Eptr.begin());
-
-            // Build local strip of E.
-            boost::multi_array<value_type, 2> erow(boost::extents[ndv][nz]);
-            std::fill_n(erow.data(), erow.num_elements(), 0);
+            build_matrix E;
+            E.set_size(ndv, nz, false);
 
             {
-                ptrdiff_t loc_dv_start = dv_start[comm.rank];
-                std::vector<value_type> z(ndv);
-                for(ptrdiff_t i = 0; i < nrows; ++i) {
-                    for(ptrdiff_t j = 0; j < ndv; ++j)
-                        z[j] = prm.def_vec(i,j);
-
-                    for(row_iterator2 a = backend::row_begin(*az_loc, i); a; ++a) {
-                        ptrdiff_t  c = a.col() + loc_dv_start;
-                        value_type v = a.value();
-
-                        for(ptrdiff_t j = 0; j < ndv; ++j)
-                            erow[j][c] += v * z[j];
-                    }
-
-                    for(row_iterator2 a = backend::row_begin(*az_rem, i); a; ++a) {
-                        ptrdiff_t  c = a.col();
-                        value_type v = a.value();
-
-                        for(ptrdiff_t j = 0; j < ndv; ++j)
-                            erow[j][c] += v * z[j];
-                    }
-                }
+                ptrdiff_t nnz = 0;
+                for(int j : nbrs) nnz += dv_size[j];
+                for(int k = 0; k <= ndv; ++k)
+                    E.ptr[k] = k * nnz;
             }
+            E.set_nonzeros(E.nnz = E.ptr[ndv]);
 
-            std::vector<int>        ecol(eptr.back());
-            std::vector<value_type> eval(eptr.back());
-            for(int i = 0; i < ndv; ++i) {
-                int row_head = eptr[i];
-                for(int j = 0; j < comm.size; ++j) {
-                    if (j == comm.rank || Acp->talks_to(j)) {
-                        for(int k = 0; k < dv_size[j]; ++k) {
-                            int c = dv_start[j] + k;
-                            ecol[row_head] = c;
-                            eval[row_head] = erow[i][c];
-                            ++row_head;
+            // Build local strip of E.
+#ifdef _OPENMP
+            int nthreads = omp_get_max_threads();
+#else
+            int nthreads = 1;
+#endif
+            multi_array<value_type, 3> erow(nthreads, ndv, nz);
+            std::fill_n(erow.data(), erow.size(), 0);
+
+            {
+                ptrdiff_t dv_offset = dv_start[comm.rank];
+#pragma omp parallel
+                {
+#ifdef _OPENMP
+                    const int tid = omp_get_thread_num();
+#else
+                    const int tid = 0;
+#endif
+                    std::vector<value_type> z(ndv);
+
+#pragma omp for
+                    for(ptrdiff_t i = 0; i < nrows; ++i) {
+                        for(ptrdiff_t j = 0; j < ndv; ++j)
+                            z[j] = prm.def_vec(i,j);
+
+                        for(ptrdiff_t k = az_loc->ptr[i], e = az_loc->ptr[i+1]; k < e; ++k) {
+                            ptrdiff_t  c = az_loc->col[k] + dv_offset;
+                            value_type v = az_loc->val[k];
+
+                            for(ptrdiff_t j = 0; j < ndv; ++j)
+                                erow(tid, j, c) += v * z[j];
+                        }
+
+                        for(ptrdiff_t k = az_rem->ptr[i], e = az_rem->ptr[i+1]; k < e; ++k) {
+                            ptrdiff_t  c = az_rem->col[k];
+                            value_type v = az_rem->val[k];
+
+                            for(ptrdiff_t j = 0; j < ndv; ++j)
+                                erow(tid, j, c) += v * z[j];
                         }
                     }
                 }
             }
 
-            // Exchange strips of E.
-            std::vector<int>        Ecol;
-            std::vector<value_type> Eval;
-            if (comm.rank == master_rank) {
-                Ecol.resize(Eptr.back());
-                Eval.resize(Eptr.back());
+            for(int i = 0; i < ndv; ++i) {
+                int row_head = E.ptr[i];
+                for(int j : nbrs) {
+                    for(int k = 0; k < dv_size[j]; ++k) {
+                        int c = dv_start[j] + k;
+                        value_type v = math::zero<value_type>();
+                        for(int t = 0; t < nthreads; ++t)
+                            v += erow(t, i, c);
 
-                for(int p = cgroup_beg, i = 0, offset = dv_start[p]; p < cgroup_end; ++p, ++i) {
-                    sstart[i] = Eptr[dv_start[p]     - offset];
-                    ssize[i]  = Eptr[dv_start[p + 1] - offset] - sstart[i];
+                        E.col[row_head] = c;
+                        E.val[row_head] = v;
+
+                        ++row_head;
+                    }
                 }
-
-                MPI_Gatherv(
-                        &ecol[0], ecol.size(), MPI_INT, &Ecol[0],
-                        const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
-                        MPI_INT, 0, slaves_comm
-                        );
-
-                MPI_Gatherv(
-                        &eval[0], eval.size(), dtype, &Eval[0],
-                        const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
-                        dtype, 0, slaves_comm
-                        );
-            } else {
-                MPI_Gatherv(
-                        &ecol[0], ecol.size(), MPI_INT, NULL, NULL, NULL,
-                        MPI_INT, 0, slaves_comm
-                        );
-
-                MPI_Gatherv(
-                        &eval[0], eval.size(), dtype, NULL, NULL, NULL,
-                        dtype, 0, slaves_comm
-                        );
             }
             AMGCL_TOC("assemble E");
 
-            // Prepare E factorization.
             AMGCL_TIC("factorize E");
-            if (comm.rank == master_rank) {
-                E = std::make_shared<DirectSolver>(
-                        masters_comm, Eptr.size() - 1, Eptr, Ecol, Eval, prm.dsolver
-                        );
-
-                cf.resize(Eptr.size() - 1);
-                cx.resize(Eptr.size() - 1);
-            }
+            this->E = std::make_shared<DirectSolver>(comm, E, prm.dsolver);
             AMGCL_TOC("factorize E");
 
             AMGCL_TIC("finish(A*Z)");
-            AZcp = std::make_shared< comm_pattern<backend_type> >(comm, ndv, az_rem->nnz, az_rem->col, bprm);
-            az_rem->ncols = AZcp->renumber(az_rem->nnz, az_rem->col);
-            AZloc = backend_type::copy_matrix(az_loc, bprm);
-            AZrem = backend_type::copy_matrix(az_rem, bprm);
-            AZ = std::make_shared<matrix>(*AZcp, *AZloc, *AZrem);
+            AZ = std::make_shared<matrix>(comm, az_loc, az_rem);
+            AZ->move_to_backend(bprm);
             AMGCL_TOC("finish(A*Z)");
-
-            // Prepare Gatherv configuration for coarse solve
-            for(int p = cgroup_beg, i = 0, offset = dv_start[p]; p < cgroup_end; ++p, ++i) {
-                sstart[i] = dv_start[p] - offset;
-                ssize[i]  = dv_start[p + 1] - dv_start[p];
-            }
             AMGCL_TOC("setup deflation");
         }
 
-        ~subdomain_deflation() {
-            E.reset();
-            if (masters_comm != MPI_COMM_NULL) MPI_Comm_free(&masters_comm);
-            if (slaves_comm  != MPI_COMM_NULL) MPI_Comm_free(&slaves_comm);
-        }
-
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             size_t iters;
             double error;
             backend::clear(x);
-            boost::tie(iters, error) = (*this)(rhs, x);
+            std::tie(iters, error) = (*this)(rhs, x);
+        }
+
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return A;
         }
 
         const matrix& system_matrix() const {
@@ -603,33 +473,18 @@ class subdomain_deflation {
         }
 
         template <class Matrix, class Vec1, class Vec2>
-        boost::tuple<size_t, value_type> operator()(
-                Matrix  const &A,
-                Vec1    const &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
+        std::tuple<size_t, value_type> operator()(
+                const Matrix &A, const Vec1 &rhs, Vec2 &&x) const
         {
-            boost::tuple<size_t, value_type> cnv = S(make_sdd_projected_matrix(*this, A), *P, rhs, x);
+            std::tuple<size_t, value_type> cnv = S(make_sdd_projected_matrix(*this, A), *P, rhs, x);
             postprocess(rhs, x);
             return cnv;
         }
 
         template <class Vec1, class Vec2>
-        boost::tuple<size_t, value_type>
-        operator()(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2          &x
-#else
-                Vec2          &&x
-#endif
-                ) const
-        {
-            boost::tuple<size_t, value_type> cnv = S(make_sdd_projected_matrix(*this, *A), *P, rhs, x);
+        std::tuple<size_t, value_type>
+        operator()(const Vec1 &rhs, Vec2 &&x) const {
+            std::tuple<size_t, value_type> cnv = S(make_sdd_projected_matrix(*this, *A), *P, rhs, x);
             postprocess(rhs, x);
             return cnv;
         }
@@ -650,7 +505,7 @@ class subdomain_deflation {
             coarse_solve(df, dx);
 
             AMGCL_TIC("spmv");
-            backend::copy_to_backend(dx, *dd);
+            backend::copy(dx, *dd);
             backend::spmv(-1, *AZ, *dd, 1, x);
             AMGCL_TOC("spmv");
 
@@ -667,19 +522,14 @@ class subdomain_deflation {
 
         MPI_Datatype dtype;
 
-        std::shared_ptr< comm_pattern<backend_type> > Acp, AZcp;
-        std::shared_ptr<bmatrix> Arem, AZloc, AZrem;
         std::shared_ptr<matrix> A, AZ;
         std::shared_ptr<LocalPrecond> P;
 
-        mutable std::vector<value_type> df, dx, cf, cx;
+        mutable std::vector<value_type> df, dx;
         std::vector<ptrdiff_t> dv_start;
-        std::vector<int> sstart, ssize;
 
         std::vector< std::shared_ptr<vector> > Z;
 
-        MPI_Comm masters_comm, slaves_comm;
-        int master_rank;
         std::shared_ptr<DirectSolver> E;
 
         std::shared_ptr<vector> q;
@@ -690,32 +540,7 @@ class subdomain_deflation {
         void coarse_solve(std::vector<value_type> &f, std::vector<value_type> &x) const
         {
             AMGCL_TIC("coarse solve");
-            AMGCL_TIC("exchange rhs");
-            if (comm.rank == master_rank) {
-                MPI_Gatherv(&f[0], ndv, dtype, &cf[0],
-                        const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
-                        dtype, 0, slaves_comm);
-            } else {
-                MPI_Gatherv(&f[0], f.size(), dtype, NULL, NULL, NULL,
-                        dtype, 0, slaves_comm);
-            }
-            AMGCL_TOC("exchange rhs");
-
-            if (comm.rank == master_rank) {
-                AMGCL_TIC("call solver");
-                (*E)(cf, cx);
-                AMGCL_TOC("call solver");
-
-                AMGCL_TIC("scatter result");
-                MPI_Scatterv(&cx[0],
-                        const_cast<int*>(&ssize[0]), const_cast<int*>(&sstart[0]),
-                        dtype, &x[0], ndv, dtype, 0, slaves_comm);
-                AMGCL_TOC("scatter result");
-            } else {
-                MPI_Scatterv(NULL, NULL, NULL, dtype,
-                        &x[0], ndv, dtype, 0, slaves_comm);
-            }
-
+            (*E)(f, x);
             AMGCL_TOC("coarse solve");
         }
 

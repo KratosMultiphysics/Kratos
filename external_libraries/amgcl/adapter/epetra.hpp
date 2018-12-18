@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,7 +42,7 @@ THE SOFTWARE.
 #include <amgcl/backend/interface.hpp>
 
 namespace amgcl {
-namespace backend {
+namespace adapter {
 
 /// Adapts Epetra_CrsMatrix
 class epetra_map {
@@ -134,45 +134,49 @@ inline epetra_map map(const Epetra_CrsMatrix &A) {
     return epetra_map(A);
 }
 
+} // namespace adapter
+
 //---------------------------------------------------------------------------
 // Specialization of matrix interface
 //---------------------------------------------------------------------------
+namespace backend {
+
 template <>
-struct value_type < epetra_map > {
+struct value_type < adapter::epetra_map > {
     typedef double type;
 };
 
 template <>
-struct rows_impl < epetra_map > {
-    static size_t get(const epetra_map &A) {
+struct rows_impl < adapter::epetra_map > {
+    static size_t get(const adapter::epetra_map &A) {
         return A.rows();
     }
 };
 
 template <>
-struct cols_impl < epetra_map > {
-    static size_t get(const epetra_map &A) {
+struct cols_impl < adapter::epetra_map > {
+    static size_t get(const adapter::epetra_map &A) {
         return A.cols();
     }
 };
 
 template <>
-struct nonzeros_impl < epetra_map > {
-    static size_t get(const epetra_map &A) {
+struct nonzeros_impl < adapter::epetra_map > {
+    static size_t get(const adapter::epetra_map &A) {
         return A.nonzeros();
     }
 };
 
 template <>
-struct row_iterator < epetra_map > {
-    typedef epetra_map::row_iterator type;
+struct row_iterator < adapter::epetra_map > {
+    typedef adapter::epetra_map::row_iterator type;
 };
 
 template <>
-struct row_begin_impl< epetra_map >
+struct row_begin_impl< adapter::epetra_map >
 {
-    static typename row_iterator< epetra_map >::type
-    get(const epetra_map &A, size_t row) {
+    static typename row_iterator< adapter::epetra_map >::type
+    get(const adapter::epetra_map &A, size_t row) {
         return A.row_begin(row);
     }
 };

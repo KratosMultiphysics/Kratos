@@ -88,10 +88,13 @@ public:
     /// Constructor with filenames.
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
+    /// Constructor with Echolevel to write/Not write time.out
+    ModelPartIO(std::string const& Filename, int rEchoLevel);
+    
     /// Constructor with stream.
     ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
-
-
+    
+    
     /// Constructor with filenames.
     // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
     //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))

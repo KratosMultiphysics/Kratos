@@ -30,9 +30,18 @@
 namespace Kratos
 {
 
-	MeshLocalSmoothingProcess::MeshLocalSmoothingProcess(ModelPart& rModelPart, double AptQuality, std::size_t IterationsNumber)
-		:mrModelPart(rModelPart), mMaxIterationsNumber(IterationsNumber), mAptQuality(AptQuality), mNumberOfLowQualityElements(0)
-		,mMeshMinQuality(0.00), mMeshQualityNorm(0.00)
+	MeshLocalSmoothingProcess::MeshLocalSmoothingProcess(
+        ModelPart &rModelPart,
+        double AptQuality,
+        std::size_t IterationsNumber,
+        const Flags rBoundaryFlag)
+        : mrModelPart(rModelPart),
+          mAptQuality(AptQuality),
+          mMaxIterationsNumber(IterationsNumber),
+          mrBoundaryFlag(rBoundaryFlag),
+          mNumberOfLowQualityElements(0),
+          mMeshMinQuality(0.00),
+          mMeshQualityNorm(0.00)
 	{
 
 	}
@@ -122,7 +131,7 @@ namespace Kratos
 		Point node_optimal_position;
 
 		for (ModelPart::NodeIterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++){
-			if (i_node->Is(SELECTED) && i_node->IsNot(BOUNDARY))
+			if (i_node->Is(SELECTED) && i_node->IsNot(mrBoundaryFlag))
 			{
 				FindOptimumPositionsAndWeights(*i_node, optimal_points, weights);
 				InterpolateNodeOptimumPosition(optimal_points, weights, node_optimal_position);

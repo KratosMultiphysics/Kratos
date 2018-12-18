@@ -27,7 +27,7 @@
 #include "utilities/signed_distance_calculation_utils.h"
 #include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/openmp_utils.h"
-#include "utilities/pointlocation.h"
+#include "utilities/brute_force_point_locator.h"
 #include "utilities/deflation_utils.h"
 #include "utilities/iso_printer.h"
 #include "utilities/activation_utilities.h"
@@ -258,16 +258,11 @@ void AddUtilitiesToPython(pybind11::module& m)
     .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
     ;
 
-    class_<PointLocation >(m,"PointLocation")
+    class_<BruteForcePointLocator> (m, "BruteForcePointLocator")
     .def(init<ModelPart& >())
-    .def("Find", &PointLocation::Find)
-    .def("Find2D", &PointLocation::Find2D)
-    .def("Find3D", &PointLocation::Find3D)
-    .def("found", &PointLocation::found)
-    .def("ReturnDefaultPointData_scalar", &PointLocation::ReturnDefaultPointData_scalar)
-    .def("ReturnDefaultPointData_vector", &PointLocation::ReturnDefaultPointData_vector)
-    .def("ReturnCustomPointData_scalar", &PointLocation::ReturnCustomPointData_scalar)
-    .def("ReturnCustomPointData_vector", &PointLocation::ReturnCustomPointData_vector)
+    .def("FindNode", &BruteForcePointLocator::FindNode)
+    .def("FindElement", &BruteForcePointLocator::FindElement)
+    .def("FindCondition", &BruteForcePointLocator::FindCondition)
     ;
 
     class_<ParticleConvectUtily<2> >(m,"ParticleConvectUtily2D")

@@ -39,7 +39,7 @@ namespace backend {
 
 /// Enable std::complex as a value-type.
 template <typename T>
-struct is_builtin_vector< std::vector<std::complex<T> > > : boost::true_type {};
+struct is_builtin_vector< std::vector<std::complex<T> > > : std::true_type {};
 
 } // namespace backend
 

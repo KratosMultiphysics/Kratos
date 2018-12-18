@@ -38,6 +38,12 @@ void AddNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> con
     rModelPart.AddNodalSolutionStepVariable(rThisVariable);
 }
 
+template<class TDataType>
+bool HasNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
+{
+    return rModelPart.HasNodalSolutionStepVariable(rThisVariable);
+}
+
 void SetModelPartName(ModelPart& rModelPart, std::string const& NewName)
 {
     rModelPart.Name() = NewName;
@@ -266,6 +272,11 @@ void ModelPartRemovePropertiesFromAllLevels3(ModelPart& rModelPart, ModelPart::P
 void ModelPartRemovePropertiesFromAllLevels4(ModelPart& rModelPart, ModelPart::PropertiesType::Pointer pThisProperties, ModelPart::IndexType ThisIndex)
 {
 	rModelPart.RemovePropertiesFromAllLevels(pThisProperties, ThisIndex);
+}
+
+void ModelPartRemoveConditionsFromAllLevels(ModelPart& rModelPart, Flags identifier_flag)
+{
+    rModelPart.RemoveConditionsFromAllLevels(identifier_flag);
 }
 
 // Elements
@@ -722,6 +733,13 @@ void AddModelPartToPython(pybind11::module& m)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Vector>)
 		.def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Matrix>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<Quaternion<double> >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<bool>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<int>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<double>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<array_1d<double, 3 > >)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Vector>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Matrix>)
+        .def("HasNodalSolutionStepVariable", HasNodalSolutionStepVariable<Quaternion<double> >)
 		.def("GetNodalSolutionStepDataSize", &ModelPart::GetNodalSolutionStepDataSize)
 		.def("GetNodalSolutionStepTotalDataSize", &ModelPart::GetNodalSolutionStepTotalDataSize)
 		.def("OverwriteSolutionStepData", &ModelPart::OverwriteSolutionStepData)

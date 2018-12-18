@@ -137,7 +137,7 @@ public:
                                           typename TLinearSolver::Pointer plinear_solver,
                                           unsigned int max_iterations = 10
                                          )
-        :mr_base_model_part(base_model_part)
+        :mr_base_model_part(base_model_part), mEchoLevel(0)
     {
         KRATOS_TRY
 
@@ -228,7 +228,7 @@ public:
               
             if(d == 0){
                 it->Fix(DISTANCE);
-                d = 1e-15;
+                d = -1e-15;
             }
             else{
                 if(d > 0.0) //set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
@@ -272,7 +272,7 @@ public:
                 //assign the sign 
                 for(unsigned int i=0; i<TDim+1; i++)
                 {
-                    if(original_distances[i] < 0) distances[i] = -distances[i];
+                    if(original_distances[i] < 0 && distances[i] > 0.0) distances[i] = -distances[i]; //They can't be negative because all the functions involved always return a positive number
                 }
                
                 for(unsigned int i=0; i<TDim+1; i++)
@@ -280,7 +280,7 @@ public:
                     
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     geom[i].SetLock();
-                    if(std::abs(d) > std::abs(distances[i])) d = distances[i];
+                    if(std::fabs(d) > std::fabs(distances[i])) d = distances[i];
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
@@ -325,7 +325,7 @@ public:
             for(int iii=0; iii<nnodes; iii++)
             {
                 auto it = mp_distance_model_part->NodesBegin() + iii;
-                it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
+                it->FastGetSolutionStepValue(DISTANCE) = std::fabs(it->FastGetSolutionStepValue(DISTANCE));
             }
             
             mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
@@ -348,6 +348,19 @@ public:
         for(unsigned int it = 0; it<mmax_iterations; it++)
         {
              mp_solving_strategy->Solve();
+             //checking if the nodes have changed their signs. If so, we flip them.
+             #pragma omp parallel for
+             for (int iii = 0; iii < nnodes; iii++)
+             {
+                 auto it = mp_distance_model_part->NodesBegin() + iii;
+                 //This could be a bug. If the node is previously dry and now becomes wet, this code makes it dry again
+                 //if (it->GetValue(DISTANCE)*it->FastGetSolutionStepValue(DISTANCE)<0.0)
+                 //   it->FastGetSolutionStepValue(DISTANCE) = - it->FastGetSolutionStepValue(DISTANCE) ;
+                 if(it->FastGetSolutionStepValue(DISTANCE) > 0.0) {
+                    if (it->GetValue(DISTANCE)*it->FastGetSolutionStepValue(DISTANCE)<0.0)
+                        it->FastGetSolutionStepValue(DISTANCE) = - it->FastGetSolutionStepValue(DISTANCE) ;
+                 }
+             }
         }
         
         //unfix the distances
@@ -367,6 +380,12 @@ public:
 
         mp_solving_strategy->Clear();
 
+    }
+
+    void SetEchoLevel(int Level)
+    {
+        mp_solving_strategy->SetEchoLevel(Level);
+        mEchoLevel = Level;
     }
     ///@}
     ///@name Access
@@ -427,6 +446,7 @@ protected:
     unsigned int mmax_iterations;
     ModelPart::Pointer mp_distance_model_part;
     ModelPart& mr_base_model_part;
+    int mEchoLevel;
 
     typename SolvingStrategyType::Pointer mp_solving_strategy;
 

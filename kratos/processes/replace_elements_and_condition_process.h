@@ -111,6 +111,8 @@ public:
     void Execute()  override
     {
         ModelPart& r_root_model_part = ObtainRootModelPart( mr_model_part );
+        KRATOS_WATCH(mSettings["element_name"].GetString())
+        KRATOS_WATCH(mSettings["condition_name"].GetString())
         
         const Element& rReferenceElement = KratosComponents<Element>::Get(mSettings["element_name"].GetString());
         const Condition& rReferenceCondition = KratosComponents<Condition>::Get(mSettings["condition_name"].GetString());

@@ -68,7 +68,11 @@ namespace Kratos
 	  ///@{ 
 
 	  /// Constructor takes the modelpart to apply smoothing to its mesh 0.
-	  MeshLocalSmoothingProcess(ModelPart& rModelPart, double AptQuality = 0.5, std::size_t MaxIterationsNumber = 10);
+	  MeshLocalSmoothingProcess(
+          ModelPart &rModelPart,
+          double AptQuality = 0.5,
+          std::size_t MaxIterationsNumber = 10,
+          const Flags rBoundaryFlag = BOUNDARY);
 
       /// Destructor.
       ~MeshLocalSmoothingProcess() override;
@@ -161,9 +165,11 @@ namespace Kratos
 
 		ModelPart& mrModelPart;
 
+        double mAptQuality;
+
 		std::size_t mMaxIterationsNumber;
 
-		double mAptQuality;
+        const Flags mrBoundaryFlag;
 
 		std::size_t mNumberOfLowQualityElements;
 

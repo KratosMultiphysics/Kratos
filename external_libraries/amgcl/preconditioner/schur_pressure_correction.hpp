@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2017 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2016, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -34,9 +34,7 @@ THE SOFTWARE.
 
 #include <vector>
 
-#include <boost/static_assert.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+#include <memory>
 
 #include <amgcl/backend/builtin.hpp>
 #include <amgcl/util.hpp>
@@ -49,13 +47,13 @@ namespace detail {
 // Same backends are always compatible
 template <class B1, class B2>
 struct compatible_backends
-    : boost::is_same<B1, B2>::type {};
+    : std::is_same<B1, B2>::type {};
 
 // Builtin backend allows mixing backends of different value types,
 // so that scalar and non-scalar backends may coexist.
 template <class V1, class V2>
 struct compatible_backends< backend::builtin<V1>, backend::builtin<V2> >
-    : boost::true_type {};
+    : std::true_type {};
 
 // Backend for schur complement preconditioner is selected as the one with
 // lower dimensionality of its value_type.
@@ -70,10 +68,10 @@ struct common_backend<B, B> {
 
 template <class V1, class V2>
 struct common_backend< backend::builtin<V1>, backend::builtin<V2>,
-    typename boost::disable_if<typename boost::is_same<V1, V2>::type>::type >
+    typename std::enable_if<!std::is_same<V1, V2>::value>::type >
 {
     typedef
-        typename boost::conditional<
+        typename std::conditional<
             (math::static_rows<V1>::value <= math::static_rows<V2>::value),
             backend::builtin<V1>, backend::builtin<V2>
             >::type
@@ -85,13 +83,11 @@ struct common_backend< backend::builtin<V1>, backend::builtin<V2>,
 /// Schur-complement pressure correction preconditioner
 template <class USolver, class PSolver>
 class schur_pressure_correction {
-    BOOST_STATIC_ASSERT_MSG(
-            (
-             detail::compatible_backends<
-                 typename USolver::backend_type,
-                 typename PSolver::backend_type
-                 >::value
-            ),
+    static_assert(
+            detail::compatible_backends<
+                typename USolver::backend_type,
+                typename PSolver::backend_type
+                >::value,
             "Backends for pressure and flow preconditioners should coincide!"
             );
     public:
@@ -125,6 +121,7 @@ class schur_pressure_correction {
 
             params() : approx_schur(true) {}
 
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, usolver),
                   AMGCL_PARAMS_IMPORT_CHILD(p, psolver),
@@ -176,7 +173,8 @@ class schur_pressure_correction {
                             );
                 }
 
-                AMGCL_PARAMS_CHECK_OPT(p, (usolver)(psolver)(approx_schur)(pmask_size), (pmask)(pmask_pattern));
+                check_params(p, {"usolver", "psolver", "approx_schur", "pmask_size"},
+                        {"pmask", "pmask_pattern"});
             }
 
             void get(boost::property_tree::ptree &p, const std::string &path = "") const
@@ -185,6 +183,7 @@ class schur_pressure_correction {
                 AMGCL_PARAMS_EXPORT_CHILD(p, path, psolver);
                 AMGCL_PARAMS_EXPORT_VALUE(p, path, approx_schur);
             }
+#endif
         } prm;
 
         template <class Matrix>
@@ -209,15 +208,7 @@ class schur_pressure_correction {
         }
 
         template <class Vec1, class Vec2>
-        void apply(
-                const Vec1 &rhs,
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-                Vec2       &x
-#else
-                Vec2       &&x
-#endif
-                ) const
-        {
+        void apply(const Vec1 &rhs, Vec2 &&x) const {
             backend::spmv(1, *x2u, rhs, 0, *rhs_u);
             backend::spmv(1, *x2p, rhs, 0, *rhs_p);
 
@@ -242,6 +233,10 @@ class schur_pressure_correction {
             backend::clear(x);
             backend::spmv(1, *u2x, *u, 1, x);
             backend::spmv(1, *p2x, *p, 1, x);
+        }
+
+        std::shared_ptr<matrix> system_matrix_ptr() const {
+            return K;
         }
 
         const matrix& system_matrix() const {
@@ -276,15 +271,13 @@ class schur_pressure_correction {
 
         void init(const std::shared_ptr<build_matrix> &K, const backend_params &bprm)
         {
-            typedef typename backend::row_iterator<build_matrix>::type row_iterator;
-
             this->K = backend_type::copy_matrix(K, bprm);
 
             // Extract matrix subblocks.
-            std::shared_ptr<build_matrix> Kuu = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> Kpu = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> Kup = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> Kpp = std::make_shared<build_matrix>();
+            auto Kuu = std::make_shared<build_matrix>();
+            auto Kpu = std::make_shared<build_matrix>();
+            auto Kup = std::make_shared<build_matrix>();
+            auto Kpp = std::make_shared<build_matrix>();
 
             std::vector<ptrdiff_t> idx(n);
 
@@ -300,7 +293,7 @@ class schur_pressure_correction {
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
                 ptrdiff_t ci = idx[i];
                 char      pi = prm.pmask[i];
-                for(row_iterator k = backend::row_begin(*K, i); k; ++k) {
+                for(auto k = backend::row_begin(*K, i); k; ++k) {
                     char pj = prm.pmask[k.col()];
 
                     if (pi) {
@@ -319,15 +312,10 @@ class schur_pressure_correction {
                 }
             }
 
-            std::partial_sum(Kuu->ptr, Kuu->ptr + nu + 1, Kuu->ptr);
-            std::partial_sum(Kup->ptr, Kup->ptr + nu + 1, Kup->ptr);
-            std::partial_sum(Kpu->ptr, Kpu->ptr + np + 1, Kpu->ptr);
-            std::partial_sum(Kpp->ptr, Kpp->ptr + np + 1, Kpp->ptr);
-
-            Kuu->set_nonzeros(Kuu->ptr[nu]);
-            Kup->set_nonzeros(Kup->ptr[nu]);
-            Kpu->set_nonzeros(Kpu->ptr[np]);
-            Kpp->set_nonzeros(Kpp->ptr[np]);
+            Kuu->set_nonzeros(Kuu->scan_row_sizes());
+            Kup->set_nonzeros(Kup->scan_row_sizes());
+            Kpu->set_nonzeros(Kpu->scan_row_sizes());
+            Kpp->set_nonzeros(Kpp->scan_row_sizes());
 
 #pragma omp parallel for
             for(ptrdiff_t i = 0; i < static_cast<ptrdiff_t>(n); ++i) {
@@ -344,7 +332,7 @@ class schur_pressure_correction {
                     up_head = Kup->ptr[ci];
                 }
 
-                for(row_iterator k = backend::row_begin(*K, i); k; ++k) {
+                for(auto k = backend::row_begin(*K, i); k; ++k) {
                     ptrdiff_t  j = k.col();
                     value_type v = k.value();
                     ptrdiff_t cj = idx[j];
@@ -392,10 +380,10 @@ class schur_pressure_correction {
                 M = backend_type::copy_vector(diagonal(*Kuu, /*invert = */true), bprm);
 
             // Scatter/Gather matrices
-            std::shared_ptr<build_matrix> x2u = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> x2p = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> u2x = std::make_shared<build_matrix>();
-            std::shared_ptr<build_matrix> p2x = std::make_shared<build_matrix>();
+            auto x2u = std::make_shared<build_matrix>();
+            auto x2p = std::make_shared<build_matrix>();
+            auto u2x = std::make_shared<build_matrix>();
+            auto p2x = std::make_shared<build_matrix>();
 
             x2u->set_size(nu, n, true);
             x2p->set_size(np, n, true);
@@ -472,12 +460,12 @@ class schur_pressure_correction {
 
 #if defined(AMGCL_DEBUG)
         template <typename I, typename E>
-        static void report(const std::string &name, const boost::tuple<I, E> &c) {
-            std::cout << name << " (" << boost::get<0>(c) << ", " << boost::get<1>(c) << ")\n";
+        static void report(const std::string &name, const std::tuple<I, E> &c) {
+            std::cout << name << " (" << std::get<0>(c) << ", " << std::get<1>(c) << ")\n";
         }
 #else
         template <typename I, typename E>
-        static void report(const std::string&, const boost::tuple<I, E>&) {
+        static void report(const std::string&, const std::tuple<I, E>&) {
         }
 #endif
 };
