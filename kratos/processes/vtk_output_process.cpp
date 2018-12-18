@@ -17,7 +17,7 @@
 namespace Kratos
 {
 
-VtkOutputProcess::VtkOutputProcess(ModelPart &model_part, Parameters rParameters) : mrModelPart(model_part), mrOutputSettings(rParameters)
+VtkOutputProcess::VtkOutputProcess(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mrOutputSettings(rParameters)
 {
     mDefaultPrecision = 7;
     mStep = 0;
@@ -55,11 +55,11 @@ int VtkOutputProcess::Check()
 
 
 
-void VtkOutputProcess::CreateMapFromKratosIdToVTKId(ModelPart &model_part)
+void VtkOutputProcess::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
 {
     int vtk_id = 0;
 
-    for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
+    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
     {
         int KratosId = node_i->Id();
         mKratosIdToVtkId[KratosId] = vtk_id;
@@ -67,17 +67,17 @@ void VtkOutputProcess::CreateMapFromKratosIdToVTKId(ModelPart &model_part)
     }
 }
 
-unsigned int VtkOutputProcess::DetermineVtkCellListSize(ModelPart &model_part)
+unsigned int VtkOutputProcess::DetermineVtkCellListSize(ModelPart &rModelPart)
 {
     unsigned int vtk_cell_list_size = 0;
 
-    for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
     {
         vtk_cell_list_size++;
         vtk_cell_list_size += elem_i->GetGeometry().size();
     }
 
-    for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
+    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
         vtk_cell_list_size++;
         vtk_cell_list_size += condition_i->GetGeometry().size();
@@ -86,15 +86,15 @@ unsigned int VtkOutputProcess::DetermineVtkCellListSize(ModelPart &model_part)
     return vtk_cell_list_size;
 }
 
-void VtkOutputProcess::Initialize(ModelPart &model_part)
+void VtkOutputProcess::Initialize(ModelPart &rModelPart)
 {
-    CreateMapFromKratosIdToVTKId(model_part);
-    mVtkCellListSize = DetermineVtkCellListSize(model_part);
+    CreateMapFromKratosIdToVTKId(rModelPart);
+    mVtkCellListSize = DetermineVtkCellListSize(rModelPart);
 }
 
-void VtkOutputProcess::WriteHeader(ModelPart &model_part)
+void VtkOutputProcess::WriteHeader(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
 
     outputFile.open(outputFileName, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -109,27 +109,27 @@ void VtkOutputProcess::WriteHeader(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteMesh(ModelPart &model_part)
+void VtkOutputProcess::WriteMesh(ModelPart &rModelPart)
 {
-    WriteNodes(model_part);
-    WriteConditionsAndElements(model_part);
-    WriteConditionAndElementTypes(model_part);
+    WriteNodes(rModelPart);
+    WriteConditionsAndElements(rModelPart);
+    WriteConditionAndElementTypes(rModelPart);
 }
 
-void VtkOutputProcess::WriteNodes(ModelPart &model_part)
+void VtkOutputProcess::WriteNodes(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
     outputFile << std::scientific;
     outputFile << std::setprecision(mDefaultPrecision);
 
     // write nodes header
-    outputFile << "POINTS " << model_part.NumberOfNodes() << " float"
+    outputFile << "POINTS " << rModelPart.NumberOfNodes() << " float"
                << "\n";
 
     // write nodes
-    for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
+    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
     {
         double x_coordinate = node_i->X();
         double y_coordinate = node_i->Y();
@@ -142,17 +142,17 @@ void VtkOutputProcess::WriteNodes(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionsAndElements(ModelPart &model_part)
+void VtkOutputProcess::WriteConditionsAndElements(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cells header
-    outputFile << "CELLS " << model_part.NumberOfConditions() + model_part.NumberOfElements() << " " << mVtkCellListSize << "\n";
+    outputFile << "CELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
-    for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
     {
         ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
         const unsigned int numberOfNodes = elem_geometry.size();
@@ -165,7 +165,7 @@ void VtkOutputProcess::WriteConditionsAndElements(ModelPart &model_part)
     }
 
     // write Conditions
-    for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
+    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
         ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
         const unsigned int numberOfNodes = condition_geometry.size();
@@ -179,17 +179,17 @@ void VtkOutputProcess::WriteConditionsAndElements(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &model_part)
+void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cell types header
-    outputFile << "CELL_TYPES " << model_part.NumberOfConditions() + model_part.NumberOfElements() << "\n";
+    outputFile << "CELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
-    for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
     {
         const unsigned int numberOfNodes = elem_i->GetGeometry().size();
         unsigned int element_type;
@@ -214,7 +214,7 @@ void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &model_part)
     }
 
     // write conditions types
-    for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
+    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
         const unsigned int numberOfNodes = condition_i->GetGeometry().size();
         unsigned int element_type;
@@ -241,14 +241,14 @@ void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &model_part)
+void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
     Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
-    outputFile << "POINT_DATA " << model_part.NumberOfNodes() << "\n";
+    outputFile << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
     {
@@ -274,7 +274,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &model_part)
         // write nodal results
         outputFile << std::scientific;
         outputFile << std::setprecision(mDefaultPrecision);
-        for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
         {
             if (dataCharacteristic == 1)
             {
@@ -296,17 +296,17 @@ void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteElementData(ModelPart &model_part)
+void VtkOutputProcess::WriteElementData(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app);
     Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
-    if (model_part.NumberOfElements() > 0)
+    if (rModelPart.NumberOfElements() > 0)
     {
-        outputFile << "CELL_DATA " << model_part.NumberOfElements() << "\n";
+        outputFile << "CELL_DATA " << rModelPart.NumberOfElements() << "\n";
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
 
@@ -332,7 +332,7 @@ void VtkOutputProcess::WriteElementData(ModelPart &model_part)
             // write nodal results
             outputFile << std::scientific;
             outputFile << std::setprecision(mDefaultPrecision);
-            for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+            for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
             {
                 if (dataCharacteristic == 1)
                 {
@@ -354,7 +354,7 @@ void VtkOutputProcess::WriteElementData(ModelPart &model_part)
         outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
 
         // write element results for active
-        for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+        for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
         {
             //outputFile << numberOfNodes;
             bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
@@ -367,9 +367,9 @@ void VtkOutputProcess::WriteElementData(ModelPart &model_part)
 
 //#############################################For creating vtk files in binary format##########################################################
 
-void VtkOutputProcess::WriteHeaderBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteHeaderBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
 
     outputFile.open(outputFileName, std::ios::out | std::ios::binary);
@@ -384,28 +384,28 @@ void VtkOutputProcess::WriteHeaderBinary(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteMeshBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteMeshBinary(ModelPart &rModelPart)
 {
 
-    WriteNodesBinary(model_part);
+    WriteNodesBinary(rModelPart);
 
-    WriteConditionsAndElementsBinary(model_part);
+    WriteConditionsAndElementsBinary(rModelPart);
 
-    WriteConditionAndElementTypesBinary(model_part);
+    WriteConditionAndElementTypesBinary(rModelPart);
 }
 
-void VtkOutputProcess::WriteNodesBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteNodesBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
 
     // write nodes header
-    outputFile << "\nPOINTS " << model_part.NumberOfNodes() << " float"
+    outputFile << "\nPOINTS " << rModelPart.NumberOfNodes() << " float"
                << "\n";
 
     // write nodes
-    for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
+    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
     {
         float x_coordinate = node_i->X();
         float y_coordinate = node_i->Y();
@@ -421,17 +421,17 @@ void VtkOutputProcess::WriteNodesBinary(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cells header
-    outputFile << "\nCELLS " << model_part.NumberOfConditions() + model_part.NumberOfElements() << " " << mVtkCellListSize << "\n";
+    outputFile << "\nCELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
-    for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
     {
 
         ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
@@ -451,7 +451,7 @@ void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &model_part)
     }
 
     // write Conditions
-    for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
+    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
         ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
         unsigned int numberOfNodes = condition_geometry.size();
@@ -471,17 +471,17 @@ void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cell types header
-    outputFile << "\nCELL_TYPES " << model_part.NumberOfConditions() + model_part.NumberOfElements() << "\n";
+    outputFile << "\nCELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
-    for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
     {
         const unsigned int numberOfNodes = elem_i->GetGeometry().size();
         unsigned int element_type;
@@ -507,7 +507,7 @@ void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &model_part
     }
 
     // write conditions types
-    for (ModelPart::ConditionIterator condition_i = model_part.ConditionsBegin(); condition_i != model_part.ConditionsEnd(); ++condition_i)
+    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
     {
         const unsigned int numberOfNodes = condition_i->GetGeometry().size();
         unsigned int element_type;
@@ -535,14 +535,14 @@ void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &model_part
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
     Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
-    outputFile << "\nPOINT_DATA " << model_part.NumberOfNodes() << "\n";
+    outputFile << "\nPOINT_DATA " << rModelPart.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
     {
@@ -566,7 +566,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &model_part)
 
         // write nodal results
 
-        for (ModelPart::NodeIterator node_i = model_part.NodesBegin(); node_i != model_part.NodesEnd(); ++node_i)
+        for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
         {
             if (dataCharacteristic == 1)
             {
@@ -595,16 +595,16 @@ void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &model_part)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteElementDataBinary(ModelPart &model_part)
+void VtkOutputProcess::WriteElementDataBinary(ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(model_part);
+    std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
     outputFile.open(outputFileName, std::ios::out | std::ios::app);
     Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element resultss
-    if (model_part.NumberOfElements() > 0)
+    if (rModelPart.NumberOfElements() > 0)
     {
         // write cells header
-        outputFile << "\nCELL_DATA " << model_part.NumberOfElements() << "\n";
+        outputFile << "\nCELL_DATA " << rModelPart.NumberOfElements() << "\n";
 
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
@@ -629,7 +629,7 @@ void VtkOutputProcess::WriteElementDataBinary(ModelPart &model_part)
 
             // write nodal results
 
-            for (ModelPart::ElementIterator elem_i = model_part.ElementsBegin(); elem_i != model_part.ElementsEnd(); ++elem_i)
+            for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
             {
                 if (dataCharacteristic == 1)
                 {
@@ -723,14 +723,14 @@ void VtkOutputProcess::ForceBigEndian(unsigned char *bytes)
 
 ///@}
 
-std::string VtkOutputProcess::GetOutputFileName(ModelPart &model_part)
+std::string VtkOutputProcess::GetOutputFileName(ModelPart &rModelPart)
 {
     int rank = 0;
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 #endif
     std::string outputFilename = mrOutputSettings["folder_name"].GetString() +"/"+
-                                    model_part.Name() + "_" + std::to_string(rank) + "_" + std::to_string(mStep) + ".vtk";
+                                    rModelPart.Name() + "_" + std::to_string(rank) + "_" + std::to_string(mStep) + ".vtk";
     return outputFilename;
 }
 

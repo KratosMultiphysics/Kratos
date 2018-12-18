@@ -50,7 +50,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
     /**
 		Creates a VtkOutputProcess data object
 		*/
-    VtkOutputProcess(ModelPart &model_part, Parameters rParameters);
+    VtkOutputProcess(ModelPart &rModelPart, Parameters rParameters);
     /// Destructor.
     virtual ~VtkOutputProcess();
 
@@ -129,45 +129,45 @@ class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
     ///@}
     ///@name Operators
     ///@{
-    void CreateMapFromKratosIdToVTKId(ModelPart &model_part);
+    void CreateMapFromKratosIdToVTKId(ModelPart &rModelPart);
 
-    unsigned int DetermineVtkCellListSize(ModelPart &model_part);
+    unsigned int DetermineVtkCellListSize(ModelPart &rModelPart);
 
-    void Initialize(ModelPart &model_part);
+    void Initialize(ModelPart &rModelPart);
 
-    void WriteHeader(ModelPart &model_part);
+    void WriteHeader(ModelPart &rModelPart);
 
-    void WriteMesh(ModelPart &model_part);
+    void WriteMesh(ModelPart &rModelPart);
 
-    void WriteNodes(ModelPart &model_part);
+    void WriteNodes(ModelPart &rModelPart);
 
-    void WriteConditionsAndElements(ModelPart &model_part);
+    void WriteConditionsAndElements(ModelPart &rModelPart);
 
-    void WriteConditionAndElementTypes(ModelPart &model_part);
+    void WriteConditionAndElementTypes(ModelPart &rModelPart);
 
-    void WriteNodalResultsAsPointData(ModelPart &model_part);
+    void WriteNodalResultsAsPointData(ModelPart &rModelPart);
 
-    void WriteElementData(ModelPart &model_part);
+    void WriteElementData(ModelPart &rModelPart);
 
-    void WriteHeaderBinary(ModelPart &model_part);
+    void WriteHeaderBinary(ModelPart &rModelPart);
 
-    void WriteMeshBinary(ModelPart &model_part);
+    void WriteMeshBinary(ModelPart &rModelPart);
 
-    void WriteNodesBinary(ModelPart &model_part);
+    void WriteNodesBinary(ModelPart &rModelPart);
 
-    void WriteConditionsAndElementsBinary(ModelPart &model_part);
+    void WriteConditionsAndElementsBinary(ModelPart &rModelPart);
 
-    void WriteConditionAndElementTypesBinary(ModelPart &model_part);
+    void WriteConditionAndElementTypesBinary(ModelPart &rModelPart);
 
-    void WriteNodalResultsAsPointDataBinary(ModelPart &model_part);
+    void WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart);
 
-    void WriteElementDataBinary(ModelPart &model_part);
+    void WriteElementDataBinary(ModelPart &rModelPart);
 
     void PrintOutputModelPart(ModelPart &modelPart);
 
     void PrintOutput();
 
-    std::string GetOutputFileName(ModelPart &model_part);
+    std::string GetOutputFileName(ModelPart &rModelPart);
 
     void ForceBigEndian(unsigned char *bytes);
     ///@}
