@@ -61,7 +61,7 @@ class ParticleMPMSolver(PythonSolver):
             "displacement_absolute_tolerance"    : 1.0E-9,
             "residual_relative_tolerance"        : 1.0E-4,
             "residual_absolute_tolerance"        : 1.0E-9,
-            "max_iteration"                      : 10,
+            "max_iteration"                      : 20,
             "number_of_material"                 : 1,
             "axis_symmetric_flag"                : false,
             "impenetrability_condition"          : true,
@@ -164,7 +164,7 @@ class ParticleMPMSolver(PythonSolver):
         self.abs_disp_tol               = self.settings["displacement_absolute_tolerance"].GetDouble()
         self.rel_res_tol                = self.settings["residual_relative_tolerance"].GetDouble()
         self.abs_res_tol                = self.settings["residual_absolute_tolerance"].GetDouble()
-        self.max_iters                  = self.settings["max_iteration"].GetInt()
+        self.max_iteration              = self.settings["max_iteration"].GetInt()
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
@@ -216,11 +216,11 @@ class ParticleMPMSolver(PythonSolver):
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.solver_type, self.compute_reactions,
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
                                 self.block_builder, self.pressure_dofs, self.move_mesh_flag)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.solver_type, self.compute_reactions,
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
                                 self.block_builder, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level

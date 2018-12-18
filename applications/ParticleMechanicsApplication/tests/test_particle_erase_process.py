@@ -43,7 +43,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         new_element = KratosParticle.CreateUpdatedLagragian3D8N()
 
         # Initialize solver
-        self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", False, False, False, False)
+        self.solver = KratosParticle.MPM3D(grid_model_part, initial_material_model_part, material_model_part, linear_solver, new_element, "static", 20, False, False, False, False)
 
     def _create_nodes(self, initial_mp):
         initial_mp.CreateNewNode(1, -0.5, -0.5, 0.0)
