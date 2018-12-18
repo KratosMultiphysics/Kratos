@@ -9,7 +9,7 @@
 //
 //  Main authors:    Aditya Ghantasala
 //
-//
+// 
 
 #if !defined(VTK_OUTPUT_PROCESS_H)
 #define VTK_OUTPUT_PROCESS_H
