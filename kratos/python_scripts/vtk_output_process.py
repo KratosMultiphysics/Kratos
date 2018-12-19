@@ -14,7 +14,7 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"                    : "PLEASE_SPECIFY_MOEL_PART_NAME",
+            "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "file_format"                        : "ASCII",
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
@@ -28,6 +28,8 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
         """)
 
         self.model = Model
+        model_part_name = settings["model_part_name"].GetString()
+        model_part = self.model[model_part_name]
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
@@ -44,10 +46,6 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
                     import shutil
                     shutil.rmtree(folder_name)
             os.mkdir(folder_name)
-
-
-        model_part_name = settings["model_part_name"].GetString()
-        model_part = self.model[model_part_name]
 
         self.cpp_process = KratosMultiphysics.VtkOutput(model_part, self.settings)
 
