@@ -115,6 +115,7 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
+		const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double dilatancy = r_material_properties[DILATANCY_ANGLE] * Globals::Pi / 180.0;
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
@@ -131,7 +132,7 @@ public:
         const double c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) / 
             (2.0 * J2 * std::cos(3.0 * lode_angle));
 
-        noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
+        noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
 
     /**

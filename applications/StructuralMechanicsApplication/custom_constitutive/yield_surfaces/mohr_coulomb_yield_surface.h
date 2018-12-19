@@ -218,6 +218,7 @@ public:
         )
     {
         array_1d<double, VoigtSize> first_vector, second_vector, third_vector;
+		const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
 
         ConstitutiveLawUtilities<VoigtSize>::CalculateFirstVector(first_vector);
