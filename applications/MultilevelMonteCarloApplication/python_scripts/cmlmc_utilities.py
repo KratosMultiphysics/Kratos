@@ -24,25 +24,14 @@ References:
 
 '''
 TODO: create a class for the values ValueClass in order to directly modify the values inside functions
-see following example to understand the problem:
-# f(a):
-#     a = a + 1
-# f2(a):
-#     a[0] = a[0] + 1
-
-# b = 1
-# b2 = [1]
-# f(b)
-# f2(b2)
-# print(b) # 1
-# print(b2) # [2]
+e.g. mean = [1,2,4,5]  ---> mean = [Value, Value, Value, Value]
+     to modify this inside a task I need it to be an object
+TODO: insert distinction between scalar and field Quantity of Interests
 '''
 
 
 '''
 auxiliary function of UpdateOnepassMeanVariance of the StatisticalVariable class
-this function is needed since in compss we do operations among future objects,
-and we need to handle the singular future values
 '''
 @ExaquteTask(returns=4)
 def UpdateOnepassMeanVarianceAux_Task(sample, old_mean, old_M2, nsamples):
@@ -63,8 +52,6 @@ def UpdateOnepassMeanVarianceAux_Task(sample, old_mean, old_M2, nsamples):
 
 '''
 auxiliary function of AddResults of the MultilevelMonteCarlo class
-this function is needed since in compss we do operations among future objects,
-and we need to handle the singular future values
 '''
 @ExaquteTask(returns=2)
 def AddResultsAux_Task(simulation_results,level):
@@ -76,11 +63,12 @@ def AddResultsAux_Task(simulation_results,level):
 
 
 '''
-auxiliary function finalizing the screening phase and the MLMC phase in the MultilevelMonteCarlo class
+auxiliary function finalizing the screening phase and the MLMC phase of the MultilevelMonteCarlo class
 '''
 @ExaquteTask(returns=5)
 def FinalizePhase_Task(ConstructorCallback,aux_settings_serialized,aux_mesh_parameters,\
 aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
+    '''retrieve lists'''
     args = list(args)
     first_occ = args.index("%%%")
     difference_QoI_mean = args[:first_occ]
@@ -101,28 +89,27 @@ aux_current_number_levels,aux_current_iteration,aux_number_samples,*args):
     auxiliary_MLMC_object.current_iteration = aux_current_iteration
     auxiliary_MLMC_object.number_samples = aux_number_samples
     '''compute the functions needed to finalize the screening phase or the MLMC phase'''
-    if (auxiliary_MLMC_object.current_iteration == 0):
+    if (auxiliary_MLMC_object.current_iteration == 0): # screening phase
         '''compute parameters by least square fit'''
         auxiliary_MLMC_object.ComputeRatesLS()
         '''compute Bayesian variance V^c[Y_l]'''
         auxiliary_MLMC_object.EstimateBayesianVariance(auxiliary_MLMC_object.current_number_levels)
-    else:
+    else: # MLMC phase
         '''compute estimator MLMC mean QoI'''
         auxiliary_MLMC_object.ComputeMeanMLMCQoI()
         '''compute parameters by least square fit'''
         auxiliary_MLMC_object.ComputeRatesLS()
         '''compute Bayesian variance V^c[Y_l]'''
         auxiliary_MLMC_object.EstimateBayesianVariance(auxiliary_MLMC_object.current_number_levels)
-        '''compute total error of the MLMC simulation'''
+        '''compute total error of MLMC simulation'''
         auxiliary_MLMC_object.ComputeTotalErrorMLMC()
     return auxiliary_MLMC_object.rates_error,\
     auxiliary_MLMC_object.BayesianVariance,auxiliary_MLMC_object.mean_mlmc_QoI,\
     auxiliary_MLMC_object.TErr,auxiliary_MLMC_object.number_samples
 
 
-
 class StatisticalVariable(object):
-    '''The base class for the quantity of interest and other statistical variables computed'''
+    '''The base class for statistical variables'''
     def __init__(self, number_levels):
         '''constructor of the class
         Keyword arguments:
@@ -130,10 +117,10 @@ class StatisticalVariable(object):
         number_levels : number of levels
         '''
 
-        '''values of the variable, divided per level'''
+        '''values of the variable, organized per level'''
         self.values = []
         '''mean of the variable per each level'''
-        self.mean = [] # [1,2,4,5]  // [Value, Value, Value, Value] # to modify this inside te function I need it to be an object
+        self.mean = []
         '''sample variance of the variable per each level'''
         self.sample_variance = []
         '''second moment of the variable per each level'''
@@ -144,7 +131,7 @@ class StatisticalVariable(object):
         self.statistical_error = None
         '''type of variable: scalar or field'''
         self.type = None
-        '''number of samples of the variable computed'''
+        '''number of samples of the variable'''
         self.number_samples = [0 for _ in range(number_levels+1)]
 
 
@@ -189,7 +176,6 @@ class StatisticalVariable(object):
     #     del(new_mean, new_M2, new_sample_variance)
 
 
-'''TODO: inser distinction between scalar and field Quantity of Interests'''
 class MultilevelMonteCarlo(object):
     '''The base class for the MultilevelMonteCarlo-classes'''
     def __init__(self,custom_settings):
@@ -244,7 +230,7 @@ class MultilevelMonteCarlo(object):
         self.current_number_levels = self.settings["Lscreening"].GetInt()
         '''previous_number_levels : number of levels of previous iteration'''
         self.previous_number_levels = None
-        '''number_samples : total number of samples at current iteration'''        
+        '''number_samples : total number of samples of current iteration'''        
         self.number_samples = [self.settings["number_samples_screening"].GetInt() for i in range (self.settings["Lscreening"].GetInt()+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''
         self.difference_number_samples = None
@@ -267,35 +253,35 @@ class MultilevelMonteCarlo(object):
         self.BayesianVariance = []
         '''number_iterations : theoretical number of iterations the MLMC algorithm will perform'''
         self.number_iterations_iE = None
-        '''convergence : boolean variable defining if MLMC algorithm is convergenced'''
+        '''convergence : boolean variable defining if MLMC algorithm is converged'''
         self.convergence = False
         '''current_iteration : current iteration of MLMC algorithm'''
         self.current_iteration = 0
-        '''tolerance_i : tolerance of i^th-iteration considered in MLMC algorithm'''
+        '''tolerance_i : tolerance of i^th-iteration of MLMC algorithm'''
         self.tolerance_i = None
-        '''theta_i : splitting parameter \in(0,1) that affects bias and statistical error in the computation of the total error'''
+        '''theta_i : splitting parameter \in (0,1), this affects bias and statistical error in the computation of the total error'''
         self.theta_i = None
         '''mean_mlmc_QoI : MLMC estimator for the mean value of the Quantity of Interest'''
         self.mean_mlmc_QoI = None
-        '''TErr : total error of MLMC algorithm, the sum of bias and statistical error is an overstmation of the real total error
+        '''TErr : total error of MLMC algorithm, the sum of bias and statistical error is an overestmation of the real total error
                   TErr := \abs(E^MLMC[QoI] - E[QoI])'''
         self.TErr = None
         '''compute mesh parameter for each mesh'''
         self.ComputeMeshParameters()
 
-        '''difference_QoI : Quantity of Interest of the considered problem organized in consecutive levels
+        '''difference_QoI : Quantity of Interest of the considered problem organized per levels
                             difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1'''
         self.difference_QoI = StatisticalVariable(self.current_number_levels)
         self.difference_QoI.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         self.difference_QoI.type = "scalar"
-        '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized in consecutive levels'''
+        '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels'''
         self.time_ML = StatisticalVariable(self.current_number_levels)
         self.time_ML.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
 
         '''########################################################################
         # observation: levels start from level 0                                  #
         #              length arrays and lists starts from 1                      #
-        # then we have a difference of 1 between length lists and levels          #
+        # thus there is a difference of 1 between length lists and levels         #
         # e.g. self.current_level = len(self.number_samples) - 1                  #
         #      or                                                                 #
         #      self.current_level = len(self.difference_QoI.values) - 1           #
@@ -303,7 +289,7 @@ class MultilevelMonteCarlo(object):
 
 
     '''
-    function finalizing the screening phase of the MLMC algorithm
+    function finalizing the screening phase of MLMC algorithm
     Usage: It is designed to be called ONCE, AFTER the screening phase
     '''
     def FinalizeScreeningPhase(self):
@@ -322,9 +308,7 @@ class MultilevelMonteCarlo(object):
         '''compute i_E, number of iterations of Multilevel Monte Carlo algorithm'''
         self.ComputeNumberIterationsMLMC()
         '''the following lines represent the functions we execute in FinalizePhase_Task
-        compute parameters by least square fit to estimate Bayesian VAR
         self.ComputeRatesLS()
-        compute Bayesian VAR V^c[Y_l]
         self.EstimateBayesianVariance(self.current_number_levels)'''
         '''store lists in synchro_element to execute FinalizePhase_Task'''
         synchro_elements = [x for x in self.difference_QoI.mean]
@@ -342,7 +326,7 @@ class MultilevelMonteCarlo(object):
         = FinalizePhase_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
         self.current_iteration,self.number_samples,*synchro_elements)
-        '''synchronization point needed to compute the other functions of the MLMC algorithm
+        '''synchronization point needed to compute the other functions of MLMC algorithm
         put as in the end as possible the synchronization point'''
         self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
         self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
@@ -358,7 +342,7 @@ class MultilevelMonteCarlo(object):
 
     '''
     function performing all the required operations that should be executed
-    (for each step) BEFORE the MLMC solution step
+    (for each MLMC iteration) BEFORE the MLMC solution step
     '''
     def InitializeMLMCPhase(self):
         '''compute tolerance for the i^th iteration'''
@@ -376,7 +360,7 @@ class MultilevelMonteCarlo(object):
 
 
     '''function performing all the required operations that should be executed
-    (for each step) AFTER the MLMC solution step'''
+    (for each MLMC iteration) AFTER the MLMC solution step'''
     def FinalizeMLMCPhase(self):
         '''prepare lists'''
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
@@ -396,13 +380,9 @@ class MultilevelMonteCarlo(object):
         '''update number of levels'''
         self.previous_number_levels = self.current_number_levels
         '''the following commented lines represent the functions we execute in FinalizePhase_Task
-        compute estimatior MLMC mean QoI
         self.ComputeMeanMLMCQoI()
-        compute parameters by least square fit
         self.ComputeRatesLS()
-        compute Bayesian variance
         self.EstimateBayesianVariance(self.current_number_levels)
-        compute total error of the MLMC simulation
         self.ComputeTotalErrorMLMC()'''
         '''store lists in synchro_element to execute FinalizePhase_Task'''
         synchro_elements = [x for x in self.difference_QoI.mean]
@@ -420,7 +400,7 @@ class MultilevelMonteCarlo(object):
         = FinalizePhase_Task(MultilevelMonteCarlo,
         serial_settings,self.mesh_parameters,self.current_number_levels,\
         self.current_iteration,self.number_samples,*synchro_elements)
-        '''synchronization point needed to compute the other functions of the MLMC algorithm
+        '''synchronization point needed to compute the other functions of MLMC algorithm
         put as in the end as possible the synchronization point'''
         self.difference_QoI.mean = get_value_from_remote(self.difference_QoI.mean)
         self.difference_QoI.sample_variance = get_value_from_remote(self.difference_QoI.sample_variance)
@@ -433,7 +413,7 @@ class MultilevelMonteCarlo(object):
         '''check convergence
         convergence reached if: i) current_iteration >= number_iterations_iE
                                ii) TErr < tolerance_i
-           if not update current_iteration'''
+        if not update current_iteration'''
         if (self.current_iteration >= self.number_iterations_iE) and (self.TErr < self.tolerance_i):
             self.convergence = True
         else:
@@ -444,7 +424,7 @@ class MultilevelMonteCarlo(object):
     function printing informations about screening phase
     '''
     def ScreeningInfoScreeningPhase(self):
-        print("\n ######## SCREENING PHASE ######## \n")
+        print("\n","#"*50," SCREENING PHASE ","#"*50,"\n")
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
         print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
@@ -458,7 +438,7 @@ class MultilevelMonteCarlo(object):
     function printing informations about initializing MLMC phase
     '''
     def ScreeningInfoInitializeMLMCPhase(self):
-        print("\n ######## CMLMC iter = ",self.current_iteration,"######## \n")
+        print("\n","#"*50," MLMC iter =  ",self.current_iteration,"#"*50,"\n")
         print("current tolerance = ",self.tolerance_i)
         print("updated estimated Bayesian Variance initialize phase = ",self.BayesianVariance)
         print("current number of levels = ",self.current_number_levels)
@@ -485,7 +465,7 @@ class MultilevelMonteCarlo(object):
 
 
     '''
-    function adding the QoI and MLMC time values to the corresponding level and object of the variable
+    function adding QoI and MLMC time values to the corresponding level
     '''
     def AddResults(self,simulation_results):
         '''simulation_results = [MultilevelMonteCarloResults class, level (integer type, not compss.future)]'''
@@ -493,7 +473,7 @@ class MultilevelMonteCarlo(object):
         level = simulation_results[1]
         for lev in range (level+1):
             difference_QoI_value, time_ML_value = AddResultsAux_Task(simulation_results_class,lev)
-            '''update values of difference QoI and time ML pe each level'''
+            '''update values of difference QoI and time ML per each level'''
             self.difference_QoI.values[lev] = np.append(self.difference_QoI.values[lev], difference_QoI_value)
             self.time_ML.values[lev] = np.append(self.time_ML.values[lev],time_ML_value)
             '''update number of samples'''
@@ -552,7 +532,7 @@ class MultilevelMonteCarlo(object):
 
     '''
     function performing the Bayesian update of the variance
-    using samples generated on all levels in order to locally improve the estimation of Var[difference_QoI]
+    using samples generated on all levels in order to locally improve the estimation of variance[difference_QoI]
     '''
     def EstimateBayesianVariance(self,levels): # need to keep levels because in ComputeLevels I use the maximum number of levels
         '''use local variables'''
@@ -569,13 +549,13 @@ class MultilevelMonteCarlo(object):
         nsam_local = copy.copy(self.number_samples)
         '''append null values to evaluate the Bayesian variance for all levels'''
         if len(mean_local) < (levels+1):
-            for i in range (0,(levels+1)-len(mean_local)):
+            for _ in range (0,(levels+1)-len(mean_local)):
                 mean_local.append(0.0)
         if len(variance_local) < (levels+1):
-            for i in range (0,(levels+1)-len(variance_local)):
+            for _ in range (0,(levels+1)-len(variance_local)):
                 variance_local.append(0.0)
         if len(nsam_local) < (levels+1):
-            for i in range ((levels+1)-len(nsam_local)):
+            for _ in range ((levels+1)-len(nsam_local)):
                 nsam_local.append(0)
         '''estimate the Bayesian variance'''
         BayesianVariance = []
@@ -590,7 +570,7 @@ class MultilevelMonteCarlo(object):
 
 
     '''
-    function computing the minimum number of iterations number_iterations_iE of the MLMC algorithm
+    function computing the minimum number of iterations of MLMC algorithm
     iteration < number_iterations_iE : iterations needed to obtain increasingly accurate estimates of the
                                        problem dependent parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma]
     iteration > number_iterations_iE : iterations preventing redundant computations due to fluctuations
@@ -643,7 +623,7 @@ class MultilevelMonteCarlo(object):
             self.EstimateBayesianVariance(Lmax)
         BayesianVariance = self.BayesianVariance
         model_cost = np.multiply(cgamma,np.power(mesh_parameters_all_levels,gamma)) # model_cost has length = Lmax + 1
-        '''observe it is not mandatory to increase the number of levels and we may continue using the number of levels of the previous cmlmc iteration, i.e. Lmin'''
+        '''observation: not mandatory to increase the number of levels, we may continue using the number of levels of the previous MLMC iteration'''
         for lev in range(Lmin, Lmax+1):
             # theta_i = 1.0 - (calpha * (mesh_parameters_all_levels[lev])**(-alpha))/tol # use the ComputeTheta function to evaluate theta for level lev
             self.ComputeTheta(lev) # this function bounds theta with a maximum and a minimum value that we set in settings
@@ -651,7 +631,7 @@ class MultilevelMonteCarlo(object):
             if (theta_i > 0.0) and (theta_i < 1.0):
                 coeff2 = np.sum(np.sqrt(np.multiply(model_cost[0:lev+1],BayesianVariance[0:lev+1])))
                 coeff2 = coeff2**2.0
-                coeff1 = (cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar, if QoI is a field use the formula described in [PNL17]
+                coeff1 = (cphi/(theta_i*tol))**2.0 # formula in case QoI is scalar
             else:
                 raise Exception ("The splitting parameter theta_i assumed a value outside the range (0,1) : ",self.theta_i)
             Wtot = coeff1 * coeff2
@@ -689,7 +669,7 @@ class MultilevelMonteCarlo(object):
 
 
     '''
-    function computing the updated number of samples for each level for the i^th iteration of the cmlmc algorithm
+    function computing the updated number of samples for each level for i^th iteration of CMLMC algorithm
     '''
     def ComputeNumberSamples(self):
         current_number_levels = self.current_number_levels
@@ -776,6 +756,9 @@ class MultilevelMonteCarloResults(object):
         Keyword arguments:
         self : an instance of a class
         '''
+        '''Quantity of Interest'''
         self.QoI = []
+        '''time cost'''
         self.time_ML = []
+        '''level of QoI and time_ML'''
         self.finer_level = 0
