@@ -417,10 +417,10 @@ std::vector<int> MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::vector<int> recv_values(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
@@ -431,10 +431,10 @@ std::vector<double> MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::vector<double> recv_values(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
@@ -445,33 +445,33 @@ std::string MPIDataCommunicator::SendRecv(
 {
     int send_size = rSendValues.size();
     int recv_size;
-    SendRecvDetail(send_size, SendDestination, recv_size, RecvSource);
+    SendRecvDetail(send_size, SendDestination, 0, recv_size, RecvSource, 0);
 
     std::string recv_values;
     recv_values.resize(recv_size);
-    SendRecvDetail(rSendValues, SendDestination, recv_values, RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,0,recv_values,RecvSource,0);
     return recv_values;
 }
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<int>& rSendValues, const int SendDestination,
-    std::vector<int>& rRecvValues, const int RecvSource) const
+    const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
+    std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 void MPIDataCommunicator::SendRecv(
-    const std::vector<double>& rSendValues, const int SendDestination,
-    std::vector<double>& rRecvValues, const int RecvSource) const
+    const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
+    std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 void MPIDataCommunicator::SendRecv(
-        const std::string& rSendValues, const int SendDestination,
-        std::string& rRecvValues, const int RecvSource) const
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const
 {
-    SendRecvDetail(rSendValues,SendDestination,rRecvValues,RecvSource);
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);
 }
 
 // Broadcast
@@ -871,20 +871,18 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
 }
 
 template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
-    const TDataType& rSendMessage, const int SendDestination,
-    TDataType& rRecvMessage, const int RecvSource) const
+    const TDataType& rSendMessage, const int SendDestination, const int SendTag,
+    TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const
 {
-    #ifdef KRATOS_DEBUG
-    ValidateSendRecvInput(rSendMessage, SendDestination, rRecvMessage, RecvSource);
-    #endif
-    const int send_tag = 0;
-    const int recv_tag = 0;
+    //#ifdef KRATOS_DEBUG
+    //ValidateSendRecvInput(rSendMessage, SendDestination, rRecvMessage, RecvSource);
+    //#endif
 
     int ierr = MPI_Sendrecv(
         MPIBuffer(rSendMessage), MPIMessageSize(rSendMessage),
-        MPIDatatype(rSendMessage), SendDestination, send_tag,
+        MPIDatatype(rSendMessage), SendDestination, SendTag,
         MPIBuffer(rRecvMessage), MPIMessageSize(rRecvMessage),
-        MPIDatatype(rRecvMessage), RecvSource, recv_tag,
+        MPIDatatype(rRecvMessage), RecvSource, RecvTag,
         mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
 }
