@@ -27,33 +27,6 @@ VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPar
 
 VtkOutput::~VtkOutput(){};
 
-void VtkOutput::ExecuteInitialize()
-{}
-
-void VtkOutput::ExecuteBeforeSolutionLoop()
-{}
-
-void VtkOutput::ExecuteInitializeSolutionStep()
-{}
-
-void VtkOutput::ExecuteFinalizeSolutionStep()
-{
-    PrintOutput();
-}
-
-void VtkOutput::ExecuteBeforeOutputStep()
-{}
-
-void VtkOutput::ExecuteAfterOutputStep()
-{}
-
-void VtkOutput::ExecuteFinalize()
-{}
-
-int VtkOutput::Check()
-{return  0;}
-
-
 
 void VtkOutput::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
 {
@@ -131,12 +104,10 @@ void VtkOutput::WriteNodes(ModelPart &rModelPart)
     // write nodes
     for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
     {
-        double x_coordinate = node_i->X();
-        double y_coordinate = node_i->Y();
-        double z_coordinate = node_i->Z();
-        outputFile << " " << x_coordinate;
-        outputFile << " " << y_coordinate;
-        outputFile << " " << z_coordinate << "\n";
+        auto& coordinates = node_i->Coordinates();
+        outputFile << " " << coordinates(0);
+        outputFile << " " << coordinates(1);
+        outputFile << " " << coordinates(2) << "\n";
     }
 
     outputFile.close();
@@ -660,7 +631,7 @@ void VtkOutput::WriteElementDataBinary(ModelPart &rModelPart)
 
 //#################################################################End of Binary vtk ################################################################
 
-void VtkOutput::PrintOutputModelPart(ModelPart &modelPart)
+void VtkOutput::WriteModelPart(ModelPart &modelPart)
 {
     Initialize(modelPart);
     std::string type = this->mrOutputSettings["file_format"].GetString();
@@ -684,7 +655,7 @@ void VtkOutput::PrintOutputModelPart(ModelPart &modelPart)
 void VtkOutput::PrintOutput()
 {
     //For whole model part
-    PrintOutputModelPart(mrModelPart);
+    WriteModelPart(mrModelPart);
     //For sub model parts
     bool print_sub_model_parts = this->mrOutputSettings["output_sub_model_parts"].GetBool();
 
@@ -694,7 +665,7 @@ void VtkOutput::PrintOutput()
         for (auto subModelPartName : subModelPartNames)
         {
             ModelPart &subModelPart = mrModelPart.GetSubModelPart(subModelPartName);
-            PrintOutputModelPart(subModelPart);
+            WriteModelPart(subModelPart);
         }
         ++mStep;
     }

@@ -48,8 +48,10 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     ///@{
 
     /**
-		Creates a VtkOutput data object
-		*/
+     * @brief Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+     * @param rModelPart The modelpart which is used for output
+     * @param rParameters Parameters including settings for the output
+     */
     VtkOutput(ModelPart &rModelPart, Parameters rParameters);
     /// Destructor.
     virtual ~VtkOutput();
@@ -58,7 +60,10 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     ///@name Operators
     ///@{
 
-
+    /**
+     * @brief Prints mrModelPart in VTK format together with the results
+     */
+    void PrintOutput();
 
     ///@}
 
@@ -72,7 +77,11 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     void GetInfo() const;
 
     ///@}
-    void PrintInfo(std::ostream &rOStream) const override
+    /**
+     * @brief Prints information about the class
+     * @param rOStream ostream object where output is printed
+     */
+    void PrintInfo(std::ostream &rOStream) const
     {
         rOStream << " VtkOutput object " << std::endl;
     }
@@ -100,61 +109,130 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     ///@}
     ///@name Operators
     ///@{
+
+    /**
+     * @brief Print the given rModelPart as VTK file together with the requested results
+     * @param rModelPart modelpart which is beging output
+     */
+    void WriteModelPart(ModelPart &rModelPart) override;
+
+    /**
+     * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
+     * @param rModelPart modelpart which is beging output
+     */
     void CreateMapFromKratosIdToVTKId(ModelPart &rModelPart);
 
+    /**
+     * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
+     *          It is necessary to be known prior to output
+     * @param rModelPart modelpart which is beging output
+     */
     unsigned int DetermineVtkCellListSize(ModelPart &rModelPart);
 
+    /**
+     * @brief Initialize function for the class
+     * @param rModelPart modelpart which is beging output
+     */
     void Initialize(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the VTK header for the output of given rModelPart. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteHeader(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteMesh(ModelPart &rModelPart);
 
-    void WriteNodes(ModelPart &rModelPart);
+    /**
+     * @brief Write the nodes in the rModelPart. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
+    void WriteNodes(ModelPart &rModelPart) override;
 
+    /**
+     * @brief Write the elements and conditions in rModelPart. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteConditionsAndElements(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteConditionAndElementTypes(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the results on the nodes. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteNodalResultsAsPointData(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In ASCII format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteElementData(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the VTK header for the output of given rModelPart. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteHeaderBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteMeshBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the nodes in the rModelPart. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteNodesBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the elements and conditions in rModelPart. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteConditionsAndElementsBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteConditionAndElementTypesBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the results on the nodes. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart);
 
+    /**
+     * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In Binary format
+     * @param rModelPart modelpart which is beging output
+     */
     void WriteElementDataBinary(ModelPart &rModelPart);
 
-    void PrintOutputModelPart(ModelPart &modelPart);
-
-    void PrintOutput();
-
+    /**
+     * @brief Get the output file name based on the provided settings and the MPI rank
+     * @param rModelPart modelpart which is beging output
+     */
     std::string GetOutputFileName(ModelPart &rModelPart);
 
+    /**
+     * @brief Only used in the Binary format output. This function forces the big endian format for the input binary stream
+     * @param rModelPart modelpart which is beging output
+     */
     void ForceBigEndian(unsigned char *bytes);
     ///@}
     ///@name Serialization
     ///@{
-    friend class Serializer;
-
-    virtual void save(Serializer &rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VtkOutput);
-    }
-
-    virtual void load(Serializer &rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VtkOutput);
-    }
 
     ///@}
 };
