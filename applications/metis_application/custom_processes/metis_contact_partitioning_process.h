@@ -726,5 +726,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_METIS_CONTACTmContactNodes[i]_PARTITIONING_PROCESS_INCLUDED defined
-
-
