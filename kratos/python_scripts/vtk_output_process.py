@@ -15,7 +15,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "file_format"                        : "ASCII",
+            "file_format"                        : "ascii",
             "output_precision"                   : 7,
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
