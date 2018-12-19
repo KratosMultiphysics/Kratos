@@ -234,7 +234,7 @@ public:
                 if(d > 0.0) //set to a large number, to make sure that that the minimal distance is computed according to CaculateTetrahedraDistances
                     d = 1.0e15;
                 else
-                    d = -1.015;
+                    d = -1.0e15;
             }
             
             
@@ -280,7 +280,7 @@ public:
                     
                     double& d = geom[i].FastGetSolutionStepValue(DISTANCE);
                     geom[i].SetLock();
-                    if(std::fabs(d) > std::fabs(distances[i])) d = distances[i];
+                    if(std::abs(d) > std::abs(distances[i])) d = distances[i];
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
@@ -325,7 +325,7 @@ public:
             for(int iii=0; iii<nnodes; iii++)
             {
                 auto it = mp_distance_model_part->NodesBegin() + iii;
-                it->FastGetSolutionStepValue(DISTANCE) = std::fabs(it->FastGetSolutionStepValue(DISTANCE));
+                it->FastGetSolutionStepValue(DISTANCE) = std::abs(it->FastGetSolutionStepValue(DISTANCE));
             }
             
             mp_distance_model_part->GetCommunicator().SynchronizeCurrentDataToMin(DISTANCE);
