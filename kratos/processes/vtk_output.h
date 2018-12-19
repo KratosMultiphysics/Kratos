@@ -114,116 +114,116 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @brief Print the given rModelPart as VTK file together with the requested results
      * @param rModelPart modelpart which is beging output
      */
-    void WriteModelPart(ModelPart &rModelPart) override;
+    void WriteModelPart(const ModelPart &rModelPart);
 
     /**
      * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
      * @param rModelPart modelpart which is beging output
      */
-    void CreateMapFromKratosIdToVTKId(ModelPart &rModelPart);
+    void CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart);
 
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
      *          It is necessary to be known prior to output
      * @param rModelPart modelpart which is beging output
      */
-    unsigned int DetermineVtkCellListSize(ModelPart &rModelPart);
+    unsigned int DetermineVtkCellListSize(const ModelPart &rModelPart);
 
     /**
      * @brief Initialize function for the class
      * @param rModelPart modelpart which is beging output
      */
-    void Initialize(ModelPart &rModelPart);
+    void Initialize(const ModelPart &rModelPart);
 
     /**
      * @brief Write the VTK header for the output of given rModelPart. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteHeader(ModelPart &rModelPart);
+    void WriteHeader(const ModelPart &rModelPart);
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteMesh(ModelPart &rModelPart);
+    void WriteMesh(const ModelPart &rModelPart);
 
     /**
      * @brief Write the nodes in the rModelPart. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodes(ModelPart &rModelPart) override;
+    void WriteNodes(const ModelPart &rModelPart);
 
     /**
      * @brief Write the elements and conditions in rModelPart. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionsAndElements(ModelPart &rModelPart);
+    void WriteConditionsAndElements(const ModelPart &rModelPart);
 
     /**
      * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionAndElementTypes(ModelPart &rModelPart);
+    void WriteConditionAndElementTypes(const ModelPart &rModelPart);
 
     /**
      * @brief Write the results on the nodes. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodalResultsAsPointData(ModelPart &rModelPart);
+    void WriteNodalResultsAsPointData(const ModelPart &rModelPart);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteElementData(ModelPart &rModelPart);
+    void WriteElementData(const ModelPart &rModelPart);
 
     /**
      * @brief Write the VTK header for the output of given rModelPart. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteHeaderBinary(ModelPart &rModelPart);
+    void WriteHeaderBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteMeshBinary(ModelPart &rModelPart);
+    void WriteMeshBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the nodes in the rModelPart. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodesBinary(ModelPart &rModelPart);
+    void WriteNodesBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the elements and conditions in rModelPart. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionsAndElementsBinary(ModelPart &rModelPart);
+    void WriteConditionsAndElementsBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionAndElementTypesBinary(ModelPart &rModelPart);
+    void WriteConditionAndElementTypesBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the results on the nodes. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart);
+    void WriteNodalResultsAsPointDataBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In Binary format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteElementDataBinary(ModelPart &rModelPart);
+    void WriteElementDataBinary(const ModelPart &rModelPart);
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
      * @param rModelPart modelpart which is beging output
      */
-    std::string GetOutputFileName(ModelPart &rModelPart);
+    std::string GetOutputFileName(const ModelPart &rModelPart);
 
     /**
      * @brief Only used in the Binary format output. This function forces the big endian format for the input binary stream

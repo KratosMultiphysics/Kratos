@@ -28,44 +28,43 @@ VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPar
 VtkOutput::~VtkOutput(){};
 
 
-void VtkOutput::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
+void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart)
 {
     int vtk_id = 0;
-
-    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
+    for(const auto& node : rModelPart.Nodes())
     {
-        int KratosId = node_i->Id();
+        int KratosId = node.Id();
         mKratosIdToVtkId[KratosId] = vtk_id;
         vtk_id++;
     }
 }
 
-unsigned int VtkOutput::DetermineVtkCellListSize(ModelPart &rModelPart)
+unsigned int VtkOutput::DetermineVtkCellListSize(const ModelPart &rModelPart)
 {
     unsigned int vtk_cell_list_size = 0;
 
-    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+    for (const auto& elem : rModelPart.Elements())
     {
         vtk_cell_list_size++;
-        vtk_cell_list_size += elem_i->GetGeometry().size();
+        vtk_cell_list_size += elem.GetGeometry().size();
     }
 
-    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
+    for (const auto& condition : rModelPart.Conditions())
     {
         vtk_cell_list_size++;
-        vtk_cell_list_size += condition_i->GetGeometry().size();
+        vtk_cell_list_size += condition.GetGeometry().size();
     }
 
     return vtk_cell_list_size;
 }
 
-void VtkOutput::Initialize(ModelPart &rModelPart)
+void VtkOutput::Initialize(const ModelPart &rModelPart)
 {
     CreateMapFromKratosIdToVTKId(rModelPart);
     mVtkCellListSize = DetermineVtkCellListSize(rModelPart);
 }
 
-void VtkOutput::WriteHeader(ModelPart &rModelPart)
+void VtkOutput::WriteHeader(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -82,14 +81,14 @@ void VtkOutput::WriteHeader(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteMesh(ModelPart &rModelPart)
+void VtkOutput::WriteMesh(const ModelPart &rModelPart)
 {
     WriteNodes(rModelPart);
     WriteConditionsAndElements(rModelPart);
     WriteConditionAndElementTypes(rModelPart);
 }
 
-void VtkOutput::WriteNodes(ModelPart &rModelPart)
+void VtkOutput::WriteNodes(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -102,9 +101,9 @@ void VtkOutput::WriteNodes(ModelPart &rModelPart)
                << "\n";
 
     // write nodes
-    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
+    for(const auto& node : rModelPart.Nodes())
     {
-        auto& coordinates = node_i->Coordinates();
+        auto& coordinates = node.Coordinates();
         outputFile << " " << coordinates(0);
         outputFile << " " << coordinates(1);
         outputFile << " " << coordinates(2) << "\n";
@@ -113,7 +112,7 @@ void VtkOutput::WriteNodes(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteConditionsAndElements(ModelPart &rModelPart)
+void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -123,9 +122,9 @@ void VtkOutput::WriteConditionsAndElements(ModelPart &rModelPart)
     outputFile << "CELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
-    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+    for (const auto& elem : rModelPart.Elements())
     {
-        auto& elem_geometry = elem_i->GetGeometry();
+        auto& elem_geometry = elem.GetGeometry();
         const unsigned int numberOfNodes = elem_geometry.size();
 
         outputFile << numberOfNodes;
@@ -136,9 +135,9 @@ void VtkOutput::WriteConditionsAndElements(ModelPart &rModelPart)
     }
 
     // write Conditions
-    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
+    for (const auto& condition : rModelPart.Conditions())
     {
-        auto& condition_geometry = condition_i->GetGeometry();
+        auto& condition_geometry = condition.GetGeometry();
         const unsigned int numberOfNodes = condition_geometry.size();
 
         outputFile << numberOfNodes;
@@ -150,7 +149,7 @@ void VtkOutput::WriteConditionsAndElements(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteConditionAndElementTypes(ModelPart &rModelPart)
+void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -160,9 +159,9 @@ void VtkOutput::WriteConditionAndElementTypes(ModelPart &rModelPart)
     outputFile << "CELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
-    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+    for (const auto& elem : rModelPart.Elements())
     {
-        const unsigned int numberOfNodes = elem_i->GetGeometry().size();
+        const unsigned int numberOfNodes = elem.GetGeometry().size();
         unsigned int element_type;
 
         if (numberOfNodes == 3)
@@ -185,9 +184,9 @@ void VtkOutput::WriteConditionAndElementTypes(ModelPart &rModelPart)
     }
 
     // write conditions types
-    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
+    for (const auto& condition : rModelPart.Conditions())
     {
-        const unsigned int numberOfNodes = condition_i->GetGeometry().size();
+        const unsigned int numberOfNodes = condition.GetGeometry().size();
         unsigned int element_type;
 
         if (numberOfNodes == 3)
@@ -212,7 +211,7 @@ void VtkOutput::WriteConditionAndElementTypes(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteNodalResultsAsPointData(ModelPart &rModelPart)
+void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -245,18 +244,18 @@ void VtkOutput::WriteNodalResultsAsPointData(ModelPart &rModelPart)
         // write nodal results
         outputFile << std::scientific;
         outputFile << std::setprecision(mDefaultPrecision);
-        for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
+        for(const auto& node : rModelPart.Nodes())
         {
             if (dataCharacteristic == 1)
             {
                 Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                double &nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                const double &nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
                 outputFile << nodalResult << "\n";
             }
             else if (dataCharacteristic == 2)
             {
                 Variable<array_1d<double, 3>> nodalResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodalResultName);
-                array_1d<double, 3> &nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                const array_1d<double, 3> &nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
                 outputFile << nodalResult[0] << " ";
                 outputFile << nodalResult[1] << " ";
                 outputFile << nodalResult[2] << "\n";
@@ -267,7 +266,7 @@ void VtkOutput::WriteNodalResultsAsPointData(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteElementData(ModelPart &rModelPart)
+void VtkOutput::WriteElementData(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -303,18 +302,18 @@ void VtkOutput::WriteElementData(ModelPart &rModelPart)
             // write nodal results
             outputFile << std::scientific;
             outputFile << std::setprecision(mDefaultPrecision);
-            for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+            for (const auto& elem : rModelPart.Elements())
             {
                 if (dataCharacteristic == 1)
                 {
                     Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
-                    double &elementResult = elem_i->GetValue(elementResultVariable);
+                    const double &elementResult = elem.GetValue(elementResultVariable);
                     outputFile << elementResult << "\n";
                 }
                 else if (dataCharacteristic == 2)
                 {
                     Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
-                    array_1d<double, 3> &elementResult = elem_i->GetValue(elementResultVariable);
+                    const array_1d<double, 3> &elementResult = elem.GetValue(elementResultVariable);
                     outputFile << elementResult[0] << " ";
                     outputFile << elementResult[1] << " ";
                     outputFile << elementResult[2] << "\n";
@@ -325,10 +324,10 @@ void VtkOutput::WriteElementData(ModelPart &rModelPart)
         outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
 
         // write element results for active
-        for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+        for (const auto& elem : rModelPart.Elements())
         {
             //outputFile << numberOfNodes;
-            bool is_split = elem_i->GetValue(SPLIT_ELEMENT);
+            bool is_split = elem.GetValue(SPLIT_ELEMENT);
             outputFile << is_split << "\n";
         }
     */
@@ -338,7 +337,7 @@ void VtkOutput::WriteElementData(ModelPart &rModelPart)
 
 //#############################################For creating vtk files in binary format##########################################################
 
-void VtkOutput::WriteHeaderBinary(ModelPart &rModelPart)
+void VtkOutput::WriteHeaderBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -355,7 +354,7 @@ void VtkOutput::WriteHeaderBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteMeshBinary(ModelPart &rModelPart)
+void VtkOutput::WriteMeshBinary(const ModelPart &rModelPart)
 {
 
     WriteNodesBinary(rModelPart);
@@ -365,7 +364,7 @@ void VtkOutput::WriteMeshBinary(ModelPart &rModelPart)
     WriteConditionAndElementTypesBinary(rModelPart);
 }
 
-void VtkOutput::WriteNodesBinary(ModelPart &rModelPart)
+void VtkOutput::WriteNodesBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -376,11 +375,11 @@ void VtkOutput::WriteNodesBinary(ModelPart &rModelPart)
                << "\n";
 
     // write nodes
-    for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
+    for(const auto& node : rModelPart.Nodes())
     {
-        float x_coordinate = node_i->X();
-        float y_coordinate = node_i->Y();
-        float z_coordinate = node_i->Z();
+        float x_coordinate = node.X();
+        float y_coordinate = node.Y();
+        float z_coordinate = node.Z();
         ForceBigEndian((unsigned char *)&x_coordinate);
         outputFile.write((char *)(&x_coordinate), sizeof(float));
         ForceBigEndian((unsigned char *)&y_coordinate);
@@ -392,7 +391,7 @@ void VtkOutput::WriteNodesBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
+void VtkOutput::WriteConditionsAndElementsBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -402,10 +401,10 @@ void VtkOutput::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
     outputFile << "\nCELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
-    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+    for (const auto& elem : rModelPart.Elements())
     {
 
-        ModelPart::ConditionType::GeometryType &elem_geometry = elem_i->GetGeometry();
+        const ModelPart::ConditionType::GeometryType &elem_geometry = elem.GetGeometry();
 
         unsigned int numberOfNodes = elem_geometry.size();
 
@@ -422,9 +421,9 @@ void VtkOutput::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
     }
 
     // write Conditions
-    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
+    for (const auto& condition : rModelPart.Conditions())
     {
-        ModelPart::ConditionType::GeometryType &condition_geometry = condition_i->GetGeometry();
+        const ModelPart::ConditionType::GeometryType &condition_geometry = condition.GetGeometry();
         unsigned int numberOfNodes = condition_geometry.size();
 
         ForceBigEndian((unsigned char *)&numberOfNodes);
@@ -442,7 +441,7 @@ void VtkOutput::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
+void VtkOutput::WriteConditionAndElementTypesBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -452,9 +451,9 @@ void VtkOutput::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
     outputFile << "\nCELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
-    for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+    for (const auto& elem : rModelPart.Elements())
     {
-        const unsigned int numberOfNodes = elem_i->GetGeometry().size();
+        const unsigned int numberOfNodes = elem.GetGeometry().size();
         unsigned int element_type;
 
         if (numberOfNodes == 3)
@@ -478,9 +477,9 @@ void VtkOutput::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
     }
 
     // write conditions types
-    for (ModelPart::ConditionIterator condition_i = rModelPart.ConditionsBegin(); condition_i != rModelPart.ConditionsEnd(); ++condition_i)
+    for (const auto& condition : rModelPart.Conditions())
     {
-        const unsigned int numberOfNodes = condition_i->GetGeometry().size();
+        const unsigned int numberOfNodes = condition.GetGeometry().size();
         unsigned int element_type;
 
         if (numberOfNodes == 3)
@@ -506,7 +505,7 @@ void VtkOutput::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
+void VtkOutput::WriteNodalResultsAsPointDataBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -537,23 +536,23 @@ void VtkOutput::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
 
         // write nodal results
 
-        for (ModelPart::NodeIterator node_i = rModelPart.NodesBegin(); node_i != rModelPart.NodesEnd(); ++node_i)
+        for(const auto& node : rModelPart.Nodes())
         {
             if (dataCharacteristic == 1)
             {
                 Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                float nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                float nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
                 ForceBigEndian((unsigned char *)&nodalResult);
                 outputFile.write((char *)(&nodalResult), sizeof(float));
             }
             else if (dataCharacteristic == 2)
             {
                 Variable<array_1d<double, 3>> nodalResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodalResultName);
-                array_1d<double, 3> nodalResult = node_i->FastGetSolutionStepValue(nodalResultVariable);
+                array_1d<double, 3> nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
                 float num1 = nodalResult[0];
                 ForceBigEndian((unsigned char *)&num1);
                 outputFile.write((char *)(&num1), sizeof(float));
-                float num2 = nodalResult[1];
+                float num2 = nodalResult[1]; 
                 ForceBigEndian((unsigned char *)&num2);
                 outputFile.write((char *)(&num2), sizeof(float));
                 float num3 = nodalResult[2];
@@ -566,7 +565,7 @@ void VtkOutput::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutput::WriteElementDataBinary(ModelPart &rModelPart)
+void VtkOutput::WriteElementDataBinary(const ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -600,19 +599,19 @@ void VtkOutput::WriteElementDataBinary(ModelPart &rModelPart)
 
             // write nodal results
 
-            for (ModelPart::ElementIterator elem_i = rModelPart.ElementsBegin(); elem_i != rModelPart.ElementsEnd(); ++elem_i)
+            for (const auto& elem : rModelPart.Elements())
             {
                 if (dataCharacteristic == 1)
                 {
                     Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
-                    double elementResult = elem_i->GetValue(elementResultVariable);
+                    double elementResult = elem.GetValue(elementResultVariable);
                     ForceBigEndian((unsigned char *)&elementResult);
                     outputFile.write((char *)(&elementResult), sizeof(float));
                 }
                 else if (dataCharacteristic == 2)
                 {
                     Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
-                    array_1d<double, 3> elementResult = elem_i->GetValue(elementResultVariable);
+                    array_1d<double, 3> elementResult = elem.GetValue(elementResultVariable);
                     float num1 = elementResult[0];
                     ForceBigEndian((unsigned char *)&num1);
                     outputFile.write((char *)(&num1), sizeof(float));
@@ -631,24 +630,23 @@ void VtkOutput::WriteElementDataBinary(ModelPart &rModelPart)
 
 //#################################################################End of Binary vtk ################################################################
 
-void VtkOutput::WriteModelPart(ModelPart &modelPart)
+void VtkOutput::WriteModelPart(const ModelPart &rModelPart)
 {
-    Initialize(modelPart);
+    Initialize(rModelPart);
     std::string type = this->mrOutputSettings["file_format"].GetString();
-    if (type == "ASCII")
+    if (type == "Ascii")
     {
-        WriteHeader(modelPart);
-        WriteMesh(modelPart);
-        WriteNodalResultsAsPointData(modelPart);
-        WriteElementData(modelPart);
+        WriteHeader(rModelPart);
+        WriteMesh(rModelPart);
+        WriteNodalResultsAsPointData(rModelPart);
+        WriteElementData(rModelPart);
     }
-    else
+    else if (type == "Binary")
     {
-        Initialize(modelPart);
-        WriteHeaderBinary(modelPart);
-        WriteMeshBinary(modelPart);
-        WriteNodalResultsAsPointDataBinary(modelPart);
-        WriteElementDataBinary(modelPart);
+        WriteHeaderBinary(rModelPart);
+        WriteMeshBinary(rModelPart);
+        WriteNodalResultsAsPointDataBinary(rModelPart);
+        WriteElementDataBinary(rModelPart);
     }
 }
 
@@ -661,14 +659,12 @@ void VtkOutput::PrintOutput()
 
     if(print_sub_model_parts)
     {
-        std::vector<std::string> subModelPartNames = mrModelPart.GetSubModelPartNames();
-        for (auto subModelPartName : subModelPartNames)
+        for (const auto& sub_model_part : mrModelPart.SubModelParts())
         {
-            ModelPart &subModelPart = mrModelPart.GetSubModelPart(subModelPartName);
-            WriteModelPart(subModelPart);
+            WriteModelPart(sub_model_part);
         }
-        ++mStep;
     }
+    ++mStep;
 }
 
 void VtkOutput::ForceBigEndian(unsigned char *bytes)
@@ -694,7 +690,7 @@ void VtkOutput::ForceBigEndian(unsigned char *bytes)
 
 ///@}
 
-std::string VtkOutput::GetOutputFileName(ModelPart &rModelPart)
+std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
 {
     int rank = 0;
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
