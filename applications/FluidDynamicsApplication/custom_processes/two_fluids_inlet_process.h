@@ -65,6 +65,15 @@ public:
     ///@{
 
     /// Constructor with Kratos parameters.
+
+    /**
+     * @brief Construct a new Two Fluids Inlet Process object
+     * The constructor calculates the AUX_DISTANCE field that is needed for the smoothing of the distance field.
+     * Also, it subdivides the inlet into to sub model parts for water and air.
+     *
+     * @param rModelPart Model part the inlet process is applied to
+     * @param rParameters Checked parameters (no more checking mechanism applied)
+     */
     TwoFluidsInletProcess(
         ModelPart& rModelPart,
         Parameters& rParameters);
@@ -80,6 +89,10 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Function to smooth the distance field.
+     * A continuous transition from the inlet distance the the distance field inside the domain shall be achieved.
+     */
     void SmoothDistanceField();
 
     ///@}
@@ -125,10 +138,6 @@ private:
 
     ModelPart& mrInletModelPart;
 
-    double mModulusAir;
-
-    double mModulusWater;
-
     array_1d<double,3> mInterfaceNormal;
 
     array_1d<double,3> mInterfacePoint;
@@ -143,8 +152,22 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Function to compute the distance of a node in terms of the distance field that is
+     * specified by the surface defined at the inlet
+     *
+     * @param node Node in the discretized domain
+     * @return double Distance in the inlet distance field
+     */
     double ComputeNodalDistanceInInletDistanceField( const ModelPart::NodesContainerType::iterator node );
 
+    /**
+     * @brief Function to compute the distance of a node in terms of the distance field that is
+     * specified by the surface defined at the inlet
+     *
+     * @param node Node in the discretized domain
+     * @return double Distance in the inlet distance field
+     */
     double ComputeNodalDistanceInInletDistanceField( const Node<3>& node );
 
     ///@}
