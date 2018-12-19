@@ -6,9 +6,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
     if solver_type.startswith("mesh_solver_"):
-        solver_type = solver_type[12:] # remove preceeding "mesh_solver_"
+        solver_type = solver_type[12:] # remove preceding "mesh_solver_"
         depr_msg  = 'Using the old names to construct the MeshSolver\n'
-        depr_msg += 'Please remove the preceeding "mesh_solver_" from "solver_type"'
+        depr_msg += 'Please remove the preceding "mesh_solver_" from "solver_type"'
         KratosMultiphysics.Logger.PrintWarning("DEPRECATION", depr_msg)
 
     # Solvers for OpenMP parallelism
