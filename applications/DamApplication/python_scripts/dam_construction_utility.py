@@ -78,6 +78,10 @@ class DamConstructionUtility:
                     self.name_sub_thermal_part = "sub_Thermal_" + file_2[1]
                     self.Construction.AssignTimeActivation(self.name_sub_thermal_part,int(file_2[2]),float(file_2[0]), float(file_2[3]))
 
+        self.TemperatureCorrectionCounter = open("TemperatureCorrectionCounter.grf", 'w')
+        self.TemperatureCorrectionCounter.write(str("#Time").rjust(12)+" "+str("Counter").rjust(13) + "\n")
+        self.TemperatureCorrectionCounter.flush()
+
     def InitializeSolutionStep(self):
 
         time = self.mechanical_model_part.ProcessInfo[TIME]
@@ -97,7 +101,11 @@ class DamConstructionUtility:
         # Check if the temperature of every nodes is in the range (it must be done each step)
         if (self.activate_check_temperature):
             print("Checking temperatures...")
-            self.Construction.CheckTemperature(self.check_temperature_parameters)
+            counter = self.Construction.CheckTemperature(self.check_temperature_parameters)
+
+            self.TemperatureCorrectionCounter.write(str(time / time_unit_converter).rjust(12)+" "+str(counter).rjust(13)+"\n")
+            self.TemperatureCorrectionCounter.flush()
+
 
         # Detection of fluxes (it must be done each step)
         print("Searching free surfaces...")
@@ -114,3 +122,6 @@ class DamConstructionUtility:
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
+
+    def ExecuteFinalize(self):
+        self.TemperatureCorrectionCounter.close()
