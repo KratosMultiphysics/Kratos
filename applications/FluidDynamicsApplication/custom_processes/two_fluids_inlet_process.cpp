@@ -76,20 +76,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SetScalarVar( DISTANCE, 0.0, rRootModelPart.Nodes() );
     var_utils.SetScalarVar( DISTANCE, -mInletRadius, mrInletModelPart.Nodes() );
 
-    ////// TESTING >>> works
-    KRATOS_WATCH( "Initial stage" )
-    int visited_counter = 0;
-    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
-        // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
-        if ( it_node->GetValue(IS_VISITED) > 0.5 ){ visited_counter++; }
-        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
-        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
-        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
-    }
-    KRATOS_WATCH( visited_counter )
-    KRATOS_WATCH( mInletRadius )
-
     // BodyDistanceCalculationUtils dist_utils;
     const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
     BodyDistanceCalculationUtils distance_util;
@@ -100,20 +86,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     } else {
         KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
     }
-
-    ////// TESTING
-    KRATOS_WATCH( "First stage" )
-    visited_counter = 0;
-    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
-        // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
-        if ( it_node->GetValue(IS_VISITED) > 0.5 ){ visited_counter++; }
-        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
-        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
-        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
-    }
-    KRATOS_WATCH( visited_counter )
-    KRATOS_WATCH( mInletRadius )
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = - 1.0 / mInletRadius;
@@ -135,16 +107,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, 2);
     }
 
-    ////// TESTING
-    KRATOS_WATCH( "Second stage" )
-    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
-        // iteration over all nodes
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
-        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
-        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
-        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
-    }
-
     // subdividing the inlet into two sub_model_part
     mrInletModelPart.CreateSubModelPart("water_inlet");
     mrInletModelPart.CreateSubModelPart("air_inlet");
@@ -157,16 +119,12 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>(mrInletModelPart.NumberOfNodes()); ++i_node){
         auto it_node = mrInletModelPart.NodesBegin() + i_node;
         const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
-        KRATOS_WATCH(inlet_dist)
         if (inlet_dist <= 0.0){
             index_node_water.push_back( it_node->GetId() );
         } else {
             index_node_air.push_back( it_node->GetId() );
         }
     }
-    KRATOS_WATCH(index_node_water);
-    KRATOS_WATCH(index_node_air);
-
     rWaterInlet.AddNodes( index_node_water );
     rAirInlet.AddNodes( index_node_air );
 
@@ -191,9 +149,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
             index_cond_water.push_back( it_cond->GetId() );
         }
     }
-    KRATOS_WATCH(index_cond_water);
-    KRATOS_WATCH(index_cond_air);
-
     rWaterInlet.AddConditions( index_cond_water );
     rAirInlet.AddConditions( index_cond_air );
 }

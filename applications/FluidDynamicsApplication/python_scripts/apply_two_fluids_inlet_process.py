@@ -112,7 +112,8 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.aux_process_water.ExecuteInitializeSolutionStep()
         self.aux_process_air.ExecuteInitializeSolutionStep()
 
-        # Not sure if appropriate here... Could distort the physical properties
+        # Not sure if appropriate here...
+        # PROBLEM: Could distort the physical properties
         # BUT: It could make sense to stabilize cases with CFL >> 1
         self.two_fluid_inlet_process.SmoothDistanceField()
 
