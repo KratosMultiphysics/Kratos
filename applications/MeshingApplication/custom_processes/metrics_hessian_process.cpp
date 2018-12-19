@@ -67,7 +67,7 @@ void ComputeHessianSolMetricProcess::Execute()
     } else {
         VariableUtils().CheckVariableExists(mrOriginVariableComponentsList[0], nodes_array);
     }
-    for (auto& i_node : nodes_array)
+     for (const auto& i_node : nodes_array)
         KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
     const auto& it_element_begin = mThisModelPart.ElementsBegin();
