@@ -43,10 +43,10 @@ namespace Kratos
 /**
  * @class MohrCoulombPlasticPotential
  * @ingroup StructuralMechanicsApplication
- * @brief This class defines a plastic potential following the theory of Von Mises
- * @details If the plastic potential is of vonMises (cylinder) type, on can see that the plastic strain increment tensor is in principle the scaled deviatoric stress tensor, hence principal directions coincide. When the yield and plastic potential surfaces are plotted in principal stress space the resulting surface will be a circular cylinder for Von-Mises. This means that both yield and strength are dependent on intermediate principal stress, sigma_2
+ * @brief This class defines a plastic potential following the theory of Mohr-Coulomb
+ * @details The Mohr–Coulomb failure surface is a cone with a hexagonal cross section in deviatoric stress space
  * @tparam TVoigtSize The number of components on the Voigt notation
- * @author Alejandro Cornejo & Lucia Barbu
+ * @author Alejandro Cornejo
  */
 template <SizeType TVoigtSize = 6>
 class MohrCoulombPlasticPotential

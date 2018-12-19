@@ -45,12 +45,13 @@ namespace Kratos
  * @class MohrCoulombYieldSurface
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a yield surface according to Von-Mises theory
- * @details The von Mises yield criterion (also known as the maximum distortion energy criterion) suggests that yielding of a ductile material begins when the second deviatoric stress invariant J2 reaches a critical value. It is part of plasticity theory that applies best to ductile materials, such as some metals. Prior to yield, material response can be assumed to be of a nonlinear elastic, viscoelastic, or linear elastic behavior. 
+ * @details The Mohr–Coulomb failure surface is a cone with a hexagonal cross section in deviatoric stress space 
  * The yield surface requires the definition of the following properties:
  * - FRACTURE_ENERGY: A fracture energy-based function is used to describe strength degradation in post-peak regime
  * - YOUNG_MODULUS: It defines the relationship between stress (force per unit area) and strain (proportional deformation) in a material in the linear elasticity regime of a uniaxial deformation.
  * - YIELD_STRESS: Yield stress is the amount of stress that an object needs to experience for it to be permanently deformed. Does not require to be defined simmetrically, one YIELD_STRESS_COMPRESSION and other YIELD_STRESS_TENSION can be defined for not symmetric cases
- * @see https://en.wikipedia.org/wiki/Von_Mises_yield_criterion
+ * - COHESION: Is the intercept of the failure envelope with the tau axis
+ * @see https://en.wikipedia.org/wiki/Mohr%E2%80%93Coulomb_theory
  * @tparam TPlasticPotentialType The plastic potential considered
  * @author Alejandro Cornejo & Lucia Barbu
  */
