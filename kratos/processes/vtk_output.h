@@ -91,6 +91,11 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
         VTK_BINARY
     };
 
+    enum WriteDataType{
+        VTK_SCALAR,
+        VTK_VECTOR
+    };
+
   private:
     ///@name Static Member Variables
     ///@{
@@ -107,7 +112,6 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     unsigned int mDefaultPrecision;
     std::map<int, int> mKratosIdToVtkId;
     unsigned int mVtkCellListSize;
-    unsigned int mStep;
     bool mDoneTest;
     bool mShouldSwap;
     bool mOutputSubModelParts;
