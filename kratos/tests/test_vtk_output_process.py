@@ -93,7 +93,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : ["DISPLACEMENT", "VELOCITY"],
             "nodal_data_value_variables"         : [],
-            "element_data_value_variables"       : []
+            "element_data_value_variables"       : ["DETERMINANT"]
         }
         """)
         vtk_output_process = self.__SetupVtkOutputProcess(current_model, vtk_output_parameters)
