@@ -106,9 +106,9 @@ RuleOfMixturesLaw::~RuleOfMixturesLaw()
 std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
 {
     IndexType counter = 0;
-    SizeType dimension = 0;
+    SizeType dimension = 3;
+    if (mConstitutiveLaws.size() == 0) return dimension; // In case of not initialized CL
     // We perform the check in each layer
-    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
             dimension = p_law->WorkingSpaceDimension();
@@ -128,9 +128,9 @@ std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
 std::size_t RuleOfMixturesLaw::GetStrainSize()
 {
     IndexType counter = 0;
-    SizeType strain_size = 0;
+    SizeType strain_size = 6;
+    if (mConstitutiveLaws.size() == 0) return strain_size; // In case of not initialized CL
     // We perform the check in each layer
-    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
             strain_size = p_law->GetStrainSize();
