@@ -16,6 +16,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         {
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "file_format"                        : "ASCII",
+            "output_precision"                   : 7,
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : true,
