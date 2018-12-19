@@ -35,6 +35,9 @@ class PFEM2Process(KratosMultiphysics.Process):
         self.mass_correction_factor = 0.0
 
     def ExecuteInitialize(self):
+        pass
+
+    def ExecuteBeforeSolutionLoop(self):
         num_of_avg_elems = 10
         num_of_avg_nodes = 10
         neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.model_part, num_of_avg_elems, num_of_avg_nodes)
@@ -48,18 +51,15 @@ class PFEM2Process(KratosMultiphysics.Process):
             self.moveparticles = Pfem2.MoveParticleUtilityPFEM22D(self.model_part, self.max_num_of_particles)
         self.moveparticles.MountBin()
 
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
     def ExecuteInitializeSolutionStep(self):
         if self.use_mesh_velocity == False:
-            KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, KratosMultiphysics.Vector(3), self.model_part.Nodes)
+            KratosMultiphysics.VariableUtils().SetVectorVar(KratosMultiphysics.MESH_VELOCITY, [0.0, 0.0, 0.0], self.model_part.Nodes)
         self.moveparticles.CalculateVelOverElemSize()
         self.moveparticles.MoveParticles(self.discriminate_streamlines)
         self.moveparticles.PreReseed(self.pre_minimum_num_of_particles)
         self.moveparticles.TransferLagrangianToEulerian()
-        self.moveparticles.ResetBoundaryConditions(self.full_reset_boundary_conditions)
         KratosMultiphysics.VariableUtils().CopyVectorVar(Pfem2.PROJECTED_VELOCITY, KratosMultiphysics.VELOCITY, self.model_part.Nodes)
+        self.moveparticles.ResetBoundaryConditions(self.full_reset_boundary_conditions)
         self.moveparticles.CopyVectorVarToPreviousTimeStep(KratosMultiphysics.VELOCITY, self.model_part.Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
