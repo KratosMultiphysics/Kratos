@@ -49,13 +49,7 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
         model_part_name = settings["model_part_name"].GetString()
         model_part = self.model[model_part_name]
 
-        self.cpp_process = KratosMultiphysics.VtkOutputProcess(model_part, self.settings)
-
-    def ExecuteInitialize(self):
-        self.cpp_process.ExecuteInitialize()
-
-    def ExecuteFinalizeSolutionStep(self):
-        self.cpp_process.ExecuteFinalizeSolutionStep()
+        self.cpp_process = KratosMultiphysics.VtkOutput(model_part, self.settings)
 
     def PrintOutput(self):
         self.cpp_process.PrintOutput()

@@ -111,6 +111,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
             vtk_output_process.ExecuteInitializeSolutionStep()
             self.mp.CloneTimeStep(time)
             vtk_output_process.ExecuteFinalizeSolutionStep()
+            vtk_output_process.PrintOutput()
 
         vtk_output_process.ExecuteFinalize()
 
