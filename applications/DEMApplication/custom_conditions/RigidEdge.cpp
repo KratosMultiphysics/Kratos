@@ -109,7 +109,7 @@ void RigidEdge3D::CalculateRightHandSide(VectorType& rRightHandSideVector, Proce
             if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
 
-                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double weight = 0.0;
 
                 double ContactForce[3] = {0.0};
@@ -164,7 +164,7 @@ void RigidEdge3D::CalculateElasticForces(VectorType& rElasticForces, ProcessInfo
 
             if ( ( rRFnei[i_nei]->Id() == this->Id() ) && (Contact_Type > 0 ) )
             {
-                array_1d<double, 4> weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
+                const array_1d<double, 4>& weights_vector = rNeighbours[i]->mContactConditionWeights[i_nei];
                 double weight = 0.0;
 
                 double ContactElasticForce[3] = {0.0};
