@@ -82,7 +82,7 @@ public:
     
     double CalculateValue(ModelPart& rModelPart) override;
 
-    void CalculateResponseIncrement(ModelPart& rModelPart);
+    //void CalculateResponseIncrement(ModelPart& rModelPart);
 
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
@@ -174,13 +174,14 @@ private:
     ///@{
     
     double m_response_value = 0;
-    // partial derivative at an earlier time step
-   // std::vector<Vector> m_partial_derivative;
-    Matrix m_partial_derivative_0;
 
-    std::vector<Vector> mConditionsRHS;
-    // vector of poniters to conditions
-    std::vector<Condition::Pointer> mConditions;
+    Matrix mExternalForceDisplacementDerivative;
+    Matrix mExternalForceDesignVariableDerivative;
+
+    //std::vector<Vector> mConditionsRHS;
+    //std::vector<Condition::Pointer> mConditions;
+    std::map<int, Vector> mConditionsRHS;
+    std::map<int, Condition::Pointer> mConditions;
 
     ///@}
     ///@name Private Operators

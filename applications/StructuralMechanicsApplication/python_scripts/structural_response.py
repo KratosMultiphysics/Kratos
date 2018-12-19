@@ -392,6 +392,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
 
+        self.response_value = 0
+
         # Create the adjoint solver
         with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
             ProjectParametersAdjoint = Parameters( parameter_file.read() )
@@ -407,6 +409,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def Initialize(self):
         self.primal_analysis.Initialize()
         self.adjoint_analysis.Initialize()
+        self.reponse_value = 0  
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
@@ -422,6 +425,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.end_time += 1
         
         ## run the solution loop
+        # TODO Mahmoud: this leads to wrong result because calculatevalue() is called twice for the last step
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
             self.primal_analysis.InitializeSolutionStep()
@@ -451,24 +455,22 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         #     self.adjoint_analysis._GetSolver().SolveSolutionStep()
         #     self.adjoint_analysis.FinalizeSolutionStep()
         #     self.adjoint_analysis.OutputSolutionStep()
-            
+
+    # TODO Mahmoud: this function is implemented to avoid the calling CalculateValue() twice for the last step    
+    # this is a temporary fix that should be amended later on 
     def CalculateResponseIncrement(self):
         startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateResponseIncrement(self.primal_model_part)
+        incremental_response_value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
         Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
+        self.response_value += incremental_response_value
 
     def CalculateValue(self):
-        startTime = timer.time()
-        value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)
-        Logger.PrintInfo("> Time needed for calculating the response value = ",round(timer.time() - startTime,2),"s")
 
-        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = value
+        self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE] = self.response_value
         
-        print("strain energy" , value)
+        print("> nonlinear strain energy response = " , self.primal_model_part.ProcessInfo[StructuralMechanicsApplication.RESPONSE_VALUE])
 
-    
-    ## TODO implement update sensitivities for this class
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
@@ -495,7 +497,6 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def Finalize(self):
         self.primal_analysis.Finalize()
         self.adjoint_analysis.Finalize()
-
 
     def _GetResponseFunctionUtility(self):
         return self.adjoint_analysis._GetSolver().response_function

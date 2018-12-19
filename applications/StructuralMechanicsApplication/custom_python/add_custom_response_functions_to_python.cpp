@@ -83,9 +83,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointNonlinearStrainEnergyResponseFunction, AdjointNonlinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointNonlinearStrainEnergyResponseFunction")
-        .def(py::init<ModelPart&, Parameters>())
-        .def("CalculateResponseIncrement", &AdjointNonlinearStrainEnergyResponseFunction::CalculateResponseIncrement);
-    
+        .def(py::init<ModelPart&, Parameters>());
 
     // Adjoint postprocess
     py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
