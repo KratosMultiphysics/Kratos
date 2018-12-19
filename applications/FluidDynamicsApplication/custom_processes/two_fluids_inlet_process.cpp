@@ -17,7 +17,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
-#include "utilities/signed_distance_calculation_utils.h"
+#include "utilities/body_distance_calculation_utils.h"
 #include "utilities/variable_utils.h"
 #include "includes/deprecated_variables.h"
 
@@ -81,26 +81,54 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
-        it_node->FastGetSolutionStepValue(DISTANCE, 2) = it_node->FastGetSolutionStepValue(DISTANCE, 0);
+        it_node->GetSolutionStepValue(DISTANCE, 2) = it_node->GetSolutionStepValue(DISTANCE, 0);
     }
 
     // Preparing the distance computation
     VariableUtils var_utils;
     var_utils.SetNonHistoricalVariable( IS_VISITED, 0.0, rRootModelPart.Nodes() );
     var_utils.SetNonHistoricalVariable( IS_VISITED, 1.0, mrInletModelPart.Nodes() );
+    var_utils.SetScalarVar( DISTANCE, 0.0, rRootModelPart.Nodes() );
     var_utils.SetScalarVar( DISTANCE, -mInletRadius, mrInletModelPart.Nodes() );
+
+    ////// TESTING >>> works
+    KRATOS_WATCH( "Initial stage" )
+    int visited_counter = 0;
+    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
+        // iteration over all nodes
+        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        if ( it_node->GetValue(IS_VISITED) > 0.5 ){ visited_counter++; }
+        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
+        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
+        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
+    }
+    KRATOS_WATCH( visited_counter )
+    KRATOS_WATCH( mInletRadius )
 
     // BodyDistanceCalculationUtils dist_utils;
     const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    // (... using dim as template argument does not work ...)
+    BodyDistanceCalculationUtils distance_util;
     if ( dim == 2 ){
-        SignedDistanceCalculationUtils<2> dist_utils;
-        dist_utils.CalculateDistances( rRootModelPart, DISTANCE, 0.0 );
+        distance_util.CalculateDistances<2>( rRootModelPart.Elements(), DISTANCE, 0.0 );
+    } else if ( dim == 3 ){
+        distance_util.CalculateDistances<3>( rRootModelPart.Elements(), DISTANCE, 0.0 );
+    } else {
+        KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
     }
-    else if ( dim == 3 ){
-        SignedDistanceCalculationUtils<3> dist_utils;
-        dist_utils.CalculateDistances( rRootModelPart, DISTANCE, 0.0 );
+
+    ////// TESTING
+    KRATOS_WATCH( "First stage" )
+    visited_counter = 0;
+    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
+        // iteration over all nodes
+        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        if ( it_node->GetValue(IS_VISITED) > 0.5 ){ visited_counter++; }
+        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
+        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
+        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
     }
+    KRATOS_WATCH( visited_counter )
+    KRATOS_WATCH( mInletRadius )
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = - 1.0 / mInletRadius;
@@ -108,8 +136,9 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
-        it_node->FastGetSolutionStepValue(DISTANCE, 0) = scaling_factor * it_node->FastGetSolutionStepValue(DISTANCE, 0);
+        it_node->GetSolutionStepValue(DISTANCE, 0) = scaling_factor * it_node->GetSolutionStepValue(DISTANCE, 0);
     }
+
     // saving the value of DISTANCE to the non-historical variable AUX_DISTANCE
     var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
 
@@ -118,7 +147,17 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
-        it_node->FastGetSolutionStepValue(DISTANCE, 0) = it_node->FastGetSolutionStepValue(DISTANCE, 2);
+        it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, 2);
+    }
+
+    ////// TESTING
+    KRATOS_WATCH( "Second stage" )
+    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
+        // iteration over all nodes
+        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        KRATOS_WATCH( it_node->GetSolutionStepValue(DISTANCE, 0) );
+        KRATOS_WATCH( it_node->GetValue(IS_VISITED) );
+        KRATOS_WATCH( it_node->GetValue(AUX_DISTANCE) );
     }
 
     // subdividing the inlet into two sub_model_part
@@ -174,9 +213,34 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     rWaterInlet.AddConditions( index_cond_water );
     rAirInlet.AddConditions( index_cond_air );
-
 }
 
+
+void TwoFluidsInletProcess::SmoothDistanceField(){
+
+    ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
+
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
+        // iteration over all nodes
+        auto it_node = rRootModelPart.NodesBegin() + i_node;
+
+        // check if node is inside "inlet_transition_radius"
+        if ( it_node->GetValue(AUX_DISTANCE) > 1.0e-7 ){
+            // finding distance value of the node in the inlet field
+            const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
+            // finding distance value for the node in the domain distance field
+            const double domain_dist = it_node->GetSolutionStepValue( DISTANCE, 0 );
+            // introducing a smooth transition based in the distance from the inlet stored in "AUX_DISTANCE"
+            const double weighting_factor_inlet_field = it_node->GetValue(AUX_DISTANCE);
+            const double weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field;
+
+            const double smoothed_dist = weighting_factor_inlet_field * inlet_dist + weighting_factor_domain_field * domain_dist;
+            it_node->GetSolutionStepValue( DISTANCE, 0 ) = smoothed_dist;
+        }
+
+    }
+}
 
 /* Private functions ****************************************************/
 

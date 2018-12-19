@@ -80,6 +80,8 @@ public:
     ///@name Operations
     ///@{
 
+    void SmoothDistanceField();
+
     ///@}
     ///@name Access
     ///@{
