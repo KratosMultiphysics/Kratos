@@ -707,7 +707,7 @@ class DataCommunicator
      *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received values from rank RecvSource.
      *  @param[in] RecvSource Rank values are expected from.
-     *  @param[in] SendTag Message tag for received values.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
         const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
@@ -721,7 +721,7 @@ class DataCommunicator
      *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received values from rank RecvSource.
      *  @param[in] RecvSource Rank values are expected from.
-     *  @param[in] SendTag Message tag for received values.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
         const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
@@ -735,7 +735,7 @@ class DataCommunicator
      *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received string from rank RecvSource.
      *  @param[in] RecvSource Rank the string is expected from.
-     *  @param[in] SendTag Message tag for received values.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
         const std::string& rSendValues, const int SendDestination, const int SendTag,
