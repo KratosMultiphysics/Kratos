@@ -117,19 +117,6 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     void WriteModelPart(const ModelPart &rModelPart);
 
     /**
-     * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
-     * @param rModelPart modelpart which is beging output
-     */
-    void CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart);
-
-    /**
-     * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
-     *          It is necessary to be known prior to output
-     * @param rModelPart modelpart which is beging output
-     */
-    unsigned int DetermineVtkCellListSize(const ModelPart &rModelPart);
-
-    /**
      * @brief Initialize function for the class
      * @param rModelPart modelpart which is beging output
      */
@@ -155,6 +142,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 
     /**
      * @brief Write the elements and conditions in rModelPart. In ASCII format
+     *        IMPORTANT : Need to write them together because of the CELLS block in VTK format
      * @param rModelPart modelpart which is beging output
      */
     void WriteConditionsAndElements(const ModelPart &rModelPart);
@@ -230,6 +218,19 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rModelPart modelpart which is beging output
      */
     void ForceBigEndian(unsigned char *bytes);
+    /**
+     * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
+     * @param rModelPart modelpart which is beging output
+     */
+    void CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart);
+
+    /**
+     * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
+     *          It is necessary to be known prior to output
+     * @param rModelPart modelpart which is beging output
+     */
+    unsigned int DetermineVtkCellListSize(const ModelPart &rModelPart);
+
     ///@}
     ///@name Serialization
     ///@{

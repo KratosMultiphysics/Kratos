@@ -66,19 +66,19 @@ void VtkOutput::Initialize(const ModelPart &rModelPart)
 
 void VtkOutput::WriteHeader(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
 
-    outputFile.open(outputFileName, std::ios::out | std::ios::binary | std::ios::trunc);
-    outputFile << "# vtk DataFile Version 4.0"
+    output_file.open(output_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
+    output_file << "# vtk DataFile Version 4.0"
                << "\n";
-    outputFile << "vtk output"
+    output_file << "vtk output"
                << "\n";
-    outputFile << "ASCII"
+    output_file << "ASCII"
                << "\n";
-    outputFile << "DATASET UNSTRUCTURED_GRID"
+    output_file << "DATASET UNSTRUCTURED_GRID"
                << "\n";
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteMesh(const ModelPart &rModelPart)
@@ -90,36 +90,36 @@ void VtkOutput::WriteMesh(const ModelPart &rModelPart)
 
 void VtkOutput::WriteNodes(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
-    outputFile << std::scientific;
-    outputFile << std::setprecision(mDefaultPrecision);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
+    output_file << std::scientific;
+    output_file << std::setprecision(mDefaultPrecision);
 
     // write nodes header
-    outputFile << "POINTS " << rModelPart.NumberOfNodes() << " float"
+    output_file << "POINTS " << rModelPart.NumberOfNodes() << " double"
                << "\n";
 
     // write nodes
     for(const auto& node : rModelPart.Nodes())
     {
-        auto& coordinates = node.Coordinates();
-        outputFile << " " << coordinates(0);
-        outputFile << " " << coordinates(1);
-        outputFile << " " << coordinates(2) << "\n";
+        const auto& coordinates = node.Coordinates();
+        output_file << " " << coordinates(0);
+        output_file << " " << coordinates(1);
+        output_file << " " << coordinates(2) << "\n";
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cells header
-    outputFile << "CELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
+    output_file << "CELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
     for (const auto& elem : rModelPart.Elements())
@@ -127,11 +127,11 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart)
         auto& elem_geometry = elem.GetGeometry();
         const unsigned int numberOfNodes = elem_geometry.size();
 
-        outputFile << numberOfNodes;
+        output_file << numberOfNodes;
         for (unsigned int i = 0; i < numberOfNodes; i++)
-            outputFile << " " << mKratosIdToVtkId[elem_geometry[i].Id()];
+            output_file << " " << mKratosIdToVtkId[elem_geometry[i].Id()];
 
-        outputFile << "\n";
+        output_file << "\n";
     }
 
     // write Conditions
@@ -140,23 +140,23 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart)
         auto& condition_geometry = condition.GetGeometry();
         const unsigned int numberOfNodes = condition_geometry.size();
 
-        outputFile << numberOfNodes;
+        output_file << numberOfNodes;
         for (unsigned int i = 0; i < numberOfNodes; i++)
-            outputFile << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
-        outputFile << "\n";
+            output_file << " " << mKratosIdToVtkId[condition_geometry[i].Id()];
+        output_file << "\n";
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cell types header
-    outputFile << "CELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
+    output_file << "CELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
     for (const auto& elem : rModelPart.Elements())
@@ -180,7 +180,7 @@ void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart)
         else
             KRATOS_THROW_ERROR(std::runtime_error, "Modelpart contains elements with geometries for which no VTK-output is implemented!", "")
 
-        outputFile << element_type << "\n";
+        output_file << element_type << "\n";
     }
 
     // write conditions types
@@ -205,78 +205,78 @@ void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart)
         else
             KRATOS_ERROR << "Modelpart contains conditions with geometries for which no VTK-output is implemented!" << std::endl;
 
-        outputFile << element_type << "\n";
+        output_file << element_type << "\n";
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
     Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
-    outputFile << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
+    output_file << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
     {
         // write nodal results variable header
-        std::string nodalResultName = nodalResults[entry].GetString();
+        std::string nodal_result_name = nodalResults[entry].GetString();
         unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 component vector
-        if (KratosComponents<Variable<double>>::Has(nodalResultName))
+        if (KratosComponents<Variable<double>>::Has(nodal_result_name))
         {
             dataCharacteristic = 1;
-            outputFile << "SCALARS " << nodalResultName << " float"
+            output_file << "SCALARS " << nodal_result_name << " double"
                        << " 1"
                        << "\n";
-            outputFile << "LOOKUP_TABLE default"
+            output_file << "LOOKUP_TABLE default"
                        << "\n";
         }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(nodalResultName))
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(nodal_result_name))
         {
             dataCharacteristic = 2;
-            outputFile << "VECTORS " << nodalResultName << " float"
+            output_file << "VECTORS " << nodal_result_name << " double"
                        << "\n";
         }
 
         // write nodal results
-        outputFile << std::scientific;
-        outputFile << std::setprecision(mDefaultPrecision);
+        output_file << std::scientific;
+        output_file << std::setprecision(mDefaultPrecision);
         for(const auto& node : rModelPart.Nodes())
         {
             if (dataCharacteristic == 1)
             {
-                Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                const double &nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
-                outputFile << nodalResult << "\n";
+                Variable<double> nodal_result_variable = KratosComponents<Variable<double>>::Get(nodal_result_name);
+                const double &nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
+                output_file << nodal_result << "\n";
             }
             else if (dataCharacteristic == 2)
             {
-                Variable<array_1d<double, 3>> nodalResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodalResultName);
-                const array_1d<double, 3> &nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
-                outputFile << nodalResult[0] << " ";
-                outputFile << nodalResult[1] << " ";
-                outputFile << nodalResult[2] << "\n";
+                Variable<array_1d<double, 3>> nodal_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodal_result_name);
+                const array_1d<double, 3> &nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
+                output_file << nodal_result[0] << " ";
+                output_file << nodal_result[1] << " ";
+                output_file << nodal_result[2] << "\n";
             }
         }
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteElementData(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app);
     Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
     if (rModelPart.NumberOfElements() > 0)
     {
-        outputFile << "CELL_DATA " << rModelPart.NumberOfElements() << "\n";
+        output_file << "CELL_DATA " << rModelPart.NumberOfElements() << "\n";
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
 
@@ -286,52 +286,41 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart)
             if (KratosComponents<Variable<double>>::Has(elementResultName))
             {
                 dataCharacteristic = 1;
-                outputFile << "SCALARS " << elementResultName << " float"
+                output_file << "SCALARS " << elementResultName << " double"
                            << " 1"
                            << "\n";
-                outputFile << "LOOKUP_TABLE default"
+                output_file << "LOOKUP_TABLE default"
                            << "\n";
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
             {
                 dataCharacteristic = 2;
-                outputFile << "VECTORS " << elementResultName << " float"
+                output_file << "VECTORS " << elementResultName << " double"
                            << "\n";
             }
 
             // write nodal results
-            outputFile << std::scientific;
-            outputFile << std::setprecision(mDefaultPrecision);
+            output_file << std::scientific;
+            output_file << std::setprecision(mDefaultPrecision);
             for (const auto& elem : rModelPart.Elements())
             {
                 if (dataCharacteristic == 1)
                 {
                     Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
                     const double &elementResult = elem.GetValue(elementResultVariable);
-                    outputFile << elementResult << "\n";
+                    output_file << elementResult << "\n";
                 }
                 else if (dataCharacteristic == 2)
                 {
                     Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
                     const array_1d<double, 3> &elementResult = elem.GetValue(elementResultVariable);
-                    outputFile << elementResult[0] << " ";
-                    outputFile << elementResult[1] << " ";
-                    outputFile << elementResult[2] << "\n";
+                    output_file << elementResult[0] << " ";
+                    output_file << elementResult[1] << " ";
+                    output_file << elementResult[2] << "\n";
                 }
             }
         }
-        /*
-        outputFile << "SCALARS SPLIT_ELEMENT float 1\nLOOKUP_TABLE default\n";
-
-        // write element results for active
-        for (const auto& elem : rModelPart.Elements())
-        {
-            //outputFile << numberOfNodes;
-            bool is_split = elem.GetValue(SPLIT_ELEMENT);
-            outputFile << is_split << "\n";
-        }
-    */
-        outputFile.close();
+        output_file.close();
     }
 }
 
@@ -339,19 +328,19 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart)
 
 void VtkOutput::WriteHeaderBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
 
-    outputFile.open(outputFileName, std::ios::out | std::ios::binary);
-    outputFile << "# vtk DataFile Version 4.0"
+    output_file.open(output_file_name, std::ios::out | std::ios::binary);
+    output_file << "# vtk DataFile Version 4.0"
                << "\n";
-    outputFile << "vtk output"
+    output_file << "vtk output"
                << "\n";
-    outputFile << "BINARY"
+    output_file << "BINARY"
                << "\n";
-    outputFile << "DATASET UNSTRUCTURED_GRID"
+    output_file << "DATASET UNSTRUCTURED_GRID"
                << "\n";
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteMeshBinary(const ModelPart &rModelPart)
@@ -366,39 +355,40 @@ void VtkOutput::WriteMeshBinary(const ModelPart &rModelPart)
 
 void VtkOutput::WriteNodesBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
     // write nodes header
-    outputFile << "\nPOINTS " << rModelPart.NumberOfNodes() << " float"
+    output_file << "\nPOINTS " << rModelPart.NumberOfNodes() << " double"
                << "\n";
 
     // write nodes
     for(const auto& node : rModelPart.Nodes())
     {
-        float x_coordinate = node.X();
-        float y_coordinate = node.Y();
-        float z_coordinate = node.Z();
-        ForceBigEndian((unsigned char *)&x_coordinate);
-        outputFile.write((char *)(&x_coordinate), sizeof(float));
-        ForceBigEndian((unsigned char *)&y_coordinate);
-        outputFile.write((char *)(&y_coordinate), sizeof(float));
-        ForceBigEndian((unsigned char *)&z_coordinate);
-        outputFile.write((char *)(&z_coordinate), sizeof(float));
+        const auto& coordinates = node.Coordinates();
+        double x_coordinate = coordinates(0);
+        double y_coordinate = coordinates(1);
+        double z_coordinate = coordinates(2);
+        ForceBigEndian((unsigned char *)&coordinates(0));
+        output_file.write((char *)(&x_coordinate), sizeof(double));
+        ForceBigEndian((unsigned char *)&coordinates(1));
+        output_file.write((char *)(&y_coordinate), sizeof(double));
+        ForceBigEndian((unsigned char *)&coordinates(2));
+        output_file.write((char *)(&z_coordinate), sizeof(double));
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteConditionsAndElementsBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cells header
-    outputFile << "\nCELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
+    output_file << "\nCELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
     for (const auto& elem : rModelPart.Elements())
@@ -410,13 +400,13 @@ void VtkOutput::WriteConditionsAndElementsBinary(const ModelPart &rModelPart)
 
         ForceBigEndian((unsigned char *)&numberOfNodes);
 
-        outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
+        output_file.write((char *)(&numberOfNodes), sizeof(unsigned int));
 
         for (unsigned int i = 0; i < elem_geometry.size(); i++)
         {
             int nodenum = mKratosIdToVtkId[elem_geometry[i].Id()];
             ForceBigEndian((unsigned char *)&nodenum);
-            outputFile.write((char *)(&nodenum), sizeof(int));
+            output_file.write((char *)(&nodenum), sizeof(int));
         }
     }
 
@@ -427,28 +417,28 @@ void VtkOutput::WriteConditionsAndElementsBinary(const ModelPart &rModelPart)
         unsigned int numberOfNodes = condition_geometry.size();
 
         ForceBigEndian((unsigned char *)&numberOfNodes);
-        outputFile.write((char *)(&numberOfNodes), sizeof(unsigned int));
+        output_file.write((char *)(&numberOfNodes), sizeof(unsigned int));
 
         for (unsigned int i = 0; i < condition_geometry.size(); i++)
         {
 
             int nodenum = mKratosIdToVtkId[condition_geometry[i].Id()];
             ForceBigEndian((unsigned char *)&nodenum);
-            outputFile.write((char *)(&nodenum), sizeof(int));
+            output_file.write((char *)(&nodenum), sizeof(int));
         }
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteConditionAndElementTypesBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
 
     // write cell types header
-    outputFile << "\nCELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
+    output_file << "\nCELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
 
     // write elements types
     for (const auto& elem : rModelPart.Elements())
@@ -473,7 +463,7 @@ void VtkOutput::WriteConditionAndElementTypesBinary(const ModelPart &rModelPart)
             KRATOS_ERROR << "Modelpart contains elements with geometries for which no VTK-output is implemented!" << std::endl;
 
         ForceBigEndian((unsigned char *)&element_type);
-        outputFile.write((char *)(&element_type), sizeof(int));
+        output_file.write((char *)(&element_type), sizeof(int));
     }
 
     // write conditions types
@@ -499,38 +489,38 @@ void VtkOutput::WriteConditionAndElementTypesBinary(const ModelPart &rModelPart)
             KRATOS_ERROR << "Modelpart contains conditions with geometries for which no VTK-output is implemented!" << std::endl;
 
         ForceBigEndian((unsigned char *)&element_type);
-        outputFile.write((char *)(&element_type), sizeof(int));
+        output_file.write((char *)(&element_type), sizeof(int));
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteNodalResultsAsPointDataBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app | std::ios::binary);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app | std::ios::binary);
     // write nodal results header
     Parameters nodalResults = this->mrOutputSettings["nodal_solution_step_data_variables"];
-    outputFile << "\nPOINT_DATA " << rModelPart.NumberOfNodes() << "\n";
+    output_file << "\nPOINT_DATA " << rModelPart.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodalResults.size(); entry++)
     {
         // write nodal results variable header
-        std::string nodalResultName = nodalResults[entry].GetString();
+        std::string nodal_result_name = nodalResults[entry].GetString();
         unsigned int dataCharacteristic = 0; // 0: unknown, 1: Scalar value, 2: 3 DOF global translation vector
-        if (KratosComponents<Variable<double>>::Has(nodalResultName))
+        if (KratosComponents<Variable<double>>::Has(nodal_result_name))
         {
             dataCharacteristic = 1;
-            outputFile << "SCALARS " << nodalResultName << " float"
+            output_file << "SCALARS " << nodal_result_name << " double"
                        << "\n";
-            outputFile << "LOOKUP_TABLE default"
+            output_file << "LOOKUP_TABLE default"
                        << "\n";
         }
-        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(nodalResultName))
+        else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(nodal_result_name))
         {
             dataCharacteristic = 2;
-            outputFile << "VECTORS " << nodalResultName << " float"
+            output_file << "VECTORS " << nodal_result_name << " double"
                        << "\n";
         }
 
@@ -540,41 +530,41 @@ void VtkOutput::WriteNodalResultsAsPointDataBinary(const ModelPart &rModelPart)
         {
             if (dataCharacteristic == 1)
             {
-                Variable<double> nodalResultVariable = KratosComponents<Variable<double>>::Get(nodalResultName);
-                float nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
-                ForceBigEndian((unsigned char *)&nodalResult);
-                outputFile.write((char *)(&nodalResult), sizeof(float));
+                Variable<double> nodal_result_variable = KratosComponents<Variable<double>>::Get(nodal_result_name);
+                const double nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
+                ForceBigEndian((unsigned char *)&nodal_result);
+                output_file.write((char *)(&nodal_result), sizeof(double));
             }
             else if (dataCharacteristic == 2)
             {
-                Variable<array_1d<double, 3>> nodalResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodalResultName);
-                array_1d<double, 3> nodalResult = node.FastGetSolutionStepValue(nodalResultVariable);
-                float num1 = nodalResult[0];
+                Variable<array_1d<double, 3>> nodal_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodal_result_name);
+                const array_1d<double, 3> nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
+                double num1 = nodal_result[0];
                 ForceBigEndian((unsigned char *)&num1);
-                outputFile.write((char *)(&num1), sizeof(float));
-                float num2 = nodalResult[1]; 
+                output_file.write((char *)(&num1), sizeof(double));
+                double num2 = nodal_result[1];
                 ForceBigEndian((unsigned char *)&num2);
-                outputFile.write((char *)(&num2), sizeof(float));
-                float num3 = nodalResult[2];
+                output_file.write((char *)(&num2), sizeof(double));
+                double num3 = nodal_result[2];
                 ForceBigEndian((unsigned char *)&num3);
-                outputFile.write((char *)(&num3), sizeof(float));
+                output_file.write((char *)(&num3), sizeof(double));
             }
         }
     }
 
-    outputFile.close();
+    output_file.close();
 }
 
 void VtkOutput::WriteElementDataBinary(const ModelPart &rModelPart)
 {
-    std::string outputFileName = GetOutputFileName(rModelPart);
-    std::ofstream outputFile;
-    outputFile.open(outputFileName, std::ios::out | std::ios::app);
+    std::string output_file_name = GetOutputFileName(rModelPart);
+    std::ofstream output_file;
+    output_file.open(output_file_name, std::ios::out | std::ios::app);
     Parameters elementResults = this->mrOutputSettings["element_data_value_variables"];// list of element resultss
     if (rModelPart.NumberOfElements() > 0)
     {
         // write cells header
-        outputFile << "\nCELL_DATA " << rModelPart.NumberOfElements() << "\n";
+        output_file << "\nCELL_DATA " << rModelPart.NumberOfElements() << "\n";
 
         for (unsigned int entry = 0; entry < elementResults.size(); entry++)
         {
@@ -585,15 +575,15 @@ void VtkOutput::WriteElementDataBinary(const ModelPart &rModelPart)
             if (KratosComponents<Variable<double>>::Has(elementResultName))
             {
                 dataCharacteristic = 1;
-                outputFile << "SCALARS " << elementResultName << " float"
+                output_file << "SCALARS " << elementResultName << " double"
                            << "\n";
-                outputFile << "LOOKUP_TABLE default"
+                output_file << "LOOKUP_TABLE default"
                            << "\n";
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(elementResultName))
             {
                 dataCharacteristic = 2;
-                outputFile << "VECTORS " << elementResultName << " float"
+                output_file << "VECTORS " << elementResultName << " double"
                            << "\n";
             }
 
@@ -606,25 +596,25 @@ void VtkOutput::WriteElementDataBinary(const ModelPart &rModelPart)
                     Variable<double> elementResultVariable = KratosComponents<Variable<double>>::Get(elementResultName);
                     double elementResult = elem.GetValue(elementResultVariable);
                     ForceBigEndian((unsigned char *)&elementResult);
-                    outputFile.write((char *)(&elementResult), sizeof(float));
+                    output_file.write((char *)(&elementResult), sizeof(double));
                 }
                 else if (dataCharacteristic == 2)
                 {
                     Variable<array_1d<double, 3>> elementResultVariable = KratosComponents<Variable<array_1d<double, 3>>>::Get(elementResultName);
                     array_1d<double, 3> elementResult = elem.GetValue(elementResultVariable);
-                    float num1 = elementResult[0];
+                    double num1 = elementResult[0];
                     ForceBigEndian((unsigned char *)&num1);
-                    outputFile.write((char *)(&num1), sizeof(float));
-                    float num2 = elementResult[1];
+                    output_file.write((char *)(&num1), sizeof(double));
+                    double num2 = elementResult[1];
                     ForceBigEndian((unsigned char *)&num2);
-                    outputFile.write((char *)(&num2), sizeof(float));
-                    float num3 = elementResult[2];
+                    output_file.write((char *)(&num2), sizeof(double));
+                    double num3 = elementResult[2];
                     ForceBigEndian((unsigned char *)&num3);
-                    outputFile.write((char *)(&num3), sizeof(float));
+                    output_file.write((char *)(&num3), sizeof(double));
                 }
             }
         }
-        outputFile.close();
+        output_file.close();
     }
 }
 
