@@ -56,3 +56,6 @@ class VtkOutputProcessPython(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         self.cpp_process.ExecuteFinalizeSolutionStep()
+
+    def PrintOutput(self):
+        self.cpp_process.PrintOutput()
