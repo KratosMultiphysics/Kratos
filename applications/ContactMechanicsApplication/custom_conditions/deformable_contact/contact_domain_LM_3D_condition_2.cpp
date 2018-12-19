@@ -94,10 +94,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& rMasterElement = *GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(rMasterElement);
 
-    Element::NodeType&    rMasterNode  = GetValue(MASTER_NODES).front();
+    Element::NodeType&    rMasterNode  = *GetValue(MASTER_NODES).front();
     mContactVariables.SetMasterNode(rMasterNode);
 
     std::cout<<" Master Nodes "<<GetValue(MASTER_NODES)<<std::endl;
@@ -286,7 +286,7 @@ namespace Kratos
 	  {
 	      for(unsigned int j=0; j<GetGeometry().PointsNumber(); j++)
 	      {
-		  if(GetValue(MASTER_NODES)[i].Id()==rMasterGeometry[j].Id())
+		  if(GetValue(MASTER_NODES)[i]->Id()==rMasterGeometry[j].Id())
 		  {
 		      mContactVariables.order.push_back(j);
 		      break;
@@ -775,7 +775,7 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.front();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOR_ELEMENTS)[0]->GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){
@@ -846,7 +846,7 @@ namespace Kratos
 
     // std::cout<<" Master Nodes "<<GetValue(MASTER_NODES).size()<<std::endl;
 
-    Element::ElementType& rMasterElement = GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& rMasterElement = *GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(rMasterElement);
 
 
@@ -860,7 +860,7 @@ namespace Kratos
     // std::cout<<" Nodes ("<<mContactVariables.nodes[0]<<" "<<mContactVariables.nodes[1]<<" "<<mContactVariables.nodes[2]<<" "<<mContactVariables.nodes[3]<<")"<<std::endl;
     //std::cout<<" Order ("<<mContactVariables.order[0]<<" "<<mContactVariables.order[1]<<" "<<mContactVariables.order[2]<<" "<<mContactVariables.order[3]<<")"<<std::endl;
 
-    // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front().Id()<<" "<<GetValue(MASTER_NODES).back().Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
+    // std::cout<<" Slaves ("<<GetValue(MASTER_NODES).front()->Id()<<" "<<GetValue(MASTER_NODES).back()->Id()<<") ["<<mContactVariables.slaves[0]<<" "<<mContactVariables.slaves[1]<<"]"<<std::endl;
 
 
     if( this->Is(SELECTED) )
@@ -2312,9 +2312,9 @@ namespace Kratos
     //Check slave node inside the contacting domain:
 
     //node1:
-    WeakPointerVector<Element >& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+    ElementPointerVectorType& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOR_ELEMENTS);
     //node2:
-    WeakPointerVector<Element >& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
+    ElementPointerVectorType& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOR_ELEMENTS);
 
     unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
     unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
@@ -2323,7 +2323,7 @@ namespace Kratos
     //following slave normal projection of the slave Sx1 and Sy1
     for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
 
 	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							   vertices[1].X(), vertices[1].Y(),
@@ -2338,7 +2338,7 @@ namespace Kratos
 
       for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
 	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
 
 	  is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							     vertices[1].X(), vertices[1].Y(),
@@ -2356,7 +2356,7 @@ namespace Kratos
     //following master normal projection of the slave Mx1 and My1
     for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
 
 	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							   vertices[1].X(), vertices[1].Y(),
@@ -2372,7 +2372,7 @@ namespace Kratos
 
       for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
 	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
 
 	  is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							     vertices[1].X(), vertices[1].Y(),

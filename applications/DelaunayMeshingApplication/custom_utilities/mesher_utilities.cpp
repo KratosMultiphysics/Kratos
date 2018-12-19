@@ -78,6 +78,32 @@ namespace Kratos
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, SET_DOF,                             10 );
   KRATOS_CREATE_LOCAL_FLAG ( MesherUtilities, PASS_ALPHA_SHAPE,                    11 );
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MesherUtilities::SetModelPartNameToElements(ModelPart& rModelPart)
+  {
+
+    unsigned int start=0;
+    unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
+
+
+    if(NumberOfSubModelParts>0){
+      for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
+      {
+        if( i_mp->NumberOfElements() != 0 ){
+          if( i_mp->Is(BOUNDARY) || i_mp->IsNot(ACTIVE) ){ //wall elements or domain elements (unique model part)
+            for(ModelPart::ElementsContainerType::iterator i_elem = i_mp->ElementsBegin() ; i_elem != i_mp->ElementsEnd() ; ++i_elem)
+            {
+              i_elem->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+          }
+
+        }
+      }
+    }
+
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -88,17 +114,19 @@ namespace Kratos
     unsigned int start=0;
     unsigned int NumberOfSubModelParts=rModelPart.NumberOfSubModelParts();
 
-
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	    if( i_mp->NumberOfElements() == 0 ){ // only model parts with conditions
-	      for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
-		{
-		  i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
-		}
-	    }
-	}
+      {
+        if( i_mp->NumberOfConditions() != 0 ){
+          if( i_mp->Is(BOUNDARY) && i_mp->NumberOfElements() == 0 ){ // only model parts with conditions (unique model part)
+            for(ModelPart::ConditionsContainerType::iterator i_cond = i_mp->ConditionsBegin() ; i_cond != i_mp->ConditionsEnd() ; ++i_cond)
+            {
+              i_cond->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+
+          }
+        }
+      }
     }
 
   }
@@ -116,18 +144,52 @@ namespace Kratos
 
     if(NumberOfSubModelParts>0){
       for(ModelPart::SubModelPartIterator i_mp= rModelPart.SubModelPartsBegin() ; i_mp!=rModelPart.SubModelPartsEnd(); ++i_mp)
-	{
-	  if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){
-	    for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
-	      {
-		i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
-	      }
-	  }
-	}
+      {
+
+        if( i_mp->NumberOfNodes() != 0 ){
+          if( i_mp->Is(BOUNDARY) ){ // shared model parts for nodes in boundary conditions
+            for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
+            {
+              i_node->GetValue(MODEL_PART_NAMES).push_back(i_mp->Name());
+            }
+
+          }
+          else if( i_mp->IsNot(ACTIVE) && i_mp->IsNot(BOUNDARY) ){ //unique domain model part
+            for(ModelPart::NodesContainerType::iterator i_node = i_mp->NodesBegin() ; i_node != i_mp->NodesEnd() ; ++i_node)
+            {
+              i_node->SetValue(MODEL_PART_NAME,i_mp->Name());
+            }
+          }
+        }
+      }
     }
+
 
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void MesherUtilities::SetFlagsToNodes(ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags)
+  {
+    const int nnodes = rModelPart.Nodes().size();
+    ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+
+    #pragma omp parallel for
+    for (int i = 0; i < nnodes; i++)
+    {
+      ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+      for(unsigned int i = 0; i<rControlFlags.size(); i++)
+      {
+        if( it->Is(rControlFlags[i]) ){
+          for(unsigned int i = 0; i<rAssignFlags.size(); i++)
+            it->Set(rAssignFlags[i]);
+        }
+      }
+    }
+  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -192,6 +254,101 @@ namespace Kratos
 
   }
 
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  bool MesherUtilities::CheckRigidOuterCentre(Geometry<Node<3> >& rGeometry)
+  {
+
+    KRATOS_TRY
+
+    bool outer = false;
+
+    unsigned int RigidNodes = 0;
+    const unsigned int size = rGeometry.size();
+
+    for(unsigned int i = 0; i < size; ++i)
+      {
+	if(rGeometry[i].Is(RIGID))
+	  {
+	    RigidNodes += 1;
+	  }
+      }
+
+
+    if(RigidNodes >= size-1)
+    {
+
+      //Baricenter
+      array_1d<double, 3>  Center;
+      Center.clear();
+      array_1d<double, 3>  Normal;
+
+      std::vector<array_1d<double, 3> > Vertices;
+      array_1d<double, 3>  Vertex;
+
+
+      for(unsigned int i = 0; i < size; ++i)
+      {
+        Vertex  = rGeometry[i].Coordinates();
+
+        Vertices.push_back(Vertex);
+
+        Center += Vertex;
+      }
+
+      Center /= (double)size;
+
+      array_1d<double, 3> Corner;
+
+      double tolerance = 0.05;
+      int numouter     = 0;
+
+      int numnodes = 0;
+      for(unsigned int i = 0; i < size; ++i)
+      {
+        if(rGeometry[i].Is(RIGID)){
+
+          Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+
+          double NormNormal = norm_2(Normal);
+          if( NormNormal != 0)
+            Normal /= NormNormal;
+
+          //change position to be the vector from the vertex to the geometry center
+          Corner = Center-Vertices[i];
+
+          double NormCorner = norm_2(Corner);
+          if( NormCorner != 0 )
+            Corner/= NormCorner;
+
+          double projection = inner_prod(Corner,Normal);
+
+          if( projection > tolerance )
+          {
+            ++numouter;
+          }
+          ++numnodes;
+        }
+      }
+
+      if(RigidNodes == size){
+        if(numouter > 0)
+          outer = true;
+      }
+      else if(RigidNodes == size-1){
+        if(numouter = numouter )
+          outer = true;
+      }
+
+    }
+
+    return outer; //if is outside the body
+
+    KRATOS_CATCH( "" )
+  }
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -206,37 +363,36 @@ namespace Kratos
     const unsigned int size = rGeometry.size();
 
     for(unsigned int i = 0; i < size; ++i)
+    {
+      if(rGeometry[i].Is(BOUNDARY))
       {
-	if(rGeometry[i].Is(BOUNDARY))
-	  {
-	    BoundaryNodes += 1;
-	  }
+        BoundaryNodes += 1;
       }
+    }
 
 
     if(BoundaryNodes == size)
+    {
+      //Baricenter
+      array_1d<double, 3>  Center;
+      noalias(Center) = ZeroVector(3);
+      array_1d<double, 3>  Normal;
+
+      std::vector<array_1d<double, 3> > Vertices;
+      array_1d<double, 3>  Vertex;
+
+
+      for(unsigned int i = 0; i < size; ++i)
       {
+        Vertex  = rGeometry[i].Coordinates();
 
-	//Baricenter
-	array_1d<double, 3>  Center;
-	Center.clear();
-	array_1d<double, 3>  Normal;
+        Vertices.push_back(Vertex);
 
-	std::vector<array_1d<double, 3> > Vertices;
-	array_1d<double, 3>  Vertex;
+        Center += Vertex;
+      }
 
 
-	for(unsigned int i = 0; i < size; ++i)
-	  {
-	    Vertex  = rGeometry[i].Coordinates();
-
-	    Vertices.push_back(Vertex);
-
-	    Center += Vertex;
-	  }
-
-
-	Center /= (double)size;
+      Center /= (double)size;
 
 	array_1d<double, 3> Corner;
 
@@ -250,15 +406,15 @@ namespace Kratos
 	    Normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 
 	    double NormNormal = norm_2(Normal);
-	    if( NormNormal != 0)
-	      Normal /= NormNormal;
+        if( NormNormal != 0)
+          Normal /= NormNormal;
 
-	    //change position to be the vector from the vertex to the geometry center
-	    Corner = Center-Vertices[i];
+        //change position to be the vector from the vertex to the geometry center
+        Corner = Center-Vertices[i];
 
-	    double NormCorner = norm_2(Corner);
-	    if( NormCorner != 0 )
-	      Corner/= NormCorner;
+        double NormCorner = norm_2(Corner);
+        if( NormCorner != 0 )
+          Corner/= NormCorner;
 
 	    double projection = inner_prod(Corner,Normal);
 
@@ -490,16 +646,16 @@ namespace Kratos
 	{
 
 	  if( rGeometry[i].Is(NEW_ENTITY) )
-	    return Undefined;
+	    return MesherUtilities::Undefined;
 
-	  WeakPointerVector<Node<3> >& rN = rGeometry[i].GetValue(NEIGHBOUR_NODES);
+	  NodePointerVectorType& rN = rGeometry[i].GetValue(NEIGHBOR_NODES);
 
 	  for(unsigned int n=0; n<rN.size(); ++n)
 	    {
 	      for(unsigned int j=i+1; j<size; ++j)
 		{
 
-		  if( rN[n].Id() == rGeometry[j].Id() )
+		  if( rN[n]->Id() == rGeometry[j].Id() )
 		    {
 		      NeighbourVertices[i] +=1;
 		      NeighbourVertices[j] +=1;
@@ -818,7 +974,7 @@ namespace Kratos
 
     double havg = 0.00;
 
-    if((BoundaryPoint.GetValue(NEIGHBOUR_NODES)).size() != 0)
+    if((BoundaryPoint.GetValue(NEIGHBOR_NODES)).size() != 0)
       {
 	double xc = BoundaryPoint.X();
 	double yc = BoundaryPoint.Y();
@@ -826,13 +982,13 @@ namespace Kratos
 
 	double h_nodes = 0;
 	double h = 1000.0;
-	for( WeakPointerVector< Node<3> >::iterator i = BoundaryPoint.GetValue(NEIGHBOUR_NODES).begin();
-	     i !=  BoundaryPoint.GetValue(NEIGHBOUR_NODES).end(); ++i)
+	for( NodePointerVectorType::iterator i = BoundaryPoint.GetValue(NEIGHBOR_NODES).begin();
+	     i !=  BoundaryPoint.GetValue(NEIGHBOR_NODES).end(); ++i)
 	  {
-	    if( i->Is(BOUNDARY) ){
-	      double x = i->X();
-	      double y = i->Y();
-	      double z = i->Z();
+	    if( (*i)->Is(BOUNDARY) ){
+	      double x = (*i)->X();
+	      double y = (*i)->Y();
+	      double z = (*i)->Z();
 	      double l = (x-xc)*(x-xc);
 	      l += (y-yc)*(y-yc);
 	      l += (z-zc)*(z-zc);
