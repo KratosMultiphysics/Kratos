@@ -21,10 +21,6 @@
 #include <algorithm>
 #include <iomanip> // for std::setprecision
 #include <map>
-// For MPI-parallel output
-#ifdef KRATOS_USING_MPI
-#include "mpi.h"
-#endif
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
 #include "process.h"
@@ -86,12 +82,12 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
         rOStream << " VtkOutput object " << std::endl;
     }
 
-    enum FileFormat{
+    enum class FileFormat{
         VTK_ASCII,
         VTK_BINARY
     };
 
-    enum WriteDataType{
+    enum class WriteDataType{
         VTK_SCALAR,
         VTK_VECTOR
     };

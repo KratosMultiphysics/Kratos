@@ -20,16 +20,17 @@ namespace Kratos
 
 VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mrOutputSettings(rParameters)
 {
-    mDefaultPrecision = 7;
+    mDefaultPrecision = this->mrOutputSettings["output_precision"].GetInt();;
     this->mDoneTest = false;
     this->mShouldSwap = false;
     std::string file_format = this->mrOutputSettings["file_format"].GetString();
-    if(file_format == "Ascii")
+    if(file_format == "ascii")
         mFileFormat =  VtkOutput::FileFormat::VTK_ASCII;
-    else if (file_format == "Binary")
+    else if (file_format == "binary")
         mFileFormat = VtkOutput::FileFormat::VTK_BINARY;
     else
-        KRATOS_ERROR<<"Option :: "<<file_format<<" not recognised.!"<<std::endl<<"Possible output formats options for VTKOutput are :: Ascii and Binary "<<std::endl;
+        KRATOS_ERROR<<"Option for file_format : "<<file_format<<" not recognised.!"<<std::endl
+            <<"Possible output formats options for VTKOutput are :: ascii and binary "<<std::endl;
 }
 
 VtkOutput::~VtkOutput(){};
@@ -49,14 +50,15 @@ void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart)
 unsigned int VtkOutput::DetermineVtkCellListSize(const ModelPart &rModelPart)
 {
     unsigned int vtk_cell_list_size = 0;
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
-    for (const auto& elem : rModelPart.Elements())
+    for (const auto& elem : local_mesh.Elements())
     {
         vtk_cell_list_size++;
         vtk_cell_list_size += elem.GetGeometry().size();
     }
 
-    for (const auto& condition : rModelPart.Conditions())
+    for (const auto& condition : local_mesh.Conditions())
     {
         vtk_cell_list_size++;
         vtk_cell_list_size += condition.GetGeometry().size();
@@ -88,18 +90,19 @@ void VtkOutput::WriteHeader(const ModelPart &rModelPart, std::ofstream& rFileStr
 void VtkOutput::WriteMesh(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
     WriteNodes(rModelPart, rFileStream);
-    //WriteConditionsAndElements(rModelPart, rFileStream);
-    //WriteConditionAndElementTypes(rModelPart, rFileStream);
+    WriteConditionsAndElements(rModelPart, rFileStream);
+    WriteConditionAndElementTypes(rModelPart, rFileStream);
 }
 
 void VtkOutput::WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
     // write nodes header
-    rFileStream << "POINTS " << rModelPart.NumberOfNodes() << " double"
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    rFileStream << "POINTS " << local_mesh.NumberOfNodes() << " double"
                << "\n";
 
     // write nodes
-    for(const auto& node : rModelPart.Nodes())
+    for(const auto& node : local_mesh.Nodes())
     {
         const auto& coordinates = node.Coordinates();
         WriteScalarDataToFile((double)coordinates[0], rFileStream);
@@ -113,11 +116,12 @@ void VtkOutput::WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStre
 
 void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write cells header
-    rFileStream << "\nCELLS " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << " " << mVtkCellListSize << "\n";
+    rFileStream << "\nCELLS " << local_mesh.NumberOfConditions() + local_mesh.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
     // write elements
-    for (const auto& elem : rModelPart.Elements())
+    for (const auto& elem : local_mesh.Elements())
     {
         const auto& elem_geometry = elem.GetGeometry();
         const unsigned int number_of_nodes = elem_geometry.size();
@@ -132,7 +136,7 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofs
     }
 
     // write Conditions
-    for (const auto& condition : rModelPart.Conditions())
+    for (const auto& condition : local_mesh.Conditions())
     {
         const auto& condition_geometry = condition.GetGeometry();
         const unsigned int number_of_nodes = condition_geometry.size();
@@ -150,11 +154,12 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofs
 
 void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write cell types header
-    rFileStream << "\nCELL_TYPES " << rModelPart.NumberOfConditions() + rModelPart.NumberOfElements() << "\n";
+    rFileStream << "\nCELL_TYPES " << local_mesh.NumberOfConditions() + local_mesh.NumberOfElements() << "\n";
 
     // write elements types
-    for (const auto& elem : rModelPart.Elements())
+    for (const auto& elem : local_mesh.Elements())
     {
         int  cell_type = -1;
 
@@ -180,7 +185,7 @@ void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart, std::
     }
 
     // write conditions types
-    for (const auto& condition : rModelPart.Conditions())
+    for (const auto& condition : local_mesh.Conditions())
     {
         int  cell_type = -1;
 
@@ -210,18 +215,19 @@ void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart, std::
 
 void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write nodal results header
     Parameters nodal_results = this->mrOutputSettings["nodal_solution_step_data_variables"];
-    rFileStream << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
+    rFileStream << "POINT_DATA " << local_mesh.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodal_results.size(); entry++)
     {
         // write nodal results variable header
         std::string nodal_result_name = nodal_results[entry].GetString();
-         VtkOutput::WriteDataType dataCharacteristic; // 0: unknown, 1: Scalar value, 2: 3 component vector
+         VtkOutput::WriteDataType data_characteristic; // 0: unknown, 1: Scalar value, 2: 3 component vector
         if (KratosComponents<Variable<double>>::Has(nodal_result_name))
         {
-            dataCharacteristic =  VtkOutput::WriteDataType::VTK_SCALAR;
+            data_characteristic =  VtkOutput::WriteDataType::VTK_SCALAR;
             rFileStream << "SCALARS " << nodal_result_name << " double"
                        << " 1"
                        << "\n";
@@ -230,22 +236,25 @@ void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::o
         }
         else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(nodal_result_name))
         {
-            dataCharacteristic =  VtkOutput::WriteDataType::VTK_VECTOR;
+            data_characteristic =  VtkOutput::WriteDataType::VTK_VECTOR;
             rFileStream << "VECTORS " << nodal_result_name << " double"
                        << "\n";
         }
 
         // write nodal results
-        for(const auto& node : rModelPart.Nodes())
+        if (data_characteristic == VtkOutput::WriteDataType::VTK_SCALAR)
         {
-            if (dataCharacteristic == VtkOutput::WriteDataType::VTK_SCALAR)
+            for(const auto& node : local_mesh.Nodes())
             {
                 Variable<double> nodal_result_variable = KratosComponents<Variable<double>>::Get(nodal_result_name);
                 const auto &nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
                 WriteScalarDataToFile(nodal_result, rFileStream);
                 rFileStream <<"\n";
             }
-            else if (dataCharacteristic == VtkOutput::WriteDataType::VTK_VECTOR)
+        }
+        else if (data_characteristic == VtkOutput::WriteDataType::VTK_VECTOR)
+        {
+            for(const auto& node : local_mesh.Nodes())
             {
                 Variable<array_1d<double, 3>> nodal_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(nodal_result_name);
                 const auto &nodal_result = node.FastGetSolutionStepValue(nodal_result_variable);
@@ -254,27 +263,26 @@ void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::o
             }
         }
     }
-
-
 }
 
 void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
+    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     Parameters element_results = this->mrOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
-    if (rModelPart.NumberOfElements() > 0)
+    if (local_mesh.NumberOfElements() > 0)
     {
-        rFileStream << "CELL_DATA " << rModelPart.NumberOfElements() << "\n";
+        rFileStream << "CELL_DATA " << local_mesh.NumberOfElements() << "\n";
         for (unsigned int entry = 0; entry < element_results.size(); entry++)
         {
 
             std::string element_result_name = element_results[entry].GetString();
-            VtkOutput::WriteDataType dataCharacteristic; // 0: unknown, 1: Scalar value, 2: 3 component vector
+            VtkOutput::WriteDataType data_characteristic; // 0: unknown, 1: Scalar value, 2: 3 component vector
 
             if (KratosComponents<Variable<double>>::Has(element_result_name))
             {
-                dataCharacteristic =  VtkOutput::WriteDataType::VTK_SCALAR;
+                data_characteristic =  VtkOutput::WriteDataType::VTK_SCALAR;
                 rFileStream << "SCALARS " << element_result_name << " double"
                            << " 1"
                            << "\n";
@@ -283,22 +291,25 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFi
             }
             else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(element_result_name))
             {
-                dataCharacteristic =  VtkOutput::WriteDataType::VTK_VECTOR;
+                data_characteristic =  VtkOutput::WriteDataType::VTK_VECTOR;
                 rFileStream << "VECTORS " << element_result_name << " double"
                            << "\n";
             }
 
             // write nodal results
-            for (const auto& elem : rModelPart.Elements())
+            if (data_characteristic ==  VtkOutput::WriteDataType::VTK_SCALAR)
             {
-                if (dataCharacteristic ==  VtkOutput::WriteDataType::VTK_SCALAR)
+                for (const auto& elem : local_mesh.Elements())
                 {
                     Variable<double> element_result_variable = KratosComponents<Variable<double>>::Get(element_result_name);
                     const auto &element_result = elem.GetValue(element_result_variable);
                     WriteScalarDataToFile(element_result, rFileStream);
                     rFileStream <<"\n";
                 }
-                else if (dataCharacteristic == VtkOutput::WriteDataType::VTK_VECTOR)
+            }
+            else if (data_characteristic == VtkOutput::WriteDataType::VTK_VECTOR)
+            {
+                for (const auto& elem : local_mesh.Elements())
                 {
                     Variable<array_1d<double, 3>> element_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(element_result_name);
                     const auto &element_result = elem.GetValue(element_result_variable);
@@ -307,7 +318,6 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFi
                 }
             }
         }
-
     }
 }
 
@@ -330,8 +340,8 @@ void VtkOutput::WriteModelPart(const ModelPart &rModelPart)
 
     WriteHeader(rModelPart, output_file);
     WriteMesh(rModelPart, output_file);
-    //WriteNodalResultsAsPointData(rModelPart, output_file);
-    //WriteElementData(rModelPart, output_file);
+    WriteNodalResultsAsPointData(rModelPart, output_file);
+    WriteElementData(rModelPart, output_file);
 
     output_file.close();
 }
@@ -378,11 +388,8 @@ void VtkOutput::ForceBigEndian(unsigned char *bytes)
 
 std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
 {
-    int rank = 0;
+    int rank = rModelPart.GetCommunicator().MyPID();
     int step = rModelPart.GetProcessInfo()[STEP];
-#ifdef KRATOS_USING_MPI // mpi-parallel compilation
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-#endif
     std::string output_file_name = mrOutputSettings["folder_name"].GetString() +"/"+
                                     rModelPart.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
     return output_file_name;
