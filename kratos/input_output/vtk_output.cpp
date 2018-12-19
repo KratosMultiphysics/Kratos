@@ -271,9 +271,9 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFi
     Parameters element_results = this->mrOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
-    if (local_mesh.NumberOfElements() > 0)
+    if (local_mesh.NumberOfElements() > 0 || local_mesh.NumberOfConditions() > 0)
     {
-        rFileStream << "CELL_DATA " << local_mesh.NumberOfElements() << "\n";
+        rFileStream << "CELL_DATA " << local_mesh.NumberOfElements() + local_mesh.NumberOfConditions()<< "\n";
         for (unsigned int entry = 0; entry < element_results.size(); entry++)
         {
 
@@ -306,6 +306,13 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFi
                     WriteScalarDataToFile(element_result, rFileStream);
                     rFileStream <<"\n";
                 }
+                for (const auto& condition : local_mesh.Conditions())
+                {
+                    Variable<double> element_result_variable = KratosComponents<Variable<double>>::Get(element_result_name);
+                    const auto &condition_result = condition.GetValue(element_result_variable);
+                    WriteScalarDataToFile(condition_result, rFileStream);
+                    rFileStream <<"\n";
+                }
             }
             else if (data_characteristic == VtkOutput::WriteDataType::VTK_VECTOR)
             {
@@ -314,6 +321,14 @@ void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFi
                     Variable<array_1d<double, 3>> element_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(element_result_name);
                     const auto &element_result = elem.GetValue(element_result_variable);
                     WriteVectorDataToFile(element_result, rFileStream);
+                    rFileStream << "\n";
+                }
+
+                for (const auto& condition : local_mesh.Conditions())
+                {
+                    Variable<array_1d<double, 3>> element_result_variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(element_result_name);
+                    const auto &condition_result = condition.GetValue(element_result_variable);
+                    WriteVectorDataToFile(condition_result, rFileStream);
                     rFileStream << "\n";
                 }
             }
