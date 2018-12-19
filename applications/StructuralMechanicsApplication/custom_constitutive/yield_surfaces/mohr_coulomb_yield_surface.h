@@ -9,8 +9,8 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_VON_MISES_YIELD_SURFACE_H_INCLUDED)
-#define KRATOS_VON_MISES_YIELD_SURFACE_H_INCLUDED
+#if !defined(KRATOS_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED)
+#define KRATOS_MOHR_COULOMB_YIELD_SURFACE_H_INCLUDED
 
 // System includes
 
@@ -129,7 +129,7 @@ public:
         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const double friction_angle = r_material_properties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
 
         rEquivalentStress = (std::cos(lode_angle) - std::sin(lode_angle) * std::sin(friction_angle) / std::sqrt(3.0)) * std::sqrt(J2) +
             I1 * std::sin(friction_angle) / 3.0;
@@ -147,7 +147,7 @@ public:
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const double cohesion = r_material_properties[COHESION];
-        const double friction_angle = r_material_properties[FRICTION_ANGLE];
+        const double friction_angle = r_material_properties[FRICTION_ANGLE] * Globals::Pi / 180.0;
 
         rThreshold = cohesion * std::cos(friction_angle);
     }
@@ -172,7 +172,7 @@ public:
 
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
-            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture enerDerivativePlasticPotentialy is too low, increase FRACTURE_ENERGY..." << std::endl;
+            KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture Energy is too low, increase FRACTURE_ENERGY..." << std::endl;
         } else { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
         }
@@ -231,7 +231,7 @@ public:
         const double c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
             std::sin(friction_angle) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
         const double c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(friction_angle) * std::cos(lode_angle)) / 
-            2.0 * J2 * std::cos(3.0 * lode_angle);
+            (2.0 * J2 * std::cos(3.0 * lode_angle));
 
         noalias(rFFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
@@ -246,11 +246,13 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(FRICTION_ANGLE);
         KRATOS_CHECK_VARIABLE_KEY(FRACTURE_ENERGY);
         KRATOS_CHECK_VARIABLE_KEY(YOUNG_MODULUS);
+        KRATOS_CHECK_VARIABLE_KEY(YIELD_STRESS);
 
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(COHESION)) << "COHESION is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRICTION_ANGLE)) << "FRICTION_ANGLE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
 
         return TPlasticPotentialType::Check(rMaterialProperties);
     }
