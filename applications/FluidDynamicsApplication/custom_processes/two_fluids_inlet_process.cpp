@@ -169,7 +169,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // classifying nodes
     std::vector<IndexType> index_node_water;
     std::vector<IndexType> index_node_air;
-    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(mrInletModelPart.NumberOfNodes()); ++i_node){
         auto it_node = mrInletModelPart.NodesBegin() + i_node;
         const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
@@ -189,7 +188,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     // classifying conditions
     std::vector<IndexType> index_cond_water;
     std::vector<IndexType> index_cond_air;
-    #pragma omp parallel for
     for (int i_cond = 0; i_cond < static_cast<int>(mrInletModelPart.NumberOfConditions()); ++i_cond){
         auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
         unsigned int pos_counter = 0;
