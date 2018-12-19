@@ -820,8 +820,8 @@ public:
                 }
 
                 world_comm.SendRecv(
-                    send_buffer, r_neighbour_indices[step],
-                    *(receive_buffers[step]), r_neighbour_indices[step]);
+                    send_buffer, r_neighbour_indices[step], step,
+                    *(receive_buffers[step]), r_neighbour_indices[step], step);
             }
         }
 
@@ -838,11 +838,11 @@ public:
                     irecv += flag_size;
                 }
 
-                delete[] receive_buffers[step];
+                delete receive_buffers[step];
             }
         }
 
-        //SynchronizeNonHistoricalVariable<TDataType,TSendType>(ThisVariable);
+        SynchronizeNodalFlags(TheFlags);
 
         return true;
     }
@@ -1287,6 +1287,59 @@ private:
                 delete [] send_buffer;
                 delete [] receive_buffer;
             }
+
+        return true;
+    }
+
+    bool SynchronizeNodalFlags(const Flags TheFlags)
+    {
+        //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
+        MPIDataCommunicator world_comm(MPI_COMM_WORLD);
+
+        constexpr unsigned int flag_size = sizeof(Flags) / sizeof(double);
+
+        const NeighbourIndicesContainerType& r_neighbour_indices = NeighbourIndices();
+        const unsigned int number_of_communication_steps = r_neighbour_indices.size();
+
+        std::vector<double> send_buffer;
+        std::vector<double> recv_buffer;
+
+        for (unsigned int step = 0; step < number_of_communication_steps; step++)
+        {
+            if (r_neighbour_indices[step] >= 0) // If this rank communicates during this step
+            {
+                NodesContainerType& r_local_nodes = LocalMesh(step).Nodes();
+                NodesContainerType& r_ghost_nodes = GhostMesh(step).Nodes();
+
+                unsigned int send_size = r_local_nodes.size() * flag_size;
+                unsigned int recv_size = r_ghost_nodes.size() * flag_size;
+
+                if ( (send_size == 0) && (recv_size == 0) )
+                    continue;
+
+                send_buffer.resize(send_size);
+                recv_buffer.resize(recv_size);
+
+                double* isend = send_buffer.data();
+                for (ModelPart::NodeIterator inode = r_local_nodes.begin(); inode < r_local_nodes.end(); ++inode)
+                {
+                    *(Flags*)(isend) = Flags(*inode);
+                    isend += flag_size;
+                }
+
+                world_comm.SendRecv(
+                    send_buffer, r_neighbour_indices[step], step,
+                    recv_buffer, r_neighbour_indices[step], step);
+
+                double* irecv = recv_buffer.data();
+                for (ModelPart::NodeIterator inode = r_ghost_nodes.begin(); inode < r_ghost_nodes.end(); ++inode)
+                {
+                    Flags recv = *reinterpret_cast<Flags*>(irecv);
+                    inode->AssignFlags( (recv & TheFlags) | (*inode & ~TheFlags) );
+                    irecv += flag_size;
+                }
+            }
+        }
 
         return true;
     }
