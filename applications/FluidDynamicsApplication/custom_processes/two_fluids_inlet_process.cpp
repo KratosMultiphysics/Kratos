@@ -23,6 +23,7 @@
 
 // Application includes
 #include "two_fluids_inlet_process.h"
+#include "fluid_dynamics_application_variables.h"
 
 
 namespace Kratos
@@ -37,25 +38,18 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     Parameters default_parameters( R"(
     {
-        "mesh_id"                   : 0,
-        "model_part_name"           : "",
-        "variable_name"             : "VELOCITY",
-        "constrained"               : true,
-        "direction"                 : [1.0,0.0,0.0],
-        "interval"                  : [0.0,1.0e30],
-        "two_fluid_settings" : {
-            "modulus_air"               : 0.0,
-            "modulus_water"             : 1.0,
-            "interface_normal"          : [0.0,1.0,0.0],
-            "point_on_interface"        : [0.0,0.25,0.0],
-            "inlet_transition_radius"   : 0.05
-        }
+        "modulus_air"               : 0.0,
+        "modulus_water"             : 0.0,
+        "interface_normal"          : [0.0,1.0,0.0],
+        "point_on_interface"        : [0.0,0.25,0.0],
+        "inlet_transition_radius"   : 0.05
     }  )" );
 
-    rParameters.ValidateAndAssignDefaults(default_parameters);
+    // validating only the specific values for two-fluid application (important here)
+    rParameters["two_fluid_settings"].ValidateAndAssignDefaults(default_parameters);
 
     // finding the complete model the inlet model part
-    const Model& rCompleteModel = mrInletModelPart.GetModel();
+    // const Model& rCompleteModel = mrInletModelPart.GetModel();
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
     // setting the parameters to the private data members of the class
@@ -65,7 +59,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     mInterfacePoint = rParameters["two_fluid_settings"]["point_on_interface"].GetVector();
     mInletRadius = rParameters["two_fluid_settings"]["inlet_transition_radius"].GetDouble();
 
-    // setting flags for the inlet
+    // setting flags for the inlet on nodes and conditions
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(mrInletModelPart.NumberOfNodes()); ++i_node){
         // iteration over all nodes
@@ -97,13 +91,13 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SetScalarVar( DISTANCE, -mInletRadius, mrInletModelPart.Nodes() );
 
     // BodyDistanceCalculationUtils dist_utils;
-    const unsigned int dim = rRootModelPart.GetProcessInfo[DOMAIN_SIZE];
+    const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
     // (... using dim as template argument does not work ...)
     if ( dim == 2 ){
         SignedDistanceCalculationUtils<2> dist_utils;
         dist_utils.CalculateDistances( rRootModelPart, DISTANCE, 0.0 );
     }
-    else if ( rRootModelPart.GetProcessInfo[DOMAIN_SIZE] == 3 ){
+    else if ( dim == 3 ){
         SignedDistanceCalculationUtils<3> dist_utils;
         dist_utils.CalculateDistances( rRootModelPart, DISTANCE, 0.0 );
     }
@@ -137,15 +131,19 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     std::vector<IndexType> index_node_water;
     std::vector<IndexType> index_node_air;
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(rRootModelPart.NumberOfNodes()); ++i_node){
-        auto it_node = rRootModelPart.NodesBegin() + i_node;
+    for (int i_node = 0; i_node < static_cast<int>(mrInletModelPart.NumberOfNodes()); ++i_node){
+        auto it_node = mrInletModelPart.NodesBegin() + i_node;
         const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
+        KRATOS_WATCH(inlet_dist)
         if (inlet_dist <= 0.0){
             index_node_water.push_back( it_node->GetId() );
         } else {
             index_node_air.push_back( it_node->GetId() );
         }
     }
+    KRATOS_WATCH(index_node_water);
+    KRATOS_WATCH(index_node_air);
+
     rWaterInlet.AddNodes( index_node_water );
     rAirInlet.AddNodes( index_node_air );
 
@@ -153,22 +151,27 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     std::vector<IndexType> index_cond_water;
     std::vector<IndexType> index_cond_air;
     #pragma omp parallel for
-    for (int i_cond = 0; i_cond < static_cast<int>(rRootModelPart.NumberOfConditions()); ++i_cond){
-        auto it_cond = rRootModelPart.ConditionsBegin() + i_cond;
-
+    for (int i_cond = 0; i_cond < static_cast<int>(mrInletModelPart.NumberOfConditions()); ++i_cond){
+        auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
         unsigned int pos_counter = 0;
-        for (int i_node = 0; i_node < it_cond->GetGeometry().PointsNumber(); i_node++){
+        unsigned int neg_counter = 0;
+        for (int i_node = 0; i_node < static_cast<int>(it_cond->GetGeometry().PointsNumber()); i_node++){
             const Node<3>& rNode = (it_cond->GetGeometry())[i_node];
             const double inlet_dist = ComputeNodalDistanceInInletDistanceField( rNode );
             if ( inlet_dist > 0 ){ pos_counter++; }
+            if ( inlet_dist <= 0 ){ neg_counter++; }
         }
-
+        // the conditions cut by the interface are neither assigned to the positive nor the negative side
         if( pos_counter == it_cond->GetGeometry().PointsNumber() ){
             index_cond_air.push_back( it_cond->GetId() );
-        } else {
+        }
+        if( neg_counter == it_cond->GetGeometry().PointsNumber() ){
             index_cond_water.push_back( it_cond->GetId() );
         }
     }
+    KRATOS_WATCH(index_cond_water);
+    KRATOS_WATCH(index_cond_air);
+
     rWaterInlet.AddConditions( index_cond_water );
     rAirInlet.AddConditions( index_cond_air );
 
@@ -196,8 +199,7 @@ double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const No
     const double inlet_distance =   distance[0]*normal[0] +
                                     distance[1]*normal[1] +
                                     distance[2]*normal[2];
-    // return inlet_distance;
-    return a;
+    return inlet_distance;
 }
 
 

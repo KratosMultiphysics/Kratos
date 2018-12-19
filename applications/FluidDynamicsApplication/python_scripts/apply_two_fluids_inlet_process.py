@@ -72,38 +72,39 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                     raise Exception("Inlet function string for the water velocity at the inlet is empty.")
                 self.modulus_water = settings["two_fluid_settings"]["modulus_water"].GetString()
 
-
-        if Model.HasModelPart( settings["model_part_name"].GetString() ):
-            self.inlet_model_part = Model[settings["model_part_name"].GetString()]
-        else:
-            raise Exception("The model does not contain a part with 'model_part_name' = " + settings["model_part_name"].GetString())
-
+        self.inlet_model_part = Model[settings["model_part_name"].GetString()]
+        self.complete_model = self.inlet_model_part.GetRootModelPart()
 
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.complete_model, 10, 10)
         self.neighbour_search.Execute()
 
-        # TODO: Insert the constrcutor of the C++ process
+        # Adding the C++ constructor
         self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess(self.inlet_model_part, settings)
+        self.point_on_interface = settings["two_fluid_settings"]["point_on_interface"].GetVector()
+        self.interface_normal = settings["two_fluid_settings"]["interface_normal"].GetVector()
 
         # removing the additional entries to restore the format
         settings.RemoveValue("two_fluid_settings")
+        settings.AddEmptyValue("modulus")
         import assign_vector_by_direction_process
 
         # adapt the (base) settings for the water values
-        if ( self.modulus_water.IsString() ):
+        if ( isinstance(self.modulus_water, str) ):
             settings["modulus"].SetString(self.modulus_water)
-        elif ( self.modulus_water.IsDouble() ):
+        elif ( isinstance(self.modulus_water, float) ):
             settings["modulus"].SetDouble(self.modulus_water)
         settings["model_part_name"].SetString("water_inlet")
         self.aux_process_water = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
         # adapt the (base) settings for the air values
-        if ( self.modulus_air.IsString() ):
+        if ( isinstance(self.modulus_air, str) ):
             settings["modulus"].SetString(self.modulus_air)
-        elif ( self.modulus_air.IsDouble() ):
+        elif ( isinstance(self.modulus_air, float) ):
             settings["modulus"].SetDouble(self.modulus_air)
         settings["model_part_name"].SetString("air_inlet")
         self.aux_process_air = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
+
+        input( "PAUSE..." )
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -119,7 +120,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
 
         # re-initial the distance field and blending the inlet field and the field inside the domain
 
-        for node in self.main_model_part.Nodes:
+        for node in self.complete_model.Nodes:
             if ( node.GetValue(KratosFluid.AUX_DISTANCE) > 0.0 ):
                 weighting_factor_inlet_field = node.GetValue(KratosFluid.AUX_DISTANCE)
                 weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field
