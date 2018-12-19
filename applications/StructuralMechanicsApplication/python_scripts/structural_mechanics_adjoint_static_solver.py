@@ -90,12 +90,17 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.response_function.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
+        print("ADJOINT::SolveSolutionStep")
         if self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
         else:
             super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
         #after adjoint solution, calculate sensitivities
         self.adjoint_postprocess.UpdateSensitivities() # TODO call postprocess here or in FinalizeSolutionStep ?
+        
+        print(self.main_model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
+
+
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):
         for node in self.main_model_part.Nodes:

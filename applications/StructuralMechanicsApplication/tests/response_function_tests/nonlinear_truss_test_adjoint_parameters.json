@@ -25,7 +25,7 @@
         "nodal_sensitivity_variables"  : ["SHAPE"],
         "element_sensitivity_variables"  : [],
         "condition_sensitivity_variables"  : [],
-        "build_mode": "static"
+        "build_mode": "static-non-linear"
         },            
         "echo_level"                   : 0,
         "problem_domain_sub_model_part_list" : ["Parts_TRUSS"],
@@ -102,7 +102,7 @@
         }
      }
     ]},
-    "_output_configuration"     : {
+    "output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostAscii",

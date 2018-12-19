@@ -156,6 +156,10 @@ namespace Kratos
         {
             // overwrite existing.
             this->SetAllSensitivityVariablesToZero();
+        }        
+        else if (mBuildMode == "static-non-linear")
+        {
+            // accumulate -> do nothing
         }
         else
         {
@@ -262,6 +266,7 @@ namespace Kratos
             {
                 this->AssembleNodalSensitivityContribution(
                     rOutputVariable, sensitivity_vector[k], r_geom);
+                KRATOS_WATCH(sensitivity_vector[k])
             }
         }
 
