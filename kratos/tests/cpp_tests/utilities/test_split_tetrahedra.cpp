@@ -128,7 +128,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
     nodes_pointer_vect[9] = Kratos::make_shared<Node<3>>(10, 0.0, 0.5, 0.5); // Edge 23
 
     // Baricenter
-    nodes_pointer_vect[10] = Kratos::make_shared<Node<3>>(11, 1.0/3.0, 1.0/3.0, 1.0/3.0); // Baricenter
+    nodes_pointer_vect[10] = Kratos::make_shared<Node<3>>(11, 0.25, 0.25, 0.25); // Baricenter
 
     // Loop all the splitting patterns
     std::vector<std::vector<unsigned int>> a(6);
@@ -177,7 +177,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                             std::vector<Geometry<Node<3>>> sub_tetras_ext_faces;
 
                             // Reconstruct each one of the splitting tetras
-                            for (unsigned int i_elem = 0; i_elem < n_elems; ++i_elem) {
+                            for (int i_elem = 0; i_elem < n_elems; ++i_elem) {
                                 Tetrahedra3D4<Node<3>>::Pointer p_sub_tetra = Kratos::make_shared<Tetrahedra3D4<Node<3>>>(
                                     nodes_pointer_vect[t[i_elem*4]],
                                     nodes_pointer_vect[t[i_elem*4 + 1]],
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                                     }
                                 }
 
-                                KRATOS_ERROR_IF(sub_vol < 0.0) << "Negative subdivision " << 
+                                KRATOS_ERROR_IF(sub_vol < 1e-12) << "Negative subdivision " << 
                                     i_elem << " volume for edges: " << 
                                     edge_int_vect[0] << " " <<
                                     edge_int_vect[1] << " " <<
@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
                                     edge_int_vect[5] << std::endl;
                             }
 
-                            KRATOS_CHECK_NEAR(tot_vol, 1.0/6.0, 1e-4);
+                            KRATOS_CHECK_NEAR(tot_vol, 1.0/6.0, 1e-12);
 
                             // Search for the external faces
                             if (compute_faces) {
