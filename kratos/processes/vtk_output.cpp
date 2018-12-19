@@ -12,12 +12,12 @@
 //
 
 // project includes
-#include "vtk_output_process.h"
+#include "vtk_output.h"
 
 namespace Kratos
 {
 
-VtkOutputProcess::VtkOutputProcess(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mrOutputSettings(rParameters)
+VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mrOutputSettings(rParameters)
 {
     mDefaultPrecision = 7;
     mStep = 0;
@@ -25,37 +25,37 @@ VtkOutputProcess::VtkOutputProcess(ModelPart &rModelPart, Parameters rParameters
     this->mShouldSwap = false;
 }
 
-VtkOutputProcess::~VtkOutputProcess(){};
+VtkOutput::~VtkOutput(){};
 
-void VtkOutputProcess::ExecuteInitialize()
+void VtkOutput::ExecuteInitialize()
 {}
 
-void VtkOutputProcess::ExecuteBeforeSolutionLoop()
+void VtkOutput::ExecuteBeforeSolutionLoop()
 {}
 
-void VtkOutputProcess::ExecuteInitializeSolutionStep()
+void VtkOutput::ExecuteInitializeSolutionStep()
 {}
 
-void VtkOutputProcess::ExecuteFinalizeSolutionStep()
+void VtkOutput::ExecuteFinalizeSolutionStep()
 {
     PrintOutput();
 }
 
-void VtkOutputProcess::ExecuteBeforeOutputStep()
+void VtkOutput::ExecuteBeforeOutputStep()
 {}
 
-void VtkOutputProcess::ExecuteAfterOutputStep()
+void VtkOutput::ExecuteAfterOutputStep()
 {}
 
-void VtkOutputProcess::ExecuteFinalize()
+void VtkOutput::ExecuteFinalize()
 {}
 
-int VtkOutputProcess::Check()
+int VtkOutput::Check()
 {return  0;}
 
 
 
-void VtkOutputProcess::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
+void VtkOutput::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
 {
     int vtk_id = 0;
 
@@ -67,7 +67,7 @@ void VtkOutputProcess::CreateMapFromKratosIdToVTKId(ModelPart &rModelPart)
     }
 }
 
-unsigned int VtkOutputProcess::DetermineVtkCellListSize(ModelPart &rModelPart)
+unsigned int VtkOutput::DetermineVtkCellListSize(ModelPart &rModelPart)
 {
     unsigned int vtk_cell_list_size = 0;
 
@@ -86,13 +86,13 @@ unsigned int VtkOutputProcess::DetermineVtkCellListSize(ModelPart &rModelPart)
     return vtk_cell_list_size;
 }
 
-void VtkOutputProcess::Initialize(ModelPart &rModelPart)
+void VtkOutput::Initialize(ModelPart &rModelPart)
 {
     CreateMapFromKratosIdToVTKId(rModelPart);
     mVtkCellListSize = DetermineVtkCellListSize(rModelPart);
 }
 
-void VtkOutputProcess::WriteHeader(ModelPart &rModelPart)
+void VtkOutput::WriteHeader(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -109,14 +109,14 @@ void VtkOutputProcess::WriteHeader(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteMesh(ModelPart &rModelPart)
+void VtkOutput::WriteMesh(ModelPart &rModelPart)
 {
     WriteNodes(rModelPart);
     WriteConditionsAndElements(rModelPart);
     WriteConditionAndElementTypes(rModelPart);
 }
 
-void VtkOutputProcess::WriteNodes(ModelPart &rModelPart)
+void VtkOutput::WriteNodes(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -142,7 +142,7 @@ void VtkOutputProcess::WriteNodes(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionsAndElements(ModelPart &rModelPart)
+void VtkOutput::WriteConditionsAndElements(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -179,7 +179,7 @@ void VtkOutputProcess::WriteConditionsAndElements(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &rModelPart)
+void VtkOutput::WriteConditionAndElementTypes(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -241,7 +241,7 @@ void VtkOutputProcess::WriteConditionAndElementTypes(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &rModelPart)
+void VtkOutput::WriteNodalResultsAsPointData(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -296,7 +296,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointData(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteElementData(ModelPart &rModelPart)
+void VtkOutput::WriteElementData(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -367,7 +367,7 @@ void VtkOutputProcess::WriteElementData(ModelPart &rModelPart)
 
 //#############################################For creating vtk files in binary format##########################################################
 
-void VtkOutputProcess::WriteHeaderBinary(ModelPart &rModelPart)
+void VtkOutput::WriteHeaderBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -384,7 +384,7 @@ void VtkOutputProcess::WriteHeaderBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteMeshBinary(ModelPart &rModelPart)
+void VtkOutput::WriteMeshBinary(ModelPart &rModelPart)
 {
 
     WriteNodesBinary(rModelPart);
@@ -394,7 +394,7 @@ void VtkOutputProcess::WriteMeshBinary(ModelPart &rModelPart)
     WriteConditionAndElementTypesBinary(rModelPart);
 }
 
-void VtkOutputProcess::WriteNodesBinary(ModelPart &rModelPart)
+void VtkOutput::WriteNodesBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -421,7 +421,7 @@ void VtkOutputProcess::WriteNodesBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
+void VtkOutput::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -471,7 +471,7 @@ void VtkOutputProcess::WriteConditionsAndElementsBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
+void VtkOutput::WriteConditionAndElementTypesBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -535,7 +535,7 @@ void VtkOutputProcess::WriteConditionAndElementTypesBinary(ModelPart &rModelPart
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
+void VtkOutput::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -595,7 +595,7 @@ void VtkOutputProcess::WriteNodalResultsAsPointDataBinary(ModelPart &rModelPart)
     outputFile.close();
 }
 
-void VtkOutputProcess::WriteElementDataBinary(ModelPart &rModelPart)
+void VtkOutput::WriteElementDataBinary(ModelPart &rModelPart)
 {
     std::string outputFileName = GetOutputFileName(rModelPart);
     std::ofstream outputFile;
@@ -660,7 +660,7 @@ void VtkOutputProcess::WriteElementDataBinary(ModelPart &rModelPart)
 
 //#################################################################End of Binary vtk ################################################################
 
-void VtkOutputProcess::PrintOutputModelPart(ModelPart &modelPart)
+void VtkOutput::PrintOutputModelPart(ModelPart &modelPart)
 {
     Initialize(modelPart);
     std::string type = this->mrOutputSettings["file_format"].GetString();
@@ -681,7 +681,7 @@ void VtkOutputProcess::PrintOutputModelPart(ModelPart &modelPart)
     }
 }
 
-void VtkOutputProcess::PrintOutput()
+void VtkOutput::PrintOutput()
 {
     //For whole model part
     PrintOutputModelPart(mrModelPart);
@@ -700,7 +700,7 @@ void VtkOutputProcess::PrintOutput()
     }
 }
 
-void VtkOutputProcess::ForceBigEndian(unsigned char *bytes)
+void VtkOutput::ForceBigEndian(unsigned char *bytes)
 {
     if (!mDoneTest)
     {
@@ -723,7 +723,7 @@ void VtkOutputProcess::ForceBigEndian(unsigned char *bytes)
 
 ///@}
 
-std::string VtkOutputProcess::GetOutputFileName(ModelPart &rModelPart)
+std::string VtkOutput::GetOutputFileName(ModelPart &rModelPart)
 {
     int rank = 0;
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation

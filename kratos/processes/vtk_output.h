@@ -32,62 +32,33 @@
 
 namespace Kratos
 {
-/** \brief VtkOutputProcess
+/** \brief VtkOutput
 * A simple class that has functionality to write vtk output
 */
-class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
+class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 {
 
     typedef ProcessInfo ProcessInfoType;
 
   public:
-    /// Pointer definition of VtkOutputProcess
-    KRATOS_CLASS_POINTER_DEFINITION(VtkOutputProcess);
+    /// Pointer definition of VtkOutput
+    KRATOS_CLASS_POINTER_DEFINITION(VtkOutput);
 
     ///@name Life Cycle
     ///@{
 
     /**
-		Creates a VtkOutputProcess data object
+		Creates a VtkOutput data object
 		*/
-    VtkOutputProcess(ModelPart &rModelPart, Parameters rParameters);
+    VtkOutput(ModelPart &rModelPart, Parameters rParameters);
     /// Destructor.
-    virtual ~VtkOutputProcess();
+    virtual ~VtkOutput();
 
     ///@}
     ///@name Operators
     ///@{
 
-    /// Execute method is used to execute the Process algorithms.
-    void Execute() override {}
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    void ExecuteInitialize() override;
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    void ExecuteBeforeSolutionLoop() override;
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    void ExecuteInitializeSolutionStep() override;
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    void ExecuteFinalizeSolutionStep() override;
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    void ExecuteBeforeOutputStep() override;
-
-    /// this function will be executed at every time step AFTER writing the output
-    void ExecuteAfterOutputStep() override;
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    void ExecuteFinalize() override;
-
-    /// this function is designed for being called after ExecuteInitialize ONCE to
-    /// verify that the input is correct.
-    int Check() override;
 
     ///@}
 
@@ -103,7 +74,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
     ///@}
     void PrintInfo(std::ostream &rOStream) const override
     {
-        rOStream << " VtkOutputProcess object " << std::endl;
+        rOStream << " VtkOutput object " << std::endl;
     }
 
   private:
@@ -177,12 +148,12 @@ class KRATOS_API(KRATOS_CORE) VtkOutputProcess : public Process
 
     virtual void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VtkOutputProcess);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VtkOutput);
     }
 
     virtual void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VtkOutputProcess);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VtkOutput);
     }
 
     ///@}

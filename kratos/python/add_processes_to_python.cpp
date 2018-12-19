@@ -53,7 +53,6 @@
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/skin_detection_process.h"
-#include "processes/vtk_output_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -484,10 +483,6 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<SkinDetectionProcess<3>, SkinDetectionProcess<3>::Pointer, Process>(m, "SkinDetectionProcess3D")
         .def(py::init<ModelPart&>())
-        .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<VtkOutputProcess, VtkOutputProcess::Pointer, Process>(m, "VtkOutputProcess")
         .def(py::init< ModelPart&, Parameters >())
         ;
 }
