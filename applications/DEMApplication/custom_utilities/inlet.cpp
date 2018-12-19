@@ -39,12 +39,12 @@ namespace Kratos {
     DEM_Inlet::DEM_Inlet(ModelPart& inlet_modelpart): mInletModelPart(inlet_modelpart)
     {
         const int number_of_submodelparts = inlet_modelpart.NumberOfSubModelParts();
-        mPartialParticleToInsert.resize(number_of_submodelparts, false);
-        mLastInjectionTimes.resize(number_of_submodelparts, false);
+        mPartialParticleToInsert.resize(number_of_submodelparts);
+        mLastInjectionTimes.resize(number_of_submodelparts);
         //mTotalNumberOfDetachedParticles.resize(number_of_submodelparts, false);
-        mLayerRemoved.resize(number_of_submodelparts, false);
-        mNumberOfParticlesInjected.resize(number_of_submodelparts, false);
-        mMassInjected.resize(number_of_submodelparts, false);
+        mLayerRemoved.resize(number_of_submodelparts);
+        mNumberOfParticlesInjected.resize(number_of_submodelparts);
+        mMassInjected.resize(number_of_submodelparts);
 
         int smp_iterator_number = 0;
         for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = inlet_modelpart.SubModelPartsBegin(); sub_model_part != inlet_modelpart.SubModelPartsEnd(); ++sub_model_part) {
