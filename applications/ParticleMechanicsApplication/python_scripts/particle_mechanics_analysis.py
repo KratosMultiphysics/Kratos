@@ -12,6 +12,7 @@ except ImportError:
 
 # Importing the base class
 from analysis_stage import AnalysisStage
+from KratosMultiphysics.ParticleMechanicsApplication.python_solvers_wrapper_particle import CreateSolver
 
 class ParticleMechanicsAnalysis(AnalysisStage):
     """
@@ -98,8 +99,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_particle
-        return python_solvers_wrapper_particle.CreateSolver(self.model, self.project_parameters)
+        return CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes"""
@@ -149,7 +149,7 @@ class ParticleMechanicsAnalysis(AnalysisStage):
                 gid_output = OutputProcess(self._GetSolver().GetGridModelPart(), grid_output_file_name,
                                     self.project_parameters["grid_output_configuration"])
             elif parameter_name == "body_output":
-                from mpm_gid_output_process import ParticleMPMGiDOutputProcess as OutputProcess
+                from KratosMultiphysics.ParticleMechanicsApplication.mpm_gid_output_process import ParticleMPMGiDOutputProcess as OutputProcess
                 mp_output_file_name = self.project_parameters["problem_data"]["problem_name"].GetString() + "_Body"
                 gid_output = OutputProcess(self._GetSolver().GetComputingModelPart(), mp_output_file_name,
                                     self.project_parameters["body_output_configuration"])

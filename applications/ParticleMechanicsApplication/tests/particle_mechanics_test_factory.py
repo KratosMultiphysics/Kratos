@@ -5,7 +5,7 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import particle_mechanics_analysis
+from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
 # Other imports
 import os
@@ -42,7 +42,7 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = particle_mechanics_analysis.ParticleMechanicsAnalysis(model, ProjectParameters)
+            self.test = ParticleMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
