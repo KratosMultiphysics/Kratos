@@ -783,7 +783,7 @@ public:
      * Assemble the values of the chosen flags on each node with an OR operation.
      * @param[in] TheFlags Names of the flags to be synchronized.
      */
-    bool ReduceOrNodalFlags(const Flags& TheFlags) override
+    bool SynchronizeOrNodalFlags(const Flags& TheFlags) override
     {
         //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
         MPIDataCommunicator world_comm(MPI_COMM_WORLD);
@@ -851,7 +851,7 @@ public:
      * Assemble the values of the chosen flags on each node with an AND operation.
      * @param[in] TheFlags Names of the flags to be synchronized.
      */
-    bool ReduceAndNodalFlags(const Flags& TheFlags) override
+    bool SynchronizeAndNodalFlags(const Flags& TheFlags) override
     {
         //TODO: the DataCommunicator should be a member of the MPICommunicator class (to allow for non-world communicators)
         MPIDataCommunicator world_comm(MPI_COMM_WORLD);

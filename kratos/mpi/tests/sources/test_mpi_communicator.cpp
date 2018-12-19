@@ -109,7 +109,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceOr, KratosMPICoreFastSuite)
     Node<3>& r_center = r_model_part.Nodes()[1];
     r_center.Set(STRUCTURE, (world_comm.Rank() == world_comm.Size()-1));
 
-    r_model_part.GetCommunicator().ReduceOrNodalFlags(STRUCTURE);
+    r_model_part.GetCommunicator().SynchronizeOrNodalFlags(STRUCTURE);
     //std::cout << "Rank: " << world_comm.Rank() << ": " << r_center.Is(STRUCTURE) << "." << std::endl;
     KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), true);
 }
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
     Node<3>& r_center = r_model_part.Nodes()[1];
     r_center.Set(STRUCTURE, (world_comm.Rank() == world_comm.Size()-1));
 
-    r_model_part.GetCommunicator().ReduceAndNodalFlags(STRUCTURE);
+    r_model_part.GetCommunicator().SynchronizeAndNodalFlags(STRUCTURE);
     //std::cout << "Rank: " << world_comm.Rank() << ": " << r_center.Is(STRUCTURE) << "." << std::endl;
     KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), false);
 }

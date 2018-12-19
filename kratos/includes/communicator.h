@@ -852,12 +852,12 @@ public:
         return true;
     }
 
-    virtual bool ReduceOrNodalFlags(const Flags& TheFlags)
+    virtual bool SynchronizeOrNodalFlags(const Flags& TheFlags)
     {
         return true;
     }
 
-    virtual bool ReduceAndNodalFlags(const Flags& TheFlags)
+    virtual bool SynchronizeAndNodalFlags(const Flags& TheFlags)
     {
         return true;
     }
