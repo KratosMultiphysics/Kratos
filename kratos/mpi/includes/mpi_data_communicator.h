@@ -457,10 +457,6 @@ class MPIDataCommunicator: public DataCommunicator
 
     bool IsValidRank(const int Rank) const;
 
-    template<class TDataType> void ValidateSendRecvInput(
-        const TDataType& rSendMessage, const int SendDestination,
-        TDataType& rRecvMessage, const int RecvSource) const;
-
     template<class TDataType> void ValidateScattervInput(
         const TDataType& rSendValues,
         const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
