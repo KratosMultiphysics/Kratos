@@ -64,6 +64,9 @@ public:
     /// Counted pointer of MohrCoulombPlasticPotential
     KRATOS_CLASS_POINTER_DEFINITION(MohrCoulombPlasticPotential);
 
+    /// The machine precision zero tolerance
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -129,8 +132,14 @@ public:
         const double c1 = std::sin(dilatancy);
         const double c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
             std::sin(dilatancy) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
-        const double c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) / 
-            (2.0 * J2 * std::cos(3.0 * lode_angle));
+
+        double c3;
+        if (J2 > tolerance) {
+            c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) / 
+                (2.0 * J2 * std::cos(3.0 * lode_angle));
+        } else {
+            c3 = 0.0;
+        }
 
         noalias(rGFlux) = c1 * first_vector + c2 * second_vector + c3 * third_vector;
     }
