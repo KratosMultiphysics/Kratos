@@ -89,7 +89,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_output",
+            "folder_name"                        : "test_vtk_output",
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : ["DISPLACEMENT", "VELOCITY"],
             "nodal_data_value_variables"         : [],
@@ -115,8 +115,36 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
         vtk_output_process.ExecuteFinalize()
 
+        self.__Check("test_vtk_output/Main_0_0.vtk","vtk_output_process_ref_files/Main_0_0.vtk")
+        self.__Check("test_vtk_output/FixedEdgeNodes_0_0.vtk","vtk_output_process_ref_files/FixedEdgeNodes_0_0.vtk")
+        self.__Check("test_vtk_output/MovingNodes_0_0.vtk","vtk_output_process_ref_files/MovingNodes_0_0.vtk")
+
     def tearDown(self):
-        kratos_utils.DeleteDirectoryIfExisting("test_output")
+        kratos_utils.DeleteDirectoryIfExisting("test_vtk_output")
+
+    def __Check(self,output_file,reference_file):
+        import compare_two_files_check_process
+
+        ## Settings string in json format
+        params = KratosMultiphysics.Parameters("""
+            {
+                "reference_file_name"   : "",
+                "output_file_name"      : ""
+            }
+        """)
+
+        params["reference_file_name"].SetString(GetFilePath(reference_file))
+        params["output_file_name"].SetString(output_file)
+
+        cmp_process = compare_two_files_check_process.CompareTwoFilesCheckProcess(params)
+
+        cmp_process.ExecuteInitialize()
+        cmp_process.ExecuteBeforeSolutionLoop()
+        cmp_process.ExecuteInitializeSolutionStep()
+        cmp_process.ExecuteFinalizeSolutionStep()
+        cmp_process.ExecuteBeforeOutputStep()
+        cmp_process.ExecuteAfterOutputStep()
+        cmp_process.ExecuteFinalize()
 
 if __name__ == '__main__':
     KratosUnittest.main()
