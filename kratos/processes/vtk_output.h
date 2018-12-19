@@ -86,6 +86,11 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
         rOStream << " VtkOutput object " << std::endl;
     }
 
+    enum FileFormat{
+        VTK_ASCII,
+        VTK_BINARY
+    };
+
   private:
     ///@name Static Member Variables
     ///@{
@@ -96,6 +101,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     ModelPart &mrModelPart;
     std::string mCaseName;
     std::string mOutputFilename;
+    VtkOutput::FileFormat mFileFormat;
 
     Parameters mrOutputSettings;
     unsigned int mDefaultPrecision;
@@ -126,86 +132,44 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @brief Write the VTK header for the output of given rModelPart. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteHeader(const ModelPart &rModelPart);
+    void WriteHeader(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteMesh(const ModelPart &rModelPart);
+    void WriteMesh(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the nodes in the rModelPart. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodes(const ModelPart &rModelPart);
+    void WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the elements and conditions in rModelPart. In ASCII format
      *        IMPORTANT : Need to write them together because of the CELLS block in VTK format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionsAndElements(const ModelPart &rModelPart);
+    void WriteConditionsAndElements(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteConditionAndElementTypes(const ModelPart &rModelPart);
+    void WriteConditionAndElementTypes(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results on the nodes. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteNodalResultsAsPointData(const ModelPart &rModelPart);
+    void WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In ASCII format
      * @param rModelPart modelpart which is beging output
      */
-    void WriteElementData(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the VTK header for the output of given rModelPart. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteHeaderBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteMeshBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the nodes in the rModelPart. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteNodesBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the elements and conditions in rModelPart. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteConditionsAndElementsBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the types for elements and conditions in rModelPart. This is specific for VTK format. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteConditionAndElementTypesBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the results on the nodes. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteNodalResultsAsPointDataBinary(const ModelPart &rModelPart);
-
-    /**
-     * @brief Write the results/flags on the elements of rModelPart for example : ACTIVE. In Binary format
-     * @param rModelPart modelpart which is beging output
-     */
-    void WriteElementDataBinary(const ModelPart &rModelPart);
+    void WriteElementData(const ModelPart &rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
@@ -230,6 +194,25 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rModelPart modelpart which is beging output
      */
     unsigned int DetermineVtkCellListSize(const ModelPart &rModelPart);
+
+    /**
+     * @brief Write the scalar value to the file provided, takes care of binary and ascii formats
+     * @template TData The type of data to be written to the file stream rFileStream
+     * @param rData data to be written
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TData>
+    void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream);
+
+
+    /**
+     * @brief Write the vector values to the file provided, takes care of binary and ascii formats
+     * @template TData The type of data to be written to the file stream rFileStream
+     * @param rData data to be written
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TData>
+    void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream);
 
     ///@}
     ///@name Serialization
