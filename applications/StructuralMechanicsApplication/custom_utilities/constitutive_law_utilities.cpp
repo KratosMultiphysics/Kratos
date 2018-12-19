@@ -276,6 +276,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
     double& rLodeAngle
     )
 {
+    const double max_bound_angle = Globals::Pi / 6.0;
     if (J2 > tolerance) {
         double sint3 = (-3.0 * std::sqrt(3.0) * J3) / (2.0 * J2 * std::sqrt(J2));
         if (sint3 < -0.95)
@@ -283,6 +284,10 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
         else if (sint3 > 0.95)
             sint3 = 1.0;
         rLodeAngle = std::asin(sint3) / 3.0;
+
+        if (rLodeAngle > max_bound_angle) rLodeAngle = max_bound_angle;
+        else if (rLodeAngle < -max_bound_angle) rLodeAngle = -max_bound_angle;
+        
     } else {
         rLodeAngle = 0.0;
     }
