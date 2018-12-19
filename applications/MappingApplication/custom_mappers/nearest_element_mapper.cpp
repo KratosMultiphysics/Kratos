@@ -425,12 +425,13 @@ void NearestElementMapper<TSparseSpace, TDenseSpace>::ValidateInput(Parameters M
     MapperUtilities::CheckInterfaceModelParts(0);
     ValidateParameters(MapperSettings);
 
-    // mEchoLevel = MapperSettings["echo_level"].GetInt();
+    const double echo_level = MapperSettings["echo_level"].GetInt();
 
     if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
-        const double search_radius = MapperUtilities::ComputeSearchRadius(mrModelPartOrigin,
+        const double search_radius = MapperUtilities::ComputeSearchRadius(
+                                        mrModelPartOrigin,
                                         mrModelPartDestination,
-                                        0);
+                                        echo_level);
         mMapperSettings["search_radius"].SetDouble(search_radius);
     }
 }

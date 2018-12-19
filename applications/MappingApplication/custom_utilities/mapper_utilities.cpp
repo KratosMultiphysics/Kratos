@@ -51,7 +51,7 @@ void AssignInterfaceEquationIds(Communicator& rModelPartCommunicator)
     rModelPartCommunicator.SynchronizeNonHistoricalVariable(INTERFACE_EQUATION_ID);
 }
 
-double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
+double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
 {
     double search_safety_factor = 1.2;
     double max_element_size = 0.0;
@@ -66,10 +66,12 @@ double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel)
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Elements());
     }
     else {
-        if (EchoLevel >= 2 && rModelPart.GetCommunicator().MyPID() == 0)
-            std::cout << "MAPPER WARNING, no conditions/elements for search radius "
-                        << "computations in ModelPart \"" << rModelPart.Name() << "\" found, "
-                        << "using nodes (less efficient, bcs search radius will be larger)" << std::endl;
+        KRATOS_WARNING_IF("Mapper", EchoLevel > 0)
+            << "No conditions/elements for computation of search radius found in\n"
+            << "ModelPart \"" << rModelPart.Name() << "\", using nodes\n"
+            << "(less efficient, because search radius will be larger)\n"
+            << "It is recommended to specify the search-radius manually\n"
+            << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
         max_element_size = ComputeMaxEdgeLengthLocal(rModelPart.GetCommunicator().LocalMesh().Nodes());
     }
 
