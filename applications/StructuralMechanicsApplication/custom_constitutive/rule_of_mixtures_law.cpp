@@ -932,13 +932,16 @@ void RuleOfMixturesLaw::InitializeMaterial(
     mConstitutiveLaws.resize(mCombinationFactors.size());
 
     // We create the inner constitutive laws
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
+        Properties& r_prop = *(it_cl_begin + i);
         
         KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
-        mConstitutiveLaws[i] =  r_prop[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();
         mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
     }
+    
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No CL defined" << std::endl;
 }
 
 /***********************************************************************************/
