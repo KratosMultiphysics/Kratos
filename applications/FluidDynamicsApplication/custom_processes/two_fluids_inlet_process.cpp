@@ -36,25 +36,10 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     Parameters& rParameters)
     : Process(), mrInletModelPart(rModelPart) {
 
-    Parameters default_parameters( R"(
-    {
-        "modulus_air"               : 0.0,
-        "modulus_water"             : 0.0,
-        "interface_normal"          : [0.0,1.0,0.0],
-        "point_on_interface"        : [0.0,0.25,0.0],
-        "inlet_transition_radius"   : 0.05
-    }  )" );
-
-    // validating only the specific values for two-fluid application (important here)
-    rParameters["two_fluid_settings"].ValidateAndAssignDefaults(default_parameters);
-
     // finding the complete model the inlet model part
-    // const Model& rCompleteModel = mrInletModelPart.GetModel();
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
     // setting the parameters to the private data members of the class
-    mModulusAir = rParameters["two_fluid_settings"]["modulus_air"].GetDouble();
-    mModulusWater = rParameters["two_fluid_settings"]["modulus_water"].GetDouble();
     mInterfaceNormal = rParameters["two_fluid_settings"]["interface_normal"].GetVector();
     mInterfacePoint = rParameters["two_fluid_settings"]["point_on_interface"].GetVector();
     mInletRadius = rParameters["two_fluid_settings"]["inlet_transition_radius"].GetDouble();
@@ -243,10 +228,8 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
 /* Private functions ****************************************************/
 
 double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const ModelPart::NodesContainerType::iterator node ){
-
     const array_1d<double,3> distance = node->Coordinates() - mInterfacePoint;
     const array_1d<double,3>& normal = mInterfaceNormal;
-
     const double inlet_distance =   distance[0]*normal[0] +
                                     distance[1]*normal[1] +
                                     distance[2]*normal[2];
@@ -254,10 +237,8 @@ double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const Mo
 }
 
 double TwoFluidsInletProcess::ComputeNodalDistanceInInletDistanceField( const Node<3>& node ){
-
     const array_1d<double,3> distance = node.Coordinates() - mInterfacePoint;
     const array_1d<double,3>& normal = mInterfaceNormal;
-
     const double inlet_distance =   distance[0]*normal[0] +
                                     distance[1]*normal[1] +
                                     distance[2]*normal[2];
