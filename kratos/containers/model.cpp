@@ -13,17 +13,10 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "containers/model.h"
-#include <iostream>
-#include <string>
-#include <sstream>
-
 
 namespace Kratos
 {
@@ -280,5 +273,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-
