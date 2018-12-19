@@ -8,7 +8,7 @@ KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","Krato
 
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.KratosPFEM2Application as KratosPFEM2
+import KratosMultiphysics.PFEM2Application as KratosPFEM2
 
 # Import base class file
 from navier_stokes_solver_vmsmonolithic import NavierStokesSolverMonolithic
@@ -26,11 +26,12 @@ class PFEM2NavierStokesMonolithicSolver(NavierStokesSolverMonolithic):
         super(PFEM2NavierStokesMonolithicSolver,self).AddVariables()
 
         # PFEM2 Variables
-        model_part.AddNodalSolutionStepVariable(YP)
-        model_part.AddNodalSolutionStepVariable(PRESS_PROJ); # This variable is required but unused by ModeParticleUtilityPFEM2
-        model_part.AddNodalSolutionStepVariable(PROJECTED_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
-        model_part.AddNodalSolutionStepVariable(MEAN_SIZE) # Tihs variable could be used as non-historical
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.YP)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESS_PROJ) # This variable is required but unused by ModeParticleUtilityPFEM2
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPFEM2.PROJECTED_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPFEM2.DELTA_VELOCITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPFEM2.MEAN_SIZE) # Tihs variable could be used as non-historical
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("PFEM2NavierStokesMonolithicSolver", "Fluid solver variables added correctly.")

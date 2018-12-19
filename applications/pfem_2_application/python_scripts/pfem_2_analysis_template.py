@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.KratosPFEM2Application as Pfem2
+import KratosMultiphysics.PFEM2Application as Pfem2
 try:
     import KratosMultiphysics.ExternalSolversApplication
 except ImportError:
@@ -51,4 +51,3 @@ if __name__ == '__main__':
 
     simulation = InstantiatePFEM2izedAnalysis(base_class,model,parameters)
     simulation.Run()
-
