@@ -26,7 +26,7 @@
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
-#include "processes/vtk_output.h"
+#include "input_output/vtk_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"

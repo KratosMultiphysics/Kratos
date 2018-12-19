@@ -23,7 +23,6 @@
 #include <map>
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
-#include "process.h"
 // project includes
 
 namespace Kratos
