@@ -3,9 +3,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","KratosPFEM2Application")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PFEM2Application as KratosPFEM2
