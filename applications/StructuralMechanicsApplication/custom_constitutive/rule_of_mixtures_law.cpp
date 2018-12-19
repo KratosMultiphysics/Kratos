@@ -917,7 +917,8 @@ void RuleOfMixturesLaw::InitializeMaterial(
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
         Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
 
-        ConstitutiveLaw::Pointer p_inner_law = (r_prop)[CONSTITUTIVE_LAW]->Clone();
+        KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+        ConstitutiveLaw::Pointer p_inner_law = r_prop[CONSTITUTIVE_LAW]->Clone();
         p_inner_law->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
         mConstitutiveLaws[i] = p_inner_law;
     }
