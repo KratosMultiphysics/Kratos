@@ -18,9 +18,9 @@ application_name = "KratosIgaApplication"
 application_folder = "IgaApplication"
 
 # The following lines are common for all applications
-from . import application_importer
+from .. import application_importer
 import inspect
 # Information about the file that imported this, to check for unexpected imports
 caller = inspect.stack()[1]
 application_importer.ImportApplication(application, application_name,
-    application_folder, caller)
+    application_folder, caller, __path__)

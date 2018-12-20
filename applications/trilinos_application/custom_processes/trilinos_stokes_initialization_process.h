@@ -10,7 +10,7 @@
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/mpi_communicator.h"
+#include "includes/communicator.h"
 
 // Application includes
 #include "containers/model.h"

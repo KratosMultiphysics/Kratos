@@ -333,10 +333,10 @@ public:
         );
 
     /**
-     * @brief Sets the nodal value of any type of non historical variable
+     * @brief Sets the container value of any type of non historical variable
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
-     * @param rContainer reference
+     * @param rContainer Reference to the objective container
      */
     template< class TType, class TContainerType, class TVarType =  Variable< TType >>
     void SetNonHistoricalVariable(
@@ -357,10 +357,10 @@ public:
     }
 
     /**
-     * @brief Sets the nodal value of any type of non historical variable (considering flag)
+     * @brief Sets the container value of any type of non historical variable (considering flag)
      * @param rVariable reference to the scalar variable to be set
      * @param Value Value to be set
-     * @param rContainer reference
+     * @param rContainer Reference to the objective container
      * @param Flag The flag to be considered in the assignation
      * @param Check What is checked from the flag
      */
@@ -384,11 +384,32 @@ public:
         KRATOS_CATCH("")
     }
 
+
+    /**
+     * @brief Clears the container data value container
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType>
+    void ClearNonHistoricalData(TContainerType& rContainer)
+    {
+        KRATOS_TRY
+
+        const auto it_cont_begin = rContainer.begin();
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            auto it_cont = it_cont_begin + k;
+            it_cont->Data().Clear();
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief Sets a flag according to a given status over a given container
      * @param rFlag flag to be set
      * @param rFlagValue flag value to be set
-     * @param rContainer reference to the objective container
+     * @param rContainer Reference to the objective container
      */
     template< class TContainerType >
     void SetFlag(

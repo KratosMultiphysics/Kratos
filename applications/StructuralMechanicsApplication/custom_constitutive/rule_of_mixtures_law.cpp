@@ -87,6 +87,8 @@ ConstitutiveLaw::Pointer RuleOfMixturesLaw::Create(Kratos::Parameters NewParamet
         combination_factors[i_layer] = NewParameters["combination_factors"][i_layer].GetDouble();
     }
 
+    KRATOS_ERROR_IF(number_of_factors == 0) << "Please define the combination factors" << std::endl;
+    
     // We create the law
     return Kratos::make_shared<RuleOfMixturesLaw>(combination_factors);
 }
@@ -103,14 +105,15 @@ RuleOfMixturesLaw::~RuleOfMixturesLaw()
 
 std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
 {
-    SizeType counter = 0;
-    SizeType dimension = 0;
+    IndexType counter = 0;
+    SizeType dimension = 3;
+    if (mConstitutiveLaws.size() == 0) return dimension; // In case of not initialized CL
     // We perform the check in each layer
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
             dimension = p_law->WorkingSpaceDimension();
         } else {
-            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combinig different size laws" << std::endl;
+            KRATOS_ERROR_IF_NOT(dimension == p_law->WorkingSpaceDimension()) << "Combining different size laws" << std::endl;
         }
 
         ++counter;
@@ -124,14 +127,15 @@ std::size_t RuleOfMixturesLaw::WorkingSpaceDimension()
 
 std::size_t RuleOfMixturesLaw::GetStrainSize()
 {
-    SizeType counter = 0;
-    SizeType strain_size = 0;
+    IndexType counter = 0;
+    SizeType strain_size = 6;
+    if (mConstitutiveLaws.size() == 0) return strain_size; // In case of not initialized CL
     // We perform the check in each layer
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
             strain_size = p_law->GetStrainSize();
         } else {
-            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combinig different size laws" << std::endl;
+            KRATOS_ERROR_IF_NOT(strain_size == p_law->GetStrainSize()) << "Combining different size laws" << std::endl;
         }
 
         ++counter;
@@ -147,6 +151,7 @@ bool RuleOfMixturesLaw::Has(const Variable<bool>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -164,6 +169,7 @@ bool RuleOfMixturesLaw::Has(const Variable<int>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -181,6 +187,7 @@ bool RuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -198,6 +205,7 @@ bool RuleOfMixturesLaw::Has(const Variable<Vector>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -215,6 +223,7 @@ bool RuleOfMixturesLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -232,6 +241,7 @@ bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 3 > >& rThisVariable
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -249,6 +259,7 @@ bool RuleOfMixturesLaw::Has(const Variable<array_1d<double, 6 > >& rThisVariable
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -269,6 +280,7 @@ bool& RuleOfMixturesLaw::GetValue(
 {
     // At least one layer should have the value
     rValue = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->GetValue(rThisVariable, rValue))
             break;
@@ -287,6 +299,7 @@ int& RuleOfMixturesLaw::GetValue(
 {
     // At least one layer should have the value
     rValue = 0;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, rValue);
@@ -417,6 +430,7 @@ void RuleOfMixturesLaw::SetValue(
     )
 {
     // We set the value in all layers
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -432,6 +446,7 @@ void RuleOfMixturesLaw::SetValue(
     )
 {
     // We set the value in all layers
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -864,6 +879,7 @@ bool RuleOfMixturesLaw::ValidateInput(const Properties& rMaterialProperties)
 ConstitutiveLaw::StrainMeasure RuleOfMixturesLaw::GetStrainMeasure()
 {
     // We return the first one
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         return p_law->GetStrainMeasure();
     }
@@ -877,6 +893,7 @@ ConstitutiveLaw::StrainMeasure RuleOfMixturesLaw::GetStrainMeasure()
 ConstitutiveLaw::StressMeasure RuleOfMixturesLaw::GetStressMeasure()
 {
     // We return the first one
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         return p_law->GetStressMeasure();
     }
@@ -891,6 +908,7 @@ bool RuleOfMixturesLaw::IsIncremental()
 {
     // We check it layer by layer
     bool is_incremental = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->IsIncremental()) {
             is_incremental = true;
@@ -914,13 +932,16 @@ void RuleOfMixturesLaw::InitializeMaterial(
     mConstitutiveLaws.resize(mCombinationFactors.size());
 
     // We create the inner constitutive laws
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
-
-        ConstitutiveLaw::Pointer p_inner_law = (r_prop)[CONSTITUTIVE_LAW]->Clone();
-        p_inner_law->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-        mConstitutiveLaws[i] = p_inner_law;
+        Properties& r_prop = *(it_cl_begin + i);
+        
+        KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "No constitutive law set" << std::endl;
+        mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
     }
+    
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "RuleOfMixturesLaw: No CL defined" << std::endl;
 }
 
 /***********************************************************************************/
