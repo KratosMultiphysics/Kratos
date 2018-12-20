@@ -40,10 +40,14 @@ const Flags& Flags::operator|=(const Flags& Other )
 
 const Flags& Flags::operator&=(const Flags& Other )
 {
+    /*
     mFlags |= ~mIsDefined;
     mFlags &= Other.mFlags | ~Other.mIsDefined;
     mIsDefined |= Other.mIsDefined;
     mFlags &= mIsDefined;
+    */
+    mIsDefined |= Other.mIsDefined;
+    mFlags &= Other.mFlags;
     return *this;
 }
 
