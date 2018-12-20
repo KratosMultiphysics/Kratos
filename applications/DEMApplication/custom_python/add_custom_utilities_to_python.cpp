@@ -350,6 +350,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def("ResetCoordinates", &MoveMeshUtility::ResetCoordinates)
         .def("CalculateDeltaDispCustom", &MoveMeshUtility::CalculateDeltaDispCustom)
         .def("CalculateDeltaDispCustomFromIntermediatePos", &MoveMeshUtility::CalculateDeltaDispCustomFromIntermediatePos)
+        .def("SetInactiveElements", &MoveMeshUtility::SetInactiveElements)
         ;
 
     py::class_<StationarityChecker, StationarityChecker::Pointer>(m, "StationarityChecker")

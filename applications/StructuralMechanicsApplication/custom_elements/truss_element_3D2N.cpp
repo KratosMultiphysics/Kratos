@@ -952,9 +952,45 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
   Vector temp_shape_function = ZeroVector(3);
   this->mpConstitutiveLaw->FinalizeSolutionStep(this->GetProperties(),
 	this->GetGeometry(),temp_shape_function,rCurrentProcessInfo);
+
+
+  if (this->GetProperties().Has(YIELD_STRESS)) this->CheckFracture();
+
   KRATOS_CATCH("");
 }
 
+void TrussElement3D2N::CheckFracture() {
+  KRATOS_TRY;
+
+  Vector temp_internal_stresses = ZeroVector(msLocalSize);
+  ProcessInfo temp_process_information;
+  ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+
+
+  const double l = this->CalculateCurrentLength();
+  const double L0 = this->CalculateReferenceLength();
+  const double A = this->GetProperties()[CROSS_AREA];
+
+  double prestress = 0.00;
+  if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+    prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+  }
+
+  Vector temp_strain = ZeroVector(1);
+  temp_strain[0] = this->CalculateGreenLagrangeStrain();
+  Values.SetStrainVector(temp_strain);
+  this->mpConstitutiveLaw->CalculateValue(Values,NORMAL_STRESS,temp_internal_stresses);
+
+  const double normal_force =
+      ((temp_internal_stresses[3] + prestress) * l * A) / L0;
+
+
+  if (std::abs(normal_force) > this->GetProperties()[YIELD_STRESS]) {
+    this->Set(ACTIVE,false);
+    KRATOS_INFO("FRACTURE DETECTED") << " in element " << this->Id() << std::endl;}
+
+  KRATOS_CATCH("")
+}
 
 void TrussElement3D2N::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);

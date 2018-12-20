@@ -22,6 +22,7 @@
 #include "includes/element.h"
 #include "includes/define.h"
 #include "includes/variables.h"
+#include "includes/kratos_flags.h"
 
 namespace Kratos
 {
@@ -260,6 +261,10 @@ namespace Kratos
         virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
             ProcessInfo& rCurrentProcessInfo,
             const bool& rSaveInternalVariables);
+
+
+
+        void CheckFracture();
 
     private:
         friend class Serializer;

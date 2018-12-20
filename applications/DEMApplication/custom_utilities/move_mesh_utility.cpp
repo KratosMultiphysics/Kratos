@@ -190,4 +190,48 @@ namespace  Kratos
         KRATOS_CATCH("")
     }
 
+
+    const void MoveMeshUtility::SetInactiveElements(ConditionsContainerType& rElementsDEM, const ElementsContainerType& rElementsFEM)
+    {
+        KRATOS_TRY;
+        const int num_elements_dem = static_cast<int>(rElementsDEM.size());
+        const int num_elements_fem = static_cast<int>(rElementsFEM.size());
+        KRATOS_ERROR_IF(num_elements_dem != num_elements_fem) << " number of nodes is not equal" << std::endl;
+
+        this->mDEMConditions.resize(num_elements_dem);
+
+        #pragma omp parallel for
+        for(int i = 0;i < num_elements_fem; ++i)
+        {
+            auto it_element = rElementsFEM.begin()+i;
+            auto& node_a_coordinates = it_element->GetGeometry()[0].Coordinates();
+            auto& node_b_coordinates = it_element->GetGeometry()[1].Coordinates();
+
+
+
+            std::cout << node_a_coordinates[0] << node_a_coordinates[1] << node_a_coordinates[2] << std::endl;
+            for (int j = 0;j < num_elements_dem; ++j)
+            {
+                auto jt_element = rElementsDEM.begin()+j;
+                auto& node_k_coordinates = jt_element->GetGeometry()[0].Coordinates();
+                auto& node_l_coordinates = jt_element->GetGeometry()[1].Coordinates();
+
+                if (this->CompareTwoArrays(node_a_coordinates,node_k_coordinates) && this->CompareTwoArrays(node_b_coordinates,node_l_coordinates))
+                {
+                    this->mDEMConditions[i] = jt_element;
+                    break;
+                }
+                else if (this->CompareTwoArrays(node_a_coordinates,node_l_coordinates) && this->CompareTwoArrays(node_b_coordinates,node_k_coordinates))
+                {
+                    this->mDEMConditions[i] = jt_element;
+                    break;
+                }
+
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
 } //  Kratos
