@@ -80,6 +80,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
 
         # Adding the C++ constructor
         self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess(self.inlet_model_part, settings)
+        # input( "Pause ... ")
         self.point_on_interface = settings["two_fluid_settings"]["point_on_interface"].GetVector()
         self.interface_normal = settings["two_fluid_settings"]["interface_normal"].GetVector()
 
