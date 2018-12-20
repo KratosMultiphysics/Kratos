@@ -22,6 +22,8 @@ listDEMFEM    = list(range(13,18))
 listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
+listGeneric   = [40]
+
 
 
 class Solution(main_script.Solution):
@@ -46,10 +48,11 @@ class Solution(main_script.Solution):
             file_name = "ProjectParametersDISclZHAO.json"
         elif benchmark_number in listDISclRK:
             file_name = "ProjectParametersDISclRK.json"
+        elif benchmark_number in listGeneric:
+            file_name = "ProjectParametersDEMGeneric.json"
         else:
             Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
-
 
         with open(file_name, 'r') as parameters_file:
             parameters = Parameters(parameters_file.read())
@@ -62,9 +65,6 @@ class Solution(main_script.Solution):
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
-
-    def GetProblemTypeFilename(self):
-        return benchmark
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
@@ -124,8 +124,10 @@ class Solution(main_script.Solution):
         return 'benchmark' + str(benchmark_number) + "DEM"
 
     def GetInletFilename(self):
-        return 'benchmarkDEM_Inlet'
-        #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        if benchmark_number == 40:
+            return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        else:
+            return 'benchmarkDEM_Inlet'
 
     def GetFemFilename(self):
         return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"
@@ -182,5 +184,5 @@ for coeff_of_restitution_iteration in range(1, number_of_coeffs_of_restitution +
         slt.Run()
         del slt
     end = timer.time()
-    benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
+    #benchmark.print_results(number_of_points_in_the_graphic, dt, elapsed_time = end - start)
 #DBC.delete_archives() #.......Removing some unuseful files
