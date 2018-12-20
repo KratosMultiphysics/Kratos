@@ -137,7 +137,7 @@ namespace Kratos
                         
                         //n_struc==ic->GetGeometry().size())
                         
-                        
+//                         double testfacte = rCurrentProcessInfo[TESTFACTE];
                         
                         double mesh_size = 0.0;
                         for(ModelPart::ConditionsContainerType::iterator ic = ThisModelPart.ConditionsBegin() ;
@@ -286,7 +286,7 @@ namespace Kratos
                                             ii = 0;
                                             jj = 2;
                                             kk = 1;
-                                        }				    
+                                        }
                                         double xi=ic->GetGeometry()[ii].X();
                                         double yi=ic->GetGeometry()[ii].Y();
                                         double zi=ic->GetGeometry()[ii].Z();
@@ -307,9 +307,10 @@ namespace Kratos
 
                                         //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
                                         Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                    
-                                        double factor = 2.55;	
-                                        if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
+                                        
+//                                         double testfacte = rCurrentProcessInfo[TESTFACTE];
+                                        double factor = 2.15;	
+                                        if ((dist_jk > factor*mesh_size))
                                         {
                                             id++;
                                             double x = 0.3333333333333*(xi+xj+xk);
@@ -379,7 +380,7 @@ namespace Kratos
                                     mesh_size  = ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
                                     mesh_size += ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
                                     mesh_size += ic->GetGeometry()[2].FastGetSolutionStepValue(NODAL_H);
-                                    mesh_size *= 0.33333333333;
+                                    mesh_size /= 3.0;
                                     
                                     int ii = 0;
 				    int jj = 1;
@@ -417,14 +418,15 @@ namespace Kratos
 
                                     //if the distance between IS_FREE_SURFACE node and TRIPLE_POINT node is too long, we add a node in the middle of the face
                                     Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
-                                
-                                    double factor = 2.55;	
-                                    if ((dist_ij > factor*mesh_size) || (dist_ik > factor*mesh_size) || (dist_jk > factor*mesh_size))
+                                    
+//                                     double testfacte = rCurrentProcessInfo[TESTFACTE];
+                                    double factor = 2.15;	
+                                    if ((dist_ij > factor*mesh_size))
                                     {
                                         id++;
-                                        double x = 0.3333333333333*(xi+xj+xk);
-                                        double y = 0.3333333333333*(yi+yj+yk);
-                                        double z = 0.3333333333333*(zi+zj+zk);
+                                        double x = (xi+xj+xk)/3.0;
+                                        double y = (yi+yj+yk)/3.0;
+                                        double z = (zi+zj+zk)/3.0;
                             
                                         Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,x,y,z);
 

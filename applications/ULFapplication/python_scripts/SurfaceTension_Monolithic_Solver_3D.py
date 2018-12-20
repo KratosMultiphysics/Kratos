@@ -74,6 +74,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(TESTFACTC)
     model_part.AddNodalSolutionStepVariable(TESTFACTD)
     model_part.AddNodalSolutionStepVariable(TESTFACTE)
+    model_part.AddNodalSolutionStepVariable(IS_WALL)
     
 
 
@@ -310,13 +311,13 @@ class STMonolithicSolver:
             self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
             FindTriplePoint().FindTriplePoint3D(self.model_part)
             CalculateCurvature().CalculateCurvature3D(self.model_part)
-            for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+            #for node in self.model_part.Nodes:
+                #node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
             CalculateContactAngle().CalculateContactAngle3D(self.model_part)
             CalculateNodalLength().CalculateNodalLength3D(self.model_part)
             CalculateNormalEq().CalculateNormalEq3D(self.model_part)
 	  #CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
-            self.cont_angle_cond3D()
+            #self.cont_angle_cond3D()
             self.vel()
             #if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0 and node.GetSolutionStepValue(IS_STRUCTURE) == 1.0):
                 #v_cl = Vector(3)
@@ -393,7 +394,7 @@ class STMonolithicSolver:
             #else:
                 #h_factor=0.25
 
-        h_factor=0.5
+        h_factor=0.25
 
         if (self.domain_size == 2):
          (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
@@ -457,13 +458,13 @@ class STMonolithicSolver:
             self.UlfUtils.MarkLonelyNodesForErasing(self.model_part)
             FindTriplePoint().FindTriplePoint3D(self.model_part)
             CalculateCurvature().CalculateCurvature3D(self.model_part)
-            for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
+            #for node in self.model_part.Nodes:
+                #node.SetSolutionStepValue(CONTACT_ANGLE,0,0.0)
             CalculateContactAngle().CalculateContactAngle3D(self.model_part)
             CalculateNodalLength().CalculateNodalLength3D(self.model_part)
             CalculateNormalEq().CalculateNormalEq3D(self.model_part)
 	  #CalculateAdhesionForce().CalculateAdhesionForce3D(self.model_part)
-            self.cont_angle_cond3D()
+            #self.cont_angle_cond3D()
             self.vel()
 
         ##############THIS IS FOR EMBEDDED"""""""""""""""""""""""""
@@ -499,103 +500,243 @@ class STMonolithicSolver:
                     
     def vel(self):
         for node in self.model_part.Nodes:
-            theta_adv = self.contact_angle
-            theta_rec = self.contact_angle
-            if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-              if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+            theta_adv = self.contact_angle + 0.5
+            theta_rec = self.contact_angle  - 0.5
+            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
                 v_cl = Vector(3)
-                v_cl[0] = 0.0
-                v_cl[1] = 0.0
-                v_cl[2] = 0.0
                 v_cl[0] = node.GetSolutionStepValue(VELOCITY_X,0)
                 v_cl[1] = node.GetSolutionStepValue(VELOCITY_Y,0)
                 v_cl[2] = node.GetSolutionStepValue(VELOCITY_Z,0)
-                zeta_dissapative_JM_x = 1.0
-                zeta_dissapative_JM_y = 1.0
-                zeta_dissapative_JM_z = 1.0
-                if (v_cl[0] < 0.0):
-                    zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x
-                if (v_cl[1] < 0.0):
-                    zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y
-                #if (v_cl[2] < 0.0):
-                    #zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z
-                mu  = 8.90 * 1e-4
-                gamma =  0.072
-                #capillary
-                v_clx_abs = abs (v_cl[0])
-                v_cly_abs = abs (v_cl[1])
-                #v_clz_abs = abs (v_cl[2])
-                cap_x   =  mu *  v_clx_abs / gamma;
-                cap_y   =  mu *  v_cly_abs / gamma;
-                #cap_z   =  mu *  v_clz_abs / gamma;
-                v_cl[0] = gamma * 2.24 * pow(cap_x, 0.54) * zeta_dissapative_JM_x
-                v_cl[1] = gamma * 2.24 * pow(cap_y, 0.54) * zeta_dissapative_JM_y 
-                #v_cl[2] = gamma * 2.24 * pow(cap_z, 0.54) * zeta_dissapative_JM_z 
                 v_cl[2] = 0.0
-                #print("in the solve v_clx_2",  v_cl[0])
-                #print("in the solve v_cly_2",  v_cl[1])
-                #print("in the solve v_clz_2",  v_cl[2])
-                #using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
                 node.SetSolutionStepValue(VELOCITY_X,0, v_cl[0])
                 node.SetSolutionStepValue(VELOCITY_Y,0, v_cl[1])
                 node.SetSolutionStepValue(VELOCITY_Z,0, v_cl[2])
-                
-                d_z = node.GetSolutionStepValue(VELOCITY_X,0)
+                d_z = node.GetSolutionStepValue(VELOCITY_Z,0)
                 d_z = 0.0
                 node.SetSolutionStepValue(DISPLACEMENT_Z,0, d_z)
                 node.Fix(DISPLACEMENT_Z)
+                node.Free(VELOCITY_X);
+                node.Free(VELOCITY_Y);
+                if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(TRIPLE_POINT)!= 0.0):
+                    node.Set(TO_ERASE,True)
+                if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(IS_STRUCTURE)!= 0.0):
+                    node.Set(TO_ERASE,True)
+                    
+                #december 18 2018
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                    #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
+                        #ca=node.GetSolutionStepValue(CONTACT_ANGLE,0)
+                        #ca = ca
+                        #node.SetSolutionStepValue(CONTACT_ANGLE,0,ca)
+                        #node.Fix(CONTACT_ANGLE);
+                        #node.Fix(VELOCITY_X);
+                        #node.Fix(VELOCITY_Y);
+                        #node.Fix(VELOCITY_Z);
+                        #node.Fix(DISPLACEMENT_X);
+                        #node.Fix(DISPLACEMENT_Y);
+                        #node.Fix(DISPLACEMENT_Z);
+                        #node.Fix(CONTACT_ANGLE);
+                
+            #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+              #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
+                #v_cl = Vector(3)
+                #v_cl[0] = 0.0
+                #v_cl[1] = 0.0
+                #v_cl[2] = 0.0
+                #v_cl[0] = node.GetSolutionStepValue(VELOCITY_X,0)
+                #v_cl[1] = node.GetSolutionStepValue(VELOCITY_Y,0)
+                #v_cl[2] = node.GetSolutionStepValue(VELOCITY_Z,0)
+                #d_cl = Vector(3)
+                #d_cl[0] = 0.0
+                #d_cl[1] = 0.0
+                #d_cl[2] = 0.0
+                #d_cl[0] = node.GetSolutionStepValue(DISPLACEMENT_X,0)
+                #d_cl[1] = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
+                #d_cl[2] = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
+                #d_cl[0] = 0.0
+                #d_cl[1] = 0.0
+                #d_cl[2] = 0.0
+                #v_cl[0] = 0.0
+                #v_cl[1] = 0.0
+                #v_cl[2] = 0.0
+                ##node.SetSolutionStepValue(VELOCITY_X,0, v_cl[0])
+                ##node.SetSolutionStepValue(VELOCITY_Y,0, v_cl[1])
+                #node.SetSolutionStepValue(VELOCITY_Z,0, v_cl[2])
+                ##node.SetSolutionStepValue(DISPLACEMENT_X,0, d_cl[0])
+                ##node.SetSolutionStepValue(DISPLACEMENT_Y,0, d_cl[1])
+                #node.SetSolutionStepValue(DISPLACEMENT_Z,0, d_cl[2])
+              #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
+                #(1) case, no dissipative force is used
+                #v_cl = Vector(3)
+                #v_cl[0] = 0.0
+                #v_cl[1] = 0.0
+                #v_cl[2] = 0.0
+                #v_cl[0] = node.GetSolutionStepValue(VELOCITY_X,0)
+                #v_cl[1] = node.GetSolutionStepValue(VELOCITY_Y,0)
+                #v_cl[2] = node.GetSolutionStepValue(VELOCITY_Z,0)
+                #v_cl[2] = 0.0
+                #node.SetSolutionStepValue(VELOCITY_X,0, v_cl[0])
+                #node.SetSolutionStepValue(VELOCITY_Y,0, v_cl[1])
+                #node.SetSolutionStepValue(VELOCITY_Z,0, v_cl[2])
+                #d_z = node.GetSolutionStepValue(VELOCITY_X,0)
+                #d_z = 0.0
+                #node.SetSolutionStepValue(DISPLACEMENT_Z,0, d_z)
+                #node.Fix(DISPLACEMENT_Z)
+                #node.Free(VELOCITY_X);
+                #node.Free(VELOCITY_Y);
+                #node.Free(VELOCITY_Z);
+                
+                #case (2) first model
+                #v_cl = Vector(3)
+                #v_cl[0] = 0.0
+                #v_cl[1] = 0.0
+                #v_cl[2] = 0.0
+                #v_cl[0] = node.GetSolutionStepValue(VELOCITY_X,0)
+                #v_cl[1] = node.GetSolutionStepValue(VELOCITY_Y,0)
+                #v_cl[2] = node.GetSolutionStepValue(VELOCITY_Z,0)
+                ##using BM's Model; here we will use zeta_dissapative_JM_x and zeta_dissapative_JM_y and zeta_dissapative_JM_z to help us in getting the right direction of the dissipative foce as:
+                ##zeta_dissapative_JM_x1 = 1.0
+                ##zeta_dissapative_JM_y1 = 1.0
+                ##zeta_dissapative_JM_z1 = 1.0
+                #if (v_cl[0] < 0.0):
+                    #zeta_dissapative_JM_x1 = - 1.0
+                #elif (v_cl[0] >= 0.0):
+                    #zeta_dissapative_JM_x1 =  1.0 
+                    
+                #if (v_cl[1] < 0.0):
+                    #zeta_dissapative_JM_y1 = - 1.0 
+                #elif (v_cl[1] >= 0.0):
+                    #zeta_dissapative_JM_y1 = 1.0
+                    
+                ##if (v_cl[2] < 0.0):
+                    ##zeta_dissapative_JM_z1 = - 1.0 
+                ##elif (v_cl[2] >= 0.0):
+                    ##zeta_dissapative_JM_z1 = 1.0 
+                #mu  = 8.90 * 1e-4
+                #gamma =  0.072
+                ##capillary
+                #v_clx_abs = abs (v_cl[0])
+                #v_cly_abs = abs (v_cl[1])
+                ##v_clz_abs = abs (v_cl[2])
+                #cap_x   =  mu *  v_clx_abs / gamma;
+                #cap_y   =  mu *  v_cly_abs / gamma;
+                ##cap_z   =  mu *  v_clz_abs / gamma;
+                ##we will multiply by (node.GetSolutionStepValue(NODAL_LENGTH,0)/2.0) below because this the integral (on the contact line)
+                #v_cl[0] = gamma * 2.24 * pow(cap_x, 0.54) * zeta_dissapative_JM_x1 * node.GetSolutionStepValue(NODAL_LENGTH,0)/2.0
+                #v_cl[1] = gamma * 2.24 * pow(cap_y, 0.54) * zeta_dissapative_JM_y1 * node.GetSolutionStepValue(NODAL_LENGTH,0)/2.0
+                ##v_cl[2] = gamma * 2.24 * pow(cap_z, 0.54) * zeta_dissapative_JM_z1 * node.GetSolutionStepValue(NODAL_LENGTH,0)/2.0
+                ##force before adding the dissipative force (f_cl is the contact line force)
+                #f_cl = Vector(3)
+                #f_cl[0] = 0.0
+                #f_cl[1] = 0.0
+                #f_cl[2] = 0.0
+                #f_cl[0] = node.GetSolutionStepValue(FORCE_X,0)
+                #f_cl[1] = node.GetSolutionStepValue(FORCE_Y,0)
+                ##f_cl[2] = node.GetSolutionStepValue(FORCE_Z,0)
+                ##sof_cl is summation of force (before adding the dissipative force + dissipative force (f_cl))
+                #sof_cl = Vector(3)
+                #sof_cl[0] = f_cl[0] - v_cl[0]
+                #sof_cl[1] = f_cl[1] - v_cl[1]
+                ##sof_cl[2] = f_cl[2] - v_cl[2]
+                #node.SetSolutionStepValue(FORCE_X,0, sof_cl[0])
+                #node.SetSolutionStepValue(FORCE_Y,0, sof_cl[1])
+                ##node.SetSolutionStepValue(FORCE_Z,0, sof_cl[2])
+                #time = self.model_part.ProcessInfo.GetValue(TIME)
+                #dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+                #CalculateNodalLength().CalculateNodalLength3D(self.model_part)
+                #h = node.GetSolutionStepValue(NODAL_LENGTH,0)
+                #v_x = 0.0
+                #v_y = 0.0
+                ##v_z = 0.0
+                ##velocity = (F / mass_line) * time ; where the mass_line = NODAL_LENGTH/2 * density (1000.0 for water)
+                #v_x =  v_cl[0] * time / (h/2.0 * 1000.0) 
+                #v_y =  v_cl[1] * time / (h/2.0 * 1000.0) 
+                ##v_z =  v_cl[2] * time / (h/2.0 * 1000.0)
+                ##now we add the dissipative velocity to the current time step velocity
+                #v_x_2 = node.GetSolutionStepValue(VELOCITY_X,0) - v_x
+                #v_y_2 = node.GetSolutionStepValue(VELOCITY_Y,0) - v_y
+                ##v_z_2 = node.GetSolutionStepValue(VELOCITY_Z,0) - v_z
+                #node.SetSolutionStepValue(VELOCITY_X,0, (v_x_2))
+                #node.SetSolutionStepValue(VELOCITY_Y,0, (v_y_2))
+                ##node.SetSolutionStepValue(VELOCITY_Z,0, (v_z_2))
+                ##mow we add the velocity to the DISPLACEMENT
+                #node.SetSolutionStepValue(DISPLACEMENT_X,0, (node.GetSolutionStepValue(DISPLACEMENT_X,0) - v_x * time))
+                #node.SetSolutionStepValue(DISPLACEMENT_Y,0, (node.GetSolutionStepValue(DISPLACEMENT_Y,0) - v_y * time))
+                ##here we fix the DISPLACEMENT_Z and VELOCITY_Z zero
+                #disp_z=0.0
+                #node.SetSolutionStepValue(DISPLACEMENT_Z,0, disp_z)
+                #disp_z=0.0
+                #node.Fix(DISPLACEMENT_Z)
+                #node.SetSolutionStepValue(DISPLACEMENT_Z,0, disp_z)
+                #d_z = node.GetSolutionStepValue(VELOCITY_Z,0)
+                #d_z = 0.0
+                #node.SetSolutionStepValue(VELOCITY_Z,0, d_z)
+                #node.Fix(VELOCITY_Z)
+                ##finally we free the X and Y velocity to move as coded with the dissipative forces
+                #node.Free(DISPLACEMENT_X)
+                #node.Free(VELOCITY_X)
+                #node.Free(DISPLACEMENT_Y)
+                #node.Free(VELOCITY_Y)
         
         
     def cont_angle_cond3D(self):
-        theta_adv = self.contact_angle
-        theta_rec = self.contact_angle
+        theta_adv = self.contact_angle 
+        theta_rec = self.contact_angle 
         time = self.model_part.ProcessInfo.GetValue(TIME)
         dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
 	################## For sessile drop examples
-        #if (time < 2*dt):
-            #for node in self.model_part.Nodes:
-                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+        for node in self.model_part.Nodes:
+                #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
+                    ###node.Set(TO_ERASE,False)
                     #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
                     #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
                     #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
                     #node.Fix(VELOCITY_X)
                     #node.Fix(VELOCITY_Y)
-                    #node.Fix(VELOCITY_Z)	  
-        #else:
-        for node in self.model_part.Nodes:
-                if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
-                    ##node.Set(TO_ERASE,False)
-                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-                    node.Fix(VELOCITY_X)
-                    node.Fix(VELOCITY_Y)
-                    node.Fix(VELOCITY_Z)
-                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
-                        if ((node.GetSolutionStepValue(CONTACT_ANGLE) > theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) < theta_rec)):
+                    #node.Fix(VELOCITY_Z)
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                        #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
+                            #v_cl = Vector(3)
+                            #v_cl[0] = 0.0
+                            #v_cl[1] = 0.0
+                            #v_cl[2] = 0.0
+                            #v_cl[0] = node.GetSolutionStepValue(VELOCITY_X,0)
+                            #v_cl[1] = node.GetSolutionStepValue(VELOCITY_Y,0)
+                            #v_cl[2] = node.GetSolutionStepValue(VELOCITY_Z,0)
+                            #d_cl = Vector(3)
+                            #d_cl[0] = 0.0
+                            #d_cl[1] = 0.0
+                            #d_cl[2] = 0.0
+                            #d_cl[0] = node.GetSolutionStepValue(DISPLACEMENT_X,0)
+                            #d_cl[1] = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
+                            #d_cl[2] = node.GetSolutionStepValue(DISPLACEMENT_Z,0)
+                            #d_cl[0] = 0.0
+                            #d_cl[1] = 0.0
+                            #d_cl[2] = 0.0
+                            #v_cl[0] = 0.0
+                            #v_cl[1] = 0.0
+                            #v_cl[2] = 0.0
+                            #node.SetSolutionStepValue(VELOCITY_X,0, v_cl[0])
+                            #node.SetSolutionStepValue(VELOCITY_Y,0, v_cl[1])
+                            #node.SetSolutionStepValue(VELOCITY_Z,0, v_cl[2])
+                            #node.SetSolutionStepValue(DISPLACEMENT_X,0, d_cl[0])
+                            #node.SetSolutionStepValue(DISPLACEMENT_Y,0, d_cl[1])
+                            #node.SetSolutionStepValue(DISPLACEMENT_Z,0, d_cl[2])
+                            
+                        #else:
+                        if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) or (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
                                 node.Free(VELOCITY_X);
                                 node.Free(VELOCITY_Y);
                                 node.Free(VELOCITY_Z);
                                 if (node.Z < - 1e-5):
-                                    node.Set(TO_ERASE,True) 
-                            #else:
-                                #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                                #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                                #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-                                #node.Fix(VELOCITY_Y)
-                                #node.Fix(VELOCITY_X)
-                                #node.Fix(VELOCITY_Z)
-                                ##if (node.Z < - 1e-5):
-                                    ##(TO_ERASE,True)
-                                    ##node.Set(TO_ERASE,True) 
+                                    node.Set(TO_ERASE,True)
                                 if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(IS_STRUCTURE)!= 0.0):
                                     node.Set(TO_ERASE,True)
                         if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(TRIPLE_POINT)!= 0.0):
                             node.Set(TO_ERASE,True)
                         if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(IS_STRUCTURE)!= 0.0):
                             node.Set(TO_ERASE,True)
-                if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.Z > -1e-5):
-                    node.Set(TO_ERASE,False)
+
 
     
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, zeta_dissapative_JM_z, zeta_dissapative_BM_z, zeta_dissapative_SM_z, testfacta, testfactb, testfactc, testfactd, testfacte): #FOR 3D!

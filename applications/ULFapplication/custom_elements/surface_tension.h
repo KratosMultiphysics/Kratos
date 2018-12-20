@@ -1816,7 +1816,7 @@ protected:
         double testfactb = rCurrentProcessInfo[TESTFACTB];
         double testfactc = rCurrentProcessInfo[TESTFACTC];
         double testfactd = rCurrentProcessInfo[TESTFACTD];
-        double testfacte = rCurrentProcessInfo[TESTFACTE];
+
 // 	double gamma_sl = rCurrentProcessInfo[SOLID_LIQIUD_SURFTENS_COEFF];
 // 	double gamma_sv = rCurrentProcessInfo[SOLID_AIR_SURFTENS_COEFF];
 	
@@ -2411,49 +2411,68 @@ protected:
                 zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
                 zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
             }
-            
-      
+            else if (v_clx > 0.0)
+            {
+                zeta_dissapative_JM_x = 1.0 * zeta_dissapative_JM_x;
+                zeta_dissapative_BM_x = 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = 1.0 * zeta_dissapative_SM_x;
+            }
+                
+        
+
             if (v_cly < 0.0)
             {
                 zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y;
                 zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
                 zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
             }
-            
-            
+            else if (v_cly > 0.0)
+            {
+                zeta_dissapative_JM_y = 1.0 * zeta_dissapative_JM_y;
+                zeta_dissapative_BM_y = 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = 1.0 * zeta_dissapative_SM_y;
+            }
+        
+        
             if (v_clz < 0.0)
             {
                 zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
                 zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
                 zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
             }
+            else if (v_clz > 0.0)
+            {
+                zeta_dissapative_JM_z = 1.0 * zeta_dissapative_JM_z;
+                zeta_dissapative_BM_z = 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = 1.0 * zeta_dissapative_SM_z;
+            }
             
 	    // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfacta; 
-	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfacta;
-	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfacta; 
+	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfacta * coef_i * nlen1; 
+	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfacta * coef_i * nlen1;
+	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfacta * coef_i * nlen1; 
             
             
-// // // //                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
+                
+                  // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*ii]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54) * testfacta * coef_i * nlen1; 
+	    rRightHandSideVector[4*ii+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54) * testfacta * coef_i * nlen1;
+	    rRightHandSideVector[4*ii+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54) * testfacta * coef_i * nlen1;
+                
+                  // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54) * testfacta * coef_i * nlen1; 
+	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54) * testfacta * coef_i * nlen1; 
+	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54) * testfacta * coef_i * nlen1;
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*ii]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42) * testfacta * coef_i * nlen1; 
+	      rRightHandSideVector[4*ii+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42) * testfacta * coef_i * nlen1;
+	      rRightHandSideVector[4*ii+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42) * testfacta * coef_i * nlen1;
+	    }
 	    // end of adding disppative force
             
 	    rDampingMatrix(4*ii,4*ii)     += 0.5*gamma*dt*msN[ii]*msN[ii]*nlen1 - msWorkMatrix(ii,ii);
@@ -2497,24 +2516,43 @@ protected:
             if (v_clx < 0.0)
             {
                 zeta_dissapative_JM_x = - 1.0 * zeta_dissapative_JM_x;
-//                 zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
-//                 zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
+                zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
             }
-            
-      
+            else if (v_clx > 0.0)
+            {
+                zeta_dissapative_JM_x = 1.0 * zeta_dissapative_JM_x;
+                zeta_dissapative_BM_x = 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = 1.0 * zeta_dissapative_SM_x;
+            }
+                
+        
+
             if (v_cly < 0.0)
             {
                 zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y;
-//                 zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
-//                 zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
+                zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
             }
-            
-            
+            else if (v_cly > 0.0)
+            {
+                zeta_dissapative_JM_y = 1.0 * zeta_dissapative_JM_y;
+                zeta_dissapative_BM_y = 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = 1.0 * zeta_dissapative_SM_y;
+            }
+        
+        
             if (v_clz < 0.0)
             {
                 zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
-//                 zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
-//                 zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
+                zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
+            }
+            else if (v_clz > 0.0)
+            {
+                zeta_dissapative_JM_z = 1.0 * zeta_dissapative_JM_z;
+                zeta_dissapative_BM_z = 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = 1.0 * zeta_dissapative_SM_z;
             }
 //          
 	    double mu, rho;
@@ -2534,29 +2572,29 @@ protected:
             
             
 	    // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactb; 
-	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactb;
-	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactb; 
+	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactb * coef_j*nlen2; 
+	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactb * coef_j*nlen2;
+	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactb * coef_j*nlen2; 
+                
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54)* testfactb * coef_j*nlen2; 
+	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54)* testfactb * coef_j*nlen2;
+	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54)* testfactb * coef_j*nlen2;
 //                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*jj]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*jj+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*jj+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54)* testfactb * coef_j*nlen2; 
+	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54)* testfactb * coef_j*nlen2; 
+	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54)* testfactb * coef_j*nlen2;
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*jj]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42)* testfactb * coef_j*nlen2; 
+	      rRightHandSideVector[4*jj+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42)* testfactb * coef_j*nlen2;
+	      rRightHandSideVector[4*jj+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42)* testfactb * coef_j*nlen2;
+	    }
 // // // 	    // end of adding disppative force
 // // // 	    
 	    rDampingMatrix(4*jj,4*jj)     += 0.5*gamma*dt*msN[jj]*msN[jj]*nlen2 - msWorkMatrix(jj,jj);
@@ -2614,46 +2652,65 @@ protected:
                 zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
                 zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
             }
-            
-      
+            else if (v_clx > 0.0)
+            {
+                zeta_dissapative_JM_x = 1.0 * zeta_dissapative_JM_x;
+                zeta_dissapative_BM_x = 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = 1.0 * zeta_dissapative_SM_x;
+            }
+                
+        
+
             if (v_cly < 0.0)
             {
                 zeta_dissapative_JM_y = - 1.0 * zeta_dissapative_JM_y;
                 zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
                 zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
             }
-            
-            
+            else if (v_cly > 0.0)
+            {
+                zeta_dissapative_JM_y = 1.0 * zeta_dissapative_JM_y;
+                zeta_dissapative_BM_y = 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = 1.0 * zeta_dissapative_SM_y;
+            }
+        
+        
             if (v_clz < 0.0)
             {
                 zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
                 zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
                 zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
             }
+            else if (v_clz > 0.0)
+            {
+                zeta_dissapative_JM_z = 1.0 * zeta_dissapative_JM_z;
+                zeta_dissapative_BM_z = 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = 1.0 * zeta_dissapative_SM_z;
+            }
 	    // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactc; 
-	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactc;
-	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactc; 
-//                 
-// // // //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // //                 
-// // // //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	    if (cap > 0.01)
-// // // 	    {
-// // // 	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	    }
-// // // 	    else
-// // // 	    {
-// // // 	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	    }
+	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactc * coef_k * nlen3; 
+	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactc * coef_k *  nlen3;
+	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactc * coef_k * nlen3; 
+                
+//                   // using Bracke's model : gamma 2.24 ca ^(0.54)
+	    rRightHandSideVector[4*kk]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54)* testfactc * coef_k * nlen3; 
+	    rRightHandSideVector[4*kk+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54)* testfactc * coef_k * nlen3;
+	    rRightHandSideVector[4*kk+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54)* testfactc * coef_k * nlen3;
+//                
+//                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	    double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	    if (cap > 0.01)
+	    {
+	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54)* testfactc * coef_k * nlen3; 
+	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54)* testfactc * coef_k * nlen3; 
+	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54)* testfactc * coef_k * nlen3;
+	    }
+	    else
+	    {
+	      rRightHandSideVector[4*kk]	  -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42)* testfactc * coef_k * nlen3; 
+	      rRightHandSideVector[4*kk+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42)* testfactc * coef_k * nlen3;
+	      rRightHandSideVector[4*kk+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42)* testfactc * coef_k * nlen3;
+	    }
 	    // end of adding disppative force
 	  }
 	  else
@@ -2763,6 +2820,13 @@ protected:
                 zeta_dissapative_BM_x = - 1.0 * zeta_dissapative_BM_x;
                 zeta_dissapative_SM_x = - 1.0 * zeta_dissapative_SM_x;
               }
+              else if (v_clx > 0.0)
+              {
+                zeta_dissapative_JM_x = 1.0 * zeta_dissapative_JM_x;
+                zeta_dissapative_BM_x = 1.0 * zeta_dissapative_BM_x;
+                zeta_dissapative_SM_x = 1.0 * zeta_dissapative_SM_x;
+              }
+                  
             
     
               if (v_cly < 0.0)
@@ -2771,6 +2835,12 @@ protected:
                 zeta_dissapative_BM_y = - 1.0 * zeta_dissapative_BM_y;
                 zeta_dissapative_SM_y = - 1.0 * zeta_dissapative_SM_y;
               }
+              else if (v_cly > 0.0)
+              {
+                zeta_dissapative_JM_y = 1.0 * zeta_dissapative_JM_y;
+                zeta_dissapative_BM_y = 1.0 * zeta_dissapative_BM_y;
+                zeta_dissapative_SM_y = 1.0 * zeta_dissapative_SM_y;
+              }
             
             
               if (v_clz < 0.0)
@@ -2778,32 +2848,38 @@ protected:
                 zeta_dissapative_JM_z = - 1.0 * zeta_dissapative_JM_z;
                 zeta_dissapative_BM_z = - 1.0 * zeta_dissapative_BM_z;
                 zeta_dissapative_SM_z = - 1.0 * zeta_dissapative_SM_z;
-             }
+              }
+              else if (v_clz > 0.0)
+              {
+                zeta_dissapative_JM_z = 1.0 * zeta_dissapative_JM_z;
+                zeta_dissapative_BM_z = 1.0 * zeta_dissapative_BM_z;
+                zeta_dissapative_SM_z = 1.0 * zeta_dissapative_SM_z;
+              }
               
 	      // using Jiang's Model : gamma tanh(4.96 Ca^(0.702))
-	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * testfactd; 
-	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702)) * testfactd;
-	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * testfactd; 
+	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_JM_x*gamma*tanh(4.96 * pow(cap_x,0.702)) * coef_l * nlen4 * testfactd; 
+	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_JM_y*gamma*tanh(4.96 * pow(cap_y,0.702))* coef_l *  nlen4  * testfactd;
+	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_JM_z*gamma*tanh(4.96 * pow(cap_z,0.702)) * coef_l * nlen4  * testfactd; 
   //                 
 // // //   //                   // using Bracke's model : gamma 2.24 ca ^(0.54)
-// // // 	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54);
-// // // 	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // //   //                 
-// // //   //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
-// // // 	      double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
-// // // 	      if (cap > 0.01)
-// // // 	      {
-// // // 		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54); 
-// // // 		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54); 
-// // // 		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54);
-// // // 	      }
-// // // 	      else
-// // // 	      {
-// // // 		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42); 
-// // // 		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42);
-// // // 		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42);
-// // // 	      }
+	      rRightHandSideVector[4*ll]	        -= zeta_dissapative_BM_x*gamma* 2.24 * pow(cap_x,0.54) * coef_l * nlen4 * testfactd; 
+	      rRightHandSideVector[4*ll+1]	-= zeta_dissapative_BM_y*gamma* 2.24 * pow(cap_y,0.54) * coef_l  * nlen4 * testfactd;
+	      rRightHandSideVector[4*ll+2]	-= zeta_dissapative_BM_z*gamma* 2.24 * pow(cap_z,0.54) * coef_l  * nlen4 * testfactd;
+  //                 
+  //                   // using Seeberg's model : gamm 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+	      double cap = sqrt((cap_x * cap_x) + (cap_y * cap_y) + (cap_z * cap_z));
+	      if (cap > 0.01)
+	      {
+		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 2.24 * pow(cap_x,0.54) * coef_l  * nlen4 * testfactd; 
+		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 2.24 * pow(cap_y,0.54) * coef_l  * nlen4 * testfactd; 
+		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 2.24 * pow(cap_z,0.54) * coef_l  * nlen4 * testfactd;
+	      }
+	      else
+	      {
+		rRightHandSideVector[4*ll]	    -= zeta_dissapative_SM_x*gamma* 4.47 * pow(cap_x,0.42) * coef_l  * nlen4 * testfactd; 
+		rRightHandSideVector[4*ll+1]        -= zeta_dissapative_SM_y*gamma* 4.47 * pow(cap_y,0.42) * coef_l  * nlen4 * testfactd;
+		rRightHandSideVector[4*ll+2]        -= zeta_dissapative_SM_z*gamma* 4.47 * pow(cap_z,0.42) * coef_l * nlen4 * testfactd;
+	      }
 	      // end of adding disppative force
 	      
 	      

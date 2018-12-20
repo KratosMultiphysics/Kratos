@@ -151,9 +151,61 @@ outstring2 = "convergence_info.txt"
 outputfile1 = open(outstring2, 'w')
 
 eul_model_part = 0
-gamma = 1.0 		#surface tension coefficient [N m-1]
-contact_angle = 130 	#contact angle [deg]
-lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
+gamma = 1.0		#surface tension coefficient [N m-1]
+contact_angle = 95.0 #contact angle [deg]
+
+
+#dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
+zeta_dissapative_JM_x = 0.0
+zeta_dissapative_JM_y = 0.0
+zeta_dissapative_JM_z = 0.0
+
+zeta_dissapative_BM_x = 0.0
+zeta_dissapative_BM_y = 0.0
+zeta_dissapative_BM_z = 0.0
+
+zeta_dissapative_SM_x = 0.0
+zeta_dissapative_SM_y = 0.0
+zeta_dissapative_SM_z = 0.0
+
+#these variable are for testing purposes: For example, (testfacta) is either zero or one, this is mainly to see where I am adding the dissipative forces in the surface_tension.h file, and which one will be working fine. 
+testfacta = 0.0
+testfactb = 0.0
+testfactc = 0.0
+testfactd = 0.0
+testfacte = 0.0
+
+################################################################
+
+### the dissipative force is added utilizing the power law model, utilizing the capillary number when the velocity is the tangential component at the contact line,
+
+##you can choose one of the three models as:
+
+# option 1: assign: zeta_dissapative_JM = 1.0, for Jiang's Model : tanh(4.96 Ca^(0.702))
+
+## or
+
+# option 2: assign: zeta_dissapative_BM = 1.0, for Bracke's model : 2.24 ca ^(0.54)
+
+## or 
+
+# option 3 :assign: zeta_dissapative_SM = 1.0, for Seeberg's model: 2.24 ca ^(0.54) for Ca > 10^(-3), otherwise, 4.47 Ca^(0.42)
+
+##or
+
+# option 4: no dissipative force is added, by assigning zeta_dissapative_JM, zeta_dissapative_JB, and zeta_dissapative_SM to zero
+###references:
+
+#Manservisi S, Scardovelli R. A variational approach to the contact angle dynamics of spreading droplets. Computers & Fluids. 2009 Feb 1;38(2):406-24.
+#Buscaglia GC, Ausas RF. Variational formulations for surface tension, capillarity and wetting. Computer Methods in Applied Mechanics and Engineering. 2011 Oct 15;200(45-46):3011-25.
+
+
+################################################################
+
+
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+
+lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, zeta_dissapative_JM_z, zeta_dissapative_BM_z, zeta_dissapative_SM_z, testfacta, testfactb, testfactc, testfactd, testfacte)
 # Mesh solver:
 reform_dofs_at_each_step = False
 #mesh_solver = mesh_solver.MeshSolver(lagrangian_model_part, 2, reform_dofs_at_each_step)

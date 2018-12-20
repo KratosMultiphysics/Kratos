@@ -66,8 +66,6 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 	calculate contact angle for every tiple point, based on the given domain configuration
-
-
 */
 
   class CalculateContactAngle
@@ -580,6 +578,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CREATE_INTERFACE_CONDITIONS_PROCESS_INCLUDED  defined 
-
-
+#endif // KRATOS_CREATE_INTERFACE_CONDITIONS_PROCESS_INCLUDED  defined  
