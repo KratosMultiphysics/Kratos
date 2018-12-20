@@ -163,6 +163,14 @@ if(${MSVC})
   message("Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+
+  # Enable partial symbol linkage only in debug mode. This will make the code only able to run in the machine
+  # it was compiled, but should speedup the linkage.
+  if( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
+    SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Debug:FASTLINK")
+    SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Debug:FASTLINK")
+  endif( ${CMAKE_BUILD_TYPE} MATCHES "Debug" )
+
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif(${MSVC})
