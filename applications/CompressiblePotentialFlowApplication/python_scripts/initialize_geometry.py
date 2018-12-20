@@ -151,7 +151,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.main_model_part, KratosMultiphysics.DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
         local_gradient.Execute()
 
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.main_model_part)
+        find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(self.main_model_part)
         find_nodal_h.Execute()
 
         metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.main_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.MetricParameters)
