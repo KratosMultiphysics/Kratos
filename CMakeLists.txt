@@ -201,6 +201,11 @@ if(CMAKE_BUILD_TYPE MATCHES FullDebug)
     set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
 endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
 
+if(CMAKE_BUILD_TYPE MATCHES Custom)
+    set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
+    set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
+endif(CMAKE_BUILD_TYPE MATCHES Custom)
+
 ######################################################################################
 ######################################################################################
 ######################################################################################
