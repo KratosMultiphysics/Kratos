@@ -48,7 +48,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                     shutil.rmtree(folder_name)
             os.mkdir(folder_name)
 
-        self.cpp_process = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
+         self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
 
         self.output_frequency = self.settings["output_frequency"].GetDouble()
         #
