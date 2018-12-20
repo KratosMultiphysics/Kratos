@@ -99,19 +99,34 @@ void ModelPartForMPICommunicatorTests(ModelPart& rModelPart, const DataCommunica
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceOr, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorSynchronizeOr, KratosMPICoreFastSuite)
 {
     Model model;
     ModelPart& r_model_part = model.CreateModelPart("TestModelPart");
     MPIDataCommunicator world_comm(MPI_COMM_WORLD);
     Internals::ModelPartForMPICommunicatorTests(r_model_part, world_comm);
 
+    const int rank = world_comm.Rank();
+    const int size = world_comm.Size();
     Node<3>& r_center = r_model_part.Nodes()[1];
-    r_center.Set(STRUCTURE, (world_comm.Rank() == world_comm.Size()-1));
 
+    // Single flag
+    r_center.Set(STRUCTURE, (rank == size-1));
     r_model_part.GetCommunicator().SynchronizeOrNodalFlags(STRUCTURE);
-    //std::cout << "Rank: " << world_comm.Rank() << ": " << r_center.Is(STRUCTURE) << "." << std::endl;
     KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), true);
+
+    // Multiple flags
+    const bool rank_is_even( (rank % 2) == 0 );
+    r_center.Clear();
+    r_center.Set(INLET, rank_is_even);
+    r_center.Set(OUTLET, rank_is_even);
+    r_center.Set(PERIODIC, rank_is_even);
+
+    r_model_part.GetCommunicator().SynchronizeOrNodalFlags( INLET | OUTLET );
+    KRATOS_CHECK_EQUAL(r_center.Is(INLET), true);
+    KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), true);
+    KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
+
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
@@ -121,12 +136,26 @@ KRATOS_TEST_CASE_IN_SUITE(MPICommunicatorReduceAnd, KratosMPICoreFastSuite)
     MPIDataCommunicator world_comm(MPI_COMM_WORLD);
     Internals::ModelPartForMPICommunicatorTests(r_model_part, world_comm);
 
+    const int rank = world_comm.Rank();
+    const int size = world_comm.Size();
     Node<3>& r_center = r_model_part.Nodes()[1];
-    r_center.Set(STRUCTURE, (world_comm.Rank() == world_comm.Size()-1));
 
+    // Single flag
+    r_center.Set(STRUCTURE, (rank == size-1));
     r_model_part.GetCommunicator().SynchronizeAndNodalFlags(STRUCTURE);
-    //std::cout << "Rank: " << world_comm.Rank() << ": " << r_center.Is(STRUCTURE) << "." << std::endl;
     KRATOS_CHECK_EQUAL(r_center.Is(STRUCTURE), false);
+
+    // Multiple flags
+    const bool rank_is_even( (rank % 2) == 0 );
+    r_center.Clear();
+    r_center.Set(INLET, rank_is_even);
+    r_center.Set(OUTLET, rank_is_even);
+    r_center.Set(PERIODIC, rank_is_even);
+
+    r_model_part.GetCommunicator().SynchronizeAndNodalFlags( INLET | OUTLET );
+    KRATOS_CHECK_EQUAL(r_center.Is(INLET), false);
+    KRATOS_CHECK_EQUAL(r_center.Is(OUTLET), false);
+    KRATOS_CHECK_EQUAL(r_center.Is(PERIODIC), rank_is_even); // This one should be left untouched
 }
 
 }
