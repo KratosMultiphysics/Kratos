@@ -88,6 +88,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
             "file_format"                        : "ascii",
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
+            "output_precision"                   : 8,
             "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "save_output_files_in_folder"        : true,
@@ -107,6 +108,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
         while (time <= end_time):
             time = time + dt
             step = step + 1
+            self.mp.ProcessInfo[KratosMultiphysics.STEP] += 1
             #print("STEP :: ", step, ", TIME :: ", time)
             vtk_output_process.ExecuteInitializeSolutionStep()
             self.mp.CloneTimeStep(time)
@@ -115,12 +117,13 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
         vtk_output_process.ExecuteFinalize()
 
-        self.__Check("test_vtk_output/Main_0_0.vtk","vtk_output_process_ref_files/Main_0_0.vtk")
-        self.__Check("test_vtk_output/FixedEdgeNodes_0_0.vtk","vtk_output_process_ref_files/FixedEdgeNodes_0_0.vtk")
-        self.__Check("test_vtk_output/MovingNodes_0_0.vtk","vtk_output_process_ref_files/MovingNodes_0_0.vtk")
+        self.__Check("test_vtk_output/Main_0_1.vtk","vtk_output_process_ref_files/Main_0_1.vtk")
+        self.__Check("test_vtk_output/Main_FixedEdgeNodes_0_1.vtk","vtk_output_process_ref_files/Main_FixedEdgeNodes_0_1.vtk")
+        self.__Check("test_vtk_output/Main_MovingNodes_0_1.vtk","vtk_output_process_ref_files/Main_MovingNodes_0_1.vtk")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_vtk_output")
+
 
     def __Check(self,output_file,reference_file):
         import compare_two_files_check_process
