@@ -57,10 +57,14 @@ CompositeVanishingFibreLaw::CompositeVanishingFibreLaw(const std::vector<double>
 
 CompositeVanishingFibreLaw::CompositeVanishingFibreLaw(const CompositeVanishingFibreLaw& rOther)
     : ConstitutiveLaw(rOther),
-      mConstitutiveLaws(rOther.mConstitutiveLaws),  // TODO FRastellini: This is not ok.
       mCombinationFactors(rOther.mCombinationFactors)
 {
-    // TODO FRastellini: To perform a copy of the content of Components CLs
+    std::size_t counter = 0;
+    mConstitutiveLaws.resize(rOther.mConstitutiveLaws.size());
+    for (auto& p_law : rOther.mConstitutiveLaws) {
+        mConstitutiveLaws[counter] = rOther.mConstitutiveLaws[counter]->Clone();
+        ++counter;
+    }
 }
 
 /********************************CLONE**********************************************/
@@ -106,7 +110,8 @@ CompositeVanishingFibreLaw::~CompositeVanishingFibreLaw()
 std::size_t CompositeVanishingFibreLaw::WorkingSpaceDimension()
 {
     SizeType counter = 0;
-    SizeType dimension = 0;
+    SizeType dimension = 3;
+    if (mConstitutiveLaws.size() == 0) return dimension; // In case of not initialized CL
     // We perform the check in each material layer
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
@@ -127,7 +132,8 @@ std::size_t CompositeVanishingFibreLaw::WorkingSpaceDimension()
 std::size_t CompositeVanishingFibreLaw::GetStrainSize()
 {
     SizeType counter = 0;
-    SizeType strain_size = 0;
+    SizeType strain_size = 6;
+    if (mConstitutiveLaws.size() == 0) return strain_size; // In case of not initialized CL
     // We perform the check in each material layer
     for (auto& p_law : mConstitutiveLaws) {
         if (counter == 0) {
@@ -149,6 +155,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<bool>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -166,6 +173,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<int>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -183,6 +191,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -200,6 +209,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<Vector>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -217,6 +227,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<Matrix>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -234,6 +245,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<array_1d<double, 3 > >& rThi
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -251,6 +263,7 @@ bool CompositeVanishingFibreLaw::Has(const Variable<array_1d<double, 6 > >& rThi
 {
     // At least one layer should have the value
     bool has = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -271,6 +284,7 @@ bool& CompositeVanishingFibreLaw::GetValue(
 {
     // At least one layer should have the value
     rValue = false;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->GetValue(rThisVariable, rValue))
             break;
@@ -290,6 +304,7 @@ int& CompositeVanishingFibreLaw::GetValue(
 {
     // At least one layer should have the value
     rValue = 0;
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, rValue);
@@ -425,6 +440,7 @@ void CompositeVanishingFibreLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     // We set the value in all layers
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -440,6 +456,7 @@ void CompositeVanishingFibreLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     // We set the value in all layers
     for (auto& p_law : mConstitutiveLaws) {
         p_law->SetValue(rThisVariable, rValue, rCurrentProcessInfo);
@@ -873,6 +890,7 @@ bool CompositeVanishingFibreLaw::ValidateInput(const Properties& rMaterialProper
 
 ConstitutiveLaw::StrainMeasure CompositeVanishingFibreLaw::GetStrainMeasure()
 {
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     // We return the first one
     for (auto& p_law : mConstitutiveLaws) {
         return p_law->GetStrainMeasure();
@@ -886,6 +904,7 @@ ConstitutiveLaw::StrainMeasure CompositeVanishingFibreLaw::GetStrainMeasure()
 
 ConstitutiveLaw::StressMeasure CompositeVanishingFibreLaw::GetStressMeasure()
 {
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     // We return the first one
     for (auto& p_law : mConstitutiveLaws) {
         return p_law->GetStressMeasure();
@@ -899,6 +918,7 @@ ConstitutiveLaw::StressMeasure CompositeVanishingFibreLaw::GetStressMeasure()
 
 bool CompositeVanishingFibreLaw::IsIncremental()
 {
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No constitutive laws defined" << std::endl;
     // We check it layer by layer
     bool is_incremental = false;
     for (auto& p_law : mConstitutiveLaws) {
@@ -924,13 +944,16 @@ void CompositeVanishingFibreLaw::InitializeMaterial(
     mConstitutiveLaws.resize(mCombinationFactors.size());
 
     // We create the inner constitutive laws
+    const auto it_cl_begin = rMaterialProperties.GetSubProperties().begin();
     for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-        Properties& r_prop = *(rMaterialProperties.GetSubProperties().begin() + i);
-
-        ConstitutiveLaw::Pointer p_inner_law = (r_prop)[CONSTITUTIVE_LAW]->Clone();
-        p_inner_law->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-        mConstitutiveLaws[i] = p_inner_law;
+        Properties& r_prop = *(it_cl_begin + i);
+        
+        KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "CompositeVanishingFibreLaw: No constitutive law set" << std::endl;
+        mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();
+        mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
     }
+    
+    KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No CL defined" << std::endl;
 }
 
 /***********************************************************************************/
