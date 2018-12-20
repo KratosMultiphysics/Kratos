@@ -856,7 +856,7 @@ void SphericParticle::ComputeBallToBallContactForce(SphericParticle::ParticleDat
                 AddNeighbourContributionToStressTensor(GlobalElasticContactForce, data_buffer.mLocalCoordSystem[2], data_buffer.mDistance, data_buffer.mRadiusSum, this);
             }
 
-            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) {
+            if (r_process_info[IS_TIME_TO_PRINT] && r_process_info[CONTACT_MESH_OPTION] == 1) { //TODO: we should avoid calling a processinfo for each neighbour. We can put it once per time step in the buffer??
                 unsigned int neighbour_iterator_id = data_buffer.mpOtherParticle->Id();
                 if ((i < (int)mNeighbourElements.size()) && this->Id() < neighbour_iterator_id) {
                     CalculateOnContactElements(i, LocalContactForce);
