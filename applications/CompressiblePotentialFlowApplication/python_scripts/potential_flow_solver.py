@@ -146,7 +146,7 @@ class LaplacianSolver(PythonSolver):
         print ("model reading finished")
 
     def GetMinimumBufferSize(self):
-        return 0
+        return 1
 
     def GetComputingModelPart(self):
         return self.main_model_part
