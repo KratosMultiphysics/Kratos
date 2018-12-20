@@ -1839,7 +1839,7 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
     array_1d<double, 3> v1;
     array_1d<double, 3> v2;
     array_1d<double, 3> v3;
-    array_1d<double, 3> mNeighbourElasticContactForcesFinal;
+    array_1d<double, 3> rotated_neighbour_elastic_contact_forces;
 
     v1[0] = OldLocalCoordSystem[2][0]; v1[1] = OldLocalCoordSystem[2][1]; v1[2] = OldLocalCoordSystem[2][2];
     v2[0] = LocalCoordSystem[2][0];    v2[1] = LocalCoordSystem[2][1];    v2[2] = LocalCoordSystem[2][2];
