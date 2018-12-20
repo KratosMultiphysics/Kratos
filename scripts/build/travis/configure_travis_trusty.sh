@@ -143,7 +143,7 @@ CMAKE_BUILD=(
   # Build type
   # NOTE: This is better commented for travis since we don't want to use
   # a default configuration. (-O0 is prefered here)
-  # -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
+  -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
 
   # Install info
   -DCMAKE_INSTALL_RPATH="${KRATOS_ROOT}/libs"
