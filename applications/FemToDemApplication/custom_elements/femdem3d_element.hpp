@@ -59,6 +59,7 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
 							  ProcessInfo &rCurrentProcessInfo);
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 	void GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues,
 									 const ProcessInfo &rCurrentProcessInfo);
