@@ -125,10 +125,10 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
             uniaxial_stress *= sign_factor;
             
             this->SetCycleCounter(cycle_counted);
-            if ((std::abs(max_stress) > 0.0 && max_stress != this->GetMaxStress()) && cycle_counted == true) {
+            if ((std::abs(max_stress) > tolerance && max_stress != this->GetMaxStress()) && cycle_counted == true) {
                 this->SetMaxStress(max_stress);
             }
-            if ((std::abs(min_stress) > 0.0 && min_stress != this->GetMinStress()) && cycle_counted == true) {
+            if ((std::abs(min_stress) > tolerance && min_stress != this->GetMinStress()) && cycle_counted == true) {
                 this->SetMinStress(min_stress);
             }
         }
@@ -142,7 +142,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 		KRATOS_WATCH(this->GetNumberOfCycles())
 
 
-        if (std::abs(this->GetMinStress()) > 0.0 && std::abs(this->GetMaxStress()) > 0.0) {
+        if (std::abs(this->GetMinStress()) > tolerance && std::abs(this->GetMaxStress()) > tolerance) {
             double reversion_factor = this->GetReversionFactor();
             double B0 = this->GetFatigueReductionParameter();
             HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactor(this->GetMaxStress(),
@@ -163,7 +163,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution
         const double F = uniaxial_stress - threshold;
 
-        if (F <= 0.0) { // Elastic case
+        if (F <= tolerance) { // Elastic case
             noalias(integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 			this->SetStressVector(integrated_stress_vector);
 
