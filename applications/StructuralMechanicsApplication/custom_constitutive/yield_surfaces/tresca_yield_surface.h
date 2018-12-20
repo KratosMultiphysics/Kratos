@@ -230,7 +230,7 @@ public:
         double c2, c3;
         const double c1 = 0.0;
 
-        if (checker < 29.0) {
+        if (std::abs(checker) < 29.0) {
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
         } else {
