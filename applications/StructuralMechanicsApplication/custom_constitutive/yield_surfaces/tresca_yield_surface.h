@@ -225,12 +225,12 @@ public:
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double checker = std::abs(lode_angle * 180 / Globals::Pi);
+        const double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
 
         double c2, c3;
         const double c1 = 0.0;
 
-        if (std::abs(checker) < 29.0) {
+        if (std::abs(checker) < 29.0) { // the lode_angle cannot be greater than pi/6
             c2 = 2.0 * (std::cos(lode_angle) + std::sin(lode_angle) * std::tan(3.0 * lode_angle));
             c3 = std::sqrt(3.0) * std::sin(lode_angle) / (J2 * std::cos(3.0 * lode_angle));
         } else {
