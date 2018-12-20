@@ -23,6 +23,7 @@
 #include <map>
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
+#include "containers/pointer_vector_set.h"
 // project includes
 
 namespace Kratos
@@ -103,7 +104,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     std::string mOutputFilename;
     VtkOutput::FileFormat mFileFormat;
 
-    Parameters mrOutputSettings;
+    Parameters mOutputSettings;
     unsigned int mDefaultPrecision;
     std::map<int, int> mKratosIdToVtkId;
     unsigned int mVtkCellListSize;
@@ -193,6 +194,24 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rModelPart modelpart which is beging output
      */
     unsigned int DetermineVtkCellListSize(const ModelPart &rModelPart);
+
+    /**
+     * @brief Write the element/condition WriteConnectivity provided the container they are in
+     * @template TEntity Element/Condition
+     * @param rContainer The container containing elements/conditions
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TEntity>
+    void WriteConnectivity(const typename PointerVectorSet<TEntity, IndexedObject>::ContainerType& rContainer, std::ofstream& rFileStream);
+
+    /**
+     * @brief Write the element/condition cell types provided the container they are in
+     * @template TEntity Element/Condition
+     * @param rContainer The container containing elements/conditions
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template <typename TEntity>
+    void WriteCellType(const typename PointerVectorSet<TEntity, IndexedObject>::ContainerType& rContainer, std::ofstream& rFileStream);
 
     /**
      * @brief Write the scalar value to the file provided, takes care of binary and ascii formats

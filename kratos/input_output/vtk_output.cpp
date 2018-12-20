@@ -18,12 +18,12 @@
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mrOutputSettings(rParameters)
+VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mOutputSettings(rParameters)
 {
-    mDefaultPrecision = this->mrOutputSettings["output_precision"].GetInt();;
+    mDefaultPrecision = this->mOutputSettings["output_precision"].GetInt();;
     this->mDoneTest = false;
     this->mShouldSwap = false;
-    std::string file_format = this->mrOutputSettings["file_format"].GetString();
+    std::string file_format = this->mOutputSettings["file_format"].GetString();
     if(file_format == "ascii")
         mFileFormat =  VtkOutput::FileFormat::VTK_ASCII;
     else if (file_format == "binary")
@@ -41,30 +41,35 @@ void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart)
     int vtk_id = 0;
     for(const auto& node : rModelPart.Nodes())
     {
-        int KratosId = node.Id();
-        mKratosIdToVtkId[KratosId] = vtk_id;
-        vtk_id++;
+        mKratosIdToVtkId[node.Id()] = vtk_id++;
     }
 }
 
 unsigned int VtkOutput::DetermineVtkCellListSize(const ModelPart &rModelPart)
 {
-    unsigned int vtk_cell_list_size = 0;
+    unsigned int vtk_cell_list_size_elem = 0;
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
-    for (const auto& elem : local_mesh.Elements())
+    const auto elements_begin = local_mesh.ElementsBegin();
+    const int num_elements = local_mesh.NumberOfElements();
+    #pragma omp parallel for reduction(+:vtk_cell_list_size_elem)
+    for (int i=0; i<num_elements; ++i)
     {
-        vtk_cell_list_size++;
-        vtk_cell_list_size += elem.GetGeometry().size();
+        auto element_i = elements_begin + i;
+        vtk_cell_list_size_elem += element_i->GetGeometry().PointsNumber() +1;
     }
 
-    for (const auto& condition : local_mesh.Conditions())
+    unsigned int vtk_cell_list_size_cond = 0;
+    const auto conditions_begin = local_mesh.ConditionsBegin();
+    const int num_conditions = local_mesh.NumberOfConditions();
+    #pragma omp parallel for reduction(+:vtk_cell_list_size_cond)
+    for (int i=0; i<num_conditions; ++i)
     {
-        vtk_cell_list_size++;
-        vtk_cell_list_size += condition.GetGeometry().size();
+        auto conditions_i = conditions_begin + i;
+        vtk_cell_list_size_cond += conditions_i->GetGeometry().PointsNumber() +1;
     }
 
-    return vtk_cell_list_size;
+    return vtk_cell_list_size_cond+vtk_cell_list_size_elem;
 }
 
 void VtkOutput::Initialize(const ModelPart &rModelPart)
@@ -120,104 +125,71 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofs
     // write cells header
     rFileStream << "\nCELLS " << local_mesh.NumberOfConditions() + local_mesh.NumberOfElements() << " " << mVtkCellListSize << "\n";
 
-    // write elements
-    for (const auto& elem : local_mesh.Elements())
-    {
-        const auto& elem_geometry = elem.GetGeometry();
-        const unsigned int number_of_nodes = elem_geometry.size();
+    WriteConnectivity<Element> (local_mesh.Elements().GetContainer(), rFileStream);
+    WriteConnectivity<Condition> (local_mesh.Conditions().GetContainer(), rFileStream);
+}
 
-        WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
-        for (const auto& node : elem_geometry){
-            if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
-            int id = mKratosIdToVtkId[node.Id()];
-            WriteScalarDataToFile((int)id, rFileStream);
-        }
-        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
-    }
-
+template <typename TEntity>
+void VtkOutput::WriteConnectivity(const typename PointerVectorSet<TEntity, IndexedObject>::ContainerType& rContainer, std::ofstream& rFileStream)
+{
     // write Conditions
-    for (const auto& condition : local_mesh.Conditions())
+    for (const auto& entity : rContainer)
     {
-        const auto& condition_geometry = condition.GetGeometry();
-        const unsigned int number_of_nodes = condition_geometry.size();
+        const auto& entity_geometry = entity->GetGeometry();
+        const unsigned int number_of_nodes = entity_geometry.size();
 
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
-        for (const auto& node : condition_geometry){
+        for (const auto& node : entity_geometry){
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
             int id = mKratosIdToVtkId[node.Id()];
             WriteScalarDataToFile((int)id, rFileStream);
         }
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
-
 }
 
 void VtkOutput::WriteConditionAndElementTypes(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
+
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write cell types header
     rFileStream << "\nCELL_TYPES " << local_mesh.NumberOfConditions() + local_mesh.NumberOfElements() << "\n";
-
-    // write elements types
-    for (const auto& elem : local_mesh.Elements())
-    {
-        int  cell_type = -1;
-
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
-             cell_type = 5; // triangle 2d
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-             cell_type = 9; // quad 2d
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
-             cell_type = 10; // tetra 3d
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
-             cell_type = 3; // line 2d or 3d
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
-             cell_type = 3; // line 2d or 3d
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D)
-             cell_type = 1;
-        if (elem.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D)
-             cell_type = 1;
-        if( cell_type < 0)
-            KRATOS_ERROR<<"Modelpart contains elements with geometries for which no VTK-output is implemented!"<<std::endl;
-
-        WriteScalarDataToFile( (int)cell_type, rFileStream);
-        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
-    }
-
-    // write conditions types
-    for (const auto& condition : local_mesh.Conditions())
-    {
-        int  cell_type = -1;
-
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
-             cell_type = 5; // triangle 2d
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4)
-             cell_type = 9; // quad 2d
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
-             cell_type = 10; // tetra 3d
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line2D2)
-             cell_type = 3; // line 2d or 3d
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Line3D2)
-             cell_type = 3; // line 2d or 3d
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point2D)
-             cell_type = 1;
-        if (condition.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Point3D)
-             cell_type = 1;
-        if( cell_type < 0)
-            KRATOS_ERROR<<"Modelpart contains elements with geometries for which no VTK-output is implemented!"<<std::endl;
-
-        WriteScalarDataToFile( (int)cell_type, rFileStream);
-        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
-    }
-
-
+    WriteCellType<Element> (local_mesh.Elements().GetContainer(), rFileStream);
+    WriteCellType<Condition> (local_mesh.Conditions().GetContainer(), rFileStream);
 }
+
+template <typename TEntity>
+void VtkOutput::WriteCellType(const typename PointerVectorSet<TEntity, IndexedObject>::ContainerType& rContainer, std::ofstream& rFileStream)
+{
+    std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+            {GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
+            {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
+            {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10},
+            {GeometryData::KratosGeometryType::Kratos_Line2D2, 3},
+            {GeometryData::KratosGeometryType::Kratos_Line3D2, 3},
+            {GeometryData::KratosGeometryType::Kratos_Point2D, 1},
+            {GeometryData::KratosGeometryType::Kratos_Point3D, 1}
+    };
+    // write entity types
+    for (const auto& entity : rContainer)
+    {
+        int cell_type = -1;
+        if( geo_type_vtk_cell_type_map.count(entity->GetGeometry().GetGeometryType()) > 0  )
+            cell_type = geo_type_vtk_cell_type_map[ entity->GetGeometry().GetGeometryType() ];
+        else
+            KRATOS_ERROR<<"Modelpart contains elements or conditions with geometries for which no VTK-output is implemented!"<<std::endl;
+
+        WriteScalarDataToFile( (int)cell_type, rFileStream);
+        if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
+    }
+}
+
 
 void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write nodal results header
-    Parameters nodal_results = this->mrOutputSettings["nodal_solution_step_data_variables"];
+    Parameters nodal_results = this->mOutputSettings["nodal_solution_step_data_variables"];
     rFileStream << "POINT_DATA " << local_mesh.NumberOfNodes() << "\n";
 
     for (unsigned int entry = 0; entry < nodal_results.size(); entry++)
@@ -268,7 +240,7 @@ void VtkOutput::WriteNodalResultsAsPointData(const ModelPart &rModelPart, std::o
 void VtkOutput::WriteElementData(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    Parameters element_results = this->mrOutputSettings["element_data_value_variables"];// list of element results
+    Parameters element_results = this->mOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
     if (local_mesh.NumberOfElements() > 0 || local_mesh.NumberOfConditions() > 0)
@@ -366,7 +338,7 @@ void VtkOutput::PrintOutput()
     //For whole model part
     WriteModelPart(mrModelPart);
     //For sub model parts
-    bool print_sub_model_parts = this->mrOutputSettings["output_sub_model_parts"].GetBool();
+    bool print_sub_model_parts = this->mOutputSettings["output_sub_model_parts"].GetBool();
 
     if(print_sub_model_parts)
     {
@@ -404,9 +376,25 @@ void VtkOutput::ForceBigEndian(unsigned char *bytes)
 std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
 {
     int rank = rModelPart.GetCommunicator().MyPID();
-    int step = rModelPart.GetProcessInfo()[STEP];
-    std::string output_file_name = mrOutputSettings["folder_name"].GetString() +"/"+
-                                    rModelPart.Name() + "_" + std::to_string(rank) + "_" + std::to_string(step) + ".vtk";
+    std::string model_part_name; 
+    if(rModelPart.IsSubModelPart())
+        model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
+    else
+        model_part_name = rModelPart.Name();
+
+    double label = 0;
+    std::string output_control = mOutputSettings["output_control_type"].GetString();
+    if(output_control == "step")
+        label = rModelPart.GetProcessInfo()[STEP];
+    else if(output_control == "time")
+        label = rModelPart.GetProcessInfo()[TIME];
+    else
+        KRATOS_ERROR<<"Option for output_control_type : "<<output_control<<" not recognised.!"<<std::endl
+            <<"Possible output_control_type options for VTKOutput are :: step and time "<<std::endl;
+
+    // Putting every thing together
+    std::string output_file_name = mOutputSettings["folder_name"].GetString() +"/"+
+                                    model_part_name + "_" + std::to_string(rank) + "_" + std::to_string(label) + ".vtk";
     return output_file_name;
 }
 
