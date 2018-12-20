@@ -273,6 +273,8 @@ private:
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
 
+    void PrintPairingInfo(const int EchoLevel);
+
     // functions for customizing the behavior of this Mapper
     virtual void CreateMapperLocalSystems(
         const Communicator& rModelPartCommunicator,
