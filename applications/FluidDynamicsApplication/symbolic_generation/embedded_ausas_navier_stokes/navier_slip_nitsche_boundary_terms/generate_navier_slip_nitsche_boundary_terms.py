@@ -9,23 +9,14 @@ from sympy_fe_utilities import *
 # LINEARISATION SETTINGS:
 # FullNR considers the convective velocity as "v-vmesh", hence v is taken into account in the derivation of the LHS and RHS.
 # Picard (a.k.a. QuasiNR) considers the convective velocity as "a", thus it is considered as a constant in the derivation of the LHS and RHS.
-# DIVIDE BY RHO:
-# If set to true, divides the mass conservation equation by rho in order to have a better conditioned matrix. Otherwise the original form is kept.
-# ARTIFICIAL COMPRESSIBILITY:
-# If set to true, the time derivative of the density is introduced in the mass conservation equation together with the state equation
-# dp/drho=c^2 (being c the sound velocity). Besides, the velocity divergence is not considered to be 0. These assumptions add some extra terms
-# to the usual Navier-Stokes equations that are intended to act as a soft artificial compressibility, which is controlled by the value of "c".
-# In the derivation of the residual equations the space variations of the density are considered to be close to 0.
 
 ## Symbolic generation settings
 do_simplifications = False
-dim_to_compute = "2D"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
+dim_to_compute = "Both"             # Spatial dimensions to compute. Options:  "2D","3D","Both"
 linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR"
-divide_by_rho = True                # Divide by density in mass conservation equation
-artificial_compressibility = True   # Consider an artificial compressibility
-asgs_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
 
+## Set the dimensions to compute
 if (dim_to_compute == "2D"):
     dim_vector = [2]
 elif (dim_to_compute == "3D"):
@@ -33,6 +24,9 @@ elif (dim_to_compute == "3D"):
 elif (dim_to_compute == "Both"):
     dim_vector = [2,3]
 
+## Read the template file
+templatefile = open("embedded_fluid_element_discontinuous_template.cpp")
+outstring = templatefile.read()
 
 for dim in dim_vector:
 
@@ -61,8 +55,8 @@ for dim in dim_vector:
     ## Other data definitions
     f = DefineMatrix('f',nnodes,dim)            # Forcing term
     
-    normal = DefineVector('normal',dim)            # Forcing term
-    g = DefineVector('g',dim)            # wall velocity
+    normal = DefineVector('normal',dim)         # Wall outwards normal vector
+    g = DefineVector('g',dim)                   # Wall velocity (EMBEDDED_VELOCITY)
 
     ## Constitutive matrix definition
     C = DefineSymmetricMatrix('C',strain_size,strain_size)
@@ -71,18 +65,19 @@ for dim in dim_vector:
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    c   = Symbol('c',positive= True)            # Wave length number
-    dt  = Symbol('dt', positive = True)         # Time increment
-    rho = Symbol('rho', positive = True)        # Density
-    nu  = Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
-    mu  = Symbol('mu', positive = True)         # Dynamic viscosity
-    h = Symbol('h', positive = True)
-    gamma = Symbol('gamma', positive = True)
-    eps = Symbol('eps', positive = True)
-    phi_u = Symbol('phi_u', positive = True)
-    dyn_tau = Symbol('dyn_tau', positive = True)
-    stab_c1 = Symbol('stab_c1', positive = True)
-    stab_c2 = Symbol('stab_c2', positive = True)
+    c   = Symbol('c',positive= True)              # Wave length number
+    dt  = Symbol('dt', positive = True)           # Time increment
+    rho = Symbol('rho', positive = True)          # Density
+    nu  = Symbol('nu', positive = True)           # Kinematic viscosity (mu/rho)
+    mu  = Symbol('mu', positive = True)           # Dynamic viscosity
+    h = Symbol('h', positive = True)              # Element size
+    gamma = Symbol('gamma', positive = True)      # Penalty constant
+    eps = Symbol('eps', positive = True)          # Epsilon (slip length)
+    phi_u = Symbol('phi_u', positive = True)      # Nitsche stabilization constant
+    dyn_tau = Symbol('dyn_tau', positive = True)  # Stabilization dynamic tau
+    stab_c1 = Symbol('stab_c1', positive = True)  # Stabilization constant 1 
+    stab_c2 = Symbol('stab_c2', positive = True)  # Stabilization constant 2
+    adjoint = Symbol('adjoint')                   # Stabilization constant 2
 
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
@@ -108,8 +103,7 @@ for dim in dim_vector:
         vconv_gauss_norm += vconv_gauss[i]**2
     vconv_gauss_norm = sqrt(vconv_gauss_norm)
 
-    tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
-    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
+    phi_u = mu + rho*vconv_gauss_norm*h + rho*h*h/dt                                        # Boundary term stabilization parameter
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
@@ -135,12 +129,8 @@ for dim in dim_vector:
     grad_sym_w = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
     # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
 
-    # Convective term definition
-    convective_term = (vconv_gauss.transpose()*grad_v)
-
-    #define helper functions
+    # Define helper functions
     def VoigtStressToTensor(x):
-        print(x.shape)
         if x.shape[0] == 3:
             A = Matrix([ \
                 [x[0], x[2]], \
@@ -153,11 +143,10 @@ for dim in dim_vector:
                 [x[5], x[4], x[2]]  \
                 ])
         else:
-            raise Exeption("not supported")
+            raise Exception("not supported")
         return A
 
     def VoigtStrainToTensor(x):
-        print(x.shape)
         if x.shape[0] == 3:
             A = Matrix([ \
                 [x[0], x[2]/2], \
@@ -170,43 +159,44 @@ for dim in dim_vector:
                 [x[5]/2, x[4]/2, x[2]]  \
                 ])
         else:
-            raise Exeption("not supported")
+            raise Exception("not supported")
         return A
         
-
-
-    ##define operators
-    #Pn = DefineSymmetricMatrix('Pn',dim,dim)
-    #Pt = DefineSymmetricMatrix('Pn',dim,dim)
+    ## Define projection operators
     Pn = normal * normal.transpose()
     Pt = -Pn.copy()
     for i in range(dim):
         Pt[i,i] += 1
 
-
-
-    ##define nitsche terms
+    ## Define nitsche terms
     ugPn = Pn*(v_gauss-g)
     ugPt = Pt*(v_gauss-g)
-    print("ugPn", ugPn.shape)
 
     nCgrad_sym_W = VoigtStressToTensor(C*grad_sym_w)*normal
-    print("nCgrad_sym_W", nCgrad_sym_W.shape)
+
+    norm_imposition = ugPn
+    tang_imposition = eps*Pt*VoigtStressToTensor(C*grad_sym_v)*normal + mu*ugPt
+
+    tang_imposition_1 = eps * (VoigtStressToTensor(C*grad_sym_v)*normal).transpose() * Pt
+    tang_imposition_2 = mu * (v_gauss - g).transpose() * Pt
 
     rv = \
-        - mu/(gamma*h)*ugPn.transpose()*w_gauss \
-        + ugPn.transpose() * (normal*q_gauss + tau1*nCgrad_sym_W) \
-        - phi_u/(gamma*h) * ugPn.transpose()*w_gauss \
-        - w_gauss.transpose() * ( eps*VoigtStressToTensor(C*grad_sym_v)*normal + mu*ugPt ) / (eps+gamma*h) \
-        + tau1 * (VoigtStrainToTensor(C*grad_sym_w)*normal).transpose() * (VoigtStrainToTensor(C*grad_sym_v)*normal + mu*ugPt)
+        - (mu/(gamma*h)) * w_gauss.transpose() * norm_imposition \
+        - (phi_u/(gamma*h)) * w_gauss.transpose() * norm_imposition \
+        + norm_imposition.transpose() * normal * q_gauss \
+        + adjoint * norm_imposition.transpose() * nCgrad_sym_W \
+        - (1/(eps+gamma*h)) * tang_imposition_1 * w_gauss \
+        - (1/(eps+gamma*h)) * tang_imposition_2 * w_gauss \
+        + adjoint * ((gamma*h)/(eps+gamma*h)) * tang_imposition_1 * (2.0 * VoigtStrainToTensor(grad_sym_w) * normal) \
+        + adjoint * ((gamma*h)/(eps+gamma*h)) * tang_imposition_2 * (2.0 * VoigtStrainToTensor(grad_sym_w) * normal) \
+        # - adjoint * ((gamma*h)/(eps+gamma*h)) * tang_imposition_1 * (normal * q_gauss) \ # These term of the flux yields null contribution
+        # - adjoint * ((gamma*h)/(eps+gamma*h)) * tang_imposition_2 * (normal * q_gauss) \ # These term of the flux yields null contribution
 
-    
     ## Define DOFs and test function vectors
     dofs = Matrix( zeros(nnodes*(dim+1), 1) )
     testfunc = Matrix( zeros(nnodes*(dim+1), 1) )
 
     for i in range(0,nnodes):
-
         # Velocity DOFs and test functions
         for k in range(0,dim):
             dofs[i*(dim+1)+k] = v[i,k]
@@ -230,11 +220,6 @@ for dim in dim_vector:
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
     lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
-    ## Read the template file
-    templatefile = open("boundary_term_template.cpp")
-    outstring = templatefile.read()
-
-
     if(dim == 2):
         outstring = outstring.replace("//substitute_lhs_2D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_2D", rhs_out)
@@ -242,16 +227,7 @@ for dim in dim_vector:
         outstring = outstring.replace("//substitute_lhs_3D", lhs_out)
         outstring = outstring.replace("//substitute_rhs_3D", rhs_out)
 
-    # ## Compute velocity subscale Gauss point value
-    # v_s_gauss = tau1*rho*(f_gauss - accel_gauss - convective_term.transpose()) - tau1*grad_p
-    # v_s_gauss_out = OutputVector_CollectingFactors(v_s_gauss, "v_s_gauss", mode)
-
-    # if(dim == 2):
-    #     outstring = outstring.replace("//substitute_gausspt_subscale_2D", v_s_gauss_out)
-    # elif(dim == 3):
-    #     outstring = outstring.replace("//substitute_gausspt_subscale_3D", v_s_gauss_out)
-
 ## Write the modified template
-out = open("embedded_ausas_navier_stokes_boundary_terms.cpp",'w')
+out = open("embedded_fluid_element_discontinuous.cpp",'w')
 out.write(outstring)
 out.close()

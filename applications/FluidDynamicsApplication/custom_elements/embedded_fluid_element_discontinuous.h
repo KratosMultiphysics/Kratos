@@ -326,7 +326,7 @@ protected:
     void AddNormalPenaltyContribution(
         MatrixType& rLHS,
         VectorType& rRHS,
-        const EmbeddedDiscontinuousElementData& rData) const;
+        EmbeddedDiscontinuousElementData& rData);
 
     /**
     * This method adds the no-penetration condition adjoint term level set contribution.
@@ -381,7 +381,12 @@ protected:
      */
     std::pair<const double, const double> ComputeTangentialNitscheCoefficients(const EmbeddedDiscontinuousElementData& rData) const;
 
+    VectorType NitscheTermsRHS2D(EmbeddedDiscontinuousElementData& rData);
+    MatrixType NitscheTermsLHS2D(EmbeddedDiscontinuousElementData& rData);
 
+    VectorType NitscheTermsRHS3D(EmbeddedDiscontinuousElementData& rData);
+    MatrixType NitscheTermsLHS3D(EmbeddedDiscontinuousElementData& rData);
+    
     ///@}
     ///@name Protected  Access
     ///@{
