@@ -29,12 +29,14 @@
 #include "includes/variables.h"
 #include "custom_elements/compressible_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element.h"
+#include "custom_elements/incompressible_adjoint_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element_stresses.h"
 #include "custom_elements/incompressible_potential_flow_element_alpha.h"
 #include "custom_elements/incompressible_potential_flow_element_alpha_full.h"
 #include "custom_elements/incompressible_potential_flow_element_stresses_mix.h"
 #include "custom_conditions/compressible_potential_wall_condition.h"
 #include "custom_conditions/incompressible_potential_wall_condition.h"
+#include "custom_conditions/incompressible_adjoint_potential_wall_condition.h"
 #include "custom_conditions/incompressible_potential_wall_condition_stresses.h"
 
 
@@ -190,6 +192,7 @@ private:
 	///@name Member Variables
 	///@{
 		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+		const IncompressibleAdjointPotentialFlowElement<2,3> mIncompressibleAdjointPotentialFlowElement2D3N;
 		const IncompressibleStressesPotentialFlowElement<2,3> mIncompressibleStressesPotentialFlowElement2D3N;
 		const IncompressibleAlphaPotentialFlowElement<2,3> mIncompressibleAlphaPotentialFlowElement2D3N;
 		const IncompressibleAlphaFullPotentialFlowElement<2,3> mIncompressibleAlphaFullPotentialFlowElement2D3N;
@@ -198,6 +201,7 @@ private:
         const CompressiblePotentialFlowElement<2,3> mCompressiblePotentialFlowElement2D3N;
         const CompressiblePotentialFlowElement<3,4> mCompressiblePotentialFlowElement3D4N;
 		const IncompressiblePotentialWallCondition<2,2> mIncompressiblePotentialWallCondition2D2N;
+		const IncompressibleAdjointPotentialWallCondition<2,2> mIncompressibleAdjointPotentialWallCondition2D2N;
 		const IncompressibleStressesPotentialWallCondition<2,2> mIncompressibleStressesPotentialWallCondition2D2N;
         const IncompressiblePotentialWallCondition<3,3> mIncompressiblePotentialWallCondition3D3N;
         const CompressiblePotentialWallCondition<2,2> mCompressiblePotentialWallCondition2D2N;

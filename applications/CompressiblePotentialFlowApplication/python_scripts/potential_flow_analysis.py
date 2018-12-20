@@ -11,8 +11,14 @@ class PotentialFlowAnalysis(AnalysisStage):
         def __init__(self,model,parameters):
             super(PotentialFlowAnalysis,self).__init__(model,parameters)
         def _CreateSolver(self):
-            import potential_flow_solver 
-            return potential_flow_solver.CreateSolver(self.model,self.project_parameters)
+            if (self.project_parameters["solver_settings"]["solver_type"].GetString()=='potential_flow'):
+                import potential_flow_solver 
+                return potential_flow_solver.CreateSolver(self.model,self.project_parameters)
+            elif (self.project_parameters["solver_settings"]["solver_type"].GetString()=='adjoint_potential_flow'):
+                import potential_flow_adjoint_solver 
+                return potential_flow_adjoint_solver.CreateSolver(self.model,self.project_parameters)
+            else:
+                raise Exception('Incorrect solver type.')
         def _GetSimulationName(self):
             return "Potential Flow Analysis"
 if __name__ == '__main__':

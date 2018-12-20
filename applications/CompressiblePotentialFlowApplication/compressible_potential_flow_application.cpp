@@ -58,12 +58,15 @@ void KratosCompressiblePotentialFlowApplication::Register()
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SIGMA);        
         KRATOS_REGISTER_VARIABLE( POSITIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( NEGATIVE_POTENTIAL );
+        KRATOS_REGISTER_VARIABLE( ADJOINT_POSITIVE_POTENTIAL );
+        KRATOS_REGISTER_VARIABLE( ADJOINT_NEGATIVE_POTENTIAL );
         KRATOS_REGISTER_VARIABLE( WAKE_DISTANCE );
         KRATOS_REGISTER_VARIABLE( LEVEL_SET_DISTANCE );
         KRATOS_REGISTER_VARIABLE( LEVEL_SET_ELEMENTAL_DISTANCES );
 
         //Register elements
         KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N",mIncompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_ELEMENT("IncompressibleAdjointPotentialFlowElement2D3N",mIncompressibleAdjointPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleStressesPotentialFlowElement2D3N",mIncompressibleStressesPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleAlphaPotentialFlowElement2D3N",mIncompressibleAlphaPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleAlphaFullPotentialFlowElement2D3N",mIncompressibleAlphaFullPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
@@ -75,6 +78,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
         //Register conditions
         KRATOS_REGISTER_CONDITION("IncompressiblePotentialWallCondition2D2N",mIncompressiblePotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_CONDITION("IncompressibleAdjointPotentialWallCondition2D2N",mIncompressibleAdjointPotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("IncompressibleStressesPotentialWallCondition2D2N",mIncompressibleStressesPotentialWallCondition2D2N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("IncompressiblePotentialWallCondition3D3N",mIncompressiblePotentialWallCondition3D3N); //this is the name the element should have according to the naming convention
 
