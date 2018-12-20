@@ -14,6 +14,8 @@
 // project includes
 #include "vtk_output.h"
 #include <typeinfo>
+#include <sstream>
+#include <iomanip>
 
 namespace Kratos
 {
@@ -376,25 +378,28 @@ void VtkOutput::ForceBigEndian(unsigned char *bytes)
 std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
 {
     int rank = rModelPart.GetCommunicator().MyPID();
-    std::string model_part_name; 
+    std::string model_part_name;
     if(rModelPart.IsSubModelPart())
         model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
     else
         model_part_name = rModelPart.Name();
 
-    double label = 0;
+    std::string label;
+    std::stringstream ss;
     std::string output_control = mOutputSettings["output_control_type"].GetString();
-    if(output_control == "step")
-        label = rModelPart.GetProcessInfo()[STEP];
-    else if(output_control == "time")
-        label = rModelPart.GetProcessInfo()[TIME];
-    else
+    if(output_control == "step"){
+        ss << std::setprecision(mDefaultPrecision)<< std::setfill('0') << rModelPart.GetProcessInfo()[STEP];
+        label = ss.str();
+    }else if(output_control == "time"){
+        ss << std::setprecision(mDefaultPrecision) << std::setfill('0') << rModelPart.GetProcessInfo()[TIME];
+        label = ss.str();
+    }else
         KRATOS_ERROR<<"Option for output_control_type : "<<output_control<<" not recognised.!"<<std::endl
             <<"Possible output_control_type options for VTKOutput are :: step and time "<<std::endl;
 
     // Putting every thing together
     std::string output_file_name = mOutputSettings["folder_name"].GetString() +"/"+
-                                    model_part_name + "_" + std::to_string(rank) + "_" + std::to_string(label) + ".vtk";
+                                    model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
     return output_file_name;
 }
 
