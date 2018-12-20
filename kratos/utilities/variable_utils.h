@@ -427,6 +427,29 @@ public:
         }
 
         KRATOS_CATCH("")
+
+    }
+
+    /**
+     * @brief Flips a flag over a given container
+     * @param rFlag flag to be set
+     * @param rContainer Reference to the objective container
+     */
+    template< class TContainerType >
+    void FlipFlag(
+        const Flags& rFlag,
+        TContainerType& rContainer
+        )
+    {
+        KRATOS_TRY
+
+        #pragma omp parallel for
+        for (int k = 0; k< static_cast<int> (rContainer.size()); ++k) {
+            auto it_cont = rContainer.begin() + k;
+            it_cont->Flip(rFlag);
+        }
+
+        KRATOS_CATCH("")
     }
 
     /**
