@@ -68,7 +68,7 @@ double ComputeSearchRadius(ModelPart& rModelPart, const int EchoLevel)
     else {
         KRATOS_WARNING_IF("Mapper", EchoLevel > 0)
             << "No conditions/elements for computation of search radius found in\n"
-            << "ModelPart \"" << rModelPart.Name() << "\", using nodes\n"
+            << "ModelPart \"" << rModelPart.Name() << "\", using nodes for computing it\n"
             << "(less efficient, because search radius will be larger)\n"
             << "It is recommended to specify the search-radius manually\n"
             << "through \"search_radius\" in the mapper-settings (~2*element-size)" << std::endl;
