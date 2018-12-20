@@ -84,8 +84,6 @@ public:
 
         ValidateInput(mMapperSettings);
         InitializeInterfaceCommunicator();
-
-        InitializeInterface();
     }
 
     /// Destructor.
@@ -198,6 +196,18 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
+protected:
+
+   /**
+    * @brief Initializing the Mapper
+    * This has to be called in the constructor of the
+    * derived classes, since it involves calls to
+    * pure virtual functions
+    */
+    void Initialize()
+    {
+        InitializeInterface();
+    }
 
 private:
     ///@name Member Variables
@@ -263,9 +273,12 @@ private:
                               const Variable<array_1d<double, 3>>& rDestinationVariable,
                               Kratos::Flags MappingOptions);
 
-    // virtual MapperLocalSystemPointer GetMapperLocalSystem() const = 0;
-    // virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
-    // virtual InterfaceObject::ConstructionType GetInterfaceObjectConstructionTypeOrigin() const = 0;
+    // functions for customizing the behavior of this Mapper
+    virtual void CreateMapperLocalSystems(
+        const Communicator& rModelPartCommunicator,
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) = 0;
+
+    virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
 
     ///@}
     ///@name Private  Access

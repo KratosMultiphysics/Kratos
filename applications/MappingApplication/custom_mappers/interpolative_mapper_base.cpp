@@ -35,9 +35,8 @@ typedef std::size_t SizeType;
 template<class TSparseSpace, class TDenseSpace>
 void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::InitializeInterface(Kratos::Flags MappingOptions)
 {
-    // MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
-    //     mrModelPartDestination.GetCommunicator(),
-    //     mMapperLocalSystems);
+    CreateMapperLocalSystems(mrModelPartDestination.GetCommunicator(),
+                             mMapperLocalSystems);
 
     BuildMappingMatrix(MappingOptions);
 }
@@ -52,13 +51,11 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 
     KRATOS_ERROR_IF_NOT(mpIntefaceCommunicator) << "mpIntefaceCommunicator is a nullptr!" << std::endl;
 
-    // const MapperInterfaceInfoUniquePointerType p_ref_interface_info = Kratos::make_unique<NearestElementInterfaceInfo>();
-    // const auto interface_object_construction_type_origin = InterfaceObject::ConstructionType::Geometry_Center;
+    const MapperInterfaceInfoUniquePointerType p_ref_interface_info = GetMapperInterfaceInfo();
 
-    // mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
-    //                                               MappingOptions,
-    //                                               p_ref_interface_info,
-    //                                               interface_object_construction_type_origin);
+    mpIntefaceCommunicator->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
+                                                  MappingOptions,
+                                                  p_ref_interface_info);
 
     MappingMatrixUtilities::BuildMappingMatrix<TSparseSpace, TDenseSpace>(
         mpMappingMatrix,
@@ -75,22 +72,18 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::BuildMappingMatrix(Krat
 template<>
 void InterpolativeMapperBase<MapperDefinitions::SparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
 {
-    Parameters search_settings(R"({})"); // TODO fill this
-    search_settings.ValidateAndAssignDefaults(mMapperSettings);
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicator>(mrModelPartOrigin,
                                                                         mMapperLocalSystems,
-                                                                        search_settings);
+                                                                        mMapperSettings);
 }
 
 #ifdef KRATOS_USING_MPI // mpi-parallel compilation
 template<>
 void InterpolativeMapperBase<MapperDefinitions::MPISparseSpaceType, MapperDefinitions::DenseSpaceType>::InitializeInterfaceCommunicator()
 {
-    Parameters search_settings(R"({})"); // TODO fill this
-    search_settings.ValidateAndAssignDefaults(mMapperSettings);
     mpIntefaceCommunicator = Kratos::make_unique<InterfaceCommunicatorMPI>(mrModelPartOrigin,
                                                                            mMapperLocalSystems,
-                                                                           search_settings);
+                                                                           mMapperSettings);
 }
 #endif
 
@@ -222,13 +215,11 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::ValidateInput(Parameter
     MapperUtilities::CheckInterfaceModelParts(0);
     ValidateParameters(MapperSettings);
 
-    const double echo_level = MapperSettings["echo_level"].GetInt();
-
     if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
         const double search_radius = MapperUtilities::ComputeSearchRadius(
                                         mrModelPartOrigin,
                                         mrModelPartDestination,
-                                        echo_level);
+                                        MapperSettings["echo_level"].GetInt());
         mMapperSettings["search_radius"].SetDouble(search_radius);
     }
 }

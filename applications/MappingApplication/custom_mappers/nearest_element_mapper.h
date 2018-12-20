@@ -56,6 +56,11 @@ public:
             SourceRank);
     }
 
+    InterfaceObject::ConstructionType GetInterfaceObjectType() const override
+    {
+        return InterfaceObject::ConstructionType::Geometry_Center;
+    }
+
     void ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                              const double NeighborDistance) override;
 
@@ -151,6 +156,7 @@ public:
 
     typedef InterpolativeMapperBase<TSparseSpace, TDenseSpace> BaseType;
     typedef typename BaseType::MapperUniquePointerType MapperUniquePointerType;
+    typedef typename BaseType::MapperInterfaceInfoUniquePointerType MapperInterfaceInfoUniquePointerType;
 
     ///@}
     ///@name Life Cycle
@@ -166,7 +172,10 @@ public:
                          Parameters JsonParameters)
                          : BaseType(rModelPartOrigin,
                                     rModelPartDestination,
-                                    JsonParameters) {}
+                                    JsonParameters)
+    {
+        this->Initialize();
+    }
 
     /// Destructor.
     ~NearestElementMapper() override = default;
@@ -209,6 +218,27 @@ public:
     void PrintData(std::ostream& rOStream) const override
     {
     }
+
+private:
+
+    ///@name Private Operations
+    ///@{
+
+    void CreateMapperLocalSystems(
+        const Communicator& rModelPartCommunicator,
+        std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) override
+    {
+        MapperUtilities::CreateMapperLocalSystemsFromNodes<NearestElementLocalSystem>(
+            rModelPartCommunicator,
+            rLocalSystems);
+    }
+
+    MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
+    {
+        return Kratos::make_unique<NearestElementInterfaceInfo>();
+    }
+
+    ///@}
 
 }; // Class NearestElementMapper
 
