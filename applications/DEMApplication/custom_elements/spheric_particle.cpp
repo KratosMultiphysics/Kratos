@@ -1854,9 +1854,9 @@ void SphericParticle::RotateOldContactForces(const double OldLocalCoordSystem[3]
 
     GeometryFunctions::normalize(v3);
 
-    GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(mNeighbourElasticContactForces, v3, alpha, mNeighbourElasticContactForcesFinal);
+    GeometryFunctions::RotateAVectorAGivenAngleAroundAUnitaryVector(mNeighbourElasticContactForces, v3, alpha, rotated_neighbour_elastic_contact_forces);
 
-    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, mNeighbourElasticContactForcesFinal)
+    DEM_COPY_SECOND_TO_FIRST_3(mNeighbourElasticContactForces, rotated_neighbour_elastic_contact_forces)
 }
 
 bool SphericParticle::CalculateRelativePositionsOrSkipContact(ParticleDataBuffer & data_buffer)
