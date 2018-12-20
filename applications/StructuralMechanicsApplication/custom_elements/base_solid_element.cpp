@@ -378,6 +378,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
             rValues[index + k] = acceleration[k];
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -392,6 +393,102 @@ void BaseSolidElement::CalculateRightHandSide(
     MatrixType temp = Matrix();
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::AddExplicitContribution(
+    const VectorType& rRHSVector, 
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    ) 
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType element_size = dimension * number_of_nodes;
+
+    // Compiting the nodal mass
+    if (rDestinationVariable == NODAL_MASS ) {
+        Matrix element_mass_matrix = ZeroMatrix(element_size, element_size);
+        ProcessInfo temp_info = rCurrentProcessInfo; // Dummy
+        this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            double aux_nodal_mass = 0.0;
+
+            const IndexType index = i * dimension;
+
+            for (IndexType j = 0; j < element_size; ++j) {
+                aux_nodal_mass += element_mass_matrix(index, j);
+            }
+
+            #pragma omp atomic
+            r_geom[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::AddExplicitContribution(
+    const VectorType& rRHSVector, 
+    const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    ) 
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+    const auto& r_prop = this->GetProperties();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType element_size = dimension * number_of_nodes;
+    
+    Vector damping_residual_contribution = ZeroVector(element_size);
+    
+    // Calculate damping contribution to residual -->
+    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+        Vector current_nodal_velocities = ZeroVector(element_size);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+        
+        Matrix damping_matrix = ZeroMatrix(element_size, element_size);
+        ProcessInfo temp_process_information = rCurrentProcessInfo; // We can't pass const ProcessInfo
+        this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+        
+        // Current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+    }
+
+    // Computing the force residual
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const IndexType index = dimension * i;
+
+            array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+            for (IndexType j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    }
+
+    // Computing the nodal mass (when calling NODAL_INERTIA)
+    if (rDestinationVariable == NODAL_INERTIA ) {
+        AddExplicitContribution(rRHSVector, rRHSVariable, NODAL_MASS, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
