@@ -21,7 +21,7 @@
 #include "mpi.h"
 
 // Project includes
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "utilities/spatial_containers_configure.h"
 #include "spatial_containers/spatial_search.h"
 

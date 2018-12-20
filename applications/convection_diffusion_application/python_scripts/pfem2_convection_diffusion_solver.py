@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
-CheckForPreviousImport()
 
 #implementation for string (py) settings
 def AddVariables(model_part, py_settings=None):
@@ -79,7 +78,7 @@ class PFEM2ConvectionDiffusionSolver:
 
         # assignation of parameters to be used
         self.ReformDofAtEachIteration = False;
-        
+
         self.scalar_var_convected = 1
 
         # definition of the solvers
@@ -95,7 +94,7 @@ class PFEM2ConvectionDiffusionSolver:
         (self.neighbour_elements_search).Execute()
         ##calculate normals
         #self.normal_tools = BodyNormalCalculationUtils()
-        #self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);  
+        #self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);
 
     def Initialize(self):
         # diffusion only tool
@@ -103,12 +102,12 @@ class PFEM2ConvectionDiffusionSolver:
 
         #now tools for pfem2:
         self.VariableUtils = VariableUtils()
-        
+
         maximum_number_of_particles= 8*self.domain_size
         if self.domain_size==2:
-            self.moveparticles = MoveParticleUtilityScalarTransport2D(self.model_part,maximum_number_of_particles)  
+            self.moveparticles = MoveParticleUtilityScalarTransport2D(self.model_part,maximum_number_of_particles)
         else:
-            self.moveparticles = MoveParticleUtilityScalarTransport3D(self.model_part,maximum_number_of_particles)  
+            self.moveparticles = MoveParticleUtilityScalarTransport3D(self.model_part,maximum_number_of_particles)
         self.moveparticles.MountBin()
 
 
@@ -118,20 +117,20 @@ class PFEM2ConvectionDiffusionSolver:
         (self.moveparticles).CalculateVelOverElemSize();
         (self.moveparticles).MoveParticles();
         pre_minimum_number_of_particles=self.domain_size;
-        (self.moveparticles).PreReseed(pre_minimum_number_of_particles);    
+        (self.moveparticles).PreReseed(pre_minimum_number_of_particles);
         (self.moveparticles).TransferLagrangianToEulerian();
-        #(self.VariableUtils).CopyScalarVar(PROJECTED_SCALAR1,self.unknown_var,self.model_part.Nodes)   
+        #(self.VariableUtils).CopyScalarVar(PROJECTED_SCALAR1,self.unknown_var,self.model_part.Nodes)
         #(self.moveparticles).ResetBoundaryConditions()
-        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(self.unknown_var,self.model_part.Nodes)  
-        
+        #(self.moveparticles).CopyScalarVarToPreviousTimeStep(self.unknown_var,self.model_part.Nodes)
+
         #we only solve the mesh problem if there is diffusion or heat sources. otherwise->pure convection problem
-        if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable(): 
+        if (self.thermal_settings).IsDefinedDiffusionVariable() or (self.thermal_settings).IsDefinedSurfaceSourceVariable() or (self.thermal_settings).IsDefinedVolumeSourceVariable():
              (self.diffusion_solver).Solve()
 
-        (self.moveparticles).CalculateDeltaVariables();        
+        (self.moveparticles).CalculateDeltaVariables();
         (self.moveparticles).CorrectParticlesWithoutMovingUsingDeltaVariables();
         post_minimum_number_of_particles=self.domain_size*2;
-        (self.moveparticles).PostReseed(post_minimum_number_of_particles); 
+        (self.moveparticles).PostReseed(post_minimum_number_of_particles);
 
 
 def CreateSolver(model_part, config):

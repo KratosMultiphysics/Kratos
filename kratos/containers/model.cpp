@@ -13,17 +13,10 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "containers/model.h"
-#include <iostream>
-#include <string>
-#include <sstream>
-
 
 namespace Kratos
 {
@@ -145,14 +138,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    bool Model::HasModelPart(const std::string& rFullModelPartName)
+    bool Model::HasModelPart(const std::string& rFullModelPartName) const
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
 
-        std::vector< std::string > subparts_list =  SplitSubModelPartHierarchy(rFullModelPartName);
+        std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
 
         //token 0 is the root
         auto search = mRootModelPartMap.find(subparts_list[0]);
@@ -198,7 +191,7 @@ namespace Kratos
     {
     }
 
-    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName)
+    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const
     {
         std::vector<std::string> rSubPartsList;
         std::istringstream iss(rFullModelPartName);
@@ -271,7 +264,7 @@ namespace Kratos
             //NOTE: CreateModelPart CANNOT be used here
             auto dummy_list = Kratos::make_unique<VariablesList>();
             ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list.get(), *this );
-            rSerializer.load("MP", pmodel_part);
+            rSerializer.load(aux_names[i], pmodel_part);
             mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
         }
 
@@ -280,5 +273,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-

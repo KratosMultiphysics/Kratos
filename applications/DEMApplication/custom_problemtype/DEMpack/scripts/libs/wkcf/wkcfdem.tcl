@@ -735,375 +735,6 @@ proc ::wkcf::TranslateToBinaryJson {yes_no_var} {
     }
 }
 
-proc ::wkcf::WritePostProcessData {fileid} {
-    variable ActiveAppList
-    global KPriv
-    puts $fileid "# PostProcess Results"
-
-    # GraphExportFreq
-    set cxpath "DEM//c.DEM-Results//c.DEM-Graphs//i.DEM-GraphExportFreq"
-    set GEF [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "GraphExportFreq                  = $GEF"
-
-    # VelocityTrapGraphExportFreq
-    set cxpath "DEM//c.DEM-Results//c.DEM-VelocityTrap//i.DEM-VelTrapGraphExportFreq"
-    set VTGEF [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "VelTrapGraphExportFreq           = $VTGEF"
-
-    # Output Time Step
-    if {"Fluid" in $ActiveAppList} {
-	set cxpath "GeneralApplicationData//c.SimulationOptions//i.OutputDeltaTime"
-	set OTS [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "OutputTimeStep                   = $OTS"
-    } else {
-	set cxpath "DEM//c.DEM-Results//i.DEM-OTimeStepType"
-	set OTimeStepType [::xmlutils::setXml $cxpath "dv"]
-
-	if {$OTimeStepType eq "Detail_priority"} {
-	    set cxpath "DEM//c.DEM-Results//i.DEM-OTimeStepDetail"
-	    set OTimeStepDetail [::xmlutils::setXml $cxpath "dv"]
-	    puts $fileid "OutputTimeStep                   = $OTimeStepDetail"
-	}
-
-	if {$OTimeStepType eq "Storage_priority"} {
-
-	    set cxpath "DEM//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DEM-TotalTime"
-	    set TTime [::xmlutils::setXml $cxpath "dv"]
-	    set cxpath "DEM//c.DEM-Results//i.DEM-OTimeStepStorage"
-	    set amount [::xmlutils::setXml $cxpath "dv"]
-	    set OTimeStepStorage [expr {double($TTime)/$amount}]
-	    set cxpath "DEM//c.DEM-SolutionStrategy//c.DEM-TimeParameters//i.DeltaTime"
-	    set MaxTimeStep [::xmlutils::setXml $cxpath "dv"]
-	    set maxamount [expr {$TTime/$MaxTimeStep}]
-	    if {$amount < $maxamount} {
-		puts $fileid "OutputTimeStep                   = $OTimeStepStorage"
-	    } else {
-		puts $fileid "OutputTimeStep                   = $MaxTimeStep" }
-	}
-    }
-
-    set cxpath "DEM//c.DEM-Options//c.DEM-Boundingbox//i.PrintBoundingBox"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostBoundingBox                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # Size distribution curve
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-    set cproperty "dv"
-    set cxpath "DEM//c.DEM-Results//i.DEM-Granulometry"
-    set granulometry_option [::xmlutils::setXml $cxpath $cproperty]
-    if {$granulometry_option eq "Yes"} {
-    puts $fileid "Granulometry                     = \"[::xmlutils::setXml {DEM//c.DEM-Results//i.DEM-Granulometry} dv]\""
-    }
-    }
-
-    # PostDisplacement
-    if {"Fluid" in $ActiveAppList} {
-	set cxpathtoDEMresults "GeneralApplicationData//c.SDEM-Results//c.ResultsToPrint//c.DEMResults"
-	set cxpathtoFLUIDresults "GeneralApplicationData//c.SDEM-Results//c.ResultsToPrint//c.FluidResults"
-    } else {
-	set cxpathtoDEMresults "DEM//c.DEM-Results//c.DEM-PartElem"
-    }
-
-    set cxpath "$cxpathtoDEMresults//i.DEM-Displacement"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostDisplacement                 = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostVelocity
-    set cxpath "$cxpathtoDEMresults//i.DEM-PostVel"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostVelocity                     = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    puts $fileid "# DEM only Results"
-
-    # PostTotalForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-TotalForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostTotalForces                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostRigidElementForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-RigidElementForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostRigidElementForces           = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-	# PostExportSkinSphere
-	set PrintOrNot [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-SkinSphere" dv]
-	puts $fileid "PostSkinSphere                   = [::wkcf::TranslateToBinary $PrintOrNot]"
-	# PostPoissonRatio
-	puts $fileid "PostPoissonRatio                 = [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-PoissonRatio dv]]"
-
-	set cproperty "dv"
-	set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-Thermal"
-	set thermal_option [::xmlutils::setXml $cxpath $cproperty]
-	if {$thermal_option eq "Yes"} {
-	    # PostThermalTemp
-	    set cxpath "DEM//c.DEM-Results//c.DEM-ThermalPost//i.DEM-ParticleTemperature"
-	    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	    puts $fileid "PostTemperature                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-	    # PostThermalFlux
-	    set cxpath "DEM//c.DEM-Results//c.DEM-ThermalPost//i.DEM-ParticleHeatFlux"
-	    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	    puts $fileid "PostHeatFlux                     = [::wkcf::TranslateToBinary $PrintOrNot]"
-	}
-
-	# PostPrintVirtualSeaSurface
-	if {[::wkcf::TranslateToBinary [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-SeaSurface" dv]]} {
-	    puts $fileid "PostVirtualSeaSurfaceX1          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX1" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceY1          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY1" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceX2          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX2" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceY2          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY2" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceX3          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX3" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceY3          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY3" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceX4          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceX4" dv]"
-	    puts $fileid "PostVirtualSeaSurfaceY4          = [::xmlutils::setXml "$cxpathtoDEMresults//i.DEM-VirtualSeaSurfaceY4" dv]"
-	}
-    }
-
-    # Radius
-    set cxpath "$cxpathtoDEMresults//i.DEM-Radius"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostRadius                       = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # Calculate Rotations
-    set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-CalculateRotations"
-    set useRotationOption [::xmlutils::setXml $cxpath "dv"]
-    if {$useRotationOption == "Yes"} {
-	# PostAngularVelocity
-	set cxpath "$cxpathtoDEMresults//i.DEM-AngularVelocity"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "PostAngularVelocity              = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-	# PostParticleMoment
-	set cxpath "$cxpathtoDEMresults//i.DEM-ParticleMoment"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "PostParticleMoment               = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-	# PostEulerAngles
-	set cxpath "$cxpathtoDEMresults//i.DEM-EulerAngles"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "PostEulerAngles                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-	set cxpath "DEM//c.DEM-Options//c.DEM-AdvancedOptions//i.DEM-RollingFriction"
-	set rf [::xmlutils::setXml $cxpath "dv"]
-	if {$rf == "Yes"} {
-	    # PostRollingResistanceMoment
-	    set cxpath "$cxpathtoDEMresults//i.DEM-RollingResistanceMoment"
-	    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	    puts $fileid "PostRollingResistanceMoment      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	} else {
-	    puts $fileid "PostRollingResistanceMoment      = 0"
-	}
-    } else {
-	puts $fileid "PostAngularVelocity              = 0"
-	puts $fileid "PostParticleMoment               = 0"
-	puts $fileid "PostEulerAngles                  = 0"
-	puts $fileid "PostRollingResistanceMoment      = 0"
-    }
-
-    puts $fileid "# FEM only Results"
-    # PostElasticForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-ElasForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostElasticForces                = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostContactForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-ContactForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostContactForces                = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostTangentialElasticForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-TangElasForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostTangentialElasticForces      = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostShearStress
-    set cxpath "$cxpathtoDEMresults//i.DEM-ShearStress"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostShearStress                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostPressure
-    set cxpath "$cxpathtoDEMresults//i.DEM-Pressure"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostPressure                     = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    puts $fileid "# FEM_wear only Results"
-    # PostWear
-    set cxpath "$cxpathtoDEMresults//i.DEM-Wear"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostNonDimensionalVolumeWear     = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostNodalArea
-    set cxpath "$cxpathtoDEMresults//i.DEM-NodalArea"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostNodalArea                    = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # Write Dem Bond Elem Force
-    puts $fileid "# Results on bond elements"
-	set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-LocalContactForce"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "PostLocalContactForce            = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {
-		# PostStressStrainOnSpheres
-		puts $fileid "PostStressStrainOption           = [::wkcf::TranslateToBinary [::xmlutils::setXml $cxpathtoDEMresults//i.DEM-Stresses dv]]"
-
-		# Write Dem Bond Elem Properties For Continuum
-		set basexpath "DEM//c.DEM-Results//c.DEM-BondElem"
-		set ilist [::xmlutils::setXmlContainerIds $basexpath "Item"]
-		set kxpath "Applications/DEM"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactSigma"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostContactSigma                 = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-ContactTau"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostContactTau                   = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-FailureCrit"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostFailureCriterionState        = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-Failureid"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostContactFailureId             = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-		set cxpath "DEM//c.DEM-Results//c.DEM-BondElem//i.DEM-MeanContactArea"
-		set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-		puts $fileid "PostMeanContactArea              = [::wkcf::TranslateToBinary $PrintOrNot]"
-	}
-    puts $fileid "# Under revision"
-    # PostRHS
-    set cxpath "$cxpathtoDEMresults//i.DEM-Rhs"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostRHS                          = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # DampForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-DampForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostDampForces                   = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # AppliedForces
-    set cxpath "$cxpathtoDEMresults//i.DEM-AppliedForces"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostAppliedForces                = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostGroupId
-    set cxpath "$cxpathtoDEMresults//i.DEM-GroupId"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostGroupId                      = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-    # PostExportId
-    set cxpath "$cxpathtoDEMresults//i.DEM-ExportId"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "PostExportId                     = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-
-
-    # SWIMMING-SPECIFIC SECTION BEGINS ###########################################################################
-
-    if {"Fluid" in $ActiveAppList} {
-	puts $fileid "# Swimming DEM-specific section begins"
-	puts $fileid "#-------------------------------------"
-
-	# PostPressure
-	# DEM variables
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-Pressure"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "PostFluidPressure                          = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "DEM//c.DEM-Options//c.DEM-Boundingbox//i.PrintBoundingBox"
-	set PBB [::xmlutils::setXml $cxpath "dv"]
-	set cxpath "$cxpathtoDEMresults//i.DEM-ReynoldsNumber"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_REYNOLDS_NUMBER_option               = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-PressureGradProj"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_PRESSURE_GRAD_PROJECTED_option       = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-FluidVelProj"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_VEL_PROJECTED_option           = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-FluidAccelProj"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_ACCEL_PROJECTED_option         = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-Buoyancy"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_BUOYANCY_option                      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-Drag"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_DRAG_FORCE_option                    = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-VirtualMass"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_VIRTUAL_MASS_FORCE_option            = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-Basset"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_BASSET_FORCE_option                  = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-Lift"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_LIFT_FORCE_option                    = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-FluidVelRate"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_VEL_PROJECTED_RATE_option      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-FluidViscosity"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_VISCOSITY_PROJECTED_option     = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-FluidFractionProj"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_FRACTION_PROJECTED_option      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-VelocityLaplacianProjected"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_VEL_LAPL_PROJECTED_option      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-VelocityLaplacianRateProjected"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_VEL_LAPL_RATE_PROJECTED_option = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-HydroForce"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_HYDRODYNAMIC_FORCE_option            = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoDEMresults//i.DEM-HydroMoment"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_HYDRODYNAMIC_MOMENT_option           = [::wkcf::TranslateToBinary $PrintOrNot]"
-
-	# Fluid variables
-    set cxpath "$cxpathtoFLUIDresults//i.Fluid-AugmentedVel"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_MESH_VELOCITY1_option                = [::wkcf::TranslateToBinary $PrintOrNot]"
-    set cxpath "$cxpathtoFLUIDresults//i.Fluid-BodyForce"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_BODY_FORCE_option                    = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-FluidFraction"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_FRACTION_option                = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-FluidFractionGrad"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_FLUID_FRACTION_GRADIENT_option       = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-HydroReaction"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_HYDRODYNAMIC_REACTION_option         = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-Pressure"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_PRESSURE_option                      = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-PressureGrad"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_PRESSURE_GRADIENT_option             = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-SolidFraction"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_DISPERSE_FRACTION_option                = [::wkcf::TranslateToBinary $PrintOrNot]"
-    set cxpath "$cxpathtoFLUIDresults//i.Fluid-MeanHydroReaction"
-    set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-    puts $fileid "print_MEAN_HYDRODYNAMIC_REACTION_option    = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-VelocityLaplacian"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_VELOCITY_LAPLACIAN_option            = [::wkcf::TranslateToBinary $PrintOrNot]"
-	set cxpath "$cxpathtoFLUIDresults//i.Fluid-VelocityLaplacianRate"
-	set PrintOrNot [::xmlutils::setXml $cxpath "dv"]
-	puts $fileid "print_VELOCITY_LAPLACIAN_RATE_option       = [::wkcf::TranslateToBinary $PrintOrNot]"
-	puts $fileid ""
-	puts $fileid "#-------------------------------------"
-	puts $fileid "# Swimming DEM-specific section ends"
-	puts $fileid ""
-	# SWIMMING-SPECIFIC SECTION ENDS ###########################################################################
-    }
-}
-
 
 proc ::wkcf::WritePostProcessDataForJson {fileid} {
 
@@ -2552,15 +2183,15 @@ proc ::wkcf::WriteDEMElementMeshProperties {AppId} {
     # Write all nodes for this group in increasing order
     set nodeslist [list]
     foreach eid $elist {
-	if { $ndime eq "2D"} {
-	    set nodeid [lindex [GiD_Info Mesh Elements circle $eid $eid] 1]
-	} else {
-	    set nodeid [lindex [GiD_Info Mesh Elements sphere $eid $eid] 1]
-	}
-	#if { $nodeid == "" } {
-	    #    return [list 1 [= "Some elements in this group are not spheres! Check Group %s" $cgroupid]]
-	    #}
-	lappend nodeslist $nodeid
+		if { $ndime eq "2D"} {
+			set nodeid [lindex [GiD_Info Mesh Elements circle $eid $eid] 1]
+		} else {
+			set nodeid [lindex [GiD_Info Mesh Elements sphere $eid $eid] 1]
+		}
+		#if { $nodeid == "" } {
+			#    return [list 1 [= "Some elements in this group are not spheres! Check Group %s" $cgroupid]]
+			#}
+		lappend nodeslist $nodeid
     }
     set nodeslist [lsort -integer -unique $nodeslist]
     set cproperty "dv"
@@ -2997,19 +2628,11 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    set external_force_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
 	    set external_force_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
 	    set external_force_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
-	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceX" dv]
-	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceY" dv]
-	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.DEM-RBE-ExternalForceZ" dv]
+	    set external_moment_X [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.DEM-RBE-ExternalMomentX" dv]
+	    set external_moment_Y [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.DEM-RBE-ExternalMomentY" dv]
+	    set external_moment_Z [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.DEM-RBE-ExternalMomentZ" dv]
+		foreach {ExternalFX ExternalFY ExternalFZ ExternalMX ExternalMY ExternalMZ} {0.0 0.0 0.0 0.0 0.0 0.0} {}
 		foreach {TableNumberFX TableNumberFY TableNumberFZ TableNumberMX TableNumberMY TableNumberMZ} {0 0 0 0 0 0} {}
-	    if {$external_force_X=="None"} {
-		    set ExternalFX 0.0
-	    }
-	    if {$external_force_Y=="None"} {
-		    set ExternalFY 0.0
-	    }
-	    if {$external_force_Z=="None"} {
-		    set ExternalFZ 0.0
-	    }
 	    if {$external_force_X=="Constant"} {
 	        set ExternalFX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedForces//i.FX" dv]
 		}
@@ -3031,15 +2654,6 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 			incr demfem_motion_table
 	        set TableNumberFZ $demfem_motion_table
 		}
-	    if {$external_moment_X=="None"} {
-		    set ExternalMX 0.0
-	    }
-	    if {$external_moment_Y=="None"} {
-		    set ExternalMY 0.0
-	    }
-	    if {$external_moment_Z=="None"} {
-		    set ExternalMZ 0.0
-	    }
 	    if {$external_moment_X=="Constant"} {
 	        set ExternalMX [::xmlutils::setXml "${basexpath}//c.[list ${cgroupid}]//c.DEM-RBImposedMoments//i.MX" dv]
 	    }
@@ -3273,24 +2887,12 @@ proc ::wkcf::WriteDEMFEMWallMeshProperties {AppId} {
 	    	GiD_File fprintf $demfemchannel "  INITIAL_ANGULAR_VELOCITY_Z_VALUE $InitialAngularVelocityZ"
 	    }
         #External forces
-	    if {$external_force_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_X $ExternalFX"
-		}
-        if {$external_force_Y=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Y $ExternalFY"
-		}
-        if {$external_force_Z=="Constant"} {
-	        GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE_Z $ExternalFZ"
+	    if {$external_force_X=="Constant" || $external_force_Y=="Constant" || $external_force_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_FORCE \[3\] ($ExternalFX, $ExternalFY, $ExternalFZ)"
 		}
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_FORCE \[3\] ($TableNumberFX,$TableNumberFY,$TableNumberFZ)"
-	    if {$external_moment_X=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_X $ExternalMX"
-		}
-	    if {$external_moment_Y=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Y $ExternalMY"
-		}
-	    if {$external_moment_Z=="Constant"} {
-    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT_Z $ExternalMZ"
+	    if {$external_moment_X=="Constant" || $external_moment_Y=="Constant" || $external_moment_Z=="Constant"} {
+    	    GiD_File fprintf $demfemchannel "  EXTERNAL_APPLIED_MOMENT \[3\] ($ExternalMX, $ExternalMY, $ExternalMZ)"
 		}
 	    GiD_File fprintf $demfemchannel "  TABLE_NUMBER_MOMENT \[3\] ($TableNumberMX,$TableNumberMY,$TableNumberMZ)"
 	    if {$KPriv(what_dempack_package) eq "C-DEMPack"} {

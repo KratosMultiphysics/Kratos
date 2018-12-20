@@ -12,13 +12,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -287,7 +280,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
         return convergence_accelerator
 
-    # This method finds the maximum buffer size between mesh, 
+    # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
     def _GetAndSetMinimumBufferSize(self):
         fluid_buffer_size = self.fluid_solver.min_buffer_size
@@ -456,9 +449,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
             if self.domain_size == 2:
                 for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
                     aux_count+=1
-                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N", 
-                                                                            int(aux_count), 
-                                                                            [node.Id], 
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N",
+                                                                            int(aux_count),
+                                                                            [node.Id],
                                                                             self.structure_solver.main_model_part.Properties[0])
             elif self.domain_size == 3:
                 for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:

@@ -22,6 +22,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 {
 
   public:
+    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 	/// Default constructors
 	FemDem2DElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
@@ -46,9 +47,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 
 	// *************** Methods Alejandro Cornejo ***************
 	//**********************************************************
-	/// The zero tolerance
-    static constexpr double tolerance = std::numeric_limits<double>::epsilon();
-
 	void InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo) override;
 	void InitializeNonLinearIteration(ProcessInfo &CurrentProcessInfo) override;
@@ -79,30 +77,45 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 									 std::vector<Vector> &rValues,
 									 const ProcessInfo &rCurrentProcessInfo) override;
 
-	void Get2MaxValues(Vector &MaxValues, double a, double b, double c);
-	void Get2MinValues(Vector &MaxValues, double a, double b, double c);
+	void Get2MaxValues(Vector &MaxValues, const double a, const double b, const double c);
+	void Get2MinValues(Vector &MaxValues, const double a, const double b, const double c);
+	void InitializeInternalVariablesAfterMapping();
 
-	void IntegrateStressDamageMechanics(Vector &rIntegratedStress,
-										double &Damage, const Vector StrainVector, const Vector StressVector, int cont, double L_char);
+	void IntegrateStressDamageMechanics(double &rThreshold,
+										double &Damage, 
+										const Vector& StrainVector, 
+										const Vector& StressVector, 
+										const int cont, 
+										const double L_char, 
+										bool& rIsDamaging);
 
-	void ModifiedMohrCoulombCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void RankineCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void DruckerPragerCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
-	void SimoJuCriterion(Vector &rIntegratedStress, double &Damage, const Vector &StrainVector, const Vector &StressVector, int cont, double L_char);
-	void RankineFragileLaw(Vector &rIntegratedStress, double &Damage, const Vector &StressVector, int cont, double L_char);
+	void ModifiedMohrCoulombCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void RankineCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void DruckerPragerCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void SimoJuCriterion(double& rThreshold, double &rDamage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void RankineFragileLaw(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 
+	void CalculateExponentialDamage(
+		double& rDamage,
+		const double DamageParameter,
+		const double UniaxialStress,
+		const double InitialThrehsold);
+		
 	// Stress Invariants in 2D
 	double CalculateI1Invariant(double sigma1, double sigma2);
 	double CalculateJ2Invariant(double sigma1, double sigma2);
 	double CalculateJ3Invariant(double sigma1, double sigma2, double I1);
 
-	void CalculateIntegratedStressVector(Vector &rIntegratedStressVector, const Vector rStressVector, const double Damage)
+	void CalculateIntegratedStressVector(Vector &rIntegratedStressVector, const Vector& rStressVector, const double Damage)
 	{
 		noalias(rIntegratedStressVector) = (1.0 - Damage) * rStressVector;
 	}
 
 	// Lode's angle
 	double CalculateLodeAngle(double J2, double J3);
+	void UpdateDataBase();
+	void CalculateAverageStressOnEdge(const Element* Neighbour, const Element* CurrentElement, Vector& rAverageStress);
+	void CalculateAverageStrainOnEdge(const Element* Neighbour, const Element* CurrentElement, Vector& rAverageStrain);
 
 	// Converged values
 	void SetThreshold(double af, int cont) { mThresholds[cont] = af; }
@@ -117,12 +130,6 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void SetConvergedDamage(double af) { mDamage = af; }
 	double GetConvergedDamage() { return mDamage; }
 
-	void SetConverged_f_sigma(double af) { mF_sigma = af; }
-	double GetConverged_f_sigma() { return mF_sigma; }
-
-	void SetConvergedEquivalentStresses(double af, int cont) { mF_sigmas[cont] = af; }
-	double GetConvergedEquivalentStresses(int cont) { return mF_sigmas[cont]; }
-
 	void SetConvergedDamages(double af, int cont) { mDamages[cont] = af; }
 	double GetConvergedDamages(int cont) { return mDamages[cont]; }
 
@@ -130,58 +137,20 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void SetNonConvergedDamages(double af, int cont) { mNonConvergedDamages[cont] = af; }
 	double GetNonConvergedDamages(int cont) { return mNonConvergedDamages[cont]; }
 
-	void SetNonConvergedDamage(double af) { mNonConvergedDamage = af; }
-	double Get_NonConvergeddamage() { return mNonConvergedDamage; }
-
-	void SetNonConvergedEquivalentStress(double af, int cont) { mNonConvergedFsigmas[cont] = af; }
-	double GetNonConvergedEquivalentStress(int cont) { return mNonConvergedFsigmas[cont]; }
-
-	void SetNonConvergedEquivalentStress(double af) { mNonConvergedFsigma = af; }
-	double GetNonConvergedEquivalentStress() { return mNonConvergedFsigma; }
-
-	void ResetNonConvergedVars()
-	{
-		this->SetNonConvergedDamage(0.0);
-		this->SetNonConvergedEquivalentStress(0.0);
-		for (unsigned int cont = 0; cont < 3; cont++) {
-			this->SetNonConvergedDamages(0, cont);
-			this->SetNonConvergedEquivalentStress(0, cont);
-		}
-	}
 
 	// Characteristic length Calculations
-	void SetCharacteristicLength(double af, int cont) { mL_char[cont] = af; }
-	double Get_l_char(int cont) { return mL_char[cont]; }
-	double CalculateLchar(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
-
-	// Auxiliar functions...
-	void IterationPlus() { iteration++; }
-	int GetIteration() { return iteration; }
-	void SetToZeroIteration() { iteration = 0; }
+	double CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
 
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
+	double CalculateElementalDamage(const Vector& rEdgeDamages);
 
 	// Functions to calculate the Constitutive tangent tensor by numerical derivation
-	double GetMaxValue(Vector Strain);
-	double GetMaxAbsValue(Vector Strain);
-	double GetMinAbsValue(Vector Strain);
+	double GetMaxValue(const Vector& rValues);
+	double GetMaxAbsValue(const Vector& rValues);
+	double GetMinAbsValue(const Vector& rValues);
 
-	void SetIntegratedStressVector(Vector toIntegratedStressVector)
-	{
-		toIntegratedStressVector.resize(3);
-		mIntegratedStressVector = toIntegratedStressVector;
-	}
-	
-	Vector GetIntegratedStressVector() { return mIntegratedStressVector; }
-
-	void SetBMatrix(Matrix toBMatrix)
-	{
-		toBMatrix.resize(3, 6);
-		mB = toBMatrix;
-	}
-
-	Matrix GetBMatrix() { return mB; }
 
 	void CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX);
 
@@ -193,31 +162,41 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 		const Variable<Vector> &rVariable, std::vector<Vector> &rValues,
 		const ProcessInfo &rCurrentProcessInfo) override;
 
+	void CalculateTangentTensor(
+		Matrix& TangentTensor,
+		const Vector& rStrainVectorGP,
+		const Vector& rStressVectorGP,
+		const Matrix& rElasticMatrix);
+	void CalculatePerturbation(
+		const Vector& rStrainVectorGP,
+		double& rPerturbation,
+		const int Component);
+	void PerturbateStrainVector(
+		Vector& rPerturbedStrainVector,
+		const Vector& rStrainVectorGP,
+		const double Perturbation,
+		const int Component);
+	void IntegratePerturbedStrain(
+		Vector& rPerturbedStressVector,
+		const Vector& rPerturbedStrainVector,
+		const Matrix& rElasticMatrix);
+	void AssignComponentsToTangentTensor(
+		Matrix& rTangentTensor,
+		const Vector& rDeltaStress,
+		const double Perturbation,
+		const int Component);
+
        private:
-	int iteration = 0;
-
+	int mNumberOfEdges;
 	// Each component == Each edge
-	Vector mF_sigmas = ZeroVector(3);   // Mohr-Coulomb equivalent stress
-	Vector mThresholds = ZeroVector(3); // Stress mThreshold on edge
-
+	Vector mThresholds; // Stress mThreshold on edge
+	Vector mNonConvergedThresholds; // Stress mThreshold on edge
 	double mThreshold = 0.0;
-	double mF_sigma = 0.0;
-
-	Vector mDamages = ZeroVector(3); // Converged mDamage on each edge
+	Vector mDamages; // Converged mDamage on each edge
 	double mDamage = 0.0;			 // Converged mDamage
-
-	Vector mNonConvergedDamages = ZeroVector(3); // mDamages on edges of "i" iteration
-	Vector mNonConvergedFsigmas = ZeroVector(3); // Equivalent stress of "i" iteration
-
-	double mNonConvergedFsigma = 0.0;
-	double mNonConvergedDamage = 0.0; // mDamage of the element of "i" iteration
-
-	Vector mL_char = ZeroVector(3); // Characteristic length on each edge
-
-	Vector mIntegratedStressVector = ZeroVector(3);
-	Matrix mB = ZeroMatrix(3, 6);
+	Vector mNonConvergedDamages; // mDamages on edges of "i" iteration
 
 }; // Class FemDem2DElement
 
 } // Namespace Kratos
-#endif // KRATOS_ALECORNVEL_ELEMENT_H_INCLUDED  defined
+#endif 

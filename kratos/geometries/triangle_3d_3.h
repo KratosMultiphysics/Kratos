@@ -823,12 +823,11 @@ public:
     }
 
     /**
-     * It computes the area normal of the geometry
-     * @param rPointLocalCoordinates Local coordinates of the point
-     * in where the area normal is to be computed
-     * @return The area normal in the given point
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
      */
-    array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const override
+    array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const override
     {
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);

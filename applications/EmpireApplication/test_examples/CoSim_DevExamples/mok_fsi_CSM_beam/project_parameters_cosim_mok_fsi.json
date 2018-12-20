@@ -1,0 +1,258 @@
+{
+    "problem_data" :
+    {
+        "start_time"   : 0.0,
+        "end_time"     : 15.0,
+        "print_colors" : true
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "gauss_seidel_strong_coupling",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 10,
+        "start_coupling_time" : 0.0,
+        "predictor_settings" :
+        {
+            "predictor_type" : "linear_derivative_based",
+            "io_type"        : "kratos_signal",
+            "data_list"      : 
+            [
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "front_disp"
+                },
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "top_disp"
+                },
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "back_disp"
+                }
+
+            ],
+            "derivative_list"      : 
+            [
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "front_vel"
+                },
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "top_vel"
+                },
+                {
+                    "from_solver": "structure",
+                    "data_name"  : "back_vel"
+                }
+
+            ]
+        },
+        "convergence_accelerator_settings" :
+        {
+            "type"          : "mvqn",
+            "io_type"       : "kratos_signal",
+            "data_list" :
+            [
+                {
+                    "from_solver"   : "fluid",
+                    "data_name"     : "front_disp"
+                },
+                {
+                    "from_solver"   : "fluid",
+                    "data_name"     : "top_disp"
+                },
+                {
+                    "from_solver"   : "fluid",
+                    "data_name"     : "back_disp"
+                }
+            ]
+        },
+        "convergence_criteria_settings" :
+        {
+            "io_type"   : "kratos_signal",
+            "echo_level": 2,
+            "data_list" :
+            [
+                {
+                    "from_solver"   : "fluid",
+                    "data_name"     : "front_disp",
+                    "abs_tolerance" : 1e-6,
+                    "rel_tolerance" : 1e-4
+                }
+            ]
+        },
+        "coupling_loop":
+        [
+        {
+            "name": "fluid",
+            "input_data_list": [
+                {
+                    "from_solver" : "structure",
+                    "data_name"   : "front_disp"
+                },
+                {
+                    "from_solver" : "structure",
+                    "data_name"   : "top_disp"
+                },
+                {
+                    "from_solver" : "structure",
+                    "data_name"   : "back_disp"
+                }
+            ],
+            "output_data_list": [
+                {
+                    "to_solver"   : "structure",
+                    "data_name"   : "front_force"
+                },
+                {
+                    "to_solver"   : "structure",
+                    "data_name"   : "top_force"
+                },
+                {
+                    "to_solver"   : "structure",
+                    "data_name"   : "back_force"
+
+                }
+            ]
+        },
+        {
+            "name": "structure",
+            "output_data_list": [
+                {
+                    "to_solver"   : "fluid",
+                    "data_name"   : "front_disp",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor"
+                    }
+                },
+                {
+                    "to_solver"   : "fluid",
+                    "data_name"   : "top_disp",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor"
+                    }
+                },
+                {
+                    "to_solver"   : "fluid",
+                    "data_name"   : "back_disp",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor"
+                    }
+                }
+            ],
+            "input_data_list": [
+                {
+                    "from_solver" : "fluid",
+                    "data_name"   : "front_force",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor",
+                        "mapper_args" : ["swap_sign", "conservative"]
+                    }
+                },
+                {
+                    "from_solver" : "fluid",
+                    "data_name"   : "top_force",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor",
+                        "mapper_args" : ["add_values", "swap_sign", "conservative"]
+                    }
+                },
+                {
+                    "from_solver" : "fluid",
+                    "data_name"   : "back_force",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor",
+                        "mapper_args" : ["add_values", "swap_sign", "conservative"]
+                    }
+                }
+            ]
+        }
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "solver_type" : "kratos_fluid",
+                "input_file"  : "ProjectParametersCFD",
+                "io_settings" : {
+                    "io_type"     : "kratos_field",
+                    "echo_level"  : 4
+                },
+                "data" : {
+                    "front_disp" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_front",
+                        "data_identifier" : "MESH_DISPLACEMENT"
+                    },
+                    "top_disp" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_Top",
+                        "data_identifier" : "MESH_DISPLACEMENT"
+                    },
+                    "back_disp" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_back",
+                        "data_identifier" : "MESH_DISPLACEMENT"
+                    },
+                    "front_force" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_front",
+                        "data_identifier" : "REACTION"
+                    },
+                    "top_force" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_Top",
+                        "data_identifier" : "REACTION"
+                    },
+                    "back_force" : {
+                        "geometry_name" : "FluidModelPart.NoSlip2D_Beam_back",
+                        "data_identifier" : "REACTION"
+                    }
+                }
+            },
+            "structure" :
+            {
+                "solver_type" : "kratos_structural",
+                "input_file"  : "ProjectParametersCSM",
+                "io_settings" : {
+                    "io_type"     : "kratos_field",
+                    "echo_level"  : 4
+                },
+                "data" : {
+                    "front_disp" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "DISPLACEMENT"
+                    },
+                    "top_disp" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "DISPLACEMENT"
+                    },
+                    "back_disp" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "DISPLACEMENT"
+                    },
+                    "front_force" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "POINT_LOAD"
+                    },
+                    "top_force" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "POINT_LOAD"
+                    },
+                    "back_force" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "POINT_LOAD"
+                    },
+                    "front_vel" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "VELOCITY"
+                    },
+                    "top_vel" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "VELOCITY"
+                    },
+                    "back_vel" : {
+                        "geometry_name" : "Structure.GENERIC_Beam",
+                        "data_identifier" : "VELOCITY"
+                    }
+                }
+            }
+        }
+    }
+}

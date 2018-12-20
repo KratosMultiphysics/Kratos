@@ -292,6 +292,53 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateLodeAngle(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
+double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const GeometryType& rGeometry)
+{
+    double radius = 0.0;
+    const Point& r_center = rGeometry.Center();
+
+    for(IndexType i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)  {
+        const array_1d<double, 3>& aux_vector = r_center.Coordinates() - rGeometry[i_node].Coordinates();
+        const double aux_value = inner_prod(aux_vector, aux_vector);
+        if(aux_value > radius) radius = aux_value;
+    }
+
+    return radius;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
+Matrix ConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
+{
+    // We update the deformation gradient
+    Matrix equivalent_F(Dimension, Dimension);
+
+    if(Dimension == 2) {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[2];
+        equivalent_F(1,0) = 0.5 * rStrainVector[2];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+    } else {
+        equivalent_F(0,0) = 1.0 + rStrainVector[0];
+        equivalent_F(0,1) = 0.5 * rStrainVector[3];
+        equivalent_F(0,2) = 0.5 * rStrainVector[5];
+        equivalent_F(1,0) = 0.5 * rStrainVector[3];
+        equivalent_F(1,1) = 1.0 + rStrainVector[1];
+        equivalent_F(1,2) = 0.5 * rStrainVector[4];
+        equivalent_F(2,0) = 0.5 * rStrainVector[5];
+        equivalent_F(2,1) = 0.5 * rStrainVector[4];
+        equivalent_F(2,2) = 1.0 + rStrainVector[2];
+    }
+
+    return equivalent_F;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateGreenLagrangianStrain(
     const MatrixType& rCauchyTensor,
     Vector& rStrainVector

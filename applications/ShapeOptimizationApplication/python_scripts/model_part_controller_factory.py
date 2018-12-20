@@ -78,9 +78,21 @@ class ModelPartController:
         model_part_io = ModelPartIO(input_filename)
         model_part_io.ReadModelPart(self.optimization_model_part)
 
+        self.SetMinimalBufferSize(1)
+
+    # --------------------------------------------------------------------------
+    def SetMinimalBufferSize(self, buffer_size):
+        if self.optimization_model_part.GetBufferSize() < buffer_size:
+            self.optimization_model_part.SetBufferSize(buffer_size)
+
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
         self.mesh_controller.Initialize()
+
+    # --------------------------------------------------------------------------
+    def UpdateTimeStep(self, step):
+        self.optimization_model_part.CloneTimeStep(step)
+        self.optimization_model_part.ProcessInfo.SetValue(STEP, step)
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):
