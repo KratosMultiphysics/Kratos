@@ -9,6 +9,7 @@ def Factory(settings, Model):
 
 ## All the processes python should be derived from "Process"
 class VtkOutputProcess(KratosMultiphysics.Process):
+    "IMPORTANT : when output_control_type is time, then paraview will not be able to group them "
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
