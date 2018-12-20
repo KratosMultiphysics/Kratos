@@ -24,6 +24,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 "mesh_id"                   : 0,
                 "model_part_name"           : "please specify the model part that contains the kutta nodes",
                 "fluid_part_name"           : "MainModelPart",
+                "upper_surface_model_part_name" : "Body2D_UpperSurface",
+                "lower_surface_model_part_name" : "Body2D_LowerSurface",
                 "direction"                 : [1.0,0.0,0.0],
                 "stl_filename"              : "please specify name of stl file",
                 "epsilon"    : 1e-9,
@@ -51,6 +53,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         self.model=Model
         self.wake_model_part_name=settings["model_part_name"].GetString()
+        self.upper_surface_model_part_name=settings["upper_surface_model_part_name"].GetString()
+        self.lower_surface_model_part_name=settings["lower_surface_model_part_name"].GetString()
         self.wake_line_model_part=Model.CreateModelPart("wake")
         angle=math.radians(-self.geometry_parameter)
         for node in self.wake_line_model_part.Nodes:
@@ -108,7 +112,19 @@ class DefineWakeProcess(KratosMultiphysics.Process):
 
         # self.kutta_model_part=self.model.CreateModelPart(self.wake_model_part_name)
         # self.kutta_model_part.AddNode(kutta_node,0)
-     
+    def FindKuttaNode(self):
+        max_x=-1e30
+        upper_surface=self.model.GetModelPart(self.upper_surface_model_part_name)
+        lower_surface=self.model.GetModelPart(self.lower_surface_model_part_name)
+        for node in upper_surface.Nodes:
+            if node.X > max_x:
+                max_x=node.X 
+                kutta_node=node
+        for node in lower_surface.Nodes:
+            if node.X > max_x:
+                max_x=node.X 
+                kutta_node=node
+        return kutta_node
         
         
     def FindWake(self):
@@ -189,7 +205,13 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalize()
                                         
         else:
-            self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)         
+            if self.model.HasModelPart(self.wake_model_part_name):
+                self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)     
+            else:
+                kutta_node=self.FindKuttaNode()
+                self.kutta_model_part = self.model.CreateModelPart('Kutta')
+                self.kutta_model_part.AddNode(kutta_node,0)
+
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
             # Neigbour search tool instance
@@ -203,23 +225,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             for node in self.kutta_model_part.Nodes:
                 print("Wake Node:",node.Id,": (", node.X,",",node.Y,")")            
                 node.Set(KratosMultiphysics.STRUCTURE) 
-            #     master_node=node
-            # count=1
-            # for elem in self.fluid_model_part.Elements:
-            #     for node in elem.GetNodes():
-            #         if (node.Is(KratosMultiphysics.STRUCTURE)):
-            #             elem.Set(KratosMultiphysics.SELECTED)
-            #             # elem.Set(KratosMultiphysics.MARKER,True)
-            # for elem in self.fluid_model_part.Elements:
-            #     if elem.Is(KratosMultiphysics.SELECTED):
-            #         print("kutta element:", elem.Id)
-            #         for node in elem.GetNodes():
-            #             if (node.IsNot(KratosMultiphysics.STRUCTURE) and node.IsNot(KratosMultiphysics.SLAVE)):
-            #                 node.Set(KratosMultiphysics.SLAVE)
-            #                 print('Master:',master_node.Id,', Slave:',node.Id)
-            #                 self.fluid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count, master_node, CompressiblePotentialFlow.POSITIVE_POTENTIAL, node, CompressiblePotentialFlow.POSITIVE_POTENTIAL, 1.0, 0)
-            #                 # self.fluid_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", count+1, master_node, CompressiblePotentialFlow.NEGATIVE_POTENTIAL, node, CompressiblePotentialFlow.NEGATIVE_POTENTIAL, 1.0, 0)
-            #                 count += 1
             
             
             #compute the distances of the elements of the wake, and decide which ones are wak    
