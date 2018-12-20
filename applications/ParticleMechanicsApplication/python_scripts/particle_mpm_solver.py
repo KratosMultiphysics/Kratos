@@ -48,23 +48,15 @@ class ParticleMPMSolver(PythonSolver):
             "material_import_settings"           : {
                 "materials_filename" : ""
             },
-            "time_step_prediction_level"         : "Automatic",
-            "rayleigh_damping"                   : false,
             "pressure_dofs"                      : false,
-            "reform_dof_set_at_each_step"        : false,
-            "line_search"                        : false,
-            "implex"                             : false,
-            "compute_reactions"                  : true,
-            "compute_contact_forces"             : false,
+            "compute_reactions"                  : false,
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
             "displacement_absolute_tolerance"    : 1.0E-9,
             "residual_relative_tolerance"        : 1.0E-4,
             "residual_absolute_tolerance"        : 1.0E-9,
-            "max_iteration"                      : 10,
-            "number_of_material"                 : 1,
+            "max_iteration"                      : 20,
             "axis_symmetric_flag"                : false,
-            "impenetrability_condition"          : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
@@ -100,6 +92,11 @@ class ParticleMPMSolver(PythonSolver):
             warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "particle_per_element", '
             warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
             self.print_warning_on_rank_zero("Particle per element", warning)
+        if custom_settings.Has("line_search"):
+            custom_settings.RemoveValue("line_search")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "line_search", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Geometry element", warning)
 
         # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -164,17 +161,14 @@ class ParticleMPMSolver(PythonSolver):
         self.abs_disp_tol               = self.settings["displacement_absolute_tolerance"].GetDouble()
         self.rel_res_tol                = self.settings["residual_relative_tolerance"].GetDouble()
         self.abs_res_tol                = self.settings["residual_absolute_tolerance"].GetDouble()
-        self.max_iters                  = self.settings["max_iteration"].GetInt()
+        self.max_iteration              = self.settings["max_iteration"].GetInt()
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
 
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
-        self.compute_contact_forces = self.settings["compute_contact_forces"].GetBool()
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
-        self.line_search            = self.settings["line_search"].GetBool()
-        self.implex                 = self.settings["implex"].GetBool()
         self.axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
@@ -218,12 +212,12 @@ class ParticleMPMSolver(PythonSolver):
         # Initialize solver
         if(self.domain_size==2):
             self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
-                                self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
         else:
             self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
-                                self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.block_builder,
-                                self.pressure_dofs)
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level
         self._set_echo_level()
