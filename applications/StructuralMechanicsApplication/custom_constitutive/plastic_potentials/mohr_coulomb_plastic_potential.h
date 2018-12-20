@@ -129,15 +129,18 @@ public:
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ3Invariant(rDeviator, J3);
         ConstitutiveLawUtilities<VoigtSize>::CalculateLodeAngle(J2, J3, lode_angle);
 
-        const double c1 = std::sin(dilatancy);
-        const double c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
-            std::sin(dilatancy) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
-
-        double c3;
-        if (J2 > tolerance) {
-            c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) / 
+        double c1, c3, c2;
+		double checker = std::abs(lode_angle * 180.0 / Globals::Pi);
+        
+        if (std::abs(checker) < 29.0) {
+            c1 = std::sin(dilatancy);
+            c3 = (std::sqrt(3.0) * std::sin(lode_angle) + std::sin(dilatancy) * std::cos(lode_angle)) /
                 (2.0 * J2 * std::cos(3.0 * lode_angle));
-        } else {
+            c2 = 0.5 * std::cos(lode_angle)*(1.0 + std::tan(lode_angle) * std::sin(3.0 * lode_angle) +
+                std::sin(dilatancy) * (std::tan(3.0 * lode_angle) - std::tan(lode_angle)) / std::sqrt(3.0));
+        } else { // smoothing with drucker-praguer
+            c1 = 3.0 * (2.0 * std::sin(dilatancy) / (std::sqrt(3.0) * (3.0 - std::sin(dilatancy))));
+            c2 = 1.0;
             c3 = 0.0;
         }
 
