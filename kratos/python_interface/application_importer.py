@@ -25,4 +25,4 @@ def ImportApplication(application, application_name, application_folder, caller,
         mod_path.append(python_path)
 
     # Add application to kernel
-Kernel.ImportApplication(application)
+    Kernel.ImportApplication(application)
