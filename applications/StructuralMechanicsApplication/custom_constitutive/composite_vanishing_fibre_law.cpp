@@ -101,7 +101,6 @@ ConstitutiveLaw::Pointer CompositeVanishingFibreLaw::Create(Kratos::Parameters N
 
 CompositeVanishingFibreLaw::~CompositeVanishingFibreLaw()
 {
-    // TODO FRastellini: To check. Is it necessary to destruct also the components CLs????
 };
 
 /***********************************************************************************/
@@ -567,7 +566,7 @@ bool& CompositeVanishingFibreLaw::CalculateValue(
     // We combine the value of each layer (for bools could be problematic)
     rValue = false;
     for (IndexType i = 0; i < mCombinationFactors.size(); ++i) {
-        const double factor = mCombinationFactors[i];
+        //const double factor = mCombinationFactors[i];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
         Properties& r_prop = material_properties.GetSubProperty(i + 1);
 
@@ -949,8 +948,8 @@ void CompositeVanishingFibreLaw::InitializeMaterial(
         Properties& r_prop = *(it_cl_begin + i);
         
         KRATOS_ERROR_IF_NOT(r_prop.Has(CONSTITUTIVE_LAW)) << "CompositeVanishingFibreLaw: No constitutive law set" << std::endl;
-        mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();
-        mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+        mConstitutiveLaws[i] = r_prop[CONSTITUTIVE_LAW]->Clone();        //WARNING FRastellini: Should we do a clone here????
+        mConstitutiveLaws[i]->InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);   //WARNING FRastellini: Should we use sub-properties here????
     }
     
     KRATOS_DEBUG_ERROR_IF(mConstitutiveLaws.size() == 0) << "CompositeVanishingFibreLaw: No CL defined" << std::endl;
@@ -1098,15 +1097,23 @@ void  CompositeVanishingFibreLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
         Matrix constitutive_matrix = ZeroMatrix(voigt_size, voigt_size);
-        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor = mCombinationFactors[i];
+        for (IndexType icomp = 0; icomp < mConstitutiveLaws.size(); ++icomp) {
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + icomp);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[icomp];
+            const double factor = mCombinationFactors[icomp];
 
             rValues.SetMaterialProperties(r_prop);
             Matrix aux_value(voigt_size, voigt_size);
             p_law->CalculateValue(rValues, CONSTITUTIVE_MATRIX_PK2, aux_value);
             constitutive_matrix += factor * aux_value;
+            
+                        
+            constitutive_matrix(1,1) += factor * aux_value(1,1); // fiber & matrix contribute to fiber direction
+            if( icomp == 1 ) {
+                for (IndexType i = 1; i < voigt_size; ++i)  
+                for (IndexType j = 1; j < voigt_size; ++j)  
+                constitutive_matrix(i,j) = aux_value(i,j);    // matrix contribute to trasversal direction
+            }
         }
 
         rValues.GetConstitutiveMatrix() = constitutive_matrix;
@@ -1115,15 +1122,20 @@ void  CompositeVanishingFibreLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::
 
     if( r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
         Vector stress_vector = ZeroVector(voigt_size);
-        for (IndexType i = 0; i < mConstitutiveLaws.size(); ++i) {
-            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + i);
-            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i];
-            const double factor = mCombinationFactors[i];
-
+        for (IndexType icomp = 0; icomp < mConstitutiveLaws.size(); ++icomp) {
+            Properties& r_prop = *(r_material_properties.GetSubProperties().begin() + icomp);
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[icomp];
+            const double factor = mCombinationFactors[icomp];
+            
             rValues.SetMaterialProperties(r_prop);
             Vector aux_value(voigt_size);
             p_law->CalculateValue(rValues, PK2_STRESS_VECTOR, aux_value);
-            stress_vector += factor * aux_value;
+            
+            stress_vector(0) += factor * aux_value(0); // fiber & matrix contribute to fiber direction
+            if( icomp == 1 ) {
+                for (IndexType i = 1; i < voigt_size; ++i)  
+                stress_vector(i) = aux_value(i);    // matrix contribute to trasversal direction
+            }
         }
 
         rValues.GetStressVector() = stress_vector;
