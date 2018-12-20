@@ -27,6 +27,11 @@ message("-- No KRATOS_BINARY_DIR is defined, using: ${CMAKE_BINARY_DIR}")
 set(KRATOS_BINARY_DIR ${CMAKE_BINARY_DIR})
 endif(NOT DEFINED KRATOS_BINARY_DIR)
 
+if(NOT DEFINED INSTALL_RUNKRATOS)
+message("-- No INSTALL_RUNKRATOS is defined, setting to ON")
+set(INSTALL_RUNKRATOS ON)
+endif(NOT DEFINED INSTALL_RUNKRATOS)
+
 # Set kratos specific module path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${KRATOS_SOURCE_DIR}/cmake_modules")
 
@@ -442,7 +447,7 @@ endif(DEFINED KRATOS_EXT_APP)
 
 # Embedded python - compiles "krun and packages the python lib needed"
 if(${INSTALL_RUNKRATOS} MATCHES ON )
-    add_subdirectory(runkratos)
+    add_subdirectory(kratos/run_kratos)
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 # Mpi
