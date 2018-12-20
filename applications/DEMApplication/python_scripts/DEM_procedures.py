@@ -958,7 +958,7 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         evaluate_computation_of_fem_results()
 
-    def MoveAllMeshes(self, all_model_parts, time, dt):
+    def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")

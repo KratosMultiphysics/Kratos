@@ -437,7 +437,7 @@ class Solution(object):
 
             self.AfterSolveOperations()
 
-            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+            self.solver.MoveAllMeshes(self.time, self.solver.dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -617,7 +617,7 @@ class Solution(object):
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+        self.solver.MoveAllMeshes(self.time, self.solver.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():

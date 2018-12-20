@@ -102,7 +102,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # creating a basset_force tool to perform the operations associated
         # with the calculation of this force along the path of each particle
-        self.GetBassetForceTools()
         self.disperse_phase_solution.SetAnalyticFaceWatcher()
 
         # defining member variables for the model_parts (for convenience)
@@ -112,10 +111,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.rigid_face_model_part = self.disperse_phase_solution.rigid_face_model_part
         self.DEM_inlet_model_part = self.disperse_phase_solution.DEM_inlet_model_part
         vars_man.ConstructListsOfVariables(self.pp)
-        super(SwimmingDEMAnalysis, self).__init__(model, self.pp.fluid_parameters)
+        super(SwimmingDEMAnalysis, self).__init__(model, self.pp.CFD_DEM) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
     def ReadFluidParameters(self):
-        with open("ProjectParameters.json",'r') as parameter_file:
+        with open("ProjectParameters.json", 'r') as parameter_file:
             self.pp.fluid_parameters = Parameters(parameter_file.read())
             gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
@@ -327,7 +326,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def Initialize(self):
         Say('Initializing Problem...\n')
-
         self.run_code = self.GetRunCode()
 
         # Moving to the recently created folder
@@ -380,6 +378,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.SetPointGraphPrinter()
 
         self.AssignKinematicViscosityFromDynamicViscosity()
+        super(SwimmingDEMAnalysis, self).Initialize()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
         # the similarity transformation if required (fluid effects only).
@@ -620,6 +619,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def InitializeSolutionStep(self):
         self.TellTime(self.time)
         self.PerformInitialDEMStepOperations(self.time)
+        self.disperse_phase_solution.InitializeSolutionStep()
+        self.fluid_solution.InitializeSolutionStep()
+        super(SwimmingDEMAnalysis, self).InitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
     def RunSolutionLoop(self):
 
@@ -637,57 +642,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self._GetSolver().Predict()
             # solving the fluid part
             self._GetSolver().SolveSolutionStep()
-                # assessing stationarity
-
 
             # printing if required
 
             if self.particles_results_counter.Tick():
                 Print()
-
-            # solving the DEM part
-
-            self.derivative_recovery_counter.Activate(self.time > interaction_start_time)
-
-            if self.derivative_recovery_counter.Tick():
-                self.RecoverDerivatives()
-
-            Say('Solving DEM... (', self.spheres_model_part.NumberOfElements(0), 'elements )')
-
-            it_is_time_to_forward_couple = (
-                self.time >= interaction_start_time and
-                coupling_level_type and
-                (project_at_every_substep_option or self._GetSolver().calculating_fluid_in_current_step)
-            )
-
-            if it_is_time_to_forward_couple:
-
-                if coupling_scheme_type == "UpdatedDEM":
-                    self.ApplyForwardCoupling()
-
-                else:
-                    alpha = 1.0 - (self._GetSolver().next_time_to_solve_fluid - self.time) / self.Dt
-                    self.ApplyForwardCoupling(alpha)
-
-            if self.quadrature_counter.Tick():
-                self.AppendValuesForTheHistoryForce()
-
-            if integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
-                # Advance in space only
-                self.DEMSolve(self.time)
-                self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
-
-            # performing the time integration of the DEM part
-
-            if self.do_solve_dem:
-                self.DEMSolve(self.time)
-
-            self.disperse_phase_solution.DEMFEMProcedures.MoveAllMeshes(
-                self.all_model_parts,
-                self.time,
-                self.Dt_DEM)
-
-            #### TIME CONTROL ##################################
 
             # adding DEM elements by the inlet:
             if dem_inlet_option:
@@ -715,10 +674,15 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.dem_volume_tool.UpdateDataAndPrint(
                     self.pp.CFD_DEM["fluid_domain_volume"].GetDouble())
 
-            # printing if required
+            self.FinalizeSolutionStep()
+            self.OutputSolutionStep()
 
-            if self.particles_results_counter.Tick():
-                Print()
+    def OutputSolutionStep(self):
+        # printing if required
+
+        if self.particles_results_counter.Tick():
+            Print()
+        super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
     def Print(self):
         self.io_tools.PrintParticlesResults(
@@ -913,26 +877,18 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or
             self.pp.CFD_DEM["basset_force_type"].GetInt() == 1)
         if not_neglecting_history_force:
-            self.basset_force_tool.FillDaitcheVectors(
+            self._GetSolver().basset_force_tool.FillDaitcheVectors(
                 N_steps,
                 self.pp.CFD_DEM["quadrature_order"].GetInt(),
                 self.pp.CFD_DEM["time_steps_per_quadrature_step"].GetInt())
         if using_hinsberg_method:
-            self.basset_force_tool.FillHinsbergVectors(
+            self._GetSolver().basset_force_tool.FillHinsbergVectors(
                 self.spheres_model_part,
                 self.pp.CFD_DEM["number_of_exponentials"].GetInt(),
                 self.pp.CFD_DEM["number_of_quadrature_steps_in_window"].GetInt())
 
-    def AppendValuesForTheHistoryForce(self):
-        using_hinsberg_method = (
-            self.pp.CFD_DEM["basset_force_type"].GetInt() >= 3 or
-            self.pp.CFD_DEM["basset_force_type"].GetInt() == 1)
-        if using_hinsberg_method:
-            self.basset_force_tool.AppendIntegrandsWindow(self.spheres_model_part)
-        elif self.pp.CFD_DEM["basset_force_type"].GetInt() == 2:
-            self.basset_force_tool.AppendIntegrands(self.spheres_model_part)
 
-    def GetBassetForceTools(self):
+    def GetBassetForceTools(self): # TODO: deprecated
         self.basset_force_tool = BassetForceTools()
 
     def GetFieldUtility(self):

@@ -20,6 +20,7 @@ class ExplicitStrategy(object):
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
+        self.mesh_motion = DEMFEMUtilities()
 
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
@@ -324,6 +325,18 @@ class ExplicitStrategy(object):
         time += self.dt
         self.UpdateTimeInModelParts(time, step, is_time_to_print)
         return step, time
+
+    def MoveAllMeshes(self, time, dt):
+
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
 
     def UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
         spheres_model_part = self.all_model_parts.Get("SpheresPart")

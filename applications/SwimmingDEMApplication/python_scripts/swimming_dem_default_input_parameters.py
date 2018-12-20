@@ -3,9 +3,18 @@ import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
-    
+
     default_settings = KratosMultiphysics.Parameters("""
         {
+            "echo_level"                  : 1,
+            "problem_data"     : {
+                "problem_name"  : "dummy_name.Provide_a_real_one",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 1,
+                "start_time"    : 0.0,
+                "end_time"      : 1
+            },
+            "processes" : {},
             "coupling_level_type"                    : 1,
             "time_averaging_type"                    : 0,
             "interaction_start_time"                 : 0.0,
@@ -144,9 +153,9 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
-            
+
             "PredefinedSkinOption"             : false,
             "MeanRadius"                       : 0.0001
             }""")
-            
+
     return default_settings
