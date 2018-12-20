@@ -20,7 +20,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "output_control_type"                : "step",
             "output_frequency"                   : 1.0,
             "output_sub_model_parts"             : true,
-            "folder_name"                        : "",
+            "folder_name"                        : "VTK_Output",
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
@@ -36,11 +36,6 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         self.settings.ValidateAndAssignDefaults(default_parameters)
         folder_name = self.settings["folder_name"].GetString()
 
-        if(self.settings["folder_name"].GetString() == ""):
-            self.settings["folder_name"].SetString("VTK_Output_test")
-
-        folder_name = self.settings["folder_name"].GetString()
-
         if self.settings["save_output_files_in_folder"].GetBool() :
             if(os.path.isdir(folder_name)):
                 if(not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]):
@@ -48,7 +43,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
                     shutil.rmtree(folder_name)
             os.mkdir(folder_name)
 
-         self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
+        self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
 
         self.output_frequency = self.settings["output_frequency"].GetDouble()
         #
@@ -67,7 +62,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
 
     def PrintOutput(self):
         if(self.IsOutputStep()):
-            self.cpp_process.PrintOutput()
+            self.vtk_io.PrintOutput()
 
             # Schedule next output
             time = self.__GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
