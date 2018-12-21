@@ -92,7 +92,7 @@ namespace Kratos
 
 			typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 			typedef ExplicitStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-			// typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+			typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
 
 			//********************************************************************
 			//********************************************************************
@@ -135,7 +135,7 @@ namespace Kratos
             py::class_<
                 ResidualBasedPredictorCorrectorVelocityBossakAleScheme<SparseSpaceType, LocalSpaceType>,
                 ResidualBasedPredictorCorrectorVelocityBossakAleScheme<SparseSpaceType, LocalSpaceType>::Pointer,
-                ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent<SparseSpaceType, LocalSpaceType>>
+                BaseSchemeType>
                 (m, "ResidualBasedPredictorCorrectorVelocityBossakAleScheme")
             .def(py::init<double, double, unsigned int, Process::Pointer>())
             .def(py::init<double, double, unsigned int>())                        // constructor without a turbulence model
