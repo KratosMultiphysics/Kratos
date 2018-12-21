@@ -266,7 +266,6 @@ namespace Kratos
             {
                 this->AssembleNodalSensitivityContribution(
                     rOutputVariable, sensitivity_vector[k], r_geom);
-                KRATOS_WATCH(sensitivity_vector[k])
             }
         }
 
@@ -333,8 +332,20 @@ namespace Kratos
 
             if(response_gradient[k].size() > 0)
             {
-                if (sensitivity_vector[k].size() != response_gradient[k].size())
+                // This is causing a bug because in case sensitivity_vector[k] is empty vector,
+                // and response_gradient[k] is not empty vector, then sensitivity_vector[k] is
+                // initialized with arbitrary value
+                // if (sensitivity_vector[k].size() != response_gradient[k].size())
+                //     sensitivity_vector[k].resize(response_gradient[k].size(), false);
+
+                if ( (sensitivity_vector[k].size() != response_gradient[k].size() ) && (sensitivity_vector[k].size() > 0))
+                {
                     sensitivity_vector[k].resize(response_gradient[k].size(), false);
+                } 
+                else if ((sensitivity_vector[k].size() != response_gradient[k].size() ) && (sensitivity_vector[k].size() == 0))
+                {
+                    sensitivity_vector[k] = ZeroVector(response_gradient[k].size());
+                }
 
                 // Add the partial response gradient
                 noalias(sensitivity_vector[k]) += response_gradient[k];

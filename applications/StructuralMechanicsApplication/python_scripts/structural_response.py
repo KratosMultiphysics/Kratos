@@ -426,6 +426,9 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         
         ## run the solution loop
         # TODO Mahmoud: this leads to wrong result because calculatevalue() is called twice for the last step
+        # import csv
+        # with open('response_values_perturb_node2Z_0.00001.csv', mode='w') as response_values:
+        #     self.writer = csv.writer(response_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
             self.primal_analysis.InitializeSolutionStep()
@@ -434,7 +437,10 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.FinalizeSolutionStep()
             self.primal_analysis.OutputSolutionStep()
             self.CalculateResponseIncrement()
-        
+                
+            #    self.writer.writerow([self.primal_analysis.time, self.response_value])
+        #response_values.close()
+
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
@@ -458,6 +464,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
     # TODO Mahmoud: this function is implemented to avoid the calling CalculateValue() twice for the last step    
     # this is a temporary fix that should be amended later on 
+
     def CalculateResponseIncrement(self):
         startTime = timer.time()
         incremental_response_value = self._GetResponseFunctionUtility().CalculateValue(self.primal_model_part)

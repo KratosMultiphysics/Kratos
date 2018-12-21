@@ -306,11 +306,25 @@ public:
         mpResponseFunction->CalculateGradient(
              *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
+        std::cout << "condition rRHS_Contribution" << rRHS_Contribution << ":" << std::endl;
+
         noalias(rRHS_Contribution) = -rRHS_Contribution;
+
+        // TODO consult Mike:
+        // LHS may be resized to 0,0 if the condition does not have a LHS. 
+        // Obviously in the builder and solver only the size of the LHS is checked, and if that is zero, also the RHS is not assembled
+        // This is why we need to create a ZeroMatrix of size of RHS here.
+        if (rLHS_Contribution.size1() == 0 && rRHS_Contribution.size() != 0)
+            rLHS_Contribution = ZeroMatrix(rRHS_Contribution.size(), rRHS_Contribution.size());
+        KRATOS_ERROR_IF(rLHS_Contribution.size1() != rRHS_Contribution.size()) <<
+            "Condition_CalculateSystemContributions: size missmatch between LHS and RHS!" << std::endl;
 
         // Calculate system contributions in residual form.
         pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
+        std::cout << "condition mAdjointValues[thread_id]_1 : " <<  mAdjointValues[thread_id] << ":" << std::endl;
+        std::cout << "condition rLHS_Contribution_1" << rLHS_Contribution << ":" << std::endl;
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
+        std::cout << "condition rRHS_Contribution_1" << rRHS_Contribution << ":" << std::endl;
 
         pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
@@ -323,12 +337,11 @@ public:
                                                ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
-        LocalSystemVectorType RHS_contribution;
 
-        RHS_contribution.resize(rLHS_Contribution.size1(), false);
+        // Calculate transposed gradient of condition residual w.r.t. primal solution.
+        pCurrentCondition->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 
-        Condition_CalculateSystemContributions(
-             pCurrentCondition, rLHS_Contribution, RHS_contribution, rEquationId, rCurrentProcessInfo);
+        pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
     }

@@ -23,7 +23,6 @@ namespace Kratos
     : AdjointStructuralResponseFunction(rModelPart, ResponseSettings)
     {
         // initializing mConditionsRHS 
-        // TODO Mahmoud: use std::map instead of vector
         for(auto& cond_i : rModelPart.Conditions())
         {
             SizeType number_of_nodes = cond_i.GetGeometry().size();
@@ -199,6 +198,8 @@ namespace Kratos
 
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
+        
+        //KRATOS_WATCH(rSensitivityGradient)
 
         KRATOS_CATCH("");
     }
@@ -225,6 +226,11 @@ namespace Kratos
                                                 const ProcessInfo& rProcessInfo)
     {
         KRATOS_TRY;   
+
+        if (rSensitivityGradient.size() != 0)
+            rSensitivityGradient.resize(0, false);
+        
+        
         
         KRATOS_CATCH("");
     }
