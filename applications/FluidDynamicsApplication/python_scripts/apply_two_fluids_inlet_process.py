@@ -96,7 +96,9 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
             settings["modulus"].SetDouble(self.modulus_water)
         # Sub model part "water_inlet" is defined and filled in KratosFluid.TwoFluidsInletProcess
         settings["model_part_name"].SetString("water_inlet")
-        self.aux_process_water = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
+
+        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
+            self.aux_process_water = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
         # adapt the (base) settings for the air values
         if ( isinstance(self.modulus_air, str) ):
@@ -105,13 +107,17 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
             settings["modulus"].SetDouble(self.modulus_air)
         # Sub model part "air_inlet" is defined and filled in KratosFluid.TwoFluidsInletProcess
         settings["model_part_name"].SetString("air_inlet")
-        self.aux_process_air = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
+
+        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
+            self.aux_process_air = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
 
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
-        self.aux_process_water.ExecuteInitializeSolutionStep()
-        self.aux_process_air.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
+            self.aux_process_water.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
+            self.aux_process_air.ExecuteInitializeSolutionStep()
 
         # Not sure if appropriate here...
         # PROBLEM: Could distort the physical properties
@@ -121,7 +127,9 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         # Call the base process ExecuteFinalizeSolutionStep()
-        self.aux_process_water.ExecuteInitializeSolutionStep()
-        self.aux_process_air.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
+            self.aux_process_water.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
+            self.aux_process_air.ExecuteInitializeSolutionStep()
 
         self.two_fluid_inlet_process.SmoothDistanceField()
