@@ -55,9 +55,7 @@ class MonteCarloAnalysis(AnalysisStage):
 
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
-        solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-        self.LaplacianSolver = solver
-        return self.LaplacianSolver
+        return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
     
     def _GetSimulationName(self):
         return "Monte Carlo Analysis"
@@ -262,7 +260,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json"
+        parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
@@ -303,7 +301,7 @@ if __name__ == '__main__':
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model_serializer = pickle.loads(pickled_model_0)
+    # model_serializer = pickle.loads(pickled_model)
     # current_model = KratosMultiphysics.Model()
     # model_serializer.Load("ModelSerialization",current_model)
     # del(model_serializer)
