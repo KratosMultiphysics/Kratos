@@ -416,8 +416,9 @@ void BaseSolidElement::AddExplicitContribution(
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
         Matrix element_mass_matrix = ZeroMatrix(element_size, element_size);
-        ProcessInfo temp_info = rCurrentProcessInfo; // Dummy
-        this->CalculateMassMatrix(element_mass_matrix, temp_info);
+        ProcessInfo temp_process_information = rCurrentProcessInfo; // Dummy
+        temp_process_information.SetValue(COMPUTE_LUMPED_MASS_MATRIX, true);
+        this->CalculateMassMatrix(element_mass_matrix, temp_process_information);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             double aux_nodal_mass = 0.0;
@@ -463,6 +464,7 @@ void BaseSolidElement::AddExplicitContribution(
         
         Matrix damping_matrix = ZeroMatrix(element_size, element_size);
         ProcessInfo temp_process_information = rCurrentProcessInfo; // We can't pass const ProcessInfo
+        temp_process_information.SetValue(COMPUTE_LUMPED_MASS_MATRIX, true);
         this->CalculateDampingMatrix(damping_matrix, temp_process_information);
         
         // Current residual contribution due to damping
@@ -542,8 +544,8 @@ void BaseSolidElement::CalculateMassMatrix(
     const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
-    if (compute_lumped_mass_matrix == true) {
-        const double total_mass = GetGeometry().Volume() * density * thickness;
+    if (compute_lumped_mass_matrix) {
+        const double total_mass = GetGeometry().DomainSize() * density * thickness;
 
         Vector lumping_factors;
         lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
