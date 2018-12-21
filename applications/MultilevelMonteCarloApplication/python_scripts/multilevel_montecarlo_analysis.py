@@ -60,9 +60,7 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
 
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
-        solver = convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-        self.LaplacianSolver = solver
-        return self.LaplacianSolver
+        return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
     
     def _GetSimulationName(self):
         return "Multilevel Monte Carlo Analysis"
@@ -278,7 +276,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "/home/kratos105b/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+    parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     # parameter_file_name = "/home/ramela/Documents/Kratos_3/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
