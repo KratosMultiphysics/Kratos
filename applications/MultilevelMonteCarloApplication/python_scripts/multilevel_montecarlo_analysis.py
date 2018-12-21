@@ -75,14 +75,8 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
             node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX,forcing*self.sample)
 
 
-###########################################################
-######## END OF CLASS MULTILEVELMONTECARLOANALYSIS ########
-###########################################################
-
-
 '''
 function generating the random sample
-here the sample has a beta distribution with parameters alpha = 2.0 and beta = 6.0
 '''
 def GenerateSample():
     alpha = 2.0
