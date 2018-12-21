@@ -657,6 +657,36 @@ void TrussElement3D2N::WriteTransformationCoordinates(
 }
 
 void TrussElement3D2N::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_geom = GetGeometry();
+
+    if (rDestinationVariable == NODAL_MASS) {
+        Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
+        ProcessInfo temp_info; // Dummy
+        this->CalculateMassMatrix(element_mass_matrix, temp_info);
+
+        for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+            double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * msDimension;
+
+            for (SizeType j = 0; j < msLocalSize; ++j) {
+                #pragma omp atomic
+                r_nodal_mass += element_mass_matrix(index, j);
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+void TrussElement3D2N::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
     Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo) {
