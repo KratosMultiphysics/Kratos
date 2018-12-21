@@ -198,6 +198,32 @@ public:
     }
 
     /**
+     * @brief This function is designed to move the mesh
+     * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
+     */
+    void MoveMesh() override
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false) << "It is impossible to move the mesh since the DISPLACEMENT var is not in the Model Part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
+
+        NodesArrayType& r_nodes_array = BaseType::GetModelPart().Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+            noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+
+        KRATOS_INFO_IF("SolvingStrategy", this->GetEchoLevel() > 1 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0) << " MESH MOVED " << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Initialization of member variables and prior operations
      */
     void Initialize() override
@@ -362,9 +388,9 @@ public:
         // to avoid error accumulation
         pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
-        // move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true)
-        BaseType::MoveMesh();
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag())
+            MoveMesh();
 
         // Cleaning memory after the solution
         pScheme->Clean();
