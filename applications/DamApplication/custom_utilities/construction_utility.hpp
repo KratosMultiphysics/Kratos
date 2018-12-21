@@ -730,6 +730,7 @@ class ConstructionUtility
         double alpha = NoorzaiParameters["alpha"].GetDouble();
         double t_max = NoorzaiParameters["t_max"].GetDouble();
         double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -741,7 +742,7 @@ class ConstructionUtility
             if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
             {
                 // Computing the value of heat flux according the time
-                double value = density * specific_heat * alpha * t_max * (exp(-alpha * current_activation_time));
+                double value = density * specific_heat * alpha * t_max * (exp(-alpha * (current_activation_time + 0.5 * delta_time));
                 it->FastGetSolutionStepValue(HEAT_FLUX) = value;
             }
         }
