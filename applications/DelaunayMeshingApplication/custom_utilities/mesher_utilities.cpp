@@ -2014,8 +2014,8 @@ namespace Kratos
 
       }
 
-    if( minimum_h < rCriticalRadius )
-      KRATOS_INFO(" CRITICAL MESH SIZE ")<<" supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
+    //if( minimum_h < rCriticalRadius )
+    //  KRATOS_INFO(" CRITICAL MESH SIZE ")<<" supplied size "<<rCriticalRadius<<" is bigger than initial mesh size "<<minimum_h<<" ] "<<std::endl;
 
     return minimum_h;
 
