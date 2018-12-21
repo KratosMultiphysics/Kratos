@@ -485,11 +485,6 @@ void BaseSolidElement::AddExplicitContribution(
         }
     }
 
-    // Computing the nodal mass (when calling NODAL_INERTIA)
-    if (rDestinationVariable == NODAL_INERTIA ) {
-        AddExplicitContribution(rRHSVector, rRHSVariable, NODAL_MASS, rCurrentProcessInfo);
-    }
-
     KRATOS_CATCH("")
 }
 
