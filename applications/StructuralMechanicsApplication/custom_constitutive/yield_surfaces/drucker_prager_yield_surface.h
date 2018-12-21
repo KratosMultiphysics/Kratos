@@ -138,7 +138,7 @@ public:
         array_1d<double, VoigtSize> deviator = ZeroVector(VoigtSize);
         ConstitutiveLawUtilities<VoigtSize>::CalculateJ2Invariant(rPredictiveStressVector, I1, deviator, J2);
 
-        if (I1 == 0.0) {
+        if (std::abs(I1) < tolerance) {
             rEquivalentStress = 0.0;
         } else {
             const double CFL = -root_3 * (3.0 - sin_phi) / (3.0 * sin_phi - 3.0);
