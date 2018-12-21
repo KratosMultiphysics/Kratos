@@ -825,7 +825,7 @@ namespace Kratos
       LargeDisplacementElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       //Calculate Delta Position
-      rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+      ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
       //set variables including all integration points values
 
@@ -1879,12 +1879,6 @@ namespace Kratos
          //call the constitutive law to update material variables
          mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
 
-         //call the constitutive law to finalize the solution step
-         mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-               GetGeometry(),
-               Variables.N,
-               rCurrentProcessInfo );
-
          Variables.H = ElementalFT;
          Variables.detH = ElementalDetFT;
 
@@ -1899,11 +1893,6 @@ namespace Kratos
 
       KRATOS_CATCH( "" )
    }
-   ////************************************************************************************
-   ////************************************************************************************
-
-   ////************************************************************************************
-   ////************************************************************************************
 
    ////************************************************************************************
    ////************************************************************************************

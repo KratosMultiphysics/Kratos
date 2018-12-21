@@ -268,7 +268,7 @@ namespace Kratos
       KRATOS_TRY
 
       //Compute the neighbour distance, then a stress-"like" may be computed.
-      WeakPointerVector<Node<3> >& rN  = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+      NodePointerVectorType& rN  = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
       array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
       array_1d<double,3> Neighb_Point;
 
@@ -277,11 +277,9 @@ namespace Kratos
 
       for(unsigned int i = 0; i < rN.size(); i++)
       {
-         if(rN[i].Is(BOUNDARY)){
+         if(rN[i]->Is(BOUNDARY)){
 
-            Neighb_Point[0] = rN[i].X();
-            Neighb_Point[1] = rN[i].Y();
-            Neighb_Point[2] = rN[i].Z();
+            Neighb_Point = rN[i]->Coordinates();
 
             distance += norm_2(Contact_Point-Neighb_Point);
 
@@ -303,12 +301,12 @@ namespace Kratos
       if( GetProperties().Has(PENALTY_PARAMETER) )
          PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-      WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
       double ElasticModulus = 0;
       if( GetProperties().Has(YOUNG_MODULUS) )
          ElasticModulus = GetProperties()[YOUNG_MODULUS];
       else
-         ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+         ElasticModulus = rE.front()->GetProperties()[YOUNG_MODULUS];
 
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
       if (ElasticModulus <= 1.0e-5) {
@@ -317,7 +315,7 @@ namespace Kratos
             ProcessInfo SomeProcessInfo;
             for ( unsigned int i = 0; i < rE.size(); i++)
             {
-               rE[i].CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
+               rE[i]->CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
                ElasticModulus += ModulusVector[0];
             }
             ElasticModulus /= double(rE.size());
@@ -643,13 +641,13 @@ namespace Kratos
          return Area;
 
 
-      WeakPointerVector<Element >& rNeighbourElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
 
 
       std::vector< double > AreaVector;
-      for ( unsigned int el = 0; el < rNeighbourElements.size() ; el++) {
+      for ( unsigned int el = 0; el < rE.size() ; el++) {
 
-         const Geometry< Node < 3 > > & rElemGeom = rNeighbourElements[el].GetGeometry();
+         const Geometry< Node < 3 > > & rElemGeom = rE[el]->GetGeometry();
          unsigned int nBoundary = 0;
 
          std::vector< unsigned int > BoundaryNodes;
@@ -718,15 +716,15 @@ namespace Kratos
 
          /*  std::vector< Vector > aux1, aux2, aux3;
              ProcessInfo SomeProcessInfo;
-             WeakPointerVector<Element > rN = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+             ElememntPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
              Vector WaterForceVector = ZeroVector(2);
              Vector EffecForceVector = ZeroVector(2);
              Vector TotalForceVector = ZeroVector(2);
-             for (unsigned int ne = 0; ne < rN.size() ; ne++)
+             for (unsigned int ne = 0; ne < rE.size() ; ne++)
              {
-             rN[ne].CalculateOnIntegrationPoints( EFF_CON_WATER_FORCE, aux1, SomeProcessInfo);
-             rN[ne].CalculateOnIntegrationPoints( EFF_CON_EFFEC_FORCE, aux2, SomeProcessInfo);
-             rN[ne].CalculateOnIntegrationPoints( EFF_CON_TOTAL_FORCE, aux3, SomeProcessInfo);
+             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_WATER_FORCE, aux1, SomeProcessInfo);
+             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_EFFEC_FORCE, aux2, SomeProcessInfo);
+             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_TOTAL_FORCE, aux3, SomeProcessInfo);
 
              if (aux1[0].size() == 0)  {
          //std::cout << " in this exit " << std::endl;
@@ -735,7 +733,7 @@ namespace Kratos
 
          for (unsigned int se = 0; se < 3; se++)
          {
-         if ( GetGeometry()[0].Id() == rN[ne].GetGeometry()[se].Id() )
+         if ( GetGeometry()[0].Id() == rE[ne].GetGeometry()[se].Id() )
          {
          WaterForceVector(0) += aux1[0][2*se];
          WaterForceVector(1) += aux1[0][2*se+1];
@@ -754,7 +752,7 @@ namespace Kratos
 
          /*
             if ( false) {
-            std::cout << " FINALLY: Node " << GetGeometry()[0].Id() << " has neigh: " << rN.size() << std::endl;
+            std::cout << " FINALLY: Node " << GetGeometry()[0].Id() << " has neigh: " << rE.size() << std::endl;
             std::cout << "     NormalForceModulus " << rNormalForceModulus << std::endl;
             std::cout << "     NodeWaterForce " << WaterForce <<  " and this pseudo-water-force " << -( WaterForceVector(0)*rSurfaceNormal(0) + WaterForceVector(1)*rSurfaceNormal(1) ) / mTangentialVariables.IntegrationWeight << " i and the vector is " << WaterForceVector <<  " divided by " << WaterForceVector  /  mTangentialVariables.IntegrationWeight << std::endl;
             std::cout << "     and this pseudo-effective-force " << -( EffecForceVector(0)*rSurfaceNormal(0) +EffecForceVector(1)*rSurfaceNormal(1) ) / mTangentialVariables.IntegrationWeight << " i and the vector is " << EffecForceVector << std::endl;

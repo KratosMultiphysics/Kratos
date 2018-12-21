@@ -9,5 +9,7 @@ import KratosMultiphysics.ContactMechanicsApplication
 import KratosMultiphysics.PfemSolidMechanicsApplication
 import MainSolid
 
-MainSolid.Solution().Run()
+
+model = KratosMultiphysics.Model()
+MainSolid.Solution(model).Run()
 
