@@ -15,11 +15,9 @@
 // External includes
 
 // Project includes
-#include "includes/condition.h"
-#include "includes/variables.h"
 #include "includes/element.h"
-
-#include "utilities/quaternion.h"
+#include "includes/condition.h"
+#include "utilities/beam_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -44,18 +42,21 @@ namespace Kratos
  * Implements a Contact Point Load definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-class RigidBodyPointLinkCondition
+class KRATOS_API(CONTACT_MECHANICS_APPLICATION) RigidBodyPointLinkCondition
     : public Condition
 {
  public:
 
   ///@name Type Definitions
 
-  ///Tensor order 1 definition
-  typedef Vector                        VectorType;
-  typedef Element                      ElementType;
-  typedef Node<3>::Pointer        PointPointerType;
-  typedef Quaternion<double>        QuaternionType;
+  typedef Vector                                VectorType;
+  typedef Element                              ElementType;
+  typedef Node<3>::Pointer                PointPointerType;
+  typedef Quaternion<double>                QuaternionType;
+  typedef Node<3>::DofsContainerType     DofsContainerType;
+  typedef GeometryData::SizeType                  SizeType;
+  typedef BeamMathUtils<double>          BeamMathUtilsType;
+  typedef std::vector<Element*>   ElementPointerVectorType;
 
   ///@{
   // Counted pointer of RigidBodyPointLinkCondition
@@ -64,27 +65,32 @@ class RigidBodyPointLinkCondition
 
  protected:
 
-
   /**
    * Flags related to the condition computation
    */
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_RHS_VECTOR);
   KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_LHS_MATRIX);
-
   /**
    * Parameters to be used in the Condition as they are.
    */
   typedef struct
   {
     Flags             Options;               //calculation options
-    int               SlaveNode;
 
-    Vector            Distance;
-    Matrix            SkewSymDistance;
+    SizeType          MasterLinearBlockSize;
+    SizeType          MasterAngularBlockSize;
 
-    Vector            LagrangeMultipliers;
+    SizeType          SlaveNode;
+    SizeType          SlaveLinearBlockSize;
+    SizeType          SlaveAngularBlockSize;
 
-    ElementType::Pointer  pSlaveElement;
+    std::vector<SizeType> RigidNodes;
+    std::vector<SizeType> DeformableNodes;
+
+    BoundedMatrix<double,3,3>               SlaveSkewSymDistance;
+    std::vector<BoundedMatrix<double,3,3>> RigidSkewSymDistances;
+
+    Element*   pSlaveElement;
 
   } GeneralVariables;
 
@@ -176,7 +182,7 @@ class RigidBodyPointLinkCondition
    * if the condition needs to perform any operation before any calculation is done
    * the condition variables will be initialized and set using this method
    */
-  void Initialize();
+  void Initialize() override;
 
   /**
    * Called at the beginning of each iteration
@@ -303,22 +309,6 @@ class RigidBodyPointLinkCondition
                               ProcessInfo& rCurrentProcessInfo) override;
 
   /**
-   * this function is designed to make the element to assemble an rRHS vector
-   * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-   * rDestinationVariable.
-   * @param rRHSVector: input variable containing the RHS vector to be assembled
-   * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-   * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
-   * @param rCurrentProcessInfo: the current process info instance
-   */
-  virtual void AddExplicitContribution(const VectorType& rRHSVector,
-                                       const Variable<VectorType>& rRHSVariable,
-                                       Variable<array_1d<double,3> >& rDestinationVariable,
-                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-  //************************************************************************************
-  //************************************************************************************
-  /**
    * This function provides the place to perform checks on the completeness of the input.
    * It is designed to be called only once (or anyway, not often) typically at the beginning
    * of the calculations, so to verify that nothing is missing from the input
@@ -349,7 +339,8 @@ class RigidBodyPointLinkCondition
   ///@name Protected member Variables
   ///@{
 
-  RigidBodyPointLinkCondition() {};
+  static const std::array<const VariableData,6> mLinearDofs;
+  static const std::array<const VariableData,3> mAngularDofs;
 
   ///@}
   ///@name Protected Operators
@@ -364,19 +355,19 @@ class RigidBodyPointLinkCondition
    */
   virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
                                         VectorType& rRightHandSideVector,
-                                        const unsigned int& rSlaveElementSize,
+                                        const SizeType& rSlaveElementSize,
                                         Flags& rCalculationFlags);
   /**
    * Initialize General Variables
    */
   virtual void InitializeGeneralVariables(GeneralVariables& rVariables,
-                                          const ProcessInfo& rCurrentProcessInfo);
+                                          ProcessInfo& rCurrentProcessInfo);
   /**
    * Calculates the condition contributions
    */
   virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
                                         LocalSystemComponents& rLinkedSystem,
-                                        ElementType::Pointer& rSlaveElement,
+                                        Element* rSlaveElement,
                                         ProcessInfo& rCurrentProcessInfo);
   /**
    * Calculation and addition of the matrices of the LHS
@@ -393,20 +384,51 @@ class RigidBodyPointLinkCondition
   /**
    * Calculation of the Link Stiffness Matrix
    */
-  virtual void CalculateAndAddStiffness(MatrixType& rLeftHandSideMatrix,
-                                        MatrixType& rLinkedLeftHandSideMatrix,
-                                        GeneralVariables& rVariables);
+  virtual void CalculateAndAddTangent(MatrixType& rLeftHandSideMatrix,
+                                      MatrixType& rLinkedLeftHandSideMatrix,
+                                      GeneralVariables& rVariables);
   /**
    * Calculation of the Link Force Vector
    */
   virtual void CalculateAndAddForces(VectorType& rRightHandSideVector,
                                      VectorType& rLinkedRightHandSideVector,
                                      GeneralVariables& rVariables);
+
   /**
-   * Calculation of an SkewSymmetricTensor from a vector
+   * Calculation of the Link Stiffness Matrix
    */
-  void VectorToSkewSymmetricTensor(const Vector& rVector,
-                                   Matrix& rSkewSymmetricTensor);
+  virtual void CalculateAndAddTangentBeam(MatrixType& rLeftHandSideMatrix,
+                                          MatrixType& rLinkedLeftHandSideMatrix,
+                                          GeneralVariables& rVariables);
+  /**
+   * Calculation of the Link Force Vector
+   */
+  virtual void CalculateAndAddForcesBeam(VectorType& rRightHandSideVector,
+                                         VectorType& rLinkedRightHandSideVector,
+                                         GeneralVariables& rVariables);
+
+
+  /**
+   * Assemble Local LHS
+   */
+  void AssembleLocalLHS(MatrixType& rLeftHandSideMatrix,
+                        const MatrixType& rLocalLeftHandSideMatrix,
+                        const SizeType& local_index,
+                        const SizeType& dofs_size,
+                        const SizeType& master_index);
+  /**
+   * Assemble Local LHS
+   */
+  void AssembleLocalRHS(VectorType& rRightHandSideVector,
+                        const VectorType& rLocalRightHandSideVector,
+                        const SizeType& local_index,
+                        const SizeType& dofs_size,
+                        const SizeType& master_index);
+  /**
+   * Get element size from the dofs
+   */
+  virtual SizeType GetDofsSize();
+
   /**
    * Write Matrix usint rows
    */
@@ -415,6 +437,8 @@ class RigidBodyPointLinkCondition
   ///@}
   ///@name Protected  Access
   ///@{
+
+  RigidBodyPointLinkCondition() {};
 
   ///@}
   ///@name Protected Inquiry
@@ -456,12 +480,12 @@ class RigidBodyPointLinkCondition
 
   friend class Serializer;
 
-  virtual void save( Serializer& rSerializer ) const
+  void save( Serializer& rSerializer ) const override
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
   }
 
-  virtual void load( Serializer& rSerializer )
+  void load( Serializer& rSerializer ) override
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
   }

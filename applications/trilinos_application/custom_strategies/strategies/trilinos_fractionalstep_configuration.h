@@ -21,14 +21,9 @@
 
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 
-#include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
-#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver_componentwise_slip.h"
 
 

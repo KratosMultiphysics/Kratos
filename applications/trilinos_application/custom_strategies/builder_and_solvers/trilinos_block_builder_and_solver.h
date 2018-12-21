@@ -15,7 +15,6 @@
 
 /* System includes */
 #include <set>
-/* #include <omp.h> */
 
 /* External includes */
 #include "boost/timer.hpp"
@@ -33,25 +32,12 @@
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_RowMatrixOut.h"
 #include "EpetraExt_MultiVectorOut.h"
 #include "Epetra_Import.h"
-// #include "epetra_test_err.h"
-
-
-
-//aztec solver includes
-#include "AztecOO.h"
-
-#include "Amesos.h"
-// #include "AmesosClassType.h"
-#include "Epetra_LinearProblem.h"
-#include "ml_MultiLevelPreconditioner.h"
-
 
 namespace Kratos
 {

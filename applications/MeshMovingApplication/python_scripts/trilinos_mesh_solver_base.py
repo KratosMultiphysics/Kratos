@@ -9,14 +9,11 @@ import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
 # Other imports
 import KratosMultiphysics.mpi as KratosMPI
-import mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
-def CreateSolver(mesh_model_part, custom_settings):
-    return TrilinosMeshSolverBase(mesh_model_part, custom_settings)
-
-
-class TrilinosMeshSolverBase(mesh_solver_base.MeshSolverBase):
+class TrilinosMeshSolverBase(MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         if not custom_settings.Has("mesh_motion_linear_solver_settings"): # Override defaults in the base class.
             linear_solver_settings = KratosMultiphysics.Parameters("""{

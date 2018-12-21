@@ -79,6 +79,9 @@ public:
     ///BaseLengths
     typedef ContactDomainUtilities::BaseLengths           BaseLengths;
 
+    typedef std::vector<Node<3>*>        NodePointerVectorType;
+    typedef std::vector<Element*>     ElementPointerVectorType;
+    typedef std::vector<Condition*> ConditionPointerVectorType;
 
 protected:
 

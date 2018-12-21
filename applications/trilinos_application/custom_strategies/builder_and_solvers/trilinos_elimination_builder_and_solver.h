@@ -33,20 +33,8 @@
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
-// #include "Epetra_Vector.h"
-// #include "epetra_test_err.h"
-
-
-//aztec solver includes
-#include "AztecOO.h"
-
-#include "Amesos.h"
-// #include "AmesosClassType.h"
-#include "Epetra_LinearProblem.h"
-
 
 namespace Kratos
 {
@@ -1118,7 +1106,7 @@ public:
 
             Element::EquationIdVectorType EquationId;
             ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
-            
+
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {

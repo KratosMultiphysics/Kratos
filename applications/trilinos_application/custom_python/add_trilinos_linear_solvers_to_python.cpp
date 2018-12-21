@@ -14,8 +14,6 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
-#include <string>
 
 /* Trilinos includes */
 #include "mpi.h"
@@ -25,9 +23,11 @@
 #include "Epetra_Vector.h"
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
+// Project includes
+#include "includes/define_python.h"
+
+// Trilinos includes
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 #include "external_includes/epetra_default_utility.h"
 #include "external_includes/aztec_solver.h"
@@ -51,6 +51,14 @@
 
 //teuchos parameter list
 #include "Teuchos_ParameterList.hpp"
+
+#include "external_includes/epetra_default_utility.h"
+#include "external_includes/aztec_solver.h"
+#include "external_includes/amesos_solver.h"
+#include "external_includes/ml_solver.h"
+
+#include "external_includes/amgcl_mpi_solver.h"
+#include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
 {
@@ -124,6 +132,7 @@ void  AddLinearSolvers(pybind11::module& m)
     ;
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl", AmgclMPISolverFactory);
 
+
 #if 0
     typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
     py::class_<AmgclDeflationSolverType, typename AmgclDeflationSolverType::Pointer, TrilinosLinearSolverType >
@@ -138,6 +147,7 @@ void  AddLinearSolvers(pybind11::module& m)
     .def( py::init<Parameters>())
     ;
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amgcl_schur_complement", AmgclMPISchurComplementSolverFactory);
+
 
     py::enum_<AztecScalingType>(m,"AztecScalingType")
     .value("NoScaling", NoScaling)
@@ -157,6 +167,7 @@ void  AddLinearSolvers(pybind11::module& m)
      .def("Create",&TrilinosLinearSolverFactoryType::Create)
      .def("Has",&TrilinosLinearSolverFactoryType::Has)
     ;
+
 }
 
 } // namespace Python.
