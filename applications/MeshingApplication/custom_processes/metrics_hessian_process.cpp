@@ -165,8 +165,6 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     // Geometry information
     const auto& r_first_element_geometry = it_element_begin->GetGeometry();
     const std::size_t dimension = r_first_element_geometry.WorkingSpaceDimension();
-    const std::size_t local_space_dimension = r_first_element_geometry.LocalSpaceDimension();
-    const std::size_t number_of_nodes = r_first_element_geometry.PointsNumber();
 
     // Declaring auxiliar vector
     const Vector aux_zero_hessian = ZeroVector(3 * (dimension - 1));
@@ -195,20 +193,32 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         gradient_process.Execute();
     }
 
-    // The integration points
-    const auto& integration_method = r_first_element_geometry.GetDefaultIntegrationMethod();
-    const auto& integration_points = r_first_element_geometry.IntegrationPoints(integration_method);
-    const std::size_t number_of_integration_points = integration_points.size();
-
-    Matrix DN_DX = ZeroMatrix(number_of_nodes, dimension);
-    Vector N = ZeroVector(number_of_nodes);
-    Matrix J0 = ZeroMatrix(dimension, local_space_dimension);
+    // Auxiliar containers
+    Matrix DN_DX, J0;
+    Vector N;
 
     #pragma omp parallel for firstprivate(DN_DX,  N, J0)
     for(int i_elem = 0; i_elem < num_elements; ++i_elem) {
         auto it_elem = it_element_begin + i_elem;
         auto& r_geometry = it_elem->GetGeometry();
 
+        // Current geometry information
+        const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
+        const std::size_t number_of_nodes = r_geometry.PointsNumber();
+        
+        // Resize if needed
+        if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
+            DN_DX.resize(number_of_nodes, dimension);
+        if (N.size() != number_of_nodes)
+            N.resize(number_of_nodes);
+        if (J0.size1() != dimension || J0.size2() != local_space_dimension)
+            J0.resize(dimension, local_space_dimension);
+        
+        // The integration points
+        const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
+        const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
+        const std::size_t number_of_integration_points = integration_points.size();
+        
         // The containers of the shape functions and the local gradients
         const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
         const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
