@@ -14,6 +14,7 @@ class AleFluidSolver(PythonSolver):
             "solver_type"                 : "ale_fluid",
             "echo_level"                  : 0,
             "ale_boundary_parts"          : [ ],
+            "mesh_motion_parts"           : [ ],
             "fluid_solver_settings"       : { },
             "mesh_motion_solver_settings" : { },
             "mesh_velocity_calculation"   : { }
@@ -24,6 +25,8 @@ class AleFluidSolver(PythonSolver):
         solver_settings.ValidateAndAssignDefaults(default_settings)
 
         super(AleFluidSolver, self).__init__(model, solver_settings)
+
+        self.parallelism = parallelism
 
         fluid_solver_settings       = self.settings["fluid_solver_settings"]
         mesh_motion_solver_settings = self.settings["mesh_motion_solver_settings"]
@@ -79,21 +82,24 @@ class AleFluidSolver(PythonSolver):
         else:
             mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
 
-        self.mesh_motion_solver = mesh_mothion_solvers_wrapper.CreateSolverByParameters(
+        # Constructing the mesh-solver with the entire mesh
+        # if no submodelparts are specified then this is used for the computation of the mesh-motion
+        # otherwise it only adds the dofs and the variables (to the entire ModelPart!)
+        self.mesh_motion_solver_full_mesh = mesh_mothion_solvers_wrapper.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
         # Getting the min_buffer_size from both solvers
         # and assigning it to the fluid_solver, bcs this one handles the model_part
         self.fluid_solver.min_buffer_size = max(
             [ self.fluid_solver.GetMinimumBufferSize(),
-              self.mesh_motion_solver.GetMinimumBufferSize(),
+              self.mesh_motion_solver_full_mesh.GetMinimumBufferSize(),
               KM.GetMinimumBufferSize(self.time_int_helper) ] )
 
         if self.is_printing_rank:
             KM.Logger.PrintInfo("::[AleFluidSolver]::", "Construction finished")
 
     def AddVariables(self):
-        self.mesh_motion_solver.AddVariables()
+        self.mesh_motion_solver_full_mesh.AddVariables()
         self.fluid_solver.AddVariables()
 
         # Adding Variables used for computation of Mesh-Velocity
@@ -107,7 +113,7 @@ class AleFluidSolver(PythonSolver):
             KM.Logger.PrintInfo("::[AleFluidSolver]::", "Variables Added")
 
     def AddDofs(self):
-        self.mesh_motion_solver.AddDofs()
+        self.mesh_motion_solver_full_mesh.AddDofs()
         self.fluid_solver.AddDofs()
         if self.is_printing_rank:
             KM.Logger.PrintInfo("::[AleFluidSolver]::", "DOFs Added")
@@ -115,17 +121,32 @@ class AleFluidSolver(PythonSolver):
     def Initialize(self):
         # Saving the ALE-interface-parts for later
         # this can only be done AFTER reading the ModelPart
-        self.ale_boundary_parts = []
         main_model_part_name = self.settings["fluid_solver_settings"]["model_part_name"].GetString()
 
         ale_boundary_parts_params = self.settings["ale_boundary_parts"]
-
+        self.ale_boundary_parts = []
         for i_name in range(ale_boundary_parts_params.size()):
             sub_model_part_name = ale_boundary_parts_params[i_name].GetString()
             full_model_part_name = main_model_part_name + "." + sub_model_part_name
             self.ale_boundary_parts.append(self.model[full_model_part_name])
 
-        self.mesh_motion_solver.Initialize()
+        mesh_motion_parts_params = self.settings["mesh_motion_parts"]
+        self.mesh_motion_solvers = []
+        if mesh_motion_parts_params.size() == 0:
+            # the entire Fluid-ModelPart is used in the Mesh-Solver
+            self.mesh_motion_solvers.append(self.mesh_motion_solver_full_mesh)
+        else:
+            # SubModelParts of the Fluid-ModelPart are used in the Mesh-Solver
+            # each SubModelPart has its own mesh-solver
+            for i_name in range(mesh_motion_parts_params.size()):
+                sub_model_part_name = mesh_motion_parts_params[i_name].GetString()
+                full_model_part_name = main_model_part_name + "." + sub_model_part_name
+
+                self.mesh_motion_solvers.append(mesh_mothion_solvers_wrapper.CreateSolverByParameters(
+                    self.model, self.settings["mesh_motion_solver_settings"], self.parallelism))
+
+        for solver in self.mesh_motion_solvers:
+            solver.Initialize()
         self.fluid_solver.Initialize()
 
         if self.is_printing_rank:
@@ -143,38 +164,46 @@ class AleFluidSolver(PythonSolver):
         return self.fluid_solver.AdvanceInTime(current_time)
 
     def Finalize(self):
-        self.mesh_motion_solver.Finalize()
+        for solver in self.mesh_motion_solvers:
+            solver.Finalize()
         self.fluid_solver.Finalize()
 
     def InitializeSolutionStep(self):
-        self.mesh_motion_solver.InitializeSolutionStep()
+        for solver in self.mesh_motion_solvers:
+            solver.InitializeSolutionStep()
         self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.mesh_motion_solver.Predict()
+        for solver in self.mesh_motion_solvers:
+            solver.Predict()
         self.fluid_solver.Predict()
 
     def FinalizeSolutionStep(self):
-        self.mesh_motion_solver.FinalizeSolutionStep()
+        for solver in self.mesh_motion_solvers:
+            solver.FinalizeSolutionStep()
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        self.mesh_motion_solver.SolveSolutionStep()
+        for solver in self.mesh_motion_solvers:
+            solver.SolveSolutionStep()
 
-        KMM.CalculateMeshVelocities(
-            self.mesh_motion_solver.GetComputingModelPart(),
-            self.time_int_helper)
+        for solver in self.mesh_motion_solvers:
+            KMM.CalculateMeshVelocities(
+                solver.GetComputingModelPart(),
+                self.time_int_helper)
 
         self.__ApplyALEBoundaryCondition()
 
         self.fluid_solver.SolveSolutionStep()
 
     def Check(self):
-        self.mesh_motion_solver.Check()
+        for solver in self.mesh_motion_solvers:
+            solver.Check()
         self.fluid_solver.Check()
 
     def Clear(self):
-        self.mesh_motion_solver.Clear()
+        for solver in self.mesh_motion_solvers:
+            solver.Clear()
         self.fluid_solver.Clear()
 
     def GetComputingModelPart(self):
@@ -183,11 +212,12 @@ class AleFluidSolver(PythonSolver):
     def GetFluidSolver(self):
         return self.fluid_solver
 
-    def GetMeshMotionSolver(self):
-        return self.mesh_motion_solver
+    def GetMeshMotionSolvers(self):
+        return self.mesh_motion_solvers
 
     def MoveMesh(self):
-        self.GetMeshMotionSolver().MoveMesh()
+        for solver in self.mesh_motion_solvers:
+            solver.MoveMesh()
 
 
     def _CreateFluidSolver(self, solver_settings, parallelism):
