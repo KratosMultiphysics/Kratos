@@ -77,6 +77,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "time_stepping" : {
                 "time_step": 1.0
             },
+            "check_mesh_orientation": true,
             "reform_dofs_at_each_step": false,
             "line_search": false,
             "compute_reactions": true,
@@ -268,14 +269,15 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             # Check and prepare computing model part and import constitutive laws.
             self._execute_after_reading()
 
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+            if self.settings["check_mesh_orientation"].GetBool():
+                throw_errors = False
+                KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
             self._set_and_fill_buffer()
 
-        if (self.settings["echo_level"].GetInt() > 0):
+        if self.settings["echo_level"].GetInt() > 0:
             self.print_on_rank_zero(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionBaseSolver]::", "ModelPart prepared for Solver.")
