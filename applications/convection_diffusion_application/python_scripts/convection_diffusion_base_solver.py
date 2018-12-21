@@ -272,6 +272,8 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             if self.settings["check_mesh_orientation"].GetBool():
                 throw_errors = False
                 KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
+            else:
+                self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "WARNING: Manually disabling the mesh-orientation-check, which is only recommended for developers / users that know what they are doing")
 
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
 
