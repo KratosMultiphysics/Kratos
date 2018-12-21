@@ -16,6 +16,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
         self.mp = model.CreateModelPart(model_part_name)
         self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         #create nodes
         self.mp.CreateNewNode(1, 0.00000, 1.00000, 0.00000)
         self.mp.CreateNewNode(2, 0.00000, 0.50000, 0.00000)
@@ -72,11 +73,12 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
         for node in self.mp.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,[node.X,node.Y,node.Z])
             node.SetSolutionStepValue(KratosMultiphysics.VELOCITY,0,[2*node.X,2*node.Y,2*node.Z])
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE,0,node.X)
 
     def __SetupVtkOutputProcess(self, current_model, parameters):
         return vtk_output_process.Factory(parameters, current_model)
 
-    def test_vtk_io(self):
+    def test_ascii_vtk_output(self):
         current_model = KratosMultiphysics.Model()
         model_part_name = "Main"
         self.__SetupModelPart(current_model, model_part_name)
@@ -92,7 +94,7 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
             "output_sub_model_parts"             : true,
             "folder_name"                        : "test_vtk_output",
             "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : ["DISPLACEMENT", "VELOCITY"],
+            "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
             "nodal_data_value_variables"         : [],
             "element_data_value_variables"       : ["DETERMINANT"]
         }
@@ -117,9 +119,54 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
         vtk_output_process.ExecuteFinalize()
 
-        self.__Check("test_vtk_output/Main_0_1.vtk","vtk_output_process_ref_files/Main_0_1.vtk")
-        self.__Check("test_vtk_output/Main_FixedEdgeNodes_0_1.vtk","vtk_output_process_ref_files/Main_FixedEdgeNodes_0_1.vtk")
-        self.__Check("test_vtk_output/Main_MovingNodes_0_1.vtk","vtk_output_process_ref_files/Main_MovingNodes_0_1.vtk")
+        self.__Check("test_vtk_output/Main_0_1.vtk","vtk_output_process_ref_files/ascii/Main_0_1.vtk")
+        self.__Check("test_vtk_output/Main_FixedEdgeNodes_0_1.vtk","vtk_output_process_ref_files/ascii/Main_FixedEdgeNodes_0_1.vtk")
+        self.__Check("test_vtk_output/Main_MovingNodes_0_1.vtk","vtk_output_process_ref_files/ascii/Main_MovingNodes_0_1.vtk")
+
+    def test_binary_vtk_output(self):
+        current_model = KratosMultiphysics.Model()
+        model_part_name = "Main"
+        self.__SetupModelPart(current_model, model_part_name)
+        self.__SetSolution()
+
+        vtk_output_parameters = KratosMultiphysics.Parameters("""
+        {
+            "model_part_name"                    : "Main",
+            "file_format"                        : "binary",
+            "output_control_type"                : "step",
+            "output_frequency"                   : 1.0,
+            "output_precision"                   : 8,
+            "output_sub_model_parts"             : true,
+            "folder_name"                        : "test_vtk_output",
+            "save_output_files_in_folder"        : true,
+            "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
+            "nodal_data_value_variables"         : [],
+            "element_data_value_variables"       : ["DETERMINANT"]
+        }
+        """)
+        vtk_output_process = self.__SetupVtkOutputProcess(current_model, vtk_output_parameters)
+
+        time = 0.0
+        dt = 0.2
+        step = 0
+        end_time = 1.0
+        vtk_output_process.ExecuteInitialize()
+
+        while (time <= end_time):
+            time = time + dt
+            step = step + 1
+            self.mp.ProcessInfo[KratosMultiphysics.STEP] += 1
+            #print("STEP :: ", step, ", TIME :: ", time)
+            vtk_output_process.ExecuteInitializeSolutionStep()
+            self.mp.CloneTimeStep(time)
+            vtk_output_process.ExecuteFinalizeSolutionStep()
+            vtk_output_process.PrintOutput()
+
+        vtk_output_process.ExecuteFinalize()
+
+        self.__Check("test_vtk_output/Main_0_1.vtk","vtk_output_process_ref_files/binary/Main_0_1.vtk")
+        self.__Check("test_vtk_output/Main_FixedEdgeNodes_0_1.vtk","vtk_output_process_ref_files/binary/Main_FixedEdgeNodes_0_1.vtk")
+        self.__Check("test_vtk_output/Main_MovingNodes_0_1.vtk","vtk_output_process_ref_files/binary/Main_MovingNodes_0_1.vtk")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_vtk_output")
