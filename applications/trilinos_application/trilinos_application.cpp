@@ -11,7 +11,6 @@
 //
 
 // System includes
-#include "mpi.h"
 
 // External includes
 #include "mpi.h"

@@ -15,32 +15,11 @@
 #if defined(KRATOS_PYTHON)
 // External includes
 
-/* Trilinos includes */
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
-// Project includes
-#include "includes/define_python.h"
-
 // Trilinos includes
 #include "Epetra_FEVector.h"
 
-#include "external_includes/epetra_default_utility.h"
-#include "external_includes/aztec_solver.h"
-#include "external_includes/amesos_solver.h"
-#include "external_includes/ml_solver.h"
-
-#include "external_includes/amgcl_mpi_solver.h"
-//#include "external_includes/amgcl_deflation_solver.h"
-#include "external_includes/amgcl_mpi_schur_complement_solver.h"
-
 // Project includes
 #include "includes/define_python.h"
-#include "custom_python/add_trilinos_strategies_to_python.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
