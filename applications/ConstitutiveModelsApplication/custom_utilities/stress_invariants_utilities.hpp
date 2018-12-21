@@ -93,10 +93,9 @@ namespace Kratos
                Lode = 30.0*Globals::Pi / 180.0;
             }
             else {
-               Lode = std::asin( -Lode) / 3.0 * (Globals::Pi / 180.0);
+               Lode = std::asin( -Lode) / 3.0;
             }
 
-            //std::cout << " THISLODE " << Lode << " Stress;atrox " << StressTensor << " Stress " << rStress <<
          }
 
          static inline void CalculateDerivativeVectors( const MatrixType& rStressMatrix, VectorType& C1, VectorType & C2)
