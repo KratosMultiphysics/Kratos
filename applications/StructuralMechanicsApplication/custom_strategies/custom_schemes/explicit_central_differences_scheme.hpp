@@ -188,8 +188,16 @@ public:
         mTime.Previous = mTime.Current - mTime.Delta;
         mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
-        if (!BaseType::SchemeIsInitialized())InitializeExplicitScheme(rModelPart);
-        else SchemeCustomInitialization(rModelPart);
+        /// Working in 2D/3D
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+        const auto& r_geom = it_elem_begin->GetGeometry();
+        const SizeType dim(r_geom.WorkingSpaceDimension());
+
+        // Initialize scheme
+        if (!BaseType::SchemeIsInitialized())
+            InitializeExplicitScheme(rModelPart, dim);
+        else
+            SchemeCustomInitialization(rModelPart, dim);
 
         BaseType::SetSchemeIsInitialized();
 
@@ -266,7 +274,7 @@ public:
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
         // Auxiliar values
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         // Initializing the variables
         VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
         const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
@@ -355,33 +363,40 @@ public:
     /**
      * @brief This method initializes some rutines related with the explicit scheme
      * @param rModelPart The model of the problem to solve
+     * @param DoF The current dimention of the problem
      */
-    void InitializeExplicitScheme(ModelPart& rModelPart)
+    void InitializeExplicitScheme(
+        ModelPart& rModelPart,
+        const SizeType DoF = 3
+        )
     {
         KRATOS_TRY
 
         /// The array of ndoes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        /// Working in 3D always by default
-        const SizeType dim(3);
-
         // The first iterator of the array of nodes
-        auto it_begin = rModelPart.NodesBegin();
+        const auto it_begin = rModelPart.NodesBegin();
 
         /// Initialise the database of the nodes
-        const array_1d<double, 3> zero_array(3, 0.0);
-        #pragma omp parallel for firstprivate(it_begin)
+        const array_1d<double, 3> zero_array = ZeroVector(3);
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_begin + i);
             it_node->SetValue(NODAL_MASS, 0.0);
             it_node->SetValue(MIDDLE_VELOCITY, zero_array);
-            it_node->SetValue(MIDDLE_ANGULAR_VELOCITY, zero_array);
-            it_node->SetValue(NODAL_INERTIA, zero_array);
+        }
+        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
+        if (has_dof_for_rot_z) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
+                auto it_node = (it_begin + i);
+                it_node->SetValue(MIDDLE_ANGULAR_VELOCITY, zero_array);
+                it_node->SetValue(NODAL_INERTIA, zero_array);
+            }
         }
 
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
-        #pragma omp parallel for firstprivate(it_begin)
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             auto it_node = (it_begin + i);
 
@@ -390,7 +405,7 @@ public:
             array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
 //             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
 
-            for (IndexType j = 0; j < dim; j++) {
+            for (IndexType j = 0; j < DoF; j++) {
                 r_middle_velocity[j] = r_current_velocity[j];
                 r_current_residual[j] = 0.0;
 //                 r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
@@ -402,7 +417,8 @@ public:
                 array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
 //                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
 
-                for (IndexType j = 0; j < dim; j++) {
+                const IndexType initial_j = DoF == 3 ? 0 : 2;
+                for (IndexType j = initial_j; j < 3; j++) {
                     r_middle_angular_velocity[j] = r_current_angular_velocity[j];
                     r_current_residual_moment[j] = 0.0;
                     // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
@@ -437,6 +453,11 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
+        /// Working in 2D/3D
+        const auto it_elem_begin = rModelPart.ElementsBegin();
+        const auto& r_geom = it_elem_begin->GetGeometry();
+        const SizeType dim(r_geom.WorkingSpaceDimension());
+
         // Step Update
         // The first step is time =  initial_time ( 0.0) + delta time
         mTime.Current = r_current_process_info[TIME];
@@ -445,19 +466,19 @@ public:
         mTime.Middle = 0.5 * (mTime.Previous + mTime.Current);
 
         // The iterator of the first node
-        auto it_begin = rModelPart.NodesBegin();
+        const auto it_begin = rModelPart.NodesBegin();
         const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
 
-        #pragma omp parallel for firstprivate(it_begin)
+        #pragma omp parallel for
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
             // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedom(it_begin + i);
+            this->UpdateTranslationalDegreesOfFreedom(it_begin + i, dim);
         } // for Node parallel
 
         if (has_dof_for_rot_z){
-            #pragma omp parallel for firstprivate(it_begin)
+            #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                this->UpdateRotationalDegreesOfFreedom(it_begin + i);
+                this->UpdateRotationalDegreesOfFreedom(it_begin + i, dim);
             } // for Node parallel
         }
 
@@ -470,8 +491,12 @@ public:
     /**
      * @brief This method updates the translation DoF
      * @param itCurrentNode The iterator of the current node
+     * @param DoF The current dimention of the problem
      */
-    void UpdateTranslationalDegreesOfFreedom(NodeIterator itCurrentNode)
+    void UpdateTranslationalDegreesOfFreedom(
+        NodeIterator itCurrentNode,
+        const SizeType DoF = 3
+        )
     {
         const double& nodal_mass = (itCurrentNode)->GetValue(NODAL_MASS);
         const array_1d<double, 3>& r_current_residual = (itCurrentNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
@@ -488,12 +513,12 @@ public:
         else
             r_current_acceleration = ZeroVector(3);
 
-        const SizeType DoF = 3;
         bool fix_displacements[3] = {false, false, false};
 
         fix_displacements[0] = ((itCurrentNode)->pGetDof(DISPLACEMENT_X))->IsFixed();
         fix_displacements[1] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Y))->IsFixed();
-        fix_displacements[2] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Z))->IsFixed();
+        if (DoF == 3)
+            fix_displacements[2] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
         for (IndexType j = 0; j < DoF; j++) {
             if (fix_displacements[j]) {
@@ -510,10 +535,13 @@ public:
     /**
      * @brief This method updates the rotation DoF
      * @param itCurrentNode The iterator of the current node
+     * @param DoF The current dimention of the problem
      */
-    void UpdateRotationalDegreesOfFreedom(NodeIterator itCurrentNode)
+    void UpdateRotationalDegreesOfFreedom(
+        NodeIterator itCurrentNode,
+        const SizeType DoF = 3
+        )
     {
-        const SizeType DoF = 3;
         ////// ROTATION DEGRESS OF FREEDOM
         const array_1d<double, 3>& nodal_inertia = (itCurrentNode)->GetValue(NODAL_INERTIA);
         const array_1d<double, 3>& r_current_residual_moment = (itCurrentNode)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
@@ -522,19 +550,22 @@ public:
         array_1d<double, 3>& r_middle_angular_velocity = (itCurrentNode)->GetValue(MIDDLE_ANGULAR_VELOCITY);
         array_1d<double, 3>& r_current_angular_acceleration = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-        for (IndexType kk = 0; kk < DoF; ++kk) {
-        if (nodal_inertia[kk] > numerical_limit)
-            r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
-        else
-            r_current_angular_acceleration[kk] = 0.0;
+        const IndexType initial_k = DoF == 3 ? 0 : 2;
+        for (IndexType kk = initial_k; kk < 3; ++kk) {
+            if (nodal_inertia[kk] > numerical_limit)
+                r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
+            else
+                r_current_angular_acceleration[kk] = 0.0;
         }
 
         bool fix_rotation[3] = {false, false, false};
-        fix_rotation[0] = ((itCurrentNode)->pGetDof(ROTATION_X))->IsFixed();
-        fix_rotation[1] = ((itCurrentNode)->pGetDof(ROTATION_Y))->IsFixed();
+        if (DoF == 3) {
+            fix_rotation[0] = ((itCurrentNode)->pGetDof(ROTATION_X))->IsFixed();
+            fix_rotation[1] = ((itCurrentNode)->pGetDof(ROTATION_Y))->IsFixed();
+        }
         fix_rotation[2] = ((itCurrentNode)->pGetDof(ROTATION_Z))->IsFixed();
 
-        for (IndexType j = 0; j < DoF; j++) {
+        for (IndexType j = initial_k; j < 3; j++) {
             if (fix_rotation[j]) {
                 r_current_angular_acceleration[j] = 0.0;
                 r_middle_angular_velocity[j] = 0.0;
@@ -548,8 +579,12 @@ public:
     /**
      * @brief This method performs some custom operations to initialize the scheme
      * @param rModelPart The model of the problem to solve
+     * @param DoF The current dimention of the problem
      */
-    virtual void SchemeCustomInitialization(ModelPart& rModelPart)
+    virtual void SchemeCustomInitialization(
+        ModelPart& rModelPart,
+        const SizeType DoF = 3
+        )
     {
         KRATOS_TRY
 
@@ -562,11 +597,8 @@ public:
         // If we consider the rotation DoF
         const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
 
-        // Working on 3D by default
-        const SizeType DoF = 3;
-
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         #pragma omp parallel for firstprivate(it_begin)
         for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
@@ -593,7 +625,8 @@ public:
 
             fix_displacements[0] = (it_node->pGetDof(DISPLACEMENT_X))->IsFixed();
             fix_displacements[1] = (it_node->pGetDof(DISPLACEMENT_Y))->IsFixed();
-            fix_displacements[2] = (it_node->pGetDof(DISPLACEMENT_Z))->IsFixed();
+            if (DoF == 3)
+                fix_displacements[2] = (it_node->pGetDof(DISPLACEMENT_Z))->IsFixed();
 
             for (IndexType j = 0; j < DoF; j++) {
                 if (fix_displacements[j]) {
@@ -616,7 +649,8 @@ public:
                 array_1d<double, 3>& r_middle_angular_velocity = it_node->GetValue(MIDDLE_ANGULAR_VELOCITY);
                 array_1d<double, 3>& r_current_angular_acceleration = it_node->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-                for (IndexType kk = 0; kk < DoF; ++kk) {
+                const IndexType initial_k = DoF == 3 ? 0 : 2;
+                for (IndexType kk = initial_k; kk < 3; ++kk) {
                     if (nodal_inertia[kk] > numerical_limit) {
                         r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
                     } else {
@@ -625,11 +659,13 @@ public:
                 }
 
                 bool fix_rotation[3] = {false, false, false};
-                fix_rotation[0] = (it_node->pGetDof(ROTATION_X))->IsFixed();
-                fix_rotation[1] = (it_node->pGetDof(ROTATION_Y))->IsFixed();
+                if (DoF == 3) {
+                    fix_rotation[0] = (it_node->pGetDof(ROTATION_X))->IsFixed();
+                    fix_rotation[1] = (it_node->pGetDof(ROTATION_Y))->IsFixed();
+                }
                 fix_rotation[2] = (it_node->pGetDof(ROTATION_Z))->IsFixed();
 
-                for (IndexType j = 0; j < DoF; j++) {
+                for (IndexType j = initial_k; j < 3; j++) {
                     if (fix_rotation[j]) {
                         r_current_angular_acceleration[j] = 0.0;
                         r_middle_angular_velocity[j] = 0.0;
