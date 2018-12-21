@@ -7,6 +7,7 @@ from glob import glob
 from math import pi, sin, cos, tan, atan, fabs, sqrt
 
 from os import system
+import os
 
 def initialize_time_parameters(benchmark_number):
 
@@ -4226,14 +4227,15 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
 
-        self.output_filename = "benchmark" + str(sys.argv[1]) + '_graph.dat'
-        self.rigid_face_file = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
-        self.simulation_graph = open(self.output_filename, 'w')
-        self.rigid_graph = open(self.rigid_face_file, 'w')
+        self.rigid_face_file    = "benchmark" + str(sys.argv[1]) + '_rigid_graph.dat'
+
+        for i in range(15):
+            self.i  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
-        self.simulation_graph.close()
-        self.rigid_graph.close()
+
+        for i in range(15):
+            self.i.close()
 
     def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
 
@@ -4246,7 +4248,7 @@ class Benchmark40: # multiple benchmarks for general code verification.
             self.balls_graph_counter = 0
 
             for node in modelpart.Nodes:
-                if node.Id == 10:
+                if node.Id == 10:           ### stage 0 - simple dem
 
                     force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
                     force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
@@ -4256,10 +4258,377 @@ class Benchmark40: # multiple benchmarks for general code verification.
                     angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
                     angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
 
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
                     force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
                     angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
-                    self.simulation_graph.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+"\n")
-                    self.simulation_graph.flush()
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=0
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 42:           ### stage 1
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=1
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 71:           ### stage 2
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=2
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1354:           ### stage 3
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=3
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1534:           ### stage 4 - particle injected by inlet
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=4
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1416:           ### stage 5 - inlet movement
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=5
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1337:           ### stage 6 - dem with initial velocity
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=6
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 663:           ### stage 8 - gravity on sphere of spheres
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=7
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 758:           ### stage 9 - dem with reduced degrees of freedom
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=8
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 789:           ### stage 10 - dem falling  rosa
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=9
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 913:           ### stage 13 - dem falling  verd fem
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=10
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 974:           ### stage 14 - dem falling  taronja
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=11
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+            for node in modelpart.Nodes:
+                if node.Id == 1061:           ### stage 15 - dem imposed period
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=12
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1180:           ### stage 16 - dem initial
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=13
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
+
+
+            for node in modelpart.Nodes:
+                if node.Id == 1290:           ### stage 17 - dem contra fem rotatori force
+
+                    force_node_x = node.GetSolutionStepValue(TOTAL_FORCES)[0]
+                    force_node_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                    force_node_z = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                    angular_node_x = node.GetSolutionStepValue(ANGULAR_VELOCITY)[0]
+                    angular_node_y = node.GetSolutionStepValue(ANGULAR_VELOCITY)[1]
+                    angular_node_z = node.GetSolutionStepValue(ANGULAR_VELOCITY)[2]
+
+                    displacement = [0]*3
+                    displacement[0] = node.X - node.X0
+                    displacement[1] = node.Y - node.Y0
+                    displacement[2] = node.Z - node.Z0
+
+                    force_node = sqrt(force_node_x*force_node_x + force_node_y*force_node_y + force_node_z*force_node_z)
+                    angular_node = sqrt(angular_node_x*angular_node_x + angular_node_y*angular_node_y + angular_node_z*angular_node_z)
+                    displacement_node = sqrt(displacement[0]*displacement[0] + displacement[1]*displacement[1] + displacement[2]*displacement[2])
+
+                    i=14
+                    data  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'a')
+                    data.write(str("%.8g"%time).rjust(12)+" "+str("%.6g"%force_node).rjust(13)+" "+str("%.6g"%angular_node).rjust(13)+" "+str("%.6g"%displacement_node).rjust(13)+"\n")
+                    data.flush()
 
         self.balls_graph_counter += 1
 
@@ -4282,14 +4651,15 @@ class Benchmark40: # multiple benchmarks for general code verification.
         self.rigid_graph_counter += 1
 
     def print_results(self, number_of_points_in_the_graphic, dt=0, elapsed_time=0.0):
-        error1, error2, error3 = self.compute_errors(self.output_filename)
+        index = 1
+        error1, error2, error3 = self.compute_errors()     # TOTAL_FORCES, ANGULAR_VELOCITY, displacement from initial pos
         error4, error5, error6 = self.compute_rigid_errors(self.rigid_face_file)
 
-        error_filename = 'errors2.err'
+        error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
         error_file.write("DEM Benchmark 40:")
 
-        if (error1 < 10.0 and error2 < 10.0 and error3 < 10.0):
+        if (error1[index] < 10.0 and error2[index] < 10.0 and error3[index] < 10.0):
             error_file.write(" OK!........ Test 40 SUCCESSFUL (spheres)\n")
             #shutil.rmtree('benchmark40_Post_Files', ignore_errors = True)
         else:
@@ -4301,89 +4671,97 @@ class Benchmark40: # multiple benchmarks for general code verification.
             error_file.write(" KO!........ Test 40 FAILED (finite elements)\n")
         error_file.close()
 
-    def compute_errors(self, output_filename):
-        reference_data = lines_DEM = list(range(0, 1000))
-        analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
-        i = 0
-        with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
-            for line in reference:
-                if i in reference_data:
-                    parts = line.split()
-                    analytics_data.append(float(parts[1]))
-                i+=1
-        i = 0
-        with open(output_filename) as current_data:
-            for line in current_data:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[1]))   #segona component del vector ()
-                i+=1
-        dem_error1 = 0
+    def compute_errors(self):
+        error1 = []
+        error2 = []
+        error3 = []
 
-        for j in analytics_data:
-            summation_of_analytics_data+=abs(j)
+        for index in range(10):
+            reference_data = lines_DEM = list(range(0, 1000))
+            analytics_data = []; DEM_data = []; summation_of_analytics_data = 0
+            i = 0
+            with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[1]))      # TOTAL_FORCES
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[1]))            # ref TOTAL_FORCES
+                    i+=1
+            dem_error1 = 0
 
-        for i, j in zip(DEM_data, analytics_data):
-            dem_error1+=fabs(i-j)
-        dem_error1/=summation_of_analytics_data
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
 
-        print("Error in total force at the reference particle =", 100*dem_error1,"%")
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error1+=fabs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+            dem_error1/=summation_of_analytics_data                 # relative error of the above against sum of reference data
 
-        i = 0
-        with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
-            for line in reference:
-                if i in reference_data:
-                    parts = line.split()
-                    analytics_data.append(float(parts[2]))
-                i+=1
-        i = 0
-        with open(output_filename) as current_data:
-            for line in current_data:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[2]))   #segona component del vector ()
-                i+=1
-        dem_error2 = 0
+            print("Error in total force at the reference particle =", 100*dem_error1,"%")
 
-        for j in analytics_data:
-            summation_of_analytics_data+=abs(j)
+            i = 0
+            with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[2]))      # ANGULAR_VELOCITY
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[2]))            # ref ANGULAR_VELOCITY
+                    i+=1
+            dem_error2 = 0
 
-        for i, j in zip(DEM_data, analytics_data):
-            dem_error2+=fabs(i-j)
-        dem_error2/=summation_of_analytics_data
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
 
-        print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error2+=fabs(i-j)                               # (test_data[0]-reference_data[0]) + ...
+            dem_error2/=summation_of_analytics_data                 # relative error of the above against sum of reference data
+
+            print("Error in angular velocity at the reference particle =", 100*dem_error2,"%")
 
 
-        i = 0
-        with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
-            for line in reference:
-                if i in reference_data:
-                    parts = line.split()
-                    analytics_data.append(float(parts[3]))
-                i+=1
-        i = 0
-        with open(output_filename) as current_data:
-            for line in current_data:
-                if i in lines_DEM:
-                    parts = line.split()
-                    DEM_data.append(float(parts[3]))   #segona component del vector ()
-                i+=1
-        dem_error3 = 0
+            i = 0
+            with open('paper_data/reference_graph_benchmark' + '40' + '.dat') as reference:
+                for line in reference:
+                    if i in reference_data:
+                        parts = line.split()
+                        analytics_data.append(float(parts[3]))      # displacement from initial pos
+                    i+=1
+            i = 0
+            with open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % index) as current_data:
+                for line in current_data:
+                    if i in lines_DEM:
+                        parts = line.split()
+                        DEM_data.append(float(parts[3]))            # ref displacement from initial pos
+                    i+=1
+            dem_error3 = 0
 
-        for j in analytics_data:
-            summation_of_analytics_data+=abs(j)
+            for j in analytics_data:
+                summation_of_analytics_data+=abs(j)
 
-        for i, j in zip(DEM_data, analytics_data):
-            dem_error3+=fabs(i-j)
-        dem_error3/=summation_of_analytics_data
+            for i, j in zip(DEM_data, analytics_data):
+                dem_error3+=fabs(i-j)
+            dem_error3/=summation_of_analytics_data
 
-        print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
+            print("Error in delta displacement at the reference particle =", 100*dem_error3,"%")
 
-        error1 = 100*dem_error1
-        error2 = 100*dem_error2
-        error3 = 100*dem_error3
+            error1.append(100*dem_error1)
+            error2.append(100*dem_error2)
+            error3.append(100*dem_error3)
 
+        print (error1)
+        print (error2)
+        print (error3)
         return error1, error2, error3
 
     def compute_rigid_errors(self, rigid_face_file):
@@ -4432,7 +4810,7 @@ def delete_archives():
 
     #.......................Removing extra files
     files_to_delete_list = glob('*.time')
-    files_to_delete_list.extend(glob('*.dat'))
+    # files_to_delete_list.extend(glob('*.dat'))
     files_to_delete_list.extend(glob('*.gp'))
     files_to_delete_list.extend(glob('*.txt'))
     files_to_delete_list.extend(glob('*.lst'))

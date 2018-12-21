@@ -104,7 +104,7 @@ def worker(queue):
 def main():
     try:
         print("\nAdding processes to DEM parallel Benchmarking..............\n")
-        g = open("errors.err", 'a')
+        g = open("errors.err", "w")
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
         g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
         g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
@@ -185,7 +185,7 @@ def main():
         g = open("errors.err")
         file_contents = g.read()
         g.close()
-        #os.remove("errors.err")
+        os.remove("errors.err")
 
         Text += file_contents.rstrip("\n")
         Text += "\n\n\n"

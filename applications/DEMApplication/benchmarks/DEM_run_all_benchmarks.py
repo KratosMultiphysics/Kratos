@@ -143,7 +143,7 @@ def Run():
         if 'FAILED' in file_contents:
             failure = True
 
-    # os.remove("errors.err")
+    os.remove("errors.err")
 
     Text += file_contents.rstrip("\n")
     Text += "\n\n\n"
