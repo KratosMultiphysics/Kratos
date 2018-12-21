@@ -25,7 +25,8 @@ class VtkOutputProcess(KratosMultiphysics.Process):
             "save_output_files_in_folder"        : true,
             "nodal_solution_step_data_variables" : [],
             "nodal_data_value_variables"         : [],
-            "element_data_value_variables"       : []
+            "element_data_value_variables"       : [],
+            "condition_data_value_variables"       : []
         }
         """)
 
