@@ -36,7 +36,7 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def Run(self):
-        
+
         self.Initialize()
         self.RunMainTemporalLoop()
         self.Finalize()
@@ -56,7 +56,7 @@ class FEMDEM_Solution:
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
-        
+
         self.SpheresModelPart = self.DEM_Solution.spheres_model_part
         self.DEMParameters = self.DEM_Solution.DEM_parameters
         self.DEMProperties = self.SpheresModelPart.GetProperties()[1]
@@ -111,14 +111,14 @@ class FEMDEM_Solution:
 
         if self.DoRemeshing:
             is_remeshing = self.CheckIfHasRemeshed()
-            
+
             if is_remeshing:
                 # Extrapolate the VonMises normalized stress to nodes (remeshing)
                 KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
                 # we eliminate the nodal DEM forces
                 self.RemoveDummyNodalForces()
-                
+
             # Perform remeshing
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
@@ -181,7 +181,7 @@ class FEMDEM_Solution:
         if self.pressure_load:
             # we reconstruct the pressure load
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] = 1
-            while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0: 
+            while self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ITER] > 0:
                 KratosFemDem.ExtendPressureConditionProcess2D(self.FEM_Solution.main_model_part,).Execute()
 
         # we create the new DEM of this time step
@@ -203,7 +203,7 @@ class FEMDEM_Solution:
                                                                    self.DEM_Solution.time,
                                                                    self.DEM_Solution.dt,
                                                                    self.DEM_Solution.step,
-                                                                   self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
+                                                                   self.DEM_Solution.IsTimeToPrintPostProcess())
         self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
 
         #### SOLVE DEM #########################################
@@ -212,7 +212,7 @@ class FEMDEM_Solution:
 
         self.DEM_Solution.AfterSolveOperations()
         self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.dt)
-        
+
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
 
@@ -250,10 +250,10 @@ class FEMDEM_Solution:
 
         # processes to be executed after writting the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
-        
+
         if self.DoRemeshing:
              self.RemeshingProcessMMG.ExecuteFinalizeSolutionStep()
-             
+
         # Remove the submodel to be recomputed at each dt
         if self.FEM_Solution.main_model_part.HasSubModelPart("SkinDEMModelPart"):
             for cond in self.FEM_Solution.main_model_part.GetSubModelPart("SkinDEMModelPart").Conditions:
@@ -616,7 +616,7 @@ class FEMDEM_Solution:
                 Coordinates    = self.GetNodeCoordinates(fem_node)
                 velocity = fem_node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
                 displacement = fem_node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-                
+
                 # Update Coordinates
                 associated_dem.X = Coordinates[0]
                 associated_dem.Y = Coordinates[1]
@@ -679,7 +679,7 @@ class FEMDEM_Solution:
 
 #============================================================================================================================
     def TransferNodalForcesToFEM(self):
-        
+
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
             id_node = condition.GetNodes()[0].Id
 
@@ -966,7 +966,7 @@ class FEMDEM_Solution:
                     NumberOfActiveElements += 1
                     node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
 
-        NumberOfActiveElements = 0    
+        NumberOfActiveElements = 0
         for node in FEM_Nodes:
             NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
             if NumberOfActiveElements == 0:

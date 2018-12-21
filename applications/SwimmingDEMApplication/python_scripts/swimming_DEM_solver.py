@@ -25,9 +25,8 @@ class SwimmingDEMSolver(PythonSolver):
 
     def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
         # Validate settings
-
+        self.pp = pp
         self.project_parameters = self._ValidateSettings(project_parameters)
-        print(self.project_parameters)
         self.fluid_solver = fluid_solver
         self.dem_solver = dem_solver
         self.fluid_step = 0
@@ -40,46 +39,54 @@ class SwimmingDEMSolver(PythonSolver):
         self.integration_scheme = project_parameters["TranslationalIntegrationScheme"].GetString()
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
+        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
 
-        # creating a projection module for the fluid-DEM coupling
-        self.h_min = 0.01
-        n_balls = 1
-        fluid_volume = 10
-        # the variable n_particles_in_depth is only relevant in 2D problems
-        project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
-        self.pp = pp
-
+        self.ConstructStationarityTool()
+        self.ConstructProjectionModule()
+        self.ConstructDerivativeRecoverer()
+        self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
         super(SwimmingDEMSolver, self).__init__(model, project_parameters)
-        self.project_parameters = project_parameters
+
+    def ConstructStationarityTool(self):
         self.stationarity = False
         self.stationarity_counter = self.GetStationarityCounter()
         self.stationarity_tool = SDP.StationarityAssessmentTool(
-            project_parameters["max_pressure_variation_rate_tol"].GetDouble(),
+            self.project_parameters["max_pressure_variation_rate_tol"].GetDouble(),
             SDP.FunctionsCalculator()
             )
 
+    def ConstructProjectionModule(self):
+        # creating a projection module for the fluid-DEM coupling
+        self.h_min = 0.01 #TODO: this must be set from interface and the method must be checked for 2D
+        n_balls = 1
+        fluid_volume = 10
+        # the variable n_particles_in_depth is only relevant in 2D problems
+        self.project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
         self.projection_module = CFD_DEM_coupling.ProjectionModule(
-            self.fluid_solver.main_model_part,
-            self.dem_solver.spheres_model_part,
-            self.dem_solver.all_model_parts.Get("RigidFacePart"),
-            pp.CFD_DEM,
-            pp.coupling_dem_vars,
-            pp.coupling_fluid_vars,
-            pp.time_filtered_vars,
-            flow_field=pp.field_utility,
-            domain_size=pp.domain_size
-            )
+        self.fluid_solver.main_model_part,
+        self.dem_solver.spheres_model_part,
+        self.dem_solver.all_model_parts.Get("RigidFacePart"),
+        self.pp.CFD_DEM,
+        self.pp.coupling_dem_vars,
+        self.pp.coupling_fluid_vars,
+        self.pp.time_filtered_vars,
+        flow_field=self.pp.field_utility,
+        domain_size=self.pp.domain_size
+        )
 
+    def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
-
+        self.using_hinsberg_method = bool(self.project_parameters["basset_force_type"].GetInt() >= 3 or
+                                          self.project_parameters["basset_force_type"].GetInt() == 1)
         self.recovery = derivative_recoverer.DerivativeRecoveryStrategy(
-            pp,
+            self.pp,
             self.fluid_solver.main_model_part,
-            SDP.FunctionsCalculator(pp.domain_size))
+            SDP.FunctionsCalculator(self.pp.domain_size))
 
+    def ConstructHistoryForceUtility(self):
         self.quadrature_counter = self.GetHistoryForceQuadratureCounter()
-        self.GetBassetForceTools()
+        self.basset_force_tool = SwimmingDEMApplication.BassetForceTools()
 
     def GetStationarityCounter(self):
         return SDP.Counter(
@@ -101,7 +108,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def AdvanceInTime(self, step, time):
         self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
-        self.calculating_fluid_in_current_step = time == self.next_time_to_solve_fluid
+        self.calculating_fluid_in_current_step = bool(time == self.next_time_to_solve_fluid)
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1
@@ -135,35 +142,45 @@ class SwimmingDEMSolver(PythonSolver):
         self.projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
 
     def SolveSolutionStep(self):
+        # update possible movements of the fluid mesh
         self.UpdateALEMeshMovement(self.time)
-        # solving the fluid part
+
+        # Solving the fluid part
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
-        solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
+        self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
 
-        if solve_system:
-            self.fluid_solver.SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
+        if self.solve_system:
+            self.SolveFluid(solve_system)
         else:
-            Say("Skipping solving system for the fluid phase ...\n")
+            Say("Skipping solving system for the fluid phase...\n")
 
+        # Check for stationarity: this is useful for steady-state problems, so that
+        # the calculation stops after reaching the solution.
         if self.stationarity_counter.Tick():
             self.AssessStationarity()
 
-        self.ComputePostProcessResults()
+        # Compute nodal quantities to be printed that are not generated as part of the
+        # solution algorithm. For instance, the pressure gradient, which is not used for
+        # the coupling but can be of interest.
+        self.ComputePostProcessResults() # TODO: Make sure this is run only when needed
 
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()
 
+        # Solving the disperse-phase component
         Say('Solving DEM... (', self.dem_solver.spheres_model_part.NumberOfElements(0), 'elements )')
-        self.SolveDEM(self.time)
+        self.SolveDEM()
 
-    def SolveDEM(self, time):
+    def SolveFluid(self):
+        self.fluid_solver.SolveSolutionStep()
+
+    def SolveDEM(self):
+        #self.PerformEmbeddedOperations() TO-DO: it's crashing
 
         it_is_time_to_forward_couple = (
-            time >= self.interaction_start_time and
+            self.time >= self.interaction_start_time and
             self.coupling_level_type and
             (self.project_at_every_substep_option or self.calculating_fluid_in_current_step)
         )
@@ -174,7 +191,7 @@ class SwimmingDEMSolver(PythonSolver):
                 self.ApplyForwardCoupling()
 
             else:
-                alpha = 1.0 - (self.next_time_to_solve_fluid - time) / self.fluid_dt
+                alpha = 1.0 - (self.next_time_to_solve_fluid - self.time) / self.fluid_dt
                 self.ApplyForwardCoupling(alpha)
 
         if self.quadrature_counter.Tick():
@@ -182,27 +199,19 @@ class SwimmingDEMSolver(PythonSolver):
 
         if self.integration_scheme in {'Hybrid_Bashforth', 'TerminalVelocityScheme'}:
             # Advance in space only
-            self.SolveDEMSolutionStep()
-            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(time)
+            self.dem_solver.SolveSolutionStep()
+            self.ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self.time)
 
-        # performing the time integration of the DEM part
+        # Performing the time integration of the DEM part
 
         if self.do_solve_dem:
-            self.SolveDEMSolutionStep()
-
-        self.dem_solver.FinalizeSolutionStep()
+            self.dem_solver.SolveSolutionStep()
 
     def AppendValuesForTheHistoryForce(self):
-        using_hinsberg_method = (
-            self.project_parameters["basset_force_type"].GetInt() >= 3 or
-            self.project_parameters["basset_force_type"].GetInt() == 1)
-        if using_hinsberg_method:
+        if self.using_hinsberg_method:
             self.basset_force_tool.AppendIntegrandsWindow(self.dem_solver.spheres_model_part)
         elif self.project_parameters["basset_force_type"].GetInt() == 2:
             self.basset_force_tool.AppendIntegrands(self.dem_solver.spheres_model_part)
-
-    def SolveDEMSolutionStep(self):
-        self.dem_solver.SolveSolutionStep()
 
     def ImportModelParts(self): # TODO: implement this
         self.fluid_solver.ImportModelPart()
@@ -210,6 +219,3 @@ class SwimmingDEMSolver(PythonSolver):
 
     def GetComputingModelPart(self):
         return self.dem_solver.spheres_model_part
-
-    def GetBassetForceTools(self): # TODO: deprecated
-        self.basset_force_tool = SwimmingDEMApplication.BassetForceTools()

@@ -86,6 +86,9 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         elif watcher_type == 'ParticlesHistoryWatcher':
             return ParticlesHistoryWatcher()
 
+    def IsTimeToPrintPostProcess(self):
+        return self.analytic_data_counter.Tick()
+
     def SetGraphicalOutput(self):
         pass
 

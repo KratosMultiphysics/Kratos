@@ -487,7 +487,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.particles_results_counter    = self.GetParticlesResultsCounter()
         self.quadrature_counter           = self.GetHistoryForceQuadratureCounter()
         #Phantom
-        self.analytic_data_counter        = self.ProcessAnalyticDataCounter()
+        self.disperse_phase_solution.analytic_data_counter = self.ProcessAnalyticDataCounter()
         self.mat_deriv_averager           = SDP.Averager(1, 3)
         self.laplacian_averager           = SDP.Averager(1, 3)
 
@@ -624,55 +624,38 @@ class SwimmingDEMAnalysis(AnalysisStage):
         super(SwimmingDEMAnalysis, self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
+        # printing if required
+        if self._GetSolver().solve_system:
+            self.fluid_solution.FinalizeSolutionStep()
+
+        if self.particles_results_counter.Tick():
+            Print()
+
+        if self.print_counter_updated_fluid.Tick():
+            self.ComputePostProcessResults()
+
+        self.disperse_phase_solution.FinalizeSolutionStep()
+
+        # applying DEM-to-fluid coupling
+
+        if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
+            self._GetSolver().projection_module.ProjectFromParticles()
+
+        os.chdir(self.post_path)
+
+        # coupling checks (debugging)
+        if self.debug_info_counter.Tick():
+            self.dem_volume_tool.UpdateDataAndPrint(
+                self.pp.CFD_DEM["fluid_domain_volume"].GetDouble())
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
     def RunSolutionLoop(self):
 
         while self.TheSimulationMustGoOn():
-            coupling_level_type = self.pp.CFD_DEM["coupling_level_type"].GetInt()
-            project_at_every_substep_option = self.pp.CFD_DEM["project_at_every_substep_option"].GetBool()
-            coupling_scheme_type = self.pp.CFD_DEM["coupling_scheme_type"].GetString()
-            integration_scheme = self.pp.CFD_DEM["TranslationalIntegrationScheme"].GetString()
-            dem_inlet_option = self.pp.CFD_DEM["dem_inlet_option"].GetBool()
-            interaction_start_time = self.pp.CFD_DEM["interaction_start_time"].GetDouble()
-
             self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
             self.InitializeSolutionStep()
-            #self.PerformEmbeddedOperations() TO-DO: it's crashing
             self._GetSolver().Predict()
-            # solving the fluid part
             self._GetSolver().SolveSolutionStep()
-
-            # printing if required
-
-            if self.particles_results_counter.Tick():
-                Print()
-
-            # adding DEM elements by the inlet:
-            if dem_inlet_option:
-                # After solving, to make sure that neighbours are already set.
-                self.disperse_phase_solution.DEM_inlet.CreateElementsFromInletMesh(
-                    self.spheres_model_part,
-                    self.cluster_model_part,
-                    self.disperse_phase_solution.creator_destructor)
-
-            if self.print_counter_updated_fluid.Tick():
-                self.ComputePostProcessResults()
-
-            # applying DEM-to-fluid coupling
-
-            if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
-                self._GetSolver().projection_module.ProjectFromParticles()
-
-            #Phantom
-            self.disperse_phase_solution.RunAnalytics(self.time, is_time_to_print=self.analytic_data_counter.Tick())
-
-            os.chdir(self.post_path)
-
-            # coupling checks (debugging)
-            if self.debug_info_counter.Tick():
-                self.dem_volume_tool.UpdateDataAndPrint(
-                    self.pp.CFD_DEM["fluid_domain_volume"].GetDouble())
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
