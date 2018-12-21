@@ -33,6 +33,7 @@ class ManageIsolatedNodesProcess : public Process
 public:
     ///@name Type Definitions
     ///@{
+    typedef std::vector<Node<3>*>             NodePointerVectorType;
 
     /// Pointer definition of ManageIsolatedNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(ManageIsolatedNodesProcess);
@@ -83,7 +84,7 @@ public:
 
       double Radius = 0.0;
       //BOUNDARY flag must be set in model part nodes
-      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius);
+      mBoundingBox = SpatialBoundingBox(mrModelPart,Radius,0.1);
 
       KRATOS_CATCH("")
     }
@@ -164,8 +165,10 @@ public:
 
             //std::cout<<" ISOLATED Node ["<<it->Id()<<"] Displacement"<<it->FastGetSolutionStepValue(DISPLACEMENT)<<std::endl;
 
-            if( !mBoundingBox.IsInside( it->Coordinates() ) )
+            if( !mBoundingBox.IsInside( it->Coordinates() ) ){
               it->Set(TO_ERASE);
+              std::cout<<" ISOLATED to erase "<<std::endl;
+            }
           }
           else if( it->Is(VISITED) ){
 
@@ -309,12 +312,12 @@ private:
 
           if( it->Is(FREE_SURFACE) ){
 
-            WeakPointerVector<Node<3> >& rN = it->GetValue(NEIGHBOUR_NODES);
+            NodePointerVectorType& rN = it->GetValue(NEIGHBOR_NODES);
             unsigned int NumberOfNeighbours = rN.size();
             unsigned int rigid = 0;
             for(unsigned int j = 0; j < NumberOfNeighbours; ++j)
 	    {
-              if(rN[j].Is(RIGID))
+              if(rN[j]->Is(RIGID))
                 ++rigid;
 	    }
             if( rigid == NumberOfNeighbours )
