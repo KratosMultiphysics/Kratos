@@ -444,10 +444,8 @@ class MultilevelMonteCarlo(object):
         print("current number of levels = ",self.current_number_levels)
         print("previous number of levels = ",self.previous_number_levels)
         print("current splitting parameter = ",self.theta_i)
-        print("current number of samples",self.number_samples)
         print("difference number of samples = ",self.difference_number_samples)
         print("previous number of samples = ",self.previous_number_samples)
-        print("theta splitting parameter = ",self.theta_i)
 
 
     '''
@@ -456,6 +454,7 @@ class MultilevelMonteCarlo(object):
     def ScreeningInfoFinalizeMLMCPhase(self):
         # print("values computed of QoI = ",self.difference_QoI.values)
         # print("values computed time_ML",self.time_ML.values)
+        print("current number of samples",self.number_samples)
         print("mean and variance difference_QoI = ",self.difference_QoI.mean,self.difference_QoI.sample_variance)
         print("mean time_ML",self.time_ML.mean)
         print("rates coefficient = ",self.rates_error)
