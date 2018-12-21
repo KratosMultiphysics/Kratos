@@ -108,7 +108,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def AdvanceInTime(self, step, time):
         self.step, self.time = self.dem_solver.AdvanceInTime(step, time)
-        self.calculating_fluid_in_current_step = bool(time == self.next_time_to_solve_fluid)
+        self.calculating_fluid_in_current_step = bool(time >= self.next_time_to_solve_fluid)
         if self.calculating_fluid_in_current_step:
             self.next_time_to_solve_fluid = self.fluid_solver.AdvanceInTime(time)
             self.fluid_step += 1
@@ -132,8 +132,12 @@ class SwimmingDEMSolver(PythonSolver):
         if self.project_parameters["coupling_level_type"].GetInt():
             self.projection_module.ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
 
+    def CannotIgnoreFluidNow(self):
+        return self.solve_system and self.calculating_fluid_in_current_step
+
     def Predict(self):
-        self.fluid_solver.Predict()
+        if self.CannotIgnoreFluidNow():
+            self.fluid_solver.Predict()
 
     def ApplyForwardCoupling(self, alpha='None'):
         self.projection_module.ApplyForwardCoupling(alpha)
@@ -149,8 +153,8 @@ class SwimmingDEMSolver(PythonSolver):
         Say('Solving Fluid... (', self.fluid_solver.main_model_part.NumberOfElements(0), 'elements )\n')
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool() and not self.stationarity
 
-        if self.solve_system:
-            self.SolveFluid(solve_system)
+        if self.CannotIgnoreFluidNow():
+            self.SolveFluid()
         else:
             Say("Skipping solving system for the fluid phase...\n")
 
@@ -213,9 +217,8 @@ class SwimmingDEMSolver(PythonSolver):
         elif self.project_parameters["basset_force_type"].GetInt() == 2:
             self.basset_force_tool.AppendIntegrands(self.dem_solver.spheres_model_part)
 
-    def ImportModelParts(self): # TODO: implement this
-        self.fluid_solver.ImportModelPart()
-        self.dem_solver.ImportModelPart()
+    def ImportModelPart(self): # TODO: implement this
+        pass
 
     def GetComputingModelPart(self):
         return self.dem_solver.spheres_model_part

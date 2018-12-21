@@ -620,19 +620,19 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.TellTime(self.time)
         self.PerformInitialDEMStepOperations(self.time)
         self.disperse_phase_solution.InitializeSolutionStep()
-        self.fluid_solution.InitializeSolutionStep()
+        if self._GetSolver().CannotIgnoreFluidNow():
+            self.fluid_solution.InitializeSolutionStep()
         super(SwimmingDEMAnalysis, self).InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
         # printing if required
-        if self._GetSolver().solve_system:
-            self.fluid_solution.FinalizeSolutionStep()
-
-        if self.particles_results_counter.Tick():
-            Print()
+        if self._GetSolver().CannotIgnoreFluidNow():
+            pass
+            #self.fluid_solution.FinalizeSolutionStep()
 
         if self.print_counter_updated_fluid.Tick():
             self.ComputePostProcessResults()
+            self.Print()
 
         self.disperse_phase_solution.FinalizeSolutionStep()
 
@@ -640,8 +640,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         if self.DEM_to_fluid_counter.Tick() and self.time >= interaction_start_time:
             self._GetSolver().projection_module.ProjectFromParticles()
-
-        os.chdir(self.post_path)
 
         # coupling checks (debugging)
         if self.debug_info_counter.Tick():
@@ -668,16 +666,17 @@ class SwimmingDEMAnalysis(AnalysisStage):
         super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
     def Print(self):
-        self.io_tools.PrintParticlesResults(
-            self.pp.variables_to_print_in_file,
-            self.time,
-            self.spheres_model_part)
+        if self.particles_results_counter.Tick():
+            self.io_tools.PrintParticlesResults(
+                self.pp.variables_to_print_in_file,
+                self.time,
+                self.spheres_model_part)
 
-        self.PrintDrag(
-            self.drag_list,
-            self.drag_file_output_list,
-            self.fluid_model_part,
-            self.time)
+            self.PrintDrag(
+                self.drag_list,
+                self.drag_file_output_list,
+                self.fluid_model_part,
+                self.time)
 
         self.post_utils.Writeresults(self.time)
 
