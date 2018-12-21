@@ -8,44 +8,28 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
+//  Collaborators:   Vicente Mataix Ferrandiz
 //
-
-
 
 #if !defined(KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED )
 #define  KRATOS_CALCULATE_NODAL_AREA_PROCESS_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "utilities/geometry_utilities.h"
-
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
 ///@}
 ///@name Type Definitions
 ///@{
-typedef  ModelPart::NodesContainerType NodesContainerType;
-typedef  ModelPart::ElementsContainerType ElementsContainerType;
-
 
 ///@}
 ///@name  Enum's
@@ -59,16 +43,41 @@ typedef  ModelPart::ElementsContainerType ElementsContainerType;
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
-class CalculateNodalAreaProcess
+/**
+ * @brief This struct is used in order to identify when using the hitorical and non historical variables
+ */
+struct CalculateNodalAreaSettings
+{
+    // Defining clearer options
+    constexpr static bool SaveAsHistoricalVariable = true;
+    constexpr static bool SaveAsNonHistoricalVariable = false;
+};
+    
+/** 
+ * @class CalculateNodalAreaProcess
+ * @ingroup KratosCore 
+ * @brief Computes NODAL_AREA
+ * @details Calculate the NODAL_AREA for computing the weighted area in each node
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+template<bool THistorical = true>
+class KRATOS_API(KRATOS_CORE) CalculateNodalAreaProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
 
+    /// Index type definition
+    typedef std::size_t IndexType;
+    
+    /// Size type definition
+    typedef std::size_t SizeType;
+
+    /// The definition of the node
+    typedef Node<3> NodeType;
+    
     /// Pointer definition of CalculateNodalAreaProcess
     KRATOS_CLASS_POINTER_DEFINITION(CalculateNodalAreaProcess);
 
@@ -76,20 +85,28 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
-    /// avg_elems ------ expected number of neighbour elements per node.,
-    /// avg_nodes ------ expected number of neighbour Nodes
-    /// the better the guess for the quantities above the less memory occupied and the fastest the algorithm
-    CalculateNodalAreaProcess(ModelPart& model_part, unsigned int domain_size)
-        : mr_model_part(model_part), mdomain_size(domain_size)
+    /**
+     * @brief Default constructor.
+     * @param rModelPart The model part to be computed
+     * @param DomainSize The size of the space, if the value is not provided will compute from the model part
+     */
+    CalculateNodalAreaProcess(
+        ModelPart& rModelPart, 
+        const SizeType DomainSize = 0
+        ): mrModelPart(rModelPart),
+           mDomainSize(DomainSize)
     {
+        // In case is not provided we will take from the model part
+        if (mDomainSize == 0) {
+            KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "\"DOMAIN_SIZE\" has to be specified in the ProcessInfo" << std::endl;
+            mDomainSize = rModelPart.GetProcessInfo()[DOMAIN_SIZE];
+        }
     }
 
     /// Destructor.
     ~CalculateNodalAreaProcess() override
     {
     }
-
 
     ///@}
     ///@name Operators
@@ -105,68 +122,11 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override
-    {
-        KRATOS_TRY
-
-        //set to zero the nodal area
-        for(ModelPart::NodesContainerType::iterator in = mr_model_part.NodesBegin();
-                in!=mr_model_part.NodesEnd(); in++)
-        {
-            in->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
-        }
-
-        if(mdomain_size == 2)
-        {
-            double area = 0.0;
-            for(ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin();
-                    i!=mr_model_part.ElementsEnd(); i++)
-            {
-                //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
-
-                area = GeometryUtils::CalculateVolume2D(geom);
-                area *= 0.333333333333333333333333333;
-
-
-                geom[0].FastGetSolutionStepValue(NODAL_AREA) += area;
-                geom[1].FastGetSolutionStepValue(NODAL_AREA) += area;
-                geom[2].FastGetSolutionStepValue(NODAL_AREA) += area;
-            }
-        }
-        else if(mdomain_size == 3)
-        {
-            for(ModelPart::ElementsContainerType::iterator i = mr_model_part.ElementsBegin();
-                    i!=mr_model_part.ElementsEnd(); i++)
-            {
-                double vol;
-                //calculating shape functions values
-                Geometry< Node<3> >& geom = i->GetGeometry();
-
-                vol = GeometryUtils::CalculateVolume3D(geom);
-                vol *= 0.25;
-
-                geom[0].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[1].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[2].FastGetSolutionStepValue(NODAL_AREA) += vol;
-                geom[3].FastGetSolutionStepValue(NODAL_AREA) += vol;
-            }
-        }
-
-        mr_model_part.GetCommunicator().AssembleCurrentData(NODAL_AREA);
-
-
-
-        KRATOS_CATCH("");
-
-    }
-
-
+    void Execute() override;
 
     ///@}
     ///@name Access
     ///@{
-
 
     ///@}
     ///@name Inquiry
@@ -247,9 +207,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mr_model_part;
-    unsigned int mdomain_size;
-
+    
+    ModelPart& mrModelPart;  /// The model part where the nodal area is computed
+    SizeType mDomainSize;    /// The dimension of the space
 
     ///@}
     ///@name Private Operators
@@ -260,6 +220,12 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method gets the current value of the NODAL_AREA
+     * @param rNode The node iterator to be get
+     * @return The current value of NODAL_AREA
+     */
+    double& GetAreaValue(NodeType& rNode);
 
     ///@}
     ///@name Private  Access
@@ -298,12 +264,14 @@ private:
 
 
 /// input stream function
+template<bool THistorical = true>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  CalculateNodalAreaProcess& rThis);
+                                  CalculateNodalAreaProcess<THistorical>& rThis);
 
 /// output stream function
+template<bool THistorical = true>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const CalculateNodalAreaProcess& rThis)
+                                  const CalculateNodalAreaProcess<THistorical>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
