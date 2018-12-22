@@ -41,7 +41,7 @@ def CheckIfWriteInFolder(settings, model_part):
     """
     file_settings = settings["file_settings"]
     output_time_settings = settings["output_time_settings"]
-    if file_settings.Has("write_files_in_folder"):
+    if file_settings.Has("write_files_in_folder"): #todo(msandre): discuss if this should be default
         if file_settings["write_files_in_folder"].GetBool():
             # modify the file-path
             if output_time_settings.Has("file_name"):

@@ -3,6 +3,7 @@ from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process import Factory as OutputFactory
+from KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process import Factory as XdmfOutputFactory
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as TimeInputFactory
 from KratosMultiphysics.HDF5Application.initialization_from_hdf5_process import Factory as InitializationFactory
 
@@ -86,6 +87,61 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
             for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
+
+    def test_SingleMeshXdmfOutputProcess(self):
+        """
+        Output ModelPart using SingleMeshXdmfOutputProcess.
+        """
+        write_model_part = self._CreateNewModelPart("ModelPartXDMFOutput")
+        self._InitializeModelPart(write_model_part)
+
+        output_settings = Parameters(r"""{
+            "Parameters" : {
+                "model_part_name" : "ModelPartXDMFOutput",
+                "file_settings": {
+                    "file_access_mode" : "truncate",
+                    "write_files_in_folder" : true
+                },
+                "nodal_solution_step_data_settings" : {
+                    "list_of_variables": ["VELOCITY", "DENSITY"]
+                },
+                "nodal_data_value_settings" : {
+                    "list_of_variables": ["PRESSURE"]
+                },
+                "element_data_value_settings" : {
+                    "list_of_variables": ["TEMPERATURE"]
+                },
+                "output_time_settings" : {
+                    "output_step_frequency": 1
+                }
+            }
+        }""")
+        output_process = XdmfOutputFactory(output_settings, self.model)
+
+        output_process.ExecuteBeforeSolutionLoop()
+
+        for step in range(1,3):
+            # Run step on write model part and dump results
+            self._SimulateTimeStep(write_model_part, 0.1*step)
+            output_process.ExecuteFinalizeSolutionStep()
+
+            # for read_node,write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
+            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_X,0), write_node.GetSolutionStepValue(VELOCITY_X,0))
+            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Y,0), write_node.GetSolutionStepValue(VELOCITY_Y,0))
+            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Z,0), write_node.GetSolutionStepValue(VELOCITY_Z,0))
+            #     self.assertEqual(read_node.GetSolutionStepValue(DENSITY,0),    write_node.GetSolutionStepValue(DENSITY,0))
+            #     # reaction is not written, so it should not be updated
+            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_X,0), 0.0)
+            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
+            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
+
+            #     self.assertEqual(read_node.GetValue(PRESSURE), write_node.GetValue(PRESSURE))
+
+            # for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
+            #     self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
+
+        kratos_utilities.DeleteFileIfExisting("ModelPartXDMFOutput.xdmf")
+        kratos_utilities.DeleteDirectoryIfExisting("ModelPartXDMFOutput__h5_files")
 
     def test_SingleMeshTemporalOutputInitialization(self):
         """
