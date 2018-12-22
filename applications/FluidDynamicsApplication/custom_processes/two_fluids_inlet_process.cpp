@@ -87,16 +87,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
 
     const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    // BodyDistanceCalculationUtils distance_util;
-    // if ( dim == 2 ){
-    //     distance_util.CalculateDistances<2>( rRootModelPart.Elements(), DISTANCE, 0.0 );
-    // } else if ( dim == 3 ){
-    //     distance_util.CalculateDistances<3>( rRootModelPart.Elements(), DISTANCE, 0.0 );
-    // } else {
-    //     KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
-    // }
-
-    // MPI Version
+    // MPI Version used here
     if ( dim == 2 ){
         ParallelDistanceCalculator<2> parallel_distance_util;
         parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
@@ -142,10 +133,8 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
         if (inlet_dist <= 0.0){
             index_node_water.push_back( it_node->GetId() );
-            std::cout << mrInletModelPart.GetCommunicator().MyPID() << "  water  " << it_node->GetId() << std::endl;
         } else {
             index_node_air.push_back( it_node->GetId() );
-            std::cout << mrInletModelPart.GetCommunicator().MyPID() << "  air  " << it_node->GetId() << std::endl;
         }
     }
     rWaterInlet.AddNodes( index_node_water );
@@ -175,15 +164,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     rWaterInlet.AddConditions( index_cond_water );
     rAirInlet.AddConditions( index_cond_air );
 
-    KRATOS_WATCH( mrInletModelPart.NumberOfSubModelParts() )
-    KRATOS_WATCH( mrInletModelPart.GetSubModelPartNames() )
-    KRATOS_WATCH( mrInletModelPart.GetSubModelPart("water_inlet").NumberOfNodes() )
-    KRATOS_WATCH( mrInletModelPart.GetSubModelPart("air_inlet").NumberOfNodes() )
-    KRATOS_WATCH( mrInletModelPart.GetSubModelPart("water_inlet").NumberOfConditions() )
-    KRATOS_WATCH( mrInletModelPart.GetSubModelPart("air_inlet").NumberOfConditions() )
-
     rRootModelPart.GetCommunicator().Barrier();
-
 }
 
 
