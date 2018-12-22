@@ -41,12 +41,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     KRATOS_CHECK_VARIABLE_KEY( AUX_DISTANCE )
     KRATOS_CHECK_VARIABLE_KEY( NODAL_AREA )
 
-    /// EXAMPLE LINES
-    /// for (int k = 0; k < (int)r_modelpart.GetCommunicator().LocalMesh().Elements().size(); k++) {
-    /// ElementIterator elem_it = r_modelpart.GetCommunicator().LocalMesh().Elements().ptr_begin() + k;
-    /// ConditionsArrayType& pConditions = GetFemModelPart().GetCommunicator().LocalMesh().Conditions();
-
-    // finding the complete model the inlet model part
+    // finding the complete model of the inlet model part
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
     // setting the parameters to the private data members of the class
@@ -133,7 +128,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         it_node->GetSolutionStepValue(DISTANCE, 0) = it_node->GetSolutionStepValue(DISTANCE, 2);
     }
 
-
     // subdividing the inlet into two sub_model_part
     mrInletModelPart.CreateSubModelPart("water_inlet");
     mrInletModelPart.CreateSubModelPart("air_inlet");
@@ -171,10 +165,10 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
             if ( inlet_dist <= 0 ){ neg_counter++; }
         }
         // the conditions cut by the interface are neither assigned to the positive nor the negative side
-        if( true ){
+        if( pos_counter > 0 ){
             index_cond_air.push_back( it_cond->GetId() );
         }
-        if( true ){
+        if( neg_counter > 0 ){
             index_cond_water.push_back( it_cond->GetId() );
         }
     }
@@ -198,7 +192,7 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
 
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
