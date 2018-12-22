@@ -78,7 +78,7 @@ def GetListOfTimeLabels(file_name):
 
 def WriteXdmfFile(file_name, rel_path_h5_files=""):
     #todo(msandre): generalize to WriteXdmfFile(xdmf_file_name, list_of_h5_file_paths):
-     temporal_grid = xdmf.TemporalGrid()
+    temporal_grid = xdmf.TemporalGrid()
     full_path_file_name = os.path.join(rel_path_h5_files, file_name)
     GenerateXdmfConnectivities(full_path_file_name)
     # Get the initial spatial grid from the base file.
