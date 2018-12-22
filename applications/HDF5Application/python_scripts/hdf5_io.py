@@ -20,7 +20,7 @@ class IOObject(metaclass=ABCMeta):
     @abstractmethod
     def Execute(self, model_part, hdf5_file): pass
 
-    def ExecutePostOutput(self, model_part, hdf5_file_name): pass
+    def ExecuteAfterClose(self, model_part, hdf5_file_name): pass
 
 
 class HDF5SerialFileFactory(FileFactory):
@@ -258,7 +258,7 @@ class TemporalOutputProcess(KratosMultiphysics.Process):
 
         if self._output_step == 0: # this is an output step
             for output in self._list_of_outputs:
-                output.ExecutePostOutput(self._model_part, self._get_current_file_name())
+                output.ExecuteAfterClose(self._model_part, self._get_current_file_name())
 
 
     def _get_current_file_name(self):

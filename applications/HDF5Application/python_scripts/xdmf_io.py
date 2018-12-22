@@ -7,7 +7,7 @@ class XdmfOutput(IOObject):
 
     def Execute(self, model_part, hdf5_file): pass
 
-    def ExecutePostOutput(self, model_part, hdf5_file_name):
+    def ExecuteAfterClose(self, model_part, hdf5_file_name):
         model_part.GetCommunicator().Barrier()
         if model_part.GetCommunicator().MyPID() == 0:
             # write xdmf only on one rank!
