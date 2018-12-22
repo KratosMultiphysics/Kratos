@@ -10,7 +10,7 @@ class TestHDF5OutputProcess(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def test_serial_hdf5_output(self):
+     def test_HDF5SerialOutput(self):
         pass
 
 if __name__ == '__main__':
