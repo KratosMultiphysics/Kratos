@@ -123,12 +123,21 @@ class MmgProcess(KratosMultiphysics.Process):
         }
         """)
 
+        # Identify the dimension first
+        if not settings.Has("model_part_name"):
+            settings.AddValue("model_part_name", default_parameters["model_part_name"])
+        self.dim = Model[settings["model_part_name"].GetString()].ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # The mesh dependent constant depends on dimension
+        if self.dim == 2:
+            default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0)
+        else:
+            default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0)
+        
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
         self.model_part= Model[self.settings["model_part_name"].GetString()]
-        self.dim = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         self.enforce_current = self.settings["enforce_current"].GetBool()
 

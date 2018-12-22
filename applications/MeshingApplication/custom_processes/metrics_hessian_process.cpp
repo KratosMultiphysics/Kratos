@@ -27,7 +27,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ):mThisModelPart(rThisModelPart)
 {
     // We push the list of double variables
-    mrOriginVariableDoubleList.push_back(rVariable);
+    mrOriginVariableDoubleList.push_back(&rVariable);
 
     // We check the parameters
     Parameters default_parameters = GetDefaultParameters();
@@ -45,7 +45,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
     ):mThisModelPart(rThisModelPart)
 {
     // We push the components list
-    mrOriginVariableComponentsList.push_back(rVariable);
+    mrOriginVariableComponentsList.push_back(&rVariable);
 
     // We check the parameters
     Parameters default_parameters = GetDefaultParameters();
@@ -63,9 +63,9 @@ void ComputeHessianSolMetricProcess::Execute()
     // Some checks
     NodesArrayType& nodes_array = mThisModelPart.Nodes();
     if (mrOriginVariableDoubleList.size() > 0) {
-        VariableUtils().CheckVariableExists(mrOriginVariableDoubleList[0], nodes_array);
+        VariableUtils().CheckVariableExists(*mrOriginVariableDoubleList[0], nodes_array);
     } else {
-        VariableUtils().CheckVariableExists(mrOriginVariableComponentsList[0], nodes_array);
+        VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], nodes_array);
     }
      for (const auto& i_node : nodes_array)
         KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
@@ -89,7 +89,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     const Vector& rHessian,
     const double AnisotropicRatio,
     const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-    const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+    const double ElementMaxSize  // This way we can impose as maximum as the previous size if we desire
     )
 {
     /// The type of array considered for the tensor
@@ -103,8 +103,10 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
 
     // Calculating Metric parameters
     double interpolation_error = mInterpError;
-    if (mEstimateInterpError)
-            interpolation_error = 2.0/9.0 * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
+    if (mEstimateInterpError) {
+        const double mesh_constant = TDim == 3 ? 9.0/32.0 : 2.0/9.0; 
+        interpolation_error = mesh_constant * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
+    }
 
     KRATOS_ERROR_IF(interpolation_error < std::numeric_limits<double>::epsilon()) << "ERROR: YOUR INTERPOLATION ERROR IS NEAR ZERO: " << interpolation_error << std::endl;
     const double c_epslilon = mMeshConstant/interpolation_error;
@@ -186,10 +188,10 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
 
     // Compute auxiliar gradient
     if (mrOriginVariableDoubleList.size() > 0) {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, mrOriginVariableDoubleList[0], AUXILIAR_GRADIENT, NODAL_AREA);
+        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, *mrOriginVariableDoubleList[0], AUXILIAR_GRADIENT, NODAL_AREA);
         gradient_process.Execute();
     } else {
-        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, mrOriginVariableComponentsList[0], AUXILIAR_GRADIENT, NODAL_AREA);
+        auto gradient_process = ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>(mThisModelPart, *mrOriginVariableComponentsList[0], AUXILIAR_GRADIENT, NODAL_AREA);
         gradient_process.Execute();
     }
 
@@ -353,14 +355,11 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
     const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(TDim)+"D");
 
     // Setting metric in case not defined
-    if (!nodes_array.begin()->Has(tensor_variable)) {
+    const auto it_node_begin = nodes_array.begin();
+    if (!it_node_begin->Has(tensor_variable)) {
         // Declaring auxiliar vector
         const TensorArrayType aux_zero_vector = ZeroVector(3 * (TDim - 1));
-        #pragma omp parallel for
-        for(int i = 0; i < num_nodes; ++i) {
-            auto it_node = nodes_array.begin() + i;
-            it_node->SetValue(tensor_variable, aux_zero_vector);
-        }
+        VariableUtils().SetNonHistoricalVariable(tensor_variable, aux_zero_vector, nodes_array);
     }
 
     // Ratio reference variable
@@ -369,7 +368,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 
     #pragma omp parallel for
     for(int i = 0; i < num_nodes; ++i) {
-        auto it_node = nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
 
         const Vector& hessian = it_node->GetValue(AUXILIAR_HESSIAN);
 
@@ -433,6 +432,16 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters()
             "interpolation"                        : "Linear"
         }
     })" );
+    
+    // Identify the dimension first
+    const SizeType dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    
+    // The mesh dependent constant depends on dimension
+    if (dimension == 2) {
+        default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0);
+    } else {
+        default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0);
+    }
 
     return default_parameters;
 }

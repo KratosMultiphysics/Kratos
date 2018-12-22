@@ -212,9 +212,9 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                                 /// The model part to compute
-    std::vector<Variable<double>> mrOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<ComponentType> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    ModelPart& mThisModelPart;                                  /// The model part to compute
+    std::vector<Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
+    std::vector<ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
 
     // TODO: Replace for Parameters
     std::string mRatioReferenceVariable = "DISTANCE";          /// Variable used to compute the anisotropic ratio
