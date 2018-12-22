@@ -1,11 +1,10 @@
 import os
 from KratosMultiphysics import *
-from KratosMultiphysics.HDF5Application import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-from single_mesh_temporal_output_process import Factory as OutputFactory
-from single_mesh_temporal_input_process import Factory as TimeInputFactory
-from initialization_from_hdf5_process import Factory as InitializationFactory
+from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process import Factory as OutputFactory
+from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as TimeInputFactory
+from KratosMultiphysics.HDF5Application.initialization_from_hdf5_process import Factory as InitializationFactory
 
 class TestHDF5Processes(KratosUnittest.TestCase):
 
@@ -16,7 +15,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
     def tearDown(self):
         self._remove_h5_files("WriteModelPart")
 
-    def testSingleMeshTemporalOutputInput(self):
+    def test_SingleMeshTemporalOutputInput(self):
         """
         Output ModelPart using SingleMeshTemporalOutputProcess.
         Use output file to set values in a new ModelPart with SingleMeshTemporalInputProcess.
@@ -88,7 +87,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
 
-    def testSingleMeshTemporalOutputInitialization(self):
+    def test_SingleMeshTemporalOutputInitialization(self):
         """
         Output ModelPart using SingleMeshTemporalOutputProcess.
         Use output file to initialize (restart) a ModelPart with initialization_from_hdf5_process.
