@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 import temporal_output_process_factory
 import file_utilities
-import temporal_output_process_factory
 
 def Factory(settings, Model):
     """Return a process for writing simulation results for a single mesh to HDF5.
