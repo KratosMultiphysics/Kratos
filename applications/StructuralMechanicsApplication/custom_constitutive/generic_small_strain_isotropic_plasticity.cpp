@@ -297,7 +297,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     // Integrate Stress plasticity
     const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
 
-    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ) ) {
+    if (r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
@@ -311,7 +311,7 @@ void GenericSmallStrainIsotropicPlasticity<TConstLawIntegratorType>::FinalizeMat
     Vector plastic_strain = this->GetPlasticStrain();
 
     BoundedArrayType predictive_stress_vector;
-    if( r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW ) ) {
+    if (r_constitutive_law_options.Is( ConstitutiveLaw::U_P_LAW)) {
         predictive_stress_vector = rValues.GetStressVector();
     } else {
         // S0 = r_constitutive_matrix:(E-Ep)
