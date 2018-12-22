@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 import temporal_output_process_factory
 import file_utilities
-import temporal_output_process_factory
 
 def Factory(settings, Model):
     """Return a process for writing simulation results for a single mesh to HDF5.
@@ -12,7 +11,7 @@ def Factory(settings, Model):
 
     params = settings["Parameters"]
     model_part_name = params["model_part_name"].GetString() # name of modelpart must be specified!
-
+ #todo(msandre): collapse older partitioned scripts to their serial counterparts like this
     if Model[model_part_name].GetCommunicator().TotalProcesses() > 1:
         factory_helper = temporal_output_process_factory.PartitionedTemporalOutputFactoryHelper()
     else:

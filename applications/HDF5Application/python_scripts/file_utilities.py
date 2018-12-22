@@ -1,7 +1,6 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from hdf5_io import IOObject
-from create_xdmf_file import WriteXdmfFile
 import os
 
 class DeleteOldH5Files(IOObject):

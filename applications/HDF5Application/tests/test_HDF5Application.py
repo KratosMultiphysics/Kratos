@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_hdf5_model_part_io
 from test_hdf5_processes import TestHDF5Processes
 import run_cpp_unit_tests
-from  test_hdf5_output_process import TestHDF5OutputProcess
+# todo(philbucher): from  test_hdf5_output_process import TestHDF5OutputProcess
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
