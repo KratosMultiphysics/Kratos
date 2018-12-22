@@ -12,7 +12,7 @@ def Factory(settings, Model):
 
     params = settings["Parameters"]
     model_part_name = params["model_part_name"].GetString() # name of modelpart must be specified!
-
+ #todo(msandre): collapse older partitioned scripts to their serial counterparts like this
     if Model[model_part_name].GetCommunicator().TotalProcesses() > 1:
         factory_helper = temporal_output_process_factory.PartitionedTemporalOutputFactoryHelper()
     else:
