@@ -227,14 +227,14 @@ class NavierStokesMPITwoFluidsSolver(navier_stokes_two_fluids_solver.NavierStoke
                 self.EpetraCommunicator,
                 self.computing_model_part,
                 self.trilinos_linear_solver,
-                maximum_iterations )
-                # KratosMultiphysics.ParallelDistanceCalculator2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
                 self.EpetraCommunicator,
                 self.computing_model_part,
                 self.trilinos_linear_solver,
-                maximum_iterations )
-                # KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process
