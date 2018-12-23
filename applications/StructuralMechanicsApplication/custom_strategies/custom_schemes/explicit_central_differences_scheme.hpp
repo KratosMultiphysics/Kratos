@@ -189,9 +189,7 @@ public:
         mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
         /// Working in 2D/3D
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-        const auto& r_geom = it_elem_begin->GetGeometry();
-        const SizeType dim(r_geom.WorkingSpaceDimension());
+        const SizeType dim(r_current_process_info[DOMAIN_SIZE]);
 
         // Initialize scheme
         if (!BaseType::SchemeIsInitialized())
