@@ -1,11 +1,8 @@
-import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import test_hdf5_model_part_io
 from test_hdf5_processes import TestHDF5Processes
 import run_cpp_unit_tests
-# todo(philbucher): from  test_hdf5_output_process import TestHDF5OutputProcess
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -21,13 +18,11 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     allSuite = suites['all']
-    allSuite.addTests([smallSuite])
+    allSuite.addTests([nightSuite])
 
     return suites
 
 if __name__ == '__main__':
-    #KratosMultiphysics.Tester.SetVerbosity(KratosMultiphysics.Tester.Verbosity.TESTS_OUTPUTS)
-    #KratosMultiphysics.Tester.RunTestSuite("KratosHDF5TestSuite")
     print("Running cpp unit tests ...")
     run_cpp_unit_tests.run()
     print("Finished running cpp unit tests!")
