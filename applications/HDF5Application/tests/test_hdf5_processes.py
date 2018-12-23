@@ -1,6 +1,7 @@
 import os
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process import Factory as OutputFactory
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as TimeInputFactory
