@@ -1,7 +1,6 @@
 import os
 from KratosMultiphysics import *
 import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 from KratosMultiphysics.HDF5Application import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
