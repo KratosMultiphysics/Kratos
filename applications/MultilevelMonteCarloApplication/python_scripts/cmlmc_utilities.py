@@ -151,29 +151,6 @@ class StatisticalVariable(object):
         self.second_moment[level] = new_M2
         self.sample_variance[level] = new_sample_variance
         self.number_samples[level] = number_samples_level
-    '''    
-    old function doing everything serial
-    '''
-    # def UpdateOnepassMeanVariance(self,level,i_sample):
-    #     sample = self.values[level][i_sample]
-    #     old_mean = self.mean[level]
-    #     old_M2 = self.second_moment[level]
-    #     nsamples = i_sample + 1
-    #     delta = np.subtract(sample, old_mean)
-    #     if nsamples == 1:
-    #         new_mean = sample
-    #         new_M2 = np.zeros(np.size(sample))
-    #         new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
-    #         new_sample_variance = np.zeros(np.size(sample))
-    #         new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
-    #     else:
-    #         new_mean = old_mean + np.divide(delta,nsamples)
-    #         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
-    #         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
-    #     self.mean[level] = new_mean
-    #     self.second_moment[level] = new_M2
-    #     self.sample_variance[level] = new_sample_variance
-    #     del(new_mean, new_M2, new_sample_variance)
 
 
 class MultilevelMonteCarlo(object):
