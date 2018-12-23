@@ -260,7 +260,7 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/Level1/ProjectParameters.json"
+        parameter_file_name = "../tests/Level0/ProjectParameters.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)

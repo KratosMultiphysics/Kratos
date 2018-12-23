@@ -272,8 +272,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "/home/riccardo/Kratos/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
-    # parameter_file_name = "/home/ramela/Documents/Kratos_3/applications/MultilevelMonteCarloApplication/tests/MeshCoarse8Nodes/ProjectParameters.json"
+    parameter_file_name = "../tests/MeshCoarse8Nodes/ProjectParameters.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
@@ -317,6 +316,8 @@ if __name__ == '__main__':
 
     compss: between different tasks you don't need compss_wait_on/get_value_from_remote, it's pycompss who handles everything automatically
     if the output of a task is given directly to the input of an other, pycompss handles everything
+    
+    compss: set absolute path when launching with compss
 
     MmgProcess: need to use conditions in the model part to preserve the boundary conditions in the refinement process
     The submodelpart: Subpart_Boundary contains only nodes and no geometries (conditions/elements).
