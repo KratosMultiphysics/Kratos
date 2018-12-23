@@ -24,7 +24,7 @@
 #include "delaunay_meshing_application_variables.h"
 
 ///VARIABLES used:
-//Data:     NEIGHBOUR_ELEMENTS
+//Data:     NEIGHBOR_ELEMENTS
 //StepData:
 //Flags:    (checked) NEW_ENTITY
 //          (set)
@@ -67,6 +67,9 @@ namespace Kratos
     typedef ModelPart::NodesContainerType                        NodesContainerType;
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
+    typedef std::vector<Node<3>*>             NodePointerVectorType;
+    typedef std::vector<Element*>          ElementPointerVectorType;
+    typedef std::vector<Condition*>      ConditionPointerVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -117,14 +120,14 @@ namespace Kratos
 	{
 	  if( in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
 
-	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementPointerVectorType& neighb_elems = in->GetValue(NEIGHBOR_ELEMENTS);
 
 	    NodalMeanError  = 0;
 
 
-	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+	    for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 	      {
-		NodalMeanError += ElementalError[elems_ids[ne->Id()]];
+		NodalMeanError += ElementalError[elems_ids[(*ne)->Id()]];
 	      }
 
 	    rIds[in->Id()]   = id;
@@ -210,16 +213,16 @@ namespace Kratos
 	    PatchSize  = 0;
 	    PatchError = 0;
 
-	    WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementPointerVectorType& neighb_elems = in->GetValue(NEIGHBOR_ELEMENTS);
 
 
-	    for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+	    for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
 	      {
 
-		Geometry<Node<3> >& pGeom = (ne)->GetGeometry();
+		Geometry<Node<3> >& pGeom = (*ne)->GetGeometry();
 
 		Size   = pGeom.DomainSize();  //Area(); or Volume();
-		Error  = ElementVariable[elems_ids[ne->Id()]] * Size;
+		Error  = ElementVariable[elems_ids[(*ne)->Id()]] * Size;
 
 		PatchSize  += Size;
 		PatchError += Error;

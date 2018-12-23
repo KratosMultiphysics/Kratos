@@ -76,9 +76,13 @@ public:
   ///BaseLengths
   typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
+  typedef std::vector<Node<3>*>             NodePointerVectorType;
+  typedef std::vector<Element*>          ElementPointerVectorType;
+  typedef std::vector<Condition*>      ConditionPointerVectorType;
+
   ///For 3D contact surfaces definition
-  typedef ContactDomainUtilities::ScalarBaseType  ScalarBaseType;
-  typedef ContactDomainUtilities::SurfaceBase           SurfaceBase;
+  typedef ContactDomainUtilities::ScalarBaseType   ScalarBaseType;
+  typedef ContactDomainUtilities::SurfaceBase         SurfaceBase;
 
 protected:
 

@@ -96,7 +96,6 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     // Update the int vars of each SubConstitutiveLaw
     mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
                                                       rShapeFunctionsValues, rCurrentProcessInfo);
-
     mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
                                                    rShapeFunctionsValues, rCurrentProcessInfo);
 }
@@ -161,6 +160,8 @@ void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseKirchhoff(Cons
 
 void GenericSmallStrainViscoplasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
+    mpViscousConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
+    mpPlasticityConstitutiveLaw->FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
