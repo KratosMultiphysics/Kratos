@@ -5,14 +5,10 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import os, sys, xdmf
 import warnings
 with warnings.catch_warnings():
+    # suppressing an import-related warningfrom h5py
+    # problem appears when using it in a test with python >=3.6
     warnings.simplefilter('ignore', category=ImportWarning)
     import h5py
-    # https://stackoverflow.com/questions/51045319/how-to-suppress-importwarning-in-a-python-unittest-script
-    # gives the following warning otherwise:
-    '''
-    /usr/lib/python3.6/importlib/_bootstrap.py:219: ImportWarning: can't resolve package from __spec__ or __package__, falling back on __name__ and __path__
-    return f(*args, **kwds)
-    '''
 
 def GenerateXdmfConnectivities(file_name):
     with h5py.File(file_name, "r") as h5py_file:
