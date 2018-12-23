@@ -89,7 +89,8 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     const Vector& rHessian,
     const double AnisotropicRatio,
     const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-    const double ElementMaxSize  // This way we can impose as maximum as the previous size if we desire
+    const double ElementMaxSize, // This way we can impose as maximum as the previous size if we desire
+    const double NodalH
     )
 {
     /// The type of array considered for the tensor
@@ -102,13 +103,20 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     const MatrixType hessian_matrix = MathUtils<double>::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
 
     // Calculating Metric parameters
+    const double mesh_constant = TDim == 3 ? 9.0/32.0 : 2.0/9.0; 
     double interpolation_error = mInterpError;
     if (mEstimateInterpError) {
-        const double mesh_constant = TDim == 3 ? 9.0/32.0 : 2.0/9.0; 
         interpolation_error = mesh_constant * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
     }
 
-    KRATOS_ERROR_IF(interpolation_error < std::numeric_limits<double>::epsilon()) << "ERROR: YOUR INTERPOLATION ERROR IS NEAR ZERO: " << interpolation_error << std::endl;
+    // We check is the interpolation error is near zero. If it is we will correct it
+    if (interpolation_error < std::numeric_limits<double>::epsilon()) {
+        KRATOS_WARNING("ComputeHessianSolMetricProcess") << "WARNING: Your interpolation error is near zero: " << interpolation_error  <<  ". Computing a local L(inf) upper bound of the interpolation error"<< std::endl;
+        const double l_square = std::pow(NodalH, 2);
+        for (IndexType i = 0; i < 3 * (TDim - 1); ++i) {
+            interpolation_error = mesh_constant * MathUtils<double>::Max(interpolation_error, l_square * std::abs(rHessian[i]));
+        }
+    }
     const double c_epslilon = mMeshConstant/interpolation_error;
     const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
     const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
@@ -397,11 +405,11 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
         const double norm_metric = norm_2(metric);
         if (norm_metric > 0.0) {// NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
             const TensorArrayType& old_metric = it_node->GetValue(tensor_variable);
-            const TensorArrayType& new_metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size);
+            const TensorArrayType& new_metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size, nodal_h);
 
             metric = MetricsMathUtils<TDim>::IntersectMetrics(old_metric, new_metric);
         } else {
-            metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size);
+            metric = ComputeHessianMetricTensor<TDim>(hessian, ratio, element_min_size, element_max_size, nodal_h);
         }
     }
 }

@@ -243,13 +243,15 @@ private:
      * @param AnisotropicRatio The anisotropic ratio
      * @param ElementMinSize The min size of element
      * @param ElementMaxSize The maximal size of the elements
+     * @param NodalH The size of the local node
      */
     template<SizeType TDim>
     array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const double AnisotropicRatio,
         const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+        const double ElementMaxSize, // This way we can impose as maximum as the previous size if we desire
+        const double NodalH
         );
 
     /**
