@@ -139,8 +139,8 @@ FSI=problem_settings.FSI
 
 eul_model_part = 0
 gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 85.0 #contact angle [deg]
-
+contact_angle = 103.0 #contact angle [deg]
+#85 degrees works fine
 
 #dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
 zeta_dissapative_JM_x = 0.0

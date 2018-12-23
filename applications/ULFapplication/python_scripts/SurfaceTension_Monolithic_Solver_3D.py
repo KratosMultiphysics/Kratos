@@ -394,7 +394,7 @@ class STMonolithicSolver:
             #else:
                 #h_factor=0.25
 
-        h_factor=0.25
+        h_factor=0.6
 
         if (self.domain_size == 2):
          (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
@@ -524,6 +524,42 @@ class STMonolithicSolver:
                     
                 #december 18 2018
                 #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                
+                #######v_clx= node.GetSolutionStepValue(VELOCITY_X,0)
+                #######v_cly= node.GetSolutionStepValue(VELOCITY_Y,0)
+                ########v_clz= node.GetSolutionStepValue(VELOCITY_Z,0)
+                #######d_clx= node.GetSolutionStepValue(DISPLACEMENT_X,0)
+                #######d_cly= node.GetSolutionStepValue(DISPLACEMENT_X,0)
+                ########d_clz= node.GetSolutionStepValue(VELOCITY_Z,0)
+                    
+                #######constx = 1.0
+                #######consty = 1.0
+                
+                #######if (v_clx < 0):
+                    #######constx = - 1.0
+                #######elif (v_clx > 0):
+                    #######constx = 1.0
+                
+                #######if (v_cly < 0):
+                    #######consty = - 1.0
+                #######elif (v_cly > 0):
+                    #######consty = 1.0
+                    
+                #######v_clxabs = abs(v_clx)
+                #######v_clyabs = abs(v_cly)
+                    
+                #######if (v_clxabs > v_clyabs):
+                        #######v_clyabs = v_clxabs
+                #######else:
+                        #######v_clxabs = v_clyabs
+                    
+                #######v_clxabs = constx * v_clxabs
+                #######v_clyabs = consty * v_clyabs
+                
+                #######node.Free(DISPLACEMENT_X)
+                #######node.Free(DISPLACEMENT_Y)
+                    
+                    
                     #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
                         #ca=node.GetSolutionStepValue(CONTACT_ANGLE,0)
                         #ca = ca
