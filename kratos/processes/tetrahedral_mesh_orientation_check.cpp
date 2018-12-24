@@ -67,17 +67,14 @@ void TetrahedralMeshOrientationCheck::Execute()
     // Reset the flag BOUNDARY on all of the nodes
     VariableUtils().SetFlag(BOUNDARY, false, mrModelPart.Nodes());
     
-    //********************************************************
-    //next check that the conditions are oriented accordingly
-
-    //to do so begin by putting all of the conditions in a map
-
-    typedef std::unordered_map<DenseVector<int>, Condition::Pointer, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    // Next check that the conditions are oriented accordingly
+    // to do so begin by putting all of the conditions in a map
+    typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
     hashmap faces_map;
 
     for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
     {
-        itCond->Set(VISITED,false); //mark
+        itCond->Set(VISITED, false); //mark
 
         GeometryType& geom = itCond->GetGeometry();
         DenseVector<int> ids(geom.size());
@@ -91,14 +88,17 @@ void TetrahedralMeshOrientationCheck::Execute()
         //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
         std::sort(ids.begin(), ids.end());
 
-        //insert a pointer to the condition identified by the hash value ids
-        //faces_map.insert( std::make_pair<DenseVector<int>, Condition::Pointer >(ids, *itCond.base()) );
-        faces_map.insert( hashmap::value_type(ids, *itCond.base()) );
-        //faces_map[ids] = *itCond.base();
+        // Insert a pointer to the condition identified by the hash value ids
+        hashmap::iterator it_face = faces_map.find(ids);
+        if(it_face != faces_map.end() ) { // Already defined vector
+            it_face->second.push_back(*itCond.base());
+        } else {
+            faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*itCond.base()})) );
+        }
     }
 
-    //now loop for all the elements and for each face of the element check if it is in the "faces_map"
-    //if it happens to be there check the orientation
+    // Now loop for all the elements and for each face of the element check if it is in the "faces_map"
+    // if it happens to be there check the orientation
     unsigned int CondSwitchCount = 0;
     for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++)
     {
@@ -107,18 +107,17 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
         {
-            //allocate a work array long enough to contain the Ids of a face
+            // Allocate a work array long enough to contain the Ids of a face
             DenseVector<int> aux( rGeom.size() - 1);
 
-            //loop over the faces
+            // Loop over the faces
             for(unsigned int outer_node_index=0; outer_node_index< rGeom.size(); outer_node_index++)
             {
                 unsigned int localindex_node_on_face = -1;
-                //we put in "aux" the indices of all of the nodes which do not
-                //coincide with the face_index we are currently considering
-                //telling in other words:
-                //face_index will contain the local_index of the node which is NOT on the face
-                //localindex_node_on_face the local_index of one of the nodes on the face
+                // We put in "aux" the indices of all of the nodes which do not
+                // coincide with the face_index we are currently considering telling in other words:
+                // face_index will contain the local_index of the node which is NOT on the face
+                // localindex_node_on_face the local_index of one of the nodes on the face
                 unsigned int counter = 0;
                 for(unsigned int i=0; i<rGeom.size(); i++)
                 {
@@ -133,22 +132,27 @@ void TetrahedralMeshOrientationCheck::Execute()
                 std::sort(aux.begin(), aux.end());
 
                 hashmap::iterator it_face = faces_map.find(aux);
-                if(it_face != faces_map.end() ) //it was actually found!!
+                if(it_face != faces_map.end() ) // It was actually found!!
                 {
-                    //mark the condition as visited. This will be useful for a check at the endif
-                    (it_face->second)->Set(VISITED,true);
+                    // Mark the condition as visited. This will be useful for a check at the endif
+                    std::vector<Condition::Pointer>& list_conditions = it_face->second;
+                    for (Condition::Pointer p_cond : list_conditions) {
+                        p_cond->Set(VISITED,true);
+                    }
 
                     if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS))
                     {
                         WeakPointerVector< Element > VectorOfNeighbours;
                         VectorOfNeighbours.resize(1);
                         VectorOfNeighbours(0) = Element::WeakPointer( *it_elem.base() );
-                        (it_face->second)->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                        for (Condition::Pointer p_cond : list_conditions) {
+                            p_cond->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                        }
                     }
 
                     // Compute the normal of the face
                     array_1d<double,3> face_normal = ZeroVector(3);
-                    GeometryType& r_face_geom = (it_face->second)->GetGeometry();
+                    GeometryType& r_face_geom = (list_conditions[0])->GetGeometry(); // The geometry is shared, we just take the first one
 
                     Point::CoordinatesArrayType local_coords;
                     local_coords.clear();
@@ -175,7 +179,9 @@ void TetrahedralMeshOrientationCheck::Execute()
                             r_face_geom[i].FastGetSolutionStepValue(NORMAL) += factor*face_normal;
                     }
                     if(mrOptions.Is(COMPUTE_CONDITION_NORMALS)) {
-                        (it_face->second)->SetValue(NORMAL, face_normal );
+                        for (Condition::Pointer p_cond : list_conditions) {
+                            p_cond->SetValue(NORMAL, face_normal );
+                        }
                     }
 
                 }
@@ -246,7 +252,7 @@ bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeom)
     // Re-orient the element if needed
     double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
     if (DetJ < 0.0) {
-        // swap two nodes to change orientation
+        // Swap two nodes to change orientation
         rGeom(0).swap(rGeom(1));
         return true;
     } else
