@@ -5,18 +5,6 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.StructuralMechanicsApplication as SM
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSM
 
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
-
 # Other imports
 import sys
 

@@ -1,0 +1,139 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "print_colors" : true
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "gauss_seidel_strong_coupling",
+        "echo_level" : 0,
+        "num_coupling_iterations" : 5,
+        "convergence_accelerator_settings" :
+        {
+            "type"          : "mvqn",
+            "solver_name"   : "dummy2",
+            "data_name"     : "DISPLACEMENT",
+            "geometry_name" : "dummy_smp",
+            "io_type"       : "kratos_signal"
+        },
+        "convergence_criteria_settings" :
+        {
+            "io_type"   : "kratos_signal",
+            "echo_level": 2,
+            "data_list" :
+            [
+                {
+                    "from_solver"   : "dummy2",
+                    "data_name"     : "displacement_1",
+                    "abs_tolerance" : 1e-4,
+                    "rel_tolerance" : 1e-5
+                },
+                {
+                    "from_solver"   : "dummy2",
+                    "data_name"     : "load",
+                    "abs_tolerance" : 1e-6,
+                    "rel_tolerance" : 1e-7
+                }
+            ]
+        },
+        "coupling_loop":
+        [
+        {
+            "name": "dummy1",
+            "output_data_list": [
+                {
+                    "to_solver" : "dummy2",
+                    "data_name" : "load"
+                }
+            ],
+            "input_data_list": [
+                {
+                    "from_solver" : "dummy2",
+                    "data_name"   : "displacement_1"
+                },
+                {
+                    "from_solver" : "dummy2",
+                    "data_name"   : "displacement_2"
+                }
+            ]
+        },
+        {
+            "name": "dummy2",
+            "output_data_list": [
+                {
+                    "to_solver" : "dummy1",
+                    "data_name" : "displacement_1",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor"
+                    }
+                },
+                {
+                    "to_solver" : "dummy1",
+                    "data_name" : "displacement_2"
+                }
+            ],
+            "input_data_list": [
+                {
+                    "from_solver" : "dummy1",
+                    "data_name"   : "load",
+                    "io_settings"   : {
+                        "mapper_type" : "nearest_neighbor",
+                        "mapper_args" : ["add_values", "swap_sign"]
+                    }
+                }
+            ]
+        }
+        ],
+        "solvers" :
+        {
+            "dummy1":
+            {
+                "solver_type" : "kratos_structural",
+                "input_file"  : "ProjectParametersStructural",
+                "io_settings" : {
+                    "io_type"     : "kratos_field",
+                    "echo_level"  : 3
+                },
+                "data" : {
+                    "displacement_1" : {
+                        "geometry_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                        "data_identifier" : "ANGULAR_VELOCITY"
+                    },
+                    "displacement_2" : {
+                        "geometry_name" : "Structure.PointLoad3D_Load_on_points_Auto1",
+                        "data_identifier" : "ANGULAR_VELOCITY"
+                    },
+                    "load" : {
+                        "geometry_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                        "data_identifier" : "REACTION"
+                    }
+                }
+            },
+            "dummy2" :
+            {
+                "solver_type" : "kratos_structural",
+                "input_file"  : "ProjectParametersStructural",
+                "io_settings" : {
+                    "io_type"     : "kratos_field",
+                    "echo_level"  : 4
+                },
+                "data" : {
+                    "displacement_1" : {
+                        "geometry_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                        "data_identifier" : "DISPLACEMENT"
+                    },
+                    "displacement_2" : {
+                        "geometry_name" : "Structure.PointLoad3D_Load_on_points_Auto1",
+                        "data_identifier" : "DISPLACEMENT"
+                    },
+                    "load" : {
+                        "geometry_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                        "data_identifier" : "POINT_LOAD"
+                    }
+                }
+            }
+        }
+    }
+}

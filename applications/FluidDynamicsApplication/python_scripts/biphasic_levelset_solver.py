@@ -8,9 +8,6 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 import pureconvection_solver
 import thermal_solver
 import monolithic_solver_eulerian

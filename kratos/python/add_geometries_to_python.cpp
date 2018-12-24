@@ -60,14 +60,14 @@ namespace Python
         CoordinatesArrayType& LocalCoords
         )
     {
-        return( dummy.AreaNormal(LocalCoords) );
+        return( dummy.Normal(LocalCoords) );
     }
 
     array_1d<double,3> FastGetNormal(GeometryType& dummy)
     {
         CoordinatesArrayType LocalCoords;
         LocalCoords.clear();
-        return( dummy.AreaNormal(LocalCoords) );
+        return( dummy.Normal(LocalCoords) );
     }
 
     array_1d<double,3> GetUnitNormal(
@@ -100,8 +100,8 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("LocalSpaceDimension",&GeometryType::LocalSpaceDimension)
     .def("DomainSize",&GeometryType::DomainSize)
     .def("PointsNumber",&GeometryType::PointsNumber)
-    .def("AreaNormal",GetNormal)
-    .def("AreaNormal",FastGetNormal)
+    .def("Normal",GetNormal)
+    .def("Normal",FastGetNormal)
     .def("UnitNormal",GetUnitNormal)
     .def("UnitNormal",FastGetUnitNormal)
     .def("Center",&GeometryType::Center)
