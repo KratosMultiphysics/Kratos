@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
+import KratosMultiphysics.FluidDynamicsApplication
 try:
     import KratosMultiphysics.ExternalSolversApplication
     have_external_solvers = True
@@ -94,7 +94,7 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
                 node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 0, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 1, 0.0)
                 node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, 2, 0.0)
-    
+
     def runTest(self):
         with WorkFolderScope(self.work_folder):
             # Set up the test
@@ -127,7 +127,6 @@ class EmbeddedReservoirDiscontinuousTest(UnitTest.TestCase):
 
                     for node in fluid_model_part.Nodes:
                         values = [ float(i) for i in line.rstrip('\n ').split(',') ]
-                        node_id = values[0]
                         reference_pres = values[1]
                         reference_v_x = values[2]
                         reference_v_y = values[3]
