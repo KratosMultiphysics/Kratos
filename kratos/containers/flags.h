@@ -54,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 class Serializer;
-class Flags
+class KRATOS_API(KRATOS_CORE) Flags
 {
 public:
     ///@name Type Definitions
