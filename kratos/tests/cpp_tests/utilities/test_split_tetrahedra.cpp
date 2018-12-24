@@ -101,12 +101,10 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitModes, KratosCoreFastSuite)
 
     TetrahedraSplit::TetrahedraSplitMode(aux_ids.data(), edge_ids.data());
 
-    KRATOS_CHECK_EQUAL(edge_ids[0], 0);
-    KRATOS_CHECK_EQUAL(edge_ids[1], 5);
-    KRATOS_CHECK_EQUAL(edge_ids[2], 3);
-    KRATOS_CHECK_EQUAL(edge_ids[3], 7);
-    KRATOS_CHECK_EQUAL(edge_ids[4], 3);
-    KRATOS_CHECK_EQUAL(edge_ids[5], 9);
+    const std::vector<int> expected_results{0, 5, 3, 7, 3, 9};
+    for (std::size_t i = 0; i < 6; ++i) {
+        KRATOS_CHECK_EQUAL(edge_ids[i], expected_results[i]);
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TetrahedraSplitEdgesPatterns, KratosCoreFastSuite)
