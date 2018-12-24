@@ -27,6 +27,19 @@
 
 namespace Kratos
 {
+///@name Type Definitions
+///@{
+
+/// The definition of the node
+typedef Node<3> NodeType;
+
+/// The definition of the geometry
+typedef Geometry<NodeType> GeometryType;
+
+///@}
+///@name Kratos Classes
+///@{
+    
 /** 
  * @class TetrahedralMeshOrientationCheck
  * @ingroup KratosCore
@@ -64,31 +77,30 @@ public:
      * @param rModelPart The model part to check.
      * @param ThrowErrors If true, an error will be thrown if the input model part contains malformed elements or conditions.
      */
-    TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
-                                    bool ThrowErrors,
-                                    Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-                                    ):
-        Process(),
-        mrModelPart(rModelPart),
-        mThrowErrors(ThrowErrors), //to be changed to a flag
-        mrOptions(options)
+    TetrahedralMeshOrientationCheck(
+        ModelPart& rModelPart,
+        bool ThrowErrors,
+        Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        ):  Process(),
+            mrModelPart(rModelPart),
+            mThrowErrors(ThrowErrors), //to be changed to a flag
+            mrOptions(options)
 
     {
     }
 
-    TetrahedralMeshOrientationCheck(ModelPart& rModelPart,
-                                    Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-                                    ):
-        Process(),
-        mrModelPart(rModelPart),
-        mThrowErrors(false),
-        mrOptions(options)
+    TetrahedralMeshOrientationCheck(
+        ModelPart& rModelPart,
+        Flags options = NOT_COMPUTE_NODAL_NORMALS | NOT_COMPUTE_CONDITION_NORMALS | NOT_ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+        ):  Process(),
+            mrModelPart(rModelPart),
+            mThrowErrors(false),
+            mrOptions(options)
     {
     }
 
     /// Destructor.
     ~TetrahedralMeshOrientationCheck() override {}
-
 
     ///@}
     ///@name Operators
@@ -170,14 +182,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    bool Orient(Geometry< Node<3> >& rGeom);
-
-    void FaceNormal2D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
-
-
-    void FaceNormal3D(array_1d<double,3>& An,
-                      Geometry<Node<3> >& rGeometry);
+    bool Orient(GeometryType& rGeom);
 
     ///@}
     ///@name Un accessible methods

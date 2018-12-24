@@ -21,6 +21,7 @@
 // Project includes
 #include "processes/tetrahedral_mesh_orientation_check.h"
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 #include "includes/key_hash.h"
 
 namespace Kratos
@@ -38,21 +39,18 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
         KRATOS_ERROR_IF_NOT(mrModelPart.NodesBegin()->SolutionStepsDataHas(NORMAL)) << "Missing NORMAL variable on solution step data" << std::endl;
-        for(ModelPart::NodesContainerType::iterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++) {
-            noalias(it_node->FastGetSolutionStepValue(NORMAL)) = ZeroVector(3);
-        }
+        VariableUtils().SetVectorVar(NORMAL, ZeroVector(3), mrModelPart.Nodes());
     }
 
-    //********************************************************
-    //begin by orienting all of the elements in the volume
+    // Begin by orienting all of the elements in the volume
     unsigned int ElemSwitchCount = 0;
 
     for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        ElementType::GeometryType& rGeom = it_elem->GetGeometry();
+        GeometryType& rGeom = it_elem->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
 
         if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3) {
-            bool Switched = this->Orient(rGeom);
+            const bool Switched = this->Orient(rGeom);
             if (Switched)
                 ElemSwitchCount++;
         }
@@ -66,14 +64,9 @@ void TetrahedralMeshOrientationCheck::Execute()
         OutMsg << "No inverted elements found" << std::endl;
     }
 
-
-    //********************************************************
-    //reset the flag BOUNDARY on all of the nodes
-    for(ModelPart::NodesContainerType::iterator it_node = mrModelPart.NodesBegin(); it_node != mrModelPart.NodesEnd(); it_node++)
-    {
-        it_node->Set(BOUNDARY, false);
-    }
-
+    // Reset the flag BOUNDARY on all of the nodes
+    VariableUtils().SetFlag(BOUNDARY, false, mrModelPart.Nodes());
+    
     //********************************************************
     //next check that the conditions are oriented accordingly
 
@@ -86,7 +79,7 @@ void TetrahedralMeshOrientationCheck::Execute()
     {
         itCond->Set(VISITED,false); //mark
 
-        Geometry< Node<3> >& geom = itCond->GetGeometry();
+        GeometryType& geom = itCond->GetGeometry();
         DenseVector<int> ids(geom.size());
 
         for(unsigned int i=0; i<ids.size(); i++)
@@ -109,7 +102,7 @@ void TetrahedralMeshOrientationCheck::Execute()
     unsigned int CondSwitchCount = 0;
     for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++)
     {
-        ElementType::GeometryType& rGeom = it_elem->GetGeometry();
+        GeometryType& rGeom = it_elem->GetGeometry();
         GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
 
         if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
@@ -153,40 +146,36 @@ void TetrahedralMeshOrientationCheck::Execute()
                         (it_face->second)->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
                     }
 
-                    //compute the normal of the face
-                    array_1d<double,3> FaceNormal(3,0.0);
-                    Geometry<Node<3> >& rFaceGeom = (it_face->second)->GetGeometry();
+                    // Compute the normal of the face
+                    array_1d<double,3> face_normal = ZeroVector(3);
+                    GeometryType& r_face_geom = (it_face->second)->GetGeometry();
 
-                    if ( rFaceGeom.GetGeometryType() == GeometryData::Kratos_Triangle3D3 )
-                        FaceNormal3D(FaceNormal,rFaceGeom);
-                    else if ( rFaceGeom.GetGeometryType()  == GeometryData::Kratos_Line2D2 )
-                        FaceNormal2D(FaceNormal,rFaceGeom);
+                    Point::CoordinatesArrayType local_coords;
+                    local_coords.clear();
+                    noalias(face_normal) = r_face_geom.Normal(local_coords);
 
-
-
-                    //do a dotproduct with the DenseVector that goes from
-                    //"outer_node_index" to any of the nodes in aux;
+                    // Do a dotproduct with the DenseVector that goes from
+                    // "outer_node_index" to any of the nodes in aux;
                     array_1d<double,3> lvec = rGeom[outer_node_index]-rGeom[localindex_node_on_face];
 
-                    double dotprod = inner_prod(lvec, FaceNormal);
+                    const double dotprod = inner_prod(lvec, face_normal);
 
-                    //if dotprod > 0 then the normal to the face goes in the same half space as
-                    //an edge that goes from the space to the node not on the face
-                    //hence the face need to be swapped
+                    // If dotprod > 0 then the normal to the face goes in the same half space as
+                    // an edge that goes from the space to the node not on the face hence the face need to be swapped
                     if(dotprod > 0) {
-                        rFaceGeom(0).swap(rFaceGeom(1));
-                        FaceNormal = -FaceNormal;
+                        r_face_geom(0).swap(r_face_geom(1));
+                        face_normal = -face_normal;
 
                         CondSwitchCount++;
                     }
 
                     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
-                        double factor = 1.0/static_cast<double>(rFaceGeom.size());
-                        for(unsigned int i=0; i<rFaceGeom.size(); i++)
-                            rFaceGeom[i].FastGetSolutionStepValue(NORMAL) += factor*FaceNormal;
+                        double factor = 1.0/static_cast<double>(r_face_geom.size());
+                        for(unsigned int i=0; i<r_face_geom.size(); i++)
+                            r_face_geom[i].FastGetSolutionStepValue(NORMAL) += factor*face_normal;
                     }
                     if(mrOptions.Is(COMPUTE_CONDITION_NORMALS)) {
-                        (it_face->second)->SetValue(NORMAL, FaceNormal );
+                        (it_face->second)->SetValue(NORMAL, face_normal );
                     }
 
                 }
@@ -196,8 +185,8 @@ void TetrahedralMeshOrientationCheck::Execute()
     }
 
     //check that all of the conditions belong to at least an element. Throw an error otherwise (this is particularly useful in mpi)
-    for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++) {
-        KRATOS_ERROR_IF(itCond->IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << itCond->Id() << std::endl;
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
     }
 
 
@@ -249,7 +238,7 @@ void TetrahedralMeshOrientationCheck::SwapNegativeElements()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool TetrahedralMeshOrientationCheck::Orient(Geometry< Node<3> >& rGeom)
+bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeom)
 {
     const unsigned int PointIndex = 0;
     const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
@@ -262,41 +251,6 @@ bool TetrahedralMeshOrientationCheck::Orient(Geometry< Node<3> >& rGeom)
         return true;
     } else
         return false;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TetrahedralMeshOrientationCheck::FaceNormal2D(
-    array_1d<double,3>& An,
-    Geometry<Node<3> >& rGeometry
-    )
-{
-    An[0] =   rGeometry[1].Y() - rGeometry[0].Y();
-    An[1] = - (rGeometry[1].X() - rGeometry[0].X());
-    An[2] =    0.00;
-
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void TetrahedralMeshOrientationCheck::FaceNormal3D(
-    array_1d<double,3>& An,
-    Geometry<Node<3> >& rGeometry
-    )
-{
-
-    array_1d<double,3> v1,v2;
-    v1[0] = rGeometry[1].X() - rGeometry[0].X();
-    v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
-    v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
-
-    v2[0] = rGeometry[2].X() - rGeometry[0].X();
-    v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
-    v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
-
-    MathUtils<double>::CrossProduct(An,v1,v2);
 }
 
 } // namespace Kratos
