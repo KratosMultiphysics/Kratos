@@ -13,14 +13,10 @@
 // System includes
 
 // External includes
+#include "mpi.h"
 
 // Project includes
-#include "includes/define.h"
 #include "trilinos_application.h"
-#include "Epetra_ConfigDefs.h"
-#include "Epetra_DataAccess.h"
-#include "mpi.h"
-// #include "Epetra_MpiComm.h"
 
 namespace Kratos
 {
@@ -32,11 +28,11 @@ void KratosTrilinosApplication::Register()
     KratosApplication::Register();
 
     std::stringstream banner;
-    banner << "     KRATOS   _____     _ _ _                 " << std::endl;
-    banner << "             |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
-    banner << "               | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
-    banner << "               | || |  | | | | | | | (_) \\__ \\" << std::endl;
-    banner << "               |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
+    banner << "    KRATOS  _____     _ _ _                 " << std::endl;
+    banner << "           |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
+    banner << "             | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
+    banner << "             | || |  | | | | | | | (_) \\__ \\" << std::endl;
+    banner << "             |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
 
     int mpi_is_initialized = 0;
     int rank = -1;
