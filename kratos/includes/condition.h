@@ -10,26 +10,17 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
 #if !defined(KRATOS_CONDITION_H_INCLUDED )
 #define  KRATOS_CONDITION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "utilities/indexed_object.h"
 #include "containers/flags.h"
 
 
