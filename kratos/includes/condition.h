@@ -883,7 +883,7 @@ public:
      * this method is: MANDATORY
      */
 
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
