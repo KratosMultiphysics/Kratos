@@ -669,7 +669,7 @@ public:
      */
     array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
-        ModelPart& rModelPart
+        const ModelPart& rModelPart
         );
 
     /**
@@ -681,7 +681,7 @@ public:
     template< class TVarType >
     double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
-        ModelPart& rModelPart
+        const ModelPart& rModelPart
         )
     {
         KRATOS_TRY
@@ -690,7 +690,7 @@ public:
 
         #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            NodesContainerType::iterator it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
             sum_value += it_node->GetValue(rVar);
         }
 
@@ -709,7 +709,7 @@ public:
      */
     array_1d<double, 3> SumHistoricalNodeVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
-        ModelPart& rModelPart,
+        const ModelPart& rModelPart,
         const unsigned int rBuffStep = 0
         );
 
@@ -722,7 +722,7 @@ public:
     template< class TVarType >
     double SumHistoricalNodeScalarVariable(
         const TVarType& rVar,
-        ModelPart& rModelPart,
+        const ModelPart& rModelPart,
         const unsigned int rBuffStep = 0
         )
     {
@@ -732,7 +732,7 @@ public:
 
         #pragma omp parallel for reduction(+:sum_value)
         for (int k = 0; k < static_cast<int>(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes()); ++k) {
-            NodesContainerType::iterator it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
+            const auto it_node = rModelPart.GetCommunicator().LocalMesh().NodesBegin() + k;
             sum_value += it_node->GetSolutionStepValue(rVar, rBuffStep);
         }
 
@@ -751,7 +751,7 @@ public:
      */
     array_1d<double, 3> SumConditionVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
-        ModelPart& rModelPart
+        const ModelPart& rModelPart
         );
 
     /**
@@ -791,7 +791,7 @@ public:
      */
     array_1d<double, 3> SumElementVectorVariable(
         const Variable<array_1d<double, 3> >& rVar,
-        ModelPart& rModelPart
+        const ModelPart& rModelPart
         );
 
     /**
