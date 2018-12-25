@@ -65,8 +65,9 @@ namespace Kratos
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -149,8 +150,9 @@ namespace Kratos
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
@@ -312,8 +314,9 @@ namespace Kratos
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
             
             // First we create the nodes 
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
@@ -383,8 +386,9 @@ namespace Kratos
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // First we create the nodes
             NodeType::Pointer p_node_1 = this_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
