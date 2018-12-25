@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
-//                   Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -18,7 +17,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
 #include "tests/cpp_tests/geometries/test_geometry.h"
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
@@ -28,66 +27,66 @@ namespace Testing {
 
     /// Factory functions
 
-    /** Generates a point type sample Line2D2N
-    * @return  Pointer to a Line2D2N
+    /** Generates a point type sample Line3D2N
+    * @return  Pointer to a Line3D2N
     */
-    Line2D2<Point>::Pointer GeneratePointsUnitXDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+    Line3D2<Point>::Pointer GeneratePointsUnitXDirectionLine3D2() {
+        return Kratos::make_shared<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(1.0, 0.0, 0.0)
         );
     }
 
-    /** Generates a point type sample Line2D2N
-    * @return  Pointer to a Line2D2N
+    /** Generates a point type sample Line3D2N
+    * @return  Pointer to a Line3D2N
     */
-    Line2D2<Point>::Pointer GeneratePointsUnitYDirectionLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+    Line3D2<Point>::Pointer GeneratePointsUnitYDirectionLine3D2() {
+        return Kratos::make_shared<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
         Kratos::make_shared<Point>(0.0, 1.0, 0.0)
         );
     }
 
-    /** Generates a point type sample Line2D2N
-    * @return  Pointer to a Line2D2N
+    /** Generates a point type sample Line3D2N
+    * @return  Pointer to a Line3D2N
     */
-    Line2D2<Point>::Pointer GeneratePointsDiagonalLine2D2() {
-        return Kratos::make_shared<Line2D2<Point>>(
+    Line3D2<Point>::Pointer GeneratePointsDiagonalLine3D2() {
+        return Kratos::make_shared<Line3D2<Point>>(
         Kratos::make_shared<Point>(0.0, 0.0, 0.0),
-        Kratos::make_shared<Point>(1.0, 1.0, 0.0)
+        Kratos::make_shared<Point>(1.0, 1.0, 1.0)
         );
     }
 
-    /** Generates a point type sample Line2D2N.
-    * @return  Pointer to a Line2D2N
+    /** Generates a point type sample Line3D2N.
+    * @return  Pointer to a Line3D2N
     */
-    Line2D2<Point>::Pointer GenerateLine2D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
-        return Kratos::make_shared<Line2D2<Point>>(rPointOne, rPointTwo);
+    Line3D2<Point>::Pointer GenerateLine3D2WithPoints(Point::Pointer rPointOne, Point::Pointer rPointTwo ) {
+        return Kratos::make_shared<Line3D2<Point>>(rPointOne, rPointTwo);
     }
 
     /** Checks if the number of edges is correct.
     * Checks if the number of edges is correct.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2EdgesNumber, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2EdgesNumber, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 2);
     }
 
     /** Checks if the number of faces is correct.
     * Checks if the number of faces is correct.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2FacesNumber, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2FacesNumber, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         KRATOS_CHECK_EQUAL(geom->FacesNumber(), 2);
     }
 
     /** Checks if the length of the line is calculated correctly.
     * Checks if the length of the line is calculated correctly.
     */
-    KRATOS_TEST_CASE_IN_SUITE(LengthLine2D2, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsDiagonalLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(LengthLine3D2, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
 
-        KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(2.0), TOLERANCE);
+        KRATOS_CHECK_NEAR(geom->Length(), std::sqrt(3.0), TOLERANCE);
     }
 
     /** Checks the inside test for a given point respect to the line
@@ -98,13 +97,13 @@ namespace Testing {
     * A Point over a vertex 1 of the line: Expected result TRUE
     * A Point over an vertex 2 of the line: Expected result TRUE
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IsInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsDiagonalLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2IsInside, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
 
-        Point PointInside(0.5, 0.5, 0.0);
+        Point PointInside(0.5, 0.5, 0.5);
         Point PointOutside(1.66, 0.66, 0.0);
         Point PointInVertex(0.0, 0.0, 0.0);
-        Point PointInEdge(1.0, 1.0, 0.0);
+        Point PointInEdge(1.0, 1.0, 1.0);
 
         Point LocalCoords;
 
@@ -118,8 +117,8 @@ namespace Testing {
     * line. The baricentre of the triangle is selected due to its known
     * solution.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsDiagonalLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
 
         // Compute the global coordinates of the baricentre
         const Geometry<Point>::PointsArrayType geom_pts = geom->Points();
@@ -135,11 +134,11 @@ namespace Testing {
         KRATOS_CHECK_NEAR(centre_local_coords(2), 0.0, TOLERANCE);
     }
 
-    /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
+        /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
@@ -153,8 +152,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianArray2, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
@@ -168,8 +167,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianArray3, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
@@ -183,8 +182,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianArray4, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
@@ -198,8 +197,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_5' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianArray5, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         Vector JacobianDeterminants;
@@ -213,8 +212,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         const double ExpectedJacobian = 0.5;
 
         double JacobianDeterminant = geom->DeterminantOfJacobian( 1, GeometryData::GI_GAUSS_1 );
@@ -224,8 +223,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_2' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianIndex2, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
@@ -239,8 +238,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_3' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianIndex3, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
@@ -257,8 +256,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianIndex4, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
@@ -278,8 +277,8 @@ namespace Testing {
     /** Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_4' integration method.
     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2DeterminantOfJacobianIndex5, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsUnitXDirectionLine3D2();
         double JacobianDeterminant = 0.0;
         const double ExpectedJacobian = 0.5;
 
@@ -299,113 +298,30 @@ namespace Testing {
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsDiagonalLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
         array_1d<double, 3> coord(3);
         coord[0] = 2.0/3.0;
         coord[1] = 2.0/3.0;
-        coord[2] = 0.0;
+        coord[2] = 2.0/3.0;
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), 1.0/6.0, TOLERANCE);
         KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 5.0/6.0, TOLERANCE);
         auto& r_geom = *geom;
-        auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
+        auto p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
         Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsDiagonalLine2D2();
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
         auto& r_geom = *geom;
-        auto p_geom_nodes = Kratos::make_shared<Line2D2<Node<3>>>(
+        auto p_geom_nodes = Kratos::make_shared<Line3D2<Node<3>>>(
         Kratos::make_shared<Node<3>>(1, r_geom[0].X(), r_geom[0].Y(), r_geom[0].Z()),
         Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         TestAllShapeFunctionsLocalGradients(*p_geom_nodes);
-    }
-
-    /**
-     * Test an overlaping box and line (line has only one node in the box) HasIntersection
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxSingleNodeInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
-        Point point_1(0.5, -0.1, 0.0);
-        Point point_2(1.5, 0.1, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxSingleNodeInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitYDirectionLine2D2();
-        Point point_1(-0.1, 0.5, 0.0);
-        Point point_2(0.1, 1.5, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-
-    /**
-     * Test an overlaping box and line (line has both nodes in the box) HasIntersection
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2XIntersectionBoxTwoNodesInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
-        Point point_1(-0.5, -0.1, 0.0);
-        Point point_2(1.5, 0.1, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2YIntersectionBoxTwoNodesInside, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitYDirectionLine2D2();
-        Point point_1(-0.1, -0.5, 0.0);
-        Point point_2(0.1, 1.5, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-
-    /**
-     * Test an intersection with another line
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
-        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
-        Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
-        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, -0.5, 0.0);
-        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
-        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
-    }
-
-    /**
-     * Test an intersection with another parallel line
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
-        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
-        Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
-        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
-        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
-        KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(*geom_2));
-    }
-
-    /**
-     * Test a box inside a line HasIntersection
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideX, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
-        Point point_1(0.25, -0.1, 0.0);
-        Point point_2(0.75, 0.1, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-
-    /**
-     * Test a box inside a line HasIntersection
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideY, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitYDirectionLine2D2();
-        Point point_1(-0.1,0.25, 0.0);
-        Point point_2(0.1, 0.75, 0.0);
-        KRATOS_CHECK(geom->HasIntersection(point_1, point_2));
-    }
-    /**
-     * Test a non overlaping box HasIntersection
-     */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2NoIntersectionBox, KratosCoreGeometriesFastSuite) {
-        auto geom = GeneratePointsUnitXDirectionLine2D2();
-        Point point_1(1, 1, 0.0);
-        Point point_2(2, 2, 0.0);
-        KRATOS_CHECK_IS_FALSE(geom->HasIntersection(point_1, point_2));
     }
 
 } // namespace Testing.
