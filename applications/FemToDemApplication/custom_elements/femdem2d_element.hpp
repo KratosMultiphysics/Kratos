@@ -142,6 +142,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	double CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont);
 
 	void CalculateMassMatrix(MatrixType &rMassMatrix, ProcessInfo &rCurrentProcessInfo);
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 	Vector &CalculateVolumeForce(Vector &rVolumeForce, const Vector &rN);
 	double CalculateElementalDamage(const Vector& rEdgeDamages);
 

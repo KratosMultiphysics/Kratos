@@ -12,11 +12,9 @@
 
 // External includes
 #include "Epetra_MpiComm.h"
-#include "Epetra_FECrsMatrix.h"
 #include "Epetra_FEVector.h"
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers/linear_solver.h"
 #include "spaces/ublas_space.h"
 
@@ -37,7 +35,6 @@
 #include "custom_utilities/trilinos_mvqn_recursive_convergence_accelerator.hpp"
 
 // External includes
-#include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
 #include "../FSIapplication/custom_utilities/aitken_convergence_accelerator.hpp"
 
 namespace Kratos
@@ -193,7 +190,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){ 
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
         .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<2>)
         .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<2>)
@@ -207,7 +204,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<const Epetra_MpiComm &>())
         .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){ 
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
         .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<3>)
         .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<3>)
