@@ -143,27 +143,17 @@ void TrussElement3D2N::CalculateDampingMatrix(
   KRATOS_CATCH("")
 }
 
-void TrussElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
-                                           ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY
-  rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  const double A = this->GetProperties()[CROSS_AREA];
-  const double L = this->CalculateReferenceLength();
-  const double rho = this->GetProperties()[DENSITY];
-
-  const double total_mass = A * L * rho;
-
-  for (int i = 0; i < msNumberOfNodes; ++i) {
-
-    for (int j = 0; j < msDimension; ++j) {
-      int index = i * msDimension + j;
-
-      rMassMatrix(index, index) = total_mass * 0.50;
-    }
-  }
-  KRATOS_CATCH("")
+void TrussElement3D2N::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    ProcessInfo &rCurrentProcessInfo
+    ) 
+{
+    KRATOS_TRY
+    
+    // Compute lumped mass matrix
+    CalculateLumpedMassMatrix(rMassMatrix);
+    
+    KRATOS_CATCH("")
 }
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -669,8 +659,7 @@ void TrussElement3D2N::AddExplicitContribution(
 
     if (rDestinationVariable == NODAL_MASS) {
         Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-        ProcessInfo temp_info; // Dummy
-        this->CalculateMassMatrix(element_mass_matrix, temp_info);
+        this->CalculateLumpedMassMatrix(element_mass_matrix);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
@@ -722,8 +711,7 @@ void TrussElement3D2N::AddExplicitContribution(
     else if (rDestinationVariable == NODAL_INERTIA) {
 
       Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-      ProcessInfo temp_info; // Dummy
-      this->CalculateMassMatrix(element_mass_matrix, temp_info);
+      CalculateLumpedMassMatrix(element_mass_matrix);
 
       for (int i = 0; i < msNumberOfNodes; ++i) {
         double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
@@ -1008,7 +996,30 @@ bool TrussElement3D2N::HasSelfWeight() const
   else return true;
 }
 
+void TrussElement3D2N::CalculateLumpedMassMatrix(MatrixType &rMassMatrix) 
+{
+    KRATOS_TRY
+    
+    // Clear matrix
+    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize)
+        rMassMatrix.resize( msLocalSize, msLocalSize );
+    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
+    const double A = this->GetProperties()[CROSS_AREA];
+    const double L = this->CalculateReferenceLength();
+    const double rho = this->GetProperties()[DENSITY];
+
+    const double total_mass = A * L * rho;
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        for (int j = 0; j < msDimension; ++j) {
+            int index = i * msDimension + j;
+
+            rMassMatrix(index, index) = total_mass * 0.50;
+        }
+    }
+    KRATOS_CATCH("")
+}
 
 
 

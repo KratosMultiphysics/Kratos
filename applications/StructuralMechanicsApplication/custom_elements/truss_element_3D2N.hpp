@@ -286,10 +286,16 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo,
             const bool& rSaveInternalVariables);
 
-    private:
-        friend class Serializer;
-        void save(Serializer& rSerializer) const override;
-        void load(Serializer& rSerializer) override;
+private:
+    /**
+     * @brief This method computes directly the lumped mass matrix
+     * @param rMassMatrix The lumped mass matrix
+     */
+    void CalculateLumpedMassMatrix(MatrixType& rMassMatrix);
+    
+    friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
     };
 
 
