@@ -177,13 +177,13 @@ private:
   ///@{
 
   void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
-                              ProcessInfo &rCurrentProcessInfo);
+                              const ProcessInfo &rCurrentProcessInfo);
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
                                    VectorType &rRightHandSideVector);
 
-  MatrixType CalculateDerivatives(const int &rdimension,
-                                  const double &rPointNumber);
+  MatrixType CalculateDerivatives(const int Dimension,
+                                  const double PointNumber);
   ///@}
 
   ///@name Private  Access

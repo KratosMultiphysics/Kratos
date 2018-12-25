@@ -54,7 +54,7 @@ LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
-    VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rIntermediateDisplacements, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   const unsigned int component_index =
@@ -235,6 +235,8 @@ int LaplacianMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo)
     // Verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(MESH_DISPLACEMENT)
     KRATOS_CHECK_VARIABLE_KEY(LAPLACIAN_DIRECTION)
+
+    KRATOS_CHECK(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION));
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( auto& r_node : GetGeometry() ) {

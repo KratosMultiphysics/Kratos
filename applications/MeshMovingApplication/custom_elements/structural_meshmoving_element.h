@@ -194,10 +194,10 @@ private:
   ///@name Private Operations
   ///@{
 
-  MatrixType SetAndModifyConstitutiveLaw(const int &dimension,
-                                         const double &rPointNumber);
+  MatrixType SetAndModifyConstitutiveLaw(const int Dimension,
+                                         const double PointNumber);
 
-  MatrixType CalculateBMatrix(const int &dimension, const double &rPointNumber);
+  MatrixType CalculateBMatrix(const int Dimension, const double PointNumber);
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
                                    VectorType &rRightHandSideVector);
