@@ -66,7 +66,7 @@ Condition::Pointer PeriodicCondition::Create(IndexType NewId, NodesArrayType con
     return PeriodicCondition::Pointer(new PeriodicCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+int PeriodicCondition::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

@@ -169,7 +169,7 @@ public:
                               PropertiesType::Pointer pProperties) const override;
 
     /// Check input to ensure that it makes sense.
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Returns a matrix of penalty terms for the periodic variables.
     /**
