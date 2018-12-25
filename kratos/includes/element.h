@@ -689,17 +689,17 @@ public:
      * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
       * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
 
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, const Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
          KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
 
-    virtual void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, const Variable<Matrix>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
          KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rLHS to the desired variable. destination variable is ",rDestinationVariable)
     }
