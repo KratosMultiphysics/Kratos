@@ -38,9 +38,8 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
     // First element iterator
     const auto it_element_begin = mrModelPart.ElementsBegin();
     
-    // Geometry information
-    const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-    const std::size_t dimension = r_first_element_geometry.WorkingSpaceDimension();
+    // Current domain size
+    const std::size_t dimension = mrModelPart.GetProcessInfo()[DOMAIN_SIZE];
     
     // Iterate over the elements
     #pragma omp parallel for firstprivate(DN_DX,  N, J0)
