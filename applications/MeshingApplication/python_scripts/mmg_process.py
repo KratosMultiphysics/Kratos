@@ -132,7 +132,7 @@ class MmgProcess(KratosMultiphysics.Process):
             default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0)
         else:
             default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0)
-        
+
         # Overwrite the default settings with user-provided parameters
         self.settings = settings
         self.settings.RecursivelyValidateAndAssignDefaults(default_parameters)
