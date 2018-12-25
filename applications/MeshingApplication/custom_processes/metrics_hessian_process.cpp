@@ -173,8 +173,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
     const auto& it_element_begin = elements_array.begin();
 
     // Geometry information
-    const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-    const std::size_t dimension = r_first_element_geometry.WorkingSpaceDimension();
+    const std::size_t dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
     // Declaring auxiliar vector
     const Vector aux_zero_hessian = ZeroVector(3 * (dimension - 1));
