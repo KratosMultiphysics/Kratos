@@ -57,8 +57,8 @@ StructuralMeshMovingElement::Create(IndexType NewId,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
-                                                  int Step) {
-  GeometryType &rgeom = this->GetGeometry();
+                                                  int Step) const {
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -247,7 +247,7 @@ void StructuralMeshMovingElement::CheckElementMatrixDimension(
 //******************************************************************************
 void StructuralMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   GeometryType &rgeom = this->GetGeometry();
@@ -282,10 +282,10 @@ void StructuralMeshMovingElement::CalculateLocalSystem(
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::EquationIdVector(
-    EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+    EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -319,10 +319,10 @@ void StructuralMeshMovingElement::EquationIdVector(
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
-                                             ProcessInfo &rCurrentProcessInfo) {
+                                             const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
@@ -351,7 +351,7 @@ void StructuralMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
 //******************************************************************************
 // Called in function "CalculateReactions" within the block builder and solver
 void StructuralMeshMovingElement::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   MatrixType LHS;
@@ -360,7 +360,7 @@ void StructuralMeshMovingElement::CalculateRightHandSide(
   KRATOS_CATCH("");
 }
 
-int StructuralMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int StructuralMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

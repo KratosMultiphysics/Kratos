@@ -54,7 +54,7 @@ LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
-    VectorType &rIntermediateDisplacements, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rIntermediateDisplacements, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   const unsigned int component_index =
@@ -91,7 +91,7 @@ void LaplacianMeshMovingElement::CheckElementMatrixDimension(
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   GeometryType &rgeom = this->GetGeometry();
@@ -141,10 +141,10 @@ void LaplacianMeshMovingElement::CalculateLocalSystem(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::EquationIdVector(
-    EquationIdVectorType &rResult, ProcessInfo &rCurrentProcessInfo) {
+    EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -182,10 +182,10 @@ void LaplacianMeshMovingElement::EquationIdVector(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -217,7 +217,7 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
 // Called in function "CalculateReactions" within the component wise builder and
 // solver
 void LaplacianMeshMovingElement::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
 
   MatrixType LHS;
@@ -226,7 +226,7 @@ void LaplacianMeshMovingElement::CalculateRightHandSide(
   KRATOS_CATCH("");
 }
 
-int LaplacianMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int LaplacianMeshMovingElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 

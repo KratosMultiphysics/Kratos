@@ -93,18 +93,18 @@ public:
 
   void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                             VectorType &rRightHandSideVector,
-                            ProcessInfo &rCurrentProcessInfo) override;
+                            const ProcessInfo &rCurrentProcessInfo) override;
 
   void EquationIdVector(EquationIdVectorType &rResult,
-                        ProcessInfo &rCurrentProcessInfo) override;
+                        const ProcessInfo &rCurrentProcessInfo) const override;
 
   void GetDofList(DofsVectorType &rElementalDofList,
-                  ProcessInfo &rCurrentProcessInfo) override;
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
   void CalculateRightHandSide(VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override;
+                              const ProcessInfo &rCurrentProcessInfo) override;
 
-  int Check(const ProcessInfo& rCurrentProcessInfo) override;
+  int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
   ///@{
 
@@ -177,7 +177,7 @@ private:
   ///@{
 
   void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
-                              ProcessInfo &rCurrentProcessInfo);
+                              const ProcessInfo &rCurrentProcessInfo);
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
                                    VectorType &rRightHandSideVector);
