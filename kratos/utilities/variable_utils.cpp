@@ -108,7 +108,7 @@ void VariableUtils::SaveVectorVar(
 
 void VariableUtils::SaveScalarVar(
     const DoubleVarType& OriginVariable,
-    DoubleVarType& SavedVariable,
+    const DoubleVarType& SavedVariable,
     NodesContainerType& rNodes
     )
 {
@@ -148,7 +148,7 @@ void VariableUtils::SaveVectorNonHistoricalVar(
 
 void VariableUtils::SaveScalarNonHistoricalVar(
     const DoubleVarType& OriginVariable,
-    DoubleVarType& SavedVariable,
+    const DoubleVarType& SavedVariable,
     NodesContainerType& rNodes
     )
 {
@@ -168,7 +168,7 @@ void VariableUtils::SaveScalarNonHistoricalVar(
 
 void VariableUtils::CopyVectorVar(
     const ArrayVarType& OriginVariable,
-    ArrayVarType& DestinationVariable,
+    const ArrayVarType& DestinationVariable,
     NodesContainerType& rNodes
     )
 {
@@ -188,7 +188,7 @@ void VariableUtils::CopyVectorVar(
 
 void VariableUtils::CopyComponentVar(
     const ComponentVarType& OriginVariable,
-    ComponentVarType& DestinationVariable,
+    const ComponentVarType& DestinationVariable,
     NodesContainerType& rNodes
     )
 {
@@ -208,7 +208,7 @@ void VariableUtils::CopyComponentVar(
 
 void VariableUtils::CopyScalarVar(
     const DoubleVarType& OriginVariable,
-    DoubleVarType& DestinationVariable,
+    const DoubleVarType& DestinationVariable,
     NodesContainerType& rNodes
     )
 {
@@ -289,7 +289,7 @@ ModelPart::NodesContainerType VariableUtils::SelectNodeList(
 /***********************************************************************************/
 
 array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
-    const Variable<array_1d<double, 3> >& rVar,
+    const ArrayVarType& rVar,
     const ModelPart& rModelPart
     )
 {
@@ -324,7 +324,7 @@ array_1d<double, 3> VariableUtils::SumNonHistoricalNodeVectorVariable(
 /***********************************************************************************/
 
 array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
-    const Variable<array_1d<double, 3> >& rVar,
+    const ArrayVarType& rVar,
     const ModelPart& rModelPart,
     const unsigned int rBuffStep
     )
@@ -360,7 +360,7 @@ array_1d<double, 3> VariableUtils::SumHistoricalNodeVectorVariable(
 /***********************************************************************************/
 
 array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
-    const Variable<array_1d<double, 3> >& rVar,
+    const ArrayVarType& rVar,
     const ModelPart& rModelPart
     )
 {
@@ -395,7 +395,7 @@ array_1d<double, 3> VariableUtils::SumConditionVectorVariable(
 /***********************************************************************************/
 
 array_1d<double, 3> VariableUtils::SumElementVectorVariable(
-    const Variable<array_1d<double, 3> >& rVar,
+    const ArrayVarType& rVar,
     const ModelPart& rModelPart
     )
 {
