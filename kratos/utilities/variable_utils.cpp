@@ -274,7 +274,7 @@ ModelPart::NodesContainerType VariableUtils::SelectNodeList(
 
     NodesContainerType selected_nodes;
     for (auto it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
-        if (std::abs(it_node->FastGetSolutionStepValue(Variable) - Value) >
+        if (std::abs(it_node->FastGetSolutionStepValue(Variable) - Value) <
             std::numeric_limits<double>::epsilon()) {
             selected_nodes.push_back(*(it_node.base()));
         }
