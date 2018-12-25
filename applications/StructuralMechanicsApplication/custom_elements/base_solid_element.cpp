@@ -522,18 +522,21 @@ void BaseSolidElement::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
+    const auto& r_prop = GetProperties();
+    const bool compute_lumped_mass_matrix =  r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
         CalculateLumpedMassMatrix(rMassMatrix);
     } else { // CONSISTENT MASS
         const auto& r_geom = GetGeometry();
-        const auto& r_prop = GetProperties();
         SizeType dimension = r_geom.WorkingSpaceDimension();
         SizeType number_of_nodes = r_geom.size();
         SizeType mat_size = dimension * number_of_nodes;
 
+        // Clear matrix
+        if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+            rMassMatrix.resize( mat_size, mat_size );
         rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
         KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
@@ -588,7 +591,7 @@ void BaseSolidElement::CalculateDampingMatrix(
     // Resizing as needed the LHS
     unsigned int mat_size = number_of_nodes * dimension;
 
-    if ( rDampingMatrix.size1() != mat_size )
+    if ( rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size )
         rDampingMatrix.resize( mat_size, mat_size, false );
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
@@ -1449,6 +1452,10 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
     }
 
+    // Checking density
+    const auto& r_prop = GetProperties();
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+    
     // Check constitutive law
     if ( mConstitutiveLawVector.size() > 0 ) {
         return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
@@ -1496,10 +1503,6 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     const auto& r_prop = GetProperties();
     unsigned dim = r_geom.WorkingSpaceDimension();
     rMassMatrix = ZeroMatrix(dim * r_geom.size(), dim * r_geom.size());
-
-    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY))
-        << "DENSITY has to be provided for the calculation of the MassMatrix!"
-        << std::endl;
 
     const double density = r_prop[DENSITY];
     const double thickness =
@@ -1781,13 +1784,14 @@ void BaseSolidElement::CalculateLumpedMassMatrix(MatrixType& rMassMatrix)
 
     const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
-    SizeType dimension = r_geom.WorkingSpaceDimension();
-    SizeType number_of_nodes = r_geom.size();
-    SizeType mat_size = dimension * number_of_nodes;
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType mat_size = dimension * number_of_nodes;
 
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size );
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
-
-    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
