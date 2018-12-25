@@ -416,9 +416,7 @@ void BaseSolidElement::AddExplicitContribution(
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
         Matrix element_mass_matrix = ZeroMatrix(element_size, element_size);
-        ProcessInfo temp_process_information = rCurrentProcessInfo; // Dummy
-        temp_process_information.SetValue(COMPUTE_LUMPED_MASS_MATRIX, true);
-        this->CalculateMassMatrix(element_mass_matrix, temp_process_information);
+        this->CalculateLumpedMassMatrix(element_mass_matrix);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
             double aux_nodal_mass = 0.0;
@@ -463,9 +461,7 @@ void BaseSolidElement::AddExplicitContribution(
         this->GetFirstDerivativesVector(current_nodal_velocities);
         
         Matrix damping_matrix = ZeroMatrix(element_size, element_size);
-        ProcessInfo temp_process_information = rCurrentProcessInfo; // We can't pass const ProcessInfo
-        temp_process_information.SetValue(COMPUTE_LUMPED_MASS_MATRIX, true);
-        this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+        this->CalculateLumpedDampingMatrix(damping_matrix, rCurrentProcessInfo);
         
         // Current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
@@ -504,6 +500,9 @@ void BaseSolidElement::CalculateLocalSystem(
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                              ProcessInfo& rCurrentProcessInfo)
 {
@@ -523,36 +522,25 @@ void BaseSolidElement::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
-    const auto& r_prop = GetProperties();
-    SizeType dimension = r_geom.WorkingSpaceDimension();
-    SizeType number_of_nodes = r_geom.size();
-    SizeType mat_size = dimension * number_of_nodes;
-
-    rMassMatrix = ZeroMatrix( mat_size, mat_size );
-
-    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
-
-    const double density = r_prop[DENSITY];
-    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
-
     const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
-        const double total_mass = GetGeometry().DomainSize() * density * thickness;
-
-        Vector lumping_factors;
-        lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
-
-        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-            const double temp = lumping_factors[i] * total_mass;
-            for ( IndexType j = 0; j < dimension; ++j ) {
-                IndexType index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
-            }
-        }
+        CalculateLumpedMassMatrix(rMassMatrix);
     } else { // CONSISTENT MASS
+        const auto& r_geom = GetGeometry();
+        const auto& r_prop = GetProperties();
+        SizeType dimension = r_geom.WorkingSpaceDimension();
+        SizeType number_of_nodes = r_geom.size();
+        SizeType mat_size = dimension * number_of_nodes;
+
+        rMassMatrix = ZeroMatrix( mat_size, mat_size );
+
+        KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+        const double density = r_prop[DENSITY];
+        const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    
         Matrix J0(dimension, dimension);
 
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
@@ -607,14 +595,14 @@ void BaseSolidElement::CalculateDampingMatrix(
 
     // 1.-Calculate StiffnessMatrix:
 
-    MatrixType StiffnessMatrix  = Matrix();
-    VectorType ResidualVector  = Vector();
+    MatrixType StiffnessMatrix( mat_size, mat_size );
+    VectorType ResidualVector( mat_size );
 
     this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
 
     // 2.-Calculate MassMatrix:
 
-    MatrixType MassMatrix  = Matrix();
+    MatrixType MassMatrix( mat_size, mat_size );
 
     this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
@@ -1477,7 +1465,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void BaseSolidElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -1780,6 +1768,96 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
         for ( IndexType j = 0; j < dimension; ++j )
             rRightHandSideVector[index + j] += Weight * rN[i] * rBodyForce[j];
     }
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateLumpedMassMatrix(MatrixType& rMassMatrix)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
+
+    rMassMatrix = ZeroMatrix( mat_size, mat_size );
+
+    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    const double density = r_prop[DENSITY];
+    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
+    // LUMPED MASS MATRIX
+    const double total_mass = GetGeometry().DomainSize() * density * thickness;
+
+    Vector lumping_factors;
+    lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
+
+    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+        const double temp = lumping_factors[i] * total_mass;
+        for ( IndexType j = 0; j < dimension; ++j ) {
+            IndexType index = i * dimension + j;
+            rMassMatrix( index, index ) = temp;
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateLumpedDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    unsigned int mat_size = number_of_nodes * dimension;
+
+    if ( rDampingMatrix.size1() != mat_size )
+        rDampingMatrix.resize( mat_size, mat_size, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
+
+    // 1.-Calculate StiffnessMatrix:
+
+    MatrixType stiffness_matrix( mat_size, mat_size );
+    VectorType residual_vector( mat_size );
+
+    this->CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
+
+    // 2.-Calculate mass matrix:
+    MatrixType mass_matrix( mat_size, mat_size );
+    CalculateLumpedMassMatrix ( mass_matrix );
+
+    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0.0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+    double beta  = 0.0;
+    if( GetProperties().Has(RAYLEIGH_BETA) )
+        beta = GetProperties()[RAYLEIGH_BETA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+    // 4.-Compose the Damping Matrix:
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+    noalias( rDampingMatrix ) += alpha * mass_matrix;
+    noalias( rDampingMatrix ) += beta  * stiffness_matrix;
 
     KRATOS_CATCH( "" )
 }
