@@ -578,7 +578,7 @@ public:
     template<class TVarType>
     int CheckVariableExists(
         const TVarType& rVariable,
-        NodesContainerType& rNodes
+        const NodesContainerType& rNodes
         )
     {
         KRATOS_TRY
