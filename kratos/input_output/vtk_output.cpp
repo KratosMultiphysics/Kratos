@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala 
+//  Main authors:    Aditya Ghantasala
 //
 //
 
@@ -15,7 +15,7 @@
 #include "vtk_output.h"
 #include <typeinfo>
 #include <sstream>
-#include <byteswap.h>
+// #include <byteswap.h>
 
 namespace Kratos
 {
