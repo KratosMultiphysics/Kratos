@@ -314,8 +314,6 @@ def AssembleTestSuites():
     # SPRISM tests
     nightSuite.addTest(TSprismMembranePatchTests('test_execution'))
     nightSuite.addTest(TSprismBendingPatchTests('test_execution'))
-    # Explicit solid beam
-    nightSuite.addTest(TExplicitSolidBeam('test_execution'))
     # Membrane tests
     nightSuite.addTest(TFofi4PointTentnoCableTests('test_execution'))
     nightSuite.addTest(TFofi4PointTentCableTests('test_execution'))
@@ -403,6 +401,8 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    # Explicit solid beam
+    validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed
