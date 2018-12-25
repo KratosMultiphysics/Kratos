@@ -391,7 +391,7 @@ public:
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag())
-            MoveMesh();
+            BaseType::MoveMesh();
 
         // Cleaning memory after the solution
         pScheme->Clean();
