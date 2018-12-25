@@ -91,7 +91,7 @@ void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
-    const int Dimension, const double PointNumber) {
+    const int Dimension, const double PointNumber) const {
   KRATOS_TRY;
 
   GeometryType::JacobiansType J0;
@@ -163,10 +163,10 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::CalculateBMatrix(const int Dimension,
-                                              const double PointNumber) {
+                                              const double PointNumber) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
   GeometryType::ShapeFunctionsGradientsType DN_De =
@@ -228,7 +228,7 @@ StructuralMeshMovingElement::CalculateBMatrix(const int Dimension,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::CheckElementMatrixDimension(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = rgeom.WorkingSpaceDimension();

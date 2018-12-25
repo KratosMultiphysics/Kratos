@@ -54,7 +54,7 @@ LaplacianMeshMovingElement::Create(IndexType NewId, GeometryType::Pointer pGeom,
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CalculateDeltaPosition(
-    VectorType &rIntermediateDisplacements, const ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rIntermediateDisplacements, const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY;
 
   const unsigned int component_index =
@@ -74,7 +74,7 @@ void LaplacianMeshMovingElement::CalculateDeltaPosition(
 //******************************************************************************
 //******************************************************************************
 void LaplacianMeshMovingElement::CheckElementMatrixDimension(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) const {
   const SizeType num_nodes = this->GetGeometry().PointsNumber();
 
   if (rLeftHandSideMatrix.size1() != num_nodes)
