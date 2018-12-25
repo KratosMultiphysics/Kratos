@@ -267,15 +267,17 @@ void VariableUtils::SetToZero_ScalarVar(
 ModelPart::NodesContainerType VariableUtils::SelectNodeList(
     const DoubleVarType& Variable,
     const double Value,
-    NodesContainerType& rOriginNodes
+    const NodesContainerType& rOriginNodes
     )
 {
     KRATOS_TRY
 
     NodesContainerType selected_nodes;
-    for (NodesContainerType::iterator it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
-        if (it_node->FastGetSolutionStepValue(Variable) == Value)
+    for (auto it_node = rOriginNodes.begin(); it_node != rOriginNodes.end(); ++it_node) {
+        if (std::abs(it_node->FastGetSolutionStepValue(Variable) - Value) >
+            std::numeric_limits<double>::epsilon) {
             selected_nodes.push_back(*(it_node.base()));
+        }
     }
 
     return selected_nodes;

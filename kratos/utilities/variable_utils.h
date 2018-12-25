@@ -566,7 +566,7 @@ public:
     NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
-        NodesContainerType& rOriginNodes
+        const NodesContainerType& rOriginNodes
         );
 
     /**
