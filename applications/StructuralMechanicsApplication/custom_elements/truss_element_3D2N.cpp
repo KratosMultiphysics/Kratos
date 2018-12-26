@@ -146,13 +146,16 @@ void TrussElement3D2N::CalculateDampingMatrix(
 void TrussElement3D2N::CalculateMassMatrix(
     MatrixType &rMassMatrix,
     ProcessInfo &rCurrentProcessInfo
-    ) 
+    )
 {
     KRATOS_TRY
-    
+
     // Compute lumped mass matrix
-    CalculateLumpedMassMatrix(rMassMatrix);
-    
+    VectorType temp_vector(msLocalSize);
+    CalculateLumpedMassVector(temp_vector);
+    for (IndexType i = 0; i < msLocalSize; ++i)
+        rMassMatrix(i, i) = temp_vector[i];
+
     KRATOS_CATCH("")
 }
 
@@ -658,17 +661,15 @@ void TrussElement3D2N::AddExplicitContribution(
     auto& r_geom = GetGeometry();
 
     if (rDestinationVariable == NODAL_MASS) {
-        Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-        this->CalculateLumpedMassMatrix(element_mass_matrix);
+        VectorType element_mass_vector(msLocalSize);
+        this->CalculateLumpedMassVector(element_mass_vector);
 
         for (SizeType i = 0; i < msNumberOfNodes; ++i) {
             double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
             int index = i * msDimension;
 
-            for (SizeType j = 0; j < msLocalSize; ++j) {
-                #pragma omp atomic
-                r_nodal_mass += element_mass_matrix(index, j);
-            }
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
         }
     }
 
@@ -678,57 +679,51 @@ void TrussElement3D2N::AddExplicitContribution(
 void TrussElement3D2N::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
     Variable<array_1d<double, 3>> &rDestinationVariable,
-    const ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo
+    )
+{
     KRATOS_TRY;
 
-    if (rRHSVariable == RESIDUAL_VECTOR &&
-        rDestinationVariable == FORCE_RESIDUAL) {
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
-    BoundedVector<double, msLocalSize> damping_residual_contribution =
-        ZeroVector(msLocalSize);
-      Vector current_nodal_velocities = ZeroVector(msLocalSize);
-      this->GetFirstDerivativesVector(current_nodal_velocities);
-      Matrix damping_matrix;
-      ProcessInfo temp_process_information; // cant pass const ProcessInfo
-      this->CalculateDampingMatrix(damping_matrix, temp_process_information);
-      // current residual contribution due to damping
-      noalias(damping_residual_contribution) =
-          prod(damping_matrix, current_nodal_velocities);
+        BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
 
-
-      for (size_t i = 0; i < msNumberOfNodes; ++i) {
-        size_t index = msDimension * i;
-        array_1d<double, 3> &r_force_residual =
-            GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-        for (size_t j = 0; j < msDimension; ++j) {
-  #pragma omp atomic
-          r_force_residual[j] +=
-              rRHSVector[index + j] - damping_residual_contribution[index + j];
+        for (size_t i = 0; i < msNumberOfNodes; ++i) {
+            size_t index = msDimension * i;
+            array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < msDimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
         }
-      }
+    } else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(msLocalSize);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, msDimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            int index = i * msDimension;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (int k = 0; k < msDimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
+        }
     }
 
-    else if (rDestinationVariable == NODAL_INERTIA) {
-
-      Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-      CalculateLumpedMassMatrix(element_mass_matrix);
-
-      for (int i = 0; i < msNumberOfNodes; ++i) {
-        double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-        array_1d<double, msDimension> &r_nodal_inertia =
-            GetGeometry()[i].GetValue(NODAL_INERTIA);
-        int index = i * msDimension;
-
-        for (SizeType j = 0; j < msLocalSize; ++j) {
-  #pragma omp atomic
-          r_nodal_mass += element_mass_matrix(index, j);
-        }
-        for (int k = 0; k < msDimension; ++k) {
-  #pragma omp atomic
-          r_nodal_inertia[k] += 0.00;
-        }
-      }
-    }
     KRATOS_CATCH("")
 }
 
@@ -996,14 +991,13 @@ bool TrussElement3D2N::HasSelfWeight() const
   else return true;
 }
 
-void TrussElement3D2N::CalculateLumpedMassMatrix(MatrixType &rMassMatrix) 
+void TrussElement3D2N::CalculateLumpedMassVector(VectorType &rMassVector)
 {
     KRATOS_TRY
-    
+
     // Clear matrix
-    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize)
-        rMassMatrix.resize( msLocalSize, msLocalSize );
-    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+    if (rMassVector.size() != msLocalSize)
+        rMassVector.resize( msLocalSize );
 
     const double A = this->GetProperties()[CROSS_AREA];
     const double L = this->CalculateReferenceLength();
@@ -1015,9 +1009,10 @@ void TrussElement3D2N::CalculateLumpedMassMatrix(MatrixType &rMassMatrix)
         for (int j = 0; j < msDimension; ++j) {
             int index = i * msDimension + j;
 
-            rMassMatrix(index, index) = total_mass * 0.50;
+            rMassVector[index] = total_mass * 0.50;
         }
     }
+
     KRATOS_CATCH("")
 }
 

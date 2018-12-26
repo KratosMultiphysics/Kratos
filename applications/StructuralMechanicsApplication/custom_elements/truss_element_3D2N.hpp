@@ -288,11 +288,11 @@ namespace Kratos
 
 private:
     /**
-     * @brief This method computes directly the lumped mass matrix
-     * @param rMassMatrix The lumped mass matrix
+     * @brief This method computes directly the lumped mass vector
+     * @param rMassVector The lumped mass vector
      */
-    void CalculateLumpedMassMatrix(MatrixType& rMassMatrix);
-    
+    void CalculateLumpedMassVector(VectorType& rMassVector);
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
