@@ -1798,7 +1798,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector)
 
     // Clear matrix
     if (rMassVector.size() != mat_size)
-        rMassVector.resize( mat_size, mat_size );
+        rMassVector.resize( mat_size, false );
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
