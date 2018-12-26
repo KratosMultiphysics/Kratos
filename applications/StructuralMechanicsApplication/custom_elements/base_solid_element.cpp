@@ -525,7 +525,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
     // Clear matrix
     if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
-        rMassMatrix.resize( mat_size, mat_size );
+        rMassMatrix.resize( mat_size, mat_size, false );
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
     // Checking density
@@ -1495,22 +1495,31 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
+    // Properties
     const auto& r_prop = GetProperties();
-    unsigned dim = r_geom.WorkingSpaceDimension();
-    rMassMatrix = ZeroMatrix(dim * r_geom.size(), dim * r_geom.size());
+
+    // Geometry information
+    const auto& r_geom = GetGeometry();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
+
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size, false );
+    rMassMatrix = ZeroMatrix(mat_size, mat_size);
 
     // Checking density
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Getting density
     const double density = r_prop[DENSITY];
-    const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
         IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-    Matrix J0(dim, dim), DN_DX0_deriv;
+    Matrix J0(dimension, dimension), DN_DX0_deriv;
     const auto& integration_points = r_geom.IntegrationPoints(integration_method);
     for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number)
     {
@@ -1526,14 +1535,14 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
 
         for (unsigned i = 0; i < r_geom.size(); ++i)
         {
-            const unsigned index_i = i * dim;
+            const unsigned index_i = i * dimension;
 
             for (unsigned j = 0; j < r_geom.size(); ++j)
             {
-                const unsigned index_j = j * dim;
+                const unsigned index_j = j * dimension;
                 const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
 
-                for (unsigned k = 0; k < dim; ++k)
+                for (unsigned k = 0; k < dimension; ++k)
                     rMassMatrix(index_i + k, index_j + k) += NiNj_weight;
             }
         }

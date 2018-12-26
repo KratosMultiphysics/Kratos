@@ -153,6 +153,13 @@ void TrussElement3D2N::CalculateMassMatrix(
     // Compute lumped mass matrix
     VectorType temp_vector(msLocalSize);
     CalculateLumpedMassVector(temp_vector);
+
+    // Clear matrix
+    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize)
+        rMassMatrix.resize( msLocalSize, msLocalSize, false );
+    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+
+    // Fill the matrix
     for (IndexType i = 0; i < msLocalSize; ++i)
         rMassMatrix(i, i) = temp_vector[i];
 
