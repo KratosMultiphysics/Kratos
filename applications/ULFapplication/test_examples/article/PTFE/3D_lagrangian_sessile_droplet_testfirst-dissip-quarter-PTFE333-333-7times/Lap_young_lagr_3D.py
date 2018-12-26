@@ -149,7 +149,7 @@ contact_angle = 108.0 #contact angle [deg]
 #zeta_dissapative_JM_y = 0.0
 #zeta_dissapative_JM_z = 0.0
 
-#in this specific example we multiply by 7 to account for the big change in the nodal length due to the change in chapes from rectangle to sessile droplet
+#in this specific example we multiply by 7 to see if changes will be there or not
 zeta_dissapative_JM_x = (math.cos(contact_angle*0.0174533)+1.0)*7.0
 zeta_dissapative_JM_y = (math.cos(contact_angle*0.0174533)+1.0)*7.0
 zeta_dissapative_JM_z = (math.cos(contact_angle*0.0174533)+1.0)*7.0

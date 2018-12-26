@@ -107,7 +107,9 @@ else:
 # 7 below is having 3e-5 overall and (all edgs points and lines of 2.5e-5)
 #input_file_name = "sessile-cube-quarter-7" 
 
-
+#below is having only below points and lines of 3.2e-5 and (overall) is 3.7 e-5 , hard and zero hard
+#below is having only below points 3.4e-5 and lines of 3.6e-5 and (overall) is 3.9 e-5 , hard and zero hard
+#it was 8
 input_file_name = "sessile-cube-quarter-10"
 
 
@@ -145,24 +147,21 @@ contact_angle = 75.0 #contact angle [deg]
 
 #dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
 
-#zeta_dissapative_JM_x = 0.0
-#zeta_dissapative_JM_y = 0.0
-#zeta_dissapative_JM_z = 0.0
+zeta_dissapative_JM_x = 0.0
+zeta_dissapative_JM_y = 0.0
+zeta_dissapative_JM_z = 0.0
 
-#in this specific example we multiply by 5 to account for the big change in the nodal length due to the change in chapes from rectangle to sessile droplet
-zeta_dissapative_JM_x = (math.cos(contact_angle*0.0174533)+1.0)*5.0
-zeta_dissapative_JM_y = (math.cos(contact_angle*0.0174533)+1.0)*5.0
-zeta_dissapative_JM_z = (math.cos(contact_angle*0.0174533)+1.0)*5.0
 
 #########################################################################
 
-#zeta_dissapative_BM_x = 2.0*(math.cos(contact_angle*0.0174533)+1.0)
-#zeta_dissapative_BM_y = 2.0*(math.cos(contact_angle*0.0174533)+1.0)
-#zeta_dissapative_BM_z = 2.0*(math.cos(contact_angle*0.0174533)+1.0)
+#in this specific example we multiply by 4 to account for the factorused in the C++ (.5, so we first we multiply by 2),
+zeta_dissapative_BM_x = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_BM_y = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_BM_z = (math.cos(contact_angle*0.0174533)+1.0)*2.0
 
-zeta_dissapative_BM_x = 0.0
-zeta_dissapative_BM_y = 0.0
-zeta_dissapative_BM_z = 0.0
+#zeta_dissapative_BM_x = 0.0
+#zeta_dissapative_BM_y = 0.0
+#zeta_dissapative_BM_z = 0.0
 
 ##################################################
 
