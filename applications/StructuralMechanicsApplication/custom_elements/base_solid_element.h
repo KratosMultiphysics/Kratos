@@ -940,7 +940,7 @@ private:
      * @param rMassMatrix The lumped mass matrix
      * @param rCurrentProcessInfo The current process info instance
      */
-    void CalculateLumpedDampingMatrix(
+    void CalculateDampingMatrixWithLumpedMass(
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
         );

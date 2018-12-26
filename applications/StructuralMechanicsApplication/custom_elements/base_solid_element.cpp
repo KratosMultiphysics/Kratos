@@ -455,7 +455,7 @@ void BaseSolidElement::AddExplicitContribution(
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
         Matrix damping_matrix = ZeroMatrix(element_size, element_size);
-        this->CalculateLumpedDampingMatrix(damping_matrix, rCurrentProcessInfo);
+        this->CalculateDampingMatrixWithLumpedMass(damping_matrix, rCurrentProcessInfo);
 
         // Current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
@@ -1823,7 +1823,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedDampingMatrix(
+void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
     MatrixType& rDampingMatrix,
     const ProcessInfo& rCurrentProcessInfo
     )
@@ -1841,21 +1841,7 @@ void BaseSolidElement::CalculateLumpedDampingMatrix(
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType stiffness_matrix( mat_size, mat_size );
-    VectorType residual_vector( mat_size );
-
-    this->CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
-
-    // 2.-Calculate mass matrix:
-    MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
-    VectorType temp_vector(mat_size);
-    CalculateLumpedMassVector(temp_vector);
-    for (IndexType i = 0; i < mat_size; ++i)
-        mass_matrix(i, i) = temp_vector[i];
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
     if( GetProperties().Has(RAYLEIGH_ALPHA) )
         alpha = GetProperties()[RAYLEIGH_ALPHA];
@@ -1868,10 +1854,29 @@ void BaseSolidElement::CalculateLumpedDampingMatrix(
     else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
         beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 
-    // 4.-Compose the Damping Matrix:
+    // Compose the Damping Matrix:
     // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * mass_matrix;
-    noalias( rDampingMatrix ) += beta  * stiffness_matrix;
+
+    // 2.-Calculate mass matrix:
+    if (alpha > std::numeric_limits<double>::epsilon()) {
+        MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
+        VectorType temp_vector(mat_size);
+        CalculateLumpedMassVector(temp_vector);
+        for (IndexType i = 0; i < mat_size; ++i)
+            mass_matrix(i, i) = temp_vector[i];
+
+        noalias( rDampingMatrix ) += alpha * mass_matrix;
+    }
+
+    // 3.-Calculate StiffnessMatrix:
+    if (beta > std::numeric_limits<double>::epsilon()) {
+        MatrixType stiffness_matrix( mat_size, mat_size );
+        VectorType residual_vector( mat_size );
+
+        this->CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
+
+        noalias( rDampingMatrix ) += beta  * stiffness_matrix;
+    }
 
     KRATOS_CATCH( "" )
 }
