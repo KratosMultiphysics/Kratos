@@ -95,7 +95,7 @@ void ComputeNodalGradientProcess<THistorical>::Execute()
             for(std::size_t i_node=0; i_node<number_of_nodes; ++i_node) {
                 array_1d<double, 3>& r_gradient = GetGradient(r_geometry, i_node);
                 for(std::size_t k=0; k<dimension; ++k) {
-//                     double& val = r_gradient[k];
+
 
                     #pragma omp atomic
                     r_gradient[k] += N[i_node] * gauss_point_volume*grad[k];
