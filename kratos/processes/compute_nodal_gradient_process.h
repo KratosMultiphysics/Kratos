@@ -38,7 +38,7 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
@@ -56,7 +56,7 @@ struct ComputeNodalGradientProcessSettings
     constexpr static bool SaveAsHistoricalVariable = true;
     constexpr static bool SaveAsNonHistoricalVariable = false;
 };
-    
+
 /**
  * @class ComputeNodalGradientProcess
  * @ingroup KratosCore
@@ -66,14 +66,14 @@ struct ComputeNodalGradientProcessSettings
  * @author Vicente Mataix Ferrandiz
  * @tparam THistorical If the variable is historical or not
 */
-template<bool THistorical> 
+template<bool THistorical>
 class KRATOS_API(KRATOS_CORE) ComputeNodalGradientProcess
     : public Process
 {
 public:
     ///@name Type Definitions
     ///@{
-    
+
     /// Pointer definition of ComputeNodalGradientProcess
     KRATOS_CLASS_POINTER_DEFINITION(ComputeNodalGradientProcess);
 
@@ -88,7 +88,7 @@ public:
         Variable<array_1d<double,3> >& rGradientVariable,
         Variable<double>& rAreaVariable = NODAL_AREA
         );
-    
+
     /// Default constructor. (component)
     ComputeNodalGradientProcess(
         ModelPart& rModelPart,
@@ -208,12 +208,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
-    ModelPart& mrModelPart;                                     /// The main model part
-    std::vector<Variable<double>> mrOriginVariableDoubleList;   /// The scalar variable list to compute
-    std::vector<ComponentType> mrOriginVariableComponentsList;  /// The scalar variable list to compute (components)
-    Variable<array_1d<double,3> >& mrGradientVariable;          /// The resultant gradient variable
-    Variable<double>& mrAreaVariable;                           /// The auxiliar area variable
+
+    ModelPart& mrModelPart;                                      /// The main model part
+    std::vector<Variable<double>*> mrOriginVariableDoubleList;   /// The scalar variable list to compute
+    std::vector<ComponentType*> mrOriginVariableComponentsList;  /// The scalar variable list to compute (components)
+    Variable<array_1d<double,3> >& mrGradientVariable;           /// The resultant gradient variable
+    Variable<double>& mrAreaVariable;                            /// The auxiliar area variable
 
     ///@}
     ///@name Private Operators
@@ -224,7 +224,7 @@ private:
     ///@{
 
     // TODO: Try to use enable_if!!!
-    
+
     /**
      * This clears the gradient
      */
@@ -234,14 +234,12 @@ private:
      * This gets the gradient value
      * @param rThisGeometry The geometry of the element
      * @param i The node index
-     * @param k The component index
      */
-    double& GetGradient(
+    array_1d<double, 3>& GetGradient(
         Element::GeometryType& rThisGeometry,
-        unsigned int i, 
-        unsigned int k
+        unsigned int i
         );
-    
+
     /**
      * This divides the gradient value by the nodal area
      */
@@ -285,7 +283,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   ComputeNodalGradientProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const ComputeNodalGradientProcess& rThis)
@@ -293,13 +291,13 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 ///@}
-    
+
 }  // namespace Kratos.
 
-#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined 
+#endif // KRATOS_COMPUTE_GRADIENT_PROCESS_INCLUDED  defined
 
 
