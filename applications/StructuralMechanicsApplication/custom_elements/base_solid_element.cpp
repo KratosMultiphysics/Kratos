@@ -400,11 +400,11 @@ void BaseSolidElement::CalculateRightHandSide(
 /***********************************************************************************/
 
 void BaseSolidElement::AddExplicitContribution(
-    const VectorType& rRHSVector, 
+    const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
-    ) 
+    )
 {
     KRATOS_TRY;
 
@@ -439,11 +439,11 @@ void BaseSolidElement::AddExplicitContribution(
 /***********************************************************************************/
 
 void BaseSolidElement::AddExplicitContribution(
-    const VectorType& rRHSVector, 
+    const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
     Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
-    ) 
+    )
 {
     KRATOS_TRY;
 
@@ -452,17 +452,17 @@ void BaseSolidElement::AddExplicitContribution(
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
     const SizeType element_size = dimension * number_of_nodes;
-    
+
     Vector damping_residual_contribution = ZeroVector(element_size);
-    
+
     // Calculate damping contribution to residual -->
     if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
-        
+
         Matrix damping_matrix = ZeroMatrix(element_size, element_size);
         this->CalculateLumpedDampingMatrix(damping_matrix, rCurrentProcessInfo);
-        
+
         // Current residual contribution due to damping
         noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
     }
@@ -523,6 +523,11 @@ void BaseSolidElement::CalculateMassMatrix(
     KRATOS_TRY;
 
     const auto& r_prop = GetProperties();
+
+    // Checking density
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    // Checking if computing lumped mass matrix
     const bool compute_lumped_mass_matrix =  r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
@@ -543,7 +548,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
         const double density = r_prop[DENSITY];
         const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
-    
+
         Matrix J0(dimension, dimension);
 
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
@@ -1452,10 +1457,6 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_ERROR_IF_NOT(strain_size == 6) << "Wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) "<<  this->Id() << std::endl;
     }
 
-    // Checking density
-    const auto& r_prop = GetProperties();
-    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
-    
     // Check constitutive law
     if ( mConstitutiveLawVector.size() > 0 ) {
         return mConstitutiveLawVector[0]->Check( GetProperties(), GetGeometry(), rCurrentProcessInfo );
@@ -1504,9 +1505,12 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     unsigned dim = r_geom.WorkingSpaceDimension();
     rMassMatrix = ZeroMatrix(dim * r_geom.size(), dim * r_geom.size());
 
+    // Checking density
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    // Getting density
     const double density = r_prop[DENSITY];
-    const double thickness =
-        (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double thickness = (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
         IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
