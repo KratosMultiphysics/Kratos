@@ -152,13 +152,13 @@ zeta_dissapative_JM_z = 0.0
 #########################################################################
 
 #in this specific example we multiply by 4 to account for the factorused in the C++ (.5, so we first we multiply by 2), and then to account for averge increase in nodal length change ( muultiply by 2) from rectangle to sessile droplet
-zeta_dissapative_BM_x = (math.cos(contact_angle*0.0174533)+1.0)*4.0
-zeta_dissapative_BM_y = (math.cos(contact_angle*0.0174533)+1.0)*4.0
-zeta_dissapative_BM_z = (math.cos(contact_angle*0.0174533)+1.0)*4.0
+zeta_dissapative_BM_x = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_BM_y = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_BM_z = (math.cos(contact_angle*0.0174533)+1.0)*2.0
 
-#zeta_dissapative_BM_x = 0.0
-#zeta_dissapative_BM_y = 0.0
-#zeta_dissapative_BM_z = 0.0
+#zeta_dissapative_BM_x = 2.0
+#zeta_dissapative_BM_y = 2.0
+#zeta_dissapative_BM_z = 2.0
 
 ##################################################
 

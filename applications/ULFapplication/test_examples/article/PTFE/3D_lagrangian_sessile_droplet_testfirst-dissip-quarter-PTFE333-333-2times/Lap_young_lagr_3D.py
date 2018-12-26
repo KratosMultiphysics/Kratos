@@ -145,14 +145,14 @@ contact_angle = 108.0 #contact angle [deg]
 
 #dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
 
-#zeta_dissapative_JM_x = 0.0
-#zeta_dissapative_JM_y = 0.0
-#zeta_dissapative_JM_z = 0.0
+#zeta_dissapative_JM_x = 2.0
+#zeta_dissapative_JM_y = 2.0
+#zeta_dissapative_JM_z = 2.0
 
 #in this specific example we multiply by 7 to see if changes will be there or not
-zeta_dissapative_JM_x = (math.cos(contact_angle*0.0174533)+1.0)*7.0
-zeta_dissapative_JM_y = (math.cos(contact_angle*0.0174533)+1.0)*7.0
-zeta_dissapative_JM_z = (math.cos(contact_angle*0.0174533)+1.0)*7.0
+zeta_dissapative_JM_x = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_JM_y = (math.cos(contact_angle*0.0174533)+1.0)*2.0
+zeta_dissapative_JM_z = (math.cos(contact_angle*0.0174533)+1.0)*2.0
 
 #########################################################################
 

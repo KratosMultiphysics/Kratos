@@ -145,11 +145,11 @@ contact_angle = 75.0 #contact angle [deg]
 
 #dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
 
-#zeta_dissapative_JM_x = 0.0
-#zeta_dissapative_JM_y = 0.0
-#zeta_dissapative_JM_z = 0.0
+#zeta_dissapative_JM_x = 2.0
+#zeta_dissapative_JM_y = 2.0
+#zeta_dissapative_JM_z = 2.0
 
-#in this specific example we multiply by 4 to account for the factorused in the C++ (.5, so we first we multiply by 2), and then to account for averge increase in nodal length change ( muultiply by 2) from rectangle to sessile droplet
+#in this specific example we multiply by 2 to account for the factorused in the C++ (.5, so we first we multiply by 2), and then to account for averge increase in nodal length change ( muultiply by 2) from rectangle to sessile droplet
 zeta_dissapative_JM_x = (math.cos(contact_angle*0.0174533)+1.0)*2.0
 zeta_dissapative_JM_y = (math.cos(contact_angle*0.0174533)+1.0)*2.0
 zeta_dissapative_JM_z = (math.cos(contact_angle*0.0174533)+1.0)*2.0
