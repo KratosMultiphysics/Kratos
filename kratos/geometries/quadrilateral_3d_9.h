@@ -344,24 +344,6 @@ public:
     //     return p_clone;
     // }
 
-
-    /**
-     * lumping factors for the calculation of the lumped mass matrix
-     */
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 9)
-	        rResult.resize( 9, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        rResult[8] = 4.00 / 9.00;
-
-        return rResult;
-    }
-
     /**
      * Informations
      */

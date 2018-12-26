@@ -94,6 +94,19 @@ public:
       VOLUME_TO_RMS_EDGE_LENGTH
     };
 
+    /**
+     * @brief This defines the different methods to compute the lumping methods
+     * @details The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    enum class LumpingMethods {
+        ROW_SUM,
+        DIAGONAL_SCALING,
+        QUADRATURE_ON_NODES
+    };
+
 
     /** Base type for geometry.
     */
@@ -410,10 +423,83 @@ public:
     //     return p_clone;
     // }
 
-    //lumping factors for the calculation of the lumped mass matrix
-    virtual Vector& LumpingFactors( Vector& rResult )  const
+    /**
+     * @brief Lumping factors for the calculation of the lumped mass matrix
+     * @param rResult Vector containing the lumping factors
+     * @param LumpingMethod The lumping method considered. The three methods available are:
+     *      - The row sum method
+     *      - Diagonal scaling
+     *      - Evaluation of M using a quadrature involving only the nodal points and thus automatically yielding a diagonal matrix for standard element shape function
+     */
+    virtual Vector& LumpingFactors(
+        Vector& rResult,
+        const LumpingMethods LumpingMethod = LumpingMethods::ROW_SUM
+        )  const
     {
-        KRATOS_ERROR << "Called the virtual function for LumpingFactors " << *this << std::endl;
+        const SizeType number_of_nodes = this->size();
+
+        // Clear lumping factors
+        if (rResult.size() != number_of_nodes)
+            rResult.resize(number_of_nodes, false);
+        rResult = ZeroVector(number_of_nodes);
+
+        if (LumpingMethod == LumpingMethods::ROW_SUM) {
+            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
+            const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                const double detJ = DeterminantOfJacobian(point_number, integration_method);
+                const double integration_weight = integration_points[point_number].Weight() * detJ;
+                const Vector& rN = row(Ncontainer,point_number);
+
+                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                    for ( IndexType j = 0; j < number_of_nodes; ++j ) {
+                        const double NiNj_weight = rN[i] * rN[j] * integration_weight;
+                        rResult[i] += NiNj_weight;
+                    }
+                }
+            }
+        } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
+            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
+            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
+            const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
+
+            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+                const double detJ = DeterminantOfJacobian(point_number, integration_method);
+                const double integration_weight = integration_points[point_number].Weight() * detJ;
+                const Vector& rN = row(Ncontainer,point_number);
+
+                for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                    rResult[i] += std::pow(rN[i], 2) * integration_weight;
+                }
+            }
+
+            // Computing diagonal scaling coefficient
+            double total_value = 0.0;
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                total_value += rResult[i];
+            }
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                rResult[i] /= total_value;
+            }
+        } else if (LumpingMethod == LumpingMethods::QUADRATURE_ON_NODES) {
+            const double aux_weight = 1.0/static_cast<double>(number_of_nodes);
+            for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
+                const double detJ = DeterminantOfJacobian(this->GetPoint( point_number ));
+                const double integration_weight = aux_weight * detJ;
+                rResult[point_number] = integration_weight;
+            }
+        }
+
+        // Divide by the domain size
+        const double domain_size = DomainSize();
+        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+            rResult[i] /= domain_size;
+        }
+
         return rResult;
     }
 
