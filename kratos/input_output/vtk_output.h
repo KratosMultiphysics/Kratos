@@ -7,24 +7,21 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
+//  Main authors:    Aditya Ghantasala, Philipp Bucher
 //
 //
 
-#if !defined(VTK_OUTPUT_PROCESS_H)
-#define VTK_OUTPUT_PROCESS_H
+#if !defined( KRATOS_VTK_OUTPUT_H_INCLUDED )
+#define KRATOS_VTK_OUTPUT_H_INCLUDED
+
 // System includes
-#include <vector>
-#include <iostream>
-#include <string>
-#include <fstream>
-#include <algorithm>
-#include <iomanip> // for std::setprecision
-#include <unordered_map>
+
+// External includes
+
+// Project includes
 #include "includes/kratos_parameters.h"
 #include "includes/io.h"
-#include "containers/pointer_vector_set.h"
-// project includes
+
 
 namespace Kratos
 {
@@ -34,10 +31,7 @@ namespace Kratos
 */
 class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
 {
-
-    typedef ProcessInfo ProcessInfoType;
-
-  public:
+public:
     /// Pointer definition of VtkOutput
     KRATOS_CLASS_POINTER_DEFINITION(VtkOutput);
 
@@ -51,10 +45,10 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      */
     VtkOutput(ModelPart &rModelPart, Parameters rParameters);
     /// Destructor.
-    virtual ~VtkOutput();
+    virtual ~VtkOutput() = default;
 
     ///@}
-    ///@name Operators
+    ///@name Operations
     ///@{
 
     /**
@@ -63,32 +57,21 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     void PrintOutput();
 
     ///@}
-
-    ///@name Access
-    ///@{
-
-    ///@
-
-    ///@name Static Operations
-    ///@{
-    void GetInfo() const;
-
-    ///@}
     /**
      * @brief Prints information about the class
      * @param rOStream ostream object where output is printed
      */
-    void PrintInfo(std::ostream &rOStream) const
+    void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << " VtkOutput object " << std::endl;
     }
 
-    enum class FileFormat{
+    enum class FileFormat {
         VTK_ASCII,
         VTK_BINARY
     };
 
-    enum class WriteDataType{
+    enum class WriteDataType {
         VTK_NONE = 0,
         VTK_SCALAR = 1,
         VTK_VECTOR_3 = 3,
@@ -97,62 +80,54 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
         VTK_VECTOR_9 = 9
     };
 
-  private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
+private:
     ///@name Member Variables
     ///@{
-    ModelPart &mrModelPart;
-    std::string mCaseName;
-    std::string mOutputFilename;
+    ModelPart& mrModelPart;
     VtkOutput::FileFormat mFileFormat;
 
     Parameters mOutputSettings;
     unsigned int mDefaultPrecision;
     std::unordered_map<int, int> mKratosIdToVtkId;
-    unsigned int mVtkCellListSize;
     bool mDoneTest;
     bool mShouldSwap;
-    bool mOutputSubModelParts;
 
     ///@}
-    ///@name Operators
+    ///@name Operations
     ///@{
 
     /**
      * @brief Print the given rModelPart as VTK file together with the requested results
      * @param rModelPart modelpart which is beging output
      */
-    void WriteModelPart(const ModelPart &rModelPart);
+    void WriteModelPart(const ModelPart& rModelPart);
 
     /**
      * @brief Initialize function for the class
      * @param rModelPart modelpart which is beging output
      */
-    void Initialize(const ModelPart &rModelPart);
+    void Initialize(const ModelPart& rModelPart);
 
     /**
      * @brief Write the VTK header for the output of given rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteHeader(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteMesh(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the nodes in the rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the elements and conditions in rModelPart.
@@ -160,14 +135,14 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionsAndElements(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results on the nodes.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodalResults(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the solution step results on the nodes.
@@ -177,7 +152,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
-    void WriteContainerSolutionsStepResult(std::string NodalResultName, const TContainerType &rTContainer,  std::ofstream& rFileStream);
+    void WriteContainerSolutionsStepResult(std::string NodalResultName, const TContainerType& rTContainer,  std::ofstream& rFileStream);
 
     /**
      * @brief Write the variable results on the nodes.
@@ -187,38 +162,39 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
-    void WriteContainerVariableResults(std::string NodalResultName, const TContainerType &rTContainer,  std::ofstream& rFileStream);
+    void WriteContainerVariableResults(std::string NodalResultName, const TContainerType& rTContainer,  std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteElementResults(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteElementResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the conditions of rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionResults(const ModelPart &rModelPart, std::ofstream& rFileStream);
+    void WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
      * @param rModelPart modelpart which is beging output
      */
-    std::string GetOutputFileName(const ModelPart &rModelPart);
+    std::string GetOutputFileName(const ModelPart& rModelPart);
 
     /**
      * @brief Only used in the Binary format output. This function forces the big endian format for the input binary stream
      * @param rModelPart modelpart which is beging output
      */
-    void ForceBigEndian(unsigned char *bytes);
+    void ForceBigEndian(unsigned char* pBytes);
+
     /**
      * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
      * @param rModelPart modelpart which is beging output
      */
-    void CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart);
+    void CreateMapFromKratosIdToVTKId(const ModelPart& rModelPart);
 
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
@@ -227,7 +203,7 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
-    unsigned int DetermineVtkCellListSize(const TContainerType &rContainer);
+    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer);
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in
@@ -269,17 +245,8 @@ class KRATOS_API(KRATOS_CORE) VtkOutput : public IO
     VtkOutput::WriteDataType GetDataCharacterstic(std::string VariableName);
 
     ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@}
 };
-
-///@name Input/Output funcitons
-///@{
-
-///@}
 
 } // namespace Kratos
 
-#endif // VTK_OUTPUT_PROCESS_H
+#endif // KRATOS_VTK_OUTPUT_H_INCLUDED

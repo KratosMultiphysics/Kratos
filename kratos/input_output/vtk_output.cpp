@@ -7,20 +7,17 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Aditya Ghantasala
+//  Main authors:    Aditya Ghantasala, Philipp Bucher
 //
 //
 
 // project includes
 #include "vtk_output.h"
-#include <typeinfo>
-#include <sstream>
-// #include <byteswap.h>
 
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mOutputSettings(rParameters)
+VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mOutputSettings(rParameters)
 {
     mDefaultPrecision = this->mOutputSettings["output_precision"].GetInt();;
     this->mDoneTest = false;
@@ -34,9 +31,6 @@ VtkOutput::VtkOutput(ModelPart &rModelPart, Parameters rParameters) : mrModelPar
         KRATOS_ERROR<<"Option for file_format : "<<file_format<<" not recognised.!"<<std::endl
             <<"Possible output formats options for VTKOutput are :: ascii and binary "<<std::endl;
 }
-
-VtkOutput::~VtkOutput(){};
-
 
 void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart)
 {
@@ -105,37 +99,43 @@ void VtkOutput::WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStre
     }
 }
 
-void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
-    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    if(rModelPart.NumberOfElements() > 0)
-    {
-        if(local_mesh.NumberOfConditions()>0)
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+
+    int num_elements = r_local_mesh.NumberOfElements();
+    rModelPart.GetCommunicator().SumAll(num_elements);
+
+    int num_conditions = r_local_mesh.NumberOfConditions();
+    rModelPart.GetCommunicator().SumAll(num_conditions);
+
+    if (num_elements > 0) {
+        if (num_conditions > 0) {
             KRATOS_WARNING/*_ONCE*/("VtkOutput")<<"Modelpart \"" << rModelPart.Name() // TODO
                 << "\" has both elements and conditions.\nGiving precedence to "
                 << "elements and writing only elements!" <<std::endl;
-
+        }
         // write cells header
-        rFileStream << "\nCELLS " <<local_mesh.NumberOfElements() << " " << DetermineVtkCellListSize(local_mesh.Elements()) << "\n";
-        WriteConnectivity(local_mesh.Elements(), rFileStream);
+        rFileStream << "\nCELLS " << r_local_mesh.NumberOfElements() << " "
+            << DetermineVtkCellListSize(r_local_mesh.Elements()) << "\n";
+        WriteConnectivity(r_local_mesh.Elements(), rFileStream);
         // write cell types header
-        rFileStream << "\nCELL_TYPES " <<local_mesh.NumberOfElements() << "\n";
-        WriteCellType(local_mesh.Elements(), rFileStream);
-    } else if(local_mesh.NumberOfConditions()>0)
-    {
+        rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfElements() << "\n";
+        WriteCellType(r_local_mesh.Elements(), rFileStream);
+    } else if (num_conditions > 0) {
         // write cells header
-        rFileStream << "\nCELLS " << local_mesh.NumberOfConditions() << " " << DetermineVtkCellListSize(local_mesh.Conditions()) << "\n";
-        WriteConnectivity(local_mesh.Conditions(), rFileStream);
+        rFileStream << "\nCELLS " << r_local_mesh.NumberOfConditions() << " "
+            << DetermineVtkCellListSize(r_local_mesh.Conditions()) << "\n";
+        WriteConnectivity(r_local_mesh.Conditions(), rFileStream);
         // write cell types header
-        rFileStream << "\nCELL_TYPES " << local_mesh.NumberOfConditions() << "\n";
-        WriteCellType(local_mesh.Conditions(), rFileStream);
+        rFileStream << "\nCELL_TYPES " << r_local_mesh.NumberOfConditions() << "\n";
+        WriteCellType(r_local_mesh.Conditions(), rFileStream);
     }
 }
 
 template <typename TContainerType>
 void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream)
 {
-    // write Conditions
     for (const auto& entity : rContainer)
     {
         const auto& entity_geometry = entity.GetGeometry();
@@ -151,18 +151,18 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
     }
 }
 
-// IMPORTANT :: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
 template <typename TContainerType>
 void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream)
 {
+    // IMPORTANT :: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
     std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
-            {GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
-            {GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-            {GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10},
-            {GeometryData::KratosGeometryType::Kratos_Line2D2, 3},
-            {GeometryData::KratosGeometryType::Kratos_Line3D2, 3},
-            {GeometryData::KratosGeometryType::Kratos_Point2D, 1},
-            {GeometryData::KratosGeometryType::Kratos_Point3D, 1}
+        { GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
+        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10 },
+        { GeometryData::KratosGeometryType::Kratos_Line2D2, 3 },
+        { GeometryData::KratosGeometryType::Kratos_Line3D2, 3 },
+        { GeometryData::KratosGeometryType::Kratos_Point2D, 1 },
+        { GeometryData::KratosGeometryType::Kratos_Point3D, 1 }
     };
     // write entity types
     for (const auto& entity : rContainer)
@@ -472,7 +472,7 @@ void VtkOutput::PrintOutput()
 
 }
 
-void VtkOutput::ForceBigEndian(unsigned char *bytes)
+void VtkOutput::ForceBigEndian(unsigned char* pBytes)
 {
     if (!mDoneTest)
     {
@@ -484,12 +484,12 @@ void VtkOutput::ForceBigEndian(unsigned char *bytes)
 
     if (mShouldSwap)
     {
-        unsigned char tmp = bytes[0];
-        bytes[0] = bytes[3];
-        bytes[3] = tmp;
-        tmp = bytes[1];
-        bytes[1] = bytes[2];
-        bytes[2] = tmp;
+        unsigned char tmp = pBytes[0];
+        pBytes[0] = pBytes[3];
+        pBytes[3] = tmp;
+        tmp = pBytes[1];
+        pBytes[1] = pBytes[2];
+        pBytes[2] = tmp;
     }
 }
 
