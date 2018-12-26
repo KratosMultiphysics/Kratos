@@ -394,7 +394,7 @@ class STMonolithicSolver:
             #else:
                 #h_factor=0.25
 
-        h_factor=0.6
+        h_factor=0.5
 
         if (self.domain_size == 2):
          (self.Mesher).ReGenerateMeshDROPLET("SurfaceTension2D","Condition2D", self.model_part, self.node_erase_process, True, True, self.alpha_shape, h_factor)
