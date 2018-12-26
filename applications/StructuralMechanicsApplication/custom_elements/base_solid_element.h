@@ -309,7 +309,7 @@ public:
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
-        
+
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
      * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
@@ -320,12 +320,12 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     void AddExplicitContribution(
-        const VectorType& rRHSVector, 
-        const Variable<VectorType>& rRHSVariable, 
-        Variable<double >& rDestinationVariable, 
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
      * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
@@ -930,11 +930,11 @@ private:
     ///@{
 
     /**
-     * @brief This method computes directly the lumped mass matrix
-     * @param rMassMatrix The lumped mass matrix
+     * @brief This method computes directly the lumped mass vector
+     * @param rMassMatrix The lumped mass vector
      */
-    void CalculateLumpedMassMatrix(MatrixType& rMassMatrix);
-    
+    void CalculateLumpedMassVector(VectorType& rMassVector);
+
     /**
      * @brief This method computes directly the lumped mass matrix
      * @param rMassMatrix The lumped mass matrix
@@ -944,7 +944,7 @@ private:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
         );
-    
+
     /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition

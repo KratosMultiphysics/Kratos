@@ -411,24 +411,18 @@ void BaseSolidElement::AddExplicitContribution(
     auto& r_geom = this->GetGeometry();
     const SizeType dimension = r_geom.WorkingSpaceDimension();
     const SizeType number_of_nodes = r_geom.size();
-    const SizeType element_size = dimension * number_of_nodes;
+    const SizeType mat_size = number_of_nodes * dimension;
 
     // Compiting the nodal mass
     if (rDestinationVariable == NODAL_MASS ) {
-        Matrix element_mass_matrix = ZeroMatrix(element_size, element_size);
-        this->CalculateLumpedMassMatrix(element_mass_matrix);
+        VectorType element_mass_vector(mat_size);
+        this->CalculateLumpedMassVector(element_mass_vector);
 
         for (IndexType i = 0; i < number_of_nodes; ++i) {
-            double aux_nodal_mass = 0.0;
-
             const IndexType index = i * dimension;
 
-            for (IndexType j = 0; j < element_size; ++j) {
-                aux_nodal_mass += element_mass_matrix(index, j);
-            }
-
             #pragma omp atomic
-            r_geom[i].GetValue(NODAL_MASS) += aux_nodal_mass;
+            r_geom[i].GetValue(NODAL_MASS) += element_mass_vector[index];
         }
     }
 
@@ -524,6 +518,16 @@ void BaseSolidElement::CalculateMassMatrix(
 
     const auto& r_prop = GetProperties();
 
+    const auto& r_geom = GetGeometry();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
+
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size );
+    rMassMatrix = ZeroMatrix( mat_size, mat_size );
+
     // Checking density
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
@@ -532,20 +536,11 @@ void BaseSolidElement::CalculateMassMatrix(
 
     // LUMPED MASS MATRIX
     if (compute_lumped_mass_matrix) {
-        CalculateLumpedMassMatrix(rMassMatrix);
+        VectorType temp_vector(mat_size);
+        CalculateLumpedMassVector(temp_vector);
+        for (IndexType i = 0; i < mat_size; ++i)
+            rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
-        const auto& r_geom = GetGeometry();
-        SizeType dimension = r_geom.WorkingSpaceDimension();
-        SizeType number_of_nodes = r_geom.size();
-        SizeType mat_size = dimension * number_of_nodes;
-
-        // Clear matrix
-        if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
-            rMassMatrix.resize( mat_size, mat_size );
-        rMassMatrix = ZeroMatrix( mat_size, mat_size );
-
-        KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
-
         const double density = r_prop[DENSITY];
         const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
@@ -1782,7 +1777,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedMassMatrix(MatrixType& rMassMatrix)
+void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector)
 {
     KRATOS_TRY;
 
@@ -1793,9 +1788,8 @@ void BaseSolidElement::CalculateLumpedMassMatrix(MatrixType& rMassMatrix)
     const SizeType mat_size = dimension * number_of_nodes;
 
     // Clear matrix
-    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
-        rMassMatrix.resize( mat_size, mat_size );
-    rMassMatrix = ZeroMatrix( mat_size, mat_size );
+    if (rMassVector.size() != mat_size)
+        rMassVector.resize( mat_size, mat_size );
 
     const double density = r_prop[DENSITY];
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
@@ -1810,7 +1804,7 @@ void BaseSolidElement::CalculateLumpedMassMatrix(MatrixType& rMassMatrix)
         const double temp = lumping_factors[i] * total_mass;
         for ( IndexType j = 0; j < dimension; ++j ) {
             IndexType index = i * dimension + j;
-            rMassMatrix( index, index ) = temp;
+            rMassVector[index] = temp;
         }
     }
 
@@ -1846,8 +1840,11 @@ void BaseSolidElement::CalculateLumpedDampingMatrix(
     this->CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
 
     // 2.-Calculate mass matrix:
-    MatrixType mass_matrix( mat_size, mat_size );
-    CalculateLumpedMassMatrix ( mass_matrix );
+    MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
+    VectorType temp_vector(mat_size);
+    CalculateLumpedMassVector(temp_vector);
+    for (IndexType i = 0; i < mat_size; ++i)
+        mass_matrix(i, i) = temp_vector[i];
 
     // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
