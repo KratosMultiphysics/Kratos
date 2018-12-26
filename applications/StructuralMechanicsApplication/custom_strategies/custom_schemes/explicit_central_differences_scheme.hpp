@@ -190,8 +190,8 @@ public:
         mTime.Previous = mTime.Current - mTime.Delta;
         mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
 
-        /// Working in 2D/3D
-        const SizeType dim(r_current_process_info[DOMAIN_SIZE]);
+        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
+        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
 
         // Initialize scheme
         if (!BaseType::SchemeIsInitialized())
@@ -455,10 +455,8 @@ public:
         // The array of nodes
         NodesArrayType& r_nodes = rModelPart.Nodes();
 
-        /// Working in 2D/3D
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-        const auto& r_geom = it_elem_begin->GetGeometry();
-        const SizeType dim(r_geom.WorkingSpaceDimension());
+        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
+        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
 
         // Step Update
         // The first step is time =  initial_time ( 0.0) + delta time
