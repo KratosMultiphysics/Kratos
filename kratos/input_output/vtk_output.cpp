@@ -111,7 +111,9 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart &rModelPart, std::ofs
     if(rModelPart.NumberOfElements() > 0)
     {
         if(local_mesh.NumberOfConditions()>0)
-            KRATOS_WARNING("VtkOutput")<<"The modelpart : "<<rModelPart.Name()<<" has both elements and conditions. Giving precedence to elements and writing only elements!"<<std::endl;
+            KRATOS_WARNING/*_ONCE*/("VtkOutput")<<"Modelpart \"" << rModelPart.Name() // TODO
+                << "\" has both elements and conditions.\nGiving precedence to "
+                << "elements and writing only elements!" <<std::endl;
 
         // write cells header
         rFileStream << "\nCELLS " <<local_mesh.NumberOfElements() << " " << DetermineVtkCellListSize(local_mesh.Elements()) << "\n";

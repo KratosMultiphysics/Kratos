@@ -86,17 +86,19 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
         vtk_output_parameters = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"                    : "Main",
-            "file_format"                        : "ascii",
-            "output_control_type"                : "step",
-            "output_frequency"                   : 1.0,
-            "output_precision"                   : 8,
-            "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_vtk_output",
-            "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
-            "nodal_data_value_variables"         : [],
-            "element_data_value_variables"       : ["DETERMINANT"]
+            "Parameters" : {
+                "model_part_name"                    : "Main",
+                "file_format"                        : "ascii",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1.0,
+                "output_precision"                   : 8,
+                "output_sub_model_parts"             : true,
+                "folder_name"                        : "test_vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : ["DETERMINANT"]
+            }
         }
         """)
         vtk_output_process = self.__SetupVtkOutputProcess(current_model, vtk_output_parameters)
@@ -131,17 +133,19 @@ class TestVtkOutputProcess(KratosUnittest.TestCase):
 
         vtk_output_parameters = KratosMultiphysics.Parameters("""
         {
-            "model_part_name"                    : "Main",
-            "file_format"                        : "binary",
-            "output_control_type"                : "step",
-            "output_frequency"                   : 1.0,
-            "output_precision"                   : 8,
-            "output_sub_model_parts"             : true,
-            "folder_name"                        : "test_vtk_output",
-            "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
-            "nodal_data_value_variables"         : [],
-            "element_data_value_variables"       : ["DETERMINANT"]
+            "Parameters" : {
+                "model_part_name"                    : "Main",
+                "file_format"                        : "binary",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1.0,
+                "output_precision"                   : 8,
+                "output_sub_model_parts"             : true,
+                "folder_name"                        : "test_vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["PRESSURE","DISPLACEMENT", "VELOCITY"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : ["DETERMINANT"]
+            }
         }
         """)
         vtk_output_process = self.__SetupVtkOutputProcess(current_model, vtk_output_parameters)
