@@ -4,7 +4,7 @@ import os
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VtkOutputProcess(Model, settings)
+    return VtkOutputProcess(Model, settings["Parameters"])
 
 
 ## All the processes python should be derived from "Process"
