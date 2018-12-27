@@ -91,7 +91,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRotationVector;
     std::string mType;
-    double mMagnitude;
+    double mDistance;
     DenseVector<double> mDirOfTranslation;
     double mSearchTolerance;
     IndexType mSearchMaxResults;
@@ -138,7 +138,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     void CalculateTransformationMatrix();
 
     /**
-     * @brief   Calculate the transformation matrix which translates the given vector along mDirOfTranslation by mMagnitude
+     * @brief   Calculate the transformation matrix which translates the given vector along mDirOfTranslation by mDistance
      * @param   Modulus is the magnitude by which the translation should happen in the direction of mDirOfTranslation.
      * @param   rMatrix is the transformation matrix which will be calculated in this function. This should be of correct size (4x4).
      */
@@ -175,21 +175,6 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyPeriodicConditionProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyPeriodicConditionProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 

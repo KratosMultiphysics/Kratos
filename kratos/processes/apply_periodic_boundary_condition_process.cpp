@@ -53,7 +53,7 @@ namespace Kratos
         mAxisOfRotationVector = mParameters["transformation_settings"]["rotation_settings"]["axis_of_rotation"].GetVector();
         mDirOfTranslation = mParameters["transformation_settings"]["translation_settings"]["dir_of_translation"].GetVector();
 
-        mMagnitude = mParameters["transformation_settings"]["translation_settings"]["magnitude"].GetDouble();
+        mDistance = mParameters["transformation_settings"]["translation_settings"]["magnitude"].GetDouble();
         mAngleOfRotation = mParameters["transformation_settings"]["rotation_settings"]["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
 
         mTransformationMatrix.resize(4,4);
@@ -66,14 +66,14 @@ namespace Kratos
 
         RemoveCommonNodesFromSlaveModelPart();
 
-        if (mAngleOfRotation == 0 && mMagnitude != 0)
+        if (mAngleOfRotation == 0 && mDistance != 0)
             mType = "translation";
-        else if (mAngleOfRotation != 0.0 && mMagnitude == 0.0)
+        else if (mAngleOfRotation != 0.0 && mDistance == 0.0)
             mType = "rotation";
         else
-            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mMagnitude) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mDistance) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
-            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) > eps && std::abs(mMagnitude) > eps)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
+            KRATOS_ERROR_IF(std::abs(mAngleOfRotation) > eps && std::abs(mDistance) > eps)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
 
         CalculateTransformationMatrix();
     }
@@ -265,7 +265,7 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::CalculateTransformationMatrix()
     {
         if (mType == "translation"){
-            CalculateTranslationMatrix(-1*mMagnitude, mTransformationMatrix);
+            CalculateTranslationMatrix(-1*mDistance, mTransformationMatrix);
             CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
         else if (mType == "rotation"){
