@@ -416,10 +416,7 @@ private:
                 Element::Pointer pElement = i_entity->GetEntityType().Create(i_elem->Id(), i_elem->GetGeometry(), pProperties);
 
                 //set origin element as pointer
-                WeakPointerVector< Element > MasterElements;
-                MasterElements.push_back(Element::WeakPointer( *(i_elem.base()) ) );
-
-                pElement->SetValue(MASTER_ELEMENTS, MasterElements);
+                pElement->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
 
                 rDestinationModelPart.Elements().push_back(pElement);
               }
@@ -442,7 +439,7 @@ private:
 
                 //set mechanical variables to contact conditions:
                 pCondition->Data() = i_cond->Data();
-               
+
                 rDestinationModelPart.Conditions().push_back(pCondition);
               }
             }

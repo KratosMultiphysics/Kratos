@@ -62,7 +62,8 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
     void CalculateAndAddMaterialK(MatrixType& rLeftHandSideMatrix,
                                     const Matrix& B,
                                     const Matrix& D,
-                                    const double IntegrationWeight);
+                                    const double IntegrationWeight,
+                                    const double Damage);
 
     void CalculateGeometricK(MatrixType& rLeftHandSideMatrix,
                             const Matrix& DN_DX,

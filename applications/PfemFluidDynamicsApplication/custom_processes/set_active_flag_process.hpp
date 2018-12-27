@@ -28,12 +28,12 @@
 #include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -49,7 +49,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+  typedef  std::vector<Node<3>*>             NodePointerVectorType;
+  typedef  std::vector<Element*>          ElementPointerVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -121,11 +122,11 @@ namespace Kratos
 	      	for(unsigned int i=0; i<numNodes; i++)
 	      	  {
 	      	    if(itElem->GetGeometry()[i].Is(RIGID)  && itElem->GetGeometry()[i].IsNot(SOLID) && itElem->GetGeometry()[i].Is(FREE_SURFACE)){
-	      	      WeakPointerVector<Element >& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOUR_ELEMENTS);
+	      	      ElementPointerVectorType& neighb_elems = itElem->GetGeometry()[i].GetValue(NEIGHBOR_ELEMENTS);
 	      	      bool doNotSetNullPressure=false;
-	      	      for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
+	      	      for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ne++)
 	      		{
-	      		  if((ne)->Is(ACTIVE)){
+	      		  if((*ne)->Is(ACTIVE)){
 	      		    doNotSetNullPressure=true;
 	      		    break;
 	      		  }
@@ -133,7 +134,7 @@ namespace Kratos
 	      	      if(doNotSetNullPressure==false)
 	      		itElem->GetGeometry()[i].FastGetSolutionStepValue(PRESSURE) = 0;
 	      	    }
-		
+
 	      	  }
 		unsigned int elementRigidNodes=0;
 		for(unsigned int i=0; i<numNodes; i++)
@@ -142,7 +143,7 @@ namespace Kratos
 		      elementRigidNodes++;
 		    }
 		  }
-		
+
 		if(elementRigidNodes==numNodes){
 		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
 		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
@@ -154,12 +155,12 @@ namespace Kratos
 
 
 	}
-      KRATOS_CATCH(" ")    
+      KRATOS_CATCH(" ")
           };
 
     ///@}
     ///@name Operators
-    ///@{ 
+    ///@{
 
     ///@}
     ///@name Access
@@ -187,10 +188,10 @@ namespace Kratos
       rOStream << "SetActiveFlagProcess";
     }
 
-    
 
 
-    
+
+
 
   protected:
     ///@name Protected static Member Variables
@@ -220,11 +221,11 @@ namespace Kratos
       bool foundedIsolatedWall=false;
       for(unsigned int i=0; i<numNodes; i++)
 	{
-	  WeakPointerVector<Node<3> >& rN = wallElementNodes[i].GetValue(NEIGHBOUR_NODES);
+	  NodePointerVectorType& rN = wallElementNodes[i].GetValue(NEIGHBOR_NODES);
 	  bool localIsolatedWallNode=true;
 	  for(unsigned int j = 0; j < rN.size(); j++)
 	    {
-	      if(rN[j].IsNot(RIGID)){
+	      if(rN[j]->IsNot(RIGID)){
 		localIsolatedWallNode=false;
 		break;
 	      }
@@ -248,7 +249,7 @@ namespace Kratos
 
       KRATOS_CATCH(" ")
 	};
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -340,5 +341,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_ACTIVE_FLAG_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_SET_ACTIVE_FLAG_PROCESS_H_INCLUDED  defined

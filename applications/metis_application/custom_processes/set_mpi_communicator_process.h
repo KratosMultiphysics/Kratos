@@ -56,7 +56,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/mpi_communicator.h"
+#include "mpi/includes/mpi_communicator.h"
 #include "processes/process.h"
 
 namespace Kratos
@@ -115,6 +115,11 @@ public:
 
     void Execute() override
     {
+        KRATOS_WARNING("SetMPICommunicatorProcess")
+            << "Calling deprecated process SetMPICommunicatorProcess.\n"
+            << "Please use ModelPartCommunicatorUtilities::SetMPICommunicator(ModelPart) instead."
+            << std::endl;
+
         VariablesList * mVariables_List = &mrModelPart.GetNodalSolutionStepVariablesList();
         mrModelPart.SetCommunicator(Communicator::Pointer(new MPICommunicator(mVariables_List)));
     }
