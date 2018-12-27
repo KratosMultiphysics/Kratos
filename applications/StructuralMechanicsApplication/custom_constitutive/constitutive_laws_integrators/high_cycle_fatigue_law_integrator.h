@@ -186,8 +186,8 @@ public:
         if (MaxStress > yield_stress) {
             rFatigueReductionFactor = std::exp(-rB0 * std::pow(std::log10(NumbreOfCycles), square_betaf));
         } else if (MaxStress > Sth) {
-            const double N_F = std::pow(10,std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1/BETAF)));
-            KRATOS_WATCH(std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1/BETAF)))
+            const double N_F = std::pow(10.0,std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)));
+            KRATOS_WATCH(std::pow(-std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat,(1.0/BETAF)))
             //KRATOS_WATCH(std::log((MaxStress - Sth) / (yield_stress - Sth))/alphat)
             //KRATOS_WATCH(1 / BETAF)
 			KRATOS_WATCH(N_F)
