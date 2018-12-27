@@ -290,8 +290,9 @@ class NavierStokesSolverMonolithic(FluidSolver):
             raise Exception("Turbulence models are not added yet.")
 
         if self.settings["consider_periodic_conditions"].GetBool() == True:
-            builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
-                                                                                KratosCFD.PATCH_INDEX)
+            #builder_and_solver = KratosCFD.ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,
+                                                                                #KratosCFD.PATCH_INDEX)
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(self.linear_solver)
         else:
             builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
