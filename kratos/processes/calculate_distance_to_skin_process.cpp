@@ -198,7 +198,7 @@ namespace Kratos
 		array_1d<double,TDim> distances;
 		unsigned int n_ray_pos(0), n_ray_neg(0);
         IntersectionsContainerType intersections;
-		const array_1d<double,3> coords = rNode.Coordinates();
+		const array_1d<double,3> &r_coords = rNode.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
@@ -206,7 +206,7 @@ namespace Kratos
 			distances[i_direction] = 1.0;
 
             // Creating the ray
-            double ray[3] = {coords[0], coords[1], coords[2]};
+            double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
 			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // Starting from the lower extreme
@@ -216,7 +216,7 @@ namespace Kratos
             int ray_color = 1;
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (i_intersection != intersections.end()) {
-                double int_d = coords[i_direction] - i_intersection->first; // Octree ray intersection distance
+                double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
                 if (int_d > epsilon) {
                     ray_color = -ray_color;
                     distances[i_direction] = int_d;
@@ -245,7 +245,7 @@ namespace Kratos
 		// If this situation happens, do the "evolved Predator" raycasting to vote
 		if (n_ray_neg != 0 && n_ray_pos != 0) {
 			const double ray_epsilon = 1e-4;
-			this->ComputeExtraRayColors(epsilon, ray_epsilon, coords, distances);
+			this->ComputeExtraRayColors(epsilon, ray_epsilon, r_coords, distances);
 		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
