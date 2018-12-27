@@ -23,6 +23,7 @@
 #include "includes/geometrical_object.h"
 #include "containers/flags.h"
 #include "includes/constitutive_law.h"
+#include "containers/weak_pointer_vector.h"
 
 
 namespace Kratos
