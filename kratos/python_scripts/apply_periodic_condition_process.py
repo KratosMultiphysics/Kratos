@@ -3,10 +3,10 @@ import KratosMultiphysics as KratosMultiphysics
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyPeriodicBoundaryConditionProcess(Model, settings["Parameters"])
+    return ApplyPeriodicConditionProcessPythonWrapper(Model, settings["Parameters"])
 
 ## All the processes python should be derived from "Process"
-class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
+class ApplyPeriodicConditionProcessPythonWrapper(KratosMultiphysics.Process):
     """This class is used in order to impose periodic boundary condition between two given modelparts which are related
         via a rotation operation or a translation operation.
 
