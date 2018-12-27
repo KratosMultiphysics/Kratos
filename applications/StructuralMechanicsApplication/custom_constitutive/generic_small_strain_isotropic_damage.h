@@ -64,7 +64,7 @@ public:
 
     /// The define the Voigt size, already defined in the  integrator
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
-    
+
     /// Definition of the base class
     typedef typename std::conditional<VoigtSize == 6, ElasticIsotropic3D, LinearPlaneStrain >::type BaseType;
 
@@ -73,10 +73,10 @@ public:
 
     /// The node definition
     typedef Node<3> NodeType;
-    
+
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
-    
+
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
@@ -105,9 +105,7 @@ public:
     GenericSmallStrainIsotropicDamage(const GenericSmallStrainIsotropicDamage &rOther)
         : BaseType(rOther),
           mDamage(rOther.mDamage),
-          mThreshold(rOther.mThreshold),
-          mNonConvDamage(rOther.mNonConvDamage),
-          mNonConvThreshold(rOther.mNonConvThreshold)
+          mThreshold(rOther.mThreshold)
     {
     }
 
@@ -363,13 +361,9 @@ protected:
 
     double& GetThreshold() { return mThreshold; }
     double& GetDamage() { return mDamage; }
-    double& GetNonConvThreshold() { return mNonConvThreshold; }
-    double& GetNonConvDamage() { return mNonConvDamage; }
 
     void SetThreshold(const double toThreshold) { mThreshold = toThreshold; }
     void SetDamage(const double toDamage) { mDamage = toDamage; }
-    void SetNonConvThreshold(const double toThreshold) { mNonConvThreshold = toThreshold; }
-    void SetNonConvDamage(const double toDamage) { mNonConvDamage = toDamage; }
 
     ///@}
     ///@name Protected  Access
@@ -396,10 +390,6 @@ private:
     double mDamage = 0.0;
     double mThreshold = 0.0;
     double mUniaxialStress = 0.0;
-
-    // Non Converged values
-    double mNonConvDamage = 0.0;
-    double mNonConvThreshold = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -430,8 +420,6 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.save("Damage", mDamage);
         rSerializer.save("Threshold", mThreshold);
-        rSerializer.save("NonConvDamage", mNonConvDamage);
-        rSerializer.save("NonConvThreshold", mNonConvThreshold);
     }
 
     void load(Serializer &rSerializer) override
@@ -439,8 +427,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
         rSerializer.load("Damage", mDamage);
         rSerializer.load("Threshold", mThreshold);
-        rSerializer.load("NonConvDamage", mDamage);
-        rSerializer.load("NonConvThreshold", mNonConvThreshold);
     }
 
     ///@}
