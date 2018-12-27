@@ -437,6 +437,7 @@ public:
         )  const
     {
         const SizeType number_of_nodes = this->size();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
 
         // Clear lumping factors
         if (rResult.size() != number_of_nodes)
@@ -460,6 +461,12 @@ public:
                         rResult[i] += NiNj_weight;
                     }
                 }
+            }
+
+            // Divide by the domain size
+            const double domain_size = DomainSize();
+            for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+                rResult[i] /= domain_size;
             }
         } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
             IntegrationMethod integration_method = GetDefaultIntegrationMethod();
@@ -486,18 +493,21 @@ public:
                 rResult[i] /= total_value;
             }
         } else if (LumpingMethod == LumpingMethods::QUADRATURE_ON_NODES) {
-            const double aux_weight = 1.0/static_cast<double>(number_of_nodes);
-            for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
-                const double detJ = DeterminantOfJacobian(this->GetPoint( point_number ));
-                const double integration_weight = aux_weight * detJ;
-                rResult[point_number] = integration_weight;
-            }
-        }
+            // Divide by the domain size
+            const double domain_size = DomainSize();
 
-        // Divide by the domain size
-        const double domain_size = DomainSize();
-        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-            rResult[i] /= domain_size;
+            // Getting local coordinates
+            Matrix local_coordinates(number_of_nodes, local_space_dimension);
+            PointsLocalCoordinates(local_coordinates);
+            Point local_point(ZeroVector(3));
+            array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
+            for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
+                for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
+                    r_local_coordinates[dim] = local_coordinates(point_number, dim);
+                }
+                const double detJ = DeterminantOfJacobian(local_point);
+                rResult[point_number] = detJ/domain_size;
+            }
         }
 
         return rResult;
