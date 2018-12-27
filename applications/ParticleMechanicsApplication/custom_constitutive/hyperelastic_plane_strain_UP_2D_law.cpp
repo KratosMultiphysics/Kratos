@@ -81,7 +81,7 @@ void HyperElasticPlaneStrainUP2DLaw::CalculateAlmansiStrain( const Matrix & rLef
 {
 
     // e= 0.5*(1-invbT*invb)
-    Matrix InverseLeftCauchyGreen ( 2 , 2 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 2 , 2 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 

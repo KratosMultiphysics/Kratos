@@ -42,6 +42,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @class SurfaceLoadCondition3D
+ * @ingroup StructuralMechanicsApplication
+ * @brief This class is the responsible to add the contributions of the RHS and LHS of the surface loads of the structure
+ * @details It allows to consider different types of pressure and surface loads
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  SurfaceLoadCondition3D
     : public BaseLoadCondition
 {
@@ -135,11 +143,11 @@ protected:
 
     /**
      * This functions calculates both the RHS and the LHS
-     * @param rLeftHandSideMatrix: The LHS
-     * @param rRightHandSideVector: The RHS
-     * @param rCurrentProcessInfo: The current process info instance
-     * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
-     * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
+     * @param rLeftHandSideMatrix The local LHS contribution
+     * @param rRightHandSideVector The local RHS contribution
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
@@ -149,24 +157,49 @@ protected:
         const bool CalculateResidualVectorFlag
         ) override;
 
+    /**
+     * @brief This method adds the local contribution of the pressure to the LHS matrix
+     * @param rK The local LHS contribution
+     * @param rTangentXi The first tangent direction
+     * @param rTangentEta The second tangent direction
+     * @param rDN_De The local gradient of the geometry
+     * @param rN The shape function of the current integration point
+     * @param Pressure The pressure to be applied
+     * @param Weight The integration contribution
+     */
     void CalculateAndSubKp(
-        Matrix& K,
-        const array_1d<double, 3>& ge,
-        const array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const Vector& N,
+        Matrix& rK,
+        const array_1d<double, 3>& rTangentXi,
+        const array_1d<double, 3>& rTangentEta,
+        const Matrix& rDN_De,
+        const Vector& rN,
         const double Pressure,
-        const double Weight );
-
-    void MakeCrossMatrix(
-        BoundedMatrix<double, 3, 3>& M,
-        const array_1d<double, 3>& U
+        const double Weight
         );
 
+    /**
+     * @brief This method computes the cross product matrix
+     * @param rM The matrix to be build
+     * @param rU The vector that defines the
+     */
+    void MakeCrossMatrix(
+        BoundedMatrix<double, 3, 3>& rM,
+        const array_1d<double, 3>& rU
+        );
+
+    /**
+     * @brief This method adds the pressure contribution to the RHS
+     * @param rResidualVector The local contribution to the RHS
+     * @param rN The corresponding shape function
+     * @param rNormal The normal to the geometry surface
+     * @param Pressure The pressure to be applied
+     * @param Weight The integration contribution
+     * @param rCurrentProcessInfo The current instance of process info
+     */
     void CalculateAndAddPressureForce(
         VectorType& rResidualVector,
-        const Vector& N,
-        const array_1d<double, 3 >& Normal,
+        const Vector& rN,
+        const array_1d<double, 3 >& rNormal,
         const double Pressure,
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo

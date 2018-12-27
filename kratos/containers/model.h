@@ -102,7 +102,7 @@ public:
 
     ModelPart& GetModelPart(const std::string& rFullModelPartName);
 
-    bool HasModelPart(const std::string& rFullModelPartName);
+    bool HasModelPart(const std::string& rFullModelPartName) const;
 
     ///@}
     ///@name Operations
@@ -185,12 +185,13 @@ private:
     ///@name Member Variables
     ///@{
     std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
+    std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
 
-    std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+    const std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
     {
-    static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
-    return mListOfVariablesLists;
+        return mListOfVariablesLists;
     }
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const;
@@ -208,7 +209,7 @@ private:
 
     ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
 
-    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName);
+    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
 
     ///@}

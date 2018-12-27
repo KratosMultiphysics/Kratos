@@ -13,17 +13,10 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "containers/model.h"
-#include <iostream>
-#include <string>
-#include <sstream>
-
 
 namespace Kratos
 {
@@ -44,7 +37,7 @@ namespace Kratos
              ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), *this );
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 
-            GetListOfVariableLists().insert(std::move(pvar_list));
+            mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
@@ -145,14 +138,14 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    bool Model::HasModelPart(const std::string& rFullModelPartName)
+    bool Model::HasModelPart(const std::string& rFullModelPartName) const
     {
         KRATOS_TRY
 
         KRATOS_ERROR_IF( rFullModelPartName.empty() ) << "Attempting to find a "
             << "ModelPart with empty name (\"\")!" << std::endl;
 
-        std::vector< std::string > subparts_list =  SplitSubModelPartHierarchy(rFullModelPartName);
+        std::vector< std::string > subparts_list = SplitSubModelPartHierarchy(rFullModelPartName);
 
         //token 0 is the root
         auto search = mRootModelPartMap.find(subparts_list[0]);
@@ -198,7 +191,7 @@ namespace Kratos
     {
     }
 
-    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName)
+    std::vector<std::string> Model::SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const
     {
         std::vector<std::string> rSubPartsList;
         std::istringstream iss(rFullModelPartName);
@@ -264,14 +257,14 @@ namespace Kratos
 
         for(IndexType i=0; i<aux_var_lists.size(); ++i) {
             auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-            GetListOfVariableLists().insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
+            mListOfVariablesLists.insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
         }
 
         for(IndexType i=0; i<aux_names.size(); ++i) {
             //NOTE: CreateModelPart CANNOT be used here
             auto dummy_list = Kratos::make_unique<VariablesList>();
             ModelPart* pmodel_part = new ModelPart(aux_names[i], 1, dummy_list.get(), *this );
-            rSerializer.load("MP", pmodel_part);
+            rSerializer.load(aux_names[i], pmodel_part);
             mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(pmodel_part)));
         }
 
@@ -280,5 +273,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-

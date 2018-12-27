@@ -3,21 +3,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication")
-
 # Import applications
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
-# Other imports
-import mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.mesh_solver_base import MeshSolverBase
 
 
 def CreateSolver(mesh_model_part, custom_settings):
     return MeshSolverLaplacian(mesh_model_part, custom_settings)
 
 
-class MeshSolverLaplacian(mesh_solver_base.MeshSolverBase):
+class MeshSolverLaplacian(MeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         if custom_settings.Has("buffer_size"):
             buffer_size = custom_settings["buffer_size"]

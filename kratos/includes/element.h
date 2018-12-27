@@ -108,8 +108,6 @@ public:
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
-
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
@@ -451,7 +449,7 @@ public:
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
-    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,

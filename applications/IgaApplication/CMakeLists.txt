@@ -17,6 +17,7 @@ endif()
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
     ${ANURBS_ROOT}/include
+    ${ANURBS_ROOT}/external_libraries
 )
 
 # generate variables with the sources
@@ -32,10 +33,16 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/surface_base_discrete_element.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/shell_kl_discrete_element.cpp
+    ${ANURBS_ROOT}/external_libraries/ClipperLib/clipper.cpp
 )
 
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_IGA_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
+
 # define library Kratos which defines the basic python interface
-pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES})
+pybind11_add_module(KratosIgaApplication MODULE THIN_LTO ${KRATOS_IGA_APPLICATION_SOURCES} ${KRATOS_IGA_APPLICATION_TESTING_SOURCES})
 target_link_libraries(KratosIgaApplication PRIVATE KratosCore)
 set_target_properties(KratosIgaApplication PROPERTIES PREFIX "")
 
@@ -62,4 +69,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IgaApplication.py" DESTINATION KratosMultiphysics)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/IgaApplication.py" DESTINATION "KratosMultiphysics/IgaApplication" RENAME "__init__.py")
