@@ -2,12 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 
 # other imports
-from ale_fluid_solver import AleFluidSolver
-import python_solvers_wrapper_fluid
+from KratosMultiphysics.MeshMovingApplication.ale_fluid_solver import AleFluidSolver
+import KratosMultiphysics.FluidDynamicsApplication.python_solvers_wrapper_fluid as fluid_solvers_wrapper
 
 
 def CreateSolver(model, solver_settings, parallelism):
@@ -16,7 +14,7 @@ def CreateSolver(model, solver_settings, parallelism):
 
 class NavierStokesAleFluidSolver(AleFluidSolver):
     def _CreateFluidSolver(self, solver_settings, parallelism):
-        return python_solvers_wrapper_fluid.CreateSolverByParameters(
+        return fluid_solvers_wrapper.CreateSolverByParameters(
             self.model, solver_settings, parallelism)
 
     def _SelectMeshVelocityCalculationSettings(self):

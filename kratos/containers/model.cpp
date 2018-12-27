@@ -37,7 +37,7 @@ namespace Kratos
              ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), *this );
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 
-            GetListOfVariableLists().insert(std::move(pvar_list));
+            mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
@@ -271,7 +271,7 @@ namespace Kratos
 
         for(IndexType i=0; i<aux_var_lists.size(); ++i) {
             auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-            GetListOfVariableLists().insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
+            mListOfVariablesLists.insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
         }
 
         for(IndexType i=0; i<aux_names.size(); ++i) {

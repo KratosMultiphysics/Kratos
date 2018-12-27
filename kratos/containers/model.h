@@ -188,7 +188,9 @@ private:
     ///@{
 
     std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
-
+    
+    std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists; /// The set containing the list of variables
+    
     ///@}
     ///@name Private Operators
     ///@{
@@ -202,9 +204,8 @@ private:
 
     std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
-    std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+    const std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
     {
-        static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
         return mListOfVariablesLists;
     }
 
