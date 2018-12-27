@@ -164,6 +164,30 @@ private:
     template<typename TContainerType>
     void WriteContainerVariableResults(std::string NodalResultName, const TContainerType& rTContainer,  std::ofstream& rFileStream);
 
+    template<typename TContainerType, class TVarType>
+    void WriteScalarSolutionStepVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream);
+
+    template<typename TContainerType, class TVarType>
+    void WriteVectorSolutionStepVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream);
+
+    template<typename TContainerType, class TVarType>
+    void WriteScalarContainerVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream);
+
+    template<typename TContainerType, class TVarType>
+    void WriteVectorContainerVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream);
+
     /**
      * @brief Write the results/flags on the elements of rModelPart.
      * @param rModelPart modelpart which is beging output
