@@ -12,10 +12,6 @@
     "kratos_response_settings":{
         "response_type"    : "adjoint_local_stress",
         "gradient_mode"     : "semi_analytic",
-        "sensitivity_model_part_name" :"Parts_AREAS",
-        "nodal_sensitivity_variables"  : ["SHAPE"],
-        "element_sensitivity_variables"  : [],
-        "condition_sensitivity_variables"  : [],
         "step_size"         : 1.0e-5,
         "traced_element_id"    : 2,
         "stress_type"       : "MXX",

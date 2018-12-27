@@ -59,29 +59,25 @@ void  ElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Paramete
 {
     KRATOS_TRY;
     // b.- Get Values to compute the constitutive law:
-    Flags & r_options=rValues.GetOptions();
+    Flags & r_constitutive_law_options = rValues.GetOptions();
 
     Vector& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
-    if( r_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         CalculateCauchyGreenStrain( rValues, r_strain_vector);
     }
 
-    if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS )) {
+        Vector& r_stress_vector = rValues.GetStressVector();
+        CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
+    }
+    
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         CalculateElasticMatrix( r_constitutive_matrix, rValues);
     }
-
-    if( r_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-        Vector& r_stress_vector = rValues.GetStressVector();
-        if( r_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-            Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            noalias(r_stress_vector) = prod( r_constitutive_matrix, r_strain_vector);
-        } else {
-            CalculatePK2Stress( r_strain_vector, r_stress_vector, rValues);
-        }
-    }
+    
     KRATOS_CATCH("");
 }
 
@@ -114,7 +110,25 @@ void ElasticIsotropic3D::CalculateMaterialResponseCauchy (ConstitutiveLaw::Param
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+void ElasticIsotropic3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // TODO: Add if necessary
 }
@@ -122,9 +136,28 @@ void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ElasticIsotropic3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ElasticIsotropic3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
-    // TODO: Add if necessary
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/
@@ -140,7 +173,8 @@ void ElasticIsotropic3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Paramet
 
 void ElasticIsotropic3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
-    // TODO: Add if necessary
+    // Small deformation so we can call the Cauchy method
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 /***********************************************************************************/

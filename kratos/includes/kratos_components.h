@@ -27,6 +27,7 @@
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "utilities/quaternion.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -459,6 +460,7 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<Vector
 template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator>;
 
 #ifdef KratosCore_EXPORTS
 template<class TComponentType>

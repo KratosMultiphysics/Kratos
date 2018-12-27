@@ -56,9 +56,11 @@ public:
     ///@name Type Definitions
 
     ///Tensor order 1 definition
-    //typedef BoundedVector<double, 3>     PointType;
-    typedef array_1d<double, 3>             PointType;
-
+    //typedef BoundedVector<double, 3>                PointType;
+    typedef array_1d<double, 3>                      PointType;
+    typedef std::vector<Node<3>*>        NodePointerVectorType;
+    typedef std::vector<Element*>     ElementPointerVectorType;
+    typedef std::vector<Condition*> ConditionPointerVectorType;
     ///@{
     // Counted pointer of PointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactCondition );

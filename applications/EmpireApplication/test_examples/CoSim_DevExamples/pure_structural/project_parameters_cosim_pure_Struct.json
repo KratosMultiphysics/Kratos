@@ -1,0 +1,12 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "kratos_structural",
+        "input_file"  : "ProjectParametersStructural"
+    }
+}
