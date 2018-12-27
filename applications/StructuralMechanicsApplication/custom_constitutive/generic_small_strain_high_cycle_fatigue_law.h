@@ -167,6 +167,11 @@ Vector& GetValue(
     const Variable<Vector>& rThisVariable,
     Vector& rValue
     );
+
+void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
+void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues);
+void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues);
+void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues);
 ///@}
 ///@name Access
 ///@{
