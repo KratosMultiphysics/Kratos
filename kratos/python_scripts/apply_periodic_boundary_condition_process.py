@@ -35,21 +35,8 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
             "first_model_part_name"       : "please_specify_model_part_name",
             "second_model_part_name"      : "please_specify_model_part_name",
             "interval"                    : [0.0, 1e30],
-            "transformation_settings"     : {
-                                                "rotation_settings":{
-                                                    "center":[0,0,0],
-                                                    "axis_of_rotation":[0.0,0.0,0.0],
-                                                    "angle_degree":0.0
-                                                },
-                                                "translation_settings":{
-                                                    "dir_of_translation":[0.0,0.0,0.0],
-                                                    "magnitude":0.0
-                                                }
-                                            },
-            "search_settings"             : {
-                                                "max_results":100000,
-                                                "tolerance": 1E-6
-                                            },
+            "transformation_settings"     : { },
+            "search_settings"             : { },
             "variable_names"              : []
         }
         """)
@@ -97,15 +84,12 @@ class ApplyPeriodicBoundaryConditionProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        """
         self.periodic_bc_process.ExecuteInitialize()
         list_constraints = [i.Id for i in self.master_model_part.MasterSlaveConstraints]
         self.computing_model_part.AddMasterSlaveConstraints(list_constraints)
 
     def ExecuteInitializeSolutionStep(self):
 
-
-        """
         self.periodic_bc_process.ExecuteInitializeSolutionStep()
 
         current_time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
