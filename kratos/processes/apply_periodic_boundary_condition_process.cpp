@@ -67,9 +67,9 @@ namespace Kratos
         RemoveCommonNodesFromSlaveModelPart();
 
         if (mAngleOfRotation == 0 && mDistance != 0)
-            mType = "translation";
+            mTransformationType = ApplyPeriodicConditionProcess::TransformationType::TRANSLATION;
         else if (mAngleOfRotation != 0.0 && mDistance == 0.0)
-            mType = "rotation";
+            mTransformationType = ApplyPeriodicConditionProcess::TransformationType::ROTATION;
         else
             KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mDistance) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
@@ -264,11 +264,11 @@ namespace Kratos
 
     void ApplyPeriodicConditionProcess::CalculateTransformationMatrix()
     {
-        if (mType == "translation"){
+        if (mTransformationType == ApplyPeriodicConditionProcess::TransformationType::TRANSLATION){
             CalculateTranslationMatrix(-1*mDistance, mTransformationMatrix);
             CalculateTranslationMatrix(0.0, mTransformationMatrixVariable);
         }
-        else if (mType == "rotation"){
+        else if (mTransformationType == ApplyPeriodicConditionProcess::TransformationType::ROTATION){
             CalculateRotationMatrix(-1*mAngleOfRotation, mTransformationMatrix);
             CalculateRotationMatrix(mAngleOfRotation, mTransformationMatrixVariable);
         }

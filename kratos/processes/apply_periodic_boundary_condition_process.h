@@ -81,6 +81,14 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      */
     void PrintInfo(std::ostream& rOStream) const override;
 
+    ///@name Type Definitions
+    ///@{
+    enum class TransformationType {
+        TRANSLATION = 1,
+        ROTATION = 2
+    };
+    ///@}
+
   private:
     MatrixType mTransformationMatrix; // This can be either for rotating or for translating the slave geometry to Master geometry
     MatrixType mTransformationMatrixVariable; // This can be either for rotating or for translating the master variable to slave geometry
@@ -90,7 +98,7 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
     double mAngleOfRotation;
     DenseVector<double> mCenterOfRotation;
     DenseVector<double> mAxisOfRotationVector;
-    std::string mType;
+    ApplyPeriodicConditionProcess::TransformationType mTransformationType;
     double mDistance;
     DenseVector<double> mDirOfTranslation;
     double mSearchTolerance;
