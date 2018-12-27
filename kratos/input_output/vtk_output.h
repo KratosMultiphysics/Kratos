@@ -119,14 +119,14 @@ private:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the nodes in the rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
@@ -134,7 +134,7 @@ private:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the results on the nodes.
@@ -142,54 +142,6 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     void WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
-
-    /**
-     * @brief Write the solution step results on the nodes.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @param rVariableName name of the result to be written.
-     * @param rContainer the container which is beging output
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType>
-    void WriteContainerSolutionsStepResults(const std::string& rVariableName,
-                                           const TContainerType& rContainer,
-                                           std::ofstream& rFileStream);
-
-    /**
-     * @brief Write the variable results on the nodes.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @param rVariableName name of the result to be written.
-     * @param rContainer the container which is beging output
-     * @param rFileStream the file stream to which data is to be written.
-     */
-    template<typename TContainerType>
-    void WriteContainerVariableResults(const std::string& rVariableName,
-                                       const TContainerType& rContainer,
-                                       std::ofstream& rFileStream);
-
-    template<typename TContainerType, class TVarType>
-    void WriteScalarSolutionStepVariable(
-        const TContainerType& rContainer,
-        const TVarType& rVariable,
-        std::ofstream& rFileStream);
-
-    template<typename TContainerType, class TVarType>
-    void WriteVectorSolutionStepVariable(
-        const TContainerType& rContainer,
-        const TVarType& rVariable,
-        std::ofstream& rFileStream);
-
-    template<typename TContainerType, class TVarType>
-    void WriteScalarContainerVariable(
-        const TContainerType& rContainer,
-        const TVarType& rVariable,
-        std::ofstream& rFileStream);
-
-    template<typename TContainerType, class TVarType>
-    void WriteVectorContainerVariable(
-        const TContainerType& rContainer,
-        const TVarType& rVariable,
-        std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart.
@@ -204,6 +156,86 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     void WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
+
+    /**
+     * @brief Write the solution step results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @param rVariableName name of the result to be written.
+     * @param rContainer the container which is beging output
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteContainerSolutionsStepResults(const std::string& rVariableName,
+                                            const TContainerType& rContainer,
+                                            std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the variable results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @param rVariableName name of the result to be written.
+     * @param rContainer the container which is beging output
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType>
+    void WriteContainerVariableResults(const std::string& rVariableName,
+                                       const TContainerType& rContainer,
+                                       std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the scalar-historical variable results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteScalarSolutionStepVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the vector-historical variable results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteVectorSolutionStepVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the scalar-nonhistorical variable results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteScalarContainerVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Write the vector-nonhistorical variable results of rContainer.
+     * @template TContainerType The type of container of the entity on which the results are to be written
+     * @template TVarType The type of Variable of the entity on which the results are to be written
+     * @param rContainer the container which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<typename TContainerType, class TVarType>
+    void WriteVectorContainerVariable(
+        const TContainerType& rContainer,
+        const TVarType& rVariable,
+        std::ofstream& rFileStream) const;
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
@@ -240,7 +272,7 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TContainerType>
-    void WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream);
+    void WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the element/condition cell types provided the container they are in
@@ -249,7 +281,7 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TContainerType>
-    void WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream);
+    void WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the scalar value to the file provided, takes care of binary and ascii formats
@@ -258,7 +290,7 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TData>
-    void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream);
+    void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the vector values to the file provided, takes care of binary and ascii formats
@@ -267,7 +299,7 @@ private:
      * @param rFileStream the file stream to which data is to be written.
      */
     template <typename TData>
-    void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream);
+    void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const;
 
     VtkOutput::WriteDataType GetDataCharacterstic(const std::string& VariableName) const;
 

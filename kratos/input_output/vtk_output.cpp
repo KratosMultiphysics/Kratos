@@ -83,13 +83,13 @@ void VtkOutput::WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStr
     rFileStream << "\nDATASET UNSTRUCTURED_GRID\n";
 }
 
-void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     WriteNodes(rModelPart, rFileStream);
     WriteConditionsAndElements(rModelPart, rFileStream);
 }
 
-void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     // write nodes header
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
@@ -102,7 +102,7 @@ void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStre
     }
 }
 
-void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
@@ -137,7 +137,7 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofs
 }
 
 template <typename TContainerType>
-void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream)
+void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
@@ -155,7 +155,7 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 }
 
 template <typename TContainerType>
-void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream)
+void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
     // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
     const std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
@@ -210,7 +210,7 @@ template<typename TContainerType>
 void VtkOutput::WriteContainerSolutionsStepResults(
     const std::string& rVariableName,
     const TContainerType &rContainer,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     VtkOutput::WriteDataType data_characteristic = GetDataCharacterstic(rVariableName);
     rFileStream << rVariableName << " " << (int)data_characteristic
@@ -254,7 +254,7 @@ template<typename TContainerType>
 void VtkOutput::WriteContainerVariableResults(
     const std::string& rVariableName,
     const TContainerType&rContainer,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     VtkOutput::WriteDataType data_characteristic = GetDataCharacterstic(rVariableName);
     rFileStream << rVariableName << " " << (int)data_characteristic
@@ -298,7 +298,7 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteScalarSolutionStepVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
@@ -311,7 +311,7 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteVectorSolutionStepVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
@@ -324,7 +324,7 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteScalarContainerVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.GetValue(rVariable);
@@ -337,7 +337,7 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteVectorContainerVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    std::ofstream& rFileStream)
+    std::ofstream& rFileStream) const
 {
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.GetValue(rVariable);
@@ -447,7 +447,6 @@ void VtkOutput::PrintOutput()
             WriteModelPart(r_sub_model_part, true);
         }
     }
-
 }
 
 void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
@@ -504,7 +503,7 @@ std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool
 
 
 template <class TData>
-void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream)
+void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream) const
 {
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         rFileStream << rData;
@@ -517,7 +516,7 @@ void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileSt
 }
 
 template <class TData>
-void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream)
+void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream) const
 {
     if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         for (const auto& r_data_comp : rData) {
