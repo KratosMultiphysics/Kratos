@@ -89,7 +89,6 @@ private:
     Parameters mOutputSettings;
     unsigned int mDefaultPrecision;
     std::unordered_map<int, int> mKratosIdToVtkId;
-    bool mDoneTest = false;
     bool mShouldSwap = false;
 
     ///@}
@@ -213,10 +212,11 @@ private:
     std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart);
 
     /**
-     * @brief Only used in the Binary format output. This function forces the big endian format for the input binary stream
-     * @param rModelPart modelpart which is beging output
+     * @brief Only used in the binary format output.
+     * This function forces the big endian format for the input binary stream
+     * @param pBytes bytes on which the big endian format is to be applied
      */
-    void ForceBigEndian(unsigned char* pBytes);
+    void ForceBigEndian(unsigned char* pBytes) const;
 
     /**
      * @brief Create a map with kratos nodeId as key and VTK nodeId as value. This require for VTK that the node numbers are in sequence.
@@ -259,7 +259,6 @@ private:
      */
     template <typename TData>
     void WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream);
-
 
     /**
      * @brief Write the vector values to the file provided, takes care of binary and ascii formats

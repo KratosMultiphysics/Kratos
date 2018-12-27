@@ -27,6 +27,11 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters rParameters)
     }
     else if (file_format == "binary") {
         mFileFormat = VtkOutput::FileFormat::VTK_BINARY;
+        // test for endian-format
+        int num = 1;
+        if (*(char *)&num == 1) {
+            mShouldSwap = true;
+        }
     }
     else {
         KRATOS_ERROR << "Option for \"file_format\": " << file_format
@@ -351,18 +356,16 @@ void VtkOutput::WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rF
     rFileStream << "FIELD FieldData " << nodal_solution_step_results.size() + nodal_variable_data_results.size()<< "\n";
 
     // Writing nodal_solution_step_results
-    for (unsigned int entry = 0; entry < nodal_solution_step_results.size(); entry++)
-    {
+    for (unsigned int entry = 0; entry < nodal_solution_step_results.size(); ++entry) {
         // write nodal results variable header
-        std::string nodal_result_name = nodal_solution_step_results[entry].GetString();
+        const std::string nodal_result_name = nodal_solution_step_results[entry].GetString();
         WriteContainerSolutionsStepResults(nodal_result_name,r_local_mesh.Nodes(),rFileStream);
     }
 
     // Writing nodal_variable_data_results
-    for (unsigned int entry = 0; entry < nodal_variable_data_results.size(); entry++)
-    {
+    for (unsigned int entry = 0; entry < nodal_variable_data_results.size(); ++entry) {
         // write nodal results variable header
-        std::string nodal_result_name = nodal_variable_data_results[entry].GetString();
+        const std::string nodal_result_name = nodal_variable_data_results[entry].GetString();
         WriteContainerVariableResults(nodal_result_name,r_local_mesh.Nodes(),rFileStream);
     }
 }
@@ -447,15 +450,8 @@ void VtkOutput::PrintOutput()
 
 }
 
-void VtkOutput::ForceBigEndian(unsigned char* pBytes)
+void VtkOutput::ForceBigEndian(unsigned char* pBytes) const
 {
-    if (!mDoneTest) {
-        int num = 1;
-        if (*(char *)&num == 1)
-            mShouldSwap = true;
-        mDoneTest = true;
-    }
-
     if (mShouldSwap) {
         unsigned char tmp = pBytes[0];
         pBytes[0] = pBytes[3];
