@@ -147,22 +147,26 @@ private:
     /**
      * @brief Write the solution step results on the nodes.
      * @template TContainerType The type of container of the entity on which the results are to be written
-     * @param NodalResultName name of the result to be written.
-     * @param rTContainer the container which is beging output
+     * @param rVariableName name of the result to be written.
+     * @param rContainer the container which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
-    void WriteContainerSolutionsStepResult(std::string NodalResultName, const TContainerType& rTContainer,  std::ofstream& rFileStream);
+    void WriteContainerSolutionsStepResults(const std::string& rVariableName,
+                                           const TContainerType& rContainer,
+                                           std::ofstream& rFileStream);
 
     /**
      * @brief Write the variable results on the nodes.
      * @template TContainerType The type of container of the entity on which the results are to be written
-     * @param NodalResultName name of the result to be written.
-     * @param rTContainer the container which is beging output
+     * @param rVariableName name of the result to be written.
+     * @param rContainer the container which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
-    void WriteContainerVariableResults(std::string NodalResultName, const TContainerType& rTContainer,  std::ofstream& rFileStream);
+    void WriteContainerVariableResults(const std::string& rVariableName,
+                                       const TContainerType& rContainer,
+                                       std::ofstream& rFileStream);
 
     template<typename TContainerType, class TVarType>
     void WriteScalarSolutionStepVariable(
