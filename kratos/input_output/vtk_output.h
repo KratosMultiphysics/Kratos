@@ -89,8 +89,8 @@ private:
     Parameters mOutputSettings;
     unsigned int mDefaultPrecision;
     std::unordered_map<int, int> mKratosIdToVtkId;
-    bool mDoneTest;
-    bool mShouldSwap;
+    bool mDoneTest = false;
+    bool mShouldSwap = false;
 
     ///@}
     ///@name Operations
@@ -100,7 +100,7 @@ private:
      * @brief Print the given rModelPart as VTK file together with the requested results
      * @param rModelPart modelpart which is beging output
      */
-    void WriteModelPart(const ModelPart& rModelPart);
+    void WriteModelPart(const ModelPart& rModelPart, const bool IsSubModelPart);
 
     /**
      * @brief Initialize function for the class
@@ -113,7 +113,7 @@ private:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions.
@@ -182,7 +182,7 @@ private:
      * @brief Get the output file name based on the provided settings and the MPI rank
      * @param rModelPart modelpart which is beging output
      */
-    std::string GetOutputFileName(const ModelPart& rModelPart);
+    std::string GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart);
 
     /**
      * @brief Only used in the Binary format output. This function forces the big endian format for the input binary stream
@@ -203,7 +203,7 @@ private:
      * @param rContainer the container which is beging output
      */
     template<typename TContainerType>
-    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer);
+    unsigned int DetermineVtkCellListSize(const TContainerType& rContainer) const;
 
     /**
      * @brief Write the element/condition WriteConnectivity provided the container they are in
@@ -242,7 +242,7 @@ private:
     template <typename TData>
     void WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream);
 
-    VtkOutput::WriteDataType GetDataCharacterstic(std::string VariableName);
+    VtkOutput::WriteDataType GetDataCharacterstic(const std::string& VariableName) const;
 
     ///@}
 };

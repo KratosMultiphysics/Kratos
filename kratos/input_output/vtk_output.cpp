@@ -17,84 +17,82 @@
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters rParameters) : mrModelPart(rModelPart), mOutputSettings(rParameters)
+VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters rParameters)
+    : mrModelPart(rModelPart), mOutputSettings(rParameters)
 {
-    mDefaultPrecision = this->mOutputSettings["output_precision"].GetInt();;
-    this->mDoneTest = false;
-    this->mShouldSwap = false;
-    std::string file_format = this->mOutputSettings["file_format"].GetString();
-    if(file_format == "ascii")
-        mFileFormat =  VtkOutput::FileFormat::VTK_ASCII;
-    else if (file_format == "binary")
+    mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
+    const std::string file_format = mOutputSettings["file_format"].GetString();
+    if (file_format == "ascii") {
+        mFileFormat = VtkOutput::FileFormat::VTK_ASCII;
+    }
+    else if (file_format == "binary") {
         mFileFormat = VtkOutput::FileFormat::VTK_BINARY;
-    else
-        KRATOS_ERROR<<"Option for file_format : "<<file_format<<" not recognised.!"<<std::endl
-            <<"Possible output formats options for VTKOutput are :: ascii and binary "<<std::endl;
+    }
+    else {
+        KRATOS_ERROR << "Option for \"file_format\": " << file_format
+            << " not recognised!\n Possible output formats "
+            << "options are: \"ascii\", \"binary\"" << std::endl;
+    }
 }
 
-void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart &rModelPart)
+void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart& rModelPart)
 {
     int vtk_id = 0;
-    for(const auto& node : rModelPart.Nodes())
-    {
-        mKratosIdToVtkId[node.Id()] = vtk_id++;
+    for(const auto& r_node : rModelPart.Nodes()) {
+        mKratosIdToVtkId[r_node.Id()] = vtk_id++;
     }
 }
 
 template<typename TContainerType>
-unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType &rContainer)
+unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContainer) const
 {
     unsigned int vtk_cell_list_size_container = 0;
 
     const auto container_begin = rContainer.begin();
     const int num_entities = rContainer.size();
     #pragma omp parallel for reduction(+:vtk_cell_list_size_container)
-    for (int i=0; i<num_entities; ++i)
-    {
-        auto entity_i = container_begin + i;
-        vtk_cell_list_size_container += entity_i->GetGeometry().PointsNumber() +1;
+    for (int i=0; i<num_entities; ++i) {
+        const auto entity_i = container_begin + i;
+        vtk_cell_list_size_container += entity_i->GetGeometry().PointsNumber() + 1;
     }
 
     return vtk_cell_list_size_container;
 }
 
-void VtkOutput::Initialize(const ModelPart &rModelPart)
+void VtkOutput::Initialize(const ModelPart& rModelPart)
 {
     CreateMapFromKratosIdToVTKId(rModelPart);
 }
 
-void VtkOutput::WriteHeader(const ModelPart &rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
-    rFileStream << "# vtk DataFile Version 4.0"
-               << "\n";
-    rFileStream << "vtk output"
-               << "\n";
-    if(mFileFormat == VtkOutput::FileFormat::VTK_ASCII)
-        rFileStream << "ASCII"<< "\n";
-    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY)
-        rFileStream << "BINARY"<< "\n";
-    rFileStream << "DATASET UNSTRUCTURED_GRID"
-               << "\n";
+    rFileStream << "# vtk DataFile Version 4.0\nvtk output\n";
+
+    if(mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
+        rFileStream << "ASCII";
+    }
+    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
+        rFileStream << "BINARY";
+    }
+
+    rFileStream << "\nDATASET UNSTRUCTURED_GRID\n";
 }
 
-void VtkOutput::WriteMesh(const ModelPart &rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     WriteNodes(rModelPart, rFileStream);
     WriteConditionsAndElements(rModelPart, rFileStream);
 }
 
-void VtkOutput::WriteNodes(const ModelPart &rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     // write nodes header
-    const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    rFileStream << "POINTS " << local_mesh.NumberOfNodes() << " float"
-               << "\n";
+    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    rFileStream << "POINTS " << r_local_mesh.NumberOfNodes() << " float\n";
 
     // write nodes
-    for(const auto& node : local_mesh.Nodes())
-    {
-        const auto& coordinates = node.Coordinates();
-        WriteVectorDataToFile(coordinates, rFileStream);
+    for (const auto& r_node : r_local_mesh.Nodes()) {
+        WriteVectorDataToFile(r_node.Coordinates(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
 }
@@ -136,15 +134,15 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofs
 template <typename TContainerType>
 void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream)
 {
-    for (const auto& entity : rContainer)
-    {
-        const auto& entity_geometry = entity.GetGeometry();
-        const unsigned int number_of_nodes = entity_geometry.size();
+    const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
+    for (const auto& r_entity : rContainer) {
+        const auto& r_geom = r_entity.GetGeometry();
+        const unsigned int number_of_nodes = r_geom.size();
 
         WriteScalarDataToFile((unsigned int)number_of_nodes, rFileStream);
-        for (const auto& node : entity_geometry){
+        for (const auto& r_node : r_geom) {
             if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << " ";
-            int id = mKratosIdToVtkId[node.Id()];
+            int id = r_id_map.at(r_node.Id());
             WriteScalarDataToFile((int)id, rFileStream);
         }
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
@@ -154,8 +152,8 @@ void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstrea
 template <typename TContainerType>
 void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream)
 {
-    // IMPORTANT :: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
-    std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+    // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
+    const std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
         { GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
         { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10 },
@@ -165,13 +163,15 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Point3D, 1 }
     };
     // write entity types
-    for (const auto& entity : rContainer)
-    {
+    for (const auto& r_entity : rContainer) {
         int cell_type = -1;
-        if( geo_type_vtk_cell_type_map.count( entity.GetGeometry().GetGeometryType()) > 0  )
-            cell_type = geo_type_vtk_cell_type_map[  entity.GetGeometry().GetGeometryType() ];
-        else
-            KRATOS_ERROR<<"Modelpart contains elements or conditions with geometries for which no VTK-output is implemented!"<<std::endl;
+        if (geo_type_vtk_cell_type_map.count(r_entity.GetGeometry().GetGeometryType()) > 0) {
+            cell_type = geo_type_vtk_cell_type_map.at(r_entity.GetGeometry().GetGeometryType());
+        }
+        else {
+            KRATOS_ERROR << "Modelpart contains elements or conditions with "
+             << "geometries for which no VTK-output is implemented!" << std::endl;
+        }
 
         WriteScalarDataToFile( (int)cell_type, rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
@@ -180,24 +180,24 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
 
 
 // IMPORTANT :: ONLY The following two functions are to be externded to add a new type of result.
-VtkOutput::WriteDataType VtkOutput::GetDataCharacterstic(std::string VariableName)
+VtkOutput::WriteDataType VtkOutput::GetDataCharacterstic(const std::string& rVariableName) const
 {
-    if (KratosComponents<Variable<double>>::Has(VariableName))
+    if (KratosComponents<Variable<double>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_SCALAR;
-    else if (KratosComponents<Flags>::Has(VariableName))
+    else if (KratosComponents<Flags>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_SCALAR;
-    else if (KratosComponents<Variable<int>>::Has(VariableName))
+    else if (KratosComponents<Variable<int>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_SCALAR;
-    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(VariableName))
+    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_VECTOR_3;
-    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(VariableName))
+    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_VECTOR_4;
-    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(VariableName))
+    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_VECTOR_6;
-    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(VariableName))
+    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName))
         return  VtkOutput::WriteDataType::VTK_VECTOR_9;
     else
-        KRATOS_ERROR<<"Variable : "<<VariableName<<" does not exist."<<std::endl;
+        KRATOS_ERROR << "Variable: \"" << rVariableName << "\" does not exist." << std::endl;
 }
 
 template<typename TContainerType>
@@ -372,8 +372,8 @@ void VtkOutput::WriteNodalResults(const ModelPart &rModelPart, std::ofstream& rF
 {
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
     // write nodal results header
-    Parameters nodal_solution_step_results = this->mOutputSettings["nodal_solution_step_data_variables"];
-    Parameters nodal_variable_data_results = this->mOutputSettings["nodal_data_value_variables"];
+    Parameters nodal_solution_step_results = mOutputSettings["nodal_solution_step_data_variables"];
+    Parameters nodal_variable_data_results = mOutputSettings["nodal_data_value_variables"];
     rFileStream << "POINT_DATA " << local_mesh.NumberOfNodes() << "\n";
     rFileStream << "FIELD FieldData " << nodal_solution_step_results.size() + nodal_variable_data_results.size()<< "\n";
 
@@ -397,7 +397,7 @@ void VtkOutput::WriteNodalResults(const ModelPart &rModelPart, std::ofstream& rF
 void VtkOutput::WriteElementResults(const ModelPart &rModelPart, std::ofstream& rFileStream)
 {
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    Parameters element_results = this->mOutputSettings["element_data_value_variables"];// list of element results
+    Parameters element_results = mOutputSettings["element_data_value_variables"];// list of element results
 
     // write cells header
     if (local_mesh.NumberOfElements() > 0)
@@ -412,36 +412,33 @@ void VtkOutput::WriteElementResults(const ModelPart &rModelPart, std::ofstream& 
     }
 }
 
-void VtkOutput::WriteConditionResults(const ModelPart &rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     const auto& local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    Parameters condition_results = this->mOutputSettings["condition_data_value_variables"];// list of element results
+    Parameters condition_results = mOutputSettings["condition_data_value_variables"];// list of element results
     if(local_mesh.NumberOfElements() == 0 && rModelPart.NumberOfConditions()>0)
     {
         rFileStream << "CELL_DATA " << local_mesh.Conditions().size() << "\n";
         rFileStream << "FIELD FieldData " << condition_results.size() << "\n";
-        for (unsigned int entry = 0; entry < condition_results.size(); entry++)
-        {
+        for (unsigned int entry = 0; entry < condition_results.size(); entry++) {
             std::string condition_result_name = condition_results[entry].GetString();
             WriteContainerVariableResults(condition_result_name,local_mesh.Conditions(),rFileStream);
         }
     }
 }
 
-void VtkOutput::WriteModelPart(const ModelPart &rModelPart)
+void VtkOutput::WriteModelPart(const ModelPart& rModelPart, const bool IsSubModelPart=false)
 {
     Initialize(rModelPart);
 
     // Make the file stream object
-    std::string output_file_name = GetOutputFileName(rModelPart);
+    const std::string output_file_name = GetOutputFileName(rModelPart, IsSubModelPart);
     std::ofstream output_file;
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII)
-    {
+    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         output_file.open(output_file_name, std::ios::out | std::ios::trunc);
         output_file << std::scientific;
         output_file << std::setprecision(mDefaultPrecision);
-    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY)
-    {
+    } else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
         output_file.open(output_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
     }
 
@@ -458,15 +455,12 @@ void VtkOutput::PrintOutput()
 {
     //For whole model part
     WriteModelPart(mrModelPart);
-    //For sub model parts
-    bool print_sub_model_parts = this->mOutputSettings["output_sub_model_parts"].GetBool();
 
-    if(print_sub_model_parts)
-    {
-        for (const auto& sub_model_part : mrModelPart.SubModelParts())
-        {
-            std::string output_file_name = GetOutputFileName(sub_model_part);
-            WriteModelPart(sub_model_part);
+    //For sub model parts
+    const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
+    if(print_sub_model_parts) {
+        for (const auto& r_sub_model_part : mrModelPart.SubModelParts()) {
+            WriteModelPart(r_sub_model_part, true);
         }
     }
 
@@ -474,16 +468,14 @@ void VtkOutput::PrintOutput()
 
 void VtkOutput::ForceBigEndian(unsigned char* pBytes)
 {
-    if (!mDoneTest)
-    {
+    if (!mDoneTest) {
         int num = 1;
         if (*(char *)&num == 1)
             mShouldSwap = true;
         mDoneTest = true;
     }
 
-    if (mShouldSwap)
-    {
+    if (mShouldSwap) {
         unsigned char tmp = pBytes[0];
         pBytes[0] = pBytes[3];
         pBytes[3] = tmp;
@@ -494,31 +486,42 @@ void VtkOutput::ForceBigEndian(unsigned char* pBytes)
 }
 
 
-std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
+std::string VtkOutput::GetOutputFileName(const ModelPart& rModelPart, const bool IsSubModelPart)
 {
-    int rank = rModelPart.GetCommunicator().MyPID();
+    const int rank = rModelPart.GetCommunicator().MyPID();
     std::string model_part_name;
-    if(rModelPart.IsSubModelPart())
+
+    if (IsSubModelPart) {
         model_part_name = rModelPart.GetParentModelPart()->Name() + "_" + rModelPart.Name();
-    else
+    }
+    else {
         model_part_name = rModelPart.Name();
+    }
 
     std::string label;
     std::stringstream ss;
-    std::string output_control = mOutputSettings["output_control_type"].GetString();
-    if(output_control == "step"){
-        ss << std::setprecision(mDefaultPrecision)<< std::setfill('0') << rModelPart.GetProcessInfo()[STEP];
+    const std::string output_control = mOutputSettings["output_control_type"].GetString();
+    if (output_control == "step") {
+        ss << std::setprecision(mDefaultPrecision)<< std::setfill('0')
+           << rModelPart.GetProcessInfo()[STEP];
         label = ss.str();
-    }else if(output_control == "time"){
-        ss << std::setprecision(mDefaultPrecision) << std::setfill('0') << rModelPart.GetProcessInfo()[TIME];
+    } else if(output_control == "time") {
+        ss << std::setprecision(mDefaultPrecision) << std::setfill('0')
+           << rModelPart.GetProcessInfo()[TIME];
         label = ss.str();
-    }else
-        KRATOS_ERROR<<"Option for output_control_type : "<<output_control<<" not recognised.!"<<std::endl
-            <<"Possible output_control_type options for VTKOutput are :: step and time "<<std::endl;
+    } else {
+        KRATOS_ERROR << "Option for \"output_control_type\": " << output_control
+            <<" not recognised!\nPossible output_control_type options "
+            << "are: \"step\", \"time\"" << std::endl;
+    }
 
-    // Putting every thing together
-    std::string output_file_name = mOutputSettings["folder_name"].GetString() +"/"+
-                                    model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+    // Putting everything together
+    std::string output_file_name;
+    if (mOutputSettings["save_output_files_in_folder"].GetBool()) {
+        output_file_name += mOutputSettings["folder_name"].GetString() + "/";
+    }
+    output_file_name += model_part_name + "_" + std::to_string(rank) + "_" + label + ".vtk";
+
     return output_file_name;
 }
 
@@ -526,12 +529,10 @@ std::string VtkOutput::GetOutputFileName(const ModelPart &rModelPart)
 template <class TData>
 void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileStream)
 {
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII)
-    {
+    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
         rFileStream << rData;
     }
-    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY)
-    {
+    else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
         TData data = rData;
         ForceBigEndian(reinterpret_cast<unsigned char *>(&data));
         rFileStream.write(reinterpret_cast<char *>(&data), sizeof(TData));
@@ -541,15 +542,15 @@ void VtkOutput::WriteScalarDataToFile(const TData& rData, std::ofstream& rFileSt
 template <class TData>
 void VtkOutput::WriteVectorDataToFile(const TData& rData, std::ofstream& rFileStream)
 {
-    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII)
-    {
-        for(const auto& data_comp : rData )
-            rFileStream << data_comp << " ";
+    if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
+        for (const auto& r_data_comp : rData) {
+            rFileStream << r_data_comp << " ";
+        }
     }
     else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY)
     {
-        for(const auto& data_comp : rData ){
-            float data_comp_local = (float)data_comp; // should not be const or a reference for enforcing big endian
+        for (const auto& r_data_comp : rData ) {
+            float data_comp_local = (float)r_data_comp; // should not be const or a reference for enforcing big endian
             ForceBigEndian(reinterpret_cast<unsigned char *>(&data_comp_local));
             rFileStream.write(reinterpret_cast<char *>(&data_comp_local), sizeof(float));
         }
