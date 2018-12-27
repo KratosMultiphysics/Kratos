@@ -302,6 +302,7 @@ namespace Kratos
         for (IndexType d = 0; d < 3; ++d)
             norm += mAxisOfRotationVector[d] * mAxisOfRotationVector[d];
         norm = sqrt(norm);
+        KRATOS_ERROR_IF(norm < std::numeric_limits<double>::epsilon()) << "Norm of the provided axis of rotation is Zero !"<<std::endl;
         for (IndexType d = 0; d < 3; ++d)
             U[d] = mAxisOfRotationVector[d] / norm;
 
