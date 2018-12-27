@@ -58,10 +58,31 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor to be used.
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * Constructor without user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     */
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
+
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * Constructor with user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     */
+    CalculateDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const double ExtraRaysEpsilon);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -221,6 +242,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    const double mExtraRaysEpsilon = 1.0e-8;
 
     ///@}
     ///@name Private Operators

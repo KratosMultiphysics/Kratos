@@ -32,6 +32,16 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
+		ModelPart& rVolumePart, 
+		ModelPart& rSkinPart,
+		const double ExtraRaysEpsilon)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
+		mExtraRaysEpsilon(ExtraRaysEpsilon)
+	{
+	}
+
+	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
@@ -244,8 +254,7 @@ namespace Kratos
 		// Check the obtained cartesian ray colors
 		// If this situation happens, do the "evolved Predator" raycasting to vote
 		if (n_ray_neg != 0 && n_ray_pos != 0) {
-			const double ray_epsilon = 1e-4;
-			this->ComputeExtraRayColors(epsilon, ray_epsilon, r_coords, distances);
+			this->ComputeExtraRayColors(epsilon, mExtraRaysEpsilon, r_coords, distances);
 		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
