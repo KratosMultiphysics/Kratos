@@ -127,25 +127,5 @@
             }
         }
         ]
-    },
-    "_output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostAscii",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","VOLUME_ACCELERATION"],
-            "gauss_point_results" : ["VON_MISES_STRESS"]
-        },
-        "point_data_configuration"  : []
     }
 }
