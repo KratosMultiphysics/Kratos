@@ -343,7 +343,7 @@ VtkOutput::WriteDataType VtkOutput::GetWriteDataType(const std::string& rVariabl
     else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName))
         return VtkOutput::WriteDataType::VTK_VECTOR_9;
     else
-        KRATOS_ERROR << "Variable: \"" << rVariableName << "\" not suitable "
+        KRATOS_ERROR << "Variable: \"" << rVariableName << "\" not supported "
                      << "for VtkOutput" << std::endl;
 }
 
