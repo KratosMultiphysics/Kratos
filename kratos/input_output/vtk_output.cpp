@@ -132,16 +132,18 @@ void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart& rModelPart)
 
 void VtkOutput::WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
-    rFileStream << "# vtk DataFile Version 4.0\nvtk output\n";
-
+    rFileStream << "# vtk DataFile Version 4.0"
+                << "\n"
+                << "vtk output"
+                << "\n";
     if(mFileFormat == VtkOutput::FileFormat::VTK_ASCII) {
-        rFileStream << "ASCII";
+        rFileStream << "ASCII" << "\n";
     }
     else if (mFileFormat == VtkOutput::FileFormat::VTK_BINARY) {
-        rFileStream << "BINARY";
+        rFileStream << "BINARY" << "\n";
     }
-
-    rFileStream << "\nDATASET UNSTRUCTURED_GRID\n";
+    rFileStream << "DATASET UNSTRUCTURED_GRID"
+                << "\n";
 }
 
 void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream) const
