@@ -66,14 +66,14 @@ namespace Kratos
 
         RemoveCommonNodesFromSlaveModelPart();
 
-        if (std::abs(mAngleOfRotation) < eps && std::abs(mDistance) > eps)
+        if (std::abs(mAngleOfRotation) < eps && std::abs(mDistance) > eps){
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::TRANSLATION;
-        else if (std::abs(mAngleOfRotation) > eps 0.0 && std::abs(mDistance) < eps)
+        }else if (std::abs(mAngleOfRotation) > eps && std::abs(mDistance) < eps){
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::ROTATION;
-        else if
+        }else{
             KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mDistance) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
-        else
             KRATOS_ERROR_IF(std::abs(mAngleOfRotation) > eps && std::abs(mDistance) > eps)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
+        }
 
         CalculateTransformationMatrix();
     }
