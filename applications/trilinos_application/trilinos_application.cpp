@@ -17,6 +17,7 @@
 
 // Project includes
 #include "trilinos_application.h"
+#include "custom_factories/trilinos_linear_solver_factory.h"
 
 namespace Kratos
 {
@@ -49,6 +50,8 @@ void KratosTrilinosApplication::Register()
     {
         std::cout << banner.str();
     }
+
+    RegisterTrilinosLinearSolvers();
 }
 
 

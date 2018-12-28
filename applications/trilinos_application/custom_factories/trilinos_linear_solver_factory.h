@@ -8,6 +8,7 @@
 //                                       Kratos default license: kratos/license.txt
 //
 //  Main authors:   Vicente Mataix Ferrandiz
+//                  Philipp Bucher
 //
 
 #if !defined(KRATOS_TRILINOS_LINEAR_SOLVER_FACTORY_H_INCLUDED )
@@ -103,6 +104,8 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@name Input and output
 
 ///@}
+
+void RegisterTrilinosLinearSolvers();
 
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
