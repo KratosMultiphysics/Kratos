@@ -22,7 +22,6 @@
 #include "processes/process.h"
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
-#include "includes/dof.h"
 #include "includes/model_part.h"
 
 namespace Kratos
