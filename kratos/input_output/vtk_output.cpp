@@ -174,7 +174,7 @@ void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofs
     rModelPart.GetCommunicator().SumAll(num_conditions);
 
     if (num_elements > 0) {
-        if (num_conditions > 0) {
+        if (num_conditions > 0 && rModelPart.GetCommunicator().MyPID() == 0) {
             KRATOS_WARNING/*_ONCE*/("VtkOutput")<<"Modelpart \"" << rModelPart.Name() // TODO
                 << "\" has both elements and conditions.\nGiving precedence to "
                 << "elements and writing only elements!" <<std::endl;
