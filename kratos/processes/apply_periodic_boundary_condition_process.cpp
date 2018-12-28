@@ -107,13 +107,12 @@ namespace Kratos
     void ApplyPeriodicConditionProcess::ExecuteInitialize()
     {
         KRATOS_TRY;
-        const ProcessInfoPointerType info = mrMasterModelPart.pGetProcessInfo();
-        const int prob_dim = info->GetValue(DOMAIN_SIZE);
+        const int domain_size = mrMasterModelPart.GetProcessInfo()[DOMAIN_SIZE];
         // Rotate the master so it goes to the slave
-        if (prob_dim == 2){
+        if (domain_size == 2){
             ApplyConstraintsForPeriodicConditions<2>();
         }
-        else if (prob_dim == 3){
+        else if (domain_size == 3){
             ApplyConstraintsForPeriodicConditions<3>();
         } else {
             KRATOS_ERROR <<"Periodic conditions are designed onyl for 2 and 3 Dimensional cases ! "<<std::endl;
