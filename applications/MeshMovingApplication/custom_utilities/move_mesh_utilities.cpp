@@ -18,6 +18,7 @@
 // Project includes
 #include "move_mesh_utilities.h"
 #include "containers/model.h"
+#include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -25,18 +26,18 @@ namespace MoveMeshUtilities {
 //******************************************************************************
 //******************************************************************************
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
-                            VectorType &rDetJ0, GeometryType &rGeometry) {
+                            VectorType &rDetJ0, const GeometryType &rGeometry) {
   KRATOS_TRY;
 
-  const IntegrationMethod this_integration_method =
-      rGeometry.GetDefaultIntegrationMethod();
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      rGeometry.IntegrationPoints(this_integration_method);
+  const auto this_integration_method = rGeometry.GetDefaultIntegrationMethod();
+  const auto& r_integration_points = rGeometry.IntegrationPoints(this_integration_method);
 
-  if (rInvJ0.size() != integration_points.size())
-    rInvJ0.resize(integration_points.size());
-  if (rDetJ0.size() != integration_points.size())
-    rDetJ0.resize(integration_points.size());
+  if (rInvJ0.size() != r_integration_points.size()) {
+    rInvJ0.resize(r_integration_points.size());
+  }
+  if (rDetJ0.size() != r_integration_points.size()) {
+    rDetJ0.resize(r_integration_points.size());
+  }
 
   KRATOS_CATCH("");
 }
