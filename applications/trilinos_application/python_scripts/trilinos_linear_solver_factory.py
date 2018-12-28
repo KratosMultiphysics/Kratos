@@ -20,10 +20,10 @@ def _CheckIfTypeIsDeprecated(config):
 
     if solver_type in old_new_name_map:
         new_name = old_new_name_map[solver_type]
-        depr_msg  = 'WARNING, using a deprecated "solver_type"!\n'
+        depr_msg  = '\nDEPRECATION-WARNING: using a deprecated "solver_type"!\n'
         depr_msg += 'Replace "' + solver_type + '" with "' + new_name + '"'
         import KratosMultiphysics as KM
-        KM.Logger.PrintWarning("Trilinos-Linear-Solver", depr_msg)
+        KM.Logger.PrintWarning("Trilinos-Linear-Solver-Factory", depr_msg)
         config["solver_type"].SetString(new_name)
 
 def ConstructSolver(configuration):
