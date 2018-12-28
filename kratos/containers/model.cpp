@@ -168,6 +168,39 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    std::vector<std::string> Model::GetModelPartNames()
+    {
+        std::vector<std::string> model_parts_names;
+
+        // We fill the vector
+        for (auto& mps : mRootModelPartMap) {
+            const std::string& r_root_mp_name = mps.first;
+            model_parts_names.push_back(r_root_mp_name);
+
+            // First level of submodelparts
+            auto& p_root_mp = mps.second;
+            if (p_root_mp->NumberOfSubModelParts() > 0) {
+                const std::vector<std::string>& sub_model_part_names = p_root_mp->GetSubModelPartNames();
+                for (auto& r_sub_name : sub_model_part_names) {
+                    model_parts_names.push_back(r_root_mp_name + "." + r_sub_name);
+                }
+
+                // Second level of submodelparts
+                for (auto& r_sub_mp : p_root_mp->SubModelParts()) {
+                    if (r_sub_mp.NumberOfSubModelParts() > 0) {
+                        const std::string& r_sub_name = r_sub_mp.Name();
+                        const std::vector<std::string>& sub_sub_model_part_names = r_sub_mp.GetSubModelPartNames();
+                        for (auto& r_sub_sub_name : sub_sub_model_part_names) {
+                            model_parts_names.push_back(r_root_mp_name + "." + r_sub_name + "." + r_sub_sub_name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return model_parts_names;
+    }
+
     std::string Model::Info() const
     {
         std::stringstream ss;
