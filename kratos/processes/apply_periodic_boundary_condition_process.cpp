@@ -66,7 +66,7 @@ namespace Kratos
 
         RemoveCommonNodesFromSlaveModelPart();
 
-        if (mAngleOfRotation == 0 && mDistance != 0)
+        if (std::abs(mAngleOfRotation) < eps && std::abs(mDistance) > eps)
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::TRANSLATION;
         else if (std::abs(mAngleOfRotation) > eps 0.0 && std::abs(mDistance) < eps)
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::ROTATION;
