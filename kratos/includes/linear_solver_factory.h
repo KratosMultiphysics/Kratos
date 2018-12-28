@@ -102,7 +102,7 @@ public:
     {
         if(KratosComponents< FactoryType >::Has( Settings["solver_type"].GetString())== false) {
             KRATOS_ERROR << "Trying to construct a Linear solver with solver_type:\n\""
-                << Settings["solver_type"].GetString() << "\"which does not exist.\n"
+                << Settings["solver_type"].GetString() << "\" which does not exist.\n"
                 << "The list of available options (for currently loaded applications) is:\n"
                 << KratosComponents< FactoryType >() << std::endl;
         }
