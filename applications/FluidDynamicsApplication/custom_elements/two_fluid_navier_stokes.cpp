@@ -205,6 +205,8 @@ int TwoFluidNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcess
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
 
+    KRATOS_CHECK_VARIABLE_KEY( DIVERGENCE );
+
     return 0;
 
     KRATOS_CATCH("");
@@ -240,12 +242,12 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
                                                     const ProcessInfo& rCurrentProcessInfo )
 {
     noalias( rOutput ) = ZeroVector( StrainSize );
-    
+
     if (rVariable == FLUID_STRESS) {
 
         // creating a new data container that goes out of scope after the function is left
         TElementData dataLocal;
-        
+
         // transferring the velocity (among other variables)
         dataLocal.Initialize(*this, rCurrentProcessInfo);
 
@@ -253,7 +255,7 @@ void TwoFluidNavierStokes<TElementData>::Calculate( const Variable<Vector >& rVa
         Matrix shape_functions;
         ShapeFunctionDerivativesArrayType shape_derivatives;
 
-        // computing DN_DX values for the strain rate         
+        // computing DN_DX values for the strain rate
         this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
         const unsigned int number_of_gauss_points = gauss_weights.size();
 
@@ -1940,6 +1942,43 @@ void TwoFluidNavierStokes<TElementData>::load(Serializer &rSerializer)
 {
     using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+}
+
+
+template <class TElementData>
+void TwoFluidNavierStokes<TElementData>::GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                                                        std::vector<double> &rValues,
+                                                                        const ProcessInfo &rCurrentProcessInfo )
+{
+    if (rVariable == DIVERGENCE){
+
+        const auto& rGeom = this->GetGeometry();
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
+        const unsigned int num_gauss = IntegrationPoints.size();
+
+        if (rValues.size() != num_gauss){
+            rValues.resize(num_gauss);
+        }
+
+        Vector gauss_pts_jacobian_determinant = ZeroVector(num_gauss);
+        GeometryData::ShapeFunctionsGradientsType DN_DX;
+        rGeom.ShapeFunctionsIntegrationPointsGradients(DN_DX, gauss_pts_jacobian_determinant, GeometryData::GI_GAUSS_2);
+
+        for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
+
+            const Matrix gp_DN_DX = DN_DX[i_gauss];
+            double DVi_DXi = 0.0;
+
+            for(unsigned int nnode = 0; nnode < NumNodes; nnode++){
+
+                const array_1d<double,3> vel = rGeom[nnode].GetSolutionStepValue(VELOCITY);
+                for(unsigned int ndim = 0; ndim < Dim; ndim++){
+                    DVi_DXi += gp_DN_DX(nnode, ndim) * vel[ndim];
+                }
+            }
+            rValues[i_gauss] = DVi_DXi;
+        }
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

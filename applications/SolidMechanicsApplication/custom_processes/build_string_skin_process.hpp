@@ -57,6 +57,10 @@ public:
     typedef BeamMathUtils<double>                   BeamMathUtilsType;
     typedef Quaternion<double>                         QuaternionType;
 
+    typedef std::vector<Node<3>*>               NodePointerVectorType;
+    typedef std::vector<Element*>            ElementPointerVectorType;
+    typedef std::vector<Condition*>        ConditionPointerVectorType;
+
     /// Pointer definition of BuildStringSkinProcess
     KRATOS_CLASS_POINTER_DEFINITION(BuildStringSkinProcess);
 
@@ -298,7 +302,7 @@ private:
       Node<3>::Pointer Starter;
       for(NodesContainerType::iterator in=mrModelPart.NodesBegin(); in!=mrModelPart.NodesEnd(); in++)
 	{
-	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+          NodePointerVectorType& rN = in->GetValue(NEIGHBOR_NODES);
 	  if( rN.size() <= 1 )
 	    Starter = *(in.base());
 
@@ -317,11 +321,11 @@ private:
 
 	  mGeneratrixNodes.push_back( Starter );
 
-	  WeakPointerVector<Element>& rE = Starter->GetValue(NEIGHBOUR_ELEMENTS);
+          ElementPointerVectorType& rE = Starter->GetValue(NEIGHBOR_ELEMENTS);
 
           for(unsigned int ie=0; ie<rE.size(); ie++)
 	    {
-	      Element::GeometryType& pGeometry = rE[ie].GetGeometry();
+	      Element::GeometryType& pGeometry = rE[ie]->GetGeometry();
 
 	      bool selected = true;
 	      for(unsigned int j = 0; j < pGeometry.size(); j++)
@@ -1183,14 +1187,13 @@ private:
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
 
-	  WeakPointerVector<Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
-	  rN.erase(rN.begin(),rN.end() );
-	  (in->GetValue(NEIGHBOUR_NODES)).reserve(AverageNodes);
+	  NodePointerVectorType& rN = in->GetValue(NEIGHBOR_NODES);
+          rN.clear();
+	  rN.resize(AverageNodes);
 
-	  WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-	  rE.erase(rE.begin(),rE.end() );
-
-	  (in->GetValue(NEIGHBOUR_ELEMENTS)).reserve(AverageElements);
+	  ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
+          rE.clear();
+	  rE.resize(AverageElements);
 
         }
 
@@ -1200,10 +1203,9 @@ private:
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  int size= pGeom.FacesNumber();
 
-	  WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
-	  rE.erase(rE.begin(),rE.end() );
-
-	  (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(size);
+	  ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
+          rE.clear();
+	  rE.resize(size);
 
         }
 
@@ -1213,18 +1215,18 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    template< class TDataType > void  AddUniquePointer
+    (std::vector< TDataType* >& v, const typename TDataType::Pointer candidate)
     {
-      typename WeakPointerVector< TDataType >::iterator i = v.begin();
-      typename WeakPointerVector< TDataType >::iterator endit = v.end();
-      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      typename std::vector< TDataType* >::iterator i = v.begin();
+      typename std::vector< TDataType* >::iterator endit = v.end();
+      while ( i != endit && (*i)->Id() != (candidate)->Id())
 	{
 	  i++;
 	}
       if( i == endit )
 	{
-	  v.push_back(candidate);
+	  v.push_back(candidate.get());
 	}
 
     }
@@ -1233,25 +1235,25 @@ private:
     //************************************************************************************
     //************************************************************************************
 
-    Element::WeakPointer CheckForNeighbourElems1D (unsigned int Id_1, WeakPointerVector< Element >& neighbour_elem, ElementsContainerType::iterator elem)
+    Element* CheckForNeighbourElems1D (unsigned int Id_1, ElementPointerVectorType& neighbour_elem, ElementsContainerType::iterator elem)
     {
       //look for the faces around node Id_1
-      for( WeakPointerVector< Element >::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); i++)
+      for( ElementPointerVectorType::iterator i =neighbour_elem.begin(); i != neighbour_elem.end(); i++)
         {
 	  //look for the nodes of the neighbour faces
-	  Geometry<Node<3> >& neigh_elem_geometry = (i)->GetGeometry();
+	  Geometry<Node<3> >& neigh_elem_geometry = (*i)->GetGeometry();
 	  for( unsigned int node_i = 0 ; node_i < neigh_elem_geometry.size(); node_i++)
             {
 	      if (neigh_elem_geometry[node_i].Id() == Id_1)
                 {
-		  if(i->Id() != elem->Id())
+		  if((*i)->Id() != elem->Id())
                     {
-		      return *(i.base());
+		      return (*i);
                     }
                 }
             }
         }
-      return *(elem.base());
+      return (*(elem.base())).get();
     }
 
 
@@ -1279,24 +1281,23 @@ private:
 	  Element::GeometryType& pGeom = ie->GetGeometry();
 	  for(unsigned int i = 0; i < pGeom.size(); i++)
             {
-	      (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
+	      (pGeom[i].GetValue(NEIGHBOR_ELEMENTS)).push_back( (*(ie.base())).get() );
             }
         }
 
       //adding the neighbouring nodes to all nodes in the mesh
       for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 	{
-	  WeakPointerVector< Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+	  ElementPointerVectorType& rE = in->GetValue(NEIGHBOR_ELEMENTS);
 	  for(unsigned int ie = 0; ie < rE.size(); ie++)
 	    {
-	      Element::GeometryType& pGeom = rE[ie].GetGeometry();
+	      Element::GeometryType& pGeom = rE[ie]->GetGeometry();
 	      for(unsigned int i = 0; i < pGeom.size(); i++)
 		{
 		  if( pGeom[i].Id() != in->Id() )
 		    {
-		      Element::NodeType::WeakPointer temp = pGeom(i);
-		      WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
-		      AddUniqueWeakPointer< Node<3> >(rN, temp);
+		      NodePointerVectorType& rN = in->GetValue(NEIGHBOR_NODES);
+		      AddUniquePointer< Node<3> >(rN, pGeom(i));
 		    }
 
 		}
@@ -1315,19 +1316,19 @@ private:
 	  if( rGeometry.FacesNumber() == 2 ){
 
 	    //vector of the 2 faces around the given face
-	    if( ie->GetValue(NEIGHBOUR_ELEMENTS).size() != 2 )
-	      (ie->GetValue(NEIGHBOUR_ELEMENTS)).resize(2);
+	    if( ie->GetValue(NEIGHBOR_ELEMENTS).size() != 2 )
+	      (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(2);
 
-	    WeakPointerVector< Element >& neighb_elems = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementPointerVectorType& neighb_elems = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 	    //neighb_face is the vector containing pointers to the three faces around ic:
 
 	    unsigned int size = rGeometry.size();
 
 	    // neighbour element over edge 0 of element ic;
-	    neighb_elems(0) = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOUR_ELEMENTS), ie);
+	    neighb_elems[0] = CheckForNeighbourElems1D(rGeometry[0].Id(), rGeometry[0].GetValue(NEIGHBOR_ELEMENTS), ie);
 	    // neighbour element over edge 1 of element ic;
-	    neighb_elems(1) = CheckForNeighbourElems1D(rGeometry[size-1].Id(), rGeometry[size-1].GetValue(NEIGHBOUR_ELEMENTS), ie);
+	    neighb_elems[1] = CheckForNeighbourElems1D(rGeometry[size-1].Id(), rGeometry[size-1].GetValue(NEIGHBOR_ELEMENTS), ie);
 
 	  }
 	}

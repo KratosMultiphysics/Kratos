@@ -83,7 +83,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
-        self.final_time = DEM_parameters["FinalTime"].GetDouble()
+        self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
         # BOUNDING_BOX
         self.enlargement_factor = DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
@@ -102,7 +102,7 @@ class ExplicitStrategy(object):
             self.bounding_box_start_time  = DEM_parameters["BoundingBoxStartTime"].GetDouble()
 
         if not "BoundingBoxStopTime" in DEM_parameters.keys():
-            self.bounding_box_stop_time  = self.final_time
+            self.bounding_box_stop_time  = self.end_time
         else:
             self.bounding_box_stop_time  = DEM_parameters["BoundingBoxStopTime"].GetDouble()
 
@@ -287,6 +287,9 @@ class ExplicitStrategy(object):
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.search_strategy, strategy_parameters, self.do_search_neighbours)
 
+    def AddVariables(self):
+        pass
+
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
         self.RebuildListOfDiscontinuumSphericParticles()
@@ -297,12 +300,33 @@ class ExplicitStrategy(object):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
-    def Solve(self):
+    def SetDt(self, dt):
+        self.dt = dt
+
+    def Predict(self):
+        pass
+
+    def Check(self):
+        pass
+
+    def Solve(self): # deprecated
+        self.SolveSolutionStep()
+
+    def SolveSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
         (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
+
+    def AdvanceInTime(self, step, time):
+        step += 1
+        time = time + self.dt
+
+        return step, time
+
+    def FinalizeSolutionStep(self):
+        pass
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)

@@ -2,19 +2,12 @@
 #define KRATOS_MPI_NORMAL_CALCULATION_UTILITIES_H
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
 
 // Project includes
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-#include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/node.h"
 #include "processes/process.h"
 
 
