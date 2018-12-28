@@ -74,7 +74,7 @@ class MechanicalSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
+                "solver_type": "SkylineLUFactorizationSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false,
