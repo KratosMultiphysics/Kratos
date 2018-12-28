@@ -39,6 +39,11 @@ namespace Kratos
         file.close();
     }
 
+    void BrepJsonIO::ExportNurbsGeometry(Parameters& rNurbsBrepGeometryJson)
+    {
+    
+    }
+
     std::vector<BrepModel> BrepJsonIO::ImportNurbsBrepGeometry(
         ModelPart& rModelPart,
         Parameters rNurbsBrepGeometryJson)

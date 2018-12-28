@@ -74,6 +74,14 @@ namespace Kratos
             const int rPropertiesId,
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
+        
+        void PrintFaceNodes();
+
+        void PrintEdgeNodes();
+
+        void PrintTrimmingNodes();
+
+        double GetModelTolerance(); 
 
         //BrepFace& GetFaceNonConst(const int& brep_id);
 

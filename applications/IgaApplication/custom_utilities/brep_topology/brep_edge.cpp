@@ -115,6 +115,15 @@ namespace Kratos
         //}
     }
 
+    void BrepEdge::PrintNodes()
+    {
+        int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+        for (int i = 0; i < number_of_cps; ++i)
+        {
+            KRATOS_WATCH(mNodeCurveGeometry3D->GetNode(i)->Coordinates());
+        } 
+    }
+
     void BrepEdge::GetIntegrationBrep(
         ModelPart& rModelPart,
         const int& trim_index,

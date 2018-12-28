@@ -171,6 +171,33 @@ namespace Kratos
         }
     }
 
+    void BrepFace::PrintNodes()
+    {
+        int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
+        int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
+
+        for (int i = 0; i < number_of_cps_u; ++i)
+        {
+            for (int j = 0; j < number_of_cps_v; ++j)
+            {
+                KRATOS_WATCH((mNodeSurfaceGeometry3D->GetNode(i, j)->Coordinates()));
+            }
+        }
+    }
+
+    void BrepFace::PrintTrimNodes()
+    {
+        for (int i = 0; i < mTrimmingLoops.size(); ++i)
+        {
+            auto trimming_curves = mTrimmingLoops[i].GetTrimmingCurves();
+
+            for (int j = 0; j < trimming_curves.size(); ++j)
+            {
+                KRATOS_WATCH(trimming_curves[j].GetCurve2D()->CurveGeometry()->Poles())
+            }
+        }
+    }
+
     void BrepFace::GetGeometryIntegrationTrimmed(
         ModelPart& rModelPart,
         const std::string& rType,
@@ -529,6 +556,16 @@ namespace Kratos
         return mNodeSurfaceGeometry3D;
     }
 
+    const bool BrepFace::GetIsTrimmed() const 
+    {
+        std::cout << "Hellllo" << std::endl; 
+        return m_is_trimmed; 
+    }
+
+    bool BrepFace::GetIsRational()
+    {
+        return m_is_rational; 
+    }
 
 
     ///Constructor

@@ -836,6 +836,11 @@ void AddCustomUtilitiesToPython(
         .def(pybind11::init<ModelPart&>())
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
+        .def("PrintFacePolygon", &NurbsBrepModeler::PrintFacePolygon)
+        .def("PrintEdgePolygon", &NurbsBrepModeler::PrintEdgePolygon)
+        .def("PrintTrimmingPolygon", &NurbsBrepModeler::PrintTrimmingPolygon)
+        .def("ExportGeometry", &NurbsBrepModeler::ExportGeometry)
+        .def("getTolerance", &NurbsBrepModeler::getTolerance)
         ;
 }
 

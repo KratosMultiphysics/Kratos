@@ -121,6 +121,8 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
+        void PrintNodes();
+        
         const EdgeTopology GetEdgeTopology(
             const int rTopologyIndex) const;
 

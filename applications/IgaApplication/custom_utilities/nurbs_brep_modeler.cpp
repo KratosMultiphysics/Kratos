@@ -100,6 +100,101 @@ namespace Kratos
         }
     }
 
+    void NurbsBrepModeler::ExportGeometry()
+    {
+        Parameters rNurbsBrepGeometryJson; 
+        
+        // Model Tolerance
+        const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
+        rNurbsBrepGeometryJson.AddEmptyArray("tolerances");
+        rNurbsBrepGeometryJson["tolerances"].AddEmptyArray("model_tolerance");
+        rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].SetDouble(model_tolerance);
+
+        //Version Number
+        rNurbsBrepGeometryJson.AddEmptyArray("version_number");
+        rNurbsBrepGeometryJson["version_number"].SetInt(1); 
+
+        //breps
+        rNurbsBrepGeometryJson.AddEmptyArray("breps");
+        for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        {
+            rNurbsBrepGeometryJson["breps"].AddEmptyArray("brep_id");
+            
+            KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector().size());  
+
+            const BrepModel mp = m_brep_model_vector[i];
+            bool is_trimmed = m_brep_model_vector[i].GetFaceVector()[0].GetIsTrimmed();
+            
+            
+
+        }
+        
+
+        
+        
+          
+        
+        // for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        // {
+        //     // KRATOS_WATCH(m_brep_model_vector[i].GetId());
+
+        //     int m_brep_id = m_brep_model_vector[i].GetId();  
+        //     rNurbsBrepGeometryJson["breps"]["brep_id"].SetInt(m_brep_id);
+
+
+        //     for (int j = 0; j < m_brep_model_vector[i].GetFaceVector().size(); ++j)
+        //     {
+        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetId());
+
+        //         // rNurbsBrepGeometryJson["breps"][]
+
+        //         // int face_id = m_brep_model_vector[i].GetFaceVector()[j].GetId(); 
+                
+        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetSurface()->IsRational());
+
+        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetSurface()->DegreeU());
+                
+        //     }
+
+            
+           
+        // }
+    }
+
+
+    void NurbsBrepModeler::PrintFacePolygon()
+    {   
+        for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        {
+            m_brep_model_vector[i].PrintFaceNodes();
+        }
+    }
+
+    void NurbsBrepModeler::PrintEdgePolygon()
+    {   
+        for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        {
+            m_brep_model_vector[i].PrintEdgeNodes();
+        }
+    }
+
+    void NurbsBrepModeler::PrintTrimmingPolygon()
+    {
+        for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        {
+            m_brep_model_vector[i].PrintTrimmingNodes();
+        }
+    }
+
+
+    void NurbsBrepModeler::getTolerance()
+    {
+        for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        {
+            KRATOS_WATCH(m_brep_model_vector[i].GetModelTolerance());
+        }
+    }
+
     NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
         : m_model_part(rModelPart)
     {

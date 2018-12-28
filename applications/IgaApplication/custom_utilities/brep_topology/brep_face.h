@@ -134,6 +134,11 @@ namespace Kratos
             Matrix& rShapeFunctionDerivative,
             Matrix& rShapeFunctionSecondDerivative
             ) const;
+            
+        void PrintNodes(); 
+        void PrintTrimNodes();
+
+
 
         const Kratos::shared_ptr<Curve<2>> GetTrimCurve(
             const int trim_index) const;
@@ -141,6 +146,9 @@ namespace Kratos
         /*Returns the member NodeSurfaceGeometry3D object of the brep face.
         This object gives a NURBS representation of the surface of the face.*/
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
+
+        const bool GetIsTrimmed() const;
+        bool GetIsRational();
 
         /// Constructor.
         BrepFace(

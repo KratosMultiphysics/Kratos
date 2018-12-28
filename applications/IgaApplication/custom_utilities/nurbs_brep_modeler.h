@@ -3,6 +3,7 @@
 
 // System includes
 #include <vector>
+#include <fstream>
 
 // Project includes
 #include "iga_application_variables.h"
@@ -61,6 +62,16 @@ namespace Kratos
         //void ImportGeometry(std::vector<BrepModel>& rBrepModel);
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
+
+        void PrintFacePolygon();
+        
+        void PrintEdgePolygon();
+
+        void PrintTrimmingPolygon();
+
+        void ExportGeometry();
+
+        void getTolerance();
 
         ///@}
         ///@name Life Cycle
