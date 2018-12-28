@@ -70,7 +70,7 @@ namespace Kratos
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::TRANSLATION;
         else if (mAngleOfRotation != 0.0 && mDistance == 0.0)
             mTransformationType = ApplyPeriodicConditionProcess::TransformationType::ROTATION;
-        else
+        else if
             KRATOS_ERROR_IF(std::abs(mAngleOfRotation) < eps && std::abs(mDistance) < eps)<<"Both angle of rotation and modulus of translation cannot be zero. Please check the input"<<std::endl;
         else
             KRATOS_ERROR_IF(std::abs(mAngleOfRotation) > eps && std::abs(mDistance) > eps)<<"Both angle of rotation and modulus of translation cannot be specified at the same time. Please check the input"<<std::endl;
