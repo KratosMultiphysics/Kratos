@@ -22,6 +22,7 @@
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
 #include "containers/flags.h"
+#include "containers/weak_pointer_vector.h"
 
 
 namespace Kratos
