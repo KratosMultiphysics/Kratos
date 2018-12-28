@@ -153,11 +153,11 @@ class Algorithm(object):
             for self.dem_solution.time_dem in self.yield_DEM_time(self.dem_solution.time, time_final_DEM_substepping, self.Dt_DEM):
                 
                 self.dem_solution.InitializeTimeStep()
-                self.dem_solution.time = self.dem_solution.time + self.dem_solution.dt
+                self.dem_solution.time = self.dem_solution.time + self.dem_solution.solver.dt
 
                 self.dem_solution.step += 1
 
-                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt, self.dem_solution.step)
+                self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt, self.dem_solution.step)
                 
                 self.dem_solution.BeforeSolveOperations(self.dem_solution.time)
                 
@@ -167,9 +167,9 @@ class Algorithm(object):
 
                 self.dem_solution.AfterSolveOperations()
 
-                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.dt, self.Dt_structural)
+                DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.solver.dt, self.Dt_structural)
                 
-                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.dt)
+                self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt)
                 #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 
                 ##### adding DEM elements by the inlet ######

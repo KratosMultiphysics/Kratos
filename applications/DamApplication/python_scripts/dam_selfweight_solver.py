@@ -6,10 +6,6 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 import json
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-
 def CreateSolver(main_model_part, custom_settings):
 
     return DamSelfweightSolver(main_model_part, custom_settings)
@@ -137,6 +133,8 @@ class DamSelfweightSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FACE_HEAT_FLUX)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_REFERENCE_TEMPERATURE)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.PLACEMENT_TEMPERATURE)
+
         # This Variable is used for computing heat source according Azenha Formulation
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.ALPHA_HEAT_SOURCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.TIME_ACTIVATION)

@@ -48,25 +48,15 @@ class ParticleMPMSolver(PythonSolver):
             "material_import_settings"           : {
                 "materials_filename" : ""
             },
-            "time_step_prediction_level"         : "Automatic",
-            "rayleigh_damping"                   : false,
             "pressure_dofs"                      : false,
-            "reform_dof_set_at_each_step"        : false,
-            "line_search"                        : false,
-            "implex"                             : false,
-            "compute_reactions"                  : true,
-            "compute_contact_forces"             : false,
+            "compute_reactions"                  : false,
             "convergence_criterion"              : "Residual_criteria",
             "displacement_relative_tolerance"    : 1.0E-4,
             "displacement_absolute_tolerance"    : 1.0E-9,
             "residual_relative_tolerance"        : 1.0E-4,
             "residual_absolute_tolerance"        : 1.0E-9,
-            "max_iteration"                      : 10,
-            "geometry_element"                   : "Triangle",
-            "number_of_material"                 : 1,
-            "particle_per_element"               : 3,
+            "max_iteration"                      : 20,
             "axis_symmetric_flag"                : false,
-            "impenetrability_condition"          : true,
             "move_mesh_flag"                     : false,
             "problem_domain_sub_model_part_list" : [],
             "processes_sub_model_part_list"      : [],
@@ -90,6 +80,23 @@ class ParticleMPMSolver(PythonSolver):
                 "coarse_enough" : 50
             }
         }""")
+
+        # Temporary warnings, to be removed
+        if custom_settings.Has("geometry_element"):
+            custom_settings.RemoveValue("geometry_element")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "geometry_element", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Geometry element", warning)
+        if custom_settings.Has("particle_per_element"):
+            custom_settings.RemoveValue("particle_per_element")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "particle_per_element", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Particle per element", warning)
+        if custom_settings.Has("line_search"):
+            custom_settings.RemoveValue("line_search")
+            warning = '\n::[ParticleMPMSolver]:: W-A-R-N-I-N-G: You have specified "line_search", '
+            warning += 'which is deprecated and will be removed soon. \nPlease remove it from the "solver settings"!\n'
+            self.print_warning_on_rank_zero("Geometry element", warning)
 
         # Overwrite the default settings with user-provided parameters
         self.settings.ValidateAndAssignDefaults(default_settings)
@@ -154,17 +161,14 @@ class ParticleMPMSolver(PythonSolver):
         self.abs_disp_tol               = self.settings["displacement_absolute_tolerance"].GetDouble()
         self.rel_res_tol                = self.settings["residual_relative_tolerance"].GetDouble()
         self.abs_res_tol                = self.settings["residual_absolute_tolerance"].GetDouble()
-        self.max_iters                  = self.settings["max_iteration"].GetInt()
+        self.max_iteration              = self.settings["max_iteration"].GetInt()
 
         # Set definition of the global solver type
         self.solver_type                    = self.settings["solver_type"].GetString()
 
         # Set definition of the solver parameters
         self.compute_reactions      = self.settings["compute_reactions"].GetBool()
-        self.compute_contact_forces = self.settings["compute_contact_forces"].GetBool()
         self.pressure_dofs          = self.settings["pressure_dofs"].GetBool()
-        self.line_search            = self.settings["line_search"].GetBool()
-        self.implex                 = self.settings["implex"].GetBool()
         self.axis_symmetric_flag    = self.settings["axis_symmetric_flag"].GetBool()
         self.move_mesh_flag         = self.settings["move_mesh_flag"].GetBool()
 
@@ -172,9 +176,10 @@ class ParticleMPMSolver(PythonSolver):
         self.max_number_of_search_results = self.settings["element_search_settings"]["max_number_of_results"].GetInt()
         self.searching_tolerance          = self.settings["element_search_settings"]["searching_tolerance"].GetDouble()
 
+        # Identify geometry type
+        self._identify_geometry_type()
+
         # Set default solver_settings parameters
-        self.geometry_element   = self.settings["geometry_element"].GetString()
-        self.number_particle    = self.settings["particle_per_element"].GetInt()
         if self.geometry_element == "Triangle":
             if (self.domain_size == 2):
                 if (self.pressure_dofs):
@@ -206,9 +211,13 @@ class ParticleMPMSolver(PythonSolver):
 
         # Initialize solver
         if(self.domain_size==2):
-            self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element, self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM2D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
         else:
-            self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part, self.linear_solver, self.new_element, self.move_mesh_flag, self.solver_type, self.geometry_element,  self.number_particle, self.block_builder, self.pressure_dofs)
+            self.solver = KratosParticle.MPM3D(self.grid_model_part, self.initial_material_model_part, self.material_model_part,
+                                self.linear_solver, self.new_element, self.solver_type, self.max_iteration, self.compute_reactions,
+                                self.block_builder, self.pressure_dofs, self.move_mesh_flag)
 
         # Set echo level
         self._set_echo_level()
@@ -230,7 +239,7 @@ class ParticleMPMSolver(PythonSolver):
         return self.settings["time_stepping"]["time_step"].GetDouble()
 
     def SearchElement(self):
-        self.solver.SearchElement(self.grid_model_part, self.material_model_part, self.max_number_of_search_results, self.searching_tolerance)
+        self.solver.SearchElement(self.max_number_of_search_results, self.searching_tolerance)
 
     def InitializeSolutionStep(self):
         self.SearchElement()
@@ -364,6 +373,15 @@ class ParticleMPMSolver(PythonSolver):
             materials_imported = False
         return materials_imported
 
+    def _identify_geometry_type(self):
+        for mpm in self.grid_model_part.Elements:
+            num_nodes = len(mpm.GetNodes())
+            break
+
+        if (self.domain_size == 2 and num_nodes == 3) or (self.domain_size == 3 and num_nodes == 4):
+            self.geometry_element = "Triangle"
+        elif (self.domain_size == 2 and num_nodes == 4) or (self.domain_size == 3 and num_nodes == 8):
+            self.geometry_element = "Quadrilateral"
 
     def _add_dofs_to_model_part(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)

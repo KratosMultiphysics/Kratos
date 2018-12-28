@@ -450,7 +450,7 @@ public:
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
-    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -743,6 +743,18 @@ public:
      * these methods are: OPTIONAL
      */
 
+    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                          std::vector<bool>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                          std::vector<int>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                           std::vector<double>& rOutput,
                           const ProcessInfo& rCurrentProcessInfo)
@@ -780,6 +792,18 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
 
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
                          std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
@@ -806,14 +830,20 @@ public:
 
     //GET ON INTEGRATION POINTS METHODS
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-                         std::vector<double>& rValues,
+    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
                          std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
                          const ProcessInfo& rCurrentProcessInfo)
     {
     }

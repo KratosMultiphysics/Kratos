@@ -5,9 +5,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(custom_settings, Model):
     return MonolithicSolver(Model, custom_settings)
 
