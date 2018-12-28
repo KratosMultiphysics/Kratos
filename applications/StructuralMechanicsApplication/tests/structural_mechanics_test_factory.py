@@ -340,8 +340,6 @@ class ShellT3AndQ4NonLinearDynamicUnstructPendulusTests(StructuralMechanicsTestF
 class ShellT3AndQ4NonLinearDynamicUnstructPendulusLumpedTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_nonlinear_dynamic_unstruct_pendulus_lumped"
 
-class PeriodicBoundaryConditionLinearTest(StructuralMechanicsTestFactory):
-    file_name = "periodic_test/periodic_linear_test"
 class TensileTestStructuralTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/TensileTestStructural/TensileTestStructural"
 
