@@ -29,7 +29,7 @@ def Factory(settings, Model):
     else:
         factory_helper = output_factory.TemporalOutputFactoryHelper()
 
-    (temporal_output_process, model_part_output, list_of_results_output) = factory_helper.Execute(params, Model)
+    (temporal_output_process, _, list_of_results_output) = factory_helper.Execute(params, Model)
     for results_output in list_of_results_output:
         temporal_output_process.AddOutput(results_output)
     temporal_output_process._initial_output.AddOutput(file_utils.DeleteOldH5Files())
