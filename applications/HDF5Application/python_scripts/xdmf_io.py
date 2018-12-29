@@ -9,9 +9,9 @@ class XdmfOutput(IOObject):
 
     def ExecuteAfterClose(self, model_part, hdf5_file_name):
         model_part.GetCommunicator().Barrier()
+        # write xdmf only on one rank!
         if model_part.GetCommunicator().MyPID() == 0:
-            # write xdmf only on one rank!
-            file_path, file_name = os.path.split(hdf5_file_name)
-            base_file_name = "-".join(file_name.split("-")[:-1]) + ".h5"
-            WriteXdmfFile(base_file_name, file_path)
+            # removing the time-label in the file-name
+            base_hdf5_file_name = "-".join(hdf5_file_name.split("-")[:-1]) + ".h5"
+            WriteXdmfFile(base_hdf5_file_name)
 

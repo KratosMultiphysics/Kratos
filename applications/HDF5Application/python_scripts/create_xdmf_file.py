@@ -81,16 +81,15 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-def WriteXdmfFile(file_name, rel_path_h5_files=""):
+def WriteXdmfFile(file_name):
     #todo(msandre): generalize to WriteXdmfFile(xdmf_file_name, list_of_h5_file_paths):
     temporal_grid = xdmf.TemporalGrid()
-    full_path_file_name = os.path.join(rel_path_h5_files, file_name)
-    GenerateXdmfConnectivities(full_path_file_name)
+    GenerateXdmfConnectivities(file_name)
     # Get the initial spatial grid from the base file.
-    with h5py.File(full_path_file_name, "r") as h5py_file:
+    with h5py.File(file_name, "r") as h5py_file:
         current_spatial_grid = GetSpatialGrid(h5py_file)
-    for current_time in GetListOfTimeLabels(full_path_file_name):
-        current_file_name = full_path_file_name.replace(".h5", "-" + current_time + ".h5")
+    for current_time in GetListOfTimeLabels(file_name):
+        current_file_name = file_name.replace(".h5", "-" + current_time + ".h5")
         try:
             # Check if the current file has mesh information.
             with h5py.File(current_file_name, "r") as h5py_file:
@@ -125,7 +124,8 @@ def WriteXdmfFile(file_name, rel_path_h5_files=""):
     # Create the domain.
     domain = xdmf.Domain(temporal_grid)
     # Write.
-    xdmf_file_name = file_name.replace(".h5", ".xdmf")
+    raw_file_name = os.path.split(file_name)[1]
+    xdmf_file_name = raw_file_name.replace(".h5", ".xdmf")
     xdmf.ET.ElementTree(xdmf.Xdmf(domain).create_xml_element()).write(xdmf_file_name)
 
 
