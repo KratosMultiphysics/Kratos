@@ -30,6 +30,8 @@ namespace Kratos
   typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
   typedef ComponentTimeIntegrationContainerType::Pointer          ComponentTimeIntegrationContainerPointerType;
 
+  typedef std::vector<Node<3>*>                                                          NodePointerVectorType;
+  typedef std::vector<Element*>                                                       ElementPointerVectorType;
   ///@}
 
   ///@name Kratos Globals
@@ -165,7 +167,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, SHEARxPOLAR_INERTIA )
 
   //boundary definition
-  KRATOS_CREATE_VARIABLE( WeakPointerVector< Element >, MASTER_ELEMENTS )
+  KRATOS_CREATE_VARIABLE( Element*, MASTER_ELEMENT )
+  KRATOS_CREATE_VARIABLE( NodePointerVectorType, NEIGHBOR_NODES )
+  KRATOS_CREATE_VARIABLE( ElementPointerVectorType, NEIGHBOR_ELEMENTS )
 
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CAPACITY )

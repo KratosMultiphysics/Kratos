@@ -171,6 +171,27 @@ void ModelPartRemoveConditionAndBelongingsFromAllLevels4(AuxiliarModelPartUtilit
     rAuxiliarModelPartUtilities.RemoveConditionAndBelongingsFromAllLevels(pThisCondition, IdentifierFlag, ThisIndex);
 }
 
+void CalculateDistancesDefault2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator,ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance)
+{
+    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
+}
+    
+void CalculateDistancesFlag2D(ParallelDistanceCalculator<2>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
+{
+    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
+}
+
+void CalculateDistancesDefault3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator,ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance)
+{
+    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance);
+}
+    
+void CalculateDistancesFlag3D(ParallelDistanceCalculator<3>& rParallelDistanceCalculator, ModelPart& rModelPart, const Variable<double>& rDistanceVar, const Variable<double>& rAreaVar, const unsigned int max_levels, const double max_distance, Flags Options)
+{
+    rParallelDistanceCalculator.CalculateDistances(rModelPart, rDistanceVar, rAreaVar, max_levels, max_distance, Options);
+}
+
+
 void AddUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -316,10 +337,17 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<array_1d<double, 9>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Vector, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", &VariableUtils::SetNonHistoricalVariableForFlag<Matrix, ModelPart::ElementsContainerType>)
+        .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
+        .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
+        .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ElementsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::NodesContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ConditionsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::ElementsContainerType>)
         .def("SetFlag", &VariableUtils::SetFlag<ModelPart::MasterSlaveConstraintContainerType>)
+        .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::NodesContainerType>)
+        .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::ConditionsContainerType>)
+        .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::ElementsContainerType>)
+        .def("FlipFlag", &VariableUtils::FlipFlag<ModelPart::MasterSlaveConstraintContainerType>)
         .def("SaveVectorVar", &VariableUtils::SaveVectorVar)
         .def("SaveScalarVar", &VariableUtils::SaveScalarVar)
         .def("SaveVectorNonHistoricalVar", &VariableUtils::SaveVectorNonHistoricalVar)
@@ -440,18 +468,24 @@ void AddUtilitiesToPython(pybind11::module& m)
 
     py::class_<ParallelDistanceCalculator < 2 > >(m,"ParallelDistanceCalculator2D")
         .def(py::init<>())
-        .def("CalculateDistances", &ParallelDistanceCalculator < 2 > ::CalculateDistances)
+        .def("CalculateDistances", CalculateDistancesDefault2D)
+        .def("CalculateDistances", CalculateDistancesFlag2D)
         .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 2 > ::CalculateInterfacePreservingDistances)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 2 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 2 > ::FindMaximumEdgeSize)
+        .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<2>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<ParallelDistanceCalculator < 3 > >(m,"ParallelDistanceCalculator3D")
         .def(py::init<>())
-        .def("CalculateDistances", &ParallelDistanceCalculator < 3 > ::CalculateDistances)
+        .def("CalculateDistances", CalculateDistancesDefault3D)
+        .def("CalculateDistances", CalculateDistancesFlag3D)
         .def("CalculateInterfacePreservingDistances", &ParallelDistanceCalculator < 3 > ::CalculateInterfacePreservingDistances)
         .def("CalculateDistancesLagrangianSurface", &ParallelDistanceCalculator < 3 > ::CalculateDistancesLagrangianSurface)
         .def("FindMaximumEdgeSize", &ParallelDistanceCalculator < 3 > ::FindMaximumEdgeSize)
+        .def_readonly_static("CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        .def_readonly_static("NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE", &ParallelDistanceCalculator<3>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
         ;
 
     py::class_<BruteForcePointLocator> (m, "BruteForcePointLocator")

@@ -35,7 +35,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "distance_file_name"  : "no_distance_file"
             },
             "maximum_iterations": 7,
-            "dynamic_tau": 1.0,
             "echo_level": 0,
             "time_order": 2,
             "compute_reactions": false,
@@ -57,15 +56,17 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0
             },
             "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "formulation": {
+                "dynamic_tau": 1.0
+            }
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
         return settings
 
     def __init__(self, model, custom_settings):
-        # the constructor of the "grand-parent" (jumping constructor of parent) is called to avoid conflicts in attribute settings
-        super(navier_stokes_two_fluids_solver.NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
+        super(NavierStokesTwoFluidsSolver,self).__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
@@ -166,7 +167,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
         (self.solver).Check()
 
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["formulation"]["dynamic_tau"].GetDouble())
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTwoFluidsSolver", "Solver initialization finished.")
 
@@ -250,11 +251,13 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
                 self.main_model_part,
                 self.linear_solver,
-                maximum_iterations)
+                maximum_iterations,
+                KratosMultiphysics.ParallelDistanceCalculator2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 self.main_model_part,
                 self.linear_solver,
-                maximum_iterations)
+                maximum_iterations,
+                KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process

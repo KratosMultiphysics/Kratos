@@ -52,28 +52,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_METIS_DIVIDE_INPUT_TO_PARTITIONS_PROCESS_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
 
 // External includes
-//#include <parmetis.h>
-
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
-#include "processes/process.h"
 #include "processes/graph_coloring_process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 #include "custom_processes/metis_graph_partitioning_process.h"
-
-
 
 namespace Kratos
 {

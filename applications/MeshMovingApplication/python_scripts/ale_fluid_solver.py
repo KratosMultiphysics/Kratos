@@ -5,8 +5,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.MeshMovingApplication as KMM
 
 # Other imports
-from python_solver import PythonSolver
-import python_solvers_wrapper_mesh_motion
+from KratosMultiphysics.python_solver import PythonSolver
+import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers_wrapper
 
 class AleFluidSolver(PythonSolver):
     def __init__(self, model, solver_settings, parallelism):
@@ -75,11 +75,11 @@ class AleFluidSolver(PythonSolver):
         # TODO remove this once the mesh-vel-computation is removed from the mesh-solver!
         # We use the new utility, therefore explicitly setting it to false!
         if mesh_motion_solver_settings.Has("calculate_mesh_velocities"):
-            mesh_motion_solver_settings.SetBool(False)
+            mesh_motion_solver_settings["calculate_mesh_velocities"].SetBool(False)
         else:
             mesh_motion_solver_settings.AddEmptyValue("calculate_mesh_velocities").SetBool(False)
 
-        self.mesh_motion_solver = python_solvers_wrapper_mesh_motion.CreateSolverByParameters(
+        self.mesh_motion_solver = mesh_mothion_solvers_wrapper.CreateSolverByParameters(
             model, mesh_motion_solver_settings, parallelism)
 
         # Getting the min_buffer_size from both solvers
@@ -217,7 +217,7 @@ class AleFluidSolver(PythonSolver):
                 KM.MESH_VELOCITY,
                 KM.VELOCITY,
                 mp.GetCommunicator().LocalMesh().Nodes)
-            # mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY) # TODO expose in separate PR
+            mp.GetCommunicator().SynchronizeVariable(KM.VELOCITY)
 
     def __InitializeMeshVelocityComputation(self):
         '''Initializing the helper-class for the time-integration

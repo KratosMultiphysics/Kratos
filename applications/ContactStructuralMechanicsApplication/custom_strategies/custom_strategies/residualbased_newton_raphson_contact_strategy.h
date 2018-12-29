@@ -392,7 +392,7 @@ public:
         // Getting model part
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
 
-        if (r_model_part.Is(INTERACTION) == false) {
+        if (r_model_part.IsNot(INTERACTION)) {
             // We get the system
             TSystemMatrixType& A = *BaseType::mpA;
             TSystemVectorType& Dx = *BaseType::mpDx;
@@ -411,6 +411,7 @@ public:
 
                 // We solve one loop
                 r_process_info[NL_ITERATION_NUMBER] = 1;
+                r_process_info[INNER_LOOP_ITERATION] = inner_iteration;
                 is_converged = BaseSolveSolutionStep();
 
                 // We check the convergence
@@ -424,11 +425,13 @@ public:
                 }
             }
         } else {
+            // We compute the base loop
+            r_model_part.GetProcessInfo()[INNER_LOOP_ITERATION] = 1;
             is_converged = BaseSolveSolutionStep();
         }
         
         if (mThisParameters["adaptative_strategy"].GetBool()) {
-            if (is_converged == false) {
+            if (!is_converged) {
                 is_converged = AdaptativeStep();
             }
         }
