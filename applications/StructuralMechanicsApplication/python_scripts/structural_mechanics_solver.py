@@ -73,7 +73,7 @@ class MechanicalSolver(PythonSolver):
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
-            "linear_solver_settings":{ },
+            "linear_solver_settings": { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
@@ -429,12 +429,10 @@ class MechanicalSolver(PythonSolver):
             ]
             for solver_name in linear_solvers_by_speed:
                 if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
-                    linear_solver_settings = KratosMultiphysics.Parameters("""{
-                        "solver_type" : \"""" + solver_name + """\"
-                    }""")
+                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
                     self.print_on_rank_zero('::[MechanicalSolver]:: ',\
                         'Using "' + solver_name + '" as default linear solver')
-                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_settings)
+                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
 
         raise Exception("Linear-Solver could not be constructed!")
 
