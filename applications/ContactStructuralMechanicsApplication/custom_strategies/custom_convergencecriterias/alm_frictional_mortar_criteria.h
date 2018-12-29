@@ -192,11 +192,6 @@ public:
                 it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure);
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->IsNot(ACTIVE)) {
-                        it_node->Set(ACTIVE, true);
-                        is_converged_active += 1;
-                    }
-
                     // The friction coefficient
                     const double mu = it_node->GetValue(FRICTION_COEFFICIENT);
 
@@ -211,6 +206,14 @@ public:
                     it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, augmented_tangent_pressure_components);
                     const double augmented_tangent_pressure = norm_2(augmented_tangent_pressure_components);
 
+                    // We activate the deactivated nodes and add the contribution
+                    if (it_node->IsNot(ACTIVE)) {
+                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = nodal_normal * augmented_normal_pressure/scale_factor + augmented_tangent_pressure_components/scale_factor;
+                        it_node->Set(ACTIVE, true);
+                        is_converged_active += 1;
+                    }
+
+                    // Check for the slip/stick state
                     if (augmented_tangent_pressure <= - mu * augmented_normal_pressure) { // STICK CASE
 //                         KRATOS_WARNING_IF("ALMFrictionalMortarConvergenceCriteria", norm_2(gt) > Tolerance) << "In case of stick should be zero, if not this means that is not properly working. Node ID: " << it_node->Id() << std::endl;
 //                         it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working

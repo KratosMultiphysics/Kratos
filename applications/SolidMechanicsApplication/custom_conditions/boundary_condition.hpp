@@ -19,6 +19,7 @@
 #include "includes/condition.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -536,16 +537,6 @@ protected:
      * Get Node Movements for energy computation
      */
     void GetNodalDeltaMovements(Vector& rValues, const int& rNode);
-
-    /**
-     * Calculation of the Position Increment
-     */
-    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
 
     /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue

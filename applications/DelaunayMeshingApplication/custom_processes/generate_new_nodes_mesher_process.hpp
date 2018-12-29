@@ -398,7 +398,7 @@ private:
       pNode->Z0() = pNode->Z() - Displacement[2];
 
       //set contact force
-      if ( pNode->SolutionStepsDataHas(CONTACT_FORCE) ) 
+      if ( pNode->SolutionStepsDataHas(CONTACT_FORCE) )
          pNode->FastGetSolutionStepValue(CONTACT_FORCE).clear();
 
 

@@ -103,4 +103,4 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactStructuralMechanicsApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactStructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/ContactStructuralMechanicsApplication" RENAME "__init__.py")

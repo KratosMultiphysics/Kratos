@@ -4,6 +4,7 @@
 // Project includes
 
 // System includes
+#include <numeric>
 #include <limits>
 #include <iostream>
 #include <iomanip>
