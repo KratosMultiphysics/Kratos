@@ -319,7 +319,7 @@ public:
 
         const double length = lx * lx + ly * ly;
 
-        return sqrt( length );
+        return std::sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
@@ -351,14 +351,7 @@ public:
     */
     double DomainSize() const override
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(2);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
-
-        const double length = lx * lx + ly * ly;
-
-        return std::sqrt( length );
+        return Length();
     }
     
     /**

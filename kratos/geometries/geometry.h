@@ -528,8 +528,15 @@ public:
      * @see Volume()
      */
     virtual double DomainSize() const {
-      KRATOS_ERROR << "Calling base class 'DomainSize' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if (local_space_dimension == 1) { // 1D geometry
+            this->Length();
+        } else if (local_space_dimension == 2) { // 2D geometry
+            this->Area();
+        } else { // 3D geometry
+            return this->Volume();
+        }
+        return 0.0;
     }
 
     /** This method calculates and returns the minimum edge.
