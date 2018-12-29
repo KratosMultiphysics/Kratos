@@ -10,11 +10,18 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
 
     params = settings["Parameters"]
+
+    # setting default "file_settings"
     if not params.Has("file_settings"):
         file_params = KratosMultiphysics.Parameters(r'''{
-        "file_access_mode" : "truncate"
-    }''')
-    # TODO add truncate as file-access-mode! => otherwise it will not overwrite some files!
+            "file_access_mode"      : "truncate",
+            "write_files_in_folder" : true
+        }''')
+        params.AddValue("file_settings", file_params)
+    else:
+        if not params["file_settings"].Has("file_access_mode"):
+            params["file_settings"].AddEmptyValue("file_access_mode").SetString("truncate")
+
     model_part_name = params["model_part_name"].GetString() # name of modelpart must be specified!
     #todo(msandre): collapse older partitioned scripts to their serial counterparts like this
     if Model[model_part_name].GetCommunicator().TotalProcesses() > 1:
