@@ -529,7 +529,6 @@ void AddUtilitiesToPython(pybind11::module& m)
                                    const double tol,
                                    const int max_results)
             {
-                KRATOS_WATCH(coords)
                 Element::Pointer pelem;
                 Vector N(3);
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
