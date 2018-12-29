@@ -190,7 +190,7 @@ private:
      * @return true if the element is split
      * @return false if the element is not split
      */
-    const bool inline ElementIsSplit(
+    bool inline ElementIsSplit(
         const Geometry<Node<3>> &rGeometry,
         const Vector &rNodalDistances);
 

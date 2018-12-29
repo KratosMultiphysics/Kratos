@@ -356,8 +356,45 @@ Vector& LinearJ2Plasticity3D::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
+void LinearJ2Plasticity3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    // TODO: Add something if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
 void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
 {
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -365,6 +402,8 @@ void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Paramete
 
 void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -372,6 +411,8 @@ void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Paramete
 
 void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
 {
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -379,6 +420,7 @@ void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Pa
 
 void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
+    // TODO: Add something if necessary
 }
 
 //************************************************************************************
