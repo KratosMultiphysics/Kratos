@@ -32,3 +32,37 @@ def DeleteTimeFiles(directory_name):
     for file_name in os.listdir(directory_name):
         if file_name.endswith(".time"):
             DeleteFileIfExisting(os.path.join(directory_name, file_name))
+
+def GetKratosMultiphysicsPath():
+    """Returning the path to the KratosMultiphysics-module
+    """
+    import KratosMultiphysics
+    return os.path.dirname(KratosMultiphysics.__file__)
+
+def GetListOfAvailableApplications():
+    """Return a list of compiled applications available in the
+    KratosMultiphysics module.
+    """
+    kratos_path = GetKratosMultiphysicsPath()
+
+    apps = [
+        f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
+    ]
+
+    return apps
+
+def IsApplicationAvailable(application_name):
+    """Returns whether an application is available
+    """
+    return application_name in GetListOfAvailableApplications()
+
+def AreApplicationsAvailable(list_application_names):
+    """Returns whether several applications are available
+    """
+    available_apps = GetListOfAvailableApplications()
+
+    for app_name in list_application_names:
+        if app_name not in available_apps:
+            return False
+
+    return True
