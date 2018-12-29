@@ -36,7 +36,7 @@ def DeleteTimeFiles(directory_name):
 def GetKratosMultiphysicsPath():
     """Returning the path to the KratosMultiphysics-module
     """
-    import KratosMultiphysics
+    import KratosMultiphysics, os
     return os.path.dirname(KratosMultiphysics.__file__)
 
 def GetListOfAvailableApplications():
@@ -44,6 +44,7 @@ def GetListOfAvailableApplications():
     KratosMultiphysics module.
     """
     kratos_path = GetKratosMultiphysicsPath()
+    import os, re
 
     apps = [
         f.split('.')[0] for f in os.listdir(kratos_path) if re.match(r'.*Application*', f)
