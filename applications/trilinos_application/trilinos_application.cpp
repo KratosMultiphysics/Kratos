@@ -1,8 +1,8 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+//  KRATOS  _____     _ _ _
+//         |_   _| __(_) (_)_ __   ___  ___
+//           | || '__| | | | '_ \ / _ \/ __|
+//           | || |  | | | | | | | (_) \__
+//           |_||_|  |_|_|_|_| |_|\___/|___/ APPLICATION
 //
 //  License:             BSD License
 //                                       Kratos default license: kratos/license.txt
@@ -17,11 +17,10 @@
 
 // Project includes
 #include "trilinos_application.h"
+#include "custom_factories/trilinos_linear_solver_factory.h"
 
 namespace Kratos
 {
-// 	KRATOS_CREATE_VARIABLE( bool, IS_INACTIVE )
-
 void KratosTrilinosApplication::Register()
 {
     // calling base class register to register Kratos components
@@ -51,6 +50,8 @@ void KratosTrilinosApplication::Register()
     {
         std::cout << banner.str();
     }
+
+    RegisterTrilinosLinearSolvers();
 }
 
 
