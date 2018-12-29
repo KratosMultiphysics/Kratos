@@ -368,14 +368,7 @@ public:
     */
     double DomainSize() const override
     {
-        const TPointType& FirstPoint = BaseType::GetPoint(0);
-        const TPointType& SecondPoint = BaseType::GetPoint(1);
-        const double lx = FirstPoint.X() - SecondPoint.X();
-        const double ly = FirstPoint.Y() - SecondPoint.Y();
-
-        const double length = lx * lx + ly * ly;
-
-        return std::sqrt( length );
+        return Length();
     }
 
 //      virtual void Bounding_Box(BoundingBox<TPointType, BaseType>& rResult) const

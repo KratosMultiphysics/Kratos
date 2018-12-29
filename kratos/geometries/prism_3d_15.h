@@ -441,7 +441,7 @@ public:
      */
     double DomainSize() const override
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+        return Volume();
     }
 
 
