@@ -287,7 +287,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    WeakPointerVector<Element > mMasterElements;
+    ElementPointerVectorType mMasterElements;
 
     ///@}
     ///@name Private Operators

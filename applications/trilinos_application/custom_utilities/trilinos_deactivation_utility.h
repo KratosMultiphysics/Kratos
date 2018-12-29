@@ -55,26 +55,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <cmath>
-
 #if !defined(isnan)
 #define isnan(x) ((x)!=(x))
 #endif
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-#include "includes/variables.h"
-#include "trilinos_application.h"
-#include "includes/deprecated_variables.h"
 #include "includes/legacy_structural_app_vars.h"
 
 
@@ -192,7 +180,7 @@ public:
             {
                 if( !( (*it)->GetValue( IS_CONTACT_MASTER ) || (*it)->GetValue( IS_CONTACT_SLAVE ) ) )
                 {
-                    (*it)->Set(ACTIVE,false); 
+                    (*it)->Set(ACTIVE,false);
                 }
             }
         }
@@ -208,10 +196,10 @@ public:
     {
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
-            (*it)->Set(ACTIVE,true); 
+            (*it)->Set(ACTIVE,true);
         for( ConditionsArrayType::ptr_iterator it = model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it )
-            (*it)->Set(ACTIVE,true); 
+            (*it)->Set(ACTIVE,true);
     }
 
     /**
@@ -313,4 +301,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED  defined 
+#endif // KRATOS_TRILINOS_DEACTIVATION_UTILITY_INCLUDED  defined

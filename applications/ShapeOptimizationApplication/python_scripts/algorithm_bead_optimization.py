@@ -123,7 +123,7 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
         VariableUtils().SetFlag(BOUNDARY, False, self.optimization_model_part.Nodes)
 
         radius = self.mapper_settings["filter_radius"].GetDouble()
-        search_based_functions = SearchBasedFunctions(self.optimization_model_part)
+        search_based_functions = SearchBasedFunctions(self.design_surface)
 
         for itr in range(self.algorithm_settings["fix_boundaries"].size()):
             sub_model_part_name = self.algorithm_settings["fix_boundaries"][itr].GetString()

@@ -149,6 +149,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         // ----------------------------------------------------------------
         .def("ComputeProjectedSearchDirection", &OptimizationUtilities::ComputeProjectedSearchDirection)
         .def("CorrectProjectedSearchDirection", &OptimizationUtilities::CorrectProjectedSearchDirection)
+        .def("GetCorrectionScaling", &OptimizationUtilities::GetCorrectionScaling)
         // ----------------------------------------------------------------
         // General optimization operations
         // ----------------------------------------------------------------

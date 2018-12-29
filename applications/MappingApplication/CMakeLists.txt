@@ -77,4 +77,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MappingApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MappingApplication.py" DESTINATION "KratosMultiphysics/MappingApplication" RENAME "__init__.py")

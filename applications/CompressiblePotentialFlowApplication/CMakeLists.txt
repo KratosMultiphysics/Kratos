@@ -40,4 +40,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/CompressiblePotentialFlowApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CompressiblePotentialFlowApplication.py" DESTINATION "KratosMultiphysics/CompressiblePotentialFlowApplication" RENAME "__init__.py")

@@ -172,7 +172,7 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
     DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
 
     // Loop over Gauss Points
-    for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
 
 		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
         detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
@@ -196,35 +196,38 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         Vector IntegratedStressVector = ZeroVector(strain_size);
 		Vector DamagesOnEdges = ZeroVector(6);
+		bool is_damaging = false;
 
 		// Loop over edges of the element
-		for (unsigned int edge = 0; edge < 6; edge++) {
-			std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
+        const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
+			std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
 			Vector AverageStressVector, AverageStrainVector, IntegratedStressVectorOnEdge;
 
 			this->CalculateAverageStressOnEdge(AverageStressVector, EdgeNeighbours);
 			this->CalculateAverageStrainOnEdge(AverageStrainVector, EdgeNeighbours);
 
-			double DamageEdge;
-			const double Lchar = this->Get_l_char(edge);
-			this->IntegrateStressDamageMechanics(IntegratedStressVectorOnEdge, DamageEdge,
-												 AverageStrainVector, AverageStressVector, edge, Lchar);
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
 
-			this->SetNonConvergedDamages(DamageEdge, edge);
-			DamagesOnEdges[edge] = DamageEdge;
+			this->IntegrateStressDamageMechanics(threshold, 
+												 damage_edge,
+												 AverageStrainVector, 
+				                                 AverageStressVector, 
+												 edge, 
+												 characteristic_lengths[edge],
+											     is_damaging);
+			this->SetNonConvergedDamages(damage_edge, edge);
+			mNonConvergedDamages[edge] = damage_edge;
+			mNonConvergedThresholds[edge] = threshold;
 		} // End loop over edges
 
-        double damage_element = this->CalculateElementalDamage(DamagesOnEdges);
-		if (damage_element >= 0.999)
-			damage_element = 0.999;
-		this->SetNonConvergedDamages(damage_element);
+        double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector &stress_vector = this->GetValue(STRESS_VECTOR);
-        Vector integrated_stress_vector = ZeroVector(strain_size);
-		integrated_stress_vector = (1.0 - damage_element) * stress_vector;
-		this->SetIntegratedStressVector(integrated_stress_vector);
+		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
 
-        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth);
+        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
         this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
     }
@@ -288,15 +291,14 @@ void FemDem3DLargeDisplacementElement::CalculateAndAddMaterialK(
     MatrixType& rLeftHandSideMatrix,
     const Matrix& B,
     const Matrix& D,
-    const double IntegrationWeight
+    const double IntegrationWeight,
+	const double Damage
     )
 {
     KRATOS_TRY
 
-    double damage = this->GetNonConvergedDamage();
-
     // Secant Constitutive Tensor
-    noalias(rLeftHandSideMatrix) += (1.0 - damage) * IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
+    noalias(rLeftHandSideMatrix) += (1.0 - Damage) * IntegrationWeight * prod(trans(B), Matrix(prod(D, B)));
 
     KRATOS_CATCH("")
 }

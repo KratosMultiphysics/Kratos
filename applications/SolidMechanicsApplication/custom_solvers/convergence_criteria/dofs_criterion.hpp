@@ -144,8 +144,10 @@ class DofsCriterion : public ConvergenceCriterion<TSparseSpace,TDenseSpace>
         size = CalculateReferenceNorm(rDofSet,rDx, ReferenceNorm, CorrectionNorm);
       }
 
-      if( size == 0 )
-        KRATOS_ERROR << "Dofs vector has size: " << size << std::endl;
+      if( size == 0 ){
+        KRATOS_WARNING("") << GetDofName() <<" Dofs vector has size: " << size << std::endl;
+        return true;
+      }
 
       if(CorrectionNorm != 0)
       {
