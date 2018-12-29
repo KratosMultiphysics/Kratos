@@ -464,8 +464,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
             unsigned int neg_count = 0;
             unsigned int pos_count = 0;
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                distance[i] = p_condition->GetGeometry()[i].GetSolutionStepValue( DISTANCE );
-                if ( rGeom[i].GetSolutionStepValue( DISTANCE ) > 0.0 ){
+                distance[i] = p_condition->GetGeometry()[i].FastGetSolutionStepValue( DISTANCE );
+                if ( rGeom[i].FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
                     pos_count++;
                 } else {
                     neg_count++;
@@ -495,7 +495,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
+                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         inflow_over_boundary -= w_gauss * inner_prod( normal, interpolated_velocity );
                     }
@@ -547,7 +547,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const wGauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
+                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
@@ -575,7 +575,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         const array_1d<double,3>& N = row(r_shape_functions, i_gauss);
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].GetSolutionStepValue(VELOCITY);
+                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
                         // the normal still comes from the oiginal triangle
@@ -697,19 +697,19 @@ void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rG
     IndexedPoint::Pointer paux_point2 = nullptr;
     // Modify the node with the positive distance
     for (unsigned int i_node = 0; i_node < rGeom.PointsNumber(); i_node++){
-        if ( rGeom[i_node].GetSolutionStepValue( DISTANCE ) > 0.0 ){
+        if ( rGeom[i_node].FastGetSolutionStepValue( DISTANCE ) > 0.0 ){
             // interpolating position for the new node
             aux_point1_coords[0] = n_cut[0] * rGeom[0].X() + n_cut[1] * rGeom[1].X();
             aux_point1_coords[1] = n_cut[0] * rGeom[0].Y() + n_cut[1] * rGeom[1].Y();
             aux_point1_coords[2] = n_cut[0] * rGeom[0].Z() + n_cut[1] * rGeom[1].Z();
             paux_point1 = Kratos::make_shared<IndexedPoint>(aux_point1_coords, mrModelPart.NumberOfNodes()+1);
-            aux_velocity1 = n_cut[0] * rGeom[0].GetSolutionStepValue( VELOCITY ) + n_cut[1] * rGeom[1].GetSolutionStepValue( VELOCITY );
+            aux_velocity1 = n_cut[0] * rGeom[0].FastGetSolutionStepValue( VELOCITY ) + n_cut[1] * rGeom[1].FastGetSolutionStepValue( VELOCITY );
         } else {
             aux_point2_coords[0] = rGeom[i_node].X();
             aux_point2_coords[1] = rGeom[i_node].Y();
             aux_point2_coords[2] = rGeom[i_node].Z();
             paux_point2 = Kratos::make_shared<IndexedPoint>(aux_point2_coords, mrModelPart.NumberOfNodes()+2);
-            aux_velocity2 = rGeom[i_node].GetSolutionStepValue( VELOCITY );
+            aux_velocity2 = rGeom[i_node].FastGetSolutionStepValue( VELOCITY );
         }
     }
 
