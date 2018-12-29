@@ -178,10 +178,12 @@ namespace {
 
         geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
 
-//         KRATOS_CHECK_NEAR(lumping_factors[0], 0.25, TOLERANCE);
-//         KRATOS_CHECK_NEAR(lumping_factors[1], 0.25, TOLERANCE);
-//         KRATOS_CHECK_NEAR(lumping_factors[2], 0.25, TOLERANCE);
-//         KRATOS_CHECK_NEAR(lumping_factors[3], 0.25, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[2], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[3], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/6.0, TOLERANCE);
     }
 
 } // namespace Testing.

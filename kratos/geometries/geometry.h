@@ -513,12 +513,14 @@ public:
             array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
 
             // Iterate over integration points
+            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
+            const double weight = integration_points[0].Weight()/static_cast<double>(number_of_nodes);
             for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
                 for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
                     r_local_coordinates[dim] = local_coordinates(point_number, dim);
                 }
                 const double detJ = DeterminantOfJacobian(local_point);
-                rResult[point_number] = detJ/domain_size;
+                rResult[point_number] = weight * detJ/domain_size;
             }
         }
 
