@@ -530,9 +530,9 @@ public:
     virtual double DomainSize() const {
         const SizeType local_space_dimension = this->LocalSpaceDimension();
         if (local_space_dimension == 1) { // 1D geometry
-            this->Length();
+            return this->Length();
         } else if (local_space_dimension == 2) { // 2D geometry
-            this->Area();
+            return this->Area();
         } else { // 3D geometry
             return this->Volume();
         }
