@@ -50,14 +50,13 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     mInletRadius = rParameters["two_fluid_settings"]["inlet_transition_radius"].GetDouble();
 
     // setting flags for the inlet on nodes and conditions
-    // #pragma omp parallel for
-    // for (int i_node = 0; i_node < static_cast<int>(mrInletModelPart.NumberOfNodes()); ++i_node){
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_nodes = mrInletModelPart.NodesBegin() + i_node;
         it_nodes->Set( INLET, true );
     }
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
         // iteration over all conditions
         auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
@@ -65,10 +64,10 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // Comment: The historical DISTANCE variable is used to compute a distance field that is then stored in a non-historical variable AUX_DISTANCE
-    //          The functions for the distance computation do not work on non-histirical variables - this is reason for the following procedure (*)
+    //          The functions for the distance computation do not work on non-historical variables - this is reason for the following procedure (*)
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -101,7 +100,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -112,7 +111,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
 
     // (*) restoring the original distance field from its stored version
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -153,7 +152,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
             if ( inlet_dist > 0 ){ pos_counter++; }
             if ( inlet_dist <= 0 ){ neg_counter++; }
         }
-        // the conditions cut by the interface are neither assigned to the positive nor the negative side
+        // the conditions cut by the interface are neither assigned to both the positive and the negative side
         if( pos_counter > 0 ){
             index_cond_air.push_back( it_cond->GetId() );
         }
@@ -193,6 +192,7 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
         }
 
     }
+
 }
 
 
