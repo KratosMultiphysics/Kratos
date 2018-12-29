@@ -260,9 +260,9 @@ private:
      * @brief Generating a 2D triangle of type Triangle2D3 out of a Triangle3D3 geometry
      * A rotation to a position parallel to the x,y plane is performed.
      * @param rGeom Original triangle geometry
-     * @return Kratos::shared_ptr< Triangle2D3<Node<3>> > Pointer to the resulting triangle of type Triangle2D3
+     * @return Triangle2D3<Node<3>>::Pointer Shared pointer to the resulting triangle of type Triangle2D3
      */
-    Kratos::shared_ptr< Triangle2D3<Node<3>> > GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
+    Triangle2D3<Node<3>>::Pointer GenerateAuxTriangle( const Geometry<Node<3> >& rGeom );
 
     /**
      * @brief Function to generate an auxiliary line segment that covers only the negative part of the original geometry

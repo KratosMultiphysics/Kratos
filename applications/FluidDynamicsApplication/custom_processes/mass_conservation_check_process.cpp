@@ -192,7 +192,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
         }
         else if ( 0 < pt_count_neg && 0 < pt_count_pos ){
             // element is cut by the surface (splitting)
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_pos_side(3, 0.0);
             Vector w_gauss_neg_side(3, 0.0);
             Vector w_gauss_interface(3, 0.0);
@@ -206,8 +206,8 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
@@ -285,7 +285,6 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
         else {
             // element is cut by the surface (splitting)
             Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
-            // ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             Vector w_gauss_interface(3, 0.0);
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
@@ -349,7 +348,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
         }
         else {
             // element is cut by the surface (splitting)
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_neg_side(3, 0.0);
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
@@ -357,8 +356,8 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
 
             // Call the negative side modified shape functions calculator
@@ -413,7 +412,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
         }
         else {
             // element is cut by the surface (splitting)
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
             Vector w_gauss_pos_side(3, 0.0);
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
@@ -421,8 +420,8 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
                 Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
 
             // Call the positive side modified shape functions calculator (Gauss weights woulb be enough)
@@ -562,7 +561,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     // generating an auxiliary Triangle2D3 geometry the "Triangle2D3ModifiedShapeFunctions" can work with
                     const auto aux_2D_triangle = GenerateAuxTriangle( rGeom );
                     // passing the auxiliary triangle
-                    const auto p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
+                    const auto p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>( aux_2D_triangle, distance);
 
                     p_modified_sh_func->ComputeNegativeSideShapeFunctionsAndGradientsValues(
                         r_shape_functions,                  // N
@@ -631,7 +630,7 @@ void MassConservationCheckProcess::CalculateNormal3D(array_1d<double,3>& An, con
 
 
 /// Function to convert Triangle3D3N into Triangle2D3N which can be handled by the splitting utilitity
-Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
+Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle( const Geometry<Node<3> >& rGeom ){
 
     // Generating auxiliary "Triangle2D3" because the original geometry is "Triangle3D3"
 
@@ -667,8 +666,8 @@ Kratos::shared_ptr< Triangle2D3<Node<3>> > MassConservationCheckProcess::Generat
     Kratos::shared_ptr<Kratos::Node<3UL>> node2 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
     Kratos::shared_ptr<Kratos::Node<3UL>> node3 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
-    // finally dreating the desired Triangle2D3 based on the nodes
-    Kratos::shared_ptr< Triangle2D3<Node<3>> > aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
+    // finally creating the desired Triangle2D3 based on the nodes
+    Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
     return aux_2D_triangle;
 }
 
