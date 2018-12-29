@@ -158,37 +158,6 @@ void PythonOutfittedConstitutiveLaw::InitializeMaterial( const Properties& rProp
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-
-void PythonOutfittedConstitutiveLaw::InitializeSolutionStep( const Properties& rProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void PythonOutfittedConstitutiveLaw::FinalizeSolutionStep( const Properties& rProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************

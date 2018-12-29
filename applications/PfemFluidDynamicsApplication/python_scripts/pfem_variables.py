@@ -4,9 +4,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.DelaunayMeshingApplication  as KratosDelaunay
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def AddVariables(main_model_part):
   

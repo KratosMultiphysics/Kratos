@@ -146,7 +146,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                 info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
                 info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
                 info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintInfo("StructuralMechanicsAnalysis", info_msg)
+                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:
