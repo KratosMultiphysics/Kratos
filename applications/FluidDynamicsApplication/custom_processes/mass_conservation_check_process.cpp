@@ -494,7 +494,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         inflow_over_boundary -= w_gauss * inner_prod( normal, interpolated_velocity );
                     }
@@ -546,7 +546,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         double const wGauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         inflow_over_boundary -= wGauss * inner_prod( normal, interpolated_velocity );
                     }
@@ -574,7 +574,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         const array_1d<double,3>& N = row(r_shape_functions, i_gauss);
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
-                            interpolated_velocity += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                            noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
                         }
                         // abs() is necessary because the auxiliary Triangle2D3 geometry could possibly be inverted
                         // the normal still comes from the oiginal triangle
