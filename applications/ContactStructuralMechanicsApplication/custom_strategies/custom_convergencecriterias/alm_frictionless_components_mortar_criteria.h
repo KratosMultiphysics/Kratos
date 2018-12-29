@@ -184,12 +184,13 @@ public:
                 it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
 
                 if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->Is(ACTIVE) == false ) {
+                    if (it_node->IsNot(ACTIVE)) {
+                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = nodal_normal * augmented_normal_pressure/scale_factor;
                         it_node->Set(ACTIVE, true);
                         is_converged += 1;
                     }
                 } else {
-                    if (it_node->Is(ACTIVE) == true ) {
+                    if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
                         is_converged += 1;
                     }

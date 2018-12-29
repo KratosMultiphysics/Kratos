@@ -51,14 +51,38 @@ public:
     using OctreeType = OctreeBinary<CellType>;
     using CellNodeDataType = ConfigurationType::cell_node_data_type;
 
+    typedef Element::GeometryType IntersectionGeometryType;
+    typedef std::vector<std::pair<double, IntersectionGeometryType*> > IntersectionsContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor to be used.
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * Constructor without user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     */
     CalculateDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart);
+
+    /**
+     * @brief Construct a new Calculate Distance To Skin Process object
+     * Constructor with user defined extra rays epsilon, used to 
+     * generate the extra rays when voting is required for coloring
+     * @param rVolumePart model part containing the volume elements
+     * @param rSkinPart model part containing the skin to compute 
+     * the distance to as conditions
+     * @param ExtraRaysEpsilon user-defined extra rays epsilon
+     */
+    CalculateDistanceToSkinProcess(
+        ModelPart& rVolumePart,
+        ModelPart& rSkinPart,
+        const double ExtraRaysEpsilon);
 
     /// Destructor.
     ~CalculateDistanceToSkinProcess() override;
@@ -218,6 +242,7 @@ private:
     ///@name Member Variables
     ///@{
 
+    const double mExtraRaysEpsilon = 1.0e-8;
 
     ///@}
     ///@name Private Operators
@@ -253,6 +278,20 @@ private:
         const double* pRayPoint1,
         const double* pRayPoint2,
         double* pIntersectionPoint);
+
+    void GetExtraRayOrigins(
+        const double RayEpsilon,
+        const array_1d<double,3> &rCoords,
+        std::vector<array_1d<double,3>> &rExtraRayOrigs);
+
+
+    void CorrectExtraRayOrigin(double* ExtraRayCoords);
+
+    void ComputeExtraRayColors(
+        const double Epsilon,
+        const double RayPerturbation,
+        const array_1d<double,3> &rCoords,
+        array_1d<double,TDim> &rDistances);
 
     ///@}
     ///@name Private  Access

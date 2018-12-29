@@ -14,28 +14,14 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <pybind11/pybind11.h>
-#include <string>
 
 // Project includes
 #include "includes/define_python.h"
 
-#include "custom_python/add_trilinos_strategies_to_python.h"
-
-//Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
+// Trilinos includes
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
 #include "includes/model_part.h"
@@ -52,7 +38,6 @@
 #include "external_includes/ml_solver.h"
 
 #include "external_includes/amgcl_mpi_solver.h"
-//#include "external_includes/amgcl_deflation_solver.h"
 #include "external_includes/amgcl_mpi_schur_complement_solver.h"
 
 namespace Kratos
@@ -67,11 +52,11 @@ typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceTy
 typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
-void Solve(TrilinosLinearSolverType& solver, 
-            TrilinosSparseSpaceType::MatrixType& rA, 
-            TrilinosSparseSpaceType::VectorType& rX, 
+void Solve(TrilinosLinearSolverType& solver,
+            TrilinosSparseSpaceType::MatrixType& rA,
+            TrilinosSparseSpaceType::VectorType& rX,
             TrilinosSparseSpaceType::VectorType& rB
-            
+
             )
 {
     solver.Solve(rA,rX,rB);
@@ -114,7 +99,7 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<AmgclMPISolverType, typename AmgclMPISolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclMPISolver").def( py::init<Parameters>())
     ;
-    
+
 #if 0
     typedef AmgclDeflationSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > AmgclDeflationSolverType;
     py::class_<AmgclDeflationSolverType, typename AmgclDeflationSolverType::Pointer, TrilinosLinearSolverType >
@@ -126,7 +111,7 @@ void  AddLinearSolvers(pybind11::module& m)
     py::class_<AmgclMPISchurComplementSolverType, typename AmgclMPISchurComplementSolverType::Pointer, TrilinosLinearSolverType >
     (m,"AmgclMPISchurComplementSolver").def( py::init<Parameters>())
     ;
-    
+
     py::enum_<AztecScalingType>(m,"AztecScalingType")
     .value("NoScaling", NoScaling)
     .value("LeftScaling", LeftScaling)
@@ -137,7 +122,7 @@ void  AddLinearSolvers(pybind11::module& m)
     .value("NoScaling", MLSolverType::NoScaling)
     .value("LeftScaling", MLSolverType::LeftScaling)
     ;
-    
+
 }
 
 

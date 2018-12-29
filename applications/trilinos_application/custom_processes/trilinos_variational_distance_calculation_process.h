@@ -16,16 +16,11 @@
 #define  KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
-#include "mpi.h"
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/communicator.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"

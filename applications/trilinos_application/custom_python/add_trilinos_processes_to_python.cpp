@@ -2,23 +2,13 @@
 // External includes
 #include "custom_python/add_trilinos_processes_to_python.h"
 
-//Trilinos includes
-#include "mpi.h"
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
-#include "Epetra_FECrsMatrix.h"
+// Trilinos includes
 #include "Epetra_FEVector.h"
-#include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_SerialDenseMatrix.h"
 
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-#include "trilinos_application.h"
 #include "trilinos_space.h"
 #include "spaces/ublas_space.h"
 
