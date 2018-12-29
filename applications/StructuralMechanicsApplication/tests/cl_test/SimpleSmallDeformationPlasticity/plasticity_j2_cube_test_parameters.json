@@ -38,7 +38,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_SymXY",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_SymXY",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
                 "value"           : [null,null,0.0],
@@ -48,7 +48,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_SymXZ",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_SymXZ",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,true,false],
                 "value"           : [null,0.0,null],
@@ -58,7 +58,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_SymYZ",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_SymYZ",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,false],
                 "value"           : [0.0,null,null],
@@ -68,7 +68,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
                 "value"           : [null,null,"+0.01*t"],
@@ -78,7 +78,7 @@
             "python_module" : "assign_vector_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "Parameters"    : {
-                "model_part_name" : "DISPLACEMENT_Displacement_Auto3",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto3",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [false,false,true],
                 "value"           : [null,null,"+0.01+0.01*(t-1.0)"],
@@ -96,7 +96,7 @@
             "Parameters"            : {
                 "gauss_points_check_variables" : ["CAUCHY_STRESS_VECTOR"],
                 "input_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test_results.json",
-                "model_part_name"              : "Parts_Parts_Auto1",
+                "model_part_name"              : "Structure.Parts_Parts_Auto1",
                 "time_frequency"               : 0.5
             }
         }
@@ -111,7 +111,7 @@
         "Parameters"            : {
             "gauss_points_output_variables" : ["CAUCHY_STRESS_VECTOR"],
             "output_file_name"              : "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test_results.json",
-            "model_part_name"               : "Parts_Parts_Auto1",
+            "model_part_name"               : "Structure.Parts_Parts_Auto1",
             "time_frequency"                : 0.5
         }
     }
