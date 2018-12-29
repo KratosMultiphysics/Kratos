@@ -5,7 +5,7 @@ import KratosMultiphysics.HDF5Application as KratosHDF5
 import os, sys, xdmf
 import warnings
 with warnings.catch_warnings():
-    # suppressing an import-related warning from h5py
+    # suppressing an import-related warningfrom h5py
     # problem appears when using it in a test with python >=3.6
     warnings.simplefilter('ignore', category=ImportWarning)
     import h5py
@@ -99,6 +99,9 @@ def WriteXdmfFile(file_name, rel_path_h5_files=""):
         except OSError:
             # in case this file cannot be opened skip it
             # this can be the case if the file is already opened
+            warn_msg  = 'No xdmf-data was written for file:\n"'
+            warn_msg += current_file_name + '"'
+            KratosMultiphysics.Logger.PrintWarning("XDMF-Writing", warn_msg)
             continue
         if not has_data:
             continue

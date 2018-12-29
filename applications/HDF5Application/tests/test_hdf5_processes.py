@@ -142,7 +142,6 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         output_process = XdmfOutputFactory(output_settings, self.model)
 
         self.assertTrue(os.path.isdir("ModelPartXDMFOutput__h5_files"))
-        # err
 
         output_process.ExecuteBeforeSolutionLoop()
 
