@@ -175,7 +175,7 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -271,7 +271,7 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -284,16 +284,17 @@ double MassConservationCheckProcess::ComputeInterfaceArea(){
         }
         else {
             // element is cut by the surface (splitting)
-            ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
+            Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
+            // ModifiedShapeFunctions::Pointer p_modified_sh_func = nullptr;
             Vector w_gauss_interface(3, 0.0);
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                Distance[i] = rGeom.GetPoint(i).FastGetSolutionStepValue(DISTANCE);
+                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
-            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
-            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_shared<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
             else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
 
             // Concerning their area, the positive and negative side of the interface are equal
@@ -331,7 +332,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -353,7 +354,7 @@ double MassConservationCheckProcess::ComputeNegativeVolume(){
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                Distance[i] = rGeom.GetPoint(i).FastGetSolutionStepValue(DISTANCE);
+                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
@@ -395,7 +396,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
         // instead of using data.isCut()
         for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
-            if ( rGeom.GetPoint(pt).FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
                 pt_count_pos++;
             } else {
                 pt_count_neg++;
@@ -417,7 +418,7 @@ double MassConservationCheckProcess::ComputePositiveVolume(){
 
             Vector Distance( rGeom.PointsNumber(), 0.0 );
             for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
-                Distance[i] = rGeom.GetPoint(i).FastGetSolutionStepValue(DISTANCE);
+                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
             }
 
             if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_shared<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
@@ -490,7 +491,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
-                        const Vector N = row(n_container, i_gauss);
+                        const auto& N = row(n_container, i_gauss);
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
@@ -516,7 +517,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     const Matrix n_container = p_aux_line->ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
-                        const Vector N = row(n_container, i_gauss);
+                        const auto& N = row(n_container, i_gauss);
                         double const w_gauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         const array_1d<double,3> interpolatedVelocity = N[0] * aux_velocity1 + N[1] * aux_velocity2;
                         inflow_over_boundary -= std::abs( w_gauss ) * inner_prod( normal, interpolatedVelocity );
@@ -542,7 +543,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     const Matrix n_container = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2 );
 
                     for (unsigned int i_gauss = 0; i_gauss < num_gauss; i_gauss++){
-                        const Vector N = row(n_container, i_gauss);
+                        const auto& N = row(n_container, i_gauss);
                         double const wGauss = gauss_pts_det_jabobian[i_gauss] * IntegrationPoints[i_gauss].Weight();
                         array_1d<double,3> interpolated_velocity = ZeroVector(3);
                         for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
