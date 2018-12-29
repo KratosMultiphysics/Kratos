@@ -450,8 +450,13 @@ public:
             const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
             const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
+            // Vector fo jacobians
+            Vector detJ_vector(integration_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
             for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-                const double detJ = DeterminantOfJacobian(point_number, integration_method);
+                const double detJ = detJ_vector[point_number];
                 const double integration_weight = integration_points[point_number].Weight() * detJ;
                 const Vector& rN = row(Ncontainer,point_number);
 
@@ -474,8 +479,13 @@ public:
             const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
             const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
+            // Vector fo jacobians
+            Vector detJ_vector(integration_points.size());
+            DeterminantOfJacobian(detJ_vector, integration_method);
+
+            // Iterate over the integration points
             for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-                const double detJ = DeterminantOfJacobian(point_number, integration_method);
+                const double detJ = detJ_vector[point_number];
                 const double integration_weight = integration_points[point_number].Weight() * detJ;
                 const Vector& rN = row(Ncontainer,point_number);
 
@@ -501,6 +511,8 @@ public:
             PointsLocalCoordinates(local_coordinates);
             Point local_point(ZeroVector(3));
             array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
+
+            // Iterate over integration points
             for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
                 for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
                     r_local_coordinates[dim] = local_coordinates(point_number, dim);
