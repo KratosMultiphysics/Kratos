@@ -524,11 +524,13 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabase)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 2 > ::UpdateSearchDatabaseAssignedSize)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 2 > ::FindPointOnMeshSimplified)
-        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, 
+                                   const array_1d<double,3>& coords, 
+                                   const double tol,
+                                   const int max_results=1000)
             {
                 Element::Pointer pelem;
                 Vector N;
-                int max_results = 1000;
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
                 return py::make_tuple(found, N, pelem);
             }
@@ -540,11 +542,13 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, const array_1d<double,3>& coords, const double tol)
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, 
+                                const array_1d<double,3>& coords, 
+                                const double tol,
+                                const int max_results=1000)
             {
                 Element::Pointer pelem;
                 Vector N;
-                int max_results = 1000;
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
                 return py::make_tuple(found, N, pelem);
             }
