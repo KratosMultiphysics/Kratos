@@ -212,10 +212,10 @@ void PlasticityIsotropicKinematicJ2::CalculateResponse6(
     const Properties& r_material_properties = rValues.GetMaterialProperties();
 
     // Values of the CL
-    Flags&      r_cl_options = rValues.GetOptions();  // The flags of the law
-    Vector&     r_strain_vector = rValues.GetStrainVector();
-    Vector&     r_stress_vector = rValues.GetStressVector();
-    MatrixType& r_tangent_tensor = rValues.GetConstitutiveMatrix();
+    Flags&        r_cl_options = rValues.GetOptions();  // The flags of the law
+    const Vector& r_strain_vector = rValues.GetStrainVector();
+    Vector&       r_stress_vector = rValues.GetStressVector();
+    MatrixType&   r_tangent_tensor = rValues.GetConstitutiveMatrix();
 
     // Material properties
     const double young = r_material_properties[YOUNG_MODULUS];
@@ -233,16 +233,16 @@ void PlasticityIsotropicKinematicJ2::CalculateResponse6(
     CalculateElasticMatrix6(r_material_properties, elastic_tensor);  //compute elastic matrix
 
     BoundedArrayType sigma_trial;
-    sigma_trial = prod(elastic_tensor, r_strain_vector - rPlasticStrain);  //elastic trial prediction
+    noalias(sigma_trial) = prod(elastic_tensor, r_strain_vector - rPlasticStrain);  //elastic trial prediction
 
-    // calculate deviatoric stress vector   (  deviatoric_stress = sigma - 1/3 tr(sigma) * I  )
+    // Calculate deviatoric stress vector   (  deviatoric_stress = sigma - 1/3 tr(sigma) * I  )
     BoundedArrayType deviatoric_stress = sigma_trial;
     const double pressure = (sigma_trial[0] + sigma_trial[1] + sigma_trial[2]) /3.0;
     deviatoric_stress[0] -= pressure;
     deviatoric_stress[1] -= pressure;
     deviatoric_stress[2] -= pressure;
 
-    //euclidean norm of deviatoric stress
+    // Euclidean norm of deviatoric stress
     const double norm_dev_stress = std::sqrt(deviatoric_stress[0]*deviatoric_stress[0] +
                                              deviatoric_stress[1]*deviatoric_stress[1] +
                                              deviatoric_stress[2]*deviatoric_stress[2] +
