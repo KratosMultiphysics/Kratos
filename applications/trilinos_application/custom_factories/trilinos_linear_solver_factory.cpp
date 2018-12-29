@@ -12,12 +12,7 @@
 //
 
 
-// Trilinos includes
-#include "Epetra_FEVector.h"
-
 // // Project includes
-#include "trilinos_space.h"
-#include "spaces/ublas_space.h"
 
 // // Linear solvers
 #include "trilinos_linear_solver_factory.h"
@@ -42,10 +37,10 @@ void RegisterTrilinosLinearSolvers()
         TrilinosSparseSpaceType,
         TrilinosLocalSpaceType,
         AztecSolverType>();
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec", AztecSolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("cg", AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("aztec",    AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("cg",       AztecSolverFactory);
     KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("bicgstab", AztecSolverFactory);
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("gmres", AztecSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("gmres",    AztecSolverFactory);
 
     typedef AmesosSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > AmesosSolverType;
