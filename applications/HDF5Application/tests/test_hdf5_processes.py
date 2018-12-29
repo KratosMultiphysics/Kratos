@@ -1,4 +1,5 @@
 import os
+import KratosMultiphysics
 from KratosMultiphysics import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -7,6 +8,10 @@ from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process impo
 from KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process import Factory as XdmfOutputFactory
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process import Factory as TimeInputFactory
 from KratosMultiphysics.HDF5Application.initialization_from_hdf5_process import Factory as InitializationFactory
+
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestHDF5Processes(KratosUnittest.TestCase):
 
@@ -93,14 +98,31 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         """
         Output ModelPart using SingleMeshXdmfOutputProcess.
         """
+        import warnings
+        try:
+            with warnings.catch_warnings():
+                # suppressing an import-related warning from h5py
+                # problem appears when using it in a test with python >=3.6
+                warnings.simplefilter('ignore', category=ImportWarning)
+                import h5py
+        except:
+            self.skipTest("h5py not available")
+
         write_model_part = self._CreateNewModelPart("ModelPartXDMFOutput")
         self._InitializeModelPart(write_model_part)
+
+        # simulate the existance of "old" files, i.e. from previous simulations
+        kratos_utilities.DeleteDirectoryIfExisting("ModelPartXDMFOutput__h5_files")
+        os.makedirs("ModelPartXDMFOutput__h5_files")
+        with open(os.path.join("ModelPartXDMFOutput__h5_files", "ModelPartXDMFOutput.h5"), "w") as h5_file:
+            pass
+        with open("ModelPartXDMFOutput.xdmf", "w") as xdmf_file:
+            pass
 
         output_settings = Parameters(r"""{
             "Parameters" : {
                 "model_part_name" : "ModelPartXDMFOutput",
                 "file_settings": {
-                    "file_access_mode" : "truncate",
                     "write_files_in_folder" : true
                 },
                 "nodal_solution_step_data_settings" : {
@@ -119,6 +141,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         }""")
         output_process = XdmfOutputFactory(output_settings, self.model)
 
+        self.assertTrue(os.path.isdir("ModelPartXDMFOutput__h5_files"))
+        # err
+
         output_process.ExecuteBeforeSolutionLoop()
 
         for step in range(1,3):
@@ -126,20 +151,10 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self._SimulateTimeStep(write_model_part, 0.1*step)
             output_process.ExecuteFinalizeSolutionStep()
 
-            # for read_node,write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
-            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_X,0), write_node.GetSolutionStepValue(VELOCITY_X,0))
-            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Y,0), write_node.GetSolutionStepValue(VELOCITY_Y,0))
-            #     self.assertEqual(read_node.GetSolutionStepValue(VELOCITY_Z,0), write_node.GetSolutionStepValue(VELOCITY_Z,0))
-            #     self.assertEqual(read_node.GetSolutionStepValue(DENSITY,0),    write_node.GetSolutionStepValue(DENSITY,0))
-            #     # reaction is not written, so it should not be updated
-            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_X,0), 0.0)
-            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_Y,0), 0.0)
-            #     self.assertEqual(read_node.GetSolutionStepValue(REACTION_Z,0), 0.0)
-
-            #     self.assertEqual(read_node.GetValue(PRESSURE), write_node.GetValue(PRESSURE))
-
-            # for read_element,write_element in zip(read_model_part.Elements, write_model_part.Elements):
-            #     self.assertEqual(read_element.GetValue(TEMPERATURE), write_element.GetValue(TEMPERATURE))
+            # the data in the h5-files is being checked in other tests
+            # here only testing the xdmf-file
+            ref_file_name = "ModelPartXDMFOutput_" + str(step) + ".xdmf"
+            Check("ModelPartXDMFOutput.xdmf", os.path.join("xdmf_reference_files", ref_file_name))
 
         kratos_utilities.DeleteFileIfExisting("ModelPartXDMFOutput.xdmf")
         kratos_utilities.DeleteDirectoryIfExisting("ModelPartXDMFOutput__h5_files")
@@ -275,6 +290,25 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         for name in os.listdir():
             if name.find(model_part_name) == 0:
                 kratos_utilities.DeleteFileIfExisting(name)
+
+def Check(output_file, reference_file):
+    import KratosMultiphysics.compare_two_files_check_process as compare_process
+
+    ## Settings string in json format
+    params = KratosMultiphysics.Parameters("""{
+        "reference_file_name" : \"""" + GetFilePath(reference_file) + """\",
+        "output_file_name"    : \"""" + output_file + """\"
+    }""")
+
+    cmp_process = compare_process.CompareTwoFilesCheckProcess(params)
+
+    cmp_process.ExecuteInitialize()
+    cmp_process.ExecuteBeforeSolutionLoop()
+    cmp_process.ExecuteInitializeSolutionStep()
+    cmp_process.ExecuteFinalizeSolutionStep()
+    cmp_process.ExecuteBeforeOutputStep()
+    cmp_process.ExecuteAfterOutputStep()
+    cmp_process.ExecuteFinalize()
 
 if __name__ == "__main__":
     KratosUnittest.main()
