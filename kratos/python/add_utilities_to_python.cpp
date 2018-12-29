@@ -527,10 +527,11 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, 
                                    const array_1d<double,3>& coords, 
                                    const double tol,
-                                   const int max_results=1000)
+                                   const int max_results)
             {
+                KRATOS_WATCH(coords)
                 Element::Pointer pelem;
-                Vector N;
+                Vector N(3);
                 bool found = self.FindPointOnMeshSimplified(coords, N, pelem, max_results, tol);
                 return py::make_tuple(found, N, pelem);
             }
@@ -542,10 +543,10 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("UpdateSearchDatabase", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabase)
         .def("FindPointOnMesh", &BinBasedFastPointLocator < 3 > ::FindPointOnMeshSimplified)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedFastPointLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
-        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 2 >& self, 
+        .def("FindPointOnMesh", [](BinBasedFastPointLocator < 3 >& self, 
                                 const array_1d<double,3>& coords, 
                                 const double tol,
-                                const int max_results=1000)
+                                const int max_results)
             {
                 Element::Pointer pelem;
                 Vector N;
