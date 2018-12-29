@@ -157,7 +157,7 @@ Parameters GetThreeLayersParameters()
     return three_layers;
 }
 
-void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D8N")
+void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D8N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -206,7 +206,7 @@ void Create3DGeometryHexahedra(ModelPart& rThisModelPart, std::size_t NumberOfLa
     }
 }
 
-void Create3DGeometryTetrahedra(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D4N")
+void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D4N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -351,7 +351,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronTwoLayers, Krat
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryHexahedra(model_part);
+    Create3DGeometryHexahedraRuleOfMixtures(model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
@@ -392,7 +392,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawHexahedronThreeLayers, Kr
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryHexahedra(model_part, 3);
+    Create3DGeometryHexahedraRuleOfMixtures(model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
@@ -433,7 +433,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronTwoLayers, Kra
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryTetrahedra(model_part);
+    Create3DGeometryTetrahedraRuleOfMixtures(model_part);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
@@ -474,7 +474,7 @@ KRATOS_TEST_CASE_IN_SUITE(RuleOfMixturesConstitutiveLawTetrahedronThreeLayers, K
 {
     Model this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 2);
-    Create3DGeometryTetrahedra(model_part, 3);
+    Create3DGeometryTetrahedraRuleOfMixtures(model_part, 3);
 
     const array_1d<double, 3> zero = ZeroVector(3);
     array_1d<double, 3> delta = ZeroVector(3);
