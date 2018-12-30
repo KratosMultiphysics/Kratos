@@ -122,9 +122,6 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         output_settings = Parameters(r"""{
             "Parameters" : {
                 "model_part_name" : "ModelPartXDMFOutput",
-                "file_settings": {
-                    "write_files_in_folder" : true
-                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "DENSITY"]
                 },

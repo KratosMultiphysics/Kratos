@@ -9,6 +9,7 @@ class DeleteOldH5Files(IOObject):
         file_path, file_name = os.path.split(hdf5_file.GetFileName())
         time_prefix = file_name[:len(file_name)-3]+"-"
         current_time = model_part.ProcessInfo[KM.TIME]
+        if file_path == "": file_path = "." # os.listdir fails with empty path
         for name in os.listdir(file_path):
             if name.startswith(time_prefix):
                 file_time = float(name.replace(".h5", "")[len(time_prefix):])
