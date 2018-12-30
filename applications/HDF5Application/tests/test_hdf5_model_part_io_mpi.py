@@ -1,7 +1,6 @@
 import os
 from KratosMultiphysics import *
 import KratosMultiphysics.mpi as KratosMPI
-import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
 from KratosMultiphysics.HDF5Application import *
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -193,7 +192,7 @@ class TestCase(KratosUnittest.TestCase):
             for i in range(read_matrix.Size1()):
                 for j in range(read_matrix.Size2()):
                     self.assertEqual(read_matrix[i,j], write_matrix[i,j])
-            kratos_utilities,DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
+            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
 
     def test_HDF5NodalSolutionStepDataIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -228,7 +227,7 @@ class TestCase(KratosUnittest.TestCase):
                 self.assertEqual(read_node.GetSolutionStepValue(DENSITY), write_node.GetSolutionStepValue(DENSITY))
                 self.assertEqual(read_node.GetSolutionStepValue(ACTIVATION_LEVEL), write_node.GetSolutionStepValue(ACTIVATION_LEVEL))
                 self.assertEqual(read_node.GetSolutionStepValue(PARTITION_INDEX), write_node.GetSolutionStepValue(PARTITION_INDEX))
-            kratos_utilities,DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
+            kratos_utilities.DeleteFileIfExisting("test_hdf5_model_part_io_mpi.h5")
 
     def tearDown(self):
         pass
