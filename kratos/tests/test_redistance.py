@@ -1,4 +1,4 @@
-﻿from __future__ import print_function, absolute_import, division
+from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
@@ -70,7 +70,7 @@ class TestRedistance(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
-        
+
         import new_linear_solver_factory
         linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
 
@@ -82,10 +82,10 @@ class TestRedistance(KratosUnittest.TestCase):
             linear_solver,
             max_iterations,
             KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
-        
+
         for node in model_part.Nodes:
-            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
-    
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )
+
     def test_variational_redistance_maintain_plane_3d(self):
         current_model = KratosMultiphysics.Model()
         free_surface_level = 0.25
@@ -107,7 +107,7 @@ class TestRedistance(KratosUnittest.TestCase):
 
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
-        
+
         import new_linear_solver_factory
         linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
 
@@ -119,10 +119,10 @@ class TestRedistance(KratosUnittest.TestCase):
             linear_solver,
             max_iterations,
             KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
-        
+
         for node in model_part.Nodes:
-            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
-    
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )
+
     def test_parallel_redistance_maintain_plane_3d(self):
         current_model = KratosMultiphysics.Model()
         free_surface_level = 0.25
@@ -145,7 +145,7 @@ class TestRedistance(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
             node.SetValue(KratosMultiphysics.NODAL_VOLUME, 0.0)
-        
+
         for element in model_part.Elements:
             el_vol = element.GetGeometry().Area()
             for node in element.GetNodes():
@@ -162,12 +162,12 @@ class TestRedistance(KratosUnittest.TestCase):
             2,
             2.0,
             KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        
+
         for node in model_part.Nodes:
-            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level )
+            self.assertAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISTANCE), node.Y - free_surface_level, 10 )
 
 
-        
-        
+
+
 if __name__ == '__main__':
     KratosUnittest.main()
