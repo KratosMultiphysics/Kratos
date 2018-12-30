@@ -343,11 +343,25 @@ public:
     Parameters operator[](const std::string& rEntry);
 
     /**
+     * @brief This metrod returns the Parameter corresponding to a given key (const version)
+     * @param rEntry The key identifier of the parameter
+     * @return The desired Parameter
+     */
+    Parameters operator[](const std::string& rEntry) const;
+
+    /**
      * @brief This method allows to acces to an array item with the operator []
      * @param Index The index of the term of interest
      * @return The desired Parameter
      */
     Parameters operator[](const IndexType Index);
+
+    /**
+     * @brief This method allows to acces to an array item with the operator [] (const version)
+     * @param Index The index of the term of interest
+     * @return The desired Parameter
+     */
+    Parameters operator[](const IndexType Index) const;
 
     /**
      * @brief This is the move operator
@@ -380,6 +394,13 @@ public:
      * @return The corresponding parameter
      */
     Parameters GetValue(const std::string& rEntry);
+
+    /**
+     * @brief This method returns the Parameter corresponding to a certain entry (const version)
+     * @param rEntry The key identifier of the parameter
+     * @return The corresponding parameter
+     */
+    Parameters GetValue(const std::string& rEntry) const;
 
     /**
      * @brief This method sets an existing parameter with a given parameter
@@ -614,6 +635,13 @@ public:
     Parameters GetArrayItem(const IndexType Index);
 
     /**
+     * @brief This method returns an array item given an index (const version)
+     * @param Index The index of the parameter to obtain
+     * @return The parameter corresponding to the given index
+     */
+    Parameters GetArrayItem(const IndexType Index) const;
+
+    /**
      * @brief This method sets an array item given an index
      * @param Index The index of the parameter to set
      * @param rOtherArrayItem The parameter corresponding to the given index
@@ -704,6 +732,15 @@ public:
      * @param rDefaultParameters Parameters of reference which we use to check
      */
     void ValidateAndAssignDefaults(Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters. (const version)
+     * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
+     * This version of the function only walks one level, without descending in the branches
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void ValidateAndAssignDefaults(const Parameters& rDefaultParameters);
+
     /**
      * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults.
      * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
@@ -711,6 +748,14 @@ public:
      * @param rDefaultParameters Parameters of reference which we use to check
      */
     void RecursivelyValidateAndAssignDefaults(Parameters& rDefaultParameters);
+
+    /**
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults. (const version)
+     * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
+     * This version walks and validates the entire json tree below the point at which the function is called
+     * @param rDefaultParameters Parameters of reference which we use to check
+     */
+    void RecursivelyValidateAndAssignDefaults(const Parameters& rDefaultParameters);
 
     ///@}
     ///@name Access

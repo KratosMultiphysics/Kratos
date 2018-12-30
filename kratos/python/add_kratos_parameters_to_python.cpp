@@ -52,6 +52,22 @@ void Append(Parameters &rParameters, const T& obj) {
     rParameters.Append(obj);
 }
 
+Parameters GetValue(Parameters &rParameters, const std::string& rEntry) {
+    return rParameters.GetValue(rEntry);
+}
+
+Parameters GetArrayItem(Parameters &rParameters, const std::size_t Index) {
+    return rParameters.GetArrayItem(Index);
+}
+
+void ValidateAndAssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.ValidateAndAssignDefaults(rDefaultParameters);
+}
+
+void RecursivelyValidateAndAssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.RecursivelyValidateAndAssignDefaults(rDefaultParameters);
+}
+
 void  AddKratosParametersToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -67,11 +83,11 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("AddValue", &Parameters::AddValue)
     .def("AddEmptyValue", &Parameters::AddEmptyValue)
     .def("RemoveValue", &Parameters::RemoveValue)
-    .def("ValidateAndAssignDefaults",&Parameters::ValidateAndAssignDefaults)
-    .def("RecursivelyValidateAndAssignDefaults",&Parameters::RecursivelyValidateAndAssignDefaults)
+    .def("ValidateAndAssignDefaults",ValidateAndAssignDefaults)
+    .def("RecursivelyValidateAndAssignDefaults",RecursivelyValidateAndAssignDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
     .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
-    //.def("GetValue", &Parameters::GetValue) //Do not export this method. users shall adopt the operator [] syntax
+    //.def("GetValue", GetValue) //Do not export this method. users shall adopt the operator [] syntax
     .def("IsNull", &Parameters::IsNull)
     .def("IsNumber", &Parameters::IsNumber)
     .def("IsDouble", &Parameters::IsDouble)
@@ -95,11 +111,11 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("SetVector", &Parameters::SetVector)
     .def("SetMatrix", &Parameters::SetMatrix)
     .def("size", &Parameters::size)
-    //.def("GetArrayItem", &Parameters::GetArrayItem) //Do not export this method. users shall adopt the operator [] syntax
+    //.def("GetArrayItem", GetArrayItem) //Do not export this method. users shall adopt the operator [] syntax
     .def("__setitem__", &Parameters::SetValue)
-    .def("__getitem__", &Parameters::GetValue)
+    .def("__getitem__", GetValue)
     .def("__setitem__", &Parameters::SetArrayItem)
-    .def("__getitem__", &Parameters::GetArrayItem)
+    .def("__getitem__", GetArrayItem)
     .def("__iter__", [](Parameters& self){ return py::make_iterator(self.begin(), self.end()); } , py::keep_alive<0,1>())
     .def("items", &items )
     .def("keys", &keys )
