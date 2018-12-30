@@ -58,6 +58,7 @@ ComputeHessianSolMetricProcess::ComputeHessianSolMetricProcess(
 
 void ComputeHessianSolMetricProcess::Execute()
 {
+    // Computing auxiliar Hessian
     CalculateAuxiliarHessian();
 
     // Some checks
@@ -67,17 +68,21 @@ void ComputeHessianSolMetricProcess::Execute()
     } else {
         VariableUtils().CheckVariableExists(*mrOriginVariableComponentsList[0], nodes_array);
     }
-     for (const auto& i_node : nodes_array)
+
+    // Checking NODAL_H
+    for (const auto& i_node : nodes_array)
         KRATOS_ERROR_IF_NOT(i_node.Has(NODAL_H)) << "NODAL_H must be computed" << std::endl;
 
-    const auto& it_element_begin = mThisModelPart.ElementsBegin();
-    const auto& r_first_element_geometry = it_element_begin->GetGeometry();
-    const std::size_t dimension = r_first_element_geometry.WorkingSpaceDimension();
+    // Getting dimension
+    const std::size_t dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
 
-    if (dimension == 2) {
+    // Computing metric
+    if (dimension == 2) { // 2D
         CalculateMetric<2>();
-    } else {
+    } else if (dimension == 3) { // 3D
         CalculateMetric<3>();
+    } else {
+        KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
     }
 }
 
@@ -251,8 +256,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 Matrix values(number_of_nodes, 2);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     const array_1d<double, 3>& aux_grad = r_geometry[i_node].GetValue(AUXILIAR_GRADIENT);
-                    values(i_node, 0) = aux_grad[0];
-                    values(i_node, 1) = aux_grad[1];
+                    for (IndexType i_dim = 0; i_dim < 2; ++i_dim)
+                        values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
                 const BoundedMatrix<double,2, 2>& hessian = prod(trans(DN_DX), values);
@@ -261,10 +266,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 3; ++k) {
-                        double& val = aux_hessian[k];
-
                         #pragma omp atomic
-                        val += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
                     }
                 }
             }
@@ -286,9 +289,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 Matrix values(number_of_nodes, 3);
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     const array_1d<double, 3>& aux_grad = r_geometry[i_node].GetValue(AUXILIAR_GRADIENT);
-                    values(i_node, 0) = aux_grad[0];
-                    values(i_node, 1) = aux_grad[1];
-                    values(i_node, 2) = aux_grad[2];
+                    for (IndexType i_dim = 0; i_dim < 3; ++i_dim)
+                        values(i_node, i_dim) = aux_grad[i_dim];
                 }
 
                 const BoundedMatrix<double, 3, 3> hessian = prod(trans(DN_DX), values);
@@ -297,10 +299,8 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
                 for(IndexType i_node = 0; i_node < number_of_nodes; ++i_node) {
                     auto& aux_hessian = r_geometry[i_node].GetValue(AUXILIAR_HESSIAN);
                     for(IndexType k = 0; k < 6; ++k) {
-                        double& val = aux_hessian[k];
-
                         #pragma omp atomic
-                        val += N[i_node] * gauss_point_volume * hessian_cond[k];
+                        aux_hessian[k] += N[i_node] * gauss_point_volume * hessian_cond[k];
                     }
                 }
             }
@@ -416,7 +416,7 @@ void ComputeHessianSolMetricProcess::CalculateMetric()
 /***********************************************************************************/
 /***********************************************************************************/
 
-Parameters ComputeHessianSolMetricProcess::GetDefaultParameters()
+Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
 {
     Parameters default_parameters = Parameters(R"(
     {
@@ -446,8 +446,10 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters()
     // The mesh dependent constant depends on dimension
     if (dimension == 2) {
         default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0);
-    } else {
+    } else if (dimension == 3) {
         default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(9.0/32.0);
+    } else {
+        KRATOS_ERROR << "Dimension can be only 2D or 3D. Dimension: " << dimension << std::endl;
     }
 
     return default_parameters;

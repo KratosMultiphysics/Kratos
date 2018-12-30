@@ -299,7 +299,7 @@ private:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    Parameters GetDefaultParameters();
+    Parameters GetDefaultParameters() const;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
