@@ -410,13 +410,11 @@ public:
             KRATOS_INFO("LHS BEFORE CONDENSATION") << "SystemMatrix = " << rA << std::endl;
             KRATOS_INFO("RHS BEFORE CONDENSATION") << "RHS  = " << rB << std::endl;
         } else if (mEchoLevel >= 4) { //print to matrix market file
-            std::stringstream matrix_market_name;
-            matrix_market_name << "before_condensation_A_" << mFileCreated << ".mm";
-            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), rA, false);
+            const std::string matrix_market_name = "before_condensation_A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), rA, false);
 
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "before_condensation_b_" << mFileCreated << ".mm.rhs";
-            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), rB);
+            const std::string matrix_market_vectname = "before_condensation_b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), rB);
         }
 
         if (mIsInitialized == false)
@@ -437,13 +435,11 @@ public:
             KRATOS_INFO("Dx")  << "Solution obtained = " << mDisp << std::endl;
             KRATOS_INFO("RHS") << "RHS  = " << mResidualDisp << std::endl;
         } else if (mEchoLevel >= 4) { //print to matrix market file
-            std::stringstream matrix_market_name;
-            matrix_market_name << "A_" << mFileCreated << ".mm";
-            TSparseSpaceType::WriteMatrixMarketMatrix((char *)(matrix_market_name.str()).c_str(), mKDispModified, false);
+            const std::string matrix_market_name = "A_" + std::to_string(mFileCreated) + ".mm";
+            TSparseSpaceType::WriteMatrixMarketMatrix(matrix_market_name.c_str(), mKDispModified, false);
 
-            std::stringstream matrix_market_vectname;
-            matrix_market_vectname << "b_" << mFileCreated << ".mm.rhs";
-            TSparseSpaceType::WriteMatrixMarketVector((char *)(matrix_market_vectname.str()).c_str(), mResidualDisp);
+            const std::string matrix_market_vectname = "b_" + std::to_string(mFileCreated) + ".mm.rhs";
+            TSparseSpaceType::WriteMatrixMarketVector(matrix_market_vectname.c_str(), mResidualDisp);
             mFileCreated++;
         }
 
