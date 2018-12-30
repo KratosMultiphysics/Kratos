@@ -39,9 +39,83 @@ namespace Kratos
         file.close();
     }
 
-    void BrepJsonIO::ExportNurbsGeometry(Parameters& rNurbsBrepGeometryJson)
+    void BrepJsonIO::ExportNurbsGeometry(std::vector<BrepModel> m_brep_model_vector)
     {
-    
+        std::cout << "\n> Start writing CAD geometry" << std::endl;
+        Parameters rNurbsBrepGeometryJson; 
+        
+
+        
+        // Model Tolerance
+        Parameters model_tolerance_para; 
+        const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
+
+        model_tolerance_para.AddEmptyValue("model_tolerance"); 
+        model_tolerance_para["model_tolerance"].SetDouble(model_tolerance); 
+        rNurbsBrepGeometryJson.AddValue("tolerances", model_tolerance_para); 
+
+        //Version Number
+        rNurbsBrepGeometryJson.AddEmptyValue("version_number");
+        rNurbsBrepGeometryJson["version_number"].SetInt(1); 
+
+        //breps
+        //Loop over breps
+        for (int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
+        {
+            Parameters brep_para; 
+            const int brep_id = m_brep_model_vector[brep_i].GetId();
+            
+            brep_para.AddEmptyValue("brep_id");
+            brep_para["brep_id"].SetInt(brep_id); 
+
+            
+            //loop over faces
+            for (int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
+            {
+                Parameters faces_para; 
+                const int face_id = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetId(); 
+                const bool swapped_surface_normal = false; 
+
+                faces_para.AddEmptyValue("brep_id");
+                faces_para.AddEmptyValue("swapped_surface_normal"); 
+                faces_para["brep_id"].SetInt(face_id);
+                faces_para["swapped_surface_normal"].SetBool(swapped_surface_normal);  
+                
+                Parameters surface_para; 
+                const bool is_trimmed = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetIsTrimmed(); 
+                const bool is_rational = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetIsRational();     
+
+                const int degree_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeU();
+                const int degree_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeV();
+                const Kratos::vector <int> degree = {degree_u, degree_v}; 
+                
+                KRATOS_WATCH(m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsU());
+
+                """
+                HIER WEITERMACHEN!
+                """
+
+
+                surface_para.AddEmptyValue("is_trimmed"); 
+                surface_para.AddEmptyValue("is_rational"); 
+                surface_para.AddEmptyArray("degrees");
+                surface_para["is_trimmed"].SetBool(is_trimmed); 
+                surface_para["is_rational"].SetBool(is_rational); 
+                surface_para["degrees"].SetVector(degree); 
+                
+
+
+
+
+                faces_para.AddValue("surface", surface_para); 
+                brep_para.AddValue("faces", faces_para);      
+            }
+        
+            rNurbsBrepGeometryJson.AddValue("breps", brep_para); 
+
+        }
+
+        std::cout << rNurbsBrepGeometryJson << std::endl; 
     }
 
     std::vector<BrepModel> BrepJsonIO::ImportNurbsBrepGeometry(

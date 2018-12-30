@@ -338,7 +338,7 @@ namespace Kratos
         }
     }
 
-    double BrepModel::GetModelTolerance()
+    const double BrepModel::GetModelTolerance() const
     {
         return mModelTolerance; 
     }

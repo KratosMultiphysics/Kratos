@@ -81,7 +81,7 @@ namespace Kratos
 
         void PrintTrimmingNodes();
 
-        double GetModelTolerance(); 
+        const double GetModelTolerance() const; 
 
         //BrepFace& GetFaceNonConst(const int& brep_id);
 

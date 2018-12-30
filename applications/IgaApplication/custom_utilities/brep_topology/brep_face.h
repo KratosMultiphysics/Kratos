@@ -148,7 +148,9 @@ namespace Kratos
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
 
         const bool GetIsTrimmed() const;
-        bool GetIsRational();
+        const bool GetIsRational() const;
+        
+
 
         /// Constructor.
         BrepFace(

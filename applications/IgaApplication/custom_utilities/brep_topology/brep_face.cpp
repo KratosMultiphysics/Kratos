@@ -558,11 +558,10 @@ namespace Kratos
 
     const bool BrepFace::GetIsTrimmed() const 
     {
-        std::cout << "Hellllo" << std::endl; 
         return m_is_trimmed; 
     }
 
-    bool BrepFace::GetIsRational()
+    const bool BrepFace::GetIsRational() const
     {
         return m_is_rational; 
     }

@@ -100,35 +100,48 @@ namespace Kratos
         }
     }
 
+    //     void NurbsBrepModeler::ImportGeometry(BrepJsonIO& rBrepJsonIO, Parameters& rNurbsBrepGeometryJson)
+    // {
+    //     std::cout << "ImportGeometry in of geometry" << std::endl;
+    //     std::vector<BrepModel> brep_model_vector = rBrepJsonIO.ImportNurbsBrepGeometry(m_model_part, rNurbsBrepGeometryJson);
+    //     for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); ++brep_model)
+    //     {
+    //         m_brep_model_vector.push_back(*brep_model);
+    //     }
+    // }
+
     void NurbsBrepModeler::ExportGeometry()
     {
-        Parameters rNurbsBrepGeometryJson; 
+        std::cout << "ExportGeometry to FILE..." << std::endl;
+        BrepJsonIO a; 
+        a.ExportNurbsGeometry(m_brep_model_vector); 
         
-        // Model Tolerance
-        const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
-        rNurbsBrepGeometryJson.AddEmptyArray("tolerances");
-        rNurbsBrepGeometryJson["tolerances"].AddEmptyArray("model_tolerance");
-        rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].SetDouble(model_tolerance);
 
-        //Version Number
-        rNurbsBrepGeometryJson.AddEmptyArray("version_number");
-        rNurbsBrepGeometryJson["version_number"].SetInt(1); 
-
-        //breps
-        rNurbsBrepGeometryJson.AddEmptyArray("breps");
-        for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        {
-            rNurbsBrepGeometryJson["breps"].AddEmptyArray("brep_id");
-            
-            KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector().size());  
-
-            const BrepModel mp = m_brep_model_vector[i];
-            bool is_trimmed = m_brep_model_vector[i].GetFaceVector()[0].GetIsTrimmed();
-            
-            
-
-        }
+        // Parameters rNurbsBrepGeometryJson; 
         
+        // // Model Tolerance
+        // const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
+        // rNurbsBrepGeometryJson.AddEmptyArray("tolerances");
+        // rNurbsBrepGeometryJson["tolerances"].AddEmptyArray("model_tolerance");
+        // rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].SetDouble(model_tolerance);
+
+        // //Version Number
+        // rNurbsBrepGeometryJson.AddEmptyArray("version_number");
+        // rNurbsBrepGeometryJson["version_number"].SetInt(1); 
+
+        // //breps
+        // rNurbsBrepGeometryJson.AddEmptyArray("breps");
+        // for (int i = 0; i < m_brep_model_vector.size(); ++i)
+        // {
+        //     rNurbsBrepGeometryJson["breps"].AddEmptyArray("brep_id");
+            
+        //     KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector().size());  
+
+        //     const BrepModel mp = m_brep_model_vector[i];
+        //     bool is_trimmed = m_brep_model_vector[i].GetFaceVector()[0].GetIsTrimmed(); 
+
+        // }
+        // std::cout << "Hello World" << std::endl; 
 
         
         

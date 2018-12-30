@@ -42,7 +42,7 @@ namespace Kratos
         ModelPart& rModelPart, 
         const std::string& rOutputFileName);
 
-    void ExportNurbsGeometry(Parameters& rNurbsBrepGeometryJson);
+    void ExportNurbsGeometry(std::vector<BrepModel>  m_brep_model_vector);
 
     std::vector<BrepModel> ImportNurbsBrepGeometry(
         ModelPart& rModelPart,
