@@ -415,7 +415,7 @@ public:
       double alpha = 0;
       QuaternionType Quaternion;
 
-      if( rModelPart.GetMesh().WorkingSpaceDimension() == 2 || rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
+      if( rModelPart.GetProcessInfo()[SPACE_DIMENSION]==2 )
 	angular_partitions = 2;
       else
 	angular_partitions = 4;

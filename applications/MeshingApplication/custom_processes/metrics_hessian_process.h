@@ -212,9 +212,9 @@ private:
     ///@name Private member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                                 /// The model part to compute
-    std::vector<Variable<double>> mrOriginVariableDoubleList;  /// The scalar variable list to compute
-    std::vector<ComponentType> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
+    ModelPart& mThisModelPart;                                  /// The model part to compute
+    std::vector<Variable<double>*> mrOriginVariableDoubleList;  /// The scalar variable list to compute
+    std::vector<ComponentType*> mrOriginVariableComponentsList; /// The scalar variable list to compute (components)
 
     // TODO: Replace for Parameters
     std::string mRatioReferenceVariable = "DISTANCE";          /// Variable used to compute the anisotropic ratio
@@ -243,13 +243,15 @@ private:
      * @param AnisotropicRatio The anisotropic ratio
      * @param ElementMinSize The min size of element
      * @param ElementMaxSize The maximal size of the elements
+     * @param NodalH The size of the local node
      */
     template<SizeType TDim>
     array_1d<double, 3 * (TDim - 1)> ComputeHessianMetricTensor(
         const Vector& rHessian,
         const double AnisotropicRatio,
         const double ElementMinSize, // This way we can impose as minimum as the previous size if we desire
-        const double ElementMaxSize // This way we can impose as maximum as the previous size if we desire
+        const double ElementMaxSize, // This way we can impose as maximum as the previous size if we desire
+        const double NodalH
         );
 
     /**
@@ -297,7 +299,7 @@ private:
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
-    Parameters GetDefaultParameters();
+    Parameters GetDefaultParameters() const;
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors

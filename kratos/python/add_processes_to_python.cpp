@@ -149,8 +149,14 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("ClearNeighbours",&FindElementalNeighboursProcess::ClearNeighbours)
     ;
 
-    py::class_<CalculateNodalAreaProcess, CalculateNodalAreaProcess::Pointer, Process>(m,"CalculateNodalAreaProcess")
-            .def(py::init<ModelPart&, unsigned int>())
+    py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"CalculateNodalAreaProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, std::size_t>())
+    ;
+
+    py::class_<CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>, CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"CalculateNonHistoricalNodalAreaProcess")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, std::size_t>())
     ;
 
     py::class_<NodeEraseProcess, NodeEraseProcess::Pointer, Process>(m,"NodeEraseProcess")

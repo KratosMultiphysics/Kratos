@@ -244,8 +244,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create2DGeometry(this_model_part, "Element2D3N");
 
@@ -294,8 +295,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create3DGeometry(this_model_part, "Element3D4N");
 
@@ -349,8 +351,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create2DGeometry(this_model_part, "Element2D3N");
 
@@ -394,8 +397,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISTANCE_GRADIENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             Create3DGeometry(this_model_part, "Element3D4N");
 
@@ -442,8 +446,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 2);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
@@ -506,8 +511,9 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
             auto& process_info = this_model_part.GetProcessInfo();
-            process_info[STEP] = 1;
-            process_info[NL_ITERATION_NUMBER] = 1;
+            process_info.SetValue(DOMAIN_SIZE, 3);
+            process_info.SetValue(STEP, 1);
+            process_info.SetValue(NL_ITERATION_NUMBER, 1);
 
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
