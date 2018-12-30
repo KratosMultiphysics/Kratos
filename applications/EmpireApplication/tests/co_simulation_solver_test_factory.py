@@ -18,6 +18,12 @@ try:
 except ImportError:
     scipy_and_sympy_available = False
 
+try:
+    import numpy
+    numpy_available = True
+except ImportError:
+    numpy_available = False
+
 
 def compareResults(reference_file, results_file):
     settings_check_process = KratosMultiphysics.Parameters("""
@@ -59,6 +65,8 @@ class TestKratosSolver(co_simulation_test_case.CoSimulationTestCase):
 
 class TestSDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_SDoFSolver(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             folder_name = "sdof_solver"
             self.createTest("sdof_solver", "cosim_sdof")
@@ -69,6 +77,8 @@ class TestSDoFSolver(co_simulation_test_case.CoSimulationTestCase):
 
 class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
     def test_MDoFSDoFModel(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_sdof")
@@ -78,6 +88,8 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             compareResults(reference_file, result_file)
 
     def test_MDoFGenericModel(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             folder_name = "mdof_solver"
             self.createTest(folder_name, "cosim_mdof_generic")
@@ -87,6 +99,8 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             compareResults(reference_file, result_file)
 
     def test_MDoFCantileverShear2DModel(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
         if not scipy_and_sympy_available:
             self.skipTest("Scipy/Sympy not available")
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
@@ -98,6 +112,8 @@ class TestMDoFSolver(co_simulation_test_case.CoSimulationTestCase):
             compareResults(reference_file, result_file)
 
     def test_MDoFBridge2DoFModel(self):
+        if not numpy_available:
+            self.skipTest("Numpy not available")
         if not scipy_and_sympy_available:
             self.skipTest("Scipy/Sympy not available")
         with co_simulation_test_case.ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):

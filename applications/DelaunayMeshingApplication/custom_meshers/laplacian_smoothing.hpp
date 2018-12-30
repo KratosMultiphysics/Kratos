@@ -39,7 +39,7 @@
 
 
 //VARIABLES used:
-//Data:     NEIGHBOUR_NODES
+//Data:     NEIGHBOR_NODES
 //StepData: DISPLACEMENT, CONTACT_FORCE, NORMAL, OFFSET
 //Flags:    (checked) BOUNDARY, TO_ERASE, INSIDE
 //          (set)
@@ -131,7 +131,7 @@ namespace Kratos
       const unsigned int nds = element_begin->GetGeometry().size();
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
@@ -475,7 +475,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -534,7 +534,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -609,7 +609,7 @@ namespace Kratos
 
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());

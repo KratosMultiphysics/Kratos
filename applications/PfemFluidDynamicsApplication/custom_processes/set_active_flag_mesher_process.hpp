@@ -27,12 +27,12 @@
 #include "utilities/math_utils.h"
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -48,7 +48,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+  typedef  std::vector<Node<3>*>             NodePointerVectorType;
+  typedef  std::vector<Element*>          ElementPointerVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -149,7 +150,7 @@ namespace Kratos
 		  std::cout<<"its volume is "<<ElementalVolume<<" vs CriticalVolume "<<CriticalVolume<<std::endl;
 		}
 	      }
-	      
+
 	      // ELIMINATION CHECK FOR PEAK ELEMENTS (those annoying elements created by pfem remeshing and placed bewteen the free-surface and the walls)
 	      if(mUnactivePeakElements == true && sliverEliminationCriteria==false){
 		double scalarProduct=1.0;
@@ -194,14 +195,14 @@ namespace Kratos
 				break;
 			      }else{
 				// I will not unactive the element if the free-surface node is sorrounded by rigd nodes only
-				WeakPointerVector<Node<3> >& rN = itElem->GetGeometry()[j].GetValue(NEIGHBOUR_NODES);
+				NodePointerVectorType& rN = itElem->GetGeometry()[j].GetValue(NEIGHBOR_NODES);
 				unsigned int rigidNodes=0;
 				unsigned int freeSurfaceNodes=0;
 				for(unsigned int i = 0; i < rN.size(); i++)
 				  {
-				    if(rN[i].Is(RIGID) && rN[i].IsNot(SOLID))
+				    if(rN[i]->Is(RIGID) && rN[i]->IsNot(SOLID))
 				      rigidNodes += 1;
-				    if(rN[i].Is(FREE_SURFACE) && rN[i].IsNot(RIGID))
+				    if(rN[i]->Is(FREE_SURFACE) && rN[i]->IsNot(RIGID))
 				      freeSurfaceNodes += 1;
 				  }
 				if(dimension==2){
@@ -229,7 +230,7 @@ namespace Kratos
 		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
 		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
 		}
-		
+
 
 	      }
 	      // ELIMINATION CHECK FOR ELEMENTS FORMED BY WALL PARTICLES ONLY (this is included for computational efficiency purpose also in the previous peak element check)
@@ -241,13 +242,13 @@ namespace Kratos
 	      	      elementRigidNodes++;
 	      	    }
 	      	  }
-		
+
 	      	if(elementRigidNodes==numNodes){
 	      	  wallElementsEliminationCriteria=true;
 		  Geometry<Node<3> > wallElementNodes=itElem->GetGeometry();
 		  this->SetPressureToIsolatedWallNodes(wallElementNodes);
 	      	}
-		
+
 	      }
 
 	      if(sliverEliminationCriteria==true || peakElementsEliminationCriteria==true ||  wallElementsEliminationCriteria==true){
@@ -266,7 +267,7 @@ namespace Kratos
 
     ///@}
     ///@name Operators
-    ///@{ 
+    ///@{
 
     ///@}
     ///@name Access
@@ -304,7 +305,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
- 
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -396,5 +397,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SET_ACTIVE_FLAG_MESHER_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_SET_ACTIVE_FLAG_MESHER_PROCESS_H_INCLUDED  defined

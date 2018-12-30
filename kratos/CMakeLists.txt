@@ -1,5 +1,10 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# Mpi
+if(${MPI_NEEDED} MATCHES ON )
+  add_subdirectory(mpi)
+endif(${MPI_NEEDED} MATCHES ON )
+
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
@@ -50,6 +55,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;
@@ -57,6 +63,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/code_location.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/prime_numbers.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/connectivity_preserve_modeler.cpp;
+    ${CMAKE_CURRENT_SOURCE_DIR}/sources/parallel_environment.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_geometry.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_triangle_2d_3.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/divide_tetrahedra_3d_4.cpp;
@@ -126,6 +133,8 @@ set( KRATOS_PYTHON_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_response_functions_to_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/kratos_python.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/python/add_constraint_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_data_communicator_to_python.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/add_parallel_environment_to_python.cpp
 )
 
 ## Kratos testing engine soruces
