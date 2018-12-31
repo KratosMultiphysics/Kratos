@@ -96,7 +96,7 @@ protected:
     ///@name Protected Operations
     ///@{
     
-    double ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
 
     ///@}
 
