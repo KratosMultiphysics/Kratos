@@ -57,13 +57,13 @@ ConstitutiveLaw::SizeType Newtonian3DLaw::GetStrainSize() {
     return 6;
 }
 
-void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues) {
+void  Newtonian3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+{    
     const Flags& options = rValues.GetOptions();
-    
     const Vector& r_strain_rate = rValues.GetStrainVector();
     Vector& r_viscous_stress = rValues.GetStressVector();
 
-    const double mu = ComputeEffectiveViscosity(rValues);
+    const double mu = this->GetEffectiveViscosity(rValues);
 
     const double trace = r_strain_rate[0] + r_strain_rate[1] + r_strain_rate[2];
     const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -99,13 +99,20 @@ std::string Newtonian3DLaw::Info() const {
     return "Newtonian3DLaw";
 }
 
-double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    // We are abusing the fact that C(5,5) = mu
-    return rParameters.GetConstitutiveMatrix()(5,5);
-}
+double Newtonian3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
+{
+    double effective_viscosity;
+    const Properties &r_prop = rParameters.GetMaterialProperties();
 
-double Newtonian3DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    return rParameters.GetMaterialProperties()[DYNAMIC_VISCOSITY];
+    if (r_prop.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
+        // Temperature dependent viscosity
+        effective_viscosity = this->GetValueFromTable(TEMPERATURE, DYNAMIC_VISCOSITY, rParameters);
+    } else {
+        // Constant viscosity value
+        effective_viscosity = r_prop[DYNAMIC_VISCOSITY];
+    }
+
+    return effective_viscosity;
 }
 
 void Newtonian3DLaw::save(Serializer& rSerializer) const {
