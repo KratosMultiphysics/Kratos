@@ -77,7 +77,7 @@ void CouplingFace2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
 //************************************************************************************
 //************************************************************************************
 void CouplingFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                                  ProcessInfo& rCurrentProcessInfo,
+                                  const ProcessInfo& rCurrentProcessInfo,
                                   bool CalculateStiffnessMatrixFlag,
                                   bool CalculateResidualVectorFlag)
 {
