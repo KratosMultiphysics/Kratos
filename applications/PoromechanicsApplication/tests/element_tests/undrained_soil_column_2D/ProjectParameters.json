@@ -52,99 +52,93 @@
         "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1","Face_Load-auto-1","Normal_Fluid_Flux-auto-1"],
         "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
     },
-    "constraints_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Solid_Displacement-auto-2",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Solid_Displacement-auto-3",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,false,false],
-            "is_fixed":        [true,false,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Solid_Displacement-auto-1",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name":      "Fluid_Pressure-auto-1",
-            "variable_name":        "WATER_PRESSURE",
-            "is_fixed":             true,
-            "value":                0.0,
-            "table":                0,
-            "hydrostatic":          false,
-            "gravity_direction":    2,
-            "reference_coordinate": 0.0,
-            "specific_weight":      10000.0
-        }
-    }],
-    "loads_process_list": [{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Face_Load-auto-1",
-            "variable_name":   "FACE_LOAD",
-            "active":          [false,true,false],
-            "value":           [0.0,-1000.0,0.0],
-            "table":           [0,1,0]
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "Normal_Fluid_Flux-auto-1",
-            "variable_name":   "NORMAL_FLUID_FLUX",
-            "value":           0.0,
-            "table":           0
-        }
-    }],
-    "auxiliar_process_list" : [{
+    "processes": {
+        "constraints_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-2",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,false],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-3",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,false,false],
+                "is_fixed":        [true,false,false],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Solid_Displacement-auto-1",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,false],
+                "is_fixed":        [true,true,false],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
+                "variable_name":        "WATER_PRESSURE",
+                "is_fixed":             true,
+                "value":                0.0,
+                "table":                0,
+                "hydrostatic":          false,
+                "gravity_direction":    2,
+                "reference_coordinate": 0.0,
+                "specific_weight":      10000.0
+            }
+        }],
+        "loads_process_list": [{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Face_Load-auto-1",
+                "variable_name":   "FACE_LOAD",
+                "active":          [false,true,false],
+                "value":           [0.0,-1000.0,0.0],
+                "table":           [0,1,0]
+            }
+        },{
+            "python_module": "apply_scalar_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.Normal_Fluid_Flux-auto-1",
+                "variable_name":   "NORMAL_FLUID_FLUX",
+                "value":           0.0,
+                "table":           0
+            }
+        }],
+        "auxiliar_process_list": [{
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
-            "process_name"    : "FromJsonCheckResultProcess",
             "Parameters"      : {
                 "check_variables"      : ["WATER_PRESSURE"],
                 "input_file_name"      : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
-                "model_part_name"      : "Body_Part-auto-1",
+                "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
                 "time_frequency"       : 0.5
             }
-    }],
-    "_json_output_process"  : [{
+        }]
+    },
+    "_json_output_process": [{
         "python_module" : "json_output_process",
         "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
         "Parameters"    : {
             "output_variables"     : ["WATER_PRESSURE"],
             "output_file_name"     : "element_tests/undrained_soil_column_2D/undrained_soil_column_2D_results.json",
-            "model_part_name"      : "Body_Part-auto-1",
+            "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
             "time_frequency"       : 0.5
         }
     }]
