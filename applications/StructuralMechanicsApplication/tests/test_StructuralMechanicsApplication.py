@@ -165,6 +165,7 @@ from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityV
 from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityDPTest as TBigCubeSmallDeformationPlasticityDPTest
 from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityTTest as TBigCubeSmallDeformationPlasticityTTest
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
+from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
@@ -341,6 +342,7 @@ def AssembleTestSuites():
     # Constitutive Law tests
     # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
+    nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution')) 
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
 
     if (missing_external_dependencies == False):
