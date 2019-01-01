@@ -326,6 +326,16 @@ namespace Testing {
         KRATOS_CHECK_NEAR(N_values[1], 5.0/6.0, TOLERANCE);
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValuesMatrix, KratosCoreGeometriesFastSuite) {
+        Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
+        const Matrix N_values = p_geom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        KRATOS_CHECK_NEAR(N_values(0, 0), 0.788675, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values(0, 1), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values(1, 0), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values(1, 1), 0.788675, TOLERANCE);
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
         Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
         auto& r_geom = *p_geom;
