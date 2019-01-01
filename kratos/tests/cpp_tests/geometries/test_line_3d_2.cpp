@@ -298,7 +298,7 @@ namespace Testing {
         KRATOS_CHECK_NEAR(JacobianDeterminant, ExpectedJacobian, TOLERANCE);
     }
 
-    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionValue, KratosCoreGeometriesFastSuite) {
         auto geom = GeneratePointsDiagonalLine3D2();
         array_1d<double, 3> coord(3);
         coord[0] = 2.0/3.0;
@@ -312,6 +312,18 @@ namespace Testing {
         Kratos::make_shared<Node<3>>(2, r_geom[1].X(), r_geom[1].Y(), r_geom[1].Z())
         );
         CrossCheckShapeFunctionsValues(*p_geom_nodes);
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
+        auto geom = GeneratePointsDiagonalLine3D2();
+        array_1d<double, 3> coord(3);
+        coord[0] = 2.0/3.0;
+        coord[1] = 2.0/3.0;
+        coord[2] = 2.0/3.0;
+        Vector N_values;
+        geom->ShapeFunctionsValues(N_values, coord);
+        KRATOS_CHECK_NEAR(N_values[0], 1.0/6.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values[1], 5.0/6.0, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {
