@@ -27,7 +27,9 @@
         "skin_parts"                 	: ["AutomaticInlet2D_Inlet","Outlet2D_Outlet"],
         "no_skin_parts"              	: [],
         "move_mesh_flag"				: false,
-        "dynamic_tau"					: 1.0,
+		"formulation": {
+			"dynamic_tau": 1.0
+		},
         "time_stepping"  : {
             "automatic_time_step" 	: false,
             "time_step"           	: 0.025
