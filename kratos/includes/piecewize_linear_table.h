@@ -2,14 +2,14 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
-//                    
+//
 //
 
 #if !defined(KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED )
@@ -23,7 +23,6 @@
 
 
 // External includes
-#include <boost/array.hpp>
 
 
 // Project includes
@@ -72,7 +71,7 @@ public:
     typedef TArgumentType argument_type; // To be STL conformance.
     typedef TResultType result_type; // To be STL conformance.
 
-    typedef boost::array<TResultType, TResultsColumns>  result_array_type;
+    typedef std::array<TResultType, TResultsColumns>  result_array_type;
 
     typedef std::pair<argument_type, result_array_type> RecordType;
 
@@ -405,6 +404,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED  defined 
+#endif // KRATOS_PIECEWIZE_LINEAR_TABLE_H_INCLUDED  defined
 
 

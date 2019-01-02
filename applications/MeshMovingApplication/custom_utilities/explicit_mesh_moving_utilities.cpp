@@ -23,6 +23,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/spatial_containers_configure.h"
+#include "includes/mesh_moving_variables.h"
 
 namespace Kratos
 {
@@ -31,14 +32,15 @@ namespace Kratos
     ExplicitMeshMovingUtilities::ExplicitMeshMovingUtilities(
         ModelPart &rModelPart,
         ModelPart &rStructureModelPart,
-        const double SearchRadius) : 
+        const double SearchRadius) :
         mSearchRadius(SearchRadius),
         mrVirtualModelPart(rModelPart),
-        mrStructureModelPart(rStructureModelPart){
-
-        KRATOS_WARNING_IF("ExplicitMeshMovingUtilities",mrStructureModelPart.GetBufferSize() == 1) << 
-            "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-        mrStructureModelPart.SetBufferSize(2);
+        mrStructureModelPart(rStructureModelPart)
+    {
+        if (mrStructureModelPart.GetBufferSize() < 2) {
+            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
+            KRATOS_WARNING("ExplicitMeshMovingUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
+        }
     }
 
     void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
@@ -51,7 +53,7 @@ namespace Kratos
         mrVirtualModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
 
         // Copy the origin model part nodes and fixity
-        auto &r_nodes_array = rOriginModelPart.NodesArray(); 
+        auto &r_nodes_array = rOriginModelPart.NodesArray();
         for(auto it_node : r_nodes_array){
             // Create a copy of the origin model part node
             auto p_node = mrVirtualModelPart.CreateNewNode(it_node->Id(),*it_node, 0);
@@ -66,7 +68,7 @@ namespace Kratos
 
         // Copy the origin model part elements
         auto &r_elems = rOriginModelPart.Elements();
-        for(auto elem : r_elems){
+        for(auto &elem : r_elems){
             // Set the array of virtual nodes to create the element from the original ids.
             PointsArrayType nodes_array;
             auto &r_orig_geom = elem.GetGeometry();
@@ -80,9 +82,9 @@ namespace Kratos
         }
 
         // Check that the nodes and elements have been correctly copied
-        KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() != mrVirtualModelPart.NumberOfNodes()) 
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() != mrVirtualModelPart.NumberOfNodes())
             << "Origin and virtual model part have different number of nodes.";
-        KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() != mrVirtualModelPart.NumberOfElements()) 
+        KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() != mrVirtualModelPart.NumberOfElements())
             << "Origin and virtual model part have different number of elements.";
     }
 
@@ -114,15 +116,15 @@ namespace Kratos
         unsigned int BufferSize){
 
         // Check that the virtual model part has elements
-        KRATOS_ERROR_IF(mrVirtualModelPart.NumberOfElements() == 0) << "Virtual model part has no elements."; 
+        KRATOS_ERROR_IF(mrVirtualModelPart.NumberOfElements() == 0) << "Virtual model part has no elements.";
 
         // Set the binbased fast point locator utility
         BinBasedFastPointLocator<TDim> bin_based_point_locator(mrVirtualModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
 
-        // Search the origin model part nodes in the virtual mesh elements and 
+        // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-        auto &r_nodes_array = rOriginModelPart.NodesArray(); 
+        auto &r_nodes_array = rOriginModelPart.NodesArray();
         for(auto it_node : r_nodes_array){
             // Find the origin model part node in the virtual mesh
             Vector aux_N;
@@ -163,12 +165,12 @@ namespace Kratos
         auto &r_virt_nodes = mrVirtualModelPart.NodesArray();
         const unsigned int n_virt_nodes = r_virt_nodes.size();
         auto &r_structure_nodes = mrStructureModelPart.NodesArray();
-        const unsigned int max_number_of_nodes = r_structure_nodes.size(); 
+        const unsigned int max_number_of_nodes = r_structure_nodes.size();
 
         rSearchResults.resize(n_virt_nodes);
         rSearchDistanceResults.resize(n_virt_nodes);
 
-        NodeBinsType bins(r_structure_nodes.begin(), r_structure_nodes.end()); 
+        NodeBinsType bins(r_structure_nodes.begin(), r_structure_nodes.end());
 
         #pragma omp parallel for
         for(int i_fl = 0; i_fl < static_cast<int>(n_virt_nodes); ++i_fl){
@@ -178,7 +180,7 @@ namespace Kratos
             DistanceVectorType i_node_distance_results(max_number_of_nodes);
             auto it_results = i_node_results.begin();
             auto it_results_distances = i_node_distance_results.begin();
-            
+
             // Perform the structure nodes search
             auto it_virt_node = r_virt_nodes.begin() + i_fl;
             n_results = bins.SearchObjectsInRadiusExclusive(*it_virt_node, mSearchRadius, it_results, it_results_distances, max_number_of_nodes);

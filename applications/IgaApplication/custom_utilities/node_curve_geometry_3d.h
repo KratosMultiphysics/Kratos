@@ -1,14 +1,12 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+/*
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
-//
-//  Main authors:    Thomas Oberbichler
-//
+//  Main authors:   Thomas Oberbichler
+*/
 
 #if !defined(KRATOS_NODE_CURVE_GEOMETRY_3D_H_INCLUDED)
 #define KRATOS_NODE_CURVE_GEOMETRY_3D_H_INCLUDED
@@ -16,12 +14,13 @@
 // System includes
 
 // External includes
-#include <ANurbs/Core>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/node.h"
 #include "includes/variables.h"
+#include "anurbs.h"
+#include "iga_application_variables.h"
 
 namespace Kratos {
 
@@ -31,14 +30,14 @@ namespace Kratos {
  *  changes whenever the Nodes are moving.
  */
 class NodeCurveGeometry3D
-    : public ANurbs::CurveGeometryBase<double, Kratos::array_1d<double, 3>>
+    : public ANurbs::CurveGeometryBase<Kratos::array_1d<double, 3>>
 {
 protected:
     using NodePointer = typename Node<3>::Pointer;
 
 public:
     using NodeType = Node<3>;
-    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<double,
+    using CurveGeometryBaseType = ANurbs::CurveGeometryBase<
         Kratos::array_1d<double, 3>>;
     using typename CurveGeometryBaseType::KnotsType;
     using typename CurveGeometryBaseType::ScalarType;
@@ -67,7 +66,7 @@ public:
      * 
      * @return Kratos node at the given index.
      */
-    NodePointer Node(
+    NodePointer GetNode(
         const int Index
     ) const
     {
@@ -101,7 +100,7 @@ public:
     VectorType Pole(
         const int Index) const override
     {
-        const NodeType& node = *Node(Index);
+        const NodeType& node = *GetNode(Index);
  
         VectorType pole;
         for (std::size_t i = 0; i < 3; i++) {
@@ -120,7 +119,7 @@ public:
         const int Index,
         const VectorType& Value) override
     {
-        NodeType& node = *Node(Index);
+        NodeType& node = *GetNode(Index);
 
         for (std::size_t i = 0; i < 3; i++) {
             node[i] = Value[i];
@@ -145,9 +144,13 @@ public:
     ScalarType Weight(
         const int Index) const override
     {
-        const NodeType& node = *Node(Index);
+        const NodeType& node = *GetNode(Index);
  
-        return node.GetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT);
+        if (node.Has(Kratos::NURBS_CONTROL_POINT_WEIGHT)) {
+            return node.GetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT);
+        } else {
+            return 1;
+        }
     }
 
     /** Sets the weight of the Kratos node at a given index.
@@ -159,9 +162,9 @@ public:
         const int Index,
         const ScalarType Value) override
     {
-        NodeType& node = *Node(Index);
+        NodeType& node = *GetNode(Index);
 
-        node.SetValue(Kratos::NURBS_CONTROLPOINT_WEIGHT, Value);
+        node.SetValue(Kratos::NURBS_CONTROL_POINT_WEIGHT, Value);
     }
 
     /** Gets the value of a nodal Kratos variable on a point at the curve.
@@ -177,7 +180,7 @@ public:
         const double T) const
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
+            return GetNode(i)->GetValue(Variable);
         }, T);
     }
 
@@ -197,7 +200,7 @@ public:
         const int Order) const
     {
         return EvaluateAt<TDataType>([&](int i) -> TDataType {
-            return Node(i)->GetValue(Variable);
+            return GetNode(i)->GetValue(Variable);
         }, T, Order);
     }
 };

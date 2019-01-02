@@ -1,13 +1,11 @@
 #
-#   KRATOS .___  ________    _____
-#          |   |/  _____/   /  _  \
-#          |   /   \  ___  /  /_\  \
-#          |   \    \_\  \/    |    \
-#          |___|\______  /\____|__  /
-#                      \/         \/  Application
+#   KRATOS  _____________
+#          /  _/ ____/   |
+#          / // / __/ /| |
+#        _/ // /_/ / ___ |
+#       /___/\____/_/  |_| Application
 #
-#   License: BSD License
-#            Kratos default license: kratos/license.txt
+#   Main authors:   Thomas Oberbichler
 #
 
 # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
@@ -20,9 +18,9 @@ application_name = "KratosIgaApplication"
 application_folder = "IgaApplication"
 
 # The following lines are common for all applications
-from . import application_importer
+from .. import application_importer
 import inspect
 # Information about the file that imported this, to check for unexpected imports
 caller = inspect.stack()[1]
 application_importer.ImportApplication(application, application_name,
-    application_folder, caller)
+    application_folder, caller, __path__)

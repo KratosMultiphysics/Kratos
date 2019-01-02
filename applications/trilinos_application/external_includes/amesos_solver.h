@@ -49,7 +49,7 @@ public:
     {
         Parameters default_settings( R"(
         {
-        "solver_type": "AmesosSolver",
+        "solver_type": "amesos",
         "amesos_solver_type" : "Amesos_Klu",
         "trilinos_amesos_parameter_list": {
             }

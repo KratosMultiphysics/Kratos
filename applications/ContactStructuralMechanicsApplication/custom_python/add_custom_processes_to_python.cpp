@@ -9,16 +9,15 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "includes/node.h"
 #include "includes/define.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
-#include "containers/flags.h"
 
 //Application includes
 #include "custom_python/add_custom_processes_to_python.h"
@@ -27,32 +26,44 @@
 #include "custom_processes/master_slave_process.h"
 #include "custom_processes/alm_fast_init_process.h"
 #include "custom_processes/alm_variables_calculation_process.h"
+#include "custom_processes/contact_spr_error_process.h"
 
 namespace Kratos
 {
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
     typedef Process  ProcessBaseType;
 
-    class_<ALMFastInit, ALMFastInit::Pointer, ProcessBaseType >
+    py::class_<ALMFastInit, ALMFastInit::Pointer, ProcessBaseType >
     (m, "ALMFastInit")
-    .def(init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
-    
-    class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
+
+    py::class_<MasterSlaveProcess, MasterSlaveProcess::Pointer, ProcessBaseType >
     (m, "MasterSlaveProcess")
-    .def(init<ModelPart&>())
+    .def(py::init<ModelPart&>())
     ;
-    
-    class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, ProcessBaseType >
+
+    py::class_<ALMVariablesCalculationProcess, ALMVariablesCalculationProcess::Pointer, ProcessBaseType >
     (m, "ALMVariablesCalculationProcess")
-    .def(init<ModelPart&, Variable<double>&, Parameters>())
-    .def(init<ModelPart&, Variable<double>&>()) // Considering default variables
-    .def(init<ModelPart&>()) 
+    .def(py::init<ModelPart&, Variable<double>&, Parameters>())
+    .def(py::init<ModelPart&, Variable<double>&>()) // Considering default variables
+    .def(py::init<ModelPart&>())
+    ;
+
+    //SPR_ERROR
+    py::class_<ContactSPRErrorProcess<2>, ContactSPRErrorProcess<2>::Pointer, Process >(m, "ContactSPRErrorProcess2D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
+    ;
+
+    py::class_<ContactSPRErrorProcess<3>, ContactSPRErrorProcess<3>::Pointer, Process >(m, "ContactSPRErrorProcess3D")
+    .def(py::init<ModelPart&>())
+    .def(py::init<ModelPart&, Parameters>())
     ;
 }
 }  // namespace Python.

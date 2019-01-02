@@ -1,6 +1,6 @@
 proc AppendGroupNames {String CondName} {
     upvar $String MyString
-    
+
     set Groups [GiD_Info conditions $CondName groups]
     for {set i 0} {$i < [llength $Groups]} {incr i} {
         append MyString \" [lindex [lindex $Groups $i] 1] \" ,
@@ -12,7 +12,7 @@ proc AppendGroupNames {String CondName} {
 proc AppendOutputVariables {String GroupNum QuestionName VarName} {
     upvar $String MyString
     upvar $GroupNum MyGroupNum
-    
+
     if {[GiD_AccessValue get gendata $QuestionName] eq true} {
         incr MyGroupNum
         append MyString \" $VarName \" ,
@@ -77,6 +77,32 @@ proc WritePressureConstraintProcess {FileVar GroupNum Groups EntityType VarName 
             } else {
                 puts $MyFileVar "    \}\],"
             }
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+
+proc WriteTempConstraintProcess {FileVar GroupNum Groups VarName TableDict NumGroups} {
+    upvar $FileVar MyFileVar
+    upvar $GroupNum MyGroupNum
+
+
+    for {set i 0} {$i < [llength $Groups]} {incr i} {
+        incr MyGroupNum
+        puts $MyFileVar "        \"python_module\": \"apply_scalar_constraint_table_process\","
+        puts $MyFileVar "        \"kratos_module\": \"KratosMultiphysics.FluidTransportApplication\","
+        puts $MyFileVar "        \"process_name\":  \"ApplyScalarConstraintTableProcess\","
+        puts $MyFileVar "        \"Parameters\":    \{"
+        puts $MyFileVar "            \"model_part_name\":      \"[lindex [lindex $Groups $i] 1]\","
+        puts $MyFileVar "            \"variable_name\":        \"$VarName\","
+        puts $MyFileVar "            \"value\":                [lindex [lindex $Groups $i] 3],"
+        puts $MyFileVar "            \"table\":                [dict get $TableDict [lindex [lindex $Groups $i] 1] Table0]"
+        puts $MyFileVar "        \}"
+        if {$MyGroupNum < $NumGroups} {
+            puts $MyFileVar "    \},\{"
+        } else {
+            puts $MyFileVar "    \}\],"
         }
     }
 }

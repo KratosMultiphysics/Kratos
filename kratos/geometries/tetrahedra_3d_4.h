@@ -355,8 +355,8 @@ public:
      */
     double Length() const override
     {
-        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;       // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::cbrt(std::fabs(Volume())); // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -792,9 +792,9 @@ public:
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) override
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
     {
         // Compute RHS
         array_1d<double,4> X;

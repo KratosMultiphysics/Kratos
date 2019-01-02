@@ -26,10 +26,10 @@ Begin Nodes
 End Nodes
 
 Begin Elements ShellThickElement3D4N// GUI group identifier: plate
-         1          4          8          7          4          5 
-         2          4          9          8          5          6 
-         3          4          2          3          6          5 
-         4          4          2          5          4          1 
+         1          4          8          7          4          5
+         2          4          9          8          5          6
+         3          4          2          3          6          5
+         4          4          2          5          4          1
 End Elements
 
 Begin SubModelPart Parts_plate // Group plate // Subtree Parts

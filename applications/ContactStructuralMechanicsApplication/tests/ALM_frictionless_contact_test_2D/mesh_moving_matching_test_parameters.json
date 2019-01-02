@@ -1,17 +1,16 @@
 {
     "problem_data"             : {
         "problem_name"    : "mesh_moving_matching_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.1,
         "start_time"      : 0.0,
         "end_time"        : 17.99,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+    "model_part_name" : "Structure",
+        "domain_size"     : 2,
         "solver_type"                        : "Static",
-        "echo_level"                         : 0,        
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -25,7 +24,10 @@
             "mortar_type"                    : "ALMContactFrictionless",
             "ensure_contact"                 : true
         },
-        "block_builder"                      : false,
+        "time_stepping"                      : {
+            "time_step" : 0.1
+        },
+        "block_builder"                      : true,
         "line_search"                        : false,
         "clear_storage"                      : true,
         "reform_dofs_at_each_step"           : true,
@@ -41,117 +43,143 @@
             "solver_type" : "SkylineLUFactorizationSolver"
         }
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,null,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,null,0.0],
+                "interval"        : [0.0,1.1]
+            }
+        },{
+            "python_module"   : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"          : "AssignScalarVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "DISPLACEMENT_X",
+                "value"           : 0.0,
+                "interval"        : [0.0,2.0]
+            }
+        },{
+            "python_module"   : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"          : "AssignScalarVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "DISPLACEMENT_X",
+                "value"           : "1.0*(t-2.0)/8.0",
+                "interval"        : [2.0,10.0]
+            }
+        },{
+            "python_module"   : "assign_scalar_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"          : "AssignScalarVariableProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "DISPLACEMENT_X",
+                "value"           : "1.0 - 1.0*(t-10.0)/8.0",
+                "interval"        : [10.0,18.0]
+            }
+        }],
+        "loads_process_list"       : [
+        {
+            "python_module"   : "assign_vector_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process sets a vector variable value over a condition",
+            "check"                 : "DirectorVectorNonZero direction",
+            "process_name"          : "AssignVectorVariableToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "LINE_LOAD",
+                "interval"             : [0.0, 1e0],
+                "value"                : [0.0, "-1.0e3*t", 0.0]
+            }
+        },{
+            "python_module"   : "assign_vector_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "This process sets a vector variable value over a condition",
+            "check"                 : "DirectorVectorNonZero direction",
+            "process_name"          : "AssignVectorVariableToConditionProcess",
+            "Parameters"            : {
+                "mesh_id"         : 0,
+                "model_part_name" : "CUSTOM",
+                "variable_name"   : "LINE_LOAD",
+                "interval"             : [1.0e0, 18e0],
+                "value"                : [0.0, -1.0e3, 0.0]
+            }
+        }],
+        "contact_process_list" :[{
+            "python_module" : "alm_contact_process",
+            "kratos_module" : "ContactStructuralMechanicsApplication",
+            "help"          : "This process computes the contact between different surfaces",
+            "process_name"  : "ALMContactProcess",
+            "Parameters"            : {
+                "model_part_name"             : "Structure",
+                "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
+                "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
+                "contact_type"                : "Frictionless"
+            }
+        }],
+        "json_check_process" : [
+        {
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
+                "input_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_matching_test_results.json",
+                "model_part_name"      : "CONTACT_Contact_Auto1",
+                "tolerance"            : 3e-3,
+                "time_frequency"       : 1.0
+            }
         }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_Displacement_Auto2",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,null,0.0],
-            "interval"        : [0.0,"End"]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,null,0.0],
-            "interval"        : [0.0,1.1]
-        }
-    },{
-        "python_module"   : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"          : "AssignScalarVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "DISPLACEMENT_X",
-            "value"           : 0.0,
-            "interval"        : [0.0,2.0]
-        }
-    },{
-        "python_module"   : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"          : "AssignScalarVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "DISPLACEMENT_X",
-            "value"           : "1.0*(t-2.0)/8.0",
-            "interval"        : [2.0,10.0]
-        }
-    },{
-        "python_module"   : "assign_scalar_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"          : "AssignScalarVariableProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "DISPLACEMENT_X",
-            "value"           : "1.0 - 1.0*(t-10.0)/8.0",
-            "interval"        : [10.0,18.0]
-        }
-    }],
-    "loads_process_list"       : [
-    {
-        "python_module"   : "assign_vector_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorVariableToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "LINE_LOAD",
-            "interval"             : [0.0, 1e0],
-            "value"                : [0.0, "-1.0e3*t", 0.0]
-        }
-    },{
-        "python_module"   : "assign_vector_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "This process sets a vector variable value over a condition",
-        "check"                 : "DirectorVectorNonZero direction",
-        "process_name"          : "AssignVectorVariableToConditionProcess",
-        "Parameters"            : {
-            "mesh_id"         : 0,
-            "model_part_name" : "CUSTOM",
-            "variable_name"   : "LINE_LOAD",
-            "interval"             : [1.0e0, 18e0],
-            "value"                : [0.0, -1.0e3, 0.0]
-        }
-    }],
-    "contact_process_list" :[{
-        "python_module" : "alm_contact_process",
-        "kratos_module" : "ContactStructuralMechanicsApplication",
-        "help"          : "This process computes the contact between different surfaces",
-        "process_name"  : "ALMContactProcess",
-        "Parameters"            : {
-            "model_part_name"             : "Structure",
-            "assume_master_slave"         : { "0" : ["Parts_Parts_Auto1"]},
-            "contact_model_part"          : { "0" : ["CONTACT_Contact_Auto1"]},
-            "contact_type"                : "Frictionless"
-        }
-    }],
-    "_output_configuration"     : {
+        ]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_solution",
+                "postprocess_parameters" : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -170,23 +198,8 @@
             "nodal_flags_results": ["ACTIVE","SLAVE"],
             "gauss_point_results" : ["VON_MISES_STRESS","PK2_STRESS_TENSOR"]
         },
-        "point_data_configuration"  : []
+        "point_data_configuration"  : []}}}]
     },
-    "json_check_process" : [
-    {
-        "python_module"   : "from_json_check_result_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "FromJsonCheckResultProcess",
-        "Parameters"            : {
-            "check_variables"     : ["DISPLACEMENT_X", "DISPLACEMENT_Y"],
-            "input_file_name"     : "ALM_frictionless_contact_test_2D/mesh_moving_matching_test_results.json",
-            "model_part_name"      : "CONTACT_Contact_Auto1",
-            "tolerance"            : 3e-3,
-            "time_frequency"       : 1.0
-        }
-    }
-    ],
     "_json_output_process" : [
     {
         "python_module"   : "json_output_process",

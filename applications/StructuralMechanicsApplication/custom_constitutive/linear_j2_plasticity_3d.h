@@ -132,7 +132,7 @@ public:
     };
 
     /**
-     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @brief Returns whether this constitutive Law has specified variable (bool)
      * @param rThisVariable the variable to be checked for
      * @return true if the variable is defined in the constitutive law
      */
@@ -155,6 +155,17 @@ public:
         const Variable<double>& rThisVariable,
         const double& rValue,
         const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Returns the value of a specified variable (bool)
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    bool& GetValue(
+        const Variable<bool>& rThisVariable,
+        bool& rValue
         ) override;
 
     /**
@@ -220,6 +231,34 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -248,18 +287,7 @@ public:
     void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
-     * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    bool& CalculateValue(Parameters& rParameterValues,
-                           const Variable<bool>& rThisVariable,
-                           bool& rValue) override;
-
-    /**
-     * @brief calculates the value of a specified variable
+     * @brief It calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -268,6 +296,17 @@ public:
     double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
+
+    /**
+     * @brief It calculates the value of a specified variable vector
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @return rValue output: the value of the specified variable
+     */
+    Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                           const Variable<Vector>& rThisVariable,
+                           Vector& rValue) override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.

@@ -38,7 +38,10 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -54,13 +57,15 @@ namespace Kratos
 /** 
  * @class TreeContactSearch 
  * @ingroup ContactStructuralMechanicsApplication
- * @brief TreeContactSearch
- * @details This utilitiy has as objective to create the contact conditions.
- * The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
+ * @brief This utilitiy has as objective to create the contact conditions.
+ * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
  * The utility employs the projection.h from MeshingApplication, which works internally using a kd-tree 
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template<std::size_t TDim, std::size_t TNumNodes>
+template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
 class TreeContactSearch
 {
 public:
@@ -76,9 +81,6 @@ public:
     /// Index type definition
     typedef std::size_t                                           IndexType;
 
-    /// Size type definition
-    typedef std::size_t                                            SizeType;
-
     /// Type definitions for the tree
     typedef PointItem                                             PointType;
     typedef PointType::Pointer                             PointTypePointer;
@@ -90,6 +92,9 @@ public:
     /// KDtree definitions
     typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
+
+    /// The type of mapper considered
+    typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
 
     /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -113,12 +118,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    // Class Constructor
-    
     /**
      * @brief The constructor of the search utility uses the following inputs:
      * @param rMainModelPart The model part to be considered
-     * @param ThisParameters The condiguration parameters, it includes:
+     * @param ThisParameters The configuration parameters, it includes:
      *                       - The allocation considered in the search
      *                       - The factor considered to check if active or not
      *                       - The integration order considered

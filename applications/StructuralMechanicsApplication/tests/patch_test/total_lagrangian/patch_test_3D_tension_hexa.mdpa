@@ -28,11 +28,11 @@ End Nodes
 
 
 Begin Elements TotalLagrangianElement3D8N// GUI group identifier: Parts Auto2
-         1          2          8          3         10         15         14          6         12         16 
-         2          2          4          8         15         11          7         14         16         13 
-         3          2          2          4         11          9          1          7         13          5 
-         4          2          2          3         10          9          4          8         15         11 
-         5          2          1          6         12          5          2          3         10          9 
+         1          2          8          3         10         15         14          6         12         16
+         2          2          4          8         15         11          7         14         16         13
+         3          2          2          4         11          9          1          7         13          5
+         4          2          2          3         10          9          4          8         15         11
+         5          2          1          6         12          5          2          3         10          9
 End Elements
 
 Begin Conditions SurfaceLoadCondition3D4N// GUI group identifier: Load on surfaces Auto1

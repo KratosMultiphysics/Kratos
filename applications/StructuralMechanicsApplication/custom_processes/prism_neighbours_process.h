@@ -231,7 +231,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     /**
      * @brief This method should be called in case that the current list of neighbour must be drop
      */

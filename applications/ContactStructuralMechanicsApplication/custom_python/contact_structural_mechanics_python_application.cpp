@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: StructuralMechanicsApplication/license.txt
 //
-//  Main authors:    Vicente Mataix
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -28,22 +28,17 @@
 
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
-
-
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
 {
-
-    class_<KratosContactStructuralMechanicsApplication,
-           KratosContactStructuralMechanicsApplication::Pointer,
-           KratosApplication >(m, "KratosContactStructuralMechanicsApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosContactStructuralMechanicsApplication,
+        KratosContactStructuralMechanicsApplication::Pointer,
+        KratosApplication >(m, "KratosContactStructuralMechanicsApplication")
+        .def(py::init<>())
+        ;
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
@@ -52,7 +47,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     AddCustomLinearSolversToPython(m);
 
     // Adding enums
-    enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
+    py::enum_<NormalDerivativesComputation>(m, "NormalDerivativesComputation")
     .value("NO_DERIVATIVES_COMPUTATION",NO_DERIVATIVES_COMPUTATION)
     .value("ELEMENTAL_DERIVATIVES",ELEMENTAL_DERIVATIVES)
     .value("NODAL_ELEMENTAL_DERIVATIVES",NODAL_ELEMENTAL_DERIVATIVES)
@@ -64,6 +59,7 @@ PYBIND11_MODULE(KratosContactStructuralMechanicsApplication, m)
     // CONDITIONS
     // CONTACT
     /* Mortar contact */
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INNER_LOOP_ITERATION )                                  // The number of loops in the simplified semi-smooth inner iteration
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, DELTA_COORDINATES )                  // Delta coordinates used to map
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, INTEGRATION_ORDER_CONTACT )                             // The integration order considered

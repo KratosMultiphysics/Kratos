@@ -10,8 +10,10 @@ def GetFilePath(fileName):
 class TestSkinDetectionProcess(KratosUnittest.TestCase):
 
     def test_SkinDetectionProcess(self):
+        current_model = KratosMultiphysics.Model()
+
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 
@@ -29,8 +31,9 @@ class TestSkinDetectionProcess(KratosUnittest.TestCase):
             self.assertEqual(node.Is(KratosMultiphysics.INTERFACE), node.Is(KratosMultiphysics.ACTIVE))
 
     def test_SkinDetectionProcessWithAssign(self):
+        current_model = KratosMultiphysics.Model()
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
-        model_part = KratosMultiphysics.ModelPart("Main")
+        model_part = current_model.CreateModelPart("Main")
         model_part_io = KratosMultiphysics.ModelPartIO(GetFilePath("coarse_sphere"))
         model_part_io.ReadModelPart(model_part)
 

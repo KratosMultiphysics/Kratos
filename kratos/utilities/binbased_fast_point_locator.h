@@ -67,9 +67,9 @@ namespace Kratos
  * @author  Riccardo Rossi <rrossi@cimne.upc.edu>
  * @note The location function is threadsafe, and can be used in OpenMP loops
  * @tparam TDim If we work in a 2D or 3D space
- * @tparam ConfigureType The spatial container
+ * @tparam TConfigureType The spatial container
  */
-template< SizeType TDim, class ConfigureType = SpatialContainersConfigure<TDim> >
+template< SizeType TDim, class TConfigureType = SpatialContainersConfigure<TDim> >
 class BinBasedFastPointLocator
 {
 public:
@@ -77,14 +77,15 @@ public:
     ///@{
 
     /// The configure type
-    typedef ConfigureType Configure;
+    typedef TConfigureType ConfigureType;
 
     /// The definition of the different containers
-    typedef typename Configure::PointType PointType;
-    typedef typename Configure::ContainerType ContainerType;
-    typedef typename Configure::IteratorType IteratorType;
-    typedef typename Configure::ResultContainerType ResultContainerType;
-    typedef typename Configure::ResultIteratorType ResultIteratorType;
+    typedef typename ConfigureType::PointType PointType;
+    typedef typename ConfigureType::EntityType EntityType;
+    typedef typename ConfigureType::ContainerType ContainerType;
+    typedef typename ConfigureType::IteratorType IteratorType;
+    typedef typename ConfigureType::ResultContainerType ResultContainerType;
+    typedef typename ConfigureType::ResultIteratorType ResultIteratorType;
 
     /// The definition of the node
     typedef Node<3> NodeType;
@@ -129,14 +130,13 @@ public:
     {
         KRATOS_TRY
 
-        // Copy the elements to a new container, as the list will
-        //be shuffled duringthe construction of the tree
-        ContainerType& rElements = mrModelPart.ElementsArray();
-        IteratorType it_begin = rElements.begin();
-        IteratorType it_end = rElements.end();
+        // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
+        ContainerType entities_array;
+        GetContainer(mrModelPart, entities_array);
+        IteratorType it_begin = entities_array.begin();
+        IteratorType it_end = entities_array.end();
 
-        typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end));
-
+        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -150,13 +150,13 @@ public:
     {
         KRATOS_TRY
 
-        //copy the elements to a new container, as the list will
-        //be shuffled duringthe construction of the tree
-        ContainerType& rElements = mrModelPart.ElementsArray();
-        IteratorType it_begin = rElements.begin();
-        IteratorType it_end = rElements.end();
+        // Copy the entities to a new container, as the list will be shuffled duringthe construction of the tree
+        ContainerType entities_array;
+        GetContainer(mrModelPart, entities_array);
+        IteratorType it_begin = entities_array.begin();
+        IteratorType it_end = entities_array.end();
 
-        typename BinsObjectDynamic<Configure>::Pointer paux = typename BinsObjectDynamic<Configure>::Pointer(new BinsObjectDynamic<Configure > (it_begin, it_end,CellSize));
+        auto paux = typename BinsObjectDynamic<ConfigureType>::Pointer(new BinsObjectDynamic<ConfigureType > (it_begin, it_end, CellSize));
         paux.swap(mpBinsObjectDynamic);
 
         KRATOS_CATCH("")
@@ -168,7 +168,7 @@ public:
      * shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pEntity The pointer to the element containing the located point
      * @param ItResultBegin The iterator of the search
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
@@ -179,17 +179,17 @@ public:
     KRATOS_DEPRECATED_MESSAGE("This is legacy version (using array instead of vector for shape function)") bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         array_1d<double, TDim + 1 >& rNShapeFunction,
-        Element::Pointer& pElement,
+        typename EntityType::Pointer& pEntity,
         ResultIteratorType ItResultBegin,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
         )
     {
-        // Ask to the container for the list of candidate elements
+        // Ask to the container for the list of candidate entities
         SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
-            // Loop over the candidate elements and check if the particle falls within
+            // Loop over the candidate entities and check if the particle falls within
             for (IndexType i = 0; i < results_found; i++) {
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
@@ -201,14 +201,14 @@ public:
                 noalias(rNShapeFunction) = shape_function;
 
                 if (is_found) {
-                    pElement = (*(ItResultBegin + i));
+                    pEntity = (*(ItResultBegin + i));
                     return true;
                 }
             }
         }
 
         // Not found case
-        pElement = nullptr;
+        pEntity = nullptr;
         return false;
     }
 
@@ -218,7 +218,7 @@ public:
      * shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pEntity The pointer to the element containing the located point
      * @param ItResultBegin The iterator of the search
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
@@ -228,18 +228,19 @@ public:
     bool FindPointOnMesh(
         const array_1d<double, 3 >& rCoordinates,
         Vector& rNShapeFunction,
-        Element::Pointer& pElement,
+        typename EntityType::Pointer& pEntity,
         ResultIteratorType ItResultBegin,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
         )
     {
-        // Ask to the container for the list of candidate elements
-        SizeType results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
+        // Ask to the container for the list of candidate entities
+        const int results_found = mpBinsObjectDynamic->SearchObjectsInCell(rCoordinates, ItResultBegin, MaxNumberOfResults);
 
         if (results_found > 0) {
-            // Loop over the candidate elements and check if the particle falls within
-            for (IndexType i = 0; i < results_found; i++) {
+            // Loop over the candidate entities and check if the particle falls within
+            for (IndexType i = 0; i < static_cast<IndexType>(results_found); i++) {
+              
                 GeometryType& geom = (*(ItResultBegin + i))->GetGeometry();
 
                 // Find local position
@@ -248,14 +249,14 @@ public:
                 geom.ShapeFunctionsValues(rNShapeFunction, point_local_coordinates);
 
                 if (is_found) {
-                    pElement = (*(ItResultBegin + i));
+                    pEntity = (*(ItResultBegin + i));
                     return true;
                 }
             }
         }
 
         // Not found case
-        pElement = nullptr;
+        pEntity = nullptr;
         return false;
     }
 
@@ -263,7 +264,7 @@ public:
      * @brief Simplified (less efficient) function to find the element into which a given node is located and return a pointer to the element and the vector containing the shape functions that define the postion within the element
      * @param rCoordinates The vector containign the coordinates of the point to be searched
      * @param rNShapeFunction The vector containing the shape function of the located point
-     * @param pElement The pointer to the element containing the located point
+     * @param pEntity The pointer to the element containing the located point
      * @param MaxNumberOfResults The max number of results to be considered
      * @param Tolerance The tolerance considered on the search
      * @return If "false" is devolved the element is not found
@@ -272,14 +273,14 @@ public:
     bool FindPointOnMeshSimplified(
         const array_1d<double, 3 >& rCoordinates,
         Vector& rNShapeFunction,
-        Element::Pointer& pElement,
+        typename EntityType::Pointer& pEntity,
         const SizeType MaxNumberOfResults = 1000,
         const double Tolerance = 1.0e-5
         )
     {
         ResultContainerType results(MaxNumberOfResults);
 
-        const bool is_found = FindPointOnMesh(rCoordinates, rNShapeFunction, pElement, results.begin(), MaxNumberOfResults, Tolerance);
+        const bool is_found = FindPointOnMesh(rCoordinates, rNShapeFunction, pEntity, results.begin(), MaxNumberOfResults, Tolerance);
 
         return is_found;
     }
@@ -336,7 +337,7 @@ private:
 
     ModelPart& mrModelPart; /// The model part containing the mesh for the search
 
-    typename BinsObjectDynamic<Configure>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
+    typename BinsObjectDynamic<ConfigureType>::Pointer mpBinsObjectDynamic; /// The pointer of the bins used for the search
 
     ///@}
     ///@name Private Operators
@@ -346,6 +347,32 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This operation is defined to the the corresponding container type
+     * @param rModelPart The model part to get the element container
+     * @param The corresponding element array
+     */
+    static inline void GetContainer(
+        ModelPart& rModelPart, 
+        PointerVectorSet<Element, IndexedObject>::ContainerType& rContainerArray
+        )
+    {
+        rContainerArray = rModelPart.ElementsArray();
+    }
+    
+    /**
+     * @brief This operation is defined to the the corresponding container type
+     * @param rModelPart The model part to get the condition container
+     * @param The corresponding condition array
+     */
+    static inline void GetContainer(
+        ModelPart& rModelPart, 
+        PointerVectorSet<Condition, IndexedObject>::ContainerType& rContainerArray
+        )
+    {
+        rContainerArray = rModelPart.ConditionsArray();
+    }
+    
     ///@}
     ///@name Private  Access
     ///@{
@@ -363,7 +390,7 @@ private:
     ///@{
     ///@}
 };
-
+    
 } // namespace Kratos.
 
 #endif // KRATOS_BINBASED_FAST_POINT_LOCATOR_INCLUDED  defined

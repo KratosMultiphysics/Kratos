@@ -34,6 +34,9 @@ namespace Kratos {
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
 
     //Register Variables (variables created in constitutive_models_application_variables.cpp)
+    KRATOS_REGISTER_VARIABLE(TEMPERATURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PRESSURE_VARIABLE)
+    KRATOS_REGISTER_VARIABLE(PROPERTIES_LAYOUT)
 
     //specific constitutive models variables must be REGISTERED here
 
@@ -61,8 +64,8 @@ namespace Kratos {
     //strain rate laws
     KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRate3DLaw", mStrainRate3DLaw );
     KRATOS_REGISTER_CONSTITUTIVE_LAW( "StrainRatePlaneStrain2DLaw", mStrainRatePlaneStrain2DLaw );
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "Newtonian3DLaw", mNewtonian3DLaw );
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NewtonianPlaneStrain2DLaw", mNewtonianPlaneStrain2DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NewtonianFluid3DLaw", mNewtonianFluid3DLaw );
+    KRATOS_REGISTER_CONSTITUTIVE_LAW( "NewtonianFluidPlaneStrain2DLaw", mNewtonianFluidPlaneStrain2DLaw );
 
     //general constitutive models
 

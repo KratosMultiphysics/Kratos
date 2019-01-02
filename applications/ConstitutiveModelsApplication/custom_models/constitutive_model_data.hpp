@@ -71,7 +71,7 @@ namespace Kratos
     KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
     KRATOS_DEFINE_LOCAL_FLAG( UPDATE_INTERNAL_VARIABLES );
 
-    enum StrainMeasureType  //supplied cauchy green strain measure
+    enum class StrainMeasureType  //supplied cauchy green strain measure
     {
       CauchyGreen_None,            //no strain measure supplied
       CauchyGreen_Left,            //left cauchy-green tensor
@@ -79,7 +79,7 @@ namespace Kratos
     };
 
 
-    enum StressMeasureType  //required stress measure
+    enum class StressMeasureType  //required stress measure
     {
       StressMeasure_PK1,            //stress related to reference configuration non-symmetric
       StressMeasure_PK2,            //stress related to reference configuration
@@ -148,7 +148,7 @@ namespace Kratos
     {
     private:
 
-      enum VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
+      enum class VarType { INTEGER, DOUBLE, VECTOR, MATRIX, ARRAY3, ARRAY6, NONE };
 
       VarType                                        mType;
       VariableValue<int>                    *mpIntVariable;
@@ -163,7 +163,7 @@ namespace Kratos
       //Constructor
       VariableValueData()
       {
-	mType            = NONE;
+	mType            = VarType::NONE;
 	mpIntVariable    = nullptr;
 	mpDoubleVariable = nullptr;
 	mpVectorVariable = nullptr;
@@ -177,25 +177,25 @@ namespace Kratos
       {
 	switch(mType)
 	  {
-	  case INTEGER:
+	  case VarType::INTEGER:
 	    delete mpIntVariable;
 	    break;
-	  case DOUBLE:
+	  case VarType::DOUBLE:
 	    delete mpDoubleVariable;
 	    break;
-	  case VECTOR:
+	  case VarType::VECTOR:
 	    delete mpVectorVariable;
 	    break;
-	  case MATRIX:
+	  case VarType::MATRIX:
 	    delete mpMatrixVariable;
 	    break;
-	  case ARRAY3:
+	  case VarType::ARRAY3:
 	    delete mpArray3Variable;
 	    break;
-	  case ARRAY6:
+	  case VarType::ARRAY6:
 	    delete mpArray6Variable;
 	    break;
-	  case NONE:
+	  case VarType::NONE:
 	    break;
 	  default:
 	    break;
@@ -206,42 +206,42 @@ namespace Kratos
 
       void SetIntVariableValue(const Variable<int>& rVariable, int& rValue)
       {
-	mType = INTEGER;
+	mType = VarType::INTEGER;
 	typedef VariableValue<int> VariableValueType;
 	mpIntVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetDoubleVariableValue(const Variable<double>& rVariable, double& rValue)
       {
-	mType = DOUBLE;
+	mType = VarType::DOUBLE;
 	typedef VariableValue<double> VariableValueType;
 	mpDoubleVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetVectorVariableValue(const Variable<Vector>& rVariable, Vector& rValue)
       {
-	mType = VECTOR;
+	mType = VarType::VECTOR;
 	typedef VariableValue<Vector> VariableValueType;
 	mpVectorVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetMatrixVariableValue(const Variable<Matrix>& rVariable, Matrix& rValue)
       {
-	mType = MATRIX;
+	mType = VarType::MATRIX;
 	typedef VariableValue<Matrix> VariableValueType;
 	mpMatrixVariable = new VariableValueType(rVariable,rValue);
       }
 
       void SetArray3VariableValue(const Variable<array_1d<double,3> >& rVariable, array_1d<double,3>& rValue)
       {
-	mType = ARRAY3;
+	mType = VarType::ARRAY3;
 	typedef VariableValue<array_1d<double,3> > VariableValueType;
 	mpArray3Variable = new VariableValueType(rVariable,rValue);
       }
 
       void SetArray6VariableValue(const Variable<array_1d<double,6> >& rVariable, array_1d<double,6>& rValue)
       {
-	mType = ARRAY6;
+	mType = VarType::ARRAY6;
 	typedef VariableValue<array_1d<double,6> > VariableValueType;
 	mpArray6Variable = new VariableValueType(rVariable,rValue);
       }
@@ -384,14 +384,15 @@ namespace Kratos
     private:
 
       const Flags*                 mpOptions;
-
-      const Properties*            mpMaterialProperties;
+      const Properties*            mpProperties;
       const ProcessInfo*           mpProcessInfo;
 
       SizeType                     mVoigtSize;
       VoigtIndexType               mIndexVoigtTensor;
 
       ConstitutiveLawData          mConstitutiveLawData;
+
+      PropertiesLayout::Pointer    mpPropertiesLayout;
 
     public:
 
@@ -404,11 +405,13 @@ namespace Kratos
       VariableValueData            InternalVariable;       //internal variable to compute and return
 
       //Set Data Pointers
-      void SetOptions                      (const Flags&  rOptions)                 {mpOptions = &rOptions;};
-      void SetMaterialProperties           (const Properties&  rMaterialProperties) {mpMaterialProperties = &rMaterialProperties;};
-      void SetProcessInfo                  (const ProcessInfo& rProcessInfo)        {mpProcessInfo = &rProcessInfo;};
-      void SetVoigtSize                    (const SizeType& rVoigtSize)             {mVoigtSize = rVoigtSize;};
-      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)       {mIndexVoigtTensor = rIndexVoigtTensor;};
+      void SetOptions                      (const Flags&  rOptions)                     {mpOptions = &rOptions;};
+      void SetProperties                   (const Properties& rProperties)              {mpProperties = &rProperties;};
+      void SetPropertiesLayout             (PropertiesLayout::Pointer pPropertiesLayout) {mpPropertiesLayout = pPropertiesLayout;};
+
+      void SetProcessInfo                  (const ProcessInfo& rProcessInfo)            {mpProcessInfo = &rProcessInfo;};
+      void SetVoigtSize                    (const SizeType& rVoigtSize)                 {mVoigtSize = rVoigtSize;};
+      void SetVoigtIndexTensor             (VoigtIndexType rIndexVoigtTensor)           {mIndexVoigtTensor = rIndexVoigtTensor;};
 
       void SetIntVariableData              (const Variable<int>& rVariable, int& rValue) {InternalVariable.SetIntVariableValue(rVariable,rValue);};
       void SetDoubleVariableData           (const Variable<double>& rVariable, double& rValue) {InternalVariable.SetDoubleVariableValue(rVariable,rValue);};
@@ -420,9 +423,15 @@ namespace Kratos
       void  SetStressMeasure               (StressMeasureType Measure)              {mConstitutiveLawData.StressMeasure = Measure;};
       void  SetStrainMeasure               (StrainMeasureType Measure)              {mConstitutiveLawData.StrainMeasure = Measure;};
 
+      //Has Data Pointers
+      bool  HasPropertiesLayout            () const {return (!mpPropertiesLayout) ? false : true;};
+
       //Get Data Pointers
       const Flags&          GetOptions                     () const {return *mpOptions;};
-      const Properties&     GetMaterialProperties          () const {return *mpMaterialProperties;};
+      const Properties&     GetProperties                  () const {return *mpProperties;};
+
+      const PropertiesLayout& GetPropertiesLayout          () const {return *mpPropertiesLayout.get();};
+
       const ProcessInfo&    GetProcessInfo                 () const {return *mpProcessInfo;};
       const SizeType&       GetVoigtSize                   () const {return  mVoigtSize;};
       const VoigtIndexType& GetVoigtIndexTensor            () const {return  mIndexVoigtTensor;};
@@ -505,8 +514,7 @@ namespace Kratos
       KRATOS_TRY
 
       //material properties
-      const Properties& rProperties = rValues.GetMaterialProperties();
-      ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData();
+      const Properties& rProperties = rValues.GetProperties();
 
       //if previously computed LameMu / LameLambda / BulkModulus
       // rValues.MaterialParameters.LameMu      = rProperties[LAME_MU];
@@ -520,20 +528,32 @@ namespace Kratos
 
       // temperature dependent parameters:
 
-      if( rProperties.HasTable(TEMPERATURE,YOUNG_MODULUS) ){
-	const Table<double>& YoungModulusTable = rProperties.GetTable(TEMPERATURE,YOUNG_MODULUS);
-	rValues.MaterialParameters.YoungModulus = YoungModulusTable[rConstitutiveLawData.Temperature];
-      }
-      else{
-	rValues.MaterialParameters.YoungModulus = rProperties[YOUNG_MODULUS];
-      }
+      if( rValues.HasPropertiesLayout() )
+      {
+        const PropertiesLayout& rPropertiesLayout = rValues.GetPropertiesLayout();
 
-      if( rProperties.HasTable(TEMPERATURE,POISSON_RATIO) ){
-	const Table<double>& PoissonCoefficientTable = rProperties.GetTable(TEMPERATURE,POISSON_RATIO);
-	rValues.MaterialParameters.PoissonCoefficient = PoissonCoefficientTable[rConstitutiveLawData.Temperature];
+        rPropertiesLayout.GetValue(YOUNG_MODULUS, rValues.MaterialParameters.YoungModulus);
+        rPropertiesLayout.GetValue(POISSON_RATIO, rValues.MaterialParameters.PoissonCoefficient);
       }
       else{
-	rValues.MaterialParameters.PoissonCoefficient = rProperties[POISSON_RATIO];
+
+        ConstitutiveLawData& rConstitutiveLawData = rValues.rConstitutiveLawData();
+        if( rProperties.HasTable(TEMPERATURE,YOUNG_MODULUS) ){
+          const Table<double>& YoungModulusTable = rProperties.GetTable(TEMPERATURE,YOUNG_MODULUS);
+          rValues.MaterialParameters.YoungModulus = YoungModulusTable[rConstitutiveLawData.Temperature];
+        }
+        else{
+          rValues.MaterialParameters.YoungModulus = rProperties[YOUNG_MODULUS];
+        }
+
+        if( rProperties.HasTable(TEMPERATURE,POISSON_RATIO) ){
+          const Table<double>& PoissonCoefficientTable = rProperties.GetTable(TEMPERATURE,POISSON_RATIO);
+          rValues.MaterialParameters.PoissonCoefficient = PoissonCoefficientTable[rConstitutiveLawData.Temperature];
+        }
+        else{
+          rValues.MaterialParameters.PoissonCoefficient = rProperties[POISSON_RATIO];
+        }
+
       }
 
       rValues.MaterialParameters.LameMu        = rValues.MaterialParameters.YoungModulus/(2.0*(1.0+rValues.MaterialParameters.PoissonCoefficient));

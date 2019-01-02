@@ -7,7 +7,7 @@
 //					 license: structural_mechanics_application/license.txt
 //
 //  Main authors:    Riccardo Rossi
-//                   Vicente Mataix Ferrándiz
+//                   Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -82,7 +82,7 @@ void SmallDisplacement::CalculateAll(
     )
 {
     KRATOS_TRY;
-    
+
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize();
@@ -110,7 +110,7 @@ void SmallDisplacement::CalculateAll(
 
     // Reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
-    
+
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
     // Set constitutive law flags:
@@ -121,14 +121,14 @@ void SmallDisplacement::CalculateAll(
 
     // If strain has to be computed inside of the constitutive law with PK2
     Values.SetStrainVector(this_constitutive_variables.StrainVector); //this is the input  parameter
-    
+
     for ( IndexType point_number = 0; point_number < integration_points.size(); point_number++ ) {
         // Contribution to external forces
         const Vector body_force = this->GetBodyForce(integration_points, point_number);
 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
-        
+
         // Compute material reponse
         CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
 
@@ -155,7 +155,7 @@ void SmallDisplacement::CalculateAll(
 /***********************************************************************************/
 
 void SmallDisplacement::CalculateKinematicVariables(
-    KinematicVariables& rThisKinematicVariables, 
+    KinematicVariables& rThisKinematicVariables,
     const IndexType PointNumber,
     const GeometryType::IntegrationMethod& rIntegrationMethod
     )
@@ -183,13 +183,12 @@ void SmallDisplacement::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacement::CalculateConstitutiveVariables(
+void SmallDisplacement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
     )
 {
     // Displacements vector
@@ -207,6 +206,22 @@ void SmallDisplacement::CalculateConstitutiveVariables(
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacement::CalculateConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    )
+{
+    // Set the constitutive variables
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
@@ -223,7 +238,7 @@ void SmallDisplacement::CalculateB(
     )
 {
     KRATOS_TRY;
-    
+
     const SizeType number_of_nodes = GetGeometry().PointsNumber();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 

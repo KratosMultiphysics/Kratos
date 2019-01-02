@@ -39,11 +39,11 @@
 
 
 //VARIABLES used:
-//Data:     NEIGHBOUR_NODES
+//Data:     NEIGHBOR_NODES
 //StepData: DISPLACEMENT, CONTACT_FORCE, NORMAL, OFFSET
-//Flags:    (checked) BOUNDARY, TO_ERASE, VISITED
+//Flags:    (checked) BOUNDARY, TO_ERASE, INSIDE
 //          (set)
-//          (modified) VISITED
+//          (modified) INSIDE
 //          (reset)
 
 namespace Kratos
@@ -131,7 +131,7 @@ namespace Kratos
       const unsigned int nds = element_begin->GetGeometry().size();
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
@@ -475,7 +475,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -494,9 +494,9 @@ namespace Kratos
 		i_node->Z0() = i_node->Z() - disp[2];
 
 	      }
-	      else if ( i_node->Is(BOUNDARY) && i_node->Is(VISITED) ){ // Set the position of boundary laplacian
+	      else if ( i_node->Is(BOUNDARY) && i_node->Is(INSIDE) ){ // Set the position of boundary laplacian
 
-		i_node->Set(VISITED, false);
+		i_node->Set(INSIDE, false);
 
 		//recover the original position of the node
 		id = i_node->Id();
@@ -534,7 +534,7 @@ namespace Kratos
 
 	      if ( i_node->SolutionStepsDataHas(DISPLACEMENT) == false)
 		{
-		  std::cout << " WIERD " << std::endl;
+		  std::cout << " WEIRD " << std::endl;
 		  std::cout << " Laplacian. ThisNode Does not have displacemenet " << i_node->Id() << std::endl;
 		  std::cout << "    X: " << i_node->X() << " Y: " << i_node->Y() <<  " Z: " << i_node->Z() << std::endl;
 		}
@@ -576,9 +576,9 @@ namespace Kratos
 	    }
 
 	    //Set the position of boundary laplacian (Reset the flag)
-	    if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(VISITED) )
+	    if ( i_node->Is(BOUNDARY) && i_node->IsNot(TO_ERASE) && i_node->Is(INSIDE) )
 	      {
-		i_node->Set(VISITED, false); //LMV.
+		i_node->Set(INSIDE, false); //LMV.
 	      }
 
 	  }
@@ -609,7 +609,7 @@ namespace Kratos
 
 
       //*******************************************************************
-      //NEIGHBOUR NODES:
+      //NEIGHBOR NODES:
 
       std::vector<int> EmptyVector(0);
       std::vector<std::vector<int> >  NeighborNodesList(rNodes.size());
@@ -659,7 +659,7 @@ namespace Kratos
 	    unsigned int NumberOfNeighbours = NeighborNodesList[in+1].size();
 
 	    if(rNodes[in+1].Is(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE) && rNodes[in+1].IsNot(BOUNDARY) &&
-	       rNodes[in+1].Is(VISITED) && NumberOfNeighbours>1 )
+	       rNodes[in+1].Is(INSIDE) && NumberOfNeighbours>1 )
 	      {
 		TotalDistance.clear();
 		TotalWeight = 0;
@@ -727,7 +727,7 @@ namespace Kratos
 
 	      }
 
-	    //rNodes[in+1].Set(VISITED,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
+	    //rNodes[in+1].Set(INSIDE,false); //LMV: Reset the flag after interpolation. Indeed, if the flag is set, only one iteration takes place
 	  }
 
 

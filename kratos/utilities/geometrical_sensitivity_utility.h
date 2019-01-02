@@ -93,12 +93,20 @@ public:
     
     typedef unsigned IndexType;
 
-    typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
+	typedef DenseVector<std::size_t> IndirectArrayType;
+
+	typedef PermutationMatrix<const MatrixType, IndirectArrayType> SubMatrixType;
+#else
+
+	typedef boost::numeric::ublas::indirect_array<DenseVector<std::size_t>> IndirectArrayType;
 
     typedef boost::numeric::ublas::matrix_indirect<const MatrixType, IndirectArrayType> SubMatrixType;
 
     template <class T>
     using matrix_row = boost::numeric::ublas::matrix_row<T>;
+#endif // ifdef KRATOS_USE_AMATRIX
 
     ///@}
     ///@name Life Cycle

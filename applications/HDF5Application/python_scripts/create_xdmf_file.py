@@ -32,17 +32,24 @@ def GetSpatialGrid(h5py_file):
 
 
 def GetNodalResults(h5py_file):
-    nodal_results_path = "/ResultsData/NodalResults"
-    results = []
-    results_group = h5py_file.get(nodal_results_path)
+    results = {}
+    if "/ResultsData/NodalSolutionStepData" in h5py_file:
+        AddNodalData(h5py_file.get("/ResultsData/NodalSolutionStepData"), results)
+    if "/ResultsData/NodalDataValues" in h5py_file:
+        AddNodalData(h5py_file.get("/ResultsData/NodalDataValues"), results)
+
+    return list(results.values())
+
+def AddNodalData(results_group, results):
     for variable_name in results_group.keys():
         if isinstance(results_group[variable_name], h5py.Dataset):
+            if variable_name in results:
+                raise ValueError('Nodal result "' + variable_name + '" is already defined.')
             data = xdmf.HDF5UniformDataItem(results_group.get(variable_name))
-            results.append(xdmf.NodalSolutionStepData(variable_name, data))
-    return results
+            results[variable_name] = xdmf.NodalData(variable_name, data)
 
 def GetElementResults(h5py_file):
-    element_results_path = "/ResultsData/ElementResults"
+    element_results_path = "/ResultsData/ElementDataValues"
     results = []
     if not element_results_path in h5py_file:
         return results
@@ -67,8 +74,7 @@ def GetListOfTimeLabels(file_name):
     return list_of_time_labels
 
 
-def main():
-    file_name = sys.argv[1]
+def WriteXdmfFile(file_name):
     temporal_grid = xdmf.TemporalGrid()
     GenerateXdmfConnectivities(file_name)
     # Get the initial spatial grid from the base file.
@@ -107,4 +113,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    file_name = sys.argv[1]
+    WriteXdmfFile(file_name)

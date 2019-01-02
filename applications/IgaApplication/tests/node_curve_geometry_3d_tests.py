@@ -17,9 +17,9 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
         node_2 = Node(3, 2.0, 0.0, 0.0)
 
         # set weights of control points
-        node_0.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
-        node_2.SetValue(NURBS_CONTROLPOINT_WEIGHT, 1.0)
+        node_0.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
+        node_2.SetValue(NURBS_CONTROL_POINT_WEIGHT, 1.0)
 
         # create a nurbs curve
         curve = NodeCurveGeometry3D(Degree=2, NumberOfNodes=3)
@@ -66,7 +66,7 @@ class NodeCurveGeometry3DTests(KratosUnittest.TestCase):
         curve = self.curve
 
         node_1 = curve.Node(Index=1)
-        node_1.SetValue(NURBS_CONTROLPOINT_WEIGHT, 2.0)
+        node_1.SetValue(NURBS_CONTROL_POINT_WEIGHT, 2.0)
 
         point = curve.PointAt(T=0.5)
 

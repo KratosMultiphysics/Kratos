@@ -27,6 +27,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
 
     # Embedded element tests
     def testEmbeddedCouetteImposed2D(self):
+        self.slip_flag = False
         self.distance = 1.65
         self.embedded_velocity = 2.56
         self.work_folder = "EmbeddedCouetteImposed2DTest"
@@ -35,6 +36,7 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
         self.ExecuteEmbeddedCouetteTest()
 
     def testEmbeddedCouetteImposed3D(self):
+        self.slip_flag = False
         self.distance = 1.65
         self.embedded_velocity = 2.56
         self.work_folder = "EmbeddedCouetteImposed3DTest"
@@ -75,6 +77,10 @@ class EmbeddedCouetteImposedTest(UnitTest.TestCase):
             ## Solver construction
             import python_solvers_wrapper_fluid
             self.solver = python_solvers_wrapper_fluid.CreateSolver(self.model, self.ProjectParameters)
+
+            ## Set the "is_slip" field in the json settings (to avoid duplication it is set to false in all tests)
+            if self.slip_flag and self.solver.settings["formulation"].Has("is_slip"):
+                self.ProjectParameters["solver_settings"]["is_slip"].SetBool(True)
 
             self.solver.AddVariables()
 
@@ -290,6 +296,7 @@ if __name__ == '__main__':
     test.setUp()
     test.distance = 1.65
     test.embedded_velocity = 2.56
+    test.slip_flag = False
     test.print_output = False
     test.print_reference_values = False
     test.work_folder = "EmbeddedCouetteImposed2DTest"

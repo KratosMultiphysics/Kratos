@@ -49,12 +49,12 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
 
     if (rResult.size() != num_dofs) rResult.resize(num_dofs, false);
 
-    GeometryType& geom = GetGeometry();
+    auto& r_geom = GetGeometry();
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
         const IndexType index = i * 6;
-        NodeType& i_node = geom[i];
+        NodeType& i_node = r_geom[i];
 
         rResult[index]     = i_node.GetDof(DISPLACEMENT_X).EquationId();
         rResult[index + 1] = i_node.GetDof(DISPLACEMENT_Y).EquationId();
@@ -73,11 +73,11 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
 
     rElementalDofList.resize(0); rElementalDofList.reserve(num_dofs);
 
-    GeometryType& geom = GetGeometry();
+    auto& r_geom = GetGeometry();
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        NodeType& i_node = geom[i];
+        NodeType& i_node = r_geom[i];
 
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_X));
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_Y));
@@ -95,11 +95,11 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
 
     if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
-    const GeometryType& geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        const NodeType& i_node = geom[i];
+        const NodeType& i_node = r_geom[i];
         const array_1d<double, 3>& disp = i_node.FastGetSolutionStepValue(DISPLACEMENT, Step);
         const array_1d<double, 3>& rot = i_node.FastGetSolutionStepValue(ROTATION, Step);
 
@@ -120,11 +120,11 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 
     if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
-    const GeometryType& geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        const NodeType& i_node = geom[i];
+        const NodeType& i_node = r_geom[i];
         const array_1d<double, 3>& vel = i_node.FastGetSolutionStepValue(VELOCITY, Step);
         // TODO also include the angular velocity
 
@@ -145,11 +145,11 @@ void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 
     if (rValues.size() != num_dofs) rValues.resize(num_dofs, false);
 
-    const GeometryType & geom = GetGeometry();
+    const auto& r_geom = GetGeometry();
 
-    for (IndexType i = 0; i < geom.size(); ++i)
+    for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        const NodeType& i_node = geom[i];
+        const NodeType& i_node = r_geom[i];
         const array_1d<double, 3>& acc = i_node.FastGetSolutionStepValue(ACCELERATION, Step);
         // TODO also include the angular acceleration
 
@@ -168,20 +168,20 @@ void BaseShellElement::ResetConstitutiveLaw()
 {
     KRATOS_TRY
 
-    const GeometryType& geom = GetGeometry();
-    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const auto& r_geom = GetGeometry();
+    const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
 
-    const Properties& props = GetProperties();
+    const auto& r_props = GetProperties();
     for(IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->ResetCrossSection(props, geom, row(r_shape_fct_values, i));
+        mSections[i]->ResetCrossSection(r_props, r_geom, row(r_shape_fct_values, i));
 
     KRATOS_CATCH("")
 }
 
 void BaseShellElement::Initialize()
 {
-    const GeometryType& r_geom = GetGeometry();
-    const PropertiesType& r_props = GetProperties();
+    const auto& r_geom = GetGeometry();
+    const auto& r_props = GetProperties();
 
     const SizeType num_gps = GetNumberOfGPs();
 
@@ -227,38 +227,38 @@ void BaseShellElement::Initialize()
 
 void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& geom = this->GetGeometry();
-    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const auto& r_geom = this->GetGeometry();
+    const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->InitializeNonLinearIteration(GetProperties(), geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
+        mSections[i]->InitializeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    const GeometryType& geom = this->GetGeometry();
-    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const auto& r_geom = this->GetGeometry();
+    const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->FinalizeNonLinearIteration(GetProperties(), geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
+        mSections[i]->FinalizeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-	const PropertiesType& props = GetProperties();
-	const GeometryType & geom = GetGeometry();
-	const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
+	const auto& r_props = GetProperties();
+	const auto& r_geom = GetGeometry();
+	const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
 
 	for (IndexType i = 0; i < mSections.size(); ++i)
-		mSections[i]->InitializeSolutionStep(props, geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
+		mSections[i]->InitializeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
-    const PropertiesType& props = GetProperties();
-    const GeometryType& geom = GetGeometry();
-    const Matrix& r_shape_fct_values = geom.ShapeFunctionsValues(GetIntegrationMethod());
+    const auto& r_props = GetProperties();
+    const auto& r_geom = GetGeometry();
+    const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
 
     for (IndexType i = 0; i < mSections.size(); ++i)
-        mSections[i]->FinalizeSolutionStep(props, geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
+        mSections[i]->FinalizeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -406,7 +406,7 @@ SizeType BaseShellElement::GetNumberOfDofs()
 
 SizeType BaseShellElement::GetNumberOfGPs()
 {
-    const GeometryType::IntegrationPointsArrayType& integrationPoints =
+    const auto& integrationPoints =
     GetGeometry().IntegrationPoints(mIntegrationMethod);
 
     return integrationPoints.size();
@@ -451,7 +451,7 @@ void BaseShellElement::CheckVariables()
 
 void BaseShellElement::CheckDofs()
 {
-    GeometryType& r_geom = GetGeometry();
+    auto& r_geom = GetGeometry();
     // verify that the dofs exist
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
@@ -478,21 +478,39 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     if(pGetProperties() == nullptr)
         KRATOS_ERROR << "Properties not provided for element " << Id() << std::endl;
 
-    const PropertiesType & props = GetProperties();
+    const auto& r_props = GetProperties();
 
-    const GeometryType& geom = GetGeometry(); // TODO check if this can be const
+    const auto& r_geom = GetGeometry(); // TODO check if this can be const
 
-    if(props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
+    if(r_props.Has(SHELL_CROSS_SECTION)) // if the user specified a cross section ...
     {
-        const ShellCrossSection::Pointer & section = props[SHELL_CROSS_SECTION];
+        const ShellCrossSection::Pointer & section = r_props[SHELL_CROSS_SECTION];
         if(section == nullptr)
             KRATOS_ERROR << "SHELL_CROSS_SECTION not provided for element " << Id() << std::endl;
 
-        section->Check(props, geom, rCurrentProcessInfo);
+        section->Check(r_props, r_geom, rCurrentProcessInfo);
     }
-    else if (props.Has(SHELL_ORTHOTROPIC_LAYERS))
+    else if (r_props.Has(SHELL_ORTHOTROPIC_LAYERS))
     {
         CheckSpecificProperties();
+
+        const auto& r_props = GetProperties();
+
+        KRATOS_ERROR_IF(r_props.Has(THICKNESS)) << "Specifying THICKNESS conflicts with the "
+            << "definition of SHELL_ORTHOTROPIC_LAYERS (where the thickness is also specified)"
+            << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(DENSITY)) << "Specifying DENSITY conflicts with the "
+            << "definition of SHELL_ORTHOTROPIC_LAYERS (where the density is also specified)"
+            << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(YOUNG_MODULUS)) << "Specifying YOUNG_MODULUS conflicts with the "
+            << "definition of SHELL_ORTHOTROPIC_LAYERS (where the youngs-modulus is also specified)"
+            << std::endl;
+
+        KRATOS_ERROR_IF(r_props.Has(POISSON_RATIO)) << "Specifying POISSON_RATIO conflicts with the "
+            << "definition of SHELL_ORTHOTROPIC_LAYERS (where the poisson-ratio is also specified)"
+            << std::endl;
 
         // perform detailed orthotropic check later in shell_cross_section
     }
@@ -500,20 +518,31 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     {
         CheckSpecificProperties();
 
+        const auto& r_props = GetProperties();
+
+        if(!r_props.Has(THICKNESS))
+            KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
+        if(r_props[THICKNESS] <= 0.0)
+            KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
+
+        if(!r_props.Has(DENSITY))
+            KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
+        if(r_props[DENSITY] < 0.0)
+            KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
+
         // TODO is this needed???? => it is, the dummy is needed for "Check" => unify!
         ShellCrossSection::Pointer dummySection = ShellCrossSection::Pointer(new ShellCrossSection());
         dummySection->BeginStack();
         dummySection->AddPly(0, 5, GetProperties());
         dummySection->EndStack();
         dummySection->SetSectionBehavior(ShellCrossSection::Thick);
-        dummySection->Check(props, geom, rCurrentProcessInfo);
+        dummySection->Check(r_props, r_geom, rCurrentProcessInfo);
     }
-
 }
 
 void BaseShellElement::CheckSpecificProperties()
 {
-    const PropertiesType & r_props = GetProperties();
+    const auto& r_props = GetProperties();
 
     if (!r_props.Has(CONSTITUTIVE_LAW))
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
@@ -521,15 +550,13 @@ void BaseShellElement::CheckSpecificProperties()
     if (claw == nullptr)
         KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << Id() << std::endl;
 
-    if(!r_props.Has(THICKNESS))
-        KRATOS_ERROR << "THICKNESS not provided for element " << Id() << std::endl;
-    if(r_props[THICKNESS] <= 0.0)
-        KRATOS_ERROR << "wrong THICKNESS value provided for element " << Id() << std::endl;
+    ConstitutiveLaw::Features LawFeatures;
+    claw->GetLawFeatures(LawFeatures);
 
-    if(!r_props.Has(DENSITY))
-        KRATOS_ERROR << "DENSITY not provided for element " << Id() << std::endl;
-    if(r_props[DENSITY] < 0.0)
-        KRATOS_ERROR << "wrong DENSITY value provided for element " << Id() << std::endl;
+    // KRATOS_ERROR_IF(LawFeatures.mOptions.Is(ConstitutiveLaw::ANISOTROPIC) &&
+    //                 !Has(MATERIAL_ORIENTATION_ANGLE))
+    //     << "Using an Anisotropic Constitutive law requires the specification of "
+    //     << "\"MATERIAL_ORIENTATION_ANGLE\" for shell element with Id " << this->Id() << std::endl;
 
     if(GetSectionBehavior() == ShellCrossSection::Thick)
     {
@@ -537,12 +564,9 @@ void BaseShellElement::CheckSpecificProperties()
         // applicable for 5-parameter shells only.
         bool stenberg_stabilization_suitable = false;
         claw->GetValue(STENBERG_SHEAR_STABILIZATION_SUITABLE, stenberg_stabilization_suitable);
-        if (!stenberg_stabilization_suitable)
-        {
-            std::cout << "\nWARNING:\nThe current constitutive law has not been checked with Stenberg shear stabilization."
-                << "\nPlease check results carefully."
-                << std::endl;
-        }
+        KRATOS_WARNING_IF("BaseShellElement", !stenberg_stabilization_suitable)
+            << "The current constitutive law has not been checked with Stenberg "
+            << "shear stabilization.\nPlease check results carefully." << std::endl;
     }
 }
 

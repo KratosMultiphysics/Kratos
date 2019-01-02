@@ -73,7 +73,7 @@ void VorticityUtilities<TDim>::CalculateVorticityMagnitude(
     for (unsigned int g = 0; g < integration_point_number; g++) {
         const auto& rDN_DX = rShapeFunctionsGradients[g];
 
-        array_1d<double,3> vorticity(3,0.0);
+        array_1d<double,3> vorticity = ZeroVector(3);
 
         for (unsigned int i_node = 0; i_node < rGeometry.size(); i_node++) {
             const array_1d<double,3>& r_velocity = rGeometry[i_node].FastGetSolutionStepValue(VELOCITY);

@@ -279,17 +279,6 @@ namespace Kratos
             std::vector< array_1d<double, 3 > >& rOutput,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateOnIntegrationPoints(
-            const Variable<Vector >& rVariable,
-            std::vector< Vector >& rOutput,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-        void GetValueOnIntegrationPoints(
-            const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override;
-
-
         IntegrationMethod GetIntegrationMethod() const override;
 
 

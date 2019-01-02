@@ -56,7 +56,7 @@ class TransferSelfweightStressUtility
         ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
         ModelPart::NodesContainerType::iterator node_begin_selfweight = selfweight_model_part.NodesBegin();
 
-#pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < NNodes; i++)
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
@@ -70,6 +70,37 @@ class TransferSelfweightStressUtility
                 for (int k = 0; k < TDim; k++)
                 {
                     NodalStress(j, k) += NodalStressSelfweight(j, k);
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    // Transforming local stress vector in global coordinates
+    void TransferInitialStress(ModelPart &r_model_part, const int TDim)
+    {
+
+        KRATOS_TRY;
+
+        const int NNodes = static_cast<int>(r_model_part.Nodes().size());
+        ModelPart::NodesContainerType::iterator node_begin = r_model_part.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < NNodes; i++)
+        {
+            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+
+            const Matrix &InitialNodalStress = itNode->FastGetSolutionStepValue(INITIAL_NODAL_CAUCHY_STRESS_TENSOR);
+            Matrix &NodalStress = itNode->FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR);
+
+            for (int j = 0; j < TDim; j++)
+            {
+                for (int k = 0; k < TDim; k++)
+                {
+                    NodalStress(j, k) += InitialNodalStress(j, k);
                 }
             }
         }

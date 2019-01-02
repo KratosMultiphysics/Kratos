@@ -1,12 +1,12 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
-//  License: BSD License
+//  License:         BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:  Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 
 // System includes
@@ -26,40 +26,35 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
-
-
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosConvectionDiffusionApplication,m)
 {
 
-    class_<KratosConvectionDiffusionApplication,
+    py::class_<KratosConvectionDiffusionApplication,
            KratosConvectionDiffusionApplication::Pointer,
            KratosApplication >(m,"KratosConvectionDiffusionApplication")
-           .def(init<>())
+           .def(py::init<>())
            ;
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
 
     // Registering variables in python
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,AMBIENT_TEMPERATURE)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_COEFFICIENT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AMBIENT_TEMPERATURE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_FLUX)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, AUX_TEMPERATURE)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BFECC_ERROR)
+	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BFECC_ERROR_1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVECTION_COEFFICIENT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_SCALAR1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MEAN_SIZE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MELT_TEMPERATURE_1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MELT_TEMPERATURE_2)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROJECTED_SCALAR1)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, THETA)
 
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,CONVECTION_VELOCITY)
-    //Added by Annelie and Pavel
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MELT_TEMPERATURE_1)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MELT_TEMPERATURE_2)
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,MEAN_SIZE)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PROJECTED_SCALAR1)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DELTA_SCALAR1)
-    
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,THETA)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,BFECC_ERROR)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,BFECC_ERROR_1)
-
 }
-
 
 }  // namespace Python.
 

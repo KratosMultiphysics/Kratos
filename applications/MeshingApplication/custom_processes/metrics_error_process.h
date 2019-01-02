@@ -1,24 +1,22 @@
-// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____ 
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
-//        | |\/| |  _| \___ \| |_| || ||  \| | |  _ 
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
 //        | |  | | |___ ___) |  _  || || |\  | |_| |
 //        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
 //  License:		 BSD License
 //                       license: MeshingApplication/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_ERROR_METRICS_PROCESS)
 #define KRATOS_ERROR_METRICS_PROCESS
 
 // Project includes
-#include "utilities/math_utils.h"
-#include "custom_utilities/metrics_math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "meshing_application.h"
+#include "processes/process.h"
 
 namespace Kratos
 {
@@ -29,11 +27,9 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef ModelPart::NodesContainerType                                     NodesArrayType;
-    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
-    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
-    typedef Node <3>                                                                NodeType;
-    
+    /// The size type definition
+    typedef std::size_t SizeType;
+
 ///@}
 ///@name  Enum's
 ///@{
@@ -41,62 +37,69 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-    
+
 ///@}
 ///@name Kratos Classes
 ///@{
 
-//// This class is can be used to compute the Metrics of the model part with an Hessian approach
-
-template<unsigned int TDim>  
-class ComputeErrorSolMetricProcess
+/**
+ * @class MetricErrorProcess
+ * @ingroup MeshingApplication
+ * @brief This class is can be used to compute the metrics of the model part with a error already computed
+ * @author Vicente Mataix Ferrandiz
+ */
+template<SizeType TDim>
+class KRATOS_API(MESHING_APPLICATION) MetricErrorProcess
     : public Process
 {
 public:
-
     ///@name Type Definitions
     ///@{
-    
-    /// Pointer definition of ComputeErrorSolMetricProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ComputeErrorSolMetricProcess);
-    
+
+    /// Containers definition
+    typedef ModelPart::NodesContainerType                                     NodesArrayType;
+    typedef ModelPart::ElementsContainerType                               ElementsArrayType;
+    typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
+
+        /// The definition of the node type
+    typedef Node <3>                                                                NodeType;
+
+    /// Definition of the iterators
+    typedef WeakPointerVector< Element >::iterator                         WeakElementItType;
+    typedef NodesArrayType::iterator                                              NodeItType;
+    typedef ElementsArrayType::iterator                                        ElementItType;
+
+    /// Definition of the indextype
+    typedef std::size_t                                                            IndexType;
+
+    /// Matrix type definition
+    typedef BoundedMatrix<double, TDim, TDim> MatrixType;
+
+    /// The type of array considered for the tensor
+    typedef typename std::conditional<TDim == 2, array_1d<double, 3>, array_1d<double, 6>>::type TensorArrayType;
+
+    /// Pointer definition of MetricErrorProcess
+    KRATOS_CLASS_POINTER_DEFINITION(MetricErrorProcess);
+
     ///@}
     ///@name Life Cycle
     ///@{
-     
+
     // Constructor
-    
+
     /**
      * This is the default constructor
-     * @param rThisModelPart: The model part to be computed
-     * @param ThisParameters: The input parameters
+     * @param rThisModelPart The model part to be computed
+     * @param ThisParameters The input parameters
      */
-    
-    ComputeErrorSolMetricProcess(
+    MetricErrorProcess(
         ModelPart& rThisModelPart,
         Parameters ThisParameters = Parameters(R"({})")
-        )
-        :mThisModelPart(rThisModelPart)
-    {               
-        Parameters DefaultParameters = Parameters(R"(
-        {
-            "minimal_size"                        : 0.1,
-            "maximal_size"                        : 10.0, 
-            "enforce_current"                     : true, 
-            "error_strategy_parameters": 
-            {
-            }
-        })" );
-        ThisParameters.ValidateAndAssignDefaults(DefaultParameters);
-         
-        mMinSize = ThisParameters["minimal_size"].GetDouble();
-        mMaxSize = ThisParameters["maximal_size"].GetDouble();
-        mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
-    }
-    
+        );
+
     /// Destructor.
-    ~ComputeErrorSolMetricProcess() override = default;
-    
+    ~MetricErrorProcess() override = default;
+
     ///@}
     ///@name Operators
     ///@{
@@ -109,67 +112,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
-    /**
-     * We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
-     */
-    
-    void Execute() override
-    {
-        // Iterate in the nodes
-        NodesArrayType& pNode = mThisModelPart.Nodes();
-        int numNodes = pNode.end() - pNode.begin();
-        
-        #pragma omp parallel for 
-        for(int i = 0; i < numNodes; i++) 
-        {
-            auto itNode = pNode.begin() + i;
 
-            const double NodalH = itNode->FastGetSolutionStepValue(NODAL_H, 0);            
-            
-            double ElementMinSize = mMinSize;
-            if ((ElementMinSize > NodalH) && (mEnforceCurrent == true))
-            {
-                ElementMinSize = NodalH;
-            }
-            double ElementMaxSize = mMaxSize;
-            if ((ElementMaxSize > NodalH) && (mEnforceCurrent == true))
-            {
-                ElementMaxSize = NodalH;
-            }
-            
-            // We compute the Metric
-            #ifdef KRATOS_DEBUG 
-            if( itNode->Has(MMG_METRIC) == false) 
-            {
-                KRATOS_ERROR <<  " MMG_METRIC not defined for node " << itNode->Id();
-            }
-            #endif     
-            Vector& Metric = itNode->GetValue(MMG_METRIC);
-            
-            #ifdef KRATOS_DEBUG 
-            if(Metric.size() != TDim * 3 - 3) 
-            {
-                KRATOS_ERROR << "Wrong size of vector MMG_METRIC found for node " << itNode->Id() << " size is " << Metric.size() << " expected size was " << TDim * 3 - 3;
-            }
-            #endif
-            
-            const double NodalError = itNode->GetValue(NODAL_ERROR);
-            const double NormMetric = norm_2(Metric);
-            if (NormMetric > 0.0) // NOTE: This means we combine differents metrics, at the same time means that the metric should be reseted each time
-            {
-                const Vector OldMetric = itNode->GetValue(MMG_METRIC);
-                const Vector NewMetric = ComputeErrorMetricTensor(NodalH, NodalError, ElementMinSize, ElementMaxSize);    
-                
-                Metric = MetricsMathUtils<TDim>::IntersectMetrics(OldMetric, NewMetric);
-            }
-            else
-            {
-                Metric = ComputeErrorMetricTensor(NodalH, NodalError, ElementMinSize, ElementMaxSize);    
-            }
-        }
-    }
-    
+    /**
+     * @brief We initialize the Metrics of the MMG sol using the Hessian Metric matrix approach
+     */
+    void Execute() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -183,24 +131,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "ComputeErrorSolMetricProcess";
+        return "MetricErrorProcess";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "ComputeErrorSolMetricProcess";
+        rOStream << "MetricErrorProcess";
     }
 
     /// Print object"s data.
     void PrintData(std::ostream& rOStream) const override
     {
     }
-    
+
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -237,7 +185,7 @@ protected:
 
 
     ///@}
-    
+
 private:
     ///@name Private static Member Variables
     ///@{
@@ -245,13 +193,19 @@ private:
     ///@}
     ///@name Private member Variables
     ///@{
-    
-    ModelPart& mThisModelPart;               // The model part to compute
-    double mMinSize;                         // The minimal size of the elements
-    double mMaxSize;                         // The maximal size of the elements
-    bool mEnforceCurrent;                    // With this we choose if we inforce the current nodal size (NODAL_H)
-    double mTolerance;                       // The error tolerance considered
-    
+
+    ModelPart& mrThisModelPart; /// The model part to compute
+
+    double mMinSize;           /// The minimal size of the elements
+    double mMaxSize;           /// The maximal size of the elements
+
+    bool mSetElementNumber;    /// Determines if a target number of elements for the new mesh is set
+    SizeType mElementNumber;   /// The target number of elements for the new mesh
+    double mTargetError;       /// The overall target error for the new mesh
+    bool mAverageNodalH;       /// Determines if the nodal h is averaged from the surrounding elements or if the lowest value is taken
+
+    SizeType mEchoLevel;       /// The echo level
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -261,45 +215,20 @@ private:
     ///@{
 
     /**
-     * This function computes the metric tensor using as reference the nodal error
-     * @param OldNodalH: The old size of the mesh in that node
-     * @param NodalError: The weighted on the node  
-     * @param ElementMinSize: This way we can impose as minimum as the previous size if we desire
-     * @param ElementMaxSize: This way we can impose as maximum as the previous size if we desire
+     * @brief This method estimates the new element size
      */
-        
-    Vector ComputeErrorMetricTensor(
-        const double& OldNodalH,
-        const double& NodalError, 
-        const double& ElementMinSize,
-        const double& ElementMaxSize
-        )
-    {        
-        // Calculating Metric parameters
-        const double MinRatio = 1.0/(ElementMinSize * ElementMinSize);
-//         const double MinRatio = 1.0/(mMinSize * mMinSize);
-        const double MaxRatio = 1.0/(ElementMaxSize * ElementMaxSize);
-//         const double MaxRatio = 1.0/(mMaxSize * mMaxSize);
-        
-        const double AverageNodalError = mThisModelPart.GetProcessInfo()[AVERAGE_NODAL_ERROR];
-        
-        boost::numeric::ublas::bounded_matrix<double, TDim, TDim> MetricMatrix = ZeroMatrix(TDim, TDim);
-        
-        const double NewNodalH = OldNodalH * AverageNodalError/NodalError;
-        
-        const double NewNodalRatio = NewNodalH > ElementMinSize ? MinRatio : NewNodalH < ElementMaxSize ? MaxRatio : 1.0/(NewNodalH * NewNodalH);
-        
-        // Right now just considering isotropic mesh
-        for (unsigned int iDim = 0; iDim < TDim; iDim++)
-        {
-            MetricMatrix(iDim, iDim) = NewNodalRatio;
-        }
-        
-        // Finally we transform to a vector
-        const Vector Metric = MetricsMathUtils<TDim>::TensorToVector(MetricMatrix);
-        
-        return Metric;
-    }
+    void CalculateElementSize();
+
+    /**
+     * @brief In this final step the metric is computed
+     */
+    void CalculateMetric();
+
+    /**
+     * @brief This computes the element size depending of the geometry and it assigns to the ELEMENT_H variable
+     * @param itElement The element iterator
+     */
+    void ComputeElementSize(ElementItType itElement);
 
     ///@}
     ///@name Private  Access
@@ -312,19 +241,19 @@ private:
     ///@}
     ///@name Private LifeCycle
     ///@{
-    
+
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    ComputeErrorSolMetricProcess& operator=(ComputeErrorSolMetricProcess const& rOther);
+    MetricErrorProcess& operator=(MetricErrorProcess const& rOther);
 
     /// Copy constructor.
-    //ComputeErrorSolMetricProcess(ComputeErrorSolMetricProcess const& rOther);
+    //MetricErrorProcess(MetricErrorProcess const& rOther);
 
     ///@}
-};// class ComputeErrorSolMetricProcess
+};// class MetricErrorProcess
 ///@}
 
 
@@ -337,14 +266,14 @@ private:
 ///@{
 
 /// input stream function
-template<unsigned int TDim, class TVarType> 
+template<unsigned int TDim, class TVarType>
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ComputeErrorSolMetricProcess<TDim>& rThis);
+                                  MetricErrorProcess<TDim>& rThis);
 
 /// output stream function
-template<unsigned int TDim, class TVarType> 
+template<unsigned int TDim, class TVarType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ComputeErrorSolMetricProcess<TDim>& rThis)
+                                  const MetricErrorProcess<TDim>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

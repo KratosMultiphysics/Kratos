@@ -8,12 +8,12 @@
                     },
                     "Variables": {
                             "DENSITY": 7.85000E+03,
-                            "YOUNG_MODULUS": 2.1E+06,
+                            "YOUNG_MODULUS": 2.1E+03,
                             "POISSON_RATIO": 3.0000E-01,
-                            "CROSS_AREA": 0.01,
-                            "TORSIONAL_INERTIA": 0.00001,
-                            "I22": 0.00001,
-                            "I33": 0.00001
+                            "CROSS_AREA": 10.0,
+                            "TORSIONAL_INERTIA": 0.01,
+                            "I22": 0.01,
+                            "I33": 0.01
                     },
                     "Tables": {}
             }

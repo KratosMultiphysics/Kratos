@@ -10,12 +10,18 @@
         "echo_level"      : 0
     },
     "kratos_response_settings":{
-        "response_type"          : "mass",
+        "response_type"            : "mass",
         "material_import_settings" :{
-            "materials_filename": "StructuralMaterials.json"
+            "materials_filename"   : "StructuralMaterials.json"
         },
-        "gradient_mode"          : "finite_differencing",
-        "step_size"              : 1e-6,
-        "consider_discretization": false
+        "model_part_name"          : "rectangular_plate_structure",
+        "domain_size"              : 3,
+        "model_import_settings"    : {
+            "input_type"           : "mdpa",
+            "input_filename"       : "rectangular_plate_structure"
+        },
+        "gradient_mode"            : "finite_differencing",
+        "step_size"                : 1e-5,
+        "consider_discretization"  : false
     }
 }

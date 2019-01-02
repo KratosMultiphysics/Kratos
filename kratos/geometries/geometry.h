@@ -154,12 +154,12 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef boost::array<Matrix, GeometryData::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, GeometryData::NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
@@ -686,18 +686,16 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry, if possible
-     * @return The normal of the geometry
+     * @brief It returns a vector that is normal to its corresponding geometry in the given local point
+     * @param rPointLocalCoordinates Reference to the local coordinates of the point in where the normal is to be computed
+     * @return The normal in the given point
      */
-    virtual array_1d<double, 3> AreaNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
+    virtual array_1d<double, 3> Normal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
         const unsigned int local_space_dimension = this->LocalSpaceDimension();
         const unsigned int dimension = this->WorkingSpaceDimension();
 
-        if (dimension == local_space_dimension)
-        {
-            KRATOS_ERROR << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
-        }
+        KRATOS_ERROR_IF(dimension == local_space_dimension) << "Remember the normal can be computed just in geometries with a local dimension: "<< this->LocalSpaceDimension() << "smaller than the spatial dimension: " << this->WorkingSpaceDimension() << std::endl;
 
         // We define the normal and tangents
         array_1d<double,3> tangent_xi(3, 0.0);
@@ -707,18 +705,13 @@ public:
         this->Jacobian( j_node, rPointLocalCoordinates);
 
         // Using the Jacobian tangent directions
-        if (dimension == 2)
-        {
+        if (dimension == 2) {
             tangent_eta[2] = 1.0;
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
             }
-        }
-        else
-        {
-            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++)
-            {
+        } else {
+            for (unsigned int i_dim = 0; i_dim < dimension; i_dim++) {
                 tangent_xi[i_dim]  = j_node(i_dim, 0);
                 tangent_eta[i_dim] = j_node(i_dim, 1);
             }
@@ -730,14 +723,13 @@ public:
     }
 
     /**
-     * It computes the unit normal of the geometry
-     * @param rPointLocalCoordinates Refernce to the local coordinates of the
-     * point in where the unit normal is to be computed
+     * @brief It computes the unit normal of the geometry in the given local point
+     * @param rPointLocalCoordinates Refernce to the local coordinates of the point in where the unit normal is to be computed
      * @return The unit normal in the given point
      */
     virtual array_1d<double, 3> UnitNormal(const CoordinatesArrayType& rPointLocalCoordinates) const
     {
-        array_1d<double, 3> normal = AreaNormal(rPointLocalCoordinates);
+        array_1d<double, 3> normal = Normal(rPointLocalCoordinates);
         const double norm_normal = norm_2(normal);
         if (norm_normal > std::numeric_limits<double>::epsilon()) normal /= norm_normal;
         else KRATOS_ERROR << "ERROR: The normal norm is zero or almost zero. Norm. normal: " << norm_normal << std::endl;
@@ -877,7 +869,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -885,10 +877,10 @@ public:
     virtual CoordinatesArrayType& PointLocalCoordinates(
             CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint
-            )
+            ) const
     {
         KRATOS_ERROR_IF(WorkingSpaceDimension() != LocalSpaceDimension()) << "ERROR:: Attention, the Point Local Coordinates must be specialized for the current geometry" << std::endl;
-        
+
         Matrix J = ZeroMatrix( WorkingSpaceDimension(), LocalSpaceDimension() );
 
         rResult.clear();
@@ -927,7 +919,7 @@ public:
                 break;
             }
         }
-        
+
         return rResult;
     }
 
@@ -1206,8 +1198,6 @@ public:
         CoordinatesArrayType const& LocalCoordinates
         ) const
     {
-        if (rResult.size() != 3)
-            rResult.resize(3, false);
         noalias( rResult ) = ZeroVector( 3 );
 
         Vector N( this->size() );
@@ -1232,11 +1222,10 @@ public:
         Matrix& DeltaPosition
         ) const
     {
-        if (rResult.size() != 3)
-            rResult.resize(3, false);
+        constexpr std::size_t dimension = 3;
         noalias( rResult ) = ZeroVector( 3 );
         if (DeltaPosition.size2() != 3)
-            DeltaPosition.resize(DeltaPosition.size1(), 3);
+            DeltaPosition.resize(DeltaPosition.size1(), dimension,false);
 
         Vector N( this->size() );
         ShapeFunctionsValues( N, LocalCoordinates );

@@ -75,7 +75,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -85,7 +85,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
- 
+
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 
     typedef BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> BuilderAndSolverType;
@@ -101,23 +101,23 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 
 
-    //class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
+    //py::class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType2D, boost::noncopyable>
 //("ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver2D", init< LinearSolverType::Pointer>() )
 //
 //    //********************************************************************
     //********************************************************************
 
 
-class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>,
+py::class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>,
                     typename ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType>::Pointer,
                     BaseSchemeType >
                     (m, "ResidualBasedPredictorCorrectorBossakScheme")
-                    .def(init< double >()
+                    .def(py::init< double >()
                     );
 
 
-    class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")
-    .def(init< LinearSolverType::Pointer>() )
+    py::class_< ResidualBasedIncompressibleBuilderType2D, ResidualBasedIncompressibleBuilderType2D::Pointer, BuilderAndSolverType > (m, "ResidualBasedIncompressibleBuilder2D")
+    .def(py::init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedIncompressibleBuilderType2D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedIncompressibleBuilderType2D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedIncompressibleBuilderType2D::BuildAndSolve)
@@ -152,8 +152,8 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
     typedef ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType, 3> ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D;
 
 
-    class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Pointer, BuilderAndSolverType > (m,"ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D")
-    .def(init< LinearSolverType::Pointer>() )
+    py::class_< ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D, ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::Pointer, BuilderAndSolverType > (m,"ResidualBasedEliminationQuasiIncompressibleBuilderAndSolver3D")
+    .def(py::init< LinearSolverType::Pointer>() )
     .def("AssembleLHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleLHS )
     .def("AssembleRHS", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::AssembleRHS )
     .def("BuildAndSolve", &ResidualBasedEliminationQuasiIncompressibleBuilderAndSolverType3D::BuildAndSolve)
@@ -182,24 +182,24 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
     ;
 
 
-    class_< RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >, RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, BaseSolvingStrategyType > (m,"RungeKuttaFracStepStrategy2D")
-     .def(init < ModelPart&, LinearSolverType::Pointer, bool, bool, bool >())
+    py::class_< RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >, RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer, BaseSolvingStrategyType > (m,"RungeKuttaFracStepStrategy2D")
+     .def(py::init < ModelPart&, LinearSolverType::Pointer, bool, bool, bool >())
      //.def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
      .def("SolveStep2", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep2)
      .def("SolveStep3", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep3)
      //.def("SolveStep_ForwardEuler", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep_ForwardEuler)
-     .def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)	
+     .def("SolveStep1", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::SolveStep1)
      .def("Clear", &RungeKuttaFracStepStrategy < 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
      ;
 
 
-//    class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+//    py::class_< ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
 //            ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,
 //            BaseSolvingStrategyType >
 //            (m,"ResidualBasedSemiEulerianConvectionDiffusionStrategy")
 //            .def( init<	ModelPart&, LinearSolverType::Pointer,	bool, int	>() )
 //            .def("Clear",&ResidualBasedSemiEulerianConvectionDiffusionStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::Clear)
-//            ;   
+//            ;
 
 
 
@@ -207,8 +207,8 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
     //********************************************************************
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
 //strategy base class
-    class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy", module_local())
-    .def(init< ModelPart&, bool >() )
+    py::class_< BaseSolvingStrategyType, BaseSolvingStrategyType::Pointer >(m,"SolvingStrategy", py::module_local())
+    .def(py::init< ModelPart&, bool >() )
     .def("Predict", &BaseSolvingStrategyType::Predict )
     .def("Solve", &BaseSolvingStrategyType::Solve )
     .def("IsConverged", &BaseSolvingStrategyType::IsConverged )
@@ -225,16 +225,16 @@ class_< ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpace
     ;
     typedef LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy2D;
 
-    class_< LapModifiedLinearStrategy2D, LapModifiedLinearStrategy2D::Pointer, BaseSolvingStrategyType >
+    py::class_< LapModifiedLinearStrategy2D, LapModifiedLinearStrategy2D::Pointer, BaseSolvingStrategyType >
     (m,"LapModifiedLinearStrategy2D")
-     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+     .def(py::init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 2, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
     typedef LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType> LapModifiedLinearStrategy3D;
 
-    class_< LapModifiedLinearStrategy3D, LapModifiedLinearStrategy3D::Pointer, BaseSolvingStrategyType >
+    py::class_< LapModifiedLinearStrategy3D, LapModifiedLinearStrategy3D::Pointer, BaseSolvingStrategyType >
     (m,"LapModifiedLinearStrategy3D")
-     .def(init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
+     .def(py::init<ModelPart&,BaseSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool, bool	>() )
     .def("Solve", &LapModifiedLinearStrategy< 3, SparseSpaceType, LocalSpaceType, LinearSolverType >::Solve )
     ;
 

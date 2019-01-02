@@ -18,7 +18,10 @@
 /* System includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
-//#include "includes/ublas_interface.h"
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+#include "boost/numeric/ublas/matrix.hpp" // for the vector used here.
+#else
+#endif // KRATOS_USE_AMATRIX
 
 /* External includes */
 
@@ -84,7 +87,7 @@ public:
     /*@{ */
     typedef boost::numeric::ublas::compressed_matrix<double> SparseMatrixType;
 
-    typedef DenseVector<double> SparseVectorType;
+    typedef boost::numeric::ublas::vector<double> SparseVectorType;
 
     /*@} */
     /**@name Life Cycle

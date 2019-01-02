@@ -13,12 +13,13 @@
 #if !defined(KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED)
 #define  KRATOS_PYTHON_FUNCTION_CALLBACK_UTILITY_H_INCLUDED
 
+#include <pybind11/pybind11.h>
+#include <pybind11/eval.h>
+
 #include <cmath>
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-
-#include <pybind11/pybind11.h>
-#include <pybind11/eval.h>
+#include "includes/model_part.h"
 
 namespace Kratos
 {

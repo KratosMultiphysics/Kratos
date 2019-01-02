@@ -2,9 +2,9 @@
 import sys
 
 import KratosMultiphysics
-import KratosMultiphysics.DelaunayMeshingApplication
-import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.ConstitutiveModelsApplication
+import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemApplication
 
 # Import Kratos "wrapper" for unittests
@@ -16,6 +16,8 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import SmallTests
 # NIGTHLY TESTS
 import NightTests
+# VALIDATION TESTS
+import ValidationTests
 
 if __name__ == '__main__':
     case = eval(sys.argv[1])

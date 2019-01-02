@@ -48,21 +48,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_TRILINOS_GID_MESH_CONTAINER_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstddef>
-
-// External includes
-#include "gidpost/source/gidpost.h"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/gid_io.h"
 #include "includes/gid_mesh_container.h"
-#include "geometries/geometry_data.h"
-#include "trilinos_application.h"
 
 namespace Kratos
 {
@@ -230,4 +218,4 @@ public:
 
 }// namespace Kratos.
 
-#endif // KRATOS_TRILINOS_GID_MESH_CONTAINER_H_INCLUDED defined 
+#endif // KRATOS_TRILINOS_GID_MESH_CONTAINER_H_INCLUDED defined

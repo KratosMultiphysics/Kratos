@@ -27,16 +27,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosContactMechanicsApplication,m)
 {
 
-  class_<KratosContactMechanicsApplication,
+  py::class_<KratosContactMechanicsApplication,
          KratosContactMechanicsApplication::Pointer,
          KratosApplication>(m,"KratosContactMechanicsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomUtilitiesToPython(m);
@@ -67,7 +67,7 @@ PYBIND11_MODULE(KratosContactMechanicsApplication,m)
 
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, FRICTION_LAW_NAME )
-
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_STEP_TIME )
   }
 
 

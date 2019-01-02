@@ -464,7 +464,7 @@ protected:
             //allocate the schur complement
             ConstructSystemMatrix(S,G,D,L);
 
-            Vector diagK (mother_indices.size() );
+			VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
             //fill the shur complement
@@ -507,7 +507,7 @@ protected:
                 }
             }
 
-            Vector diagK (mother_indices.size() );
+			VectorType diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
             //fill the shur complement
@@ -555,10 +555,10 @@ private:
     SparseMatrixType mD;
     SparseMatrixType mS;
     
-    Vector mrp;
-    Vector mru;
-    Vector mp;
-    Vector mu;
+    VectorType mrp;
+	VectorType mru;
+	VectorType mp;
+	VectorType mu;
 	
     ///@}
     ///@name Private Operators
@@ -621,11 +621,11 @@ private:
             if (m > max_iter)
                 m = max_iter;
         VectorType s (m+1), sn (m+1), w (dim), r (dim), y (m+1);
-        Vector  cs (m+1);
+		VectorType  cs (m+1);
         Matrix  H (m+1, m+1);
         int restart = 0;
         //preconditioner solve b and store in Minv_b
-        Vector preconditioned_b (dim);
+		VectorType preconditioned_b (dim);
         //TSparseSpaceType::Copy(b, preconditioned_b); //preconditioned_b=b
         //apply preconditioner
         SolveBlockPreconditioner (b,preconditioned_b);
@@ -792,13 +792,13 @@ private:
 
     void SolveBlockPreconditioner (const VectorType& rtot, VectorType& x)
     {
-        noalias(mp) = ZeroVector(mother_indices.size());
-        noalias(mu)  = ZeroVector(mother_indices.size());
-        Vector uaux (mother_indices.size() );
-        Vector paux (mpressure_indices.size() );
+		boost::numeric::ublas::noalias(mp) = boost::numeric::ublas::zero_vector<double>(mother_indices.size());
+		boost::numeric::ublas::noalias(mu) = boost::numeric::ublas::zero_vector<double>(mother_indices.size());
+		VectorType uaux (mother_indices.size() );
+		VectorType paux (mpressure_indices.size() );
 	
         //get diagonal of K (to be removed)
-        Vector diagK (mother_indices.size() );
+		VectorType diagK (mother_indices.size() );
         ComputeDiagonalByLumping (mK,diagK);
 
 	//get the u and p residuals

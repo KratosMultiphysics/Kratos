@@ -1,5 +1,6 @@
 
 from __future__ import print_function, absolute_import, division
+import os
 import KratosMultiphysics
 
 import KratosMultiphysics.EigenSolversApplication as EigenSolversApplication
@@ -15,14 +16,20 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "' + solver_type + '" }')
-        
+
         solver = ConstructSolver(settings)
 
         a = KratosMultiphysics.CompressedMatrix()
-        
-        KratosMultiphysics.ReadMatrixMarketMatrix('../../../kratos/tests/A.mm', a) # symmetric test matrix
-        
+
+        this_file_dir = os.path.dirname(os.path.realpath(__file__))
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
+        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "A.mm")
+
+        KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+
         dimension = a.Size1()
+
+        self.assertEqual(dimension, 900)
 
         b_exp = KratosMultiphysics.Vector(dimension) # [1, 2, ..., dimension-1, dimension]
 
@@ -41,7 +48,7 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
     def test_eigen_sparse_lu(self):
         self._execute_eigen_direct_solver_test('SparseLUSolver', 'eigen_sparse_lu')
-    
+
     def test_eigen_pardiso_lu(self):
         self._execute_eigen_direct_solver_test('PardisoLUSolver', 'eigen_pardiso_lu')
 

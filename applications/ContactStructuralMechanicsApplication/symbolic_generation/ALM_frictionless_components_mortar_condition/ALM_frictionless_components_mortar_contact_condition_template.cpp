@@ -17,13 +17,13 @@
 /* Mortar includes */
 #include "custom_conditions/ALM_frictionless_components_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create( 
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
@@ -34,8 +34,8 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
@@ -46,8 +46,8 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesType::Pointer pProperties,
@@ -59,8 +59,8 @@ Condition::Pointer AugmentedLagrangianMethodFrictionlessComponentsMortarContactC
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation>::~AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition( )
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes, TNormalVariation, TNumNodesMaster>::~AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition( )
 = default;
 
 /***************************** BEGIN AD REPLACEMENT ********************************/
@@ -79,24 +79,24 @@ AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumN
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo 
+    ProcessInfo& CurrentProcessInfo
     )
 {
-    KRATOS_TRY;   
-    
+    KRATOS_TRY;
+
     if (rResult.size() != MatrixSize)
         rResult.resize( MatrixSize, false );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
-    
+
     // Master Nodes Displacement Equation IDs
-    for ( IndexType i_master = 0; i_master < TNumNodes; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
+    for ( IndexType i_master = 0; i_master < TNumNodesMaster; i_master++ ) // NOTE: Assuming same number of nodes for master and slave
     {
         NodeType& master_node = current_master[i_master];
         rResult[index++] = master_node.GetDof( DISPLACEMENT_X ).EquationId( );
@@ -121,31 +121,31 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
         rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = slave_node.GetDof( VECTOR_LAGRANGE_MULTIPLIER_Z ).EquationId( );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
+    ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
-    
+
     if (rConditionalDofList.size() != MatrixSize)
         rConditionalDofList.resize( MatrixSize );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE, LAMBDA ] */
     GeometryType& current_master = this->GetPairedGeometry();;
 
     // Master Nodes Displacement Equation IDs
-    for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
+    for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) // NOTE: Assuming same number of nodes for master and slave
     {
         NodeType& master_node = current_master[i_master];
         rConditionalDofList[index++] = master_node.pGetDof( DISPLACEMENT_X );
@@ -170,15 +170,15 @@ void AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,
         rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Y );
         if (TDim == 3) rConditionalDofList[index++] = slave_node.pGetDof( VECTOR_LAGRANGE_MULTIPLIER_Z );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, SizeType TNumNodesMaster >
+int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,TNumNodes,TNormalVariation,TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -209,10 +209,14 @@ int AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<TDim,T
 /***********************************************************************************/
 
 template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, false>;
-template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false>;
-template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false, 3>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false, 4>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, false, 4>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, false, 3>;
 template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<2, 2, true>;
-template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true>;
-template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true, 3>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true, 4>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 3, true, 4>;
+template class AugmentedLagrangianMethodFrictionlessComponentsMortarContactCondition<3, 4, true, 3>;
 
 } // Namespace Kratos

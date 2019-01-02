@@ -287,7 +287,7 @@ protected:
         MatrixType& rMassMatrix) override;
 
     // This function integrates the traction over a cut. It is only required to implement embedded formulations
-    void AddBoundaryIntegral(
+    void AddBoundaryTraction(
         TElementData& rData,
         const Vector& rUnitNormal,
         MatrixType& rLHS,
@@ -429,21 +429,21 @@ template <class TElementData, bool TDataKnowsAboutTimeIntegration>
 class FICSpecializedAddTimeIntegratedSystem {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+        TElementData& rData, Kratos::Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
 class FICSpecializedAddTimeIntegratedSystem<TElementData, true> {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+        TElementData& rData, Kratos::Matrix& rLHS, Vector& rRHS);
 };
 
 template <class TElementData>
 class FICSpecializedAddTimeIntegratedSystem<TElementData, false> {
    public:
     static void AddSystem(FIC<TElementData>* pElement,
-        TElementData& rData, Matrix& rLHS, Vector& rRHS);
+        TElementData& rData, Kratos::Matrix& rLHS, Vector& rRHS);
 };
 
 ///@} // Fluid Dynamics Application group

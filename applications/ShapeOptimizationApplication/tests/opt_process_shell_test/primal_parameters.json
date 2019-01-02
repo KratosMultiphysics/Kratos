@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "structure",
-        "model_part_name" : "structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,10 +9,14 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
+        "analysis_type"                      : "linear",
+        "model_part_name" : "structure",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.1
+        },
         "model_import_settings"              : {
-            "input_type"     : "mdpa",
-            "input_filename" : "structure"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings"           : {
             "materials_filename" : "material.json"

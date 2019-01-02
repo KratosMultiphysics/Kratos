@@ -3,6 +3,7 @@
 BSD license: HDF5Application/license.txt
 """
 from abc import ABCMeta, abstractmethod
+import os
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import hdf5_defaults
@@ -30,10 +31,13 @@ class HDF5SerialFileFactory(FileFactory):
                 "echo_level" : 0
             }
             """)
+        if os.name == "nt":
+            default_settings["file_driver"].SetString("windows")
+
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings.AddEmptyValue("file_name")
-    
+
     def Open(self, file_name):
         self.settings["file_name"].SetString(file_name)
         return KratosHDF5.HDF5FileSerial(self.settings)
@@ -52,7 +56,7 @@ class HDF5ParallelFileFactory(FileFactory):
         self.settings = settings.Clone()
         self.settings.ValidateAndAssignDefaults(default_settings)
         self.settings.AddEmptyValue("file_name")
-    
+
     def Open(self, file_name):
         self.settings["file_name"].SetString(file_name)
         return KratosHDF5.HDF5FileParallel(self.settings)
@@ -70,7 +74,7 @@ class ModelPartOutput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5ModelPartIO(hdf5_file, self.settings["prefix"].GetString()).WriteModelPart(model_part)
 
-class ElementResultsOutput(IOObject):
+class ElementDataValueOutput(IOObject):
     """Provides the interface for writing element results to a file."""
 
     def __init__(self, settings):
@@ -79,11 +83,11 @@ class ElementResultsOutput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
+        KratosHDF5.HDF5ElementDataValueIO(self.settings, hdf5_file).WriteElementResults(model_part.Elements)
 
 
-class NodalResultsOutput(IOObject):
-    """Provides the interface for writing nodal results to a file."""
+class NodalSolutionStepDataOutput(IOObject):
+    """Provides the interface for writing nodal solution step results to a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -93,6 +97,16 @@ class NodalResultsOutput(IOObject):
     def Execute(self, model_part, hdf5_file):
         KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes, 0)
 
+class NodalDataValueOutput(IOObject):
+    """Provides the interface for writing nodal data values to a file."""
+
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+    def Execute(self, model_part, hdf5_file):
+        KratosHDF5.HDF5NodalDataValueIO(self.settings, hdf5_file).WriteNodalResults(model_part.Nodes)
 
 class PrimalBossakOutput(IOObject):
     """Provides the interface for writing a transient primal solution to a file."""
@@ -121,8 +135,8 @@ class PrimalBossakInput(IOObject):
         primal_io = KratosHDF5.HDF5NodalSolutionStepBossakIO(self.settings, hdf5_file)
         primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
 
-class ElementResultsInput(IOObject):
-    """Provides the interface for reading element results from a file."""
+class NodalSolutionStepDataInput(IOObject):
+    """Provides the interface for reading a transient nodal solution step data from a file."""
 
     def __init__(self, settings):
         default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
@@ -130,7 +144,30 @@ class ElementResultsInput(IOObject):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
     def Execute(self, model_part, hdf5_file):
-        KratosHDF5.HDF5ElementSolutionStepDataIO(self.settings, hdf5_file).ReadElementResults(model_part.Elements)
+        KratosHDF5.HDF5NodalSolutionStepDataIO(self.settings, hdf5_file).ReadNodalResults(model_part.Nodes, model_part.GetCommunicator(), 0)
+
+class NodalDataValueInput(IOObject):
+    """Provides the interface for reading a nodal data values from a file."""
+
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+    def Execute(self, model_part, hdf5_file):
+        primal_io = KratosHDF5.HDF5NodalDataValueIO(self.settings, hdf5_file)
+        primal_io.ReadNodalResults(model_part.Nodes, model_part.GetCommunicator())
+
+class ElementDataValueInput(IOObject):
+    """Provides the interface for reading element data values from a file."""
+
+    def __init__(self, settings):
+        default_settings = KratosMultiphysics.Parameters(hdf5_defaults.temporal_default_settings)
+        self.settings = settings.Clone()
+        self.settings.ValidateAndAssignDefaults(default_settings)
+
+    def Execute(self, model_part, hdf5_file):
+        KratosHDF5.HDF5ElementDataValueIO(self.settings, hdf5_file).ReadElementResults(model_part.Elements)
 
 class PartitionedModelPartOutput(IOObject):
     """Provides the interface for writing a partitioned model part to a file."""
@@ -165,7 +202,7 @@ class StaticOutputProcess(KratosMultiphysics.Process):
 
 class TemporalOutputProcess(KratosMultiphysics.Process):
     """A process for writing temporal simulation results.
-    
+
     Responsible for the output step control logic. Output objects to be executed
     at regular time intervals are attached using AddOutput().
     """
@@ -250,3 +287,32 @@ class TemporalInputProcess(KratosMultiphysics.Process):
         fmt = "{:." + str(self._time_tag_precision) + "f}"
         time_tag = "-" + fmt.format(self._model_part.ProcessInfo[KratosMultiphysics.TIME])
         return self._time_step_file_name + time_tag + ".h5"
+
+class InitialInputProcess(KratosMultiphysics.Process):
+    """A process to initialize a simulation using an HDF5 output file."""
+
+    def __init__(self, model_part, hdf5_file_factory, settings):
+        KratosMultiphysics.Process.__init__(self)
+        default_settings = KratosMultiphysics.Parameters("""
+            {
+                "file_name": "%s"
+            }
+            """ % model_part.Name)
+        settings.ValidateAndAssignDefaults(default_settings)
+        file_name_string = settings["file_name"].GetString()
+
+        self._model_part = model_part
+        self._hdf5_file_factory = hdf5_file_factory
+        self._file_name = self._get_total_file_name(file_name_string)
+        self._list_of_inputs = []
+
+    def AddInput(self,i):
+        self._list_of_inputs.append(i)
+
+    def ExecuteInitialize(self):
+        hdf5_file = self._hdf5_file_factory.Open(self._file_name)
+        for i in self._list_of_inputs:
+            i.Execute(self._model_part, hdf5_file)
+
+    def _get_total_file_name(self, file_name_string):
+        return file_name_string + ".h5"

@@ -96,6 +96,19 @@ namespace Kratos
 		}
                 
                 
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it 
+
+    template <typename TExpressionType, std::size_t TCategory>
+    Quaternion& operator = (AMatrix::MatrixExpression<TExpressionType, TCategory> const& Other)
+                {
+                    mX = Other.expression()[0];
+                    mY = Other.expression()[1];
+                    mZ = Other.expression()[2];
+                    mW = Other.expression()[3];
+                    
+                    return *this;
+                }
+#else
                 template<class AE>
                 BOOST_UBLAS_INLINE
                 Quaternion& operator = (const boost::numeric::ublas::vector_expression<AE> &ae)
@@ -107,6 +120,7 @@ namespace Kratos
                     
                     return *this;
                 }
+#endif // ifdef KRATOS_USE_AMATRIX
 		
 		///@}
 		

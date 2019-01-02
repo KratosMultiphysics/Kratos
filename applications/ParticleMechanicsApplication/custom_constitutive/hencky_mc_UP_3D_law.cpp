@@ -10,16 +10,17 @@
 //  Main authors:    Ilaria Iaconeta
 //
 
+
 // System includes
 #include <iostream>
+#include <cmath>
 
 // External includes
-#include<cmath>
 
 // Project includes
 #include "includes/properties.h"
 #include "custom_constitutive/hencky_mc_UP_3D_law.hpp"
-#include "particle_mechanics_application.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -30,9 +31,9 @@ namespace Kratos
 HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw()
     : HenckyElasticPlasticUP3DLaw()
 {
-    mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
-    mpYieldCriterion = YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule       = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
+    mpHardeningLaw   = MPMHardeningLaw::Pointer( new MPMHardeningLaw() );
+    mpYieldCriterion = MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule    = MPMFlowRule::Pointer( new MCPlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -42,8 +43,8 @@ HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw()
 HenckyMCPlasticUP3DLaw::HenckyMCPlasticUP3DLaw(MPMFlowRulePointer pMPMFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
     mpHardeningLaw    =  pHardeningLaw;
-    mpYieldCriterion  =  YieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
-    mpMPMFlowRule        =  pMPMFlowRule;
+    mpYieldCriterion  =  MPMYieldCriterion::Pointer( new MCYieldCriterion(mpHardeningLaw) );
+    mpMPMFlowRule     =  pMPMFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

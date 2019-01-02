@@ -9,8 +9,6 @@ except:
     pass
 from KratosMultiphysics.MappingApplication import *
 
-CheckForPreviousImport()
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 
@@ -34,25 +32,30 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
         # check if executed in parallel
         try:
-            self.num_processors = mpi.size
+            num_processors = mpi.size
         except:
-            self.num_processors = 1
+            num_processors = 1
 
-        if (self.num_processors == 1): # serial execution
+        if (num_processors == 1): # serial execution
             self.parallel_execution = False
         else:
             # Partition and Read Model Parts
             variable_list.extend([PARTITION_INDEX])
             self.parallel_execution = True
 
-        self.model_part_origin = self.partition_and_read_model_part("ModelPartNameOrigin",
+        self.model = Model()
+
+        self.model_part_origin = self.partition_and_read_model_part(self.model,
+                                                                     "ModelPartNameOrigin",
                                                                      input_file_origin, 3,
                                                                      variable_list,
-                                                                     self.num_processors)
-        self.model_part_destination = self.partition_and_read_model_part("ModelPartNameDestination",
+                                                                     num_processors)
+
+        self.model_part_destination = self.partition_and_read_model_part(self.model,
+                                                                         "ModelPartNameDestination",
                                                                          input_file_destination, 3,
                                                                          variable_list,
-                                                                         self.num_processors)
+                                                                         num_processors)
 
     def SetUpMapper(self, file_name):
         self.ResetValuesModelParts()
@@ -85,9 +88,15 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                                                 mapper_settings["interface_submodel_part_destination"].GetString())
 
         # Initialize Mapper
-        self.mapper = MapperFactory.CreateMapper(self.model_part_origin,
-                                    self.model_part_destination,
-                                    mapper_settings)
+        if self.parallel_execution:
+            fct_ptr = MapperFactory.CreateMPIMapper
+            print("Creating an MPI Mapper")
+        else:
+            fct_ptr = MapperFactory.CreateMapper
+            print("Creating a serial Mapper")
+        self.mapper = fct_ptr(self.model_part_origin,
+                              self.model_part_destination,
+                              mapper_settings)
 
         if (self.set_up_test_1):
             self.PrintValuesForJson() # needed to set up the test
@@ -175,14 +184,14 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                          -map_value*2)
 
 
-        # # Conservative Mapping
+        # # USE_TRANSPOSE Mapping
         # # Number of Nodes on Origin: 37
         # # Number of Nodes in Destination: 25
         # # => Values in Destination are multiplied with a factor of 1.48 (37/25)
-        # # to conserve the sum of quantities aka conservative mapping
+        # # to conserve the sum of quantities aka USE_TRANSPOSE mapping
         # self.mapper.Map(variable_origin,
         #                                  variable_destination,
-        #                                  Mapper.CONSERVATIVE)
+        #                                  Mapper.USE_TRANSPOSE)
 
         # if (self.GiD_output):
         #     self.WriteNodalResultsCustom(self.gid_io_destination,
@@ -370,14 +379,14 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
                          variable_origin,
                          [2*x for x in map_value])
 
-        # # Conservative Mapping
+        # # USE_TRANSPOSE Mapping
         # # Number of Nodes on Origin: 37
         # # Number of Nodes in Destination: 25
         # # => Values in Origin are multiplied with a factor of 0.675675676 (25/37)
-        # # to conserve the sum of quantities aka conservative mapping
+        # # to conserve the sum of quantities aka USE_TRANSPOSE mapping
         # self.mapper.InverseMap(variable_origin,
         #                                         variable_destination,
-        #                                         Mapper.CONSERVATIVE)
+        #                                         Mapper.USE_TRANSPOSE)
 
         # if (self.GiD_output):
         #     self.WriteNodalResultsCustom(self.gid_io_origin,
@@ -599,11 +608,11 @@ class KratosExecuteMapperTests(KratosUnittest.TestCase):
 
 
     ##### IO related Functions #####
-    def partition_and_read_model_part(self, model_part_name,
+    def partition_and_read_model_part(self, current_model, model_part_name,
                                       model_part_input_file,
                                       size_domain, variable_list,
                                       number_of_partitions):
-        model_part = ModelPart(model_part_name)
+        model_part = current_model.CreateModelPart(model_part_name)
         for variable in variable_list:
             model_part.AddNodalSolutionStepVariable(variable)
 

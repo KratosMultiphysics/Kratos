@@ -110,13 +110,13 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Constituti
 
         elastic_tensor.resize(4, 4, false);
         CalculateElasticMatrix(elastic_tensor, rMaterialProperties);
-        Vector sigma_trial(4);
-        noalias(sigma_trial) = prod(elastic_tensor, strain_vector - mPlasticStrainOld);
+        Vector yield_tensionrial(4);
+        noalias(yield_tensionrial) = prod(elastic_tensor, strain_vector - mPlasticStrainOld);
 
         // stress_trial_dev = sigma - 1/3 tr(sigma) * I
-        Vector stress_trial_dev = sigma_trial;
+        Vector stress_trial_dev = yield_tensionrial;
 
-        const double trace = 1.0 / 3.0 * (sigma_trial(0) + sigma_trial(1) + sigma_trial(2));
+        const double trace = 1.0 / 3.0 * (yield_tensionrial(0) + yield_tensionrial(1) + yield_tensionrial(2));
         stress_trial_dev(0) -= trace;
         stress_trial_dev(1) -= trace;
         stress_trial_dev(2) -= trace;
@@ -129,7 +129,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Constituti
         if (trial_yield_function <= 0.) {
             // ELASTIC
             mInelasticFlag = false;
-            stress_vector = sigma_trial;
+            stress_vector = yield_tensionrial;
             tangent_tensor = elastic_tensor;
         } else {
             // INELASTIC

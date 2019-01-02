@@ -59,6 +59,8 @@ public:
   ///Type for size
   typedef GeometryData::SizeType SizeType;
 
+  typedef std::vector<Element*> ElementPointerVectorType;
+
   /// Counted pointer of UpdatedLagrangianSegregatedFluidElement
   KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
   ///@}
@@ -282,6 +284,18 @@ protected:
 
 
   /**
+   * Calculation and addition of the matrices of the LHS
+   */
+  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                 ElementDataType& rVariables) override;
+
+  /**
+   * Calculation and addition of the vectors of the RHS
+   */
+  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                 ElementDataType& rVariables) override;
+
+  /**
    * Get element size from the dofs
    */
   unsigned int GetDofsSize() override;
@@ -320,22 +334,22 @@ protected:
   /**
    * Add volumetric part to Stress Vector
    */
-  void AddVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+  void AddVolumetricPart(Vector& rStressVector, const double& rMeanPressure);
 
   /**
    * Remove volumetric part from Stress Vector
    */
-  void RemoveVolumetricPart(Vector& rStressVector, double& rMeanPressure);
+  void RemoveVolumetricPart(Vector& rStressVector, const double& rMeanPressure);
 
   /**
    * Add volumetric part to Constitutive Matrix
    */
-  void AddVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+  void AddVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor);
 
   /**
    * Remove volumetric part from Constitutive Matrix
    */
-  void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, double& rBulkFactor);
+  void RemoveVolumetricPart(Matrix& rConstitutiveMatrix, const double& rBulkFactor);
 
   /**
    * Calculation of the Mean value considering a Dense Matrix.
@@ -347,8 +361,13 @@ protected:
    */
   void CalculateLumpedMatrixMeanValue(MatrixType& rMatrix, double& rMeanValue);
 
-
-
+  /**
+   * Calculation of the Stiffness factor to improve matrix condition number
+   */
+  void CalculateStiffnessFactor(MatrixType& rLeftHandSideMatrix,
+                                ElementDataType& rVariables,
+                                const double& rBulkFactor,
+                                double& rStiffnessFactor);
   /**
    * Set Variables of the Element to the Parameters of the Constitutive Law
    */

@@ -385,13 +385,6 @@ struct relaxation_is_supported<
     > : std::false_type
 {};
 
-template <class Backend>
-struct bytes_impl< relaxation::gauss_seidel<Backend> > {
-    static size_t get(const relaxation::gauss_seidel<Backend> &r) {
-        return r.bytes();
-    }
-};
-
 } // namespace backend
 } // namespace amgcl
 

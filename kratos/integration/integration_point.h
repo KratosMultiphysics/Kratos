@@ -2,35 +2,25 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_INTEGRATION_POINT_H_INCLUDED )
 #define  KRATOS_INTEGRATION_POINT_H_INCLUDED
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
-#include <numeric>
-#include <vector>
 
 // External includes
-#include <boost/array.hpp>
 
 // Project includes
 #include "includes/define.h"
 #include "geometries/point.h"
-
 
 namespace Kratos
 {
@@ -376,6 +366,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_INTEGRATION_POINT_H_INCLUDED  defined 
+#endif // KRATOS_INTEGRATION_POINT_H_INCLUDED  defined
 
 

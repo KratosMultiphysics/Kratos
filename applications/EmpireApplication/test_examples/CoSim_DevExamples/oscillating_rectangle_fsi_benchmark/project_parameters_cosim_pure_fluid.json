@@ -1,0 +1,13 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 100.0,
+        "print_colors" : true
+    },
+    "solver_settings" :
+    {
+        "solver_type" : "kratos_fluid",
+        "input_file"  : "ProjectParametersCFD_Mono"
+    }
+}

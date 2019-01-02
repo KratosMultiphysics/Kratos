@@ -314,10 +314,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
@@ -349,14 +346,17 @@ public:
 
     void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
 					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo) override;
+					     const ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     // Sensitivity functions
 
     /**
-     * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element. 
+     * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a property value.
      * This operation is thread-save, because the property pointer is exchanged by a local one before pertubation.
      */
@@ -375,7 +375,7 @@ public:
      * Calculates the stress-displacement derivative of the given rStressVariable.
      * For the linear case this happens by calculating the stress using a unit-displacement for each dof.
      */
-    void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
+    virtual void CalculateStressDisplacementDerivative(const Variable<Vector>& rStressVariable,
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
@@ -437,17 +437,17 @@ private:
     /**
      * Get the perturbation size for a scalar variable
      */
-    const double GetPerturbationSize(const Variable<double>& rDesignVariable);
+    double GetPerturbationSize(const Variable<double>& rDesignVariable);
 
     /**
      * Get the perturbation size for a vector variable
      */
-    const double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable);
 
     /**
      * Get the perturbation size modification factor for a scalar variable.
      * The computed factor reflects the current value of the property (design variable).
-     * Note: This approach is only based on experience. 
+     * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
     virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable);
@@ -455,7 +455,7 @@ private:
     /**
      * Get the perturbation size modification factor for a vector variable.
      * The computed factor reflects the size of the element.
-     * Note: This approach is only based on experience. 
+     * Note: This approach is only based on experience.
      * This can be overwritten by derived classes.
      */
     virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable);

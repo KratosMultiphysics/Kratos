@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//                    
+//
 //
 
 
@@ -36,7 +36,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 1> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 1> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -75,7 +75,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 8> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 8> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -122,7 +122,7 @@ public:
 
     typedef IntegrationPoint<3> IntegrationPointType;
 
-    typedef boost::array<IntegrationPointType, 27> IntegrationPointsArrayType;
+    typedef std::array<IntegrationPointType, 27> IntegrationPointsArrayType;
 
     typedef IntegrationPointType::PointType PointType;
 
@@ -196,7 +196,7 @@ public:
 
    typedef IntegrationPoint<3> IntegrationPointType;
 
-   typedef boost::array<IntegrationPointType, 64> IntegrationPointsArrayType;
+   typedef std::array<IntegrationPointType, 64> IntegrationPointsArrayType;
 
    typedef IntegrationPointType::PointType PointType;
 
@@ -271,7 +271,7 @@ public:
        msIntegrationPoints[61] = IntegrationPointType(-0.33998104358485626480 , 0.86113631159405257522 , 0.86113631159405257522 , 0.07891151579507055098);
        msIntegrationPoints[62] = IntegrationPointType(0.33998104358485626480 , 0.86113631159405257522 , 0.86113631159405257522 , 0.07891151579507055098);
        msIntegrationPoints[63] = IntegrationPointType(0.86113631159405257522 , 0.86113631159405257522 , 0.86113631159405257522 , 0.04209147749053145454);
-       
+
        return msIntegrationPoints;
    }
 
@@ -299,7 +299,7 @@ public:
 
    typedef IntegrationPoint<3> IntegrationPointType;
 
-   typedef boost::array<IntegrationPointType, 125> IntegrationPointsArrayType;
+   typedef std::array<IntegrationPointType, 125> IntegrationPointsArrayType;
 
    typedef IntegrationPointType::PointType PointType;
 
@@ -467,6 +467,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HEXAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined 
+#endif // KRATOS_HEXAHEDRON_GAUSS_LEGENDRE_INTEGRATION_POINTS_H_INCLUDED  defined
 
 
