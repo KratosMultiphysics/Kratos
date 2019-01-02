@@ -160,9 +160,10 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
     def GetMinimumBufferSize(self):
         buffer_size_fluid = self.fluid_solver.GetMinimumBufferSize()
-        buffer_size_thermal = self.fluid_thermal_solver.GetMinimumBufferSize()
+        buffer_size_thermal_fluid = self.fluid_thermal_solver.GetMinimumBufferSize()
+        buffer_size_thermal_solid = self.solid_thermal_solver.GetMinimumBufferSize()
 
-        return max(buffer_size_fluid, buffer_size_thermal)
+        return max(buffer_size_fluid, buffer_size_thermal_fluid, buffer_size_thermal_solid)
 
     def Initialize(self):
         # Initialize the fluid and solid solvers
@@ -189,7 +190,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         (self.solid_thermal_solver).SetEchoLevel(level)
 
     def AdvanceInTime(self, current_time):
-        #NOTE: the cloning is done ONLY ONCE since the nodes are shared between the fluid and thermal solvers
+        #The cloning is done ONLY ONCE since the nodes are shared between the fluid and thermal solvers
         new_time = self.fluid_solver.AdvanceInTime(current_time)
 
         # Do the time advance in the solid thermal solver
@@ -207,83 +208,84 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self._SetUpDirichletCouplingBoundary(self.solid_thermal_solver.GetComputingModelPart())
 
     def InitializeSolutionStep(self):
-        self.fluid_solver.InitializeSolutionStep()
-        self.fluid_thermal_solver.InitializeSolutionStep()
-        self.solid_thermal_solver.InitializeSolutionStep()
+        if self._time_buffer_is_initialized():
+            self.fluid_solver.InitializeSolutionStep()
+            self.fluid_thermal_solver.InitializeSolutionStep()
+            self.solid_thermal_solver.InitializeSolutionStep()
 
     def Predict(self):
-        self.fluid_solver.Predict()
-        self.fluid_thermal_solver.Predict()
-        self.solid_thermal_solver.Predict()
-        print("finished predict")
+        if self._time_buffer_is_initialized():
+            self.fluid_solver.Predict()
+            self.fluid_thermal_solver.Predict()
+            self.solid_thermal_solver.Predict()
 
     def SolveSolutionStep(self):
-        # Solve the buoyancy solver
-        self.fluid_solver.SolveSolutionStep()
+        if self._time_buffer_is_initialized():
+            # Solve the buoyancy solver
+            self.fluid_solver.SolveSolutionStep()
 
-        max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
-        relaxation_factor = self.settings["coupling_settings"]["relaxation_factor"].GetDouble()
-        temp_rel_tol = self.settings["coupling_settings"]["temperature_relative_tolerance"].GetDouble()
+            max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
+            relaxation_factor = self.settings["coupling_settings"]["relaxation_factor"].GetDouble()
+            temp_rel_tol = self.settings["coupling_settings"]["temperature_relative_tolerance"].GetDouble()
 
-        # Couple the solid and fluid thermal problems
-        iteration = 0
-        while iteration < max_iteration:
-            # Solve Dirichlet side to get reactions from solid domain
-            self.solid_thermal_solver.Solve()
+            # Couple the solid and fluid thermal problems
+            iteration = 0
+            while iteration < max_iteration:
+                # Solve Dirichlet side to get reactions from solid domain
+                self.solid_thermal_solver.Solve()
 
-            # Map reactions to the fluid interface. Note that we first call the redistribution utility to convert the point values to distributed ones
-            redistribution_tolerance = 1e-5
-            redistribution_max_iteration = 50
-            KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(self.mapper.str_interface,
-                                                                                   KratosMultiphysics.REACTION_FLUX,
-                                                                                   KratosConvDiff.AUX_FLUX,
-                                                                                   redistribution_tolerance,
-                                                                                   redistribution_max_iteration)
+                # Map reactions to the fluid interface. Note that we first call the redistribution utility to convert the point values to distributed ones
+                redistribution_tolerance = 1e-5
+                redistribution_max_iteration = 50
+                KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
+                    self.mapper.str_interface,
+                    KratosMultiphysics.REACTION_FLUX,
+                    KratosConvDiff.AUX_FLUX,
+                    redistribution_tolerance,
+                    redistribution_max_iteration)
 
-            self.mapper.StructureToFluid_ScalarMap(KratosConvDiff.AUX_FLUX,
-                                                   KratosMultiphysics.FACE_HEAT_FLUX,
-                                                   False) # Sign is not kept (inverted) when mapping
+                self.mapper.StructureToFluid_ScalarMap(
+                    KratosConvDiff.AUX_FLUX,
+                    KratosMultiphysics.FACE_HEAT_FLUX,
+                    False) # Sign is not kept (inverted) when mapping
 
-            # Solve Neumann side to get temperature values from fluid domain
-            self.fluid_thermal_solver.SolveSolutionStep()
+                # Solve Neumann side to get temperature values from fluid domain
+                self.fluid_thermal_solver.SolveSolutionStep()
 
-            # Map back the Neumann domain obtained temperature
-            self.mapper.FluidToStructure_ScalarMap(KratosMultiphysics.TEMPERATURE,
-                                                   KratosConvDiff.AUX_TEMPERATURE,
-                                                   True) # Sign is kept when mapping
+                # Map back the Neumann domain obtained temperature
+                self.mapper.FluidToStructure_ScalarMap(
+                    KratosMultiphysics.TEMPERATURE,
+                    KratosConvDiff.AUX_TEMPERATURE,
+                    True) # Sign is kept when mapping
 
-            temperature_difference = 0.0
-            for node in self.mapper.str_interface.Nodes:
-                old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
-                new_temperature = node.GetSolutionStepValue(KratosConvDiff.AUX_TEMPERATURE)
+                temperature_difference = 0.0
+                for node in self.mapper.str_interface.Nodes:
+                    old_temperature = node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE)
+                    new_temperature = node.GetSolutionStepValue(KratosConvDiff.AUX_TEMPERATURE)
 
-                # Accumulate the squared nodal residal
-                temperature_difference += (old_temperature - new_temperature)**2
+                    # Accumulate the squared nodal residal
+                    temperature_difference += (old_temperature - new_temperature)**2
 
-                # Update the Dirichlet side temperature values by performing a relaxation
-                interpolated_temperature = (1.0-relaxation_factor)*old_temperature + relaxation_factor*new_temperature
-                node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, interpolated_temperature )
+                    # Update the Dirichlet side temperature values by performing a relaxation
+                    interpolated_temperature = (1.0-relaxation_factor)*old_temperature + relaxation_factor*new_temperature
+                    node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, interpolated_temperature )
 
-            iteration += 1
-            rel_res_norm = (temperature_difference**0.5) / len(self.mapper.str_interface.Nodes)
-            self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Iteration: " + str(iteration) + " Relative residual: " + str(rel_res_norm))
+                iteration += 1
+                rel_res_norm = (temperature_difference**0.5) / len(self.mapper.str_interface.Nodes)
+                self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Iteration: " + str(iteration) + " Relative residual: " + str(rel_res_norm))
 
-            # Check convergence
-            if rel_res_norm <= temp_rel_tol:
-                self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Converged in " + str(iteration) + " iterations.")
-                break
-            elif iteration == max_iteration:
-                self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Did not converge in " + str(iteration) + " iterations.")
+                # Check convergence
+                if rel_res_norm <= temp_rel_tol:
+                    self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Converged in " + str(iteration) + " iterations.")
+                    break
+                elif iteration == max_iteration:
+                    self.print_on_rank_zero("::[ConjugateHeatTransferSolver]::", "Did not converge in " + str(iteration) + " iterations.")
 
     def FinalizeSolutionStep(self):
-        self.fluid_solver.FinalizeSolutionStep()
-        self.fluid_thermal_solver.FinalizeSolutionStep()
-
-    def Solve(self):
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
+        if self._time_buffer_is_initialized():
+            self.fluid_solver.FinalizeSolutionStep()
+            self.fluid_thermal_solver.FinalizeSolutionStep()
+            self.solid_thermal_solver.FinalizeSolutionStep()
 
     def _SetUpDirichletCouplingBoundary(self, model_part):
         # Run the solid interfaces list to fix the temperature DOFs.
@@ -311,3 +313,19 @@ class ConjugateHeatTransferSolver(PythonSolver):
                                                      mapper_search_radius_factor,
                                                      mapper_max_iteration,
                                                      mapper_tolerance)
+    
+    def _time_buffer_is_initialized(self):
+        # Get current step counter. Note that the buoyancy and thermal fluid domain main_model_part 
+        # share the same ProcessInfo(), so the STEP counter is always the same.
+        fluid_step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        solid_step = self.solid_thermal_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+        if (fluid_step != solid_step):
+            err_msg = "Fluid domain and solid domain time steps do not coincide\n"
+            err_msg += "-Fluid domain time step: " + str(fluid_step) + "\n"
+            err_msg += "-Solid domain time step: " + str(solid_step) + "\n"
+            err_msg += "Check AdvanceInTime() method."
+            raise Exception(err_msg)
+
+        # We always have one extra old step (step 0, read from input)
+        return fluid_step + 1 >= self.GetMinimumBufferSize()
