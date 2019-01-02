@@ -58,6 +58,7 @@ class RomFemDem3DElement : public FemDem3DElement
 	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput,
 									  const ProcessInfo &rCurrentProcessInfo);
 	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
 
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 
