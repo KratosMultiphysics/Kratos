@@ -265,7 +265,7 @@ public:
                 else {
                     if(TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                    }
+                    } 
                     else {
                         GeometryUtils::CalculateTriangleDistances(geom, distances);
                     }
@@ -405,9 +405,8 @@ protected:
     /// Minimal constructor for derived classes
     VariationalDistanceCalculationProcess(
         ModelPart &base_model_part,
-        unsigned int max_iterations,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        : mr_base_model_part(base_model_part), mOptions(Options)
+        unsigned int max_iterations)
+        : mr_base_model_part(base_model_part)
     {
         mdistance_part_is_initialized = false;
         mmax_iterations = max_iterations;
@@ -659,3 +658,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
+
+

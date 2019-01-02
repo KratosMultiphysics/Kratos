@@ -60,8 +60,6 @@ class TrilinosVariationalDistanceCalculationProcess
 {
 public:
 
-    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
-
     ///@name Type Definitions
     ///@{
 
@@ -85,9 +83,8 @@ public:
         Epetra_MpiComm &rComm,
         ModelPart &base_model_part,
         LinearSolverPointerType plinear_solver,
-        unsigned int max_iterations = 10,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations, Options),
+        unsigned int max_iterations = 10)
+        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations),
         mrComm(rComm)
     {
 
@@ -468,3 +465,5 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
+
+

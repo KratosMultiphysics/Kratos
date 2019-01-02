@@ -252,12 +252,12 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                KratosMultiphysics.ParallelDistanceCalculator2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
                 self.main_model_part,
                 self.linear_solver,
                 maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
+                KratosMultiphysics.ParallelDistanceCalculator3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
 
         return variational_distance_process
