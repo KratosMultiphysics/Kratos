@@ -70,10 +70,10 @@ namespace Kratos {
             Table<double> temp_visc_table;
             temp_visc_table.insert(10, 1.3059e-3);
             temp_visc_table.insert(20, 1.0016e-3);
-            temp_visc_table.insert(30, 0.79722-3);
-            temp_visc_table.insert(50, 0.54652-3);
-            temp_visc_table.insert(70, 0.40355-3);
-            temp_visc_table.insert(90, 0.31417-3);
+            temp_visc_table.insert(30, 0.79722e-3);
+            temp_visc_table.insert(50, 0.54652e-3);
+            temp_visc_table.insert(70, 0.40355e-3);
+            temp_visc_table.insert(90, 0.31417e-3);
             p_elem_prop->SetTable(TEMPERATURE, DYNAMIC_VISCOSITY, temp_visc_table);
             return p_elem_prop;
         }
