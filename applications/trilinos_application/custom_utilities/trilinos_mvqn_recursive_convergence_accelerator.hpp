@@ -14,6 +14,7 @@
 /* System includes */
 
 /* External includes */
+#include "Epetra_SerialDenseSolver.h"
 
 /* Project includes */
 #include "includes/define.h"
@@ -22,6 +23,7 @@
 #include "includes/ublas_interface.h"
 
 #include "../FSIapplication/custom_utilities/convergence_accelerator.hpp"
+
 
 namespace Kratos
 {
@@ -477,7 +479,7 @@ public:
         rConvAcceleratorParameters.ValidateAndAssignDefaults(mvqn_recursive_default_parameters);
 
         mOmega_0 = rConvAcceleratorParameters["w_0"].GetDouble();
-        mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt(); 
+        mJacobianBufferSize = rConvAcceleratorParameters["buffer_size"].GetInt();
         mConvergenceAcceleratorStep = 0;
         mConvergenceAcceleratorIteration = 0;
         mConvergenceAcceleratorFirstCorrectionPerformed = false;
