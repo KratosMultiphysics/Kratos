@@ -144,6 +144,19 @@ class ConjugateHeatTransferSolver(PythonSolver):
         # Set the saved convection diffusion settings to the new thermal model part
         self.fluid_thermal_solver.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS, convection_diffusion_settings)
 
+        # Confirm that the buffer size in the shared nodes is the maximum required one
+        fluid_solver_buffer = self.fluid_solver.GetMinimumBufferSize()
+        fluid_thermal_solver_buffer = self.fluid_thermal_solver.GetMinimumBufferSize()
+        if (fluid_solver_buffer != fluid_thermal_solver_buffer):
+            max_buffer_size = max(fluid_solver_buffer, fluid_thermal_solver_buffer)
+            self.fluid_solver.min_buffer_size = max_buffer_size
+            self.fluid_thermal_solver.min_buffer_size = max_buffer_size
+            warning_msg = "Fluid solver and fluid thermal solver have different buffer size:\n" 
+            warning_msg += " - Fluid solver buffer size: " + str(fluid_solver_buffer) + "\n"
+            warning_msg += " - Fluid thermal solver buffer size: " + str(fluid_thermal_solver_buffer) + "\n"
+            warning_msg += "Setting buffer size equal to " + str(max_buffer_size) + " in both solvers." 
+            self.print_warning_on_rank_zero("::[ConjugateHeatTransferSolver]::", warning_msg)
+
         # Import the solid domain
         self.solid_thermal_solver.ImportModelPart()
 

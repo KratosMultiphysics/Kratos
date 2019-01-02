@@ -141,9 +141,10 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         # Overwrite the default settings with user-provided parameters.
         self.settings = custom_settings
         self.settings.ValidateAndAssignDefaults(default_settings)
-        self.settings.AddEmptyValue("buffer_size")
-        self.settings["buffer_size"].SetInt(self.GetMinimumBufferSize())
         model_part_name = self.settings["model_part_name"].GetString()
+
+        # Set default buffer size
+        self.min_buffer_size = 1
 
         if model_part_name == "":
             raise Exception('Please specify a model_part name!')
@@ -246,8 +247,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         self.print_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Variables ADDED")
 
     def GetMinimumBufferSize(self):
-        self.print_warning_on_rank_zero("::[ConvectionDiffusionBaseSolver]:: ", "Please define GetMinimumBufferSize() in your solver")
-        return 1
+        return self.min_buffer_size
 
     def AddDofs(self):
         settings = self.main_model_part.ProcessInfo[KratosMultiphysics.CONVECTION_DIFFUSION_SETTINGS]
@@ -471,9 +471,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         """Prepare nodal solution step data containers and time step information. """
         # Set the buffer size for the nodal solution steps data. Existing nodal
         # solution step data may be lost.
-        required_buffer_size = self.settings["buffer_size"].GetInt()
-        if required_buffer_size < self.GetMinimumBufferSize():
-            required_buffer_size = self.GetMinimumBufferSize()
+        required_buffer_size = self.GetMinimumBufferSize()
         current_buffer_size = self.main_model_part.GetBufferSize()
         buffer_size = max(current_buffer_size, required_buffer_size)
         self.main_model_part.SetBufferSize(buffer_size)
