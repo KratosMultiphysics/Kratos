@@ -196,6 +196,7 @@ class FracturePropagationUtility:
         ## Model part ------------------------------------------------------------------------------------------------
 
         # Defining the model part
+        # TODO: I need to change the model_part_name of the processes
         self.model_part_number = self.model_part_number + 1
         new_model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
 
