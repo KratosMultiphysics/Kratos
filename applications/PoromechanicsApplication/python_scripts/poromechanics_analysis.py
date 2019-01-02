@@ -33,8 +33,44 @@ class PoromechanicsAnalysis(AnalysisStage):
             poromechanics_cleaning_utility.CleanPreviousFiles(os.getcwd()) # Clean previous post files
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"OpenMP parallel configuration. OMP_NUM_THREADS =",parallel.GetNumThreads())
 
+        # Initialize Fracture Propagation Utility if necessary
+        if parameters["problem_data"]["fracture_utility"].GetBool():
+            import poromechanics_fracture_propagation_utility
+            self.fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(model,
+                                                                                                        self._GetOrderOfProcessesInitialization())
+            print(parameters)
+            parameters = self.fracture_utility.Initialize(parameters)
+            print(parameters)
+            #TODO: seguir
+            paraaaaaaaaa
+
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
+
+    def OutputSolutionStep(self):
+        super(PoromechanicsAnalysis,self).OutputSolutionStep()
+
+        # Check Fracture Propagation Utility
+        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+            if self.fracture_utility.IsPropagationStep():
+                self._solver,self._list_of_processes,self._list_of_output_processes = self.fracture_utility.CheckPropagation(self._solver,
+                                                                                                                            self._list_of_processes,
+                                                                                                                            self._list_of_output_processes)
+
+    def Finalize(self):
+        super(PoromechanicsAnalysis,self).Finalize()
+
+        # Finalize Fracture Propagation Utility
+        if self.project_parameters["problem_data"]["fracture_utility"].GetBool():
+            self.fracture_utility.Finalize()
+
+        # Finalizing strategy
+        if self.parallel_type == "OpenMP":
+            self._GetSolver().Clear()
+
+        # Time control
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
     def _CreateSolver(self):
         solver_module = __import__(self.project_parameters["solver_settings"]["solver_type"].GetString())
@@ -48,17 +84,6 @@ class PoromechanicsAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "Poromechanics Analysis"
-
-    def Finalize(self):
-        super(PoromechanicsAnalysis,self).Finalize()
-
-        # Finalizing strategy
-        if self.parallel_type == "OpenMP":
-            self._GetSolver().Clear()
-
-        # Time control
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Analysis Completed. Elapsed Time = %.3f" % (timer.perf_counter() - self.initial_time)," seconds.")
-        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())
 
 
 if __name__ == '__main__':

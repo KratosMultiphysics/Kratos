@@ -5,10 +5,6 @@ import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
-
 def CreateSolver(main_model_part, custom_settings):
 
     return FractureUPwSolver(main_model_part, custom_settings)

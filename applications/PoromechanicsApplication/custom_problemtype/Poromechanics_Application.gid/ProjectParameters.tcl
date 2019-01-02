@@ -16,7 +16,8 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"end_time\":             [GiD_AccessValue get gendata End_Time],"
     puts $FileVar "        \"echo_level\":           [GiD_AccessValue get gendata Echo_Level],"
     puts $FileVar "        \"parallel_type\":        \"[GiD_AccessValue get gendata Parallel_Configuration]\","
-    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads]"
+    puts $FileVar "        \"number_of_threads\":    [GiD_AccessValue get gendata Number_of_threads],"
+    puts $FileVar "        \"fracture_utility\":     [GiD_AccessValue get gendata Fracture_Propagation]"
     puts $FileVar "    \},"
 
     ## solver_settings
@@ -24,11 +25,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     if {[GiD_AccessValue get gendata Parallel_Configuration] eq "MPI"} {
         puts $FileVar "        \"solver_type\":                        \"poromechanics_MPI_U_Pw_solver\","
     } else {
-        if { [GiD_AccessValue get gendata Fracture_Propagation] eq false } {
-            puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
-        } else {
-            puts $FileVar "        \"solver_type\":                        \"poromechanics_fracture_U_Pw_solver\","
-        }
+        puts $FileVar "        \"solver_type\":                        \"poromechanics_U_Pw_solver\","
     }
     puts $FileVar "        \"model_part_name\":                    \"PorousModelPart\","
     puts $FileVar "        \"domain_size\":                        [GiD_AccessValue get gendata Domain_Size],"
@@ -312,7 +309,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \}"
     puts $FileVar "        \}\]"
     puts $FileVar "    \},"
-    
+
     ## Processes
     puts $FileVar "    \"processes\": \{"
     ## constraints_process_list

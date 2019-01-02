@@ -1,39 +1,30 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 # Import system python
 import os
+
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication  as KratosSolid
-import KratosMultiphysics.ExternalSolversApplication as KratosSolvers
+import KratosMultiphysics.ExternalSolversApplication
+import KratosMultiphysics.FluidDynamicsApplication
+import KratosMultiphysics.SolidMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
+
 # Import shutil to manage file copying
 import shutil
 
-class FracturePropagationUtility:
+class FracturePropagationUtility(object):
 
-    def __init__(self,model,original_model_part_name,model_part_number,domain_size,problem_name,move_mesh_flag):
+    def __init__(self, model, order_processes_initialization):
 
-        # Construct the utility
         self.model = model
-
-        self.model_part_number = model_part_number
-        self.original_model_part_name = original_model_part_name
-
-        self.domain_size = domain_size
-        if domain_size==2:
-            self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
-            self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
-        else:
-            self.PropagationUtility = KratosPoro.FracturePropagation3DUtilities()
-            self.tcl_proc = "Poromechanics_Application::PropagateFractures3D"
+        self.order_processes_initialization = order_processes_initialization
 
         import platform
         if platform.system()=="Windows":
             self.execute_gid = "gid"
         else:
             self.execute_gid = "./gid"
-
-        self.move_mesh_flag = move_mesh_flag
 
         # Define FracturesData
         with open("FracturesData.json",'r') as parameter_file:
@@ -45,21 +36,56 @@ class FracturePropagationUtility:
         self.propagation_count = self.propagation_frequency
         self.remesh_count = 0
 
-        # Define names and paths
-        self.problem_name = problem_name
+        # Define paths
         self.problem_path = os.getcwd()
         self.gid_path = self.FracturesData["fracture_data"]["gid_path"].GetString()
         self.orig_state_path = os.path.join(str(self.problem_path),"OriginalState")
         self.last_state_path = os.path.join(str(self.problem_path),"LastState")
 
+    def Initialize(self, parameters):
+
+        self.domain_size = parameters["solver_settings"]["domain_size"].GetInt()
+        if self.domain_size == 2:
+            self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
+            self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
+        else:
+            self.PropagationUtility = KratosPoro.FracturePropagation3DUtilities()
+            self.tcl_proc = "Poromechanics_Application::PropagateFractures3D"
+
+        self.move_mesh_flag = parameters["solver_settings"]["move_mesh_flag"].GetBool()
+
         # Create the file containing a list with all post.bin files
+        self.problem_name = parameters["problem_data"]["problem_name"].GetString()
         all_list_filename = str(self.problem_name)+"_all.post.lst"
         all_list_file = open(all_list_filename,'w')
         all_list_file.write("Multiple\n")
         all_list_file.close()
-
         # Save files of the original state
         self.SaveInitialProblemFiles()
+
+        # Modify model_part_name of the input parameters
+        self.original_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
+        self.model_part_number = 0
+        self.model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
+        parameters["solver_settings"]["model_part_name"].SetString(self.model_part_name)
+
+        if parameters.Has("processes"):
+            for name, value in parameters["processes"].items():
+                value = self.UpdateModelPartNames(value)
+
+        if parameters.Has("output_processes"):
+            for name, value in parameters["output_processes"].items():
+                value = self.UpdateModelPartNames(value)
+
+        return parameters
+
+    def UpdateModelPartNames(self,process_parameters):
+        for p in range(process_parameters.size()):
+            old_name = process_parameters[p]["Parameters"]["model_part_name"].GetString()
+            a,b=old_name.split(".")
+            new_name = str(self.original_model_part_name) + '_' + str(self.model_part_number) + '.' + str(b)
+            process_parameters[p]["Parameters"]["model_part_name"].SetString(new_name)
+        return process_parameters
 
     def SaveInitialProblemFiles(self):
 
@@ -113,7 +139,9 @@ class FracturePropagationUtility:
         else:
             return False
 
-    def CheckPropagation(self,main_model_part,solver,list_of_processes,gid_output):
+    def CheckPropagation(self,solver,list_of_processes,list_of_output_processes):
+
+        main_model_part = self.model.GetModelPart(self.model_part_name)
 
         # Check fracture propagation
         propagate_fractures = False
@@ -145,10 +173,9 @@ class FracturePropagationUtility:
             with open("FracturesData.json",'r') as parameter_file:
                 self.FracturesData = KratosMultiphysics.Parameters(parameter_file.read())
 
-            main_model_part,solver,list_of_processes,gid_output = self.GenereateNewModelPart(main_model_part,
-                                                                                             solver,
-                                                                                             list_of_processes,
-                                                                                             gid_output)
+            solver,list_of_processes,list_of_output_processes = self.UpdateSolverAndProcesses(solver,
+                                                                                            list_of_processes,
+                                                                                            list_of_output_processes)
 
             # Overwrite current problem files with original state files
             for filename in self.list_of_files_names:
@@ -156,14 +183,15 @@ class FracturePropagationUtility:
                 shutil.copy(str(filepath), str(self.problem_path))
 
 
-        return main_model_part,solver,list_of_processes,gid_output
+        return solver,list_of_processes,list_of_output_processes
 
-    def GenereateNewModelPart(self,old_main_model_part,solver,list_of_processes,gid_output):
+    def UpdateSolverAndProcesses(self,solver,list_of_processes,list_of_output_processes):
 
+        old_main_model_part = self.model.GetModelPart(self.model_part_name)
         ### Finalize Old Model ---------------------------------------------------------------------------------------
 
         # Finalizing output files
-        gid_output.ExecuteFinalize()
+        list_of_output_processes.ExecuteFinalize()
 
         for process in list_of_processes:
             process.ExecuteFinalize()
@@ -242,8 +270,8 @@ class FracturePropagationUtility:
         computing_model_part = solver.GetComputingModelPart()
         output_settings = ProjectParameters["output_configuration"]
         from gid_output_process import GiDOutputProcess
-        gid_output = GiDOutputProcess(computing_model_part,self.problem_name,output_settings)
-        gid_output.ExecuteInitialize()
+        list_of_output_processes = GiDOutputProcess(computing_model_part,self.problem_name,output_settings)
+        list_of_output_processes.ExecuteInitialize()
 
         # Initialize the solver
         solver.Initialize()
@@ -256,7 +284,7 @@ class FracturePropagationUtility:
             process.ExecuteBeforeSolutionLoop()
 
         ## Set results when they are written in a single file (only multiplefiles for the moment)
-        gid_output.ExecuteBeforeSolutionLoop()
+        list_of_output_processes.ExecuteBeforeSolutionLoop()
 
         ### Mapping between old and new model parts ------------------------------------------------------------------
 
@@ -276,7 +304,7 @@ class FracturePropagationUtility:
         # Check new mesh
         #IsConverged = solver._CheckConvergence()
 
-        return new_model_part,solver,list_of_processes,gid_output
+        return solver,list_of_processes,list_of_output_processes
 
     def Finalize(self):
 
