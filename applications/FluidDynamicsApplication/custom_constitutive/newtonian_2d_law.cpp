@@ -82,11 +82,15 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 int Newtonian2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo)
+{
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
-    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian2DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+    // If the viscosity is not table provided, check its value
+    if (!rMaterialProperties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
+        if (rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0) {
+            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian2DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+        }
     }
 
     return 0;
