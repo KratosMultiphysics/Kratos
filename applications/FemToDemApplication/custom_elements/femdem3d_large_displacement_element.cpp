@@ -106,9 +106,9 @@ void FemDem3DLargeDisplacementElement::InitializeNonLinearIteration(ProcessInfo 
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    Matrix DeltaPosition(number_of_nodes, dimension);
-    noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-    DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
 
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
@@ -167,9 +167,9 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
     // Reading integration points
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
-    Matrix DeltaPosition(number_of_nodes, dimension);
-    noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-    DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
 
     // Loop over Gauss Points
     for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
@@ -193,9 +193,6 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 
         GeometryUtils::DeformationGradient(J, InvJ0, F);
         this->CalculateB(B, F, DN_DX);
-
-        Vector IntegratedStressVector = ZeroVector(strain_size);
-		Vector DamagesOnEdges = ZeroVector(6);
 		bool is_damaging = false;
 
 		// Loop over edges of the element
@@ -222,7 +219,7 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
 			mNonConvergedThresholds[edge] = threshold;
 		} // End loop over edges
 
-        double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+        const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
 		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
         const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
@@ -232,6 +229,122 @@ void FemDem3DLargeDisplacementElement::CalculateLocalSystem(
         this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
     }
 } // CalculateLocalSystem
+
+void FemDem3DLargeDisplacementElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const auto strain_size = GetStrainSize();
+
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    double detJ0;
+
+    const SizeType mat_size = number_of_nodes * dimension;
+    B.resize(strain_size, dimension * number_of_nodes);
+
+    Matrix constitutive_matrix = ZeroMatrix(strain_size, strain_size);
+    const double E = this->GetProperties()[YOUNG_MODULUS];
+    const double nu = this->GetProperties()[POISSON_RATIO];
+    this->CalculateConstitutiveMatrix(constitutive_matrix, E, nu);
+
+    if (rLeftHandSideMatrix.size1() != mat_size)
+        rLeftHandSideMatrix.resize(mat_size, mat_size, false);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+
+		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        const double integration_weigth = integration_points[point_number].Weight() * detJ0;
+        const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+		Vector N = row(Ncontainer, point_number);
+
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+
+        const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+
+		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+
+        this->CalculateAndAddMaterialK(rLeftHandSideMatrix, B, constitutive_matrix, integration_weigth, damage_element);
+        this->CalculateGeometricK(rLeftHandSideMatrix, DN_DX, integrated_stress_vector, integration_weigth);
+    }
+}
+
+void FemDem3DLargeDisplacementElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType dimension = this->GetGeometry().WorkingSpaceDimension();
+    const auto strain_size = GetStrainSize();
+
+    // Kinematic variables
+    Matrix B, F, DN_DX, InvJ0, J, J0;
+    double detJ0;
+
+    const SizeType mat_size = number_of_nodes * dimension;
+    B.resize(strain_size, dimension * number_of_nodes);
+
+    Matrix constitutive_matrix = ZeroMatrix(strain_size, strain_size);
+    const double E = this->GetProperties()[YOUNG_MODULUS];
+    const double nu = this->GetProperties()[POISSON_RATIO];
+    this->CalculateConstitutiveMatrix(constitutive_matrix, E, nu);
+
+    // Resizing as needed the RHS
+    if (rRightHandSideVector.size() != mat_size)
+        rRightHandSideVector.resize(mat_size, false);
+
+    rRightHandSideVector = ZeroVector(mat_size); //resetting RHS
+
+    // Reading integration points
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
+
+    Matrix delta_position(number_of_nodes, dimension);
+    noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+    delta_position = this->CalculateDeltaPosition(delta_position);
+
+    // Loop over Gauss Points
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+
+		J = this->GetGeometry().Jacobian(J, point_number, mThisIntegrationMethod);
+        detJ0 = this->CalculateDerivativesOnReferenceConfiguration(J0, InvJ0, DN_DX, point_number, mThisIntegrationMethod);
+
+        const double integration_weigth = integration_points[point_number].Weight() * detJ0;
+        const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+		Vector N = row(Ncontainer, point_number);
+
+        Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		// Taking into account Volume Force into de RHS
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weigth * N[i] * VolumeForce[j];
+			}
+		}
+
+        GeometryUtils::DeformationGradient(J, InvJ0, F);
+        this->CalculateB(B, F, DN_DX);
+
+        const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+
+		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
+        const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+        this->CalculateAndAddInternalForcesVector(rRightHandSideVector, B, integrated_stress_vector, integration_weigth);
+    }
+}
 
 double FemDem3DLargeDisplacementElement::CalculateDerivativesOnReferenceConfiguration(
     Matrix &rJ0,

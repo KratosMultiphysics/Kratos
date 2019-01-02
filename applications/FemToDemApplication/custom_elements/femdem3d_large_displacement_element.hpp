@@ -47,9 +47,10 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
 	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
 
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-								VectorType &rRightHandSideVector,
-								ProcessInfo &rCurrentProcessInfo) override;
+							  VectorType &rRightHandSideVector,
+							  ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
   
 
     int GetStrainSize(){return 6;}
