@@ -41,22 +41,43 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     KRATOS_CHECK_VARIABLE_KEY( AUX_DISTANCE )
     KRATOS_CHECK_VARIABLE_KEY( NODAL_AREA )
 
+    // checking all parameters that define the interface
+    Parameters default_parameters( R"(
+    {
+        "interface_normal"          : [0.0,1.0,0.0],
+        "point_on_interface"        : [0.0,0.25,0.0],
+        "inlet_transition_radius"   : 0.05
+    }  )" );
+
+    rParameters.ValidateAndAssignDefaults(default_parameters);
+
     // finding the complete model of the inlet model part
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
     // setting the parameters to the private data members of the class
-    mInterfaceNormal = rParameters["two_fluid_settings"]["interface_normal"].GetVector();
-    mInterfacePoint = rParameters["two_fluid_settings"]["point_on_interface"].GetVector();
-    mInletRadius = rParameters["two_fluid_settings"]["inlet_transition_radius"].GetDouble();
+    mInterfaceNormal = rParameters["interface_normal"].GetVector();
+    mInterfacePoint = rParameters["point_on_interface"].GetVector();
+    mInletRadius = rParameters["inlet_transition_radius"].GetDouble();
+
+    // normalization of itnerface normal vector
+    if ( norm_2( mInterfaceNormal ) > 1.0e-7 ){
+        mInterfaceNormal = mInterfacePoint / norm_2( mInterfaceNormal );
+    } else {
+        KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: 'interface_normal' in 'interface_settings' must not have a norm of 0.0." << std::endl;
+    }
+    // checking to avoid 0 transition radius (necessary for division)
+    if ( mInletRadius < 1.0e-7 ){
+        KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: 'inlet_transition_radius' in 'interface_settings' must not have a value smaller or equal 0.0." << std::endl;
+    }
 
     // setting flags for the inlet on nodes and conditions
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_nodes = mrInletModelPart.NodesBegin() + i_node;
         it_nodes->Set( INLET, true );
     }
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
         // iteration over all conditions
         auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
@@ -67,7 +88,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     //          The functions for the distance computation do not work on non-historical variables - this is reason for the following procedure (*)
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -100,7 +121,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -111,7 +132,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
 
     // (*) restoring the original distance field from its stored version
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -119,10 +140,10 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // subdividing the inlet into two sub_model_part
-    mrInletModelPart.CreateSubModelPart("water_inlet");
-    mrInletModelPart.CreateSubModelPart("air_inlet");
-    ModelPart& rWaterInlet = mrInletModelPart.GetSubModelPart("water_inlet");
-    ModelPart& rAirInlet = mrInletModelPart.GetSubModelPart("air_inlet");
+    mrInletModelPart.CreateSubModelPart("fluid_1_inlet");
+    mrInletModelPart.CreateSubModelPart("fluid_2_inlet");
+    ModelPart& rWaterInlet = mrInletModelPart.GetSubModelPart("fluid_1_inlet");
+    ModelPart& rAirInlet = mrInletModelPart.GetSubModelPart("fluid_2_inlet");
 
     // classifying nodes
     std::vector<IndexType> index_node_water;
@@ -172,7 +193,7 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
 
     ModelPart& rRootModelPart = mrInletModelPart.GetRootModelPart();
 
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -182,19 +203,18 @@ void TwoFluidsInletProcess::SmoothDistanceField(){
             // finding distance value of the node in the inlet field
             const double inlet_dist = ComputeNodalDistanceInInletDistanceField(it_node);
             // finding distance value for the node in the domain distance field
-            const double domain_dist = it_node->GetSolutionStepValue( DISTANCE, 0 );
+            const double domain_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
             // introducing a smooth transition based in the distance from the inlet stored in "AUX_DISTANCE"
             const double weighting_factor_inlet_field = it_node->GetValue(AUX_DISTANCE);
             const double weighting_factor_domain_field = 1.0 - weighting_factor_inlet_field;
 
             const double smoothed_dist = weighting_factor_inlet_field * inlet_dist + weighting_factor_domain_field * domain_dist;
-            it_node->GetSolutionStepValue( DISTANCE, 0 ) = smoothed_dist;
+            it_node->FastGetSolutionStepValue( DISTANCE, 0 ) = smoothed_dist;
         }
 
     }
 
 }
-
 
 
 /* Private functions ****************************************************/

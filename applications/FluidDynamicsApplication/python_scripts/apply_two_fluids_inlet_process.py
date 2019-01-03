@@ -14,62 +14,90 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         # settings for inlet with interface between fluids and separate velocities
         default_settings = KratosMultiphysics.Parameters("""
         {
-            "mesh_id"                   : 0,
-            "model_part_name"           : "",
-            "variable_name"             : "VELOCITY",
-            "constrained"               : true,
-            "direction"                 : [1.0,0.0,0.0],
-            "interval"                  : [0.0,"End"],
-            "two_fluid_settings" : {
-                "modulus_air"               : 0.0,
-                "modulus_water"             : 0.0,
-                "interface_normal"          : [0.0,1.0,0.0],
-                "point_on_interface"        : [0.0,0.25,0.0],
-                "inlet_transition_radius"   : 0.05
+            "mesh_id" : 0,
+            "model_part_name" : "user_provided_inlet_model_part_name",
+            "interface_settings": {
+                "interface_normal": [0.0,1.0,0.0],
+                "point_on_interface": [0.0,0.25,0.0],
+                "inlet_transition_radius": 0.05
+            },
+            "fluid_1_settings" : {
+                "model_part_name": "fluid_1_inlet",
+                "variable_name": "VELOCITY",
+                "modulus": 0.1,
+                "constrained": true,
+                "direction": [1.0,0.0,0.0],
+                "interval": [0.0,"End"]
+            },
+            "fluid_2_settings" : {
+                "model_part_name": "fluid_2_inlet",
+                "variable_name": "VELOCITY",
+                "modulus": 0.0,
+                "constrained": true,
+                "direction": [1.0,0.0,0.0],
+                "interval": [0.0,"End"]
             }
         }
         """)
 
         # Trick: allow "modulus" and "direction" to be a double or a string value (otherwise the ValidateAndAssignDefaults might fail).
-        if (settings.Has("modulus_air")):
-            if (settings["two_fluid_settings"]["modulus_air"].IsString()):
-                default_settings["two_fluid_settings"]["modulus_air"].SetString("0.0")
+        # checking (and adapting) type of the modulus for both fluids
+        if (settings["fluid_1_settings"].Has("modulus")):
+            if (settings["fluid_1_settings"]["modulus"].IsString()):
+                default_settings["fluid_1_settings"]["modulus"].SetString("0.0")
+        else:
+            print("Defualt is taken...1")   # REMOVE
 
-        if (settings.Has("modulus_water")):
-            if (settings["two_fluid_settings"]["modulus_water"].IsString()):
-                default_settings["two_fluid_settings"]["modulus_water"].SetString("0.0")
+        if (settings["fluid_2_settings"].Has("modulus")):
+            if (settings["fluid_2_settings"]["modulus"].IsString()):
+                default_settings["fluid_2_settings"]["modulus"].SetString("0.0")
+        else:
+            print("Defualt is taken...2")   # REMOVE
 
-        if (settings.Has("direction")):
-            if (settings["direction"].IsString()):
-                default_settings["direction"].SetString("automatic_inwards_normal")
+        # checking (and adapting) type of direction for both fluids
+        if (settings["fluid_1_settings"].Has("direction")):
+            if (settings["fluid_1_settings"]["direction"].IsString()):
+                default_settings["fluid_1_settings"]["direction"].SetString("automatic_inwards_normal")
+        if (settings["fluid_2_settings"].Has("direction")):
+            if (settings["fluid_2_settings"]["direction"].IsString()):
+                default_settings["fluid_2_settings"]["direction"].SetString("automatic_inwards_normal")
 
-        # compare against the appropriate default settings (one or two fluids)
+        # compare against the appropriate default settings
         settings.ValidateAndAssignDefaults(default_settings)
 
-        # Check input data
-        if (settings["model_part_name"].GetString() == ""):
-            raise Exception("Empty inlet model part name string. Set a valid model part name.")
-        elif (settings["variable_name"].GetString() != "VELOCITY"):
-            raise Exception("Inlet variable_name is not VELOCITY.")
+        # Check input data for only allowed value
+        if (settings["fluid_1_settings"]["model_part_name"].GetString() != "fluid_1_inlet"):
+            raise Exception("Entry 'model_part_name' in 'fluid_1_settings' must be 'fluid_1_inlet'. Other settings are not admissible.")
+        elif (settings["fluid_2_settings"]["model_part_name"].GetString() != "fluid_2_inlet"):
+            raise Exception("Entry 'model_part_name' in 'fluid_2_settings' must be 'fluid_2_inlet'. Other settings are not admissible.")
+        elif (settings["fluid_1_settings"]["variable_name"].GetString() != "VELOCITY"):
+            raise Exception("Inlet 'variable_name' in 'fluid_1_settings' is not VELOCITY. This is not admissible.")
+        elif (settings["fluid_2_settings"]["variable_name"].GetString() != "VELOCITY"):
+            raise Exception("Inlet 'variable_name' in 'fluid_2_settings' is not VELOCITY. This is not admissible.")
         else:
-            # checking for the air
-            if (settings["two_fluid_settings"]["modulus_air"].IsDouble()):
-                if (settings["two_fluid_settings"]["modulus_air"].GetDouble == 0.0):
-                    KratosMultiphysics.Logger.PrintInfo("ApplyTwoFluidsInletProcess", "Inlet velocity for the air was set to 0.0" )
-                self.modulus_air = settings["two_fluid_settings"]["modulus_air"].GetDouble()
-            elif (settings["two_fluid_settings"]["modulus_air"].IsString()):
-                if (settings["two_fluid_settings"]["modulus_air"].GetString == ""):
-                    raise Exception("Inlet function string for the air velocity at the inlet is empty.")
-                self.modulus_air = settings["two_fluid_settings"]["modulus_air"].GetString()
-            # checking for the water
-            if (settings["two_fluid_settings"]["modulus_water"].IsDouble()):
-                if (settings["two_fluid_settings"]["modulus_water"].GetDouble == 0.0):
-                    KratosMultiphysics.Logger.PrintInfo("ApplyTwoFluidsInletProcess", "Inlet velocity for the water was set to 0.0 - this may not be desired" )
-                self.modulus_water = settings["two_fluid_settings"]["modulus_water"].GetDouble()
-            elif (settings["two_fluid_settings"]["modulus_water"].IsString()):
-                if (settings["two_fluid_settings"]["modulus_water"].GetString == ""):
-                    raise Exception("Inlet function string for the water velocity at the inlet is empty.")
-                self.modulus_water = settings["two_fluid_settings"]["modulus_water"].GetString()
+
+            # checking for empty strings
+            if (settings["fluid_1_settings"]["modulus"].IsString()):
+                if (settings["fluid_1_settings"]["modulus"].GetString() == ""):
+                    raise Exception("Inlet function string for 'modulus' in 'fluid_1_settings' at the inlet is empty.")
+            if (settings["fluid_2_settings"]["modulus"].IsString()):
+                if (settings["fluid_2_settings"]["modulus"].GetString() == ""):
+                    raise Exception("Inlet function string for 'modulus' in 'fluid_2_settings' at the inlet is empty.")
+
+            # checking for different directions
+            if ( (settings["fluid_1_settings"]["direction"].IsString() and settings["fluid_2_settings"]["direction"].IsString() )
+                or (settings["fluid_1_settings"]["direction"].IsVector() and settings["fluid_2_settings"]["direction"].IsVector() ) ):
+
+                if ( settings["fluid_1_settings"]["direction"].IsString() and settings["fluid_2_settings"]["direction"].IsString() ):
+                    if ( settings["fluid_1_settings"]["direction"].GetString() != settings["fluid_2_settings"]["direction"].GetString() ):
+                        raise Exception("The values (string) of the entry 'direction' differ between the two fluids. This is not admissible.")
+                if ( settings["fluid_1_settings"]["direction"].IsVector() and settings["fluid_2_settings"]["direction"].IsVector() ):
+                    v1 = settings["fluid_1_settings"]["direction"].GetVector()
+                    v2 = settings["fluid_2_settings"]["direction"].GetVector()
+                    if ( abs(v1[0] - v2[0]) > 1.0e-7 or abs(v1[1] - v2[1]) > 1.0e-7 or abs(v1[2] - v2[2]) > 1.0e-7 ):
+                        raise Exception("The values (vector) of the entry 'direction' differ between the two fluids. This is not admissible.")
+            else:
+                raise Exception("The values (different type) of the entry 'direction' differ between the two fluids. This is not admissible.")
 
         self.inlet_model_part = Model[settings["model_part_name"].GetString()]
         self.complete_model = self.inlet_model_part.GetRootModelPart()
@@ -77,46 +105,24 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.complete_model, 10, 10)
         self.neighbour_search.Execute()
 
-        # Adding the C++ constructor
-        self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess(self.inlet_model_part, settings)
+        # Adding the C++ constructor (here the sub-division of the model part is performed)
+        self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess(self.inlet_model_part, settings["interface_settings"])
 
-        self.point_on_interface = settings["two_fluid_settings"]["point_on_interface"].GetVector()
-        self.interface_normal = settings["two_fluid_settings"]["interface_normal"].GetVector()
-
-        # removing the additional entries to restore the format
-        settings.RemoveValue("two_fluid_settings")
-        settings.AddEmptyValue("modulus")
         import assign_vector_by_direction_process
 
-        # adapt the (base) settings for the water values
-        if ( isinstance(self.modulus_water, str) ):
-            settings["modulus"].SetString(self.modulus_water)
-        elif ( isinstance(self.modulus_water, float) ):
-            settings["modulus"].SetDouble(self.modulus_water)
-        # Sub model part "water_inlet" is defined and filled in KratosFluid.TwoFluidsInletProcess
-        settings["model_part_name"].SetString("water_inlet")
+        if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_1 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_1_settings"])
 
-        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
-            self.aux_process_water = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
-
-        # adapt the (base) settings for the air values
-        if ( isinstance(self.modulus_air, str) ):
-            settings["modulus"].SetString(self.modulus_air)
-        elif ( isinstance(self.modulus_air, float) ):
-            settings["modulus"].SetDouble(self.modulus_air)
-        # Sub model part "air_inlet" is defined and filled in KratosFluid.TwoFluidsInletProcess
-        settings["model_part_name"].SetString("air_inlet")
-
-        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
-            self.aux_process_air = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings)
+        if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_2 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_2_settings"])
 
 
     def ExecuteInitializeSolutionStep(self):
         # Call the base process ExecuteInitializeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
-            self.aux_process_water.ExecuteInitializeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
-            self.aux_process_air.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_1.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_2.ExecuteInitializeSolutionStep()
 
         # Not sure if appropriate here...
         # PROBLEM: Could distort the physical properties
@@ -126,9 +132,9 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
         # Call the base process ExecuteFinalizeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("water_inlet").NumberOfNodes() > 0):
-            self.aux_process_water.ExecuteInitializeSolutionStep()
-        if ( self.inlet_model_part.GetSubModelPart("air_inlet").NumberOfNodes() > 0):
-            self.aux_process_air.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_1.ExecuteInitializeSolutionStep()
+        if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
+            self.aux_process_fluid_2.ExecuteInitializeSolutionStep()
 
         self.two_fluid_inlet_process.SmoothDistanceField()
