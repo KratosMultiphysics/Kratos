@@ -151,11 +151,12 @@ class ConjugateHeatTransferSolver(PythonSolver):
             max_buffer_size = max(fluid_solver_buffer, fluid_thermal_solver_buffer)
             self.fluid_solver.min_buffer_size = max_buffer_size
             self.fluid_thermal_solver.min_buffer_size = max_buffer_size
-            warning_msg = "Fluid solver and fluid thermal solver have different buffer size:\n" 
-            warning_msg += " - Fluid solver buffer size: " + str(fluid_solver_buffer) + "\n"
-            warning_msg += " - Fluid thermal solver buffer size: " + str(fluid_thermal_solver_buffer) + "\n"
-            warning_msg += "Setting buffer size equal to " + str(max_buffer_size) + " in both solvers." 
-            self.print_warning_on_rank_zero("::[ConjugateHeatTransferSolver]::", warning_msg)
+            if self.settings["echo_level"].GetInt() >= 1:
+                warning_msg = "Fluid solver and fluid thermal solver have different buffer size:\n"
+                warning_msg += " - Fluid solver buffer size: " + str(fluid_solver_buffer) + "\n"
+                warning_msg += " - Fluid thermal solver buffer size: " + str(fluid_thermal_solver_buffer) + "\n"
+                warning_msg += "Setting buffer size equal to " + str(max_buffer_size) + " in both solvers."
+                self.print_warning_on_rank_zero("::[ConjugateHeatTransferSolver]::", warning_msg)
 
         # Import the solid domain
         self.solid_thermal_solver.ImportModelPart()
@@ -326,9 +327,9 @@ class ConjugateHeatTransferSolver(PythonSolver):
                                                      mapper_search_radius_factor,
                                                      mapper_max_iteration,
                                                      mapper_tolerance)
-    
+
     def _time_buffer_is_initialized(self):
-        # Get current step counter. Note that the buoyancy and thermal fluid domain main_model_part 
+        # Get current step counter. Note that the buoyancy and thermal fluid domain main_model_part
         # share the same ProcessInfo(), so the STEP counter is always the same.
         fluid_step = self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
         solid_step = self.solid_thermal_solver.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
