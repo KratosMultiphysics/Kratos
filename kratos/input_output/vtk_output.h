@@ -40,11 +40,12 @@ public:
     ///@{
 
     /**
-     * @brief Constructor by passing a vector of Master and slave dofs and corresponding Matrix and constant vector
+     * @brief Constructor by passing a ModelPart and Kratos-Parameters
      * @param rModelPart The modelpart which is used for output
-     * @param rParameters Parameters including settings for the output
+     * @param Parameters Parameters including settings for the output
      */
-    VtkOutput(ModelPart &rModelPart, Parameters rParameters);
+    VtkOutput(ModelPart& rModelPart, Parameters Parameters);
+
     /// Destructor.
     virtual ~VtkOutput() = default;
 

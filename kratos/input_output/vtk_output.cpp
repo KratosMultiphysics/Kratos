@@ -22,8 +22,8 @@
 namespace Kratos
 {
 
-VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters rParameters)
-    : mrModelPart(rModelPart), mOutputSettings(rParameters)
+VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
+    : mrModelPart(rModelPart), mOutputSettings(Parameters)
 {
     mDefaultPrecision = mOutputSettings["output_precision"].GetInt();
     const std::string file_format = mOutputSettings["file_format"].GetString();
