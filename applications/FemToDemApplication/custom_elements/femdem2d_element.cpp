@@ -645,12 +645,12 @@ void FemDem2DElement::CalculateInfinitesimalStrain(Vector &rStrainVector, const 
 	Matrix H = zero_matrix<double>(dimension); //[dU/dx_n]
 
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
-		array_1d<double, 3> &displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+		array_1d<double, 3> &r_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-		H(0, 0) += displacement[0] * rDN_DX(i, 0);
-		H(0, 1) += displacement[0] * rDN_DX(i, 1);
-		H(1, 0) += displacement[1] * rDN_DX(i, 0);
-		H(1, 1) += displacement[1] * rDN_DX(i, 1);
+		H(0, 0) += r_displacement[0] * rDN_DX(i, 0);
+		H(0, 1) += r_displacement[0] * rDN_DX(i, 1);
+		H(1, 0) += r_displacement[1] * rDN_DX(i, 0);
+		H(1, 1) += r_displacement[1] * rDN_DX(i, 1);
 	}
 	//Infinitesimal Strain Calculation
 	if (rStrainVector.size() != 3)
