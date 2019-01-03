@@ -244,8 +244,9 @@ void FemDem3DLargeDisplacementElement::CalculateLeftHandSide(MatrixType& rLeftHa
     B.resize(strain_size, dimension * number_of_nodes);
 
     Matrix constitutive_matrix = ZeroMatrix(strain_size, strain_size);
-    const double E = this->GetProperties()[YOUNG_MODULUS];
-    const double nu = this->GetProperties()[POISSON_RATIO];
+    auto& r_properties = this->GetProperties();
+    const double E = r_properties[YOUNG_MODULUS];
+    const double nu = r_properties[POISSON_RATIO];
     this->CalculateConstitutiveMatrix(constitutive_matrix, E, nu);
 
     if (rLeftHandSideMatrix.size1() != mat_size)
