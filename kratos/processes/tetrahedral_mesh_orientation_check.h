@@ -49,7 +49,7 @@ typedef Geometry<NodeType> GeometryType;
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
  */
-class TetrahedralMeshOrientationCheck
+class KRATOS_API(KRATOS_CORE) TetrahedralMeshOrientationCheck
     : public Process
 {
 public:
