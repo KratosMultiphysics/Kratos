@@ -298,18 +298,23 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
                 (self.find_nodal_neighbours_process).Execute()
 
-            # Perform the FM-ALE operations
-            self._do_fm_ale_operations()
-
             # Fluid solver step initialization
             (self.solver).InitializeSolutionStep()
 
-    def FinalizeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Fluid solver finalize solution step
-            (self.solver).FinalizeSolutionStep()
+    def Predict(self):
+        # Call the base solver Predict()
+        super(NavierStokesEmbeddedMonolithicSolver, self).Predict()
 
-            # Do the FM-ALE end of step operations
+        # Perform the FM-ALE operations
+        if self._TimeBufferIsInitialized():
+            self._do_fm_ale_operations()
+
+    def FinalizeSolutionStep(self):
+        # Call the base solver FinalizeSolutionStep()
+        super(NavierStokesEmbeddedMonolithicSolver, self).FinalizeSolutionStep()
+
+        # Do the FM-ALE end of step operations
+        if self._TimeBufferIsInitialized():
             self._finalize_fm_ale_step()
 
     def _set_physical_properties(self):

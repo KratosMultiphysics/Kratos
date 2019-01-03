@@ -156,9 +156,13 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._get_convergence_accelerator().InitializeSolutionStep()
 
     def Predict(self):
-        # Perform fluid and structure solvers predictions
-        self.fluid_solver.Predict()
+        # Structure solver prediction. It is important to firstly perform the structure
+        # prediction to update the current buffer position before the FM-ALE operations.
+        # Otherwise position 0 and 1 of the buffer coincide since the advance in time
+        # has been already performed but no update has been done yet
         self.structure_solver.Predict()
+        # Fluid solver prediction (FM-ALE operations are done in here)
+        self.fluid_solver.Predict()
 
     def GetComputingModelPart(self):
         err_msg =  'Calling GetComputingModelPart() method in a partitioned solver.\n'
