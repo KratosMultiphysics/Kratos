@@ -831,6 +831,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
+
+    /* We clean conditions with duplicated geometries (this is an error on fluid simulations) */
+    if (mFramework == FrameworkEulerLagrange::EULERIAN) {
+        ClearConditionsDuplicatedGeometries();
+    }
 }
 
 /***********************************************************************************/
@@ -2844,6 +2849,62 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
     }
 
     mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
+{
+    // Next check that the conditions are oriented accordingly
+    // to do so begin by putting all of the conditions in a map
+    typedef std::unordered_map<DenseVector<IndexType>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashMapType;
+    HashMapType faces_map;
+
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+        auto it_cond = it_cond_begin + 1;
+
+        it_cond->Set(VISITED, false); // Mark as cisited
+
+        GeometryType& r_geom = it_cond->GetGeometry();
+        DenseVector<IndexType> ids(r_geom.size());
+
+        for(IndexType i=0; i<ids.size(); i++) {
+            r_geom[i].Set(BOUNDARY,true);
+            ids[i] = r_geom[i].Id();
+        }
+
+        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+        std::sort(ids.begin(), ids.end());
+
+        // Insert a pointer to the condition identified by the hash value ids
+        HashMapType::iterator it_face = faces_map.find(ids);
+        if(it_face != faces_map.end() ) { // Already defined vector
+            it_face->second.push_back(*it_cond.base());
+        } else {
+            faces_map.insert( HashMapType::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
+        }
+    }
+
+    // We set the flag in the corresponding conditions
+    for (auto& map : faces_map) {
+        // If repeated geometries
+        const auto& r_conditions = map.second;
+        if ((r_conditions).size() > 1) {
+            for (IndexType i = 1; i < r_conditions.size(); ++i) { // We only preserve the first one
+                r_conditions[i]->Set(TO_ERASE);
+                KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << r_conditions[i]->Id() << " will be removed" << std::endl;
+            }
+        }
+    }
+
+    // We remove the conditions marked to be removed
+    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/
