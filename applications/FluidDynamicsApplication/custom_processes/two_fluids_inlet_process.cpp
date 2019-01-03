@@ -71,13 +71,13 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // setting flags for the inlet on nodes and conditions
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_nodes = mrInletModelPart.NodesBegin() + i_node;
         it_nodes->Set( INLET, true );
     }
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
         // iteration over all conditions
         auto it_cond = mrInletModelPart.ConditionsBegin() + i_cond;
@@ -88,7 +88,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     //          The functions for the distance computation do not work on non-historical variables - this is reason for the following procedure (*)
 
     // (*) temporally storing the distance field as an older version of itself (it can be assured that nothing is over-written at the start)
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -105,6 +105,11 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SetScalarVar( NODAL_AREA, 0.0, rRootModelPart.Nodes() );
     var_utils.SetScalarVar( NODAL_AREA, 1.0, mrInletModelPart.Nodes() );
 
+    for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+        // iteration over all nodes to ensure the existence of the non-hist. variable (OMP parallel leads to problems)
+        auto it_node = rRootModelPart.NodesBegin() + i_node;
+        it_node->GetValue(DISTANCE) = 0.0;
+    }
 
     const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
     // MPI Version used here
@@ -121,7 +126,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -132,7 +137,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
 
     // (*) restoring the original distance field from its stored version
-    // #pragma omp parallel for
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
@@ -145,7 +150,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     ModelPart& rWaterInlet = mrInletModelPart.GetSubModelPart("fluid_1_inlet");
     ModelPart& rAirInlet = mrInletModelPart.GetSubModelPart("fluid_2_inlet");
 
-    // classifying nodes
+    // classifying nodes (no OMP parallel possible)
     std::vector<IndexType> index_node_water;
     std::vector<IndexType> index_node_air;
     for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
@@ -160,7 +165,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     rWaterInlet.AddNodes( index_node_water );
     rAirInlet.AddNodes( index_node_air );
 
-    // classifying conditions
+    // classifying conditions (no OMP parallel possible)
     std::vector<IndexType> index_cond_water;
     std::vector<IndexType> index_cond_air;
     for (int i_cond = 0; i_cond < static_cast<int>( mrInletModelPart.NumberOfConditions() ); ++i_cond){
