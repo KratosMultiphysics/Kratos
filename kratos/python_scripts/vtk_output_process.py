@@ -34,13 +34,15 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
 
-        if self.settings["save_output_files_in_folder"].GetBool() :
-            folder_name = self.settings["folder_name"].GetString()
-            if(os.path.isdir(folder_name)):
-                if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+        if self.settings["save_output_files_in_folder"].GetBool():
+            if self.model_part.GetCommunicator().MyPID() == 0:
+                folder_name = self.settings["folder_name"].GetString()
+                if os.path.isdir(folder_name) and not \
+                    self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                     import shutil
-                    shutil.rmtree(folder_name)
-            os.mkdir(folder_name)
+                    shutil.rmtree(folder_name) # removing old results
+                os.mkdir(folder_name)
+            self.model_part.GetCommunicator().Barrier()
 
         self.vtk_io = KratosMultiphysics.VtkOutput(self.model_part, self.settings)
 
