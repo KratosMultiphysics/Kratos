@@ -249,7 +249,10 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
         { GeometryData::KratosGeometryType::Kratos_Line2D2, 3 },
         { GeometryData::KratosGeometryType::Kratos_Line3D2, 3 },
         { GeometryData::KratosGeometryType::Kratos_Point2D, 1 },
-        { GeometryData::KratosGeometryType::Kratos_Point3D, 1 }
+        { GeometryData::KratosGeometryType::Kratos_Point3D, 1 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle3D3, 5 },
+        { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
+        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, 12 },
     };
     // write entity types
     for (const auto& r_entity : rContainer) {
