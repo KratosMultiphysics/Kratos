@@ -106,139 +106,139 @@ namespace Python
 {
 void  AddProcessesToPython(pybind11::module& m)
 {
-    using namespace pybind11;
+    namespace py = pybind11;
 
-    /*	  class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
+    /*	  py::class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",
     		 init<ModelPart&>())
     		 ;
     */
     /*
-    	  class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
+    	  py::class_<ActOnWallsNodalProcess, bases<Process> >("ActOnWallsNodalProcess",
     		 init<ModelPart&>())
     		 ;
     */
-    /*	  class_<MoveMeshProcess, bases<Process> >("MoveMeshProcess",
+    /*	  py::class_<MoveMeshProcess, bases<Process> >("MoveMeshProcess",
     		 init<ModelPart&>())
     		 ;
     */
-    /*	  class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
+    /*	  py::class_<LagrangianInletProcess, bases<Process> >("LagrangianInletProcess",
     		 init<ModelPart&, double>())
     		 ;
     */
     /*
-    	  class_<CoordinateLaplacianSmootherProcess, bases<Process> >("CoordinateLaplacianSmootherProcess",
+    	  py::class_<CoordinateLaplacianSmootherProcess, bases<Process> >("CoordinateLaplacianSmootherProcess",
     		 init<ModelPart&, int>())
     		 ;
     */
     /*
-    class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
+    py::class_<NodeEraseProcess, bases<Process> >("NodeEraseProcess",
     	 init<ModelPart&>())
     	 ;
      */
 
 
 
-    class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
-    .def(init<ModelPart&, unsigned int>())
+    py::class_<PressureCalculateProcess, PressureCalculateProcess::Pointer, Process >(m,"PressureCalculateProcess")
+    .def(py::init<ModelPart&, unsigned int>())
     ;
-    class_<PressureCalculateProcessAxisym, PressureCalculateProcessAxisym::Pointer, Process> (m,"PressureCalculateProcessAxisym")
-    
-    .def(init<ModelPart&, unsigned int>())
+    py::class_<PressureCalculateProcessAxisym, PressureCalculateProcessAxisym::Pointer, Process> (m,"PressureCalculateProcessAxisym")
+
+    .def(py::init<ModelPart&, unsigned int>())
     ;
 
-    class_<MassCalculateProcess, MassCalculateProcess::Pointer, Process > (m,"MassCalculateProcess")
-    .def(init<ModelPart&>())
+    py::class_<MassCalculateProcess, MassCalculateProcess::Pointer, Process > (m,"MassCalculateProcess")
+    .def(py::init<ModelPart&>())
     ;
-    class_<MarkFreeSurfaceProcess, MarkFreeSurfaceProcess::Pointer, Process > (m,"MarkFreeSurfaceProcess")
-    .def(init<ModelPart&>())
+    py::class_<MarkFreeSurfaceProcess, MarkFreeSurfaceProcess::Pointer, Process > (m,"MarkFreeSurfaceProcess")
+    .def(py::init<ModelPart&>())
     ;
-    class_<UlfTimeStepDecProcess,UlfTimeStepDecProcess::Pointer, Process > (m,"UlfTimeStepDecProcess")
-    .def(init<ModelPart&>())
+    py::class_<UlfTimeStepDecProcess,UlfTimeStepDecProcess::Pointer, Process > (m,"UlfTimeStepDecProcess")
+    .def(py::init<ModelPart&>())
     .def("EstimateDeltaTime",&UlfTimeStepDecProcess::EstimateDeltaTime)
     ;
-    class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process > (m,"MarkOuterNodesProcess")
-    .def(init<ModelPart&>())
+    py::class_<MarkOuterNodesProcess, MarkOuterNodesProcess::Pointer, Process > (m,"MarkOuterNodesProcess")
+    .def(py::init<ModelPart&>())
     .def("MarkOuterNodes",&MarkOuterNodesProcess::MarkOuterNodes)
     ;
-    class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process > (m,"MarkFluidProcess")
-    .def(init<ModelPart&>())
+    py::class_<MarkFluidProcess, MarkFluidProcess::Pointer, Process > (m,"MarkFluidProcess")
+    .def(py::init<ModelPart&>())
     ;
-    class_<MarkCloseNodesProcess, MarkCloseNodesProcess::Pointer, Process > (m,"MarkCloseNodesProcess")
-    .def(init<ModelPart&>())
+    py::class_<MarkCloseNodesProcess, MarkCloseNodesProcess::Pointer, Process > (m,"MarkCloseNodesProcess")
+    .def(py::init<ModelPart&>())
     .def("MarkCloseNodes", &MarkCloseNodesProcess::MarkCloseNodes)
     ;
-    class_<SaveStructureModelPartProcess, SaveStructureModelPartProcess::Pointer, Process> (m, "SaveStructureModelPartProcess")
-    .def(init<>())
+    py::class_<SaveStructureModelPartProcess, SaveStructureModelPartProcess::Pointer, Process> (m, "SaveStructureModelPartProcess")
+    .def(py::init<>())
     .def("SaveStructure", &SaveStructureModelPartProcess::SaveStructure)
     ;
-    class_<SaveStructureConditionsProcess, SaveStructureConditionsProcess::Pointer, Process> (m,"SaveStructureConditionsProcess")
-    .def(init<>())
+    py::class_<SaveStructureConditionsProcess, SaveStructureConditionsProcess::Pointer, Process> (m,"SaveStructureConditionsProcess")
+    .def(py::init<>())
     .def("SaveStructureConditions", &SaveStructureConditionsProcess::SaveStructureConditions)
     ;
-    class_<MergeModelPartsProcess, MergeModelPartsProcess::Pointer, Process >(m,"MergeModelPartsProcess")
-    .def(init<> ())
+    py::class_<MergeModelPartsProcess, MergeModelPartsProcess::Pointer, Process >(m,"MergeModelPartsProcess")
+    .def(py::init<> ())
     .def("MergeParts", &MergeModelPartsProcess::MergeParts)
     ;
-    class_<SaveFluidOnlyProcess, SaveFluidOnlyProcess::Pointer, Process >(m,"SaveFluidOnlyProcess")
-    .def(init<> ())
+    py::class_<SaveFluidOnlyProcess, SaveFluidOnlyProcess::Pointer, Process >(m,"SaveFluidOnlyProcess")
+    .def(py::init<> ())
     .def("SaveFluidOnly", &SaveFluidOnlyProcess::SaveFluidOnly)
     ;
-    class_<LagrangianInletProcess, LagrangianInletProcess::Pointer, Process >(m,"LagrangianInletProcess")
-    .def(init<ModelPart&, double,  array_1d<double,3> >())
+    py::class_<LagrangianInletProcess, LagrangianInletProcess::Pointer, Process >(m,"LagrangianInletProcess")
+    .def(py::init<ModelPart&, double,  array_1d<double,3> >())
     ;
-    class_<RemoveAndSaveWallNodesProcess, RemoveAndSaveWallNodesProcess::Pointer, Process> (m,"RemoveAndSaveWallNodesProcess")
-    .def(init<> ())
+    py::class_<RemoveAndSaveWallNodesProcess, RemoveAndSaveWallNodesProcess::Pointer, Process> (m,"RemoveAndSaveWallNodesProcess")
+    .def(py::init<> ())
     .def("RemoveAndSave", &RemoveAndSaveWallNodesProcess::RemoveAndSave)
-    ;     
+    ;
 /////////////////////////////////////////////
-    class_<AddWallProcess>(m,"AddWallProcess")
-    .def(init<> ())
+    py::class_<AddWallProcess>(m,"AddWallProcess")
+    .def(py::init<> ())
     .def("AddWall", &AddWallProcess::AddWall)
-    ;  
-    class_<CalculateCurvature> (m,"CalculateCurvature")
-    .def(init<>())
+    ;
+    py::class_<CalculateCurvature> (m,"CalculateCurvature")
+    .def(py::init<>())
     .def("CalculateCurvature2D", &CalculateCurvature::CalculateCurvature2D)
     .def("CalculateCurvature3D", &CalculateCurvature::CalculateCurvature3D)
     .def("CalculateCurvatureContactLine", &CalculateCurvature::CalculateCurvatureContactLine)
     .def("CalculatePrincipalDirections3D", &CalculateCurvature::CalculatePrincipalDirections3D)
     ;
-    
-    
-    class_<CalculateNormalEq> (m,"CalculateNormalEq")
-    .def(init<>())
+
+
+    py::class_<CalculateNormalEq> (m,"CalculateNormalEq")
+    .def(py::init<>())
     .def("CalculateNormalEq3D", &CalculateNormalEq::CalculateNormalEq3D)
-    ;   
-    
-    class_<CalculateContactAngle> (m,"CalculateContactAngle")
-    .def(init<>())
+    ;
+
+    py::class_<CalculateContactAngle> (m,"CalculateContactAngle")
+    .def(py::init<>())
     .def("CalculateContactAngle2D", &CalculateContactAngle::CalculateContactAngle2D)
     .def("CalculateContactAngle3D", &CalculateContactAngle::CalculateContactAngle3D)
-    ;   
-    
-     class_<FindTriplePoint> (m,"FindTriplePoint")
-    .def(init<>())
+    ;
+
+     py::class_<FindTriplePoint> (m,"FindTriplePoint")
+    .def(py::init<>())
     .def("FindTriplePoint2D", &FindTriplePoint::FindTriplePoint2D)
     .def("FindTriplePoint3D", &FindTriplePoint::FindTriplePoint3D)
     ;
-    
-     class_<CalculateNodalLength> (m,"CalculateNodalLength")
-    .def(init<>())
+
+     py::class_<CalculateNodalLength> (m,"CalculateNodalLength")
+    .def(py::init<>())
     .def("CalculateNodalLength2D", &CalculateNodalLength::CalculateNodalLength2D)
     .def("CalculateNodalLength3D", &CalculateNodalLength::CalculateNodalLength3D)
-    ;    
-    
-    class_<FindNodalNeighboursSurfaceProcess> (m,"FindNodalNeighboursSurfaceProcess")
-    .def(init<ModelPart&, const int, const int>())
-    .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
-    ; 
-    
+    ;
 
-    class_<CalculateAdhesionForce> (m,"CalculateAdhesionForce")
-    .def(init<>())
+    py::class_<FindNodalNeighboursSurfaceProcess> (m,"FindNodalNeighboursSurfaceProcess")
+    .def(py::init<ModelPart&, const int, const int>())
+    .def("Execute", &FindNodalNeighboursSurfaceProcess::Execute)
+    ;
+
+
+    py::class_<CalculateAdhesionForce> (m,"CalculateAdhesionForce")
+    .def(py::init<>())
     .def("CalculateAdhesionForce3D", &CalculateAdhesionForce::CalculateAdhesionForce3D)
     ;
-    
-//      class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
+
+//      py::class_<AssignSurfaceTensionConditions > ("AssignSurfaceTensionConditions", init<>())
 //     .def("AssignSurfaceTensionConditions2D", &AssignSurfaceTensionConditions::AssignSurfaceTensionConditions2D)
 //     ;
 }

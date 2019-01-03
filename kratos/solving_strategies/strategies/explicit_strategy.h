@@ -285,6 +285,24 @@ void FinalizeSolutionStep() override
 	KRATOS_CATCH("")
 }
 
+/// Turn back information as a string.
+std::string Info() const override
+{
+    return "ExplicitStrategy";
+}
+
+/// Print information about this object.
+void PrintInfo(std::ostream& rOStream) const override
+{
+    rOStream << Info();
+}
+
+/// Print object's data.
+void PrintData(std::ostream& rOStream) const override
+{
+    rOStream << Info();
+}
+
 };
 
 } /* namespace Kratos.*/

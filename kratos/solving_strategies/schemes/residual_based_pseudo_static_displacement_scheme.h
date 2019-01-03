@@ -83,6 +83,27 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Parameters with the Rayleigh variable
+     */
+    explicit ResidualBasedPseudoStaticDisplacementScheme(Parameters ThisParameters)
+      :DerivedBaseType(0.0)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+            "rayleigh_beta_variable" : "RAYLEIGH_BETA"
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        mRayleighBeta = KratosComponents<Variable<double>>::Get(ThisParameters["rayleigh_beta_variable"].GetString());
+    }
+
+    /**
+     * @brief Default constructor. The pseudo static scheme
+     */
     explicit ResidualBasedPseudoStaticDisplacementScheme(const Variable<double> RayleighBetaVariable)
       :DerivedBaseType(0.0),
        mRayleighBeta(RayleighBetaVariable)
@@ -192,6 +213,23 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedPseudoStaticDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

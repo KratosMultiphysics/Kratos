@@ -50,8 +50,7 @@
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 2.0,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false
+                "max_nodes_in_filter_radius" : 1000
             }
         },
         "optimization_algorithm" : {
@@ -69,7 +68,7 @@
             "design_history_filename" : "design_history",
             "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "SHAPE_CHANGE" ],
+            "nodal_results"           : ["SHAPE_CHANGE"],
             "output_format" : {
                 "name": "gid"
             }

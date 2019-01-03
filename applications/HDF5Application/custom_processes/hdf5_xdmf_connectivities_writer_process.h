@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <unordered_map>
 
 // External includes
 
@@ -50,6 +51,7 @@ public:
     ///@{
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(XdmfConnectivitiesWriterProcess);
+    typedef std::unordered_map<int, int> IdMapType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -60,7 +62,7 @@ public:
     ///@{
 
     void Execute() override;
-    
+
     ///@}
 private:
     ///@name Member Variables
@@ -68,12 +70,12 @@ private:
 
     File::Pointer mpFile;
     std::string mPrefix;
-    Vector<int> mKratosToXdmfIdTable;
+    IdMapType mKratosToXdmfIdMap;
 
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
 
     ///@}

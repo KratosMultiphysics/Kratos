@@ -96,7 +96,7 @@ void DistanceModificationProcess::ExecuteInitializeSolutionStep() {
         // Modify the nodal distance values to avoid bad intersections
         if (mContinuousDistance) {
             // Compute NODAL_H (used for computing the distance tolerance)
-            FindNodalHProcess<true> nodal_h_calculator(mrModelPart);
+            FindNodalHProcess<FindNodalHSettings::SaveAsHistoricalVariable> nodal_h_calculator(mrModelPart);
             nodal_h_calculator.Execute();
             // Modify the continuous distance field
             this->ModifyDistance();
@@ -184,7 +184,7 @@ void DistanceModificationProcess::ModifyDistance() {
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<double> aux_modified_distance_values;
 
-            for (auto it_node = nodes_begin; it_node != nodes_end; ++it_node) {
+            for (auto it_node = nodes_begin; it_node < nodes_end; ++it_node) {
                 const double h = it_node->FastGetSolutionStepValue(NODAL_H);
                 const double tol_d = mDistanceThreshold*h;
                 double &d = it_node->FastGetSolutionStepValue(DISTANCE);
@@ -264,7 +264,7 @@ void DistanceModificationProcess::ModifyDiscontinuousDistance(){
             std::vector<unsigned int> aux_modified_distances_ids;
             std::vector<Vector> aux_modified_elemental_distances;
 
-            for (auto it_elem = elems_begin; it_elem != elems_end; ++it_elem){
+            for (auto it_elem = elems_begin; it_elem < elems_end; ++it_elem){
                 // Compute the distance tolerance
                 const double tol_d = mDistanceThreshold * (it_elem->GetGeometry()).Length();
 

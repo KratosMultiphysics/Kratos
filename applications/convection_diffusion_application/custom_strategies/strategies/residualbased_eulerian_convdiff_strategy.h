@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -135,9 +135,9 @@ public:
         bool ReformDofAtEachIteration = false,
         int dimension = 3
     )
-        : 
-        mrModelPart(model_part),
-        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false)
+        :
+        SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part,false),
+        mrModelPart(model_part)
     {
         KRATOS_TRY
 
@@ -185,9 +185,9 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy() 
+    virtual ~ResidualBasedEulerianConvectionDiffusionStrategy()
     {
-        Model& current_model = mrModelPart.GetOwnerModel();
+        Model& current_model = mrModelPart.GetModel();
         current_model.DeleteModelPart("ConvDiffPart");
     }
 
@@ -398,10 +398,10 @@ protected:
 
   virtual void GenerateMeshPart(int dimension)
   {
-    Model& current_model = mrModelPart.GetOwnerModel();
+    Model& current_model = mrModelPart.GetModel();
     if(current_model.HasModelPart("ConvDiffPart"))
         current_model.DeleteModelPart("ConvDiffPart");
-        
+
     // Generate
     mpConvectionModelPart = &(current_model.CreateModelPart("ConvDiffPart"));
 

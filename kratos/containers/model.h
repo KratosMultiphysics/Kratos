@@ -11,10 +11,8 @@
 //                   Pooyan Dadvand
 //
 
-
 #if !defined(KRATOS_MODEL_H_INCLUDED )
 #define  KRATOS_MODEL_H_INCLUDED
-
 
 // System includes
 #include <string>
@@ -22,7 +20,6 @@
 #include <unordered_map>
 
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -85,29 +82,68 @@ public:
         //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
     }
 
-    Model & operator=(const Model&) = delete;
     Model(const Model&) = delete;
-
 
     ///@}
     ///@name Operators
     ///@{
-    void Reset();
 
-    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
-
-    void DeleteModelPart( const std::string ModelPartName );
-
-    void RenameModelPart( const std::string OldName, const std::string NewName );
-
-    ModelPart& GetModelPart(const std::string& rFullModelPartName);
-
-    bool HasModelPart(const std::string& rFullModelPartName);
+    Model & operator=(const Model&) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method clears the database of modelparts
+     * @details Executes a clear on the model part map
+     */
+    void Reset();
+
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
+
+    /**
+     * @brief This method deletes a modelpart with a given name
+     * @details Raises a warning in case the model part does not exists
+     * @param ModelPartName The name of the model part to be removed
+     */
+    void DeleteModelPart( const std::string ModelPartName );
+
+    /**
+     * @brief This method renames a modelpart with a given name
+     * @details Raises an error in case the model part does not exists as root model part
+     * @param OldName The name of the model part to be renamed
+     * @param NewName The new name for the model part to be renamed
+     */
+    void RenameModelPart( const std::string OldName, const std::string NewName );
+
+    /**
+     * @brief This method returns a model part given a certain name
+     * @details Iterates over the list of submodelparts of the root model part
+     * @param rFullModelPartName The name of the model part to be returned
+     * @return Reference to the model part of interest
+     */
+    ModelPart& GetModelPart(const std::string& rFullModelPartName);
+
+    /**
+     * @brief This method checks if a certain a model part exists given a certain name
+     * @details Iterates over the list of submodelparts of the root model part
+     * @param rFullModelPartName The name of the model part to be checked
+     * @return True if the model part exists, false otherwise
+     */
+    bool HasModelPart(const std::string& rFullModelPartName) const;
+
+    /**
+     * @brief This returns a vector containing a list of model parts names contained on the model
+     * @details Iterates over the list of submodelparts of the root model part
+     * @return A vector of strings containing the model parts names
+     */
+    std::vector<std::string> GetModelPartNames();
 
     ///@}
     ///@name Access
@@ -184,62 +220,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap;
 
-    std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
-    {
-    static std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;
-    return mListOfVariablesLists;
-    }
-    friend class Serializer;
+    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
 
-    void save(Serializer& rSerializer) const
-    {
-        //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-        std::vector<VariablesList* > aux_var_lists;
-        std::vector<std::string> aux_names;
-        std::vector<ModelPart* > aux_model_part_pointers;
-        aux_var_lists.reserve(GetListOfVariableLists().size());
-        aux_names.reserve(mRootModelPartMap.size());
-        aux_model_part_pointers.reserve(mRootModelPartMap.size());
-
-        for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
-        {
-            aux_names.push_back(it->first);
-            aux_model_part_pointers.push_back((it->second).get());
-        }
-
-        for(auto it = GetListOfVariableLists().begin(); it!=GetListOfVariableLists().end(); ++it)
-            aux_var_lists.push_back(it->get());
-
-        rSerializer.save("ListOfVariablesLists", aux_var_lists);
-        rSerializer.save("ModelPartNames", aux_names);
-        rSerializer.save("ModelPartPointers", aux_model_part_pointers);
-    }
-
-    void load(Serializer& rSerializer)
-    {
-        //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
-        std::vector<VariablesList* > aux_var_lists;
-        std::vector<std::string> aux_names;
-        std::vector<ModelPart* > aux_model_part_pointers;
-
-        rSerializer.load("ListOfVariablesLists", aux_var_lists);
-        rSerializer.load("ModelPartNames", aux_names);
-        rSerializer.load("ModelPartPointers", aux_model_part_pointers);
-
-        for(IndexType i=0; i<aux_var_lists.size(); ++i) {
-            auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-            GetListOfVariableLists().insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
-        }
-
-        for(IndexType i=0; i<aux_names.size(); ++i) {
-            mRootModelPartMap.insert(std::make_pair(aux_names[i],std::unique_ptr<ModelPart>(aux_model_part_pointers[i])));
-        }
-
-
-    }
-
+    std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;      /// The set containing the list of variables
 
     ///@}
     ///@name Private Operators
@@ -250,10 +234,29 @@ private:
     ///@name Private Operations
     ///@{
 
-    ModelPart* RecursiveSearchByName(const std::string& ModelPartName, ModelPart* pModelPart);
+    /**
+     * @brief This method searchs recursively a sub model part in a model part
+     * @param rModelPartName The name to be search
+     * @param pModelPart Pointer of the model part where search recursively
+     * @return The pointer of the model part of interest
+     */
+    ModelPart* RecursiveSearchByName(const std::string& rModelPartName, ModelPart* pModelPart);
 
-    std::vector<std::string> GetSubPartsList(const std::string& rFullModelPartName);
+    /**
+     * @brief This method splits the name of the model part using "." to define the hierarchy
+     * @param rFullModelPartName The name with the full hierarchy
+     * @return The vector containing each part of the name defining the model part hierarchy
+     */
+    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
 
+    /**
+     * @brief This method returns the list of variables considered on the model
+     * @return The list of variables contained on the model
+     */
+    const std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+    {
+        return mListOfVariablesLists;
+    }
 
     ///@}
     ///@name Private  Access
@@ -275,6 +278,15 @@ private:
     /// Copy constructor.
 //       Model(Model const& rOther);
 
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     ///@}
 

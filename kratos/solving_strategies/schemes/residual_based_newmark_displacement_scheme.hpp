@@ -82,6 +82,24 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+
+    /**
+     * @brief Constructor. The Newmark method (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedNewmarkDisplacementScheme(Parameters ThisParameters)
+      :DerivedBaseType(0.0)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Default constructor. The Newmark method
+     */
     explicit ResidualBasedNewmarkDisplacementScheme()
       :DerivedBaseType(0.0)
     {
@@ -126,6 +144,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewmarkDisplacementScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

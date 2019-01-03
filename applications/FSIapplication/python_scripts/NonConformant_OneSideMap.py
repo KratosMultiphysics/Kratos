@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 from KratosMultiphysics import *
 
-# Check that applications were imported in the main scriptº
-CheckRegisteredApplications("FSIApplication")
-
 # Import applications
 from KratosMultiphysics.FSIApplication import *
 
@@ -50,8 +47,8 @@ class NonConformant_OneSideMap:
         self.tol = tol
 
         self.Preprocess = InterfacePreprocess()
-        self.fl_interface = fluid_model_part.GetOwnerModel().CreateModelPart("fluid_interface")
-        self.str_interface = structure_model_part.GetOwnerModel().CreateModelPart("structure_interface")
+        self.fl_interface = fluid_model_part.GetModel().CreateModelPart("fluid_interface")
+        self.str_interface = structure_model_part.GetModel().CreateModelPart("structure_interface")
 
         domain_size_fl = fluid_model_part.ProcessInfo[DOMAIN_SIZE]
         domain_size_str = structure_model_part.ProcessInfo[DOMAIN_SIZE]

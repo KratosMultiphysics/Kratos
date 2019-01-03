@@ -87,15 +87,21 @@ class ModelPartController:
             python_module = __import__(custom_damping["python_module"].GetString())
             self.custom_damping_objects.append(python_module.Factory(self.GetModel(), custom_damping))
 
-        # if self.optimization_model_part.HasSubModelPart("point_mass"):
-        #     nodal_mass_mdpa = self.optimization_model_part.GetSubModelPart("point_mass")
-        #     print("\n\n########ADD NODAL MASS TO \n {} \n".format(nodal_mass_mdpa))
-        #     for element in nodal_mass_mdpa.Elements:
-        #         element.SetValue(NODAL_MASS, 0.025)
+        self.SetMinimalBufferSize(1)
+
+    # --------------------------------------------------------------------------
+    def SetMinimalBufferSize(self, buffer_size):
+        if self.optimization_model_part.GetBufferSize() < buffer_size:
+            self.optimization_model_part.SetBufferSize(buffer_size)
 
     # --------------------------------------------------------------------------
     def InitializeMeshController(self):
         self.mesh_controller.Initialize()
+
+    # --------------------------------------------------------------------------
+    def UpdateTimeStep(self, step):
+        self.optimization_model_part.CloneTimeStep(step)
+        self.optimization_model_part.ProcessInfo.SetValue(STEP, step)
 
     # --------------------------------------------------------------------------
     def UpdateMeshAccordingInputVariable(self, InputVariable):

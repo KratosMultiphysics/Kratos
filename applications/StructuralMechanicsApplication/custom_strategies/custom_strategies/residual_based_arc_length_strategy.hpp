@@ -104,8 +104,8 @@ public:
             bool MoveMeshFlag           = true
             )
         : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, MoveMeshFlag),
-         mAuxElementModelPart(model_part.GetOwnerModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart")),
-         mAuxConditionModelPart(model_part.GetOwnerModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart"))
+         mAuxElementModelPart(model_part.GetModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart")),
+         mAuxConditionModelPart(model_part.GetModel().CreateModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart"))
     {
         KRATOS_TRY;
         
@@ -163,7 +163,7 @@ public:
     
     ~ResidualBasedArcLengthStrategy() override 
     {
-        Model& current_model = BaseType::GetModelPart().GetOwnerModel();
+        Model& current_model = BaseType::GetModelPart().GetModel();
         current_model.DeleteModelPart("ResidualBasedArcLengthStrategy_AuxElementModelPart");
         current_model.DeleteModelPart("ResidualBasedArcLengthStrategy_AuxConditionModelPart");
     }

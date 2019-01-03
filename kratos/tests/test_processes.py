@@ -1217,9 +1217,49 @@ class TestProcesses(KratosUnittest.TestCase):
         model_part.ProcessInfo[TIME] = 0.0
 
         SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time)
+        
+    def test_assign_flag_process(self):
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+
+        model_part_io = ModelPartIO(GetFilePath("test_processes"))
+        model_part_io.ReadModelPart(model_part)
+
+        settings = Parameters("""{
+                "process_list" : [ {
+                        "python_module"  : "assign_flag_process",
+                        "kratos_module"  : "KratosMultiphysics",
+                        "process_name"   : "AssignFlagProcess",
+                        "Parameters"            : {
+                            "mesh_id"         : 0,
+                            "model_part_name" : "Main",
+                            "flag_name"       : "ACTIVE",
+                            "value"           : true,
+                            "entities"        : ["nodes","elements"]
+                        }
+                    }]
+        }""")
+
+        import process_factory
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
+
+        model_part.CloneTimeStep(1.0)
+
+        for process in list_of_processes:
+            process.ExecuteInitializeSolutionStep()
+
+        ##verify the result
+        for node in model_part.Nodes:
+            self.assertEqual(node.Is(ACTIVE), True)
+        for cond in model_part.Conditions:
+            self.assertEqual(cond.Is(ACTIVE), False)
+        for elem in model_part.Elements:
+            self.assertEqual(elem.Is(ACTIVE), True)
 
     def test_fix_processes(self):
-        model_part = ModelPart("Main")
+        current_model = Model()
+        model_part = current_model.CreateModelPart("Main")
+
         model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(VELOCITY)
         model_part.AddNodalSolutionStepVariable(VISCOSITY)
@@ -1303,10 +1343,8 @@ class TestProcesses(KratosUnittest.TestCase):
             """
             )
 
-        Model = {"Main":model_part}
-
         import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(Model).ConstructListOfProcesses( settings["process_list"] )
+        list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses( settings["process_list"] )
 
         for node in model_part.Nodes:
             self.assertFalse(node.IsFixed(DISPLACEMENT_X))
@@ -1402,7 +1440,7 @@ def SetNodalValuesForPointOutputProcesses(model_part):
         node.SetSolutionStepValue(VISCOSITY, time**2 + 1.038)
 
 def SolutionLoopPointOutputProcesses(model_part, settings, end_time, delta_time):
-    current_model = model_part.GetOwnerModel()
+    current_model = model_part.GetModel()
     import process_factory
     list_of_processes = process_factory.KratosProcessFactory(current_model).ConstructListOfProcesses(
         settings["process_list"] )

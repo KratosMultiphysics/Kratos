@@ -2,20 +2,15 @@
 #define KRATOS_TRILINOS_STOKES_INITIALIZATION_PROCESS_H
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 #include "Epetra_MpiComm.h"
 
 // Project includes
-#include "includes/mpi_communicator.h"
 
 // Application includes
 #include "containers/model.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-//#include "custom_strategies/builder_and_solvers/trilinos_residualbased_elimination_builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 
@@ -87,9 +82,9 @@ public:
         typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer& pSolutionStrategy = BaseType::mpSolutionStrategy;
 
         // Initialize new model part (same nodes, new elements, no conditions)
-        if(rModelPart.GetOwnerModel().HasModelPart("StokesModelPart"))
-            rModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
-        ModelPart& rStokesModelPart = rModelPart.GetOwnerModel().CreateModelPart("StokesModelPart");
+        if(rModelPart.GetModel().HasModelPart("StokesModelPart"))
+            rModelPart.GetModel().DeleteModelPart("StokesModelPart");
+        ModelPart& rStokesModelPart = rModelPart.GetModel().CreateModelPart("StokesModelPart");
         rStokesModelPart.GetNodalSolutionStepVariablesList() = rReferenceModelPart.GetNodalSolutionStepVariablesList();
         rStokesModelPart.SetBufferSize(1);
         rStokesModelPart.SetNodes( rReferenceModelPart.pNodes() );

@@ -328,7 +328,8 @@ public:
 
         //DistanceFluidStructure();
 
-		CalculateDistanceToSkinProcess(mrFluidModelPart, mrBodyModelPart).Execute();
+		CalculateDistanceToSkinProcess<3> distance_process(mrFluidModelPart, mrBodyModelPart);
+        distance_process.Execute();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();

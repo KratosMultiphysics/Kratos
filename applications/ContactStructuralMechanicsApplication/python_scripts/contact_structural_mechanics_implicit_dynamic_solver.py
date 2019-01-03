@@ -2,10 +2,6 @@ from __future__ import print_function, absolute_import, division  # makes KM bac
 #import kratos core and applications
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
@@ -45,6 +41,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "split_factor"                                      : 10.0,
                 "max_number_splits"                                 : 3,
                 "inner_loop_iterations"                             : 5,
+                "inner_loop_adaptive"                               : false,
                 "contact_displacement_relative_tolerance"           : 1.0e-4,
                 "contact_displacement_absolute_tolerance"           : 1.0e-9,
                 "contact_residual_relative_tolerance"               : 1.0e-4,
@@ -53,6 +50,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 "frictional_contact_displacement_absolute_tolerance": 1.0e-9,
                 "frictional_contact_residual_relative_tolerance"    : 1.0e-4,
                 "frictional_contact_residual_absolute_tolerance"    : 1.0e-9,
+                "silent_strategy"                                   : true,
                 "simplified_semi_smooth_newton"                     : false,
                 "rescale_linear_solver"                             : false,
                 "use_mixed_ulm_solver"                              : true,
@@ -73,7 +71,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         self.contact_settings = contact_settings["contact_settings"]
 
         # Linear solver settings
-        if (self.settings.Has("linear_solver_settings")):
+        if self.settings.Has("linear_solver_settings"):
             self.linear_solver_settings = self.settings["linear_solver_settings"]
         else:
             self.linear_solver_settings = KM.Parameters("""{}""")
@@ -82,13 +80,13 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         super(ContactImplicitMechanicalSolver, self).__init__(model, self.settings)
 
         # Setting default configurations true by default
-        if (self.settings["clear_storage"].GetBool() == False):
+        if self.settings["clear_storage"].GetBool() == False:
             self.print_on_rank_zero("Clear storage", "Storage must be cleared each step. Switching to True")
             self.settings["clear_storage"].SetBool(True)
-        if (self.settings["reform_dofs_at_each_step"].GetBool() == False):
+        if self.settings["reform_dofs_at_each_step"].GetBool() == False:
             self.print_on_rank_zero("Reform DoFs", "DoF must be reformed each time step. Switching to True")
             self.settings["reform_dofs_at_each_step"].SetBool(True)
-        if (self.settings["block_builder"].GetBool() == False):
+        if self.settings["block_builder"].GetBool() == False:
             self.print_on_rank_zero("Builder and solver", "EliminationBuilderAndSolver can not used with the current implementation. Switching to BlockBuilderAndSolver")
             self.settings["block_builder"].SetBool(True)
 
@@ -138,15 +136,15 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         super(ContactImplicitMechanicalSolver, self).AddDofs()
 
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        if (mortar_type == "ALMContactFrictionless"):                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
+        if mortar_type == "ALMContactFrictionless":                                                      # TODO Remove WEIGHTED_SCALAR_RESIDUAL in case of check for reaction is defined
             KM.VariableUtils().AddDof(CSMA.LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
-        elif (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"): # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
+        elif mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents": # TODO Remove WEIGHTED_VECTOR_RESIDUAL in case of check for reaction is defined
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
-        elif (mortar_type == "ScalarMeshTying"):
+        elif mortar_type == "ScalarMeshTying":
             KM.VariableUtils().AddDof(KM.SCALAR_LAGRANGE_MULTIPLIER,CSMA.WEIGHTED_SCALAR_RESIDUAL, self.main_model_part)
-        elif (mortar_type == "ComponentsMeshTying"):
+        elif mortar_type == "ComponentsMeshTying":
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_X, CSMA.WEIGHTED_VECTOR_RESIDUAL_X, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Y, CSMA.WEIGHTED_VECTOR_RESIDUAL_Y, self.main_model_part)
             KM.VariableUtils().AddDof(KM.VECTOR_LAGRANGE_MULTIPLIER_Z, CSMA.WEIGHTED_VECTOR_RESIDUAL_Z, self.main_model_part)
@@ -155,6 +153,11 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def Initialize(self):
         super(ContactImplicitMechanicalSolver, self).Initialize() # The mechanical solver is created here.
+
+        # No verbosity from strategy
+        if self.contact_settings["silent_strategy"].GetBool() is True:
+            mechanical_solution_strategy = self.get_mechanical_solution_strategy()
+            mechanical_solution_strategy.SetEchoLevel(0)
 
         # We set the flag INTERACTION
         computing_model_part = self.GetComputingModelPart()
@@ -177,6 +180,21 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
         #mechanical_solution_strategy.SolveSolutionStep()
         #mechanical_solution_strategy.FinalizeSolutionStep()
 
+    def SolveSolutionStep(self):
+        is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        return is_converged
+
+    def ComputeDeltaTime(self):
+        delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        if self.contact_settings["inner_loop_adaptive"].GetBool():
+            process_info = self.GetComputingModelPart().ProcessInfo
+            if process_info.Has(CSMA.INNER_LOOP_ITERATION):
+                inner_iterations = process_info[CSMA.INNER_LOOP_ITERATION]
+                if inner_iterations > 1:
+                    delta_time = delta_time/float(inner_iterations)
+                    self.print_on_rank_zero("::[Contact Mechanical Static Solver]:: ", "Advancing with a reduced delta time of ", delta_time)
+        return delta_time
+
     def AddProcessesList(self, processes_list):
         self.processes_list = CSMA.ProcessFactoryUtility(processes_list)
 
@@ -193,16 +211,16 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def _create_linear_solver(self):
         linear_solver = super(ContactImplicitMechanicalSolver, self)._create_linear_solver()
-        if (self.contact_settings["rescale_linear_solver"].GetBool() is True):
+        if self.contact_settings["rescale_linear_solver"].GetBool():
             linear_solver = KM.ScalingSolver(linear_solver, False)
         mortar_type = self.contact_settings["mortar_type"].GetString()
-        if (mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents"):
-            if (self.contact_settings["use_mixed_ulm_solver"].GetBool() == True):
+        if mortar_type == "ALMContactFrictional" or mortar_type == "ALMContactFrictionlessComponents":
+            if self.contact_settings["use_mixed_ulm_solver"].GetBool():
                 self.print_on_rank_zero("::[Contact Mechanical Implicit Dynamic Solver]:: ", "Using MixedULMLinearSolver, definition of ALM parameters recommended")
                 name_mixed_solver = self.contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
-                if (name_mixed_solver == "mixed_ulm_linear_solver"):
+                if name_mixed_solver == "mixed_ulm_linear_solver":
                     linear_solver_name = self.settings["linear_solver_settings"]["solver_type"].GetString()
-                    if (linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver"):
+                    if linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
                         amgcl_param = KM.Parameters("""
                         {
                             "solver_type"                    : "AMGCL",
@@ -235,7 +253,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
 
     def _get_convergence_criterion_settings(self):
         # Create an auxiliary Kratos parameters object to store the convergence settings.
-        if (self.contact_settings["fancy_convergence_criterion"].GetBool() is True):
+        if self.contact_settings["fancy_convergence_criterion"].GetBool():
             table = KM.TableStreamUtility()
             table.SetOnProcessInfo(self.main_model_part.ProcessInfo)
 

@@ -78,10 +78,10 @@ public:
     {
         KRATOS_TRY;
 
-        if(!mrReferenceModelPart.GetOwnerModel().HasModelPart("StokesModelPart"))
-            mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
+        if(!mrReferenceModelPart.GetModel().HasModelPart("StokesModelPart"))
+            mrReferenceModelPart.GetModel().DeleteModelPart("StokesModelPart");
 
-        ModelPart& r_stokes_part = mrReferenceModelPart.GetOwnerModel().CreateModelPart("StokesModelPart");
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().CreateModelPart("StokesModelPart");
 
         r_stokes_part.GetNodalSolutionStepVariablesList() = mrReferenceModelPart.GetNodalSolutionStepVariablesList();
         r_stokes_part.SetBufferSize(1);
@@ -145,7 +145,7 @@ public:
 
     ~StokesInitializationProcess() override
     {
-        mrReferenceModelPart.GetOwnerModel().DeleteModelPart("StokesModelPart");
+        mrReferenceModelPart.GetModel().DeleteModelPart("StokesModelPart");
        // mpSolutionStrategy->Clear();
     }
 
@@ -187,7 +187,7 @@ public:
     void SetConditions(ModelPart& rStokesPart, ModelPart::ConditionsContainerType::Pointer pConditions)
     {
         
-        ModelPart& r_stokes_part = mrReferenceModelPart.GetOwnerModel().GetModelPart("StokesModelPart");    
+        ModelPart& r_stokes_part = mrReferenceModelPart.GetModel().GetModelPart("StokesModelPart");    
         rStokesPart.SetConditions(pConditions);
         r_stokes_part.GetCommunicator().LocalMesh().SetConditions(pConditions);
     }

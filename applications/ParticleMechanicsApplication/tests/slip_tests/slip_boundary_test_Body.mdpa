@@ -1,0 +1,33 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   20       -7.07107        5.65685        0.00000
+   21       -6.36396        6.36396        0.00000
+   23       -7.77817        6.36396        0.00000
+   25       -7.07107        7.07107        0.00000
+End Nodes
+
+
+Begin Elements UpdatedLagrangian2D3N// GUI group identifier: Parts Auto1
+       21          0         25         23         21 
+       22          0         23         20         21 
+End Elements
+
+Begin SubModelPart Parts_Parts_Auto1 // Group Parts Auto1 // Subtree Parts
+    Begin SubModelPartNodes
+           20
+           21
+           23
+           25
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           21
+           22
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

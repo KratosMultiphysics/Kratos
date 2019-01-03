@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -76,13 +73,7 @@ class MechanicalSolver(PythonSolver):
             "residual_relative_tolerance": 1.0e-4,
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
-            "linear_solver_settings":{
-                "solver_type": "SuperLUSolver",
-                "max_iteration": 500,
-                "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
-            },
+            "linear_solver_settings": { },
             "problem_domain_sub_model_part_list": ["solid"],
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
@@ -226,16 +217,12 @@ class MechanicalSolver(PythonSolver):
                 mechanical_solution_strategy.SetInitializePerformedFlag(True)
             except AttributeError:
                 pass
-        self.Check()
         self.print_on_rank_zero("::[MechanicalSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
+    def InitializeSolutionStep(self):
         if self.settings["clear_storage"].GetBool():
             self.Clear()
-        mechanical_solution_strategy = self.get_mechanical_solution_strategy()
-        mechanical_solution_strategy.Solve()
-
-    def InitializeSolutionStep(self):
+            self.Initialize() #required after clearing
         self.get_mechanical_solution_strategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -243,6 +230,10 @@ class MechanicalSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
+        if not is_converged:
+            msg  = "Solver did not converge for step " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]) + "\n"
+            msg += "corresponding to time " + str(self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]) + "\n"
+            self.print_warning_on_rank_zero("::[MechanicalSolver]:: ",msg)
         return is_converged
 
     def FinalizeSolutionStep(self):
@@ -417,9 +408,34 @@ class MechanicalSolver(PythonSolver):
         return convergence_criterion.mechanical_convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        linear_solver_configuration = self.settings["linear_solver_settings"]
+        if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
+            if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
+                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
+                    "Constructing a complex linear solver")
+                return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
+            else:
+                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
+                    "Constructing a regular (non-complex) linear solver")
+                return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+        else:
+            # using a default linear solver (selecting the fastest one available)
+            linear_solvers_by_speed = [
+                "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
+                "SparseLUSolver",  # EigenSolversApplication
+                "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
+                "SuperLUSolver",   # ExternalSolversApplication
+                "SkylineLUFactorizationSolver" # in Core, always available, but slow
+            ]
+            for solver_name in linear_solvers_by_speed:
+                if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
+                    linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
+                    self.print_on_rank_zero('::[MechanicalSolver]:: ',\
+                        'Using "' + solver_name + '" as default linear solver')
+                    return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+
+        raise Exception("Linear-Solver could not be constructed!")
+
 
     def _create_builder_and_solver(self):
         linear_solver = self.get_linear_solver()
@@ -429,7 +445,7 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if self.settings["multi_point_constraints_used"].GetBool():
+            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
                 raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
             builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver

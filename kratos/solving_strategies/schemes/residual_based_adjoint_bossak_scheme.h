@@ -258,6 +258,27 @@ public:
     ///@{
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedAdjointBossakScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+    ///@}
     ///@name Friends
     ///@{
 
@@ -578,7 +599,7 @@ private:
             if (aux_adjoint_vector.size() != mSecondDerivsLHS[k].size1())
                 aux_adjoint_vector.resize(mSecondDerivsLHS[k].size1(), false);
             noalias(aux_adjoint_vector) =
-                -prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) -
+                prod(mSecondDerivsLHS[k], mAdjointValuesVector[k]) +
                 mSecondDerivsResponseGradient[k];
             auto& r_extensions = *r_element.GetValue(ADJOINT_EXTENSIONS);
             // Assemble the contributions to the corresponding nodal unknowns.
@@ -592,7 +613,7 @@ private:
                 r_node.SetLock();
                 for (unsigned d = 0; d < mAuxAdjointIndirectVector1[k].size(); ++d)
                 {
-                    mAuxAdjointIndirectVector1[k][d] += aux_adjoint_vector[local_index];
+                    mAuxAdjointIndirectVector1[k][d] -= aux_adjoint_vector[local_index];
                     ++local_index;
                 }
                 r_node.UnSetLock();

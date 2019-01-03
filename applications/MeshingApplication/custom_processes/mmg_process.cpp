@@ -12,7 +12,6 @@
 
 // System includes
 #include <set>
-#include <unordered_set>
 
 // External includes
 // The includes related with the MMG library
@@ -24,8 +23,7 @@
 // Project includes
 #include "custom_processes/mmg_process.h"
 #include "containers/model.h"
-#include "utilities/sub_model_parts_list_utility.h"
-#include "utilities/variable_utils.h"
+#include "utilities/assign_unique_model_part_collection_tag_utility.h"
 // We indlude the internal variable interpolation process
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "custom_processes/internal_variables_interpolation_process.h"
@@ -292,11 +290,23 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     // We create a list of submodelparts to later reassign flags after remesh
     CreateAuxiliarSubModelPartForFlags();
 
+    // Before computing colors we do some check and throw a warning to get the user informed
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
+
+    for (auto sub_model_part_name : sub_model_part_names) {
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+
+        KRATOS_WARNING_IF("MmgProcess", (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
+        "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
+        "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
+    }
+
     // First we compute the colors
     mColors.clear();
     ColorsMapType nodes_colors, cond_colors, elem_colors;
-    SubModelPartsListUtility sub_model_parts_list(mrThisModelPart);
-    sub_model_parts_list.ComputeSubModelPartsList(nodes_colors, cond_colors, elem_colors, mColors);
+    AssignUniqueModelPartCollectionTagUtility model_part_collections(mrThisModelPart);
+    model_part_collections.ComputeTags(nodes_colors, cond_colors, elem_colors, mColors);
 
     /////////* MESH FILE */////////
     // Build mesh in MMG5 format //
@@ -344,7 +354,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
             } else if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4) { // Quadrilaterals
                 num_quad += 1;
             } else
-                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS CERTAIN TYPE THAT CAN NOT BE REMESHED" << std::endl;
+                KRATOS_WARNING("MmgProcess") << "WARNING: YOUR GEOMETRY CONTAINS " << it_cond->GetGeometry().PointsNumber() <<" NODES THAT CAN NOT BE REMESHED" << std::endl;
         }
 
         num_array_conditions[0] = num_tri;  // Triangles
@@ -547,7 +557,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     }
 
     ////////* EMPTY AND BACKUP THE MODEL PART *////////
-    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    Model& owner_model = mrThisModelPart.GetModel();
     ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
@@ -699,7 +709,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         if (key != 0) {// NOTE: key == 0 is the MainModelPart
             for (auto sub_model_part_name : color_list.second) {
-                ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+                ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
                 if (color_nodes.find(key) != color_nodes.end()) r_sub_model_part.AddNodes(color_nodes[key]);
                 if (color_cond_0.find(key) != color_cond_0.end()) r_sub_model_part.AddConditions(color_cond_0[key]);
@@ -712,10 +722,10 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     // TODO: Add OMP
     // NOTE: We add the nodes from the elements and conditions to the respective submodelparts
-    const std::vector<std::string> sub_model_part_names = SubModelPartsListUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
+    const std::vector<std::string> sub_model_part_names = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPartNames(mrThisModelPart);
 
     for (auto sub_model_part_name : sub_model_part_names) {
-        ModelPart& r_sub_model_part = SubModelPartsListUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
+        ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
         std::unordered_set<IndexType> node_ids;
 
@@ -810,11 +820,15 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         }
 
         /* We interpolate the internal variables */
-        InternalVariablesInterpolationProcess InternalVariablesInterpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
-        InternalVariablesInterpolation.Execute();
+        InternalVariablesInterpolationProcess internal_variables_interpolation = InternalVariablesInterpolationProcess(r_old_model_part, mrThisModelPart, mThisParameters["internal_variables_parameters"]);
+        internal_variables_interpolation.Execute();
     }
 
-    // We remove the auxiliar old model part
+    // We set to zero the variables contained on the elements and conditions
+    SetToZeroEntityData(mrThisModelPart.Conditions(), r_old_model_part.Conditions());
+    SetToZeroEntityData(mrThisModelPart.Elements(), r_old_model_part.Elements());
+
+    // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
 }
 
@@ -1316,11 +1330,14 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
 
     int edge_0, edge_1, is_ridge;
 
-    if (MMG2D_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 )
+    if (MMG2D_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates conditions where there are not, then we skip
-	if (mpRefCondition[PropId] == nullptr) return p_condition;
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) {
+        return p_condition;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (edge_0 == 0) SkipCreation = true;
@@ -1354,11 +1371,14 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
 
     int vertex_0, vertex_1, vertex_2;
 
-    if (MMG3D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
+    if (MMG3D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates conditions where there are not, then we skip
-	if (mpRefCondition[PropId] == nullptr) return p_condition;
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) {
+        return p_condition;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1394,11 +1414,14 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMGS>::CreateCondition0(
 
     int edge_0, edge_1, is_ridge;
 
-    if (MMGS_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 )
+    if (MMGS_Get_edge(mmgMesh, &edge_0, &edge_1, &PropId, &is_ridge, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates conditions where there are not, then we skip
-	if (mpRefCondition[PropId] == nullptr) return p_condition;
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) {
+        return p_condition;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (edge_0 == 0) SkipCreation = true;
@@ -1445,11 +1468,14 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition1(
 
     int vertex_0, vertex_1, vertex_2, vertex_3;
 
-    if (MMG3D_Get_quadrilateral(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
+    if (MMG3D_Get_quadrilateral(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates conditions where there are not, then we skip
-	if (mpRefCondition[PropId] == nullptr) return p_condition;
+    // Sometimes MMG creates conditions where there are not, then we skip
+    if (mpRefCondition[PropId] == nullptr) {
+        return p_condition;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1500,11 +1526,14 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
 
     int vertex_0, vertex_1, vertex_2;
 
-    if (MMG2D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
+    if (MMG2D_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates elements where there are not, then we skip
-	if (mpRefElement[PropId] == nullptr) return p_element;
+    // Sometimes MMG creates elements where there are not, then we skip
+    if (mpRefElement[PropId] == nullptr) {
+        return p_element;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1542,8 +1571,10 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
     if (MMG3D_Get_tetrahedron(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
-	// Sometimes MMG creates elements where there are not, then we skip
-	if (mpRefElement[PropId] == nullptr) return p_element;
+    // Sometimes MMG creates elements where there are not, then we skip
+    if (mpRefElement[PropId] == nullptr) {
+        return p_element;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1583,8 +1614,10 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
     if (MMGS_Get_triangle(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &PropId, &IsRequired) != 1 )
         exit(EXIT_FAILURE);
 
-	// Sometimes MMG creates elements where there are not, then we skip
-	if (mpRefElement[PropId] == nullptr) return p_element;
+    // Sometimes MMG creates elements where there are not, then we skip
+    if (mpRefElement[PropId] == nullptr) {
+        return p_element;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -1633,11 +1666,14 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement1(
 
     int vertex_0, vertex_1, vertex_2, vertex_3, vertex_4, vertex_5;
 
-    if (MMG3D_Get_prism(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &PropId, &IsRequired) != 1 )
+    if (MMG3D_Get_prism(mmgMesh, &vertex_0, &vertex_1, &vertex_2, &vertex_3, &vertex_4, &vertex_5, &PropId, &IsRequired) != 1 ) {
         exit(EXIT_FAILURE);
+    }
 
-	// Sometimes MMG creates elements where there are not, then we skip
-	if (mpRefElement[PropId] == nullptr) return p_element;
+    // Sometimes MMG creates elements where there are not, then we skip
+    if (mpRefElement[PropId] == nullptr) {
+        return p_element;
+    }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
     if (vertex_0 == 0) SkipCreation = true;
@@ -2803,7 +2839,7 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::CreateDebugPrePostRemeshOutput(ModelPart& rOldModelPart)
 {
-    Model& owner_model = mrThisModelPart.GetOwnerModel();
+    Model& owner_model = mrThisModelPart.GetModel();
     ModelPart& auxiliar_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Auxiliar", mrThisModelPart.GetBufferSize());
     ModelPart& copy_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old_Copy", mrThisModelPart.GetBufferSize());
 

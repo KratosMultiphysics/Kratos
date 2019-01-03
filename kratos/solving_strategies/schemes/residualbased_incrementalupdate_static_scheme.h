@@ -51,7 +51,8 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace //= DenseSpace<double>
          >
-class ResidualBasedIncrementalUpdateStaticScheme : public Scheme<TSparseSpace,TDenseSpace>
+class ResidualBasedIncrementalUpdateStaticScheme
+    : public Scheme<TSparseSpace,TDenseSpace>
 {
 
 public:
@@ -90,10 +91,24 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Constructor. The pseudo static scheme (parameters)
+     * @param ThisParameters Dummy parameters
+     */
+    explicit ResidualBasedIncrementalUpdateStaticScheme(Parameters ThisParameters)
+        : BaseType()
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /** Default onstructor.
     */
     explicit ResidualBasedIncrementalUpdateStaticScheme()
-        : Scheme<TSparseSpace,TDenseSpace>()
+        : BaseType()
     {}
 
     /** Copy Constructor.
@@ -354,6 +369,28 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedIncrementalUpdateStaticScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

@@ -57,20 +57,19 @@
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 4.0,
-                "max_nodes_in_filter_radius" : 10000,
-                "matrix_free_filtering"      : false
+                "max_nodes_in_filter_radius" : 1000
             }
         },
         "optimization_algorithm" : {
             "name"                    : "penalized_projection",
-            "correction_scaling"      : 1.0,
+            "correction_scaling"      : 0.2,
             "use_adaptive_correction" : true,
             "max_iterations"          : 10,
             "relative_tolerance"      : 1e-1,
             "line_search" : {
                 "line_search_type"           : "manual_stepping",
                 "normalize_search_direction" : true,
-                "step_size"                  : 1.5
+                "step_size"                  : 0.5
             }
         },
         "output" : {

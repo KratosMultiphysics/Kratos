@@ -1,17 +1,19 @@
 {
     "problem_data"             : {
         "problem_name"    : "pendulus_TL_test",
-        "model_part_name" : "Structure",
-        "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.05,
         "start_time"      : 0.0,
         "end_time"        : 3.0,
         "echo_level"      : 0
     },
     "solver_settings"          : {
+        "domain_size"     : 2,
+        "time_stepping"                      : {
+            "time_step" : 0.05
+        },
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
         "time_integration_method"            : "implicit",
         "analysis_type"                      : "non_linear",
         "scheme_type"                        : "bossak",
@@ -33,6 +35,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -61,20 +64,6 @@
             "interval"        : [0.0,"End"]
         }
     }],
-    "_json_output_process" : [
-    {
-        "python_module"   : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"                  : "",
-        "process_name"          : "JsonOutputProcess",
-        "Parameters"            : {
-            "output_variables" : ["DISPLACEMENT_Y"],
-            "output_file_name" : "pendulus_test/pendulus_test_results.json",
-            "model_part_name"  : "SelfWeight2D_Self_weight_Auto1",
-            "time_frequency"   : 0.05
-        }
-    }
-    ],
     "json_check_process" : [
     {
         "python_module"   : "from_json_check_result_process",
@@ -84,6 +73,21 @@
         "Parameters"            : {
             "check_variables" : ["DISPLACEMENT_Y"],
             "input_file_name" : "pendulus_test/pendulus_test_results.json",
+            "model_part_name"  : "SelfWeight2D_Self_weight_Auto1",
+            "time_frequency"   : 0.05
+        }
+    }
+    ]
+    },
+    "_json_output_process" : [
+    {
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables" : ["DISPLACEMENT_Y"],
+            "output_file_name" : "pendulus_test/pendulus_test_results.json",
             "model_part_name"  : "SelfWeight2D_Self_weight_Auto1",
             "time_frequency"   : 0.05
         }

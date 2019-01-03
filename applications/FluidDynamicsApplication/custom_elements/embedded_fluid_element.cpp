@@ -82,10 +82,8 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     const unsigned int number_of_positive_gauss_points =
         data.PositiveSideWeights.size();
     for (unsigned int g = 0; g < number_of_positive_gauss_points; g++) {
-        data.UpdateGeometryValues(g, data.PositiveSideWeights[g],
+        this->UpdateIntegrationPointData(data, g, data.PositiveSideWeights[g],
             row(data.PositiveSideN, g), data.PositiveSideDNDX[g]);
-
-        this->CalculateMaterialResponse(data);
 
         this->AddTimeIntegratedSystem(
             data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -96,15 +94,15 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
         const unsigned int number_of_interface_gauss_points =
             data.PositiveInterfaceWeights.size();
         for (unsigned int g = 0; g < number_of_interface_gauss_points; g++) {
-            data.UpdateGeometryValues(g + number_of_positive_gauss_points, data.PositiveInterfaceWeights[g],
+            this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points, data.PositiveInterfaceWeights[g],
                 row(data.PositiveInterfaceN, g), data.PositiveInterfaceDNDX[g]);
-
-            this->CalculateMaterialResponse(data);
 
             this->AddBoundaryTraction(data, data.PositiveInterfaceUnitNormals[g],
                 rLeftHandSideMatrix, rRightHandSideVector);
         }
 
+        // Add the boundary condition imposition terms
+        data.InitializeBoundaryConditionData(rCurrentProcessInfo);
         if (this->Is(SLIP)){
             // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
             AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -155,8 +153,8 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
             const unsigned int n_int_pos_gauss = data.PositiveInterfaceWeights.size();
             for (unsigned int g = 0; g < n_int_pos_gauss; ++g) {
 
-                // Update the Gauss pt. data
-                data.UpdateGeometryValues(g + number_of_positive_gauss_points,
+                // Update the Gauss pt. data and the constitutive law
+                this->UpdateIntegrationPointData(data, g + number_of_positive_gauss_points,
                    data.PositiveInterfaceWeights[g],row(data.PositiveInterfaceN, g),data.PositiveInterfaceDNDX[g]);
 
                 // Get the interface Gauss pt. unit noromal
@@ -164,9 +162,6 @@ void EmbeddedFluidElement<TBaseElement>::Calculate(
 
                 // Compute Gauss pt. pressure
                 const double p_gauss = inner_prod(data.N, data.Pressure);
-
-                // Call the constitutive law to compute the shear contribution
-                this->CalculateMaterialResponse(data);
 
                 // Get the normal projection matrix in Voigt notation
                 BoundedMatrix<double, Dim, StrainSize> voigt_normal_proj_matrix = ZeroMatrix(Dim, StrainSize);
@@ -330,8 +325,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipNormalPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -483,8 +478,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -569,8 +564,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -660,8 +655,8 @@ void EmbeddedFluidElement<TBaseElement>::AddSlipTangentialSymmetricCounterpartCo
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Compute the element average velocity norm
     double v_norm = 0.0;
     for (unsigned int comp = 0; comp < Dim; ++comp){
@@ -678,7 +673,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
     const double avg_rho = rData.Density;
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
-    const double penalty = 1.0/10.0; // TODO: SHOULD WE EXPORT THIS TO THE USER SIDE
+    const double penalty = 1.0/rData.PenaltyCoefficient;
     const double cons_coef = (eff_mu + eff_mu + avg_rho*v_norm*h + avg_rho*h*h/rData.DeltaTime)/(h*penalty);
 
     return cons_coef;
@@ -686,10 +681,10 @@ double EmbeddedFluidElement<TBaseElement>::ComputeSlipNormalPenaltyCoefficient(
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialPenaltyCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData) const
+{
+    const double slip_length = rData.SlipLength;
+    const double penalty = 1.0/rData.PenaltyCoefficient;
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -703,10 +698,10 @@ std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::Comput
 
 template <class TBaseElement>
 std::pair<const double, const double> EmbeddedFluidElement<TBaseElement>::ComputeSlipTangentialNitscheCoefficients(
-    const EmbeddedElementData& rData) const {
-
-    const double penalty = 1.0/10.0;
-    const double slip_length = 1.0e+08;
+    const EmbeddedElementData& rData) const
+{
+    const double slip_length = rData.SlipLength;
+    const double penalty = 1.0/rData.PenaltyCoefficient;
 
     const double eff_mu = rData.EffectiveViscosity;
     const double h = rData.ElementSize;
@@ -722,8 +717,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -740,7 +735,7 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
     }
 
     // Multiply the penalty matrix by the penalty coefficient
-    double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
+    const double penalty_coefficient = this->ComputePenaltyCoefficient(rData);
     p_gamma *= penalty_coefficient;
 
     MatrixType penalty_lhs = ZeroMatrix(LocalSize, LocalSize);
@@ -782,8 +777,8 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionPenaltyContribution
 
 template <class TBaseElement>
 double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Compute the intersection area using the Gauss pts. weights
     double intersection_area = 0.0;
     for (unsigned int g = 0; g < rData.PositiveInterfaceWeights.size(); ++g) {
@@ -811,7 +806,7 @@ double EmbeddedFluidElement<TBaseElement>::ComputePenaltyCoefficient(
                                 rho*v_norm*std::pow(h, Dim-1);
 
     // Return the penalty coefficient
-    constexpr double K = 10.0;
+    const double K = rData.PenaltyCoefficient;
     const double pen_coef = K * pen_cons / intersection_area;
 
     return pen_coef;

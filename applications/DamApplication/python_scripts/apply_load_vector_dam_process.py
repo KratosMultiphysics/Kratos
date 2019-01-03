@@ -1,6 +1,5 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DamApplication import *
-from KratosMultiphysics.PoromechanicsApplication import *
 
 def Factory(settings, Model):
     if not isinstance(settings, Parameters):

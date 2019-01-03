@@ -27,31 +27,25 @@
 #include "custom_python/add_trilinos_strategies_to_python.h"
 #include "custom_python/add_custom_io_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_trilinos_communicator_to_python.h"
 #include "custom_python/add_zoltan_processes_to_python.h"
-
-////utilities
 
 // Project includes
 #include "trilinos_application.h"
 
-
 namespace Kratos
 {
-
 namespace Python
 {
-
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosTrilinosApplication,m)
 {
-    
-    class_<KratosTrilinosApplication,
-           KratosTrilinosApplication::Pointer,
-           KratosApplication > (m,"KratosTrilinosApplication")
-           .def(init<>())
-           ;
+
+    py::class_<KratosTrilinosApplication,
+        KratosTrilinosApplication::Pointer,
+        KratosApplication > (m,"KratosTrilinosApplication")
+        .def(py::init<>())
+        ;
 
     AddBasicOperations(m);
     AddConvergenceCriterias(m);
@@ -61,7 +55,6 @@ PYBIND11_MODULE(KratosTrilinosApplication,m)
     AddStrategies(m);
     AddCustomIOToPython(m);
     AddCustomUtilitiesToPython(m);
-    AddTrilinosCommunicatorToPython(m);
     AddZoltanProcessesToPython(m);
 
     //registering variables in python
