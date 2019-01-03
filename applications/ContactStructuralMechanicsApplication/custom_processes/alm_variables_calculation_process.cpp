@@ -43,22 +43,25 @@ void ALMVariablesCalculationProcess::Execute()
     double total_area_master   = 0.0;
     
     // Now we iterate over the conditions to calculate the nodal area
-    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
     
+    // First condition iterator
+    const auto it_cond_begin = r_conditions_array.begin();
+
     #pragma omp parallel for reduction(+:total_volume_slave, total_area_slave, mean_young_modulus_slave, mean_nodal_h_slave, total_volume_master, total_area_master, mean_young_modulus_master, mean_nodal_h_master)
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-        auto it_cond = conditions_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+        auto it_cond = it_cond_begin + i;
         
         // We get the condition geometry
         GeometryType& r_this_geometry = it_cond->GetGeometry();
-        const unsigned num_nodes_geometry = r_this_geometry.size();
+        const SizeType num_nodes_geometry = r_this_geometry.size();
         
         // We get the values from the condition
-        Properties& this_properties = it_cond->GetProperties();
+        Properties& r_properties = it_cond->GetProperties();
 
-        const double young_modulus = this_properties.Has(YOUNG_MODULUS) ? this_properties[YOUNG_MODULUS] : 0.0;
+        const double young_modulus = r_properties.Has(YOUNG_MODULUS) ? r_properties[YOUNG_MODULUS] : 0.0;
         KRATOS_WARNING_IF("ALMVariablesCalculationProcess", young_modulus < epsilon) << "Not assigned Young modulus. Using zero" << std::endl;
-        const double element_volume = it_cond->GetGeometry().Area();
+        const double element_volume = r_this_geometry.Area();
         KRATOS_WARNING_IF("ALMVariablesCalculationProcess", element_volume < epsilon) << "Null element volume. Please check!!!" << std::endl;
 
         // We get the values from the condition
@@ -83,7 +86,7 @@ void ALMVariablesCalculationProcess::Execute()
                 mean_nodal_h_master += r_this_geometry[i_node].FastGetSolutionStepValue(mrNodalLengthVariable) * nodal_condition_area;
         }
     }
-    
+
     // Now we divide between the total areas and volumes
     mean_nodal_h_slave /= (total_area_slave + tolerance);
     mean_young_modulus_slave /= (total_volume_slave + tolerance);
