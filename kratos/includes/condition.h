@@ -10,27 +10,19 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
 #if !defined(KRATOS_CONDITION_H_INCLUDED )
 #define  KRATOS_CONDITION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "utilities/indexed_object.h"
 #include "containers/flags.h"
+#include "containers/weak_pointer_vector.h"
 
 
 namespace Kratos
@@ -450,7 +442,7 @@ public:
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
-    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,

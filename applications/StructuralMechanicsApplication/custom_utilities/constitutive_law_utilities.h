@@ -77,7 +77,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// the vector type definition
     typedef Vector VectorType;
 
-    /// The definition of the bounded matrix type
+    /// The definition of the bounded vector type
     typedef array_1d<double, VoigtSize> BoundedVectorType;
 
     /// The definition of the bounded matrix type
