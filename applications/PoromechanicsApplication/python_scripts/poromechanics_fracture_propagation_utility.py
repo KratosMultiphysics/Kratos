@@ -34,7 +34,7 @@ class FracturePropagationUtility(object):
         self.propagation_frequency = self.FracturesData["fracture_data"]["propagation_frequency"].GetInt()
         self.step_count = 0
         self.propagation_count = self.propagation_frequency
-        self.remesh_count = 0
+        self.model_part_number = 0
 
         # Define paths
         self.problem_path = os.getcwd()
@@ -44,8 +44,8 @@ class FracturePropagationUtility(object):
 
     def Initialize(self, parameters):
 
-        self.domain_size = parameters["solver_settings"]["domain_size"].GetInt()
-        if self.domain_size == 2:
+        domain_size = parameters["solver_settings"]["domain_size"].GetInt()
+        if domain_size == 2:
             self.PropagationUtility = KratosPoro.FracturePropagation2DUtilities()
             self.tcl_proc = "Poromechanics_Application::PropagateFractures2D"
         else:
@@ -63,11 +63,11 @@ class FracturePropagationUtility(object):
         # Save files of the original state
         self.SaveInitialProblemFiles()
 
-        # Modify model_part_name of the input parameters
+        # Update parameters with the new model part name
         self.original_model_part_name = parameters["solver_settings"]["model_part_name"].GetString()
-        self.model_part_number = 0
-        self.model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
-        parameters["solver_settings"]["model_part_name"].SetString(self.model_part_name)
+        model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
+
+        parameters["solver_settings"]["model_part_name"].SetString(model_part_name)
 
         if parameters.Has("processes"):
             for name, value in parameters["processes"].items():
@@ -78,14 +78,6 @@ class FracturePropagationUtility(object):
                 value = self.UpdateModelPartNames(value)
 
         return parameters
-
-    def UpdateModelPartNames(self,process_parameters):
-        for p in range(process_parameters.size()):
-            old_name = process_parameters[p]["Parameters"]["model_part_name"].GetString()
-            a,b=old_name.split(".")
-            new_name = str(self.original_model_part_name) + '_' + str(self.model_part_number) + '.' + str(b)
-            process_parameters[p]["Parameters"]["model_part_name"].SetString(new_name)
-        return process_parameters
 
     def SaveInitialProblemFiles(self):
 
@@ -130,6 +122,14 @@ class FracturePropagationUtility(object):
             shutil.copy(str(filepath), str(self.orig_state_path))
             shutil.copy(str(filepath), str(self.last_state_path))
 
+    def UpdateModelPartNames(self,process_parameters):
+        for p in range(process_parameters.size()):
+            old_name = process_parameters[p]["Parameters"]["model_part_name"].GetString()
+            a,b=old_name.split(".")
+            new_name = str(self.original_model_part_name) + '_' + str(self.model_part_number) + '.' + str(b)
+            process_parameters[p]["Parameters"]["model_part_name"].SetString(new_name)
+        return process_parameters
+
     def IsPropagationStep(self):
 
         self.step_count += 1
@@ -141,7 +141,8 @@ class FracturePropagationUtility(object):
 
     def CheckPropagation(self,solver,list_of_processes,list_of_output_processes):
 
-        main_model_part = self.model.GetModelPart(self.model_part_name)
+        model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
+        main_model_part = self.model.GetModelPart(model_part_name)
 
         # Check fracture propagation
         propagate_fractures = False
@@ -150,7 +151,7 @@ class FracturePropagationUtility(object):
         # Generate new fractures if needed
         if propagate_fractures:
 
-            self.remesh_count += 1
+            self.model_part_number += 1
 
             # Overwrite current problem files with last state files
             for filename in self.list_of_files_names:
@@ -160,8 +161,8 @@ class FracturePropagationUtility(object):
             # Call GiD to generate new mesh
             import subprocess
             os.chdir(self.gid_path)
-            subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
-            # subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            # subprocess.call(str(self.execute_gid) + " -n -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
+            subprocess.call(str(self.execute_gid) + " -t \"" + str(self.tcl_proc) + "\" " + str(self.problem_path),shell=True)
             os.chdir(self.problem_path)
 
             # Overwrite last state files with new problem files
@@ -187,16 +188,14 @@ class FracturePropagationUtility(object):
 
     def UpdateSolverAndProcesses(self,solver,list_of_processes,list_of_output_processes):
 
-        old_main_model_part = self.model.GetModelPart(self.model_part_name)
-        ### Finalize Old Model ---------------------------------------------------------------------------------------
+        ## Finalize old solver and processes
 
-        # Finalizing output files
-        list_of_output_processes.ExecuteFinalize()
-
+        # Finalize list_of_processes and list_of_output_processes (included in list_of_processes)
         for process in list_of_processes:
             process.ExecuteFinalize()
 
-        # Finalizing strategy
+        solver.Finalize()
+
         solver.Clear()
 
         # Save old .post.list file
@@ -208,101 +207,110 @@ class FracturePropagationUtility(object):
             for line in partial_list_file:
                     all_list_file.write(line)
         all_list_file.close()
-        # Save old .time file
-        original_filename = str(self.problem_name)+".time"
-        original_filepath = os.path.join(str(self.problem_path),str(original_filename))
-        new_filename = str(self.problem_name)+"_"+str(self.remesh_count)+"info.time"
-        new_filepath = os.path.join(str(self.problem_path),str(new_filename))
-        shutil.copy(str(original_filepath), str(new_filepath))
 
-        ### Generate New Model ---------------------------------------------------------------------------------------
+        ## Create new solver and processes
 
         # Parsing the parameters
         with open("ProjectParameters.json",'r') as parameter_file:
-            ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        ## Model part ------------------------------------------------------------------------------------------------
-
-        # Defining the model part
-        # TODO: I need to change the model_part_name of the processes
-        self.model_part_number = self.model_part_number + 1
+        # Update parameters with the new model part name
         new_model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number)
+        parameters["solver_settings"]["model_part_name"].SetString(new_model_part_name)
 
-        new_model_part = self.model.CreateModelPart(new_model_part_name,2)
+        if parameters.Has("processes"):
+            for name, value in parameters["processes"].items():
+                value = self.UpdateModelPartNames(value)
 
-        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
-        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, old_main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME])
-        new_model_part.ProcessInfo.SetValue(KratosPoro.TIME_UNIT_CONVERTER, old_main_model_part.ProcessInfo[KratosPoro.TIME_UNIT_CONVERTER])
+        if parameters.Has("output_processes"):
+            for name, value in parameters["output_processes"].items():
+                value = self.UpdateModelPartNames(value)
 
-        # Construct the solver (main setting methods are located in the solver_module)
-        solver_module = __import__(ProjectParameters["solver_settings"]["solver_type"].GetString())
-        solver = solver_module.CreateSolver(new_model_part, ProjectParameters["solver_settings"])
+        # Create new solver (and new_model_part)
+        solver_module = __import__(parameters["solver_settings"]["solver_type"].GetString())
+        new_solver = solver_module.CreateSolver(self.model, parameters["solver_settings"])
 
-        # Add problem variables
-        solver.AddVariables()
+        new_solver.AddVariables()
+        new_solver.ImportModelPart()
+        new_solver.PrepareModelPart()
+        new_solver.AddDofs()
 
-        # Read model_part (note: the buffer_size is set here)
-        solver.ImportModelPart()
+        # Create new_list_of_processes
+        new_list_of_processes = []
+        new_list_of_output_processes = []
 
-        # Add degrees of freedom
-        solver.AddDofs()
+        from process_factory import KratosProcessFactory
+        factory = KratosProcessFactory(self.model)
 
-        # Print model_part
-        echo_level = ProjectParameters["solver_settings"]["echo_level"].GetInt()
-        if(echo_level > 1):
-            print(new_model_part)
+        if parameters.Has("processes"):
+            processes_params = parameters["processes"]
 
-        ## Initialize ------------------------------------------------------------------------------------------------
+            # first initialize the processes that depend on the order
+            for processes_names in self.order_processes_initialization:
+                if processes_params.Has(processes_names):
+                    new_list_of_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
 
-        # Construct processes to be applied
-        import process_factory
-        list_of_processes = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( ProjectParameters["constraints_process_list"] )
-        list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( ProjectParameters["loads_process_list"] )
+            # then initialize the processes that don't depend on the order
+            for name, value in processes_params.items():
+                if not name in self.order_processes_initialization:
+                    new_list_of_processes += factory.ConstructListOfProcesses(value)
 
-        # Initialize processes
-        for process in list_of_processes:
+        order_output_processes_initialization = []
+        if parameters.Has("output_processes"):
+            processes_params = parameters["output_processes"]
+
+            # first initialize the processes that depend on the order
+            for processes_names in order_output_processes_initialization:
+                if processes_params.Has(processes_names):
+                    new_list_of_output_processes += factory.ConstructListOfProcesses(processes_params[processes_names])
+
+            # then initialize the processes that don't depend on the order
+            for name, value in processes_params.items():
+                if not name in order_output_processes_initialization:
+                    new_list_of_output_processes += factory.ConstructListOfProcesses(value)
+
+        new_list_of_processes.extend(new_list_of_output_processes)
+
+        # Initialize processes and solver
+        for process in new_list_of_processes:
             process.ExecuteInitialize()
 
-        # Set TIME
-        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, old_main_model_part.ProcessInfo[KratosMultiphysics.TIME])
+        new_solver.Initialize()
 
-        # Initialize GiD I/O
-        computing_model_part = solver.GetComputingModelPart()
-        output_settings = ProjectParameters["output_configuration"]
-        from gid_output_process import GiDOutputProcess
-        list_of_output_processes = GiDOutputProcess(computing_model_part,self.problem_name,output_settings)
-        list_of_output_processes.ExecuteInitialize()
+        new_solver.Check()
+        for process in new_list_of_processes:
+            process.Check()
 
-        # Initialize the solver
-        solver.Initialize()
-
-        # Initialize the strategy before the mapping
-        solver.InitializeStrategy()
-
-        # ExecuteBeforeSolutionLoop
-        for process in list_of_processes:
+        for process in new_list_of_processes:
             process.ExecuteBeforeSolutionLoop()
 
-        ## Set results when they are written in a single file (only multiplefiles for the moment)
-        list_of_output_processes.ExecuteBeforeSolutionLoop()
+        ## Mapping between old and new model parts
 
-        ### Mapping between old and new model parts ------------------------------------------------------------------
+        old_model_part_name = str(self.original_model_part_name) + '_' + str(self.model_part_number-1)
+
+        old_main_model_part = self.model.GetModelPart(old_model_part_name)
+        new_model_part = self.model.GetModelPart(new_model_part_name)
+
+        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, old_main_model_part.ProcessInfo[KratosMultiphysics.TIME])
+        new_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, old_main_model_part.ProcessInfo[KratosMultiphysics.STEP])
 
         self.PropagationUtility.MappingModelParts(self.FracturesData,old_main_model_part,new_model_part,self.move_mesh_flag)
 
-        # set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
-        if ProjectParameters["solver_settings"]["strategy_type"].GetString() == "arc_length":
+        # Set ARC_LENGTH_LAMBDA and ARC_LENGTH_RADIUS_FACTOR and update loads
+        if parameters["solver_settings"]["strategy_type"].GetString() == "arc_length":
             new_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_LAMBDA, old_main_model_part.ProcessInfo[KratosPoro.ARC_LENGTH_LAMBDA])
             new_model_part.ProcessInfo.SetValue(KratosPoro.ARC_LENGTH_RADIUS_FACTOR, old_main_model_part.ProcessInfo[KratosPoro.ARC_LENGTH_RADIUS_FACTOR])
-            solver._UpdateLoads()
+            new_solver._UpdateLoads()
 
-        # delete old model_part
-        old_model_part_number = self.model_part_number - 1
-        old_model_part_name = str(self.original_model_part_name) + '_' + str(old_model_part_number)
+        ## Delete old model_part and replace solver and processes
+
         self.model.DeleteModelPart(old_model_part_name)
+        solver = new_solver
+        list_of_processes = new_list_of_processes
+        list_of_output_processes = new_list_of_output_processes
 
         # Check new mesh
-        #IsConverged = solver._CheckConvergence()
+        # IsConverged = new_solver._CheckConvergence()
 
         return solver,list_of_processes,list_of_output_processes
 

@@ -38,11 +38,7 @@ class PoromechanicsAnalysis(AnalysisStage):
             import poromechanics_fracture_propagation_utility
             self.fracture_utility = poromechanics_fracture_propagation_utility.FracturePropagationUtility(model,
                                                                                                         self._GetOrderOfProcessesInitialization())
-            print(parameters)
             parameters = self.fracture_utility.Initialize(parameters)
-            print(parameters)
-            #TODO: seguir
-            paraaaaaaaaa
 
         # Creating solver and model part and adding variables
         super(PoromechanicsAnalysis,self).__init__(model,parameters)
