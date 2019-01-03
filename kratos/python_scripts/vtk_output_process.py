@@ -1,14 +1,14 @@
 import KratosMultiphysics
 import os
 
-def Factory(settings, Model):
+def Factory(settings, model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VtkOutputProcess(Model, settings["Parameters"])
+    return VtkOutputProcess(model, settings["Parameters"])
 
 
 class VtkOutputProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
+    def __init__(self, model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
         # IMPORTANT: when "output_control_type" is "time",
@@ -29,7 +29,7 @@ class VtkOutputProcess(KratosMultiphysics.Process):
         }""")
 
         model_part_name = settings["model_part_name"].GetString()
-        self.model_part = Model[model_part_name]
+        self.model_part = model[model_part_name]
 
         self.settings = settings
         self.settings.ValidateAndAssignDefaults(default_parameters)
