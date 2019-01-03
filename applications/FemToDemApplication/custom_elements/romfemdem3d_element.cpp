@@ -157,10 +157,11 @@ void RomFemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 
 void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &rStrainVector)
 {
-	const double Ec = this->GetProperties()[YOUNG_MODULUS];
-	const double Es = this->GetProperties()[YOUNG_MODULUS_STEEL];
-	const double nuc = this->GetProperties()[POISSON_RATIO];
-	const double nus = this->GetProperties()[POISSON_RATIO_STEEL];
+	auto& r_properties = this->GetProperties();
+	const double Ec = r_properties[YOUNG_MODULUS];
+	const double Es = r_properties[YOUNG_MODULUS_STEEL];
+	const double nuc = r_properties[POISSON_RATIO];
+	const double nus = r_properties[POISSON_RATIO_STEEL];
 
 	//const unsigned int number_of_nodes = GetGeometry().size();
 	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -175,7 +176,7 @@ void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &rStrainVector
 	Vector r_stress_vector_concrete = prod(constitutive_matrix_concrete, rStrainVector);
 
 	Vector StressVectorSteel;
-	if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
+	if (r_properties[STEEL_VOLUMETRIC_PART] > 0.0) {
 		Vector ElasticStrainVector = rStrainVector - mPlasticDeformation; // E-Ep
 		StressVectorSteel = prod(constitutive_matrix_steel, ElasticStrainVector);
 	} else
@@ -307,17 +308,18 @@ void RomFemDem3DElement::CalculateLocalSystem(
 
 		// Linear elastic const matrix concrete
 		Matrix constitutive_matrix_concrete = ZeroMatrix(voigt_size, voigt_size);
-		const double Ec = this->GetProperties()[YOUNG_MODULUS];
-		const double nuc = this->GetProperties()[POISSON_RATIO];
+		auto& r_properties = this->GetProperties();
+		const double Ec = r_properties[YOUNG_MODULUS];
+		const double nuc = r_properties[POISSON_RATIO];
 		this->CalculateConstitutiveMatrix(constitutive_matrix_concrete, Ec, nuc);
 
 		// Linear elastic const matrix steel
 		Matrix constitutive_matrix_steel = ZeroMatrix(voigt_size, voigt_size);
-		const double Es = this->GetProperties()[YOUNG_MODULUS_STEEL];
-		const double nus = this->GetProperties()[POISSON_RATIO_STEEL];
+		const double Es = r_properties[YOUNG_MODULUS_STEEL];
+		const double nus = r_properties[POISSON_RATIO_STEEL];
 		this->CalculateConstitutiveMatrix(constitutive_matrix_steel, Es, nus);
 
-		const double k = this->GetProperties()[STEEL_VOLUMETRIC_PART];
+		const double k = r_properties[STEEL_VOLUMETRIC_PART];
 		this->CalculateDeformationMatrix(B, DN_DX);
 		const Matrix& composite_constitutive_matrix = k * constitutive_matrix_steel + (1.0 - k) * (1.0 - damage_element) * constitutive_matrix_concrete;
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(composite_constitutive_matrix, B))); // LHS
@@ -408,18 +410,19 @@ void RomFemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 		double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
 		// Linear elastic const matrix concrete
+		auto& r_properties = this->GetProperties();
 		Matrix constitutive_matrix_concrete = ZeroMatrix(voigt_size, voigt_size);
-		const double Ec = this->GetProperties()[YOUNG_MODULUS];
-		const double nuc = this->GetProperties()[POISSON_RATIO];
+		const double Ec = r_properties[YOUNG_MODULUS];
+		const double nuc = r_properties[POISSON_RATIO];
 		this->CalculateConstitutiveMatrix(constitutive_matrix_concrete, Ec, nuc);
 
 		// Linear elastic const matrix steel
 		Matrix constitutive_matrix_steel = ZeroMatrix(voigt_size, voigt_size);
-		const double Es = this->GetProperties()[YOUNG_MODULUS_STEEL];
-		const double nus = this->GetProperties()[POISSON_RATIO_STEEL];
+		const double Es = r_properties[YOUNG_MODULUS_STEEL];
+		const double nus = r_properties[POISSON_RATIO_STEEL];
 		this->CalculateConstitutiveMatrix(constitutive_matrix_steel, Es, nus);
 
-		const double k = this->GetProperties()[STEEL_VOLUMETRIC_PART];
+		const double k = r_properties[STEEL_VOLUMETRIC_PART];
 		this->CalculateDeformationMatrix(B, DN_DX);
 		const Matrix& composite_constitutive_matrix = k * constitutive_matrix_steel + (1.0 - k) * (1.0 - damage_element) * constitutive_matrix_concrete;
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(composite_constitutive_matrix, B))); // LHS
@@ -565,28 +568,18 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 	if (rOutput[0].size2() != dimension)
 		rOutput[0].resize(dimension, dimension, false);
 
-	if (rVariable == CONCRETE_STRESS_TENSOR)
-	{
+	if (rVariable == CONCRETE_STRESS_TENSOR) {
 		rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(CONCRETE_STRESS_VECTOR));
-	}
-	else if (rVariable == STEEL_STRESS_TENSOR)
-	{
-		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0)
-		{
+	} else if (rVariable == STEEL_STRESS_TENSOR) {
+		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
 			rOutput[0] = MathUtils<double>::StressVectorToTensor(this->GetValue(STEEL_STRESS_VECTOR));
-		}
-		else
-		{
+		} else {
 			Matrix dummy;
 			rOutput[0] = dummy;
 		}
-	}
-	else if (rVariable == STRAIN_TENSOR)
-	{
+	} else if (rVariable == STRAIN_TENSOR) {
 		rOutput[0] = MathUtils<double>::StrainVectorToTensor(this->GetValue(STRAIN_VECTOR));
-	}
-	else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED)
-	{
+	} else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED) {
 		rOutput[0] = MathUtils<double>::StressVectorToTensor((1.0 - mDamage) * this->GetValue(CONCRETE_STRESS_VECTOR));
 	}
 }
@@ -597,20 +590,13 @@ void RomFemDem3DElement::GetValueOnIntegrationPoints(
 	std::vector<Matrix> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	if (rVariable == STRAIN_TENSOR)
-	{
+	if (rVariable == STRAIN_TENSOR) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-	else if (rVariable == STEEL_STRESS_TENSOR)
-	{
+	} else if (rVariable == STEEL_STRESS_TENSOR) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-	else if (rVariable == CONCRETE_STRESS_TENSOR)
-	{
+	} else if (rVariable == CONCRETE_STRESS_TENSOR) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-	}
-	else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED)
-	{
+	} else if (rVariable == CONCRETE_STRESS_TENSOR_INTEGRATED) {
 		CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 	}
 }
@@ -784,12 +770,12 @@ void RomFemDem3DElement::CalculatePlasticDissipation(
 	double &rCapap,
 	Vector &rHCapa)
 {
-	auto& properties = this->GetProperties();
-	const double E = properties[YOUNG_MODULUS_STEEL];
-	const double fc = properties[YIELD_STRESS_C_STEEL];
-	const double ft = properties[YIELD_STRESS_T_STEEL];
+	auto& r_properties = this->GetProperties();
+	const double E = r_properties[YOUNG_MODULUS_STEEL];
+	const double fc = r_properties[YIELD_STRESS_C_STEEL];
+	const double ft = r_properties[YIELD_STRESS_T_STEEL];
 	const double n = fc / ft;
-	const double Gf = properties[FRACTURE_ENERGY_STEEL];
+	const double Gf = r_properties[FRACTURE_ENERGY_STEEL];
 	const double Gfc = Gf * std::pow(n, 2);
 	const double Volume = this->GetGeometry().Volume();
 	const double l_char = std::pow(Volume, 1.0 / 3.0);
@@ -830,31 +816,28 @@ void RomFemDem3DElement::CalculateEquivalentStressThreshold(
 	double &rEquivalentStressThreshold,
 	double &rSlope)
 {
-	auto& properties = this->GetProperties();
-	const double fc = properties[YIELD_STRESS_C_STEEL];
-	const double ft = properties[YIELD_STRESS_T_STEEL];
+	auto& r_properties = this->GetProperties();
+	const double fc = r_properties[YIELD_STRESS_C_STEEL];
+	const double ft = r_properties[YIELD_STRESS_T_STEEL];
 	const double n = fc / ft;
 	Vector G = ZeroVector(2), EqTrhesholds = ZeroVector(2), Slopes = ZeroVector(2);
-	G[0] = properties[FRACTURE_ENERGY_STEEL];
+	G[0] = r_properties[FRACTURE_ENERGY_STEEL];
 	G[1] = n * n * G[0];
 
-	const int HardCurve = properties[HARDENING_LAW];
+	const int HardCurve = r_properties[HARDENING_LAW];
 
-	for (int i = 0; i < 2; i++) { // tension and compression curves
+	for (unsigned int i = 0; i < 2; i++) { // tension and compression curves
 		switch (HardCurve)
 		{
 		case 1:
 			this->LinearCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
-
 		case 2:
 			this->ExponentialCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
-
 		case 3:
 			this->HardSoftCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
-		
 		default:
 			KRATOS_ERROR << "Hardening law not defined..." << std::endl;
 		}
@@ -894,10 +877,10 @@ void RomFemDem3DElement::HardSoftCalculateThreshold(
 	double &rEqThreshold,
 	double &rSlope)
 {	// Linear Hardening followed by exp softening
-	auto& properties = this->GetProperties();
-	const double initial_threshold = properties[YIELD_STRESS_C_STEEL];		// sikma
-	const double peak_stress = properties[MAXIMUM_STRESS];					// sikpi
-	const double peak_stress_position = properties[MAXIMUM_STRESS_POSITION]; // cappi [0,1]
+	auto& r_properties = this->GetProperties();
+	const double initial_threshold = r_properties[YIELD_STRESS_C_STEEL];		// sikma
+	const double peak_stress = r_properties[MAXIMUM_STRESS];					// sikpi
+	const double peak_stress_position = r_properties[MAXIMUM_STRESS_POSITION]; // cappi [0,1]
 
 	if (PlasticDissipation < 1.0) {
 		const double Ro = std::sqrt(1.0 - initial_threshold / peak_stress);
@@ -999,23 +982,17 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
 		}
-	}
-
-	if (rVariable == IS_DAMAGED) {
+	} else if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
 		}
-	}
-
-	if (rVariable == STRESS_THRESHOLD) {
+	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
 		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
 			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
 		}
-	}
-
-	if (rVariable == PLASTIC_DISSIPATION_CAPAP) {
+	} else if (rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		rOutput.resize(1);
 		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
 			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
