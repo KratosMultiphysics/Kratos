@@ -11,7 +11,12 @@
 //
 //
 
-// project includes
+// System includes
+#include <map>
+
+// External includes
+
+// Project includes
 #include "vtk_output.h"
 
 namespace Kratos
@@ -237,7 +242,7 @@ template <typename TContainerType>
 void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
     // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
-    const std::unordered_map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
+    const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
         { GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
         { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
         { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10 },
