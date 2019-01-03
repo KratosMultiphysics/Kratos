@@ -15,11 +15,13 @@
 #define KRATOS_VTK_OUTPUT_H_INCLUDED
 
 // System includes
+#include <unordered_map>
 
 // External includes
 
 // Project includes
 #include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 #include "includes/io.h"
 
 
