@@ -146,6 +146,11 @@ namespace Kratos
         }
     }
 
+    const Kratos::shared_ptr<NodeCurveGeometry3D> BrepEdge::GetCurve3d() const
+    {
+        return mNodeCurveGeometry3D;
+    }
+
     ///Constructor
     BrepEdge::BrepEdge(
         const int rBrepId,

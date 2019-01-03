@@ -126,6 +126,8 @@ namespace Kratos
         const EdgeTopology GetEdgeTopology(
             const int rTopologyIndex) const;
 
+        const Kratos::shared_ptr<NodeCurveGeometry3D> GetCurve3d() const;
+
         ///Constructor
         BrepEdge(
             const int rBrepId,
