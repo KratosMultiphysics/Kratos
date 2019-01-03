@@ -533,8 +533,8 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 		}
 		
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
-		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
-		const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+		const Vector& integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
 
 		this->CalculateDeformationMatrix(B, DN_DX);
 		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), integrated_stress_vector);
