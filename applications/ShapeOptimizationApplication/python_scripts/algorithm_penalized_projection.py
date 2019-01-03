@@ -158,8 +158,8 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
         self.model_part_controller.DampNodalVariableIfSpecified(DC1DX)
 
-        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
-        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DC1DX)
+        self.model_part_controller.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
+        self.model_part_controller.ApplyCustomDampingToNodalSensitivityVariable(DC1DX)
 
     # --------------------------------------------------------------------------
     def __computeShapeUpdate(self):
@@ -178,7 +178,7 @@ class AlgorithmPenalizedProjection(OptimizationAlgorithm):
         self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
 
-        self.ModelPartController.ApplyCustomDampingToNodalUpdateVariable(SHAPE_UPDATE)
+        self.model_part_controller.ApplyCustomDampingToNodalUpdateVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __isConstraintActive(self, constraintValue):

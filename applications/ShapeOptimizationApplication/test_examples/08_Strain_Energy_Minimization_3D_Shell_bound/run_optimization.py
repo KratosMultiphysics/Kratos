@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division
 # Import Kratos core and apps
 from KratosMultiphysics import *
 from KratosMultiphysics.ShapeOptimizationApplication import *
+from KratosMultiphysics import ExternalSolversApplication
 
 # Read parameters
 with open("optimization_parameters.json",'r') as parameter_file:

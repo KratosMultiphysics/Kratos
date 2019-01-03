@@ -99,6 +99,8 @@ class AlgorithmBeadOptimization(OptimizationAlgorithm):
             raise RuntimeError("The augmented lagrange algorithm for bead optimization only supports one objective function!")
         if self.constraints.size() > 0:
             raise RuntimeError("The augmented lagrange algorithm for bead does not allow for any constraints!")
+        if self.model_part_controller.HasCustomDamping():
+            raise RuntimeError("Custom damping can not be used for bead optimization algorithm!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):

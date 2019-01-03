@@ -40,6 +40,17 @@
                         "transition_size" : 0.1,
                         "components"      : [true, true, true]
                     }
+                },
+                {
+                    "python_module" : "coordinate_bound_damping",
+                    "Parameters"    : {
+                        "model_part_name" : "3D_Shell.design_surface",
+                        "type"            : "Y",
+                        "condition"       : "<",
+                        "value"           : 10.1,
+                        "transition_size" : 0.1,
+                        "components"      : [true, true, true]
+                    }
                 }
             ]
         },

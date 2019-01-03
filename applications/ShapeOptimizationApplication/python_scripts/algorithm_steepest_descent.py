@@ -157,7 +157,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.model_part_controller.DampNodalVariableIfSpecified(DF1DX)
 
-        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
+        self.model_part_controller.ApplyCustomDampingToNodalSensitivityVariable(DF1DX)
 
     # --------------------------------------------------------------------------
     def __adjustStepSize(self):
@@ -208,6 +208,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.mapper.Map(CONTROL_POINT_UPDATE, SHAPE_UPDATE)
         self.model_part_controller.DampNodalVariableIfSpecified(SHAPE_UPDATE)
+
+        self.model_part_controller.ApplyCustomDampingToNodalUpdateVariable(SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):

@@ -180,7 +180,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # Damping
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
-        self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(nodal_variable_mapped)
+        self.model_part_controller.ApplyCustomDampingToNodalSensitivityVariable(nodal_variable_mapped)
 
         # Mapping
         nodal_variable_mapped = KratosGlobals.GetVariable("DF1DX_MAPPED")
@@ -191,7 +191,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         # Damping
         self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
 
-        self.ModelPartController.ApplyCustomDampingToNodalUpdateVariable(nodal_variable_mapped)
+        self.model_part_controller.ApplyCustomDampingToNodalUpdateVariable(nodal_variable_mapped)
 
         # Process constraint gradients
         for itr in range(self.constraints.size()):
@@ -210,7 +210,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             # Damping
             self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable)
 
-            self.ModelPartController.ApplyCustomDampingToNodalSensitivityVariable(nodal_variable_mapped)
+            self.model_part_controller.ApplyCustomDampingToNodalSensitivityVariable(nodal_variable_mapped)
 
             # Mapping
             nodal_variable_mapped = KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
@@ -220,7 +220,7 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
             # Damping
             self.model_part_controller.DampNodalVariableIfSpecified(nodal_variable_mapped)
 
-            self.ModelPartController.ApplyCustomDampingToNodalUpdateVariable(nodal_variable_mapped)
+            self.model_part_controller.ApplyCustomDampingToNodalUpdateVariable(nodal_variable_mapped)
 
 
     # --------------------------------------------------------------------------

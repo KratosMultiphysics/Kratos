@@ -81,13 +81,13 @@ class ModelPartController:
         model_part_io = ModelPartIO(input_filename)
         model_part_io.ReadModelPart(self.optimization_model_part)
 
+        self.SetMinimalBufferSize(1)
+
         # initialize custom processes after the model part was imported!
         for i in range(0, self.model_settings["custom_damping"].size()):
             custom_damping = self.model_settings["custom_damping"][i]
             python_module = __import__(custom_damping["python_module"].GetString())
             self.custom_damping_objects.append(python_module.Factory(self.GetModel(), custom_damping))
-
-        self.SetMinimalBufferSize(1)
 
     # --------------------------------------------------------------------------
     def SetMinimalBufferSize(self, buffer_size):
@@ -147,6 +147,10 @@ class ModelPartController:
     def ApplyCustomDampingToNodalUpdateVariable(self, variable):
         for custom_damping in self.custom_damping_objects:
             custom_damping.ApplyToNodalUpdateVariable(variable)
+
+    # --------------------------------------------------------------------------
+    def HasCustomDamping(self):
+        return self.model_settings["custom_damping"].size() > 0
 
     # --------------------------------------------------------------------------
     def ComputeUnitSurfaceNormals(self):
