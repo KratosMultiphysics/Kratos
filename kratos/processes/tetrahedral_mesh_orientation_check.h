@@ -39,8 +39,8 @@ typedef Geometry<NodeType> GeometryType;
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class TetrahedralMeshOrientationCheck
  * @ingroup KratosCore
  * @brief Check a triangular or tetrahedral mesh to ensure that local connectivities follow the expected convention.
@@ -61,6 +61,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(MAKE_VOLUMES_POSITIVE);
+    KRATOS_DEFINE_LOCAL_FLAG(ALLOW_CONDITIONS_WITH_SAME_GEOMETRY);
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);

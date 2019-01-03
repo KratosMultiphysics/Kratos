@@ -29,6 +29,8 @@ namespace Kratos
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS, 0);
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_NODAL_NORMALS, 1);
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_CONDITION_NORMALS, 2);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,MAKE_VOLUMES_POSITIVE, 3);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ALLOW_CONDITIONS_WITH_SAME_GEOMETRY, 4);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -66,7 +68,7 @@ void TetrahedralMeshOrientationCheck::Execute()
 
     // Reset the flag BOUNDARY on all of the nodes
     VariableUtils().SetFlag(BOUNDARY, false, mrModelPart.Nodes());
-    
+
     // Next check that the conditions are oriented accordingly
     // to do so begin by putting all of the conditions in a map
     typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
@@ -90,7 +92,8 @@ void TetrahedralMeshOrientationCheck::Execute()
 
         // Insert a pointer to the condition identified by the hash value ids
         hashmap::iterator it_face = faces_map.find(ids);
-        if(it_face != faces_map.end() ) { // Already defined vector
+        if(it_face != faces_map.end() ) { // Already defined geometry
+            KRATOS_ERROR_IF_NOT(mrOptions.Is(ALLOW_CONDITIONS_WITH_SAME_GEOMETRY)) << "The condition of ID:\t" << itCond->Id() << " shares the same geometry as the condition ID:\t" << it_face->second[0]->Id() << " this is not allowed. Please, check your mesh" << std::endl;
             it_face->second.push_back(*itCond.base());
         } else {
             faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*itCond.base()})) );
