@@ -75,7 +75,7 @@ namespace Kratos
             const int rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables) const;
         
-        void PrintFaceNodes();
+        void GetModelNodes();
 
         void PrintEdgeNodes();
 

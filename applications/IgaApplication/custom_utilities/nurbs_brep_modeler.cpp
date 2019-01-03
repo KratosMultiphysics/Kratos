@@ -175,11 +175,11 @@ namespace Kratos
     }
 
 
-    void NurbsBrepModeler::PrintFacePolygon()
+    void NurbsBrepModeler::PrintBrepNodes()
     {   
         for (int i = 0; i < m_brep_model_vector.size(); ++i)
         {
-            m_brep_model_vector[i].PrintFaceNodes();
+            m_brep_model_vector[i].GetModelNodes();
         }
     }
 

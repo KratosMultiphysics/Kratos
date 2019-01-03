@@ -135,7 +135,7 @@ namespace Kratos
             Matrix& rShapeFunctionSecondDerivative
             ) const;
             
-        void PrintNodes(); 
+        void GetFaceNodes(); 
         void PrintTrimNodes();
 
 
@@ -147,8 +147,11 @@ namespace Kratos
         This object gives a NURBS representation of the surface of the face.*/
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
 
+
+
         const bool GetIsTrimmed() const;
         const bool GetIsRational() const;
+        const std::vector<BrepBoundaryLoop> GetBoundaryLoop() const; 
         
 
 

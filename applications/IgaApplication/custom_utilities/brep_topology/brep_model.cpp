@@ -48,11 +48,11 @@ namespace Kratos
         return success;
     }
 
-    void BrepModel::PrintFaceNodes()
+    void BrepModel::GetModelNodes()
     {
         for (int i = 0; i < mBrepFaces.size(); ++i)
         {
-            mBrepFaces[i].PrintNodes();
+            mBrepFaces[i].GetFaceNodes();
         }
     }
 

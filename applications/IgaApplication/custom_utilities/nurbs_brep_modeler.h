@@ -63,7 +63,7 @@ namespace Kratos
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
 
-        void PrintFacePolygon();
+        void PrintBrepNodes();
         
         void PrintEdgePolygon();
 

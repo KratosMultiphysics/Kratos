@@ -87,31 +87,112 @@ namespace Kratos
 
                 const int degree_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeU();
                 const int degree_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeV();
-                const Kratos::vector <int> degree = {degree_u, degree_v}; 
                 
-                KRATOS_WATCH(m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsU());
+                std::vector<double> knots_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsU(); 
+                const std::vector<double> knots_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsV();
 
-                """
-                HIER WEITERMACHEN!
-                """
+                const int number_knots_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsU();
+                const int number_knots_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsV();
 
+                Vector knot_vector_u = ZeroVector(number_knots_u + 2); 
+                Vector knot_vector_v = ZeroVector(number_knots_v + 2); 
+
+                knot_vector_u[0] = knots_u[0];
+                knot_vector_v[0] = knots_v[0];
+
+                for(int i = 0; i < number_knots_u; ++i)    knot_vector_u[i+1] = knots_u[i]; 
+                for(int i = 0; i < number_knots_v; ++i)    knot_vector_v[i+1] = knots_v[i]; 
+                
+                knot_vector_u[number_knots_u + 1] = knots_u[number_knots_u - 1];
+                knot_vector_v[number_knots_v + 1] = knots_v[number_knots_v - 1]; 
+
+                const int number_cps_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsU();
+                const int number_cps_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsV();
 
                 surface_para.AddEmptyValue("is_trimmed"); 
                 surface_para.AddEmptyValue("is_rational"); 
                 surface_para.AddEmptyArray("degrees");
+                surface_para.AddEmptyArray("knot_vectors");
+                surface_para.AddEmptyArray("control_points");
                 surface_para["is_trimmed"].SetBool(is_trimmed); 
                 surface_para["is_rational"].SetBool(is_rational); 
-                surface_para["degrees"].SetVector(degree); 
+                surface_para["degrees"].Append(degree_u);
+                surface_para["degrees"].Append(degree_v);
+                surface_para["knot_vectors"].Append(knot_vector_u); 
+                surface_para["knot_vectors"].Append(knot_vector_v); 
+                
+                Vector control_points = ZeroVector(4); 
+
+                for (int i = 0; i < number_cps_u; ++i)
+                {
+                    for (int j = 0; j < number_cps_v; ++j)
+                    {
+                        const int control_points_ids = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(i, j)->GetId(); 
+                        control_points[0] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j, i)->X(); 
+                        control_points[1] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j, i)->Y(); 
+                        control_points[2] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j, i)->Z(); 
+                        control_points[3] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j, i)->GetValue(NURBS_CONTROL_POINT_WEIGHT); 
+                        surface_para["control_points"].Append(control_points_ids); 
+                        surface_para["control_points"].Append(control_points);         
+                    }
+                }
+                faces_para.AddValue("surface", surface_para); 
+                
+
+                auto boundary_loop = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop(); 
+                
+                for (int bloop_i = 0; bloop_i < boundary_loop.size(); ++bloop_i)
+                {
+                    KRATOS_WATCH(boundary_loop[bloop_i].IsOuterLoop()); 
+                    Parameters boundary_loop_para; 
+
+                    boundary_loop_para.AddEmptyValue("loop_type"); 
+                    if (boundary_loop[bloop_i].IsOuterLoop() == true)
+                    {
+                        boundary_loop_para["loop_type"].SetString("outer"); 
+                    }   
+                    else
+                    {
+                        boundary_loop_para["loop_type"].SetString("inner"); 
+                    }   
+
+                    // KRATOS_WATCH(boundary_loop[bloop_i].GetTrimmingCurves().size())
+
+
+                    auto trimming_curves = boundary_loop[bloop_i].GetTrimmingCurves();
+                    
+                    for (int tcurves_i = 0; tcurves_i < trimming_curves.size(); ++tcurves_i)
+                    {
+                        Parameters trimming_curves_para;
+                    
+                        trimming_curves_para.AddEmptyValue("trim_index");
+                        trimming_curves_para.AddEmptyValue("curve_direction");
+                        trimming_curves_para["trim_index"].SetInt(trimming_curves[tcurves_i].GetTrimIndex());
+                        trimming_curves_para["curve_direction"].SetBool(trimming_curves[tcurves_i].GetCurveDirection());
+
+                        Parameters parameter_curve_para; 
+
+
+                        trimming_curves_para.AddValue("")
+                        boundary_loop_para.AddValue("trimming_curves", trimming_curves_para); 
+                    }
+
+                    faces_para.AddValue("boundary_loops", boundary_loop_para); 
+                } 
+
+
+                
                 
 
 
 
-
-                faces_para.AddValue("surface", surface_para); 
+                
+                
                 brep_para.AddValue("faces", faces_para);      
             }
         
-            rNurbsBrepGeometryJson.AddValue("breps", brep_para); 
+            rNurbsBrepGeometryJson.AddEmptyValue("breps");
+            rNurbsBrepGeometryJson["breps"].Append(brep_para) 
 
         }
 

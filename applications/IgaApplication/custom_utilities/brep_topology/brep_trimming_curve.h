@@ -42,6 +42,8 @@ namespace Kratos
 
         const Kratos::shared_ptr<Kratos::Curve<2>> GetCurve2D() const;
 
+        const bool GetCurveDirection() const; 
+
         /// Constructor.
         BrepTrimmingCurve(
             int& rTrimIndex,

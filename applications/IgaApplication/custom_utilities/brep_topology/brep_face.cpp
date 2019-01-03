@@ -171,7 +171,7 @@ namespace Kratos
         }
     }
 
-    void BrepFace::PrintNodes()
+    void BrepFace::GetFaceNodes()
     {
         int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
         int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
@@ -180,7 +180,9 @@ namespace Kratos
         {
             for (int j = 0; j < number_of_cps_v; ++j)
             {
-                KRATOS_WATCH((mNodeSurfaceGeometry3D->GetNode(i, j)->Coordinates()));
+                KRATOS_WATCH(mNodeSurfaceGeometry3D->GetNode(i, j)->Coordinates());
+                KRATOS_WATCH(mNodeSurfaceGeometry3D->GetNode(i, j)->GetValue(NURBS_CONTROL_POINT_WEIGHT));
+                KRATOS_WATCH(mNodeSurfaceGeometry3D->GetNode(i, j)->GetId())   
             }
         }
     }
@@ -555,6 +557,7 @@ namespace Kratos
     {
         return mNodeSurfaceGeometry3D;
     }
+    
 
     const bool BrepFace::GetIsTrimmed() const 
     {
@@ -564,6 +567,11 @@ namespace Kratos
     const bool BrepFace::GetIsRational() const
     {
         return m_is_rational; 
+    }
+
+    const std::vector<BrepBoundaryLoop> BrepFace::GetBoundaryLoop() const
+    { 
+        return mTrimmingLoops;      
     }
 
 
