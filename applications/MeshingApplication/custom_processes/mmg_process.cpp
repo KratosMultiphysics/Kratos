@@ -810,10 +810,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         /* We move the mesh */
         nodes_array = mrThisModelPart.Nodes();
+        const auto it_node_begin = nodes_array.begin();
 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+            auto it_node = it_node_begin + i;
 
             noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
@@ -838,17 +839,23 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::ReorderAllIds()
 {
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    for(SizeType i = 0; i < nodes_array.size(); ++i)
-        (nodes_array.begin() + i)->SetId(i + 1);
+    // Iterate over nodes
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
 
-    ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
-    for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->SetId(i + 1);
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
 
-    ElementsArrayType& element_array = mrThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->SetId(i + 1);
+    // Iterate over elements
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
@@ -857,13 +864,19 @@ void MmgProcess<TMMGLibray>::ReorderAllIds()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
-    ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
-    for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->Initialize();
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
+        (it_cond_begin + i)->Initialize();
 
-    ElementsArrayType& element_array = mrThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->Initialize();
+    // Iterate over elements
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
+        (it_elem_begin + i)->Initialize();
 }
 
 /***********************************************************************************/
