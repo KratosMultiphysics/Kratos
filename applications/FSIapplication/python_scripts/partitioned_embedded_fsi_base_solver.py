@@ -123,16 +123,19 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Initialize the Dirichlet-Neumann interface
         self._initialize_fsi_interfaces()
 
-        # Set the Neumann B.C. in the structure interface
-        #TODO: SHOULD THIS BE DONE BY THE INTERFACE?
-        self._set_structure_neumann_condition()
-
         # Initialize the iteration value vector
         self._initialize_iteration_value_vector()
 
         # Coupling utility initialization
         # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
         self._get_convergence_accelerator().Initialize()
+
+        # Initialize the distance field
+        update_distance_process = True
+        self._get_distance_to_skin_process(update_distance_process).Execute()
+
+        # Initialize the embedded intersections model part
+        self._get_embedded_skin_utility().GenerateSkin()
 
     def AdvanceInTime(self, current_time):
         fluid_new_time = self.fluid_solver.AdvanceInTime(current_time)
@@ -151,12 +154,6 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.fluid_solver.InitializeSolutionStep()
         self.structure_solver.InitializeSolutionStep()
         self._get_convergence_accelerator().InitializeSolutionStep()
-
-        # Recompute the distance field
-        self._get_distance_to_skin_process().Execute()
-
-        # Recompute the embedded intersections model part
-        self._get_embedded_skin_utility().GenerateSkin()
 
     def Predict(self):
         # Perform fluid and structure solvers predictions
@@ -180,12 +177,21 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         return self.model.GetModelPart(self._get_structure_interface_model_part_name())
 
     def GetStructureSkinElementBasedModelPart(self):
+        # Create an auxiliar model part to save the element based skin
         element_based_skin_model_part_name = self._get_structure_interface_model_part_name() + "ElementBased"
-        if not self.model.HasModelPart(element_based_skin_model_part_name):
-            element_based_skin_model_part = self.model.CreateModelPart(element_based_skin_model_part_name)
-            return element_based_skin_model_part
-        else:
-            return self.model.GetModelPart(element_based_skin_model_part_name)
+        if self.model.HasModelPart(element_based_skin_model_part_name):
+            self.model.DeleteModelPart(element_based_skin_model_part_name)
+        self.element_based_skin_model_part = self.model.CreateModelPart(element_based_skin_model_part_name)
+
+        # Copy the skin model part conditions to an auxiliar model part elements.
+        # This is required for the computation of the distance function, which
+        # takes the elements of the second modelpart as skin. If this operation
+        # is not performed, no elements are found, yielding a wrong level set.
+        self._get_partitioned_fsi_utilities().CopySkinToElements(
+            self.GetStructureSkinModelPart(),
+            self.element_based_skin_model_part)
+
+        return self.element_based_skin_model_part
 
     def GetStructureIntersectionsModelPart(self):
         if not hasattr(self, '_embedded_intersections_model_part'):
@@ -216,7 +222,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             # Update the EMBEDDED_VELOCITY and solve the fluid problem
             self._solve_fluid()
 
-            # Update the PRESSURE load and solve the structure problem 
+            # Update the PRESSURE load and solve the structure problem
             self._solve_structure()
 
             # Compute the structure interface VELOCITY residual vector
@@ -240,10 +246,19 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
     def FinalizeSolutionStep(self):
-        ## Finalize solution step
+        # Finalize solution step
         self.fluid_solver.FinalizeSolutionStep()
         self.structure_solver.FinalizeSolutionStep()
         self._get_convergence_accelerator().FinalizeSolutionStep()
+
+        # Recompute the distance field with the obtained solution
+        # This needs to be done here since the distance modification
+        # process will modify it in the next ExecuteInitializeSolutionStep
+        update_distance_process = True
+        self._get_distance_to_skin_process(update_distance_process).Execute()
+
+        # Recompute the new embedded intersections model part
+        self._get_embedded_skin_utility().GenerateSkin()
 
     def SetEchoLevel(self, structure_echo_level, fluid_echo_level):
         self.fluid_solver.SetEchoLevel(self, fluid_echo_level)
@@ -265,22 +280,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
     ##############          PRIVATE METHODS SECTION          ##############
     #######################################################################
 
-    def _get_distance_to_skin_process(self):
-        if not hasattr(self, '_distance_to_skin_process'):
+    def _get_distance_to_skin_process(self, update_distance_process = False):
+        if update_distance_process:
             self._distance_to_skin_process = self._create_distance_to_skin_process()
         return self._distance_to_skin_process
 
     def _create_distance_to_skin_process(self):
-        # Copy the skin model part conditions to an auxiliar model part elements.
-        # This is required for the computation of the distance function, which
-        # takes the elements of the second modelpart as skin. If this operation
-        # is not performed, no elements are found, yielding a wrong level set.
-        # Such auxiliar model part is constructed using the same nodes. Therefore,
-        # there is no necessity to perform this operation more than once.
-        self._get_partitioned_fsi_utilities().CopySkinToElements(
-            self.GetStructureSkinModelPart(),
-            self.GetStructureSkinElementBasedModelPart())
-
         # Set the distance computation process
         if self.domain_size == 2:
             return KratosMultiphysics.CalculateDistanceToSkinProcess2D(
@@ -302,12 +307,12 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         level_set_type = "continuous"
         if self.domain_size == 2:
             return KratosMultiphysics.EmbeddedSkinUtility2D(
-                self.GetFluidComputingModelPart(), 
+                self.GetFluidComputingModelPart(),
                 self.GetStructureIntersectionsModelPart(),
                 level_set_type)
         elif self.domain_size == 3:
             return KratosMultiphysics.EmbeddedSkinUtility3D(
-                self.GetFluidComputingModelPart(), 
+                self.GetFluidComputingModelPart(),
                 self.GetStructureIntersectionsModelPart(),
                 level_set_type)
         else:
@@ -326,10 +331,10 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.iteration_value = KratosMultiphysics.Vector(str_int_res_size)
         for i in range(0,str_int_res_size):
             self.iteration_value[i] = 0.0
-    
+
     def _map_pressure_to_positive_face_pressure(self):
         # Maps the PRESSURE value from the generated intersections skins to the structure skin.
-        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the 
+        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the
         # variable POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE as nodal surface loads.
         map_parameters = KratosMultiphysics.Parameters("""{
             "echo_level"                       : 0,
@@ -365,7 +370,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def _map_velocity_to_vector_projected(self):
         # Maps the PRESSURE value from the generated intersections skins to the structure skin.
-        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the 
+        # Note that the SurfaceLoadCondition in the StructuralMechanicsApplication uses the
         # variable POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE as nodal surface loads.
         map_parameters = KratosMultiphysics.Parameters("""{
             "echo_level"                       : 0,
@@ -401,8 +406,16 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Set the INTERFACE flag to the structure skin
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, str_interface_submodelpart.Nodes)
 
-    def _solve_fluid(self):       
-        # Update the EMBEDDED_VELOCITY value
+    def _solve_fluid(self):
+        # Update the EMBEDDED_VELOCITY value with the corrected iteration value
+        # Note that we first set the corrected value in the structure skin VELOCITY
+        # and then we map it to the EMBEDDED_VELOCITY in the fluid mesh.
+        str_interface_submodelpart = self.model.GetModelPart(self._get_structure_interface_model_part_name())
+        self._get_partitioned_fsi_utilities().UpdateInterfaceValues(
+            str_interface_submodelpart,
+            KratosMultiphysics.VELOCITY,
+            self.iteration_value)
+
         self._get_distance_to_skin_process().CalculateEmbeddedVariableFromSkin(
             KratosMultiphysics.VELOCITY,
             KratosMultiphysics.EMBEDDED_VELOCITY)
@@ -426,9 +439,9 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self.structure_solver.SolveSolutionStep()
 
     def _compute_velocity_residual(self):
-        # Compute the structure interface residual vector. The residual vector is computed 
-        # as the difference between the obtained velocity value (VELOCITY) and the velocity 
-        # in the beggining of the iteration. This is mapped from the fluid and saved in 
+        # Compute the structure interface residual vector. The residual vector is computed
+        # as the difference between the obtained velocity value (VELOCITY) and the velocity
+        # in the beggining of the iteration. This is mapped from the fluid and saved in
         # VECTOR_PROJECTED. Besides, the residual norm is stored in the ProcessInfo.
         vel_residual = KratosMultiphysics.Vector(
             self._get_partitioned_fsi_utilities().GetInterfaceResidualSize(self._GetStructureInterfaceSubmodelPart()))
@@ -462,7 +475,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("::[PartitionedEmbeddedFSIBaseSolver]::", "Coupling strategy construction finished.")
         return convergence_accelerator
 
-    # This method finds the maximum buffer size between mesh, 
+    # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
     def _GetAndSetMinimumBufferSize(self):
         fluid_buffer_size = self.fluid_solver.min_buffer_size
@@ -510,43 +523,3 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
             return KratosFSI.PartitionedFSIUtilities3D()
         else:
             raise Exception("Domain size expected to be 2 or 3. Got " + str(self.domain_size))
-
-    #TODO: MUST BE SET IN THE INTERFACE?¿?¿
-    def _set_structure_neumann_condition(self):
-        print("NOT REQUIRED?¿¿")
-        # structure_computational_submodelpart = self.structure_solver.GetComputingModelPart()
-
-        # # Get the maximum condition id
-        # max_cond_id = 0
-        # for condition in self.structure_solver.main_model_part.Conditions:
-        #     max_cond_id = max(max_cond_id, condition.Id)
-
-        # max_cond_id = self.structure_solver.main_model_part.GetCommunicator().MaxAll(max_cond_id)
-
-        # # Set up the point load condition in the structure interface
-        # structure_interfaces_list = self.settings["coupling_settings"]["structure_interfaces_list"]
-        # for i in range(structure_interfaces_list.size()):
-        #     interface_submodelpart_name = structure_interfaces_list[i].GetString()
-        #     interface_submodelpart_i = self.structure_solver.main_model_part.GetSubModelPart(interface_submodelpart_name)
-
-        #     # Get the number of conditions to be set in each processor
-        #     local_nodes_number_accumulated = -1
-        #     local_nodes_number = len(interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes)
-        #     local_nodes_number_accumulated = interface_submodelpart_i.GetCommunicator().ScanSum(local_nodes_number, local_nodes_number_accumulated)
-
-        #     # Create the point load condition
-        #     aux_count = max_cond_id + local_nodes_number_accumulated
-        #     if self.domain_size == 2:
-        #         for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
-        #             aux_count+=1
-        #             structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N", 
-        #                                                                     int(aux_count), 
-        #                                                                     [node.Id], 
-        #                                                                     self.structure_solver.main_model_part.Properties[0])
-        #     elif self.domain_size == 3:
-        #         for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
-        #             aux_count+=1
-        #             structure_computational_submodelpart.CreateNewCondition("PointLoadCondition3D1N",
-        #                                                                     int(aux_count),
-        #                                                                     [node.Id],
-        #                                                                     self.structure_solver.main_model_part.Properties[0])
