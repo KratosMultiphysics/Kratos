@@ -21,7 +21,6 @@
 
 // Project includes
 #include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "includes/io.h"
 
 
