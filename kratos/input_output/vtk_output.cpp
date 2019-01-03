@@ -159,12 +159,14 @@ void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStrea
 
 void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
+    // NOTE: also in MPI all nodes (local and ghost) have to be written, because
+    // they might be needed by the elements/conditions due to the connectivity
+
     // write nodes header
-    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
-    rFileStream << "POINTS " << r_local_mesh.NumberOfNodes() << " float\n";
+    rFileStream << "POINTS " << rModelPart.NumberOfNodes() << " float\n";
 
     // write nodes
-    for (const auto& r_node : r_local_mesh.Nodes()) {
+    for (const auto& r_node : rModelPart.Nodes()) {
         WriteVectorDataToFile(r_node.Coordinates(), rFileStream);
         if (mFileFormat == VtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
     }
@@ -223,6 +225,9 @@ unsigned int VtkOutput::DetermineVtkCellListSize(const TContainerType& rContaine
 template <typename TContainerType>
 void VtkOutput::WriteConnectivity(const TContainerType& rContainer, std::ofstream& rFileStream) const
 {
+    // NOTE: also in MPI all nodes (local and ghost) have to be written, because
+    // they might be needed by the elements/conditions due to the connectivity
+
     const auto& r_id_map = mKratosIdToVtkId; // const reference to not accidentially modify the map
     for (const auto& r_entity : rContainer) {
         const auto& r_geom = r_entity.GetGeometry();
@@ -272,25 +277,29 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
 
 void VtkOutput::WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
-    const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    // NOTE: also in MPI all nodes (local and ghost) have to be written, because
+    // they might be needed by the elements/conditions due to the connectivity
+    // Paraview needs a result on every node, therefore all results are written
+    // this is why the synchronization is necessary
+
     // write nodal results header
     Parameters nodal_solution_step_results = mOutputSettings["nodal_solution_step_data_variables"];
     Parameters nodal_variable_data_results = mOutputSettings["nodal_data_value_variables"];
-    rFileStream << "POINT_DATA " << r_local_mesh.NumberOfNodes() << "\n";
+    rFileStream << "POINT_DATA " << rModelPart.NumberOfNodes() << "\n";
     rFileStream << "FIELD FieldData " << nodal_solution_step_results.size() + nodal_variable_data_results.size()<< "\n";
 
     // Writing nodal_solution_step_results
     for (unsigned int entry = 0; entry < nodal_solution_step_results.size(); ++entry) {
         // write nodal results variable header
         const std::string nodal_result_name = nodal_solution_step_results[entry].GetString();
-        WriteContainerSolutionsStepResults(nodal_result_name,r_local_mesh.Nodes(),rFileStream);
+        WriteContainerSolutionsStepResults(nodal_result_name,rModelPart.Nodes(),rFileStream);
     }
 
     // Writing nodal_variable_data_results
     for (unsigned int entry = 0; entry < nodal_variable_data_results.size(); ++entry) {
         // write nodal results variable header
         const std::string nodal_result_name = nodal_variable_data_results[entry].GetString();
-        WriteContainerVariableResults(nodal_result_name,r_local_mesh.Nodes(),rFileStream);
+        WriteContainerVariableResults(nodal_result_name,rModelPart.Nodes(),rFileStream);
     }
 }
 
