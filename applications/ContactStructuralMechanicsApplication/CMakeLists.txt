@@ -17,7 +17,9 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/base_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simple_contact_search.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
 
   ## CUSTOM PYTHON
