@@ -127,7 +127,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
@@ -138,7 +138,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
             const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
                 if (it_elem->Is(mFlag)) {
@@ -149,7 +149,7 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
                 if (it_cond->Is(mFlag)) {
@@ -251,7 +251,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
                 NodeType::Pointer p_new_node = it_node->Clone();
@@ -262,7 +262,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
             const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
                 Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry());
@@ -272,7 +272,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
                 Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry());
@@ -346,7 +346,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_node_begin = mrOriginModelPart.NodesBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
                 auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
@@ -359,7 +359,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
             const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
                 auto it_elem = it_elem_begin + i;
                 if (it_elem->Is(mFlag)) {
@@ -371,7 +371,7 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
             const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
-            #pragma omp for
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
                 auto it_cond = it_cond_begin + i;
                 if (it_cond->Is(mFlag)) {
