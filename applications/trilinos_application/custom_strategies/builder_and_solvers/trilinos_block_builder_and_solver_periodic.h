@@ -23,7 +23,6 @@
 
 /* Project includes */
 #include "includes/define.h"
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 
 //trilinos includes
@@ -33,17 +32,9 @@
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 
-//aztec solver includes
-#include "AztecOO.h"
-
-#include "Amesos.h"
-// #include "AmesosClassType.h"
-#include "Epetra_LinearProblem.h"
-#include "ml_MultiLevelPreconditioner.h"
 
 namespace Kratos
 {
@@ -453,9 +444,9 @@ private:
 
         int* TotalExtraDofs = new int[NumProcs];
         for (int i = 0; i < NumProcs; i++) TotalExtraDofs[i] = 0;
-        
+
         this->mrComm.SumAll(ExtraDofs,TotalExtraDofs,NumProcs);
-        
+
         // free memory
         int LocalExtraDofs = TotalExtraDofs[this->mrComm.MyPID()];
         delete [] ExtraDofs;
@@ -482,7 +473,7 @@ private:
                 iNode->GetValue(mPeriodicIdVar) = 0;
             }
     }
-    
+
 
     /*@} */
     /**@name Private  Access */

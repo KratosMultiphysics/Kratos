@@ -58,7 +58,7 @@ def GetAvailableApplication():
     kratosPath = GetModulePath('KratosMultiphysics')
 
     apps = [
-        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application\.py$', f)
+        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application*', f)
     ]
 
     return apps

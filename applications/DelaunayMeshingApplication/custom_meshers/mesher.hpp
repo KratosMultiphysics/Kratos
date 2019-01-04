@@ -73,6 +73,9 @@ public:
     typedef MesherUtilities::MeshingParameters   MeshingParametersType;
     typedef MesherUtilities::RefiningParameters   RefineParametersType;
 
+    typedef std::vector<Node<3>*>             NodePointerVectorType;
+    typedef std::vector<Element*>          ElementPointerVectorType;
+    typedef std::vector<Condition*>      ConditionPointerVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -397,5 +400,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_MESHER_H_INCLUDED  defined
-
-
