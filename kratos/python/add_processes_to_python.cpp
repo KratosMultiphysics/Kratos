@@ -284,12 +284,12 @@ void  AddProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
     .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
-    
+
     m.attr("ComputeNodalGradientProcess2D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcess3D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcessComp2D") = m.attr("ComputeNodalGradientProcess");
     m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcess");
-    
+
     /* Non-Historical */
     py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
     .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
@@ -447,15 +447,15 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     // Transfer between model parts
-    py::class_<FastTransferBetweenModelPartsProcess, FastTransferBetweenModelPartsProcess::Pointer, Process> FastTransferBetweenModelPartsProcess_Scope(m, "FastTransferBetweenModelPartsProcess");
-
-    FastTransferBetweenModelPartsProcess_Scope.def(py::init<ModelPart&, ModelPart&>());
-    FastTransferBetweenModelPartsProcess_Scope.def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>());
-    FastTransferBetweenModelPartsProcess_Scope.def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >());
-    FastTransferBetweenModelPartsProcess_Scope.def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags, const bool >());
+    py::class_<FastTransferBetweenModelPartsProcess, FastTransferBetweenModelPartsProcess::Pointer, Process>(m, "FastTransferBetweenModelPartsProcess")
+    .def(py::init<ModelPart&, ModelPart&>())
+    .def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered>())
+    .def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags >())
+    .def(py::init<ModelPart&, ModelPart&, const FastTransferBetweenModelPartsProcess::EntityTransfered, const Flags, const bool >())
+    ;
 
     // Adding FastTransferBetweenModelPartsProcess related enums
-    py::enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(FastTransferBetweenModelPartsProcess_Scope, "EntityTransfered")
+    py::enum_<FastTransferBetweenModelPartsProcess::EntityTransfered>(m,"EntityTransfered")
     .value("NODES", FastTransferBetweenModelPartsProcess::EntityTransfered::NODES)
     .value("ELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::ELEMENTS)
     .value("NODESANDELEMENTS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDELEMENTS)
@@ -464,6 +464,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .value("CONSTRAINTS", FastTransferBetweenModelPartsProcess::EntityTransfered::CONSTRAINTS)
     .value("NODESANDCONSTRAINTS", FastTransferBetweenModelPartsProcess::EntityTransfered::NODESANDCONSTRAINTS)
     .value("ALL", FastTransferBetweenModelPartsProcess::EntityTransfered::ALL)
+    .export_values()
     ;
 
     py::class_<SkinDetectionProcess<2>, SkinDetectionProcess<2>::Pointer, Process>(m, "SkinDetectionProcess2D")
