@@ -422,9 +422,9 @@ class MechanicalSolver(PythonSolver):
             # using a default linear solver (selecting the fastest one available)
             import KratosMultiphysics.kratos_utilities as kratos_utils
             if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
-                import KratosMultiphysics.EigenSolversApplication
+                from KratosMultiphysics import EigenSolversApplication
             elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
-                import KratosMultiphysics.ExternalSolversApplication
+                from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
                 "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
