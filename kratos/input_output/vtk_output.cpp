@@ -19,6 +19,7 @@
 // Project includes
 #include "vtk_output.h"
 
+
 namespace Kratos
 {
 
@@ -248,16 +249,16 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
 {
     // IMPORTANT: The map geo_type_vtk_cell_type_map is to be extended to support new geometries
     const std::map<GeometryData::KratosGeometryType, int> geo_type_vtk_cell_type_map = {
-        { GeometryData::KratosGeometryType::Kratos_Triangle2D3, 5 },
+        { GeometryData::KratosGeometryType::Kratos_Point2D,          1 },
+        { GeometryData::KratosGeometryType::Kratos_Point3D,          1 },
+        { GeometryData::KratosGeometryType::Kratos_Line2D2,          3 },
+        { GeometryData::KratosGeometryType::Kratos_Line3D2,          3 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      5 },
+        { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      5 },
         { GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4, 10 },
-        { GeometryData::KratosGeometryType::Kratos_Line2D2, 3 },
-        { GeometryData::KratosGeometryType::Kratos_Line3D2, 3 },
-        { GeometryData::KratosGeometryType::Kratos_Point2D, 1 },
-        { GeometryData::KratosGeometryType::Kratos_Point3D, 1 },
-        { GeometryData::KratosGeometryType::Kratos_Triangle3D3, 5 },
         { GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4, 9 },
-        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8, 12 }
+        { GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4,    10 },
+        { GeometryData::KratosGeometryType::Kratos_Hexahedra3D8,     12 }
     };
     // write entity types
     for (const auto& r_entity : rContainer) {
@@ -357,29 +358,33 @@ void VtkOutput::WriteNodalContainerResults(
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
         WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<int>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
         WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
+    }
+    else {
+        KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
+            << "not suitable for VtkOutput, skipping it" << std::endl;
     }
 }
 
@@ -393,33 +398,37 @@ void VtkOutput::WriteGeometricalContainerResults(
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<int>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Flags>>::Get(rVariableName);
         WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
-    if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
+    else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
         WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
+    }
+    else {
+        KRATOS_WARNING_ONCE(rVariableName) << "Variable \"" << rVariableName << "\" is "
+            << "not suitable for VtkOutput, skipping it" << std::endl;
     }
 }
 

@@ -73,7 +73,7 @@ public:
         VTK_BINARY
     };
 
-private:
+protected:
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
