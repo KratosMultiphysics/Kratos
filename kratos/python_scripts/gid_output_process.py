@@ -8,7 +8,12 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return GiDOutputProcess(model_part, output_name, postprocess_parameters)
+
+    if model_part.GetCommunicator().TotalProcesses() > 1:
+        import KratosMultiphysics.TrilinosApplication.gid_output_process_mpi as gid_output_process_mpi
+        return gid_output_process_mpi.GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    else:
+        return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
 class GiDOutputProcess(Process):
 
