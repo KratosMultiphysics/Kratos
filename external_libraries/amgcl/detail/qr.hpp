@@ -387,7 +387,8 @@ class QR {
 
             if (math::is_zero(xnorm2)) return tau;
 
-            scalar_type beta = -std::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
+            scalar_type beta = -std::abs(sqrt(sqr(math::norm(alpha)) + xnorm2));
+            if (amgcl::detail::real(alpha) < 0) beta = -beta;
 
             tau = math::identity<value_type>() - math::inverse(beta) * alpha;
             alpha = math::inverse(alpha - beta * math::identity<value_type>());

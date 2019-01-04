@@ -70,6 +70,7 @@ public:
 
     /// Geometry as base class.
     typedef Geometry<TPointType> BaseType;
+    using Geometry<TPointType>::ShapeFunctionsValues;
 
     /// Pointer definition of Line2D2
     KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
@@ -583,7 +584,8 @@ public:
     */
     JacobiansType& InverseOfJacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        rResult[0] = ZeroMatrix( 1, 1 );
+        rResult[0]( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return rResult;
     }
 
@@ -606,8 +608,9 @@ public:
     */
     Matrix& InverseOfJacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-        return rResult;
+        rResult = ZeroMatrix( 1, 1 );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
+        return( rResult );
     }
 
     /** Inverse of jacobian in given point. This method calculate inverse of jacobian
@@ -623,28 +626,28 @@ public:
     */
     Matrix& InverseOfJacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        rResult = ZeroMatrix( 1, 1 );
+        rResult( 0, 0 ) = 2.0 * MathUtils<double>::Norm3(( this->GetPoint( 1 ) ) - ( this->GetPoint( 0 ) ) );
         return rResult;
     }
 
-    /** EdgesNumber
-    @return SizeType containes number of this geometry edges.
-    */
+    /**
+     * EdgesNumber
+     * @return SizeType containes number of this geometry edges.
+     */
     SizeType EdgesNumber() const override
     {
         return 2;
     }
 
-
-    /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
-    */
+    /**
+     * FacesNumber
+     * @return SizeType containes number of this geometry edges/faces.
+     */
     SizeType FacesNumber() const override
     {
       return EdgesNumber();
     }
-
-
 
     //Connectivities of faces required
     void NumberNodesInFaces (DenseVector<unsigned int>& NumberNodesInFaces) const override
@@ -983,39 +986,31 @@ public:
     {
         rResult.clear();
 
-        const TPointType& FirstPoint  = BaseType::GetPoint(0);
-        const TPointType& SecondPoint = BaseType::GetPoint(1);
+        const TPointType& r_first_point  = BaseType::GetPoint(0);
+        const TPointType& r_second_point = BaseType::GetPoint(1);
 
         // Project point
-        const double Tolerance = 1e-14; // Tolerance
+        const double tolerance = 1e-14; // Tolerance
 
-        const double Length = std::sqrt((SecondPoint[0] - FirstPoint[0]) * (SecondPoint[0] - FirstPoint[0])
-                    + (SecondPoint[1] - FirstPoint[1]) * (SecondPoint[1] - FirstPoint[1]));
+        const double length = Length();
 
-        const double Length1 = std::sqrt((rPoint[0] - FirstPoint[0]) * (rPoint[0] - FirstPoint[0])
-                    + (rPoint[1] - FirstPoint[1]) * (rPoint[1] - FirstPoint[1]));
+        const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
+                    + std::pow(rPoint[1] - r_first_point[1], 2));
 
-        const double Length2 = std::sqrt((rPoint[0] - SecondPoint[0]) * (rPoint[0] - SecondPoint[0])
-                    + (rPoint[1] - SecondPoint[1]) * (rPoint[1] - SecondPoint[1]));
+        const double length_2 = std::sqrt( std::pow(rPoint[0] - r_second_point[0], 2)
+                    + std::pow(rPoint[1] - r_second_point[1], 2));
 
-        if (Length1 <= (Length + Tolerance) && Length2 <= (Length + Tolerance))
-        {
-            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0;
-        }
-        else if (Length1 > (Length + Tolerance))
-        {
-            rResult[0] = 2.0 * Length1/(Length + Tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
-        }
-        else if (Length2 > (Length + Tolerance))
-        {
-            rResult[0] = 1.0 - 2.0 * Length2/(Length + Tolerance);
-        }
-        else
-        {
+        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
+        } else if (length_1 > (length + tolerance)) {
+            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0; // NOTE: The same value as before, but it will be > than 1
+        } else if (length_2 > (length + tolerance)) {
+            rResult[0] = 1.0 - 2.0 * length_2/(length + tolerance);
+        } else {
             rResult[0] = 2.0; // Out of the line!!!
         }
 
-        return( rResult );
+        return rResult ;
     }
 
     ///@}
