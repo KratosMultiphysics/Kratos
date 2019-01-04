@@ -174,22 +174,13 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
@@ -295,22 +286,13 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
@@ -398,22 +380,13 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
                 mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
                 mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
-        }
 
-        #pragma omp critical
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
                 mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
