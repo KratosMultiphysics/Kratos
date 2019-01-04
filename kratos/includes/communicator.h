@@ -592,6 +592,21 @@ public:
         return true;
     }
 
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 4 > > const& ThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& ThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeVariable(Variable<array_1d<double, 9 > > const& ThisVariable)
+    {
+        return true;
+    }
+
     virtual bool SynchronizeVariable(Variable<Vector> const& ThisVariable)
     {
         // #if defined(KRATOS_USING_MPI )
@@ -619,6 +634,21 @@ public:
     }
 
     virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 4 > > const& ThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 6 > > const& ThisVariable)
+    {
+        return true;
+    }
+
+    virtual bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 9 > > const& ThisVariable)
     {
         return true;
     }
