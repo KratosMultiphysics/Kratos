@@ -99,7 +99,7 @@ public:
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
 
-        KRATOS_ERROR_IF_NOT(rThisModelPart.GetNodalSolutionStepVariablesList().Has( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
+        KRATOS_ERROR_IF_NOT(rThisModelPart.HasNodalSolutionStepVariable( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
 
         KRATOS_CATCH("")
     }
