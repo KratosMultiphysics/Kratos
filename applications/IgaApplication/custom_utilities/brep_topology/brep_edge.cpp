@@ -151,6 +151,11 @@ namespace Kratos
         return mNodeCurveGeometry3D;
     }
 
+    const std::vector<BrepEdge::EdgeTopology>& BrepEdge::GetBrepEdgeTopologyVector() const
+    {
+        return mBrepEdgeTopologyVector; 
+    }
+
     ///Constructor
     BrepEdge::BrepEdge(
         const int rBrepId,

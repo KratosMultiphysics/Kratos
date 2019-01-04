@@ -128,6 +128,8 @@ namespace Kratos
 
         const Kratos::shared_ptr<NodeCurveGeometry3D> GetCurve3d() const;
 
+        const std::vector<EdgeTopology>& GetBrepEdgeTopologyVector() const; 
+
         ///Constructor
         BrepEdge(
             const int rBrepId,
