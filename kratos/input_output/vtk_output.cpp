@@ -355,33 +355,31 @@ void VtkOutput::WriteNodalContainerResults(
 {
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
-        WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_SCALAR, rFileStream);
+        WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
     if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
-        WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_SCALAR, rFileStream);
+        WriteNodalScalarValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
-        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_VECTOR_3, rFileStream);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
+    }
+    if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
-        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_VECTOR_4, rFileStream);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
-        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_VECTOR_6, rFileStream);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
-            VtkOutput::WriteDataType::VTK_VECTOR_9, rFileStream);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue, rFileStream);
     }
 }
 
@@ -393,31 +391,35 @@ void VtkOutput::WriteGeometricalContainerResults(
 {
     if (KratosComponents<Variable<double>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<double>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_SCALAR, rFileStream);
+        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<int>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<int>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_SCALAR,rFileStream);
+        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<Flags>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<Flags>>::Get(rVariableName);
-        WriteScalarContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_SCALAR, rFileStream);
+        WriteScalarContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 3>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 3>>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_VECTOR_3, rFileStream);
+        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
+    }
+    if (KratosComponents<Variable<Vector>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<Vector>>::Get(rVariableName);
+        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_VECTOR_4, rFileStream);
+        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_VECTOR_6, rFileStream);
+        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
     if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
         const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
-        WriteVectorContainerVariable(rContainer, var_to_write, VtkOutput::WriteDataType::VTK_VECTOR_9, rFileStream);
+        WriteVectorContainerVariable(rContainer, var_to_write, rFileStream);
     }
 }
 
@@ -426,16 +428,15 @@ void VtkOutput::WriteNodalScalarValues(
     const ModelPart::NodesContainerType& rNodes,
     const TVarType& rVariable,
     const bool IsHistoricalValue,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
     if (IsHistoricalValue) {
         mrModelPart.GetCommunicator().SynchronizeVariable(rVariable);
-        WriteScalarSolutionStepVariable(rNodes, rVariable, VtkDataType, rFileStream);
+        WriteScalarSolutionStepVariable(rNodes, rVariable, rFileStream);
     }
     else {
         mrModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-        WriteScalarContainerVariable(rNodes, rVariable, VtkDataType, rFileStream);
+        WriteScalarContainerVariable(rNodes, rVariable, rFileStream);
     }
 }
 
@@ -444,16 +445,15 @@ void VtkOutput::WriteNodalVectorValues(
     const ModelPart::NodesContainerType& rNodes,
     const TVarType& rVariable,
     const bool IsHistoricalValue,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
     if (IsHistoricalValue) {
         mrModelPart.GetCommunicator().SynchronizeVariable(rVariable);
-        WriteVectorSolutionStepVariable(rNodes, rVariable, VtkDataType, rFileStream);
+        WriteVectorSolutionStepVariable(rNodes, rVariable, rFileStream);
     }
     else {
         mrModelPart.GetCommunicator().SynchronizeNonHistoricalVariable(rVariable);
-        WriteVectorContainerVariable(rNodes, rVariable, VtkDataType, rFileStream);
+        WriteVectorContainerVariable(rNodes, rVariable, rFileStream);
     }
 }
 
@@ -461,11 +461,10 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteScalarSolutionStepVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
-    rFileStream << rVariable.Name() << " " << (int)VtkDataType
-                << " " << rContainer.size() << "  float\n";
+    rFileStream << rVariable.Name() << " 1 "
+                << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.FastGetSolutionStepValue(rVariable);
@@ -478,10 +477,13 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteVectorSolutionStepVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
-    rFileStream << rVariable.Name() << " " << (int)VtkDataType
+    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+
+    const int res_size = (rContainer.begin()->FastGetSolutionStepValue(rVariable)).size();
+
+    rFileStream << rVariable.Name() << " " << res_size
                 << " " << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {
@@ -495,11 +497,10 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteScalarContainerVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
-    rFileStream << rVariable.Name() << " " << (int)VtkDataType
-                << " " << rContainer.size() << "  float\n";
+    rFileStream << rVariable.Name() << " 1 "
+                << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {
         const auto& r_result = r_entity.GetValue(rVariable);
@@ -512,10 +513,13 @@ template<typename TContainerType, class TVarType>
 void VtkOutput::WriteVectorContainerVariable(
     const TContainerType& rContainer,
     const TVarType& rVariable,
-    const VtkOutput::WriteDataType VtkDataType,
     std::ofstream& rFileStream) const
 {
-    rFileStream << rVariable.Name() << " " << (int)VtkDataType
+    KRATOS_DEBUG_ERROR_IF(rContainer.size() == 0) << "Empty container!" << std::endl;
+
+    const int res_size = (rContainer.begin()->GetValue(rVariable)).size();
+
+    rFileStream << rVariable.Name() << " " << res_size
                 << " " << rContainer.size() << "  float\n";
 
     for (const auto& r_entity : rContainer) {

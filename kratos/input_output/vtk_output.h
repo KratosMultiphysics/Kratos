@@ -73,15 +73,6 @@ public:
         VTK_BINARY
     };
 
-    enum class WriteDataType {
-        VTK_NONE = 0,
-        VTK_SCALAR = 1,
-        VTK_VECTOR_3 = 3,
-        VTK_VECTOR_4 = 4,
-        VTK_VECTOR_6 = 6,
-        VTK_VECTOR_9 = 9
-    };
-
 private:
     ///@name Member Variables
     ///@{
@@ -231,7 +222,6 @@ private:
      * @param rNodes the nodes which is beging output
      * @param rVariable Variable of the result to be written.
      * @param IsHistoricalValue whether the values are historical or not
-     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<class TVarType>
@@ -239,7 +229,6 @@ private:
         const ModelPart::NodesContainerType& rNodes,
         const TVarType& rVariable,
         const bool IsHistoricalValue,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
@@ -247,7 +236,6 @@ private:
      * @param rNodes the nodes which is beging output
      * @param rVariable Variable of the result to be written.
      * @param IsHistoricalValue whether the values are historical or not
-     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<class TVarType>
@@ -255,7 +243,6 @@ private:
         const ModelPart::NodesContainerType& rNodes,
         const TVarType& rVariable,
         const bool IsHistoricalValue,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
@@ -264,14 +251,12 @@ private:
      * @template TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
-     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType, class TVarType>
     void WriteScalarSolutionStepVariable(
         const TContainerType& rContainer,
         const TVarType& rVariable,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
@@ -280,14 +265,12 @@ private:
      * @template TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
-     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType, class TVarType>
     void WriteVectorSolutionStepVariable(
         const TContainerType& rContainer,
         const TVarType& rVariable,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
@@ -296,14 +279,12 @@ private:
      * @template TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
-     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType, class TVarType>
     void WriteScalarContainerVariable(
         const TContainerType& rContainer,
         const TVarType& rVariable,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
@@ -319,7 +300,6 @@ private:
     void WriteVectorContainerVariable(
         const TContainerType& rContainer,
         const TVarType& rVariable,
-        const VtkOutput::WriteDataType VtkDataType,
         std::ofstream& rFileStream) const;
 
     /**
