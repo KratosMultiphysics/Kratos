@@ -423,7 +423,7 @@ class MechanicalSolver(PythonSolver):
             import KratosMultiphysics.kratos_utilities as kratos_utils
             if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
                 import KratosMultiphysics.EigenSolversApplication
-            else if kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
                 import KratosMultiphysics.ExternalSolversApplication
 
             linear_solvers_by_speed = [
