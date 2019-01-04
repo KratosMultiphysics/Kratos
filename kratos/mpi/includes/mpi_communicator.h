@@ -555,7 +555,7 @@ public:
 
     bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 6 >,double >(r);
+        SynchronizeVariable<array_1d<double, 6 >,double >(rThisVariable);
         return true;
     }
 

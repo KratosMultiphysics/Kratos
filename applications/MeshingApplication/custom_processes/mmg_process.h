@@ -766,6 +766,11 @@ private:
     }
 
     /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries();
+
+    /**
      * @brief This function creates an before/after remesh output file
      * @param rOldModelPart The old model part before remesh
      */
