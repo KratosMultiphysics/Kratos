@@ -368,6 +368,21 @@ void VtkOutput::WriteNodalContainerResults(
         WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
             VtkOutput::WriteDataType::VTK_VECTOR_3, rFileStream);
     }
+    if (KratosComponents<Variable<array_1d<double, 4>>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<array_1d<double, 4>>>::Get(rVariableName);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
+            VtkOutput::WriteDataType::VTK_VECTOR_4, rFileStream);
+    }
+    if (KratosComponents<Variable<array_1d<double, 6>>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<array_1d<double, 6>>>::Get(rVariableName);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
+            VtkOutput::WriteDataType::VTK_VECTOR_6, rFileStream);
+    }
+    if (KratosComponents<Variable<array_1d<double, 9>>>::Has(rVariableName)){
+        const auto& var_to_write = KratosComponents<Variable<array_1d<double, 9>>>::Get(rVariableName);
+        WriteNodalVectorValues(rNodes, var_to_write, IsHistoricalValue,
+            VtkOutput::WriteDataType::VTK_VECTOR_9, rFileStream);
+    }
 }
 
 template<typename TContainerType>
