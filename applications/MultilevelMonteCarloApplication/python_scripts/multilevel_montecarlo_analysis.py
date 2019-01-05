@@ -59,10 +59,8 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
         self._GetSolver().main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
 
     def _CreateSolver(self):
-        # import convection_diffusion_stationary_solver
-        # return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-        import convection_diffusion_stationary_solver_temporary
-        return convection_diffusion_stationary_solver_temporary.CreateSolver(self.model,self.project_parameters["solver_settings"])
+        import convection_diffusion_stationary_solver
+        return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
 
     def _GetSimulationName(self):
         return "Multilevel Monte Carlo Analysis"
