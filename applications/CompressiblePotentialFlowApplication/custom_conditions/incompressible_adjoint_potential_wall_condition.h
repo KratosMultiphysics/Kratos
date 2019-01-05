@@ -209,27 +209,6 @@ public:
     {
         KRATOS_TRY;
      
-        // const array_1d<double, 3> &rNormal = this->GetValue(NORMAL);
-
-        // KRATOS_ERROR_IF(norm_2(rNormal) < std::numeric_limits<double>::epsilon())
-        //     << "Error on condition -> " << this->Id() << "\n"
-        //     << "NORMAL must be calculated before using this condition." << std::endl;
-       
-        if (mInitializeWasPerformed)
-            return;
-
-        mInitializeWasPerformed = true;
-
-        GeometryType &rGeom = this->GetGeometry();
-        WeakPointerVector<Element> ElementCandidates;
-        GetElementCandidates(ElementCandidates, rGeom);
-
-        std::vector<IndexType> NodeIds, ElementNodeIds;
-        GetSortedIds(NodeIds, rGeom);
-        FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
-
-        KRATOS_ERROR_IF(!mpElement.lock()) << "error in condition # " << this->Id() << "\n"
-                                           << "Condition cannot find parent element" << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -250,91 +229,11 @@ public:
                               VectorType &rRightHandSideVector,
                               ProcessInfo &rCurrentProcessInfo) override
     {               
-        if (true){//this->IsNot(STRUCTURE) || this-> IsNotDefined(STRUCTURE)
-            if (rLeftHandSideMatrix.size1() != TNumNodes)
-                rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
-            if (rRightHandSideVector.size() != TNumNodes)
-                rRightHandSideVector.resize(TNumNodes, false);
-            rLeftHandSideMatrix.clear();
-            
-            array_1d<double, 3> An;
-            if (TDim == 2)
-                CalculateNormal2D(An);
-            else
-                CalculateNormal3D(An);
-
-            const IncompressibleAdjointPotentialWallCondition &r_this = *this;
-            const array_1d<double, 3> &v = r_this.GetValue(VELOCITY_INFINITY);
-            const double value = inner_prod(v, An) / static_cast<double>(TNumNodes);
-
-            for (unsigned int i = 0; i < TNumNodes; ++i)
-                rRightHandSideVector[i] = value;
-        }     
-        else{
-            if (rLeftHandSideMatrix.size1() !=2* TNumNodes)
-                rLeftHandSideMatrix.resize(2*TNumNodes,2*TNumNodes,false);
-            if (rRightHandSideVector.size() != 2*TNumNodes)
-                rRightHandSideVector.resize(2*TNumNodes,false);
-            rLeftHandSideMatrix.clear(); 
-
-            array_1d<double, 3> An_0,An_1;
-            array_1d<double, 2 > N_0,N_1;
-            array_1d<double,TNumNodes> distances;
-            
-            bool is_not_cut;
-            GetWakeDistances(distances,is_not_cut);
-
-            
-            if (TDim == 2){
-                CalculateNormal2DCut(An_0,An_1,distances);
-                ComputeShapeFunction2DCut(N_0,N_1,distances);
-            }
-            else
-                KRATOS_ERROR << "3D cut condition not implemented";            
-         
-            const array_1d<double, 3> &v = this-> GetValue(VELOCITY_INFINITY);
-            double value_1,value_0;
-            
-            value_0 = inner_prod(v, An_0);
-            value_1 = inner_prod(v, An_1);
-
-            if(distances[0] > 0){ 
-                rRightHandSideVector[0] = value_0*N_0[0];
-                rRightHandSideVector[TNumNodes] = value_1*N_1[0];
-                rRightHandSideVector[1] = 0;
-                rRightHandSideVector[TNumNodes+1] = 0;
-            }
-            else{
-                rRightHandSideVector[0] =  0;
-                rRightHandSideVector[TNumNodes] = 0;
-                rRightHandSideVector[1] =  value_1*N_1[1];
-                rRightHandSideVector[TNumNodes+1] = value_0*N_0[1];
-            }
-            //positive part
-            // if (distances[0]>0){
-            //     for (unsigned int i = 0; i < TNumNodes; i++)
-            //     {                
-            //         if(distances[i] > 0){
-            //             rRightHandSideVector[i] = value_0*N_0[0];
-            //         }
-            //         else{
-            //             rRightHandSideVector[i] = value_0*N_0[i];
-            //         }
-            //     }
-            // }else{
-            //     for (unsigned int i = 0; i < TNumNodes; i++)
-            //     {                
-            //         if(distances[i] > 0){
-            //             rRightHandSideVector[i] = 0;
-            //             rRightHandSideVector[TNumNodes+i] = value_0*N_0[1];;//value_1*N_1[0];
-            //         }
-            //         else{
-            //             rRightHandSideVector[i] = value_1*N_1[1];// value_0*N_0[1];
-            //             rRightHandSideVector[TNumNodes+i] = 0;
-            //         }
-            //     }
-            // }
-        }
+        if (rLeftHandSideMatrix.size1() != TNumNodes)
+            rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+        if (rRightHandSideVector.size() != TNumNodes)
+            rRightHandSideVector.resize(TNumNodes, false);
+        rLeftHandSideMatrix.clear();
     }
 
     /// Check that all data required by this condition is available and reasonable
@@ -351,10 +250,10 @@ public:
         else
         {
             // Check that all required variables have been registered
-            if(POSITIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "POSITIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
-            if(NEGATIVE_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "NEGATIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(ADJOINT_POSITIVE_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "ADJOINT_POSITIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
+            if(ADJOINT_NEGATIVE_POTENTIAL.Key() == 0)
+                KRATOS_ERROR << "ADJOINT_NEGATIVE_POTENTIAL Key is 0. Check if the application was correctly registered.";
 
             // Checks on nodes
 
@@ -362,10 +261,10 @@ public:
             for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
             {
 
-                if(this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing POSITIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
-                if(this->GetGeometry()[i].SolutionStepsDataHas(NEGATIVE_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing NEGATIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_POSITIVE_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing ADJOINT_POSITIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
+                if(this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_NEGATIVE_POTENTIAL) == false)
+                    KRATOS_ERROR << "missing ADJOINT_NEGATIVE_POTENTIAL variable on solution step data for node " << this->GetGeometry()[i].Id();
 
 
                 return Check;
@@ -390,7 +289,7 @@ public:
                     rResult.resize(TNumNodes, false);
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
             }
             else {
                 if (rResult.size() != 2*TNumNodes)
@@ -403,18 +302,18 @@ public:
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] > 0)
-                        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
                     else
-                        rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
                 }
 
                 //negative part - sign is opposite to the previous case
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] < 0)
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
                     else
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
                 }  
             }
         }
@@ -433,7 +332,7 @@ public:
                 ConditionDofList.resize(TNumNodes);
 
                 for (unsigned int i = 0; i < TNumNodes; i++)
-                    ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
             }
             else {
                  if (ConditionDofList.size() != 2*TNumNodes)
@@ -446,28 +345,25 @@ public:
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] > 0)
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
                     else
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
                 }
 
                 //negative part - sign is opposite to the previous case
                 for (unsigned int i = 0; i < TNumNodes; i++)
                 {
                     if(distances[i] < 0)
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
                     else
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
                 }
             }
         }
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
         {
-            std::vector<double> rValues;
-            ElementPointerType pElem = pGetElement();
-            pElem->GetValueOnIntegrationPoints(PRESSURE, rValues, rCurrentProcessInfo);
-            this->SetValue(PRESSURE,rValues[0]);
+
         }
 
 
@@ -555,47 +451,6 @@ protected:
             KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
                 << "No element found for condition #" << this->Id() << std::endl;
             return mpElement.lock();
-        }
-
-        void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom)
-        {
-            for (SizeType i = 0; i < TDim; i++)
-            {
-                if (rGeom[i].Has(NEIGHBOUR_ELEMENTS)) {
-                    WeakPointerVector<Element> &rNodeElementCandidates = rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
-                    for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
-                        ElementCandidates.push_back(rNodeElementCandidates(j));
-                } else
-                    std::cout << "fuck" << std::endl; 
-            }
-        }
-
-        void GetSortedIds(std::vector<IndexType> &Ids,
-                          const GeometryType &rGeom)
-        {
-            Ids.resize(rGeom.PointsNumber());
-            for (SizeType i = 0; i < Ids.size(); i++)
-                Ids[i] = rGeom[i].Id();
-            std::sort(Ids.begin(), Ids.end());
-        }
-
-        void FindParentElement(std::vector<IndexType> &NodeIds,
-                               std::vector<IndexType> &ElementNodeIds,
-                               WeakPointerVector<Element> ElementCandidates)
-        {
-            for (SizeType i = 0; i < ElementCandidates.size(); i++)
-            {
-                
-                GeometryType &rElemGeom = ElementCandidates[i].GetGeometry();
-                
-                GetSortedIds(ElementNodeIds, rElemGeom);
-
-                if (std::includes(ElementNodeIds.begin(), ElementNodeIds.end(), NodeIds.begin(), NodeIds.end()))
-                {
-                    mpElement = ElementCandidates(i);
-                    return;
-                }
-            }
         }
 
         ///@}

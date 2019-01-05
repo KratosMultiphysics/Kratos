@@ -90,6 +90,12 @@ public:
      */
     IncompressibleAdjointPotentialFlowElement(IndexType NewId = 0) {};
 
+    IncompressibleAdjointPotentialFlowElement(Element::Pointer pPrimalElement)
+                    : Element(pPrimalElement->Id(), pPrimalElement->pGetGeometry(), pPrimalElement->pGetProperties())
+                    , mpPrimalElement(pPrimalElement)
+    {
+    };
+
     /**
      * Constructor using an array of nodes
      */
@@ -173,6 +179,197 @@ public:
         KRATOS_CATCH("");
     }
 
+     IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mpPrimalElement->GetIntegrationMethod();
+    }
+
+  
+
+    void Initialize() override
+    {
+        mpPrimalElement->Initialize();
+    }
+
+    void ResetConstitutiveLaw() override
+    {
+        mpPrimalElement->ResetConstitutiveLaw();
+    }
+
+    void CleanMemory() override
+    {
+        mpPrimalElement->CleanMemory();
+    }
+
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
+    }
+
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->InitializeNonLinearIteration(rCurrentProcessInfo);
+    }
+
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    }
+
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->FinalizeSolutionStep(rCurrentProcessInfo);
+    }
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                      VectorType& rRightHandSideVector,
+                                      ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrix,
+                                              rRightHandSideVector,
+                                              rCurrentProcessInfo);
+    }
+
+    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
+                                      std::vector< VectorType >& rRightHandSideVectors,
+                                      const std::vector< Variable< VectorType > >& rRHSVariables,
+                                      ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateLocalSystem(rLeftHandSideMatrices,
+                                              rLHSVariables,
+                                              rRightHandSideVectors,
+                                              rRHSVariables,
+                                              rCurrentProcessInfo);
+    }
+
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                       ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrix,
+                                               rCurrentProcessInfo);
+    }
+
+    void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
+					const std::vector< Variable< MatrixType > >& rLHSVariables,
+					ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateLeftHandSide(rLeftHandSideMatrices,
+                                               rLHSVariables,
+                                               rCurrentProcessInfo);
+    }
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,
+                                        ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateRightHandSide(rRightHandSideVector,
+                                                rCurrentProcessInfo);
+    }
+
+    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+					const std::vector< Variable< VectorType > >& rRHSVariables,
+					ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateRightHandSide(rRightHandSideVectors,
+                                                rRHSVariables,
+                                                rCurrentProcessInfo);
+    }
+
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							VectorType& rRightHandSideVector,
+							ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesContributions(rLeftHandSideMatrix,
+							rRightHandSideVector,
+							rCurrentProcessInfo);
+    }
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					        ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesLHS(rLeftHandSideMatrix,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+					      ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateFirstDerivativesRHS(rRightHandSideVector,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesContributions(rLeftHandSideMatrix,
+							    rRightHandSideVector,
+							    rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+					       ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesLHS(rLeftHandSideMatrix,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+					       ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateSecondDerivativesRHS(rRightHandSideVector,
+					        rCurrentProcessInfo);
+    }
+
+    void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateMassMatrix(rMassMatrix,rCurrentProcessInfo);
+    }
+
+    void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->CalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                const Variable<VectorType>& rRHSVariable,
+                                Variable<double >& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rRHSVector,
+                                    rRHSVariable,
+                                    rDestinationVariable,
+                                    rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const VectorType& rRHSVector,
+                                const Variable<VectorType>& rRHSVariable,
+                                Variable<array_1d<double,3> >& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rRHSVector,
+                                rRHSVariable,
+                                rDestinationVariable,
+                                rCurrentProcessInfo);
+    }
+
+    void AddExplicitContribution(const MatrixType& rLHSMatrix,
+                                const Variable<MatrixType>& rLHSVariable,
+                                Variable<Matrix>& rDestinationVariable,
+                                const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->AddExplicitContribution(rLHSMatrix,
+                                rLHSVariable,
+                                rDestinationVariable,
+                                rCurrentProcessInfo);
+    }
+
+
     /**
      * this determines the elemental equation ID vector for all elemental
      * DOFs
@@ -187,7 +384,7 @@ public:
                 rResult.resize(NumNodes, false);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
 
         }
         else//wake element
@@ -202,18 +399,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
                 else
-                    rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL,0).EquationId();
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
                 else
-                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL,0).EquationId();
+                    rResult[NumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL,0).EquationId();
             }
         }
 
@@ -234,7 +431,7 @@ public:
                 rElementalDofList.resize(NumNodes);
 
             for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
         }
         else//wake element
         {
@@ -248,18 +445,18 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] > 0)
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
                 else
-                    rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
             }
 
             //negative part - sign is opposite to the previous case
             for (unsigned int i = 0; i < NumNodes; i++)
             {
                 if(distances[i] < 0)
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
                 else
-                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                    rElementalDofList[NumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
             }
         }
     }
@@ -280,236 +477,7 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
-    {
-        ElementalData<NumNodes,Dim> data;
-        array_1d<double,NumNodes> elemental_distance;
-        //calculate shape functions
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
     
-        //gather nodal data
-        for(unsigned int i=0; i<NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-
-        
-        //TEST:
-        bool kutta_element = false;
-        if (this->Is(INTERFACE))
-            kutta_element = true;
-
-        for(unsigned int i=0; i<NumNodes; ++i)
-            if(GetGeometry()[i].Is(STRUCTURE))
-            {   
-                kutta_element = true;
-                break;
-            }
-
-        if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
-        {
-            if (rLeftHandSideMatrix.size1() != NumNodes || rLeftHandSideMatrix.size2() != NumNodes)
-                rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-            if (rRightHandSideVector.size() != NumNodes)
-                rRightHandSideVector.resize(NumNodes, false);
-            rLeftHandSideMatrix.clear();
-
-            if (this->Is(BOUNDARY)){
-                for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
-                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
-
-                const Vector& r_elemental_distances=elemental_distance;
-                Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pGetGeometry(), r_elemental_distances);
-                Matrix positive_side_sh_func;
-                ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_gradients;
-                Vector positive_side_weights;
-                triangle_shape_functions.ComputePositiveSideShapeFunctionsAndGradientsValues(
-                    positive_side_sh_func,
-                    positive_side_sh_func_gradients,
-                    positive_side_weights,
-                    GeometryData::GI_GAUSS_3);
-                for (unsigned int i_gauss=0;i_gauss<positive_side_sh_func_gradients.size();i_gauss++){
-                    bounded_matrix<double,NumNodes,Dim> DN_DX;
-                    DN_DX=positive_side_sh_func_gradients(i_gauss);
-        
-                    noalias(rLeftHandSideMatrix) += (prod(DN_DX,trans(DN_DX)))*positive_side_weights(i_gauss);;                 
-                }
-
-                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-            }
-            else {
-                if (this->Is(FLUID) || this->IsNotDefined(FLUID))
-                    ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data); 
-            } 
-             
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-        }
-        else //it is a wake element
-        {   
-            if(this->Is(BOUNDARY)) std::cout<<"Element with both embedded Wake & LevelSet functions:"<<this->Id()<<std::endl;
-            GetWakeDistances(data.distances);
-            
-            //note that the lhs and rhs have double the size!!
-            if(rLeftHandSideMatrix.size1() != 2*NumNodes || rLeftHandSideMatrix.size2() != 2*NumNodes)
-                rLeftHandSideMatrix.resize(2*NumNodes,2*NumNodes,false);
-            if(rRightHandSideVector.size() != 2*NumNodes)
-                rRightHandSideVector.resize(2*NumNodes,false);
-            rLeftHandSideMatrix.clear();
-            
-            //subdivide the element
-            constexpr unsigned int nvolumes = 3*(Dim-1);
-            bounded_matrix<double,NumNodes, Dim > Points;
-            array_1d<double,nvolumes> Volumes;
-            bounded_matrix<double, nvolumes, NumNodes > GPShapeFunctionValues;
-            array_1d<double,nvolumes> PartitionsSign;
-            std::vector<Matrix> GradientsValue(nvolumes);
-            bounded_matrix<double,nvolumes, 2> NEnriched;
-            
-            for(unsigned int i=0; i<GradientsValue.size(); ++i)
-                GradientsValue[i].resize(2,Dim,false);
-           
-            
-            
-            for(unsigned int i = 0; i<NumNodes; ++i)
-            {
-                const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
-                for(unsigned int k = 0; k<Dim; ++k)
-                {
-                    Points(i, k) = coords[k];
-                }
-            }
-            
-            const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
-                                                                                            data.DN_DX,
-                                                                                            data.distances,
-                                                                                            Volumes, 
-                                                                                            GPShapeFunctionValues, 
-                                                                                            PartitionsSign, 
-                                                                                            GradientsValue, 
-                                                                                            NEnriched);
-            //compute the lhs and rhs that would correspond to it not being divided
-            Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_penalty_positive = ZeroMatrix(NumNodes,NumNodes);
-            Matrix lhs_penalty_negative = ZeroMatrix(NumNodes,NumNodes);
-            double geometry_angle=rCurrentProcessInfo[MIU];
-         
-            bounded_matrix<double, 2, 1 > n_kutta;
-            n_kutta(0,0)=sin(geometry_angle*3.1415926/180);
-            n_kutta(1,0)=cos(geometry_angle*3.1415926/180);
-
-            Matrix test=prod(data.DN_DX,n_kutta);
-            for(unsigned int i=0; i<nsubdivisions; ++i)
-            {
-                if(PartitionsSign[i] > 0){
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data);
-                    noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));
-                }
-                else{
-                    ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data);
-                    noalias(lhs_penalty_negative) += Volumes[i] * prod(test,trans(test));
-                }
-            }
-            
-            double penalty = rCurrentProcessInfo[INITIAL_PENALTY];
-
-            //also next version works - NON SYMMETRIC - but it does not require a penalty
-//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
-//                 n /= norm_2(n);
-//                 bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
-//                 bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
-//                 bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
-//                                 
-//                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
-//                 noalias(tmp) = prod(data.DN_DX,P);
-//                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
-                if(kutta_element)
-                { std::cout<<"SOLVING KUTTA ELEMENT"<<std::endl;
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {
-                        for(unsigned int j=0; j<NumNodes; ++j)
-                        {
-                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j)+penalty*lhs_penalty_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+penalty*lhs_penalty_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
-                        }
-                    }
-                }
-                else
-                {
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {
-                        for(unsigned int j=0; j<NumNodes; ++j)
-                        {
-                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
-                        }
-                    }
-                    
-                
-                    //side1  -assign constraint only on the NEGATIVE_POTENTIAL dofs
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {
-                        if(data.distances[i]<0)
-                        {
-                                for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
-                                }
-                        }
-                    }
-                    
-                    //side2 -assign constraint only on the NEGATIVE_POTENTIAL dofs
-                    for(unsigned int i=0; i<NumNodes; ++i)
-                    {                            
-                        if(data.distances[i]>0)
-                        {   
-                            for(unsigned int j=0; j<NumNodes; ++j)
-                                {
-                                    rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
-                                }
-                        }
-                    }
-                }
-            Vector split_element_values(NumNodes*2);
-            GetValuesOnSplitElement(split_element_values, data.distances);
-            noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
-        }
-        
-    }
-
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side vector only
-     * @param rRightHandSideVector: the elemental right hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
-    {
-        //TODO: improve speed
-        Matrix tmp;
-        CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
-    }
-
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
-    {
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (this->Is(MARKER) && active == true)
-            CheckWakeCondition();
-    }
-
     /**
      * This method provides the place to perform checks on the completeness of the input
      * and the compatibility with the problem options as well as the contitutive laws selected
@@ -537,8 +505,8 @@ public:
 
         for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
         {
-            if (this->GetGeometry()[i].SolutionStepsDataHas(POSITIVE_POTENTIAL) == false)
-                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable POSITIVE_POTENTIAL on node ", this->GetGeometry()[i].Id())
+            if (this->GetGeometry()[i].SolutionStepsDataHas(ADJOINT_POSITIVE_POTENTIAL) == false)
+                KRATOS_THROW_ERROR(std::invalid_argument, "missing variable ADJOINT_POSITIVE_POTENTIAL on node ", this->GetGeometry()[i].Id())
         }
 
         return 0;
@@ -546,35 +514,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if(rValues.size() != 1) rValues.resize(1);
-
-        if (rVariable == PRESSURE)
-        {
-            double p = 0.0;
-            p = ComputePressure(rCurrentProcessInfo);
-            rValues[0] = p;
-        }
-    }
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
-            std::vector< array_1d<double,3> >& rValues,
-            const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if(rValues.size() != 1) rValues.resize(1);
-
-        if (rVariable == VELOCITY)
-        {
-            array_1d<double,3> v(3,0.0);
-            array_1d<double,Dim> vaux;
-            ComputeVelocity(vaux);
-            for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
-            rValues[0] = v;
-        }
-    }
 
 
     ///@}
@@ -613,7 +552,10 @@ public:
         pGetGeometry()->PrintData(rOStream);
     }
 
-
+    Element::Pointer pGetPrimalElement()
+    {
+        return mpPrimalElement;
+    }
 
     ///@}
     ///@name Friends
@@ -626,6 +568,7 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    Element::Pointer mpPrimalElement;
     ///@}
     ///@name Protected member Variables
     ///@{
@@ -661,18 +604,18 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] > 0)
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
             else
-                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                split_element_values[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
         }
 
         //negative part - sign is opposite to the previous case
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if(distances[i] < 0)
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
             else
-                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
         }
     }
 
@@ -694,7 +637,7 @@ protected:
     {
         ElementalData<NumNodes, Dim> data;
         for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
         noalias(velocity) = prod(trans(data.DN_DX), data.phis);
@@ -712,9 +655,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
         }            
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
 
@@ -732,9 +675,9 @@ protected:
         for (unsigned int i = 0; i < NumNodes; i++)
         {
             if (distances[i] < 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
             else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
         }
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
@@ -831,7 +774,6 @@ private:
 
     ///@name Static Member Variables
     ///@{
-
 
 
     ///@}
