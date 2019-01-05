@@ -275,7 +275,7 @@ private:
      */
     void GenerateAuxLine(   const Geometry<Node<3> >& rGeom,
                             const Vector& distance,
-                            Kratos::shared_ptr< Geometry<IndexedPoint> >& p_aux_line,
+                            Line3D2<IndexedPoint>::Pointer& p_aux_line,
                             array_1d<double, 3>& aux_velocity1,
                             array_1d<double, 3>& aux_velocity2 );
 

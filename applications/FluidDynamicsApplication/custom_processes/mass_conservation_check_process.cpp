@@ -505,7 +505,7 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                     array_1d<double, 3> aux_velocity1, aux_velocity2;
 
                     // Generation of an auxiliary line that only covers the negative fraction ("transferring the splitting mechanism to 1D")
-                    Kratos::shared_ptr< Geometry<IndexedPoint> > p_aux_line = nullptr;
+                    Line3D2<IndexedPoint>::Pointer p_aux_line = nullptr;
                     GenerateAuxLine( rGeom, distance, p_aux_line, aux_velocity1, aux_velocity2 );
 
                     // Gauss point information for auxiliary line geometry
@@ -662,9 +662,9 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
                             std::abs(coord1_transformed[2] - coord3_transformed[2])<1.0e-7 );
 
     // creating auxiliary nodes based on the transformed position
-    Kratos::shared_ptr<Kratos::Node<3UL>> node1 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
-    Kratos::shared_ptr<Kratos::Node<3UL>> node2 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
-    Kratos::shared_ptr<Kratos::Node<3UL>> node3 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
+    Node<3UL>::Pointer node1 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 2, coord1_transformed[0], coord1_transformed[1] );
+    Node<3UL>::Pointer node2 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 3, coord2_transformed[0], coord2_transformed[1] );
+    Node<3UL>::Pointer node3 = Kratos::make_shared<Kratos::Node<3UL>>( mrModelPart.Nodes().size() + 4, coord3_transformed[0], coord3_transformed[1] );
 
     // finally creating the desired Triangle2D3 based on the nodes
     Triangle2D3<Node<3>>::Pointer aux_2D_triangle = Kratos::make_shared< Triangle2D3<Node<3> > >( node1, node2, node3 );
@@ -675,7 +675,7 @@ Triangle2D3<Node<3>>::Pointer MassConservationCheckProcess::GenerateAuxTriangle(
 
 void MassConservationCheckProcess::GenerateAuxLine( const Geometry<Node<3> >& rGeom,
                                                     const Vector& distance,
-                                                    Kratos::shared_ptr< Geometry<IndexedPoint> >& p_aux_line,
+                                                    Line3D2<IndexedPoint>::Pointer& p_aux_line,
                                                     array_1d<double, 3>& aux_velocity1,
                                                     array_1d<double, 3>& aux_velocity2 ){
 
