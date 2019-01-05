@@ -22,6 +22,7 @@
 #include "custom_processes/compute_lift_level_set_process.h"
 #include "custom_processes/compute_gradient_adjoint_process.h"
 #include "custom_processes/get_equation_id.h"
+#include "custom_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp"
 
 namespace Kratos {
 namespace Python {
@@ -49,6 +50,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "GetEquationId")
         .def(init<ModelPart&,Vector&,int>())
         .def("Execute",&GetEquationId::Execute);
+
+        class_<ReplaceElementsAndConditionsAdjointProcess, ReplaceElementsAndConditionsAdjointProcess::Pointer, Process >
+        (m, "ReplaceElementsAndConditionsAdjointProcess")
+        .def(init<ModelPart&>())
+        .def("Execute",&ReplaceElementsAndConditionsAdjointProcess::Execute);
   }
 
 }  // namespace Python.
