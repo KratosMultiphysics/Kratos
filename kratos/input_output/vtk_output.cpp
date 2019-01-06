@@ -46,6 +46,8 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
     }
 }
 
+VtkOutput::~VtkOutput() { }
+
 void VtkOutput::PrintOutput()
 {
     //For whole model part

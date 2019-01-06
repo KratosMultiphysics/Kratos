@@ -47,7 +47,7 @@ public:
     VtkOutput(ModelPart& rModelPart, Parameters Parameters);
 
     /// Destructor.
-    virtual ~VtkOutput() = default;
+    virtual ~VtkOutput();
 
     ///@}
     ///@name Operations
