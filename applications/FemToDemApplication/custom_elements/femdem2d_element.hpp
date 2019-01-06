@@ -67,6 +67,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
 							  ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 
