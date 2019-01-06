@@ -73,16 +73,7 @@ public:
         VTK_BINARY
     };
 
-    enum class WriteDataType {
-        VTK_NONE = 0,
-        VTK_SCALAR = 1,
-        VTK_VECTOR_3 = 3,
-        VTK_VECTOR_4 = 4,
-        VTK_VECTOR_6 = 6,
-        VTK_VECTOR_9 = 9
-    };
-
-private:
+protected:
     ///@name Member Variables
     ///@{
     ModelPart& mrModelPart;
@@ -201,35 +192,58 @@ private:
     void WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
-     * @brief Determine the vtk-datatype for a Variable
-     * @param VariableName name of the Variable for which output is written
-     * @return the vtk-datatype for the Variable
+     * @brief Write the results of rNodes. Synchronization is necessary because both local
+     * and ghost-node-values are printed in MPI and can overlap!
+     * @param rVariableName name of the result to be written.
+     * @param rNodes the nodes which is beging output
+     * @param IsHistoricalValue whether the values are historical or not
+     * @param rFileStream the file stream to which data is to be written.
      */
-    VtkOutput::WriteDataType GetWriteDataType(const std::string& VariableName) const;
+    void WriteNodalContainerResults(
+        const std::string& rVariableName,
+        const ModelPart::NodesContainerType& rNodes,
+        const bool IsHistoricalValue,
+        std::ofstream& rFileStream) const;
 
     /**
-     * @brief Write the solution step results of rContainer.
+     * @brief Write the variable results of rContainer (Elements or Conditions).
      * @template TContainerType The type of container of the entity on which the results are to be written
      * @param rVariableName name of the result to be written.
      * @param rContainer the container which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType>
-    void WriteContainerSolutionsStepResults(const std::string& rVariableName,
-                                            const TContainerType& rContainer,
-                                            std::ofstream& rFileStream) const;
+    void WriteGeometricalContainerResults(const std::string& rVariableName,
+                                          const TContainerType& rContainer,
+                                          std::ofstream& rFileStream) const;
 
     /**
-     * @brief Write the variable results of rContainer.
-     * @template TContainerType The type of container of the entity on which the results are to be written
-     * @param rVariableName name of the result to be written.
-     * @param rContainer the container which is beging output
+     * @brief Writes scalar results of rNodes. Wraps the necessary synchronization-calls
+     * @param rNodes the nodes which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param IsHistoricalValue whether the values are historical or not
      * @param rFileStream the file stream to which data is to be written.
      */
-    template<typename TContainerType>
-    void WriteContainerVariableResults(const std::string& rVariableName,
-                                       const TContainerType& rContainer,
-                                       std::ofstream& rFileStream) const;
+    template<class TVarType>
+    void WriteNodalScalarValues(
+        const ModelPart::NodesContainerType& rNodes,
+        const TVarType& rVariable,
+        const bool IsHistoricalValue,
+        std::ofstream& rFileStream) const;
+
+    /**
+     * @brief Writes vector results of rNodes. Wraps the necessary synchronization-calls
+     * @param rNodes the nodes which is beging output
+     * @param rVariable Variable of the result to be written.
+     * @param IsHistoricalValue whether the values are historical or not
+     * @param rFileStream the file stream to which data is to be written.
+     */
+    template<class TVarType>
+    void WriteNodalVectorValues(
+        const ModelPart::NodesContainerType& rNodes,
+        const TVarType& rVariable,
+        const bool IsHistoricalValue,
+        std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the scalar-historical variable results of rContainer.
@@ -279,6 +293,7 @@ private:
      * @template TVarType The type of Variable of the entity on which the results are to be written
      * @param rContainer the container which is beging output
      * @param rVariable Variable of the result to be written.
+     * @param VtkDataType type of vtk data
      * @param rFileStream the file stream to which data is to be written.
      */
     template<typename TContainerType, class TVarType>
