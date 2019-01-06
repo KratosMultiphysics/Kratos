@@ -32,17 +32,23 @@ def ConstructSolver(configuration):
         ]
     }
 
-    for app_name, linear_solve_names in linear_solver_apps.items():
-        if solver_type in linear_solve_names:
+    for app_name, linear_solver_names in linear_solver_apps.items():
+        if solver_type in linear_solver_names:
+            from KratosMultiphysics import kratos_utilities as kratos_utils
+            if not kratos_utils.IsApplicationAvailable(app_name):
+                err_msg  = 'Trying to use the linear-solver "' + solver_type
+                err_msg += '"\nThis solver is defined in the "' + app_name
+                err_msg += '" which is not compiled'
+                raise Exception(err_msg)
             # import the Application in which the linear solver is defined
             __import__("KratosMultiphysics." + app_name)
             break
 
     if KM.ComplexLinearSolverFactory().Has(solver_type):
         KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a complex linear solver")
+            "Constructing a complex linear-solver")
         return KM.ComplexLinearSolverFactory().Create(configuration)
     else:
         KM.Logger.PrintInfo("Linear-Solver-Factory",\
-            "Constructing a regular (non-complex) linear solver")
+            "Constructing a regular (non-complex) linear-solver")
         return KM.LinearSolverFactory().Create(configuration)
