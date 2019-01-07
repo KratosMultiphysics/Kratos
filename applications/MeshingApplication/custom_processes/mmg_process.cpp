@@ -296,7 +296,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     for (auto sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
-        KRATOS_WARNING_IF("MmgProcess", (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
         "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
