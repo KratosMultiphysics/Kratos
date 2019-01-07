@@ -36,8 +36,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
         """{
             "hessian_strategy_parameters"              :{
                     "estimate_interpolation_error"     : false,
-                    "interpolation_error"              : 0.004,
-                    "mesh_dependent_constant"          : 0.28125
+                    "interpolation_error"              : 0.004
             },
             "enforce_current"                   : false,
             "anisotropy_remeshing"              : true,
