@@ -661,8 +661,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def OutputSolutionStep(self):
         # printing if required
 
-        if self.particles_results_counter.Tick():
-            Print()
+        if True or self.particles_results_counter.Tick():
+            self.Print()
         super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
     def Print(self):

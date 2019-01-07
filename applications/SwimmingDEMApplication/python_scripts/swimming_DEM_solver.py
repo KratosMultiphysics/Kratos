@@ -40,7 +40,7 @@ class SwimmingDEMSolver(PythonSolver):
         self.fluid_dt = fluid_solver.settings["time_stepping"]["time_step"].GetDouble()
         self.do_solve_dem = project_parameters["do_solve_dem"].GetBool()
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
-
+        self.first_DEM_iteration = True
         self.ConstructStationarityTool()
         self.ConstructProjectionModule()
         self.ConstructDerivativeRecoverer()
@@ -168,7 +168,7 @@ class SwimmingDEMSolver(PythonSolver):
         # the coupling but can be of interest.
         self.ComputePostProcessResults() # TODO: Make sure this is run only when needed
 
-        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time)
+        self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 
         if self.derivative_recovery_counter.Tick():
             self.recovery.Recover()
@@ -189,7 +189,7 @@ class SwimmingDEMSolver(PythonSolver):
             (self.project_at_every_substep_option or self.calculating_fluid_in_current_step)
         )
 
-        if it_is_time_to_forward_couple:
+        if it_is_time_to_forward_couple or self.first_DEM_iteration:
 
             if self.coupling_scheme_type == "UpdatedDEM":
                 self.ApplyForwardCoupling()
@@ -210,6 +210,8 @@ class SwimmingDEMSolver(PythonSolver):
 
         if self.do_solve_dem:
             self.dem_solver.SolveSolutionStep()
+
+        self.first_DEM_iteration = False
 
     def AppendValuesForTheHistoryForce(self):
         if self.using_hinsberg_method:
