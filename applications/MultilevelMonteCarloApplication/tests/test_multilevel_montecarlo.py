@@ -40,7 +40,7 @@ class KratosMultilevelMonteCarloGeneralTests(KratosUnittest.TestCase):
 
     def testMonteCarloAnalysis(self):
         '''set the ProjectParameters.json path'''
-        parameter_file_name = "SquareCoarse/ProjectParameters.json"
+        parameter_file_name = "Poisson2dTest/poisson_2d_project_parameters.json"
         '''create a serialization of the model and of the project parameters'''
         pickled_model,pickled_parameters = MC.SerializeModelParameters_Task(parameter_file_name)
         '''evaluate the exact expected value of Q (sample = 1.0)'''
@@ -70,7 +70,7 @@ class KratosMultilevelMonteCarloGeneralTests(KratosUnittest.TestCase):
 
     def testMultilevelMonteCarloAnalysis(self):
         '''set the ProjectParameters.json path'''
-        parameter_file_name = "SquareCoarse/ProjectParameters.json"
+        parameter_file_name = "Poisson2dTest/poisson_2d_project_parameters.json"
         '''create a serialization of the model and of the project parameters'''
         pickled_model,pickled_parameters = MLMC.SerializeModelParameters_Task(parameter_file_name)
         '''customize setting parameters of the ML simulation'''
