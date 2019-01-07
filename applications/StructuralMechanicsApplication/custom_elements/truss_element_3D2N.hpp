@@ -288,6 +288,8 @@ namespace Kratos
             ProcessInfo& rCurrentProcessInfo,
             const bool& rSaveInternalVariables);
 
+        void CheckFracture();
+
 private:
     /**
      * @brief This method computes directly the lumped mass vector
