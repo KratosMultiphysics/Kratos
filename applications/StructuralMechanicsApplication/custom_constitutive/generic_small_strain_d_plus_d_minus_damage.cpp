@@ -156,7 +156,7 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 {
     bool is_damaging = false;
     const Flags& r_constitutive_law_options = rValues.GetOptions();
-    if (F_tension <= 0.0) { // Elastic case
+    if (F_tension <= tolerance) { // Elastic case
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             this->SetNonConvTensionDamage(rParameters.DamageTension);
             this->SetNonConvTensionThreshold(rParameters.ThresholdTension);
@@ -202,7 +202,7 @@ bool GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
 {
     bool is_damaging = false;
     const Flags& r_constitutive_law_options = rValues.GetOptions();
-    if (F_compression <= 0.0) { // Elastic case
+    if (F_compression <= tolerance) { // Elastic case
         if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             this->SetNonConvCompressionDamage(rParameters.DamageCompression);
             this->SetNonConvCompressionThreshold(rParameters.ThresholdCompression);

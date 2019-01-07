@@ -128,7 +128,7 @@ class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
         )
     {
         const Properties& r_material_properties = rValues.GetMaterialProperties();
-        const int softening_type = r_material_properties[SOFTENING_TYPE];
+        const int softening_type = r_material_properties.Has(SOFTENING_TYPE_COMPRESSION) ? r_material_properties[SOFTENING_TYPE_COMPRESSION] : r_material_properties[SOFTENING_TYPE]
         double damage_parameter;
         TYieldSurfaceType::CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
 
