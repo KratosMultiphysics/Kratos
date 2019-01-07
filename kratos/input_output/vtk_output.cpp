@@ -49,18 +49,18 @@ VtkOutput::VtkOutput(ModelPart& rModelPart, Parameters Parameters)
 void VtkOutput::PrintOutput()
 {
     //For whole model part
-    WriteModelPart(mrModelPart, false);
+    WriteModelPartToFile(mrModelPart, false);
 
     //For sub model parts
     const bool print_sub_model_parts = mOutputSettings["output_sub_model_parts"].GetBool();
     if(print_sub_model_parts) {
         for (const auto& r_sub_model_part : mrModelPart.SubModelParts()) {
-            WriteModelPart(r_sub_model_part, true);
+            WriteModelPartToFile(r_sub_model_part, true);
         }
     }
 }
 
-void VtkOutput::WriteModelPart(const ModelPart& rModelPart, const bool IsSubModelPart)
+void VtkOutput::WriteModelPartToFile(const ModelPart& rModelPart, const bool IsSubModelPart)
 {
     Initialize(rModelPart);
 
@@ -75,11 +75,11 @@ void VtkOutput::WriteModelPart(const ModelPart& rModelPart, const bool IsSubMode
         output_file.open(output_file_name, std::ios::out | std::ios::binary | std::ios::trunc);
     }
 
-    WriteHeader(rModelPart, output_file);
-    WriteMesh(rModelPart, output_file);
-    WriteNodalResults(rModelPart, output_file);
-    WriteElementResults(rModelPart, output_file);
-    WriteConditionResults(rModelPart, output_file);
+    WriteHeaderToFile(rModelPart, output_file);
+    WriteMeshToFile(rModelPart, output_file);
+    WriteNodalResultsToFile(rModelPart, output_file);
+    WriteElementResultsToFile(rModelPart, output_file);
+    WriteConditionResultsToFile(rModelPart, output_file);
 
     output_file.close();
 }
@@ -136,7 +136,7 @@ void VtkOutput::CreateMapFromKratosIdToVTKId(const ModelPart& rModelPart)
     }
 }
 
-void VtkOutput::WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream) const
+void VtkOutput::WriteHeaderToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     rFileStream << "# vtk DataFile Version 4.0"
                 << "\n"
@@ -152,13 +152,13 @@ void VtkOutput::WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStr
                 << "\n";
 }
 
-void VtkOutput::WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream) const
+void VtkOutput::WriteMeshToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
-    WriteNodes(rModelPart, rFileStream);
-    WriteConditionsAndElements(rModelPart, rFileStream);
+    WriteNodesToFile(rModelPart, rFileStream);
+    WriteConditionsAndElementsToFile(rModelPart, rFileStream);
 }
 
-void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream) const
+void VtkOutput::WriteNodesToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     // NOTE: also in MPI all nodes (local and ghost) have to be written, because
     // they might be needed by the elements/conditions due to the connectivity
@@ -173,7 +173,7 @@ void VtkOutput::WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStre
     }
 }
 
-void VtkOutput::WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream) const
+void VtkOutput::WriteConditionsAndElementsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream) const
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
 
@@ -276,7 +276,7 @@ void VtkOutput::WriteCellType(const TContainerType& rContainer, std::ofstream& r
     }
 }
 
-void VtkOutput::WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteNodalResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     // NOTE: also in MPI all nodes (local and ghost) have to be written, because
     // they might be needed by the elements/conditions due to the connectivity
@@ -307,7 +307,7 @@ void VtkOutput::WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rF
     }
 }
 
-void VtkOutput::WriteElementResults(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteElementResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
     Parameters element_results = mOutputSettings["element_data_value_variables"];
@@ -326,7 +326,7 @@ void VtkOutput::WriteElementResults(const ModelPart& rModelPart, std::ofstream& 
     }
 }
 
-void VtkOutput::WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream)
+void VtkOutput::WriteConditionResultsToFile(const ModelPart& rModelPart, std::ofstream& rFileStream)
 {
     const auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
     Parameters condition_results = mOutputSettings["condition_data_value_variables"];
