@@ -130,7 +130,7 @@ class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
         const Properties& r_material_properties = rValues.GetMaterialProperties();
         const int softening_type = r_material_properties.Has(SOFTENING_TYPE_COMPRESSION) ? r_material_properties[SOFTENING_TYPE_COMPRESSION] : r_material_properties[SOFTENING_TYPE]
         double damage_parameter;
-        TYieldSurfaceType::CalculateDamageParameter(rValues, damage_parameter, CharacteristicLength);
+        CalculateDamageParameterCompression(rValues, damage_parameter, CharacteristicLength);
 
         switch (softening_type)
         {
@@ -145,6 +145,25 @@ class GenericCompressionConstitutiveLawIntegratorDplusDminusDamage
             break;
         }
         rPredictiveStressVector *= (1.0 - rDamage);
+    }
+
+    /**
+     * @brief This method returns the initial uniaxial stress threshold
+     * @param rThreshold The uniaxial stress threshold
+     * @param rValues Parameters of the constitutive law
+     */
+    static void CalculateDamageParameterCompression(
+        ConstitutiveLaw::Parameters& rValues,
+        double& rDamageParameter,
+        const double CharacteristicLength
+        )
+    {
+        const double fracture_energy_compression = r_material_properties[FRACTURE_ENERGY_COMPRESSION];
+        ConstitutiveLaw::Parameters modified_values = rValues;
+        auto& r_properties = modified_values.GetMaterialProperties();
+        material_props.SetValue(FRACTURE_ENERGY, fracture_energy_compression);
+        modified_values.SetMaterialProperties(material_props);
+        TYieldSurfaceType::CalculateDamageParameter(modified_values, rDamageParameter, CharacteristicLength);
     }
 
     /**
