@@ -500,6 +500,13 @@ public:
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
 
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        //TODO: improve speed
+        Vector tmp;
+        CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
+    }
+
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
         bool active = true;
