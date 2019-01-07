@@ -68,6 +68,9 @@ public:
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
     typedef MeshDataTransferUtilities::TransferParameters    TransferParametersType;
 
+    typedef std::vector<Node<3>*>             NodePointerVectorType;
+    typedef std::vector<Element*>          ElementPointerVectorType;
+    typedef std::vector<Condition*>      ConditionPointerVectorType;
 
     enum ContactElementType //(contact domain definition)
     {
@@ -900,9 +903,13 @@ public:
     ///@name Operations
     ///@{
 
+    void SetModelPartNameToElements (ModelPart& rModelPart);
+
     void SetModelPartNameToConditions (ModelPart& rModelPart);
 
     void SetModelPartNameToNodes (ModelPart& rModelPart);
+
+    void SetFlagsToNodes (ModelPart& rModelPart, const std::vector<Flags> rControlFlags, const std::vector<Flags> rAssignFlags);
 
     double ComputeModelPartVolume (ModelPart& rModelPart);
 
@@ -910,6 +917,8 @@ public:
     //*******************************************************************************************
 
     bool CheckSubdomain     (Geometry<Node<3> >& rGeometry);
+
+    bool CheckRigidOuterCentre   (Geometry<Node<3> >& rGeometry);
 
     bool CheckInnerCentre   (Geometry<Node<3> >& rGeometry);
 

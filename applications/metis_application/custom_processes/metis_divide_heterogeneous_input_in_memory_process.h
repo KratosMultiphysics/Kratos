@@ -324,11 +324,10 @@ public:
             streams[mpi_rank]->write(mpi_recv_buffer[mpi_rank], msgRecvSize[mpi_rank]);
         }
 
-#ifdef KRATOS_DEBUG
-        // Print the partitions in debug mode
-        std::ofstream debug_ofstream("debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
-        debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
-#endif
+        if (mVerbosity > 1) {
+            std::ofstream debug_ofstream("MetisDivideHeterogeneousInputInMemoryProcess_debug_modelpart_"+std::to_string(mpi_rank)+".mdpa");
+            debug_ofstream << stringbufs[mpi_rank].str() << std::endl;
+        }
 
         // TODO: Try to come up with a better way to change the buffer.
         mrSerialIO.SwapStreamSource(streams[mpi_rank]);

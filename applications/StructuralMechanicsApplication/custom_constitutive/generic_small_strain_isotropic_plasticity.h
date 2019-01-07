@@ -111,8 +111,7 @@ public:
         : BaseType(rOther),
           mPlasticDissipation(rOther.mPlasticDissipation),
           mThreshold(rOther.mThreshold),
-          mPlasticStrain(rOther.mPlasticStrain),
-          mUniaxialStress(rOther.mUniaxialStress)
+          mPlasticStrain(rOther.mPlasticStrain)
     {
     }
 
@@ -412,9 +411,6 @@ protected:
     double mPlasticDissipation = 0.0;
     double mThreshold = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
-
-    // Auxiliar to print (NOTE: Alejandro do we need this now?)
-    double mUniaxialStress = 0.0;
 
     ///@}
     ///@name Private Operators
