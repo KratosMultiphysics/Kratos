@@ -7,51 +7,14 @@
 //
 
 #if !defined(KRATOS_TRILINOS_LOCAL_CUTTING_ISO_APP)
-#define KRATOS_TRILINOS_LOCAL_CUTTING_ISO_APP 
-
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-
+#define KRATOS_TRILINOS_LOCAL_CUTTING_ISO_APP
 
 
 // System includes
-#include <string>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
-#include <algorithm>
-
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/node.h"
-#include "includes/dof.h"
-#include "includes/variables.h"
-#include "includes/constitutive_law.h"
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
-
-
-// #include "containers/array_1d.h"
-// #include "processes/find_nodal_neighbours_process.h"
-// #include "processes/find_elements_neighbours_process.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "utilities/math_utils.h"
-//#include "utilities/split_triangle.h"
-#include "utilities/split_triangle.c"
-#include "utilities/split_tetrahedra.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/triangle_3d_3.h"
 #include "utilities/geometry_utilities.h"
-//#include "processes/node_erase_process.h"
 #include "custom_utilities/parallel_fill_communicator.h"
-// #include "spatial_containers/spatial_containers.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
@@ -64,7 +27,6 @@
 
 #include "Epetra_Import.h"
 #include "Epetra_MpiComm.h"
-#include "parallel_fill_communicator.h"
 
 
 
@@ -1400,6 +1362,6 @@ protected:
 
 } // namespace Kratos.
 
-#endif // KRATOS_TRILINOS_LOCAL_CUTTING_ISO_APP  defined 
+#endif // KRATOS_TRILINOS_LOCAL_CUTTING_ISO_APP  defined
 
 

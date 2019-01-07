@@ -702,6 +702,7 @@ class LineSearchSolutionStrategy
     //Restore Current Displacement, Velocity, Acceleration
     TSparseSpace::InplaceMult((*this->mpDx),-1.0);
     BaseType::Update();
+    TSparseSpace::InplaceMult((*this->mpDx),-1.0);
   }
 
   //**************************************************************************

@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
-CheckForPreviousImport()
 
 def Factory(settings, Model):
     if(type(settings) != Parameters):
@@ -9,7 +8,12 @@ def Factory(settings, Model):
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
     postprocess_parameters = settings["Parameters"]["postprocess_parameters"]
-    return GiDOutputProcess(model_part, output_name, postprocess_parameters)
+
+    if model_part.GetCommunicator().TotalProcesses() > 1:
+        from KratosMultiphysics.TrilinosApplication.gid_output_process_mpi import GiDOutputProcessMPI
+        return GiDOutputProcessMPI(model_part, output_name, postprocess_parameters)
+    else:
+        return GiDOutputProcess(model_part, output_name, postprocess_parameters)
 
 class GiDOutputProcess(Process):
 

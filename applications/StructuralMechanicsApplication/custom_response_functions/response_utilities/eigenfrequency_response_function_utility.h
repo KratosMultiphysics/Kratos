@@ -277,10 +277,12 @@ protected:
         // Element-wise computation of gradients
         for (auto& elem_i : mrModelPart.Elements())
         {
-            Matrix mass_matrix_org;
-            //TODO improve this. Mass matrix is only computed in order to get the number of dofs
-            elem_i.CalculateMassMatrix(mass_matrix_org, CurrentProcessInfo);
-            const std::size_t num_dofs_element = mass_matrix_org.size1();
+            Matrix LHS;
+            Matrix mass_matrix;
+            elem_i.CalculateLeftHandSide(LHS, CurrentProcessInfo);
+            elem_i.CalculateMassMatrix(mass_matrix, CurrentProcessInfo);
+
+            const std::size_t num_dofs_element = mass_matrix.size1();
             const std::size_t domain_size = CurrentProcessInfo.GetValue(DOMAIN_SIZE);
 
             Matrix aux_matrix = Matrix(num_dofs_element,num_dofs_element);
@@ -302,8 +304,8 @@ protected:
 
                 for(std::size_t coord_dir_i = 0; coord_dir_i < domain_size; coord_dir_i++)
                 {
-                    ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
-                    ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(elem_i, LHS, coord_directions[coord_dir_i], node_i, mDelta, derived_LHS, CurrentProcessInfo);
+                    ElementFiniteDifferenceUtility::CalculateMassMatrixDerivative(elem_i, mass_matrix, coord_directions[coord_dir_i], node_i, mDelta, derived_mass_matrix, CurrentProcessInfo);
 
                     for(std::size_t i = 0; i < num_of_traced_eigenfrequencies; i++)
                     {
