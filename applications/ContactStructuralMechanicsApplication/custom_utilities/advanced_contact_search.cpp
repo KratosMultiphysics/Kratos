@@ -166,7 +166,8 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeLinearRegre
     SizeType n = 0;
 
     // Initialize the values
-    double xi, yi;
+    double xi = 0.0;
+    double yi = 0.0;
     double sum_x, sum_xsq, sum_y, sum_xy;
 
     sum_x = 0.0;
