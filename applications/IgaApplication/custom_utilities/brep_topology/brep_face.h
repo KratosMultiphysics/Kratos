@@ -135,8 +135,8 @@ namespace Kratos
             Matrix& rShapeFunctionSecondDerivative
             ) const;
             
-        void GetFaceNodes(); 
-        void PrintTrimNodes();
+        // void GetFaceNodes(); 
+        // void PrintTrimNodes();
 
 
 

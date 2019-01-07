@@ -100,104 +100,38 @@ namespace Kratos
         }
     }
 
-    //     void NurbsBrepModeler::ImportGeometry(BrepJsonIO& rBrepJsonIO, Parameters& rNurbsBrepGeometryJson)
-    // {
-    //     std::cout << "ImportGeometry in of geometry" << std::endl;
-    //     std::vector<BrepModel> brep_model_vector = rBrepJsonIO.ImportNurbsBrepGeometry(m_model_part, rNurbsBrepGeometryJson);
-    //     for (auto brep_model = brep_model_vector.begin(); brep_model != brep_model_vector.end(); ++brep_model)
-    //     {
-    //         m_brep_model_vector.push_back(*brep_model);
-    //     }
-    // }
 
     void NurbsBrepModeler::ExportGeometry()
     {
         std::cout << "ExportGeometry to FILE..." << std::endl;
         BrepJsonIO a; 
-        a.ExportNurbsGeometry(m_brep_model_vector); 
-        
-
-        // Parameters rNurbsBrepGeometryJson; 
-        
-        // // Model Tolerance
-        // const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
-        // rNurbsBrepGeometryJson.AddEmptyArray("tolerances");
-        // rNurbsBrepGeometryJson["tolerances"].AddEmptyArray("model_tolerance");
-        // rNurbsBrepGeometryJson["tolerances"]["model_tolerance"].SetDouble(model_tolerance);
-
-        // //Version Number
-        // rNurbsBrepGeometryJson.AddEmptyArray("version_number");
-        // rNurbsBrepGeometryJson["version_number"].SetInt(1); 
-
-        // //breps
-        // rNurbsBrepGeometryJson.AddEmptyArray("breps");
-        // for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        // {
-        //     rNurbsBrepGeometryJson["breps"].AddEmptyArray("brep_id");
-            
-        //     KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector().size());  
-
-        //     const BrepModel mp = m_brep_model_vector[i];
-        //     bool is_trimmed = m_brep_model_vector[i].GetFaceVector()[0].GetIsTrimmed(); 
-
-        // }
-        // std::cout << "Hello World" << std::endl; 
-
-        
-        
-          
-        
-        // for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        // {
-        //     // KRATOS_WATCH(m_brep_model_vector[i].GetId());
-
-        //     int m_brep_id = m_brep_model_vector[i].GetId();  
-        //     rNurbsBrepGeometryJson["breps"]["brep_id"].SetInt(m_brep_id);
-
-
-        //     for (int j = 0; j < m_brep_model_vector[i].GetFaceVector().size(); ++j)
-        //     {
-        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetId());
-
-        //         // rNurbsBrepGeometryJson["breps"][]
-
-        //         // int face_id = m_brep_model_vector[i].GetFaceVector()[j].GetId(); 
-                
-        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetSurface()->IsRational());
-
-        //         // KRATOS_WATCH(m_brep_model_vector[i].GetFaceVector()[j].GetSurface()->DegreeU());
-                
-        //     }
-
-            
-           
-        // }
+        a.ExportNurbsGeometry(m_brep_model_vector);         
     }
 
 
-    void NurbsBrepModeler::PrintBrepNodes()
-    {   
-        for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        {
-            m_brep_model_vector[i].GetModelNodes();
-        }
-    }
+    // void NurbsBrepModeler::PrintBrepNodes()
+    // {   
+    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
+    //     {
+    //         m_brep_model_vector[i].GetModelNodes();
+    //     }
+    // }
 
-    void NurbsBrepModeler::PrintEdgePolygon()
-    {   
-        for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        {
-            m_brep_model_vector[i].PrintEdgeNodes();
-        }
-    }
+    // void NurbsBrepModeler::PrintEdgePolygon()
+    // {   
+    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
+    //     {
+    //         m_brep_model_vector[i].PrintEdgeNodes();
+    //     }
+    // }
 
-    void NurbsBrepModeler::PrintTrimmingPolygon()
-    {
-        for (int i = 0; i < m_brep_model_vector.size(); ++i)
-        {
-            m_brep_model_vector[i].PrintTrimmingNodes();
-        }
-    }
+    // void NurbsBrepModeler::PrintTrimmingPolygon()
+    // {
+    //     for (int i = 0; i < m_brep_model_vector.size(); ++i)
+    //     {
+    //         m_brep_model_vector[i].PrintTrimmingNodes();
+    //     }
+    // }
 
 
     void NurbsBrepModeler::getTolerance()
