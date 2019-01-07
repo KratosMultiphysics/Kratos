@@ -36,7 +36,7 @@ Its main applications are:
 Some main modules are:
 - [External Solvers](applications/ExternalSolversApplication/README.md)
 - [Trilinos](applications/trilinos_application/README.md)
-- [Metis](applications/metis_application/README.md)
+- [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
 # Examples of use

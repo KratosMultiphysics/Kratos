@@ -14,7 +14,7 @@
 #include "utilities/math_utils.h"
 #include "geometries/triangle_3d_3.h"
 #include "custom_utilities/parallel_fill_communicator.h"
-#include "metis_application/custom_processes/set_mpi_communicator_process.h"
+#include "MetisApplication/custom_processes/set_mpi_communicator_process.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"

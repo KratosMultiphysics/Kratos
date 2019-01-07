@@ -283,7 +283,7 @@ if(${MPI_SEARCH_APPLICATION} MATCHES ON)
 endif(${MPI_SEARCH_APPLICATION} MATCHES ON)
 
 if(${METIS_APPLICATION} MATCHES ON)
-  add_subdirectory(metis_application)
+  add_subdirectory(MetisApplication)
 endif(${METIS_APPLICATION} MATCHES ON)
 
 if(${TRILINOS_APPLICATION} MATCHES ON)
