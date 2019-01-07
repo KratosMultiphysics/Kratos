@@ -626,12 +626,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def FinalizeSolutionStep(self):
         # printing if required
         if self._GetSolver().CannotIgnoreFluidNow():
-            pass
-            #self.fluid_solution.FinalizeSolutionStep()
-
-        if self.print_counter_updated_fluid.Tick():
-            self.ComputePostProcessResults()
-            self.Print()
+            self.fluid_solution.FinalizeSolutionStep()
 
         self.disperse_phase_solution.FinalizeSolutionStep()
 
@@ -644,6 +639,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
         if self.debug_info_counter.Tick():
             self.dem_volume_tool.UpdateDataAndPrint(
                 self.pp.CFD_DEM["fluid_domain_volume"].GetDouble())
+
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
     def RunSolutionLoop(self):
@@ -653,18 +649,19 @@ class SwimmingDEMAnalysis(AnalysisStage):
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
-
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
     def OutputSolutionStep(self):
         # printing if required
 
-        if self.particles_results_counter.Tick():
-            self.Print()
+        if self.print_counter_updated_fluid.Tick():
+            self.ComputePostProcessResults()
+            self._Print()
+
         super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
-    def Print(self):
+    def _Print(self):
         if self.particles_results_counter.Tick():
             self.io_tools.PrintParticlesResults(
                 self.pp.variables_to_print_in_file,
