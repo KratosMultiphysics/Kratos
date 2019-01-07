@@ -71,7 +71,7 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
 
 if(${USE_PORO_MPI} MATCHES ON)
 
-    include_directories( ${CMAKE_SOURCE_DIR}/applications/trilinos_application )
+    include_directories( ${CMAKE_SOURCE_DIR}/applications/TrilinosApplication )
     include_directories(${TRILINOS_INCLUDE_DIR})
 
     ## Define python interface sources
