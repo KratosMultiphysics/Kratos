@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -391,7 +390,8 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @return The plastic potential
      */
-    double GetPlasticPotential(const Properties& rMaterialProperties);
+    double GetPlasticPotential(const Properties& rMaterialProperties,
+            const double accumulated_plastic_strain);
 
     /**
      * @brief This method computes the plastic potential

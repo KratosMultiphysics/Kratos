@@ -201,6 +201,34 @@ public:
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
 
     /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -230,7 +258,7 @@ public:
 
     /**
      * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
@@ -238,12 +266,12 @@ public:
 
     /**
      * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    double& CalculateValue(Parameters& rParameterValues,
+    double& CalculateValue(Parameters& rValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
 

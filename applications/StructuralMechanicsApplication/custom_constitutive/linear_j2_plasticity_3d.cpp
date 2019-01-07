@@ -20,6 +20,7 @@
 #include "linear_j2_plasticity_3d.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -44,8 +45,7 @@ LinearJ2Plasticity3D::LinearJ2Plasticity3D(const LinearJ2Plasticity3D &rOther)
 
 ConstitutiveLaw::Pointer LinearJ2Plasticity3D::Clone() const
 {
-    LinearJ2Plasticity3D::Pointer p_clone(new LinearJ2Plasticity3D(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearJ2Plasticity3D>(LinearJ2Plasticity3D(*this));
 }
 
 //********************************DESTRUCTOR******************************************
@@ -76,8 +76,6 @@ bool LinearJ2Plasticity3D::Has(const Variable<double>& rThisVariable)
     }
     return false;
 }
-
-
 
 //************************************************************************************
 //************************************************************************************
@@ -141,6 +139,73 @@ void LinearJ2Plasticity3D::InitializeMaterial(
 //************************************************************************************
 //************************************************************************************
 
+void LinearJ2Plasticity3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    // TODO: Add something if necessary
+}
+
+//************************************************************************************
+//************************************************************************************
+
+
+void LinearJ2Plasticity3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+{
+    // TODO: Add something if necessary
+}
+
 void LinearJ2Plasticity3D::FinalizeSolutionStep(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
@@ -180,16 +245,13 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::P
 
 void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // The Properties of the material
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-
-    // The flags of the law
     Flags & r_constitutive_law_options=rValues.GetOptions();
-
-    // The strain tensor
     Vector& r_strain_vector = rValues.GetStrainVector();
+    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+        noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
+    }
 
-    //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
@@ -198,12 +260,6 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
         Vector& r_stress_vector = rValues.GetStressVector();
-
-        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-            noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
-        }
-
-        Matrix elastic_tensor;
         Matrix& tangent_tensor = rValues.GetConstitutiveMatrix();
         const double hardening_modulus = r_material_properties[ISOTROPIC_HARDENING_MODULUS];
         const double delta_k = r_material_properties[INFINITY_HARDENING_MODULUS];
@@ -212,21 +268,21 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
         const double poisson_ratio = r_material_properties[POISSON_RATIO];
         const double mu = E / (2. + 2. * poisson_ratio);
         const double volumetric_modulus = E / (3. * (1. - 2. * poisson_ratio));
-        const double sqrt_two_thirds = std::sqrt(2.0 / 3.0); // =0.8164965809277260
+        const double sqrt_two_thirds = std::sqrt(2. / 3.); // = 0.8164965809277260
         double trial_yield_function;
 
         mPlasticStrain = mPlasticStrainOld;
         mAccumulatedPlasticStrain = mAccumulatedPlasticStrainOld;
 
+        Matrix elastic_tensor;
         elastic_tensor.resize(6, 6, false);
         CalculateElasticMatrix(elastic_tensor, r_material_properties);
-        Vector yield_tensionrial(6);
-        noalias(yield_tensionrial) = prod(elastic_tensor, r_strain_vector - mPlasticStrainOld);
+        Vector yield_tension(6);
+        noalias(yield_tension) = prod(elastic_tensor, r_strain_vector - mPlasticStrainOld);
 
         // stress_trial_dev = sigma - 1/3 tr(sigma) * I
-        Vector stress_trial_dev = yield_tensionrial;
-
-        const double trace = 1.0 / 3.0 * (yield_tensionrial(0) + yield_tensionrial(1) + yield_tensionrial(2));
+        Vector stress_trial_dev = yield_tension;
+        const double trace = 1.0 / 3.0 * (yield_tension(0) + yield_tension(1) + yield_tension(2));
         stress_trial_dev(0) -= trace;
         stress_trial_dev(1) -= trace;
         stress_trial_dev(2) -= trace;
@@ -241,11 +297,11 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
         if (trial_yield_function <= 0.) {
             // ELASTIC
             mInelasticFlag = false;
-            // We update the stress
+
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-                r_stress_vector = yield_tensionrial;
+                r_stress_vector = yield_tension;
             }
-            // We update the tangent tensor
+
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
                 tangent_tensor = elastic_tensor;
             }
@@ -304,24 +360,23 @@ void LinearJ2Plasticity3D::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
 //************************************************************************************
 
 double& LinearJ2Plasticity3D::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
     if(rThisVariable == STRAIN_ENERGY){
-        Vector& strain_vector = rParameterValues.GetStrainVector();
-        if (rParameterValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-            noalias(strain_vector) += rParameterValues.GetProcessInfo()[INITIAL_STRAIN];
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
         }
-        const Properties& r_material_properties = rParameterValues.GetMaterialProperties();
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
         Matrix elastic_tensor(6, 6);
         CalculateElasticMatrix(elastic_tensor, r_material_properties);
 
-        rValue = 0.5 * inner_prod(strain_vector - mPlasticStrain, prod(elastic_tensor, strain_vector - mPlasticStrain))
-                 + GetPlasticPotential(r_material_properties);
-    } else if(rThisVariable == PLASTIC_STRAIN){
-        rValue = mAccumulatedPlasticStrain;
+        rValue = 0.5 * inner_prod(r_strain_vector - mPlasticStrain,
+                                  prod(elastic_tensor, r_strain_vector - mPlasticStrain))
+                 + GetPlasticPotential(r_material_properties, mAccumulatedPlasticStrain);
     }
 
     return(rValue);
@@ -336,17 +391,16 @@ Vector& LinearJ2Plasticity3D::CalculateValue(
     Vector& rValue
     )
 {
-    if (rThisVariable == STRAIN ||
-        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-        rThisVariable == ALMANSI_STRAIN_VECTOR) {
-
+    if (rThisVariable == STRAIN) {
         const SizeType space_dimension = this->WorkingSpaceDimension();
 
-        //1.-Compute total deformation gradient
-        const Matrix& F = rParameterValues.GetDeformationGradientF();
-        KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension) << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
+        // Compute total deformation gradient
+        const Matrix& r_F = rParameterValues.GetDeformationGradientF();
+        KRATOS_DEBUG_ERROR_IF(r_F.size1()!= space_dimension || r_F.size2() != space_dimension)
+            << "expected size of F " << space_dimension << "x" << space_dimension
+            << ", got " << r_F.size1() << "x" << r_F.size2() << std::endl;
 
-        const Matrix C_tensor = prod(trans(F),F);
+        const Matrix C_tensor = prod(trans(r_F),r_F);
         ConstitutiveLawUtilities<6>::CalculateGreenLagrangianStrain(C_tensor, rValue);
     }
 
@@ -355,73 +409,6 @@ Vector& LinearJ2Plasticity3D::CalculateValue(
 
 //************************************************************************************
 //************************************************************************************
-
-void LinearJ2Plasticity3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    InitializeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    // TODO: Add something if necessary
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
-{
-    // In small deformation is the same as compute Cauchy
-    FinalizeMaterialResponseCauchy(rValues);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearJ2Plasticity3D::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
-{
-    // TODO: Add something if necessary
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -442,16 +429,18 @@ double LinearJ2Plasticity3D::GetSaturationHardening(const Properties& rMaterialP
 //************************************************************************************
 //************************************************************************************
 
-double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProperties)
+double LinearJ2Plasticity3D::GetPlasticPotential(const Properties& rMaterialProperties,
+    const double accumulated_plastic_strain)
 {
     const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     const double delta_k = rMaterialProperties[INFINITY_HARDENING_MODULUS];
     const double hardening_exponent = rMaterialProperties[HARDENING_EXPONENT];
 
-    const double wp_new = 0.5*(theta * hardening_modulus * std::pow(mAccumulatedPlasticStrain, 2.0)) +
-                    delta_k * (mAccumulatedPlasticStrain -
-                    (1/hardening_exponent) * (1- std::exp(-hardening_exponent * mAccumulatedPlasticStrain)));
+    const double wp_new = 0.5*(theta * hardening_modulus
+                    * std::pow(accumulated_plastic_strain, 2.0)) + delta_k
+                    * (accumulated_plastic_strain - (1/hardening_exponent)
+                    * (1- std::exp(-hardening_exponent * accumulated_plastic_strain)));
     return wp_new;
 }
 
