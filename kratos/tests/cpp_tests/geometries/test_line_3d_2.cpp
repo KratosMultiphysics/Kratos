@@ -327,13 +327,22 @@ namespace Testing {
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsValuesMatrix, KratosCoreGeometriesFastSuite) {
-        Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
-        const Matrix N_values = p_geom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
 
-        KRATOS_CHECK_NEAR(N_values(0, 0), 0.788675, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values(0, 1), 0.211325, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values(1, 0), 0.211325, TOLERANCE);
-        KRATOS_CHECK_NEAR(N_values(1, 1), 0.788675, TOLERANCE);
+        Geometry<Point>::Pointer p_geom = GeneratePointsDiagonalLine3D2();
+        Line3D2<Point>::Pointer p_line = GeneratePointsDiagonalLine3D2();
+
+        const Matrix N_values_geom = p_geom->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+        const Matrix N_values_line = p_line->ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+        KRATOS_CHECK_NEAR(N_values_geom(0, 0), 0.788675, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(0, 1), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(1, 0), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_geom(1, 1), 0.788675, TOLERANCE);
+
+        KRATOS_CHECK_NEAR(N_values_line(0, 0), 0.788675, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_line(0, 1), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_line(1, 0), 0.211325, TOLERANCE);
+        KRATOS_CHECK_NEAR(N_values_line(1, 1), 0.788675, TOLERANCE);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(Line3D2ShapeFunctionsLocalGradients, KratosCoreGeometriesFastSuite) {

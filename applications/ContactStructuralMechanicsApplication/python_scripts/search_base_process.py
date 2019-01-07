@@ -51,16 +51,20 @@ class SearchBaseProcess(KM.Process):
             "interval"                    : [0.0,"End"],
             "integration_order"           : 2,
             "search_parameters" : {
-                "type_search"                 : "in_radius",
-                "adapt_search"                : false,
-                "search_factor"               : 3.5,
-                "active_check_factor"         : 0.01,
-                "max_number_results"          : 1000,
-                "bucket_size"                 : 4,
-                "dynamic_search"              : false,
-                "database_step_update"        : 1,
-                "debug_mode"                  : false,
-                "check_gap"                   : "check_mapping"
+                "type_search"                         : "in_radius",
+                "simple_search"                       : false,
+                "adapt_search"                        : false,
+                "search_factor"                       : 3.5,
+                "active_check_factor"                 : 0.01,
+                "max_number_results"                  : 1000,
+                "bucket_size"                         : 4,
+                "dynamic_search"                      : false,
+                "static_check_movement"               : false,
+                "database_step_update"                : 1,
+                "consider_gap_threshold"              : false,
+                "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
+                "check_gap"                           : "check_mapping"
             }
         }
         """)
@@ -201,12 +205,15 @@ class SearchBaseProcess(KM.Process):
                         self.search_search[key].UpdateMortarConditions()
                         #self.search_search[key].CheckMortarConditions()
 
+                        # Debug
+                        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
+                            self._debug_output(global_step, "Sub" + str(key) , self._get_problem_name())
+
                 # We unset the flag MARKER (used in the nodes to not deactivate it)
                 KM.VariableUtils().SetFlag(KM.MARKER, False, self._get_process_model_part().Nodes)
 
                 # Debug
                 if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
-                    self._debug_output(global_step, "", self._get_problem_name())
                     # We compute the total integrated area, for debugging
                     self.__get_integration_area()
         else:
@@ -395,6 +402,8 @@ class SearchBaseProcess(KM.Process):
         search_parameters.AddValue("bucket_size", self.settings["search_parameters"]["bucket_size"])
         search_parameters.AddValue("search_factor", self.settings["search_parameters"]["search_factor"])
         search_parameters.AddValue("dynamic_search", self.settings["search_parameters"]["dynamic_search"])
+        search_parameters.AddValue("static_check_movement", self.settings["search_parameters"]["static_check_movement"])
+        search_parameters.AddValue("consider_gap_threshold", self.settings["search_parameters"]["consider_gap_threshold"])
         search_parameters.AddValue("debug_mode", self.settings["search_parameters"]["debug_mode"])
         search_parameters["condition_name"].SetString(self._get_condition_name())
         search_parameters["final_string"].SetString(self._get_final_string())
@@ -406,20 +415,36 @@ class SearchBaseProcess(KM.Process):
         number_nodes, number_nodes_master = self._compute_number_nodes()
 
         # We create the search process
+        simple_search = self.settings["search_parameters"]["simple_search"].GetBool()
         if self.dimension == 2:
-            self.search_search[key] = CSMA.TreeContactSearch2D2N(self.computing_model_part, search_parameters)
+            if simple_search:
+                self.search_search[key] = CSMA.SimpleContactSearch2D2N(self.computing_model_part, search_parameters)
+            else:
+                self.search_search[key] = CSMA.AdvancedContactSearch2D2N(self.computing_model_part, search_parameters)
         else:
             if number_nodes == 3:
                 if number_nodes_master == 3:
-                    self.search_search[key] = CSMA.TreeContactSearch3D3N(self.computing_model_part, search_parameters)
+                    if simple_search:
+                        self.search_search[key] = CSMA.SimpleContactSearch3D3N(self.computing_model_part, search_parameters)
+                    else:
+                        self.search_search[key] = CSMA.AdvancedContactSearch3D3N(self.computing_model_part, search_parameters)
                 else:
-                    self.search_search[key] = CSMA.TreeContactSearch3D3N4N(self.computing_model_part, search_parameters)
+                    if simple_search:
+                        self.search_search[key] = CSMA.SimpleContactSearch3D3N4N(self.computing_model_part, search_parameters)
+                    else:
+                        self.search_search[key] = CSMA.AdvancedContactSearch3D3N4N(self.computing_model_part, search_parameters)
 
             elif number_nodes == 4:
                 if number_nodes_master == 3:
-                    self.search_search[key] = CSMA.TreeContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                    if simple_search:
+                        self.search_search[key] = CSMA.SimpleContactSearch3D4N3N(self.computing_model_part, search_parameters)
+                    else:
+                        self.search_search[key] = CSMA.AdvancedContactSearch3D4N3N(self.computing_model_part, search_parameters)
                 else:
-                    self.search_search[key] = CSMA.TreeContactSearch3D4N(self.computing_model_part, search_parameters)
+                    if simple_search:
+                        self.search_search[key] = CSMA.SimpleContactSearch3D4N(self.computing_model_part, search_parameters)
+                    else:
+                        self.search_search[key] = CSMA.AdvancedContactSearch3D4N(self.computing_model_part, search_parameters)
             else:
                 raise Exception("Geometries not compatible. Check all the geometries are linear")
 
@@ -468,6 +493,7 @@ class SearchBaseProcess(KM.Process):
         gid_io.WriteNodalFlags(KM.ISOLATED, "ISOLATED", self.main_model_part.Nodes, label)
         gid_io.WriteNodalFlags(KM.SLAVE, "SLAVE", self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.NORMAL, self.main_model_part.Nodes, label, 0)
+        gid_io.WriteNodalResults(KM.NODAL_H, self.main_model_part.Nodes, label, 0)
         gid_io.WriteNodalResultsNonHistorical(KM.NODAL_AREA, self.main_model_part.Nodes, label)
         gid_io.WriteNodalResults(KM.DISPLACEMENT, self.main_model_part.Nodes, label, 0)
         if self.main_model_part.Nodes[1].SolutionStepsDataHas(KM.VELOCITY_X) is True:
