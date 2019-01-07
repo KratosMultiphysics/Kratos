@@ -191,7 +191,7 @@ namespace  Kratos
     }
 
 
-    const void MoveMeshUtility::SetInactiveElements(ConditionsContainerType& rElementsDEM, const ElementsContainerType& rElementsFEM)
+/*     const void MoveMeshUtility::SetInactiveElements(ConditionsContainerType& rElementsDEM, const ElementsContainerType& rElementsFEM)
     {
         KRATOS_TRY;
         const int num_elements_dem = static_cast<int>(rElementsDEM.size());
@@ -232,6 +232,6 @@ namespace  Kratos
         }
 
         KRATOS_CATCH("")
-    }
+    } */
 
 } //  Kratos

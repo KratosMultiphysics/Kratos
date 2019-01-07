@@ -59,7 +59,7 @@ namespace  Kratos
 
             const void ResetCoordinates(NodesContainerType& rNodes) const;
 
-            const void SetInactiveElements(ConditionsContainerType& rElementsDEM, const ElementsContainerType& rElementsFEM);
+            //const void SetInactiveElements(ConditionsContainerType& rElementsDEM, const ElementsContainerType& rElementsFEM);
 
             const bool CompareTwoArrays(const array_1d<double, 3>& rA1,const array_1d<double, 3>& rA2) const
             {

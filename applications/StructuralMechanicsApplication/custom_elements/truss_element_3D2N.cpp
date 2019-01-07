@@ -954,7 +954,7 @@ void TrussElement3D2N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 	this->GetGeometry(),temp_shape_function,rCurrentProcessInfo);
 
 
-  if (this->GetProperties().Has(YIELD_STRESS)) this->CheckFracture();
+  //if (this->GetProperties().Has(YIELD_STRESS)) this->CheckFracture();
 
   KRATOS_CATCH("");
 }
