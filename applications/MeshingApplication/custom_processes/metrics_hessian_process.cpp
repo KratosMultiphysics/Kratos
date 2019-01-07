@@ -125,7 +125,7 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
         for (IndexType i = 0; i < TDim; ++i) {
             eigen_values_matrix(i, i) = l_square_minus1;
         }
-    } else {
+    } else { // Equation 4.4 from Metric-Based Anisotropic Mesh Adaptation
         const double c_epsilon = mMeshConstant/interpolation_error;
         const double min_ratio = 1.0/std::pow(ElementMinSize, 2);
         const double max_ratio = 1.0/std::pow(ElementMaxSize, 2);
