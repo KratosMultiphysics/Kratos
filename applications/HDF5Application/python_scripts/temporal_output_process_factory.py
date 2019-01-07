@@ -15,7 +15,7 @@ class FactoryHelper:
         settings = settings.Clone()
         settings.ValidateAndAssignDefaults(default_settings)
         model_part = Model[settings["model_part_name"].GetString()]
-        file_utilities.CheckIfWriteInFolder(settings, model_part)
+        file_utilities.CheckIfSaveH5FilesInFolder(settings, model_part)
         hdf5_file_factory = self.FileFactory(settings["file_settings"])
         model_part_output = self.ModelPartOutput(settings["model_part_output_settings"])
         nodal_solution_step_output = self.NodalSolutionStepDataOutput(settings["nodal_solution_step_data_settings"])

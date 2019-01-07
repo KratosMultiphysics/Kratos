@@ -15,14 +15,14 @@ def Factory(settings, Model):
     if not params.Has("file_settings"):
         file_params = KM.Parameters(r'''{
             "file_access_mode"      : "truncate",
-            "write_files_in_folder" : true
+            "save_h5_files_in_folder" : true
         }''')
         params.AddValue("file_settings", file_params)
     else:
         if not params["file_settings"].Has("file_access_mode"):
             params["file_settings"].AddEmptyValue("file_access_mode").SetString("truncate")
-        if not params["file_settings"].Has("write_files_in_folder"):
-            params["file_settings"].AddEmptyValue("write_files_in_folder").SetBool(True)
+        if not params["file_settings"].Has("save_h5_files_in_folder"):
+            params["file_settings"].AddEmptyValue("save_h5_files_in_folder").SetBool(True)
 
     model_part_name = params["model_part_name"].GetString() # name of modelpart must be specified!
     #todo(msandre): collapse older partitioned scripts to their serial counterparts like this

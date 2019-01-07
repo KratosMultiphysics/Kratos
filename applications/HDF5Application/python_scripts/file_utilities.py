@@ -36,14 +36,14 @@ def CreateFolderIfNotExisting(folder_path, communicator):
         os.makedirs(folder_path)
     communicator.Barrier()
 
-def CheckIfWriteInFolder(settings, model_part):
-    """If the h5 files are to be written to a folder then
+def CheckIfSaveH5FilesInFolder(settings, model_part):
+    """If the h5 files are to be saved in a folder then
     do the necessary manipulations of the settings
     """
     file_settings = settings["file_settings"]
     output_time_settings = settings["output_time_settings"]
-    if file_settings.Has("write_files_in_folder"): #todo(msandre): discuss if this should be default
-        if file_settings["write_files_in_folder"].GetBool():
+    if file_settings.Has("save_h5_files_in_folder"): #todo(msandre): discuss if this should be default
+        if file_settings["save_h5_files_in_folder"].GetBool():
             # modify the file-path
             if output_time_settings.Has("file_name"):
                 file_name = output_time_settings["file_name"].GetString()
@@ -61,4 +61,4 @@ def CheckIfWriteInFolder(settings, model_part):
             CreateFolderIfNotExisting(folder_path, model_part.GetCommunicator())
 
         # removing since it is not in the defaults
-        file_settings.RemoveValue("write_files_in_folder")
+        file_settings.RemoveValue("save_h5_files_in_folder")
