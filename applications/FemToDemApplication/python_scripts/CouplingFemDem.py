@@ -762,7 +762,7 @@ class FEMDEM_Solution:
         # open general Displ/Reaction File
         self.PlotFile = open("PlotFile.txt","w")
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
-        self.PlotFile.write("       time                   displ_x               displ_y         Reaction_x     Reaction_y    \n")
+        self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
         self.PlotFile.close()
         self.TimePreviousPlotting = 0.0
         self.PlotFilesNodesList    = []
