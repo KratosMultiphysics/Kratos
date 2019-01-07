@@ -28,7 +28,8 @@ Kratos@{APP_NAME_CAMEL}Application::Kratos@{APP_NAME_CAMEL}Application():
     KratosApplication("@{APP_NAME_CAMEL}Application")
     {}
 
-void Kratos@{APP_NAME_CAMEL}Application::Register() {
+void Kratos@{APP_NAME_CAMEL}Application::Register()
+{
      // calling base class register to register Kratos components
      KratosApplication::Register();
      KRATOS_INFO("") << "Initializing Kratos@{APP_NAME_CAMEL}Application..." << std::endl;
