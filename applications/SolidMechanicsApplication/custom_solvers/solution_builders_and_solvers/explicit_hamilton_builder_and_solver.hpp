@@ -90,6 +90,9 @@ public:
     typedef BeamMathUtils<double> BeamMathUtilsType;
 
     typedef Quaternion<double> QuaternionType;
+
+    typedef std::vector<Element*> ElementPointerVectorType;
+
     /*@} */
     /**@name Life Cycle
      */
@@ -527,7 +530,7 @@ public:
 
 	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
 
-	WeakPointerVector<Element >& rE = pNode->GetValue(NEIGHBOUR_ELEMENTS);
+	ElementPointerVectorType& rE = pNode->GetValue(NEIGHBOR_ELEMENTS);
 
 	//std::cout<<" node ("<<(pNode)->Id()<<"): "<<rE.size()<<std::endl;
 
@@ -538,7 +541,7 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-	for(WeakPointerVector< Element >::iterator ie = rE.begin(); ie!=rE.end(); ++ie)
+	for(ElementPointerVectorType::iterator ie = rE.begin(); ie!=rE.end(); ++ie)
 	  {
             //calculate elemental contribution
             pScheme->CalculateSystemContributions(Element::Pointer( *(ie.base()) ), LHS_Contribution, RHS_Contribution, EquationId, rCurrentProcessInfo);
@@ -609,7 +612,7 @@ public:
 
         }
 
-	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOUR ELEMENTS AND CONDITIONS:
+	//IT HAS TO BE MODIFIED TO ONLY COMPUTE THE NODE NEIGHBOR ELEMENTS AND CONDITIONS:
 	bool compute_everything = false;
 	if( compute_everything ){
 
@@ -914,4 +917,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_HAMILTON_BUILDER_AND_SOLVER  defined */
-

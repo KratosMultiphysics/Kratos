@@ -219,6 +219,30 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertTrue(condition.Is(INLET))
             self.assertTrue(condition.IsNot(OUTLET))
 
+        VariableUtils().FlipFlag(VISITED, model_part.Nodes)
+        VariableUtils().FlipFlag(VISITED, model_part.Conditions)
+        VariableUtils().FlipFlag(VISITED, model_part.Elements)
+
+        VariableUtils().FlipFlag(INLET, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().FlipFlag(INLET, model_part.GetSubModelPart("Inlets").Conditions)
+        VariableUtils().FlipFlag(OUTLET, model_part.GetSubModelPart("Inlets").Nodes)
+        VariableUtils().FlipFlag(OUTLET, model_part.GetSubModelPart("Inlets").Conditions)
+
+        ##verify the main modelpart flags set
+        for node in model_part.Nodes:
+            self.assertFalse(node.Is(VISITED))
+        for condition in model_part.Conditions:
+            self.assertFalse(condition.Is(VISITED))
+        for element in model_part.Elements:
+            self.assertFalse(element.Is(VISITED))
+        ##verify the inlet submodelpart flag set
+        for node in model_part.GetSubModelPart("Inlets").Nodes:
+            self.assertFalse(node.Is(INLET))
+            self.assertFalse(node.IsNot(OUTLET))
+        for condition in model_part.GetSubModelPart("Inlets").Conditions:
+            self.assertFalse(condition.Is(INLET))
+            self.assertFalse(condition.IsNot(OUTLET))
+
     def test_copy_var(self):
         current_model = Model()
 
