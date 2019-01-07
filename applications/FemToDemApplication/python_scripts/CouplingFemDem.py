@@ -12,7 +12,7 @@ import os
 import mmg_process as MMG
 
 def Wait():
-     input("Press Something")
+    input("Press Something")
 
 
 # Main script of the coupled FEM-DEM Application 2D
@@ -29,7 +29,6 @@ class FEMDEM_Solution:
         if self.DoRemeshing:
             self.mmg_parameter_file = open("MMGParameters.json",'r')
             self.mmg_parameters = KratosMultiphysics.Parameters(self.mmg_parameter_file.read())
-            # Model = {self.mmg_parameters["model_part_name"].GetString(): self.FEM_Solution.main_model_part}
             self.RemeshingProcessMMG = MMG.MmgProcess(Model, self.mmg_parameters)
 
         self.InitializePlotsFiles()
@@ -67,7 +66,7 @@ class FEMDEM_Solution:
             self.InitializeMMGvariables()
             self.RemeshingProcessMMG.ExecuteInitialize()
 
-        self.pressure_load = True #hard coded
+        self.pressure_load = False #hard coded
         if self.pressure_load:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
 
@@ -109,6 +108,9 @@ class FEMDEM_Solution:
         self.FEM_Solution.step = self.FEM_Solution.step + 1
         self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
+        neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+        neighbour_elemental_finder.Execute()
+
         if self.DoRemeshing:
             is_remeshing = self.CheckIfHasRemeshed()
 
@@ -123,40 +125,10 @@ class FEMDEM_Solution:
             self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
 
             if is_remeshing:
-                # Initialize the "flag" IS_DEM in all the nodes
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
-                # Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
-                # Initialize the "flag" RADIUS in all the nodes
-                KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
-
-                self.pressure_load = True #hard coded
-                if self.pressure_load:
-                    KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
-
-                # Remove DEMS from previous mesh
-                self.SpheresModelPart.Elements.clear()
-                self.SpheresModelPart.Nodes.clear()
-
-                self.InitializeDummyNodalForces()
-
-                self.InitializeMMGvariables()
-                self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
-                self.FEM_Solution.model_processes.ExecuteInitialize()
-                self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
-                self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
-
-        # Search the skin nodes for the remeshing
-        if self.DoRemeshing:
-            skin_detection_process_param = KratosMultiphysics.Parameters("""
-            {
-                "name_auxiliar_model_part" : "SkinDEMModelPart",
-                "name_auxiliar_condition"  : "Condition",
-                "echo_level"               : 0
-            }""")
-            skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
-                                                                                skin_detection_process_param)
-            skin_detection_process.Execute()
+                self.InitializeSolutionAfterRemeshing()
+                neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.FEM_Solution.main_model_part, 2, 5)
+                neighbour_elemental_finder.ClearNeighbours()
+                neighbour_elemental_finder.Execute()
 
         self.FEM_Solution.InitializeSolutionStep()
 
@@ -164,10 +136,6 @@ class FEMDEM_Solution:
         self.create_initial_dem_skin = False  # Hard Coded TODO
         if self.create_initial_dem_skin and self.FEM_Solution.step == 1:
             self.CreateInitialSkinDEM()
-
-        # Create the DEM after the remeshing
-        if self.DoRemeshing and is_remeshing:
-            self.GenerateDemAfterRemeshing()
 
 #============================================================================================================================
     def SolveSolutionStep(self): # Function to perform the coupling FEM <-> DEM
@@ -188,20 +156,16 @@ class FEMDEM_Solution:
         self.GenerateDEM()
         self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
         self.CheckForPossibleIndentations()
-        # self.CheckInactiveNodes()
 
         # We update coordinates, displ and velocities of the DEM according to FEM
         self.UpdateDEMVariables()
-
-        # Extrapolate the VonMises normalized stress to nodes (remeshing)
-        KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
         self.DEM_Solution.InitializeTimeStep()
         self.DEM_Solution.time = self.FEM_Solution.time
         self.DEM_Solution.step = self.FEM_Solution.step
         self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts,
                                                                    self.DEM_Solution.time,
-                                                                   self.DEM_Solution.dt,
+                                                                   self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess())
         self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
@@ -212,7 +176,7 @@ class FEMDEM_Solution:
 
         self.DEM_Solution.AfterSolveOperations()
         self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.dt)
-
+        
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
 
@@ -797,7 +761,7 @@ class FEMDEM_Solution:
         # open general Displ/Reaction File
         self.PlotFile = open("PlotFile.txt","w")
         self.PlotFile.write("This File Plots the SUM of the displacement and reactions of the nodes selected in the lists!\n\n")
-        self.PlotFile.write("       time          displ_x        displ_y       Reaction_x     Reaction_y    \n")
+        self.PlotFile.write("       time           displ_x        displ_y      Reaction_x     Reaction_y    \n")
         self.PlotFile.close()
         self.TimePreviousPlotting = 0.0
         self.PlotFilesNodesList    = []
@@ -826,7 +790,7 @@ class FEMDEM_Solution:
                 Id = self.FEM_Solution.ProjectParameters["watch_elements_list"][elem].GetInt()
                 iPlotFileElem = open("PlotElement_" + str(Id) + ".txt","w")
                 iPlotFileElem.write("\n")
-                iPlotFileElem.write("       time             Sxx           Syy             Sxy           Exx             Eyy          Exy           Damage  \n")
+                iPlotFileElem.write("          time                       Sxx                   Syy                      Sxy                    Exx                     Eyy                   Exy                Damage  \n")
                 iPlotFileElem.close()
                 self.PlotFilesElementsList.append(iPlotFileElem)
                 self.PlotFilesElementsIdList.append(Id)
@@ -883,7 +847,7 @@ class FEMDEM_Solution:
         else:
             time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
 
-            if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.dt):
+            if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
                 self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
                 self.DEM_Solution.time_old_print = self.DEM_Solution.time
 
@@ -973,3 +937,41 @@ class FEMDEM_Solution:
                 self.SpheresModelPart.GetNode(node.Id).Set(KratosMultiphysics.TO_ERASE, True)
 
         self.SpheresModelPart.RemoveElementsFromAllLevels(KratosMultiphysics.TO_ERASE)
+
+#============================================================================================================================
+
+    def InitializeSolutionAfterRemeshing(self):
+        # Initialize the "flag" IS_DEM in all the nodes
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+        # Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+        # Initialize the "flag" RADIUS in all the nodes
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+        self.pressure_load = False #hard coded
+        if self.pressure_load:
+            KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
+
+        # Remove DEMS from previous mesh
+        self.SpheresModelPart.Elements.clear()
+        self.SpheresModelPart.Nodes.clear()
+
+        self.InitializeDummyNodalForces()
+
+        self.InitializeMMGvariables()
+        self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
+        self.FEM_Solution.model_processes.ExecuteInitialize()
+        self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
+        self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
+
+        # Search the skin nodes for the remeshing
+        skin_detection_process_param = KratosMultiphysics.Parameters("""
+        {
+            "name_auxiliar_model_part" : "SkinDEMModelPart",
+            "name_auxiliar_condition"  : "Condition",
+            "echo_level"               : 0
+        }""")
+        skin_detection_process = KratosMultiphysics.SkinDetectionProcess2D(self.FEM_Solution.main_model_part,
+                                                                            skin_detection_process_param)
+        skin_detection_process.Execute()
+        self.GenerateDemAfterRemeshing()

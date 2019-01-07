@@ -84,4 +84,8 @@ class mapper_test(ShapeOptimizationTestFactory):
     execution_directory = "mapper_test"
     execution_file = "run_test"
 
+class opt_process_step_adaption_test(ShapeOptimizationTestFactory):
+    execution_directory = "opt_process_step_adaption_test"
+    execution_file = "run_test"
+
 # ==============================================================================

@@ -9,9 +9,6 @@ from json_utilities import *
 from from_json_check_result_process import FromJsonCheckResultProcess
 from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 
-# Import applications and dependencies
-import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

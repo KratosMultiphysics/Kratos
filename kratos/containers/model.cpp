@@ -13,17 +13,10 @@
 
 // System includes
 
-
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "containers/model.h"
-#include <iostream>
-#include <string>
-#include <sstream>
-
 
 namespace Kratos
 {
@@ -44,7 +37,7 @@ namespace Kratos
              ModelPart* pmodel_part = new ModelPart(ModelPartName, NewBufferSize, pvar_list.get(), *this );
             mRootModelPartMap[ModelPartName] = std::unique_ptr<ModelPart>(pmodel_part); //note that i create it separately since Model is friend of ModelPart but unique_ptr is not
 
-            GetListOfVariableLists().insert(std::move(pvar_list));
+            mListOfVariablesLists.insert(std::move(pvar_list));
             return *(mRootModelPartMap[ModelPartName].get());
         } else {
             KRATOS_ERROR << "trying to create a root modelpart with name " << ModelPartName << " however a ModelPart with the same name already exists";
@@ -175,6 +168,39 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
+    std::vector<std::string> Model::GetModelPartNames()
+    {
+        std::vector<std::string> model_parts_names;
+
+        // We fill the vector
+        for (auto& mps : mRootModelPartMap) {
+            const std::string& r_root_mp_name = mps.first;
+            model_parts_names.push_back(r_root_mp_name);
+
+            // First level of submodelparts
+            auto& p_root_mp = mps.second;
+            if (p_root_mp->NumberOfSubModelParts() > 0) {
+                const std::vector<std::string>& sub_model_part_names = p_root_mp->GetSubModelPartNames();
+                for (auto& r_sub_name : sub_model_part_names) {
+                    model_parts_names.push_back(r_root_mp_name + "." + r_sub_name);
+                }
+
+                // Second level of submodelparts
+                for (auto& r_sub_mp : p_root_mp->SubModelParts()) {
+                    if (r_sub_mp.NumberOfSubModelParts() > 0) {
+                        const std::string& r_sub_name = r_sub_mp.Name();
+                        const std::vector<std::string>& sub_sub_model_part_names = r_sub_mp.GetSubModelPartNames();
+                        for (auto& r_sub_sub_name : sub_sub_model_part_names) {
+                            model_parts_names.push_back(r_root_mp_name + "." + r_sub_name + "." + r_sub_sub_name);
+                        }
+                    }
+                }
+            }
+        }
+
+        return model_parts_names;
+    }
+
     std::string Model::Info() const
     {
         std::stringstream ss;
@@ -264,7 +290,7 @@ namespace Kratos
 
         for(IndexType i=0; i<aux_var_lists.size(); ++i) {
             auto p_aux_list = std::unique_ptr<VariablesList>(aux_var_lists[i]);
-            GetListOfVariableLists().insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
+            mListOfVariablesLists.insert(std::move(p_aux_list)); //NOTE: the ordering may be changed since the pointers are changed, however it should not matter
         }
 
         for(IndexType i=0; i<aux_names.size(); ++i) {
@@ -280,5 +306,3 @@ namespace Kratos
 
 
 }  // namespace Kratos.
-
-

@@ -56,13 +56,23 @@ public:
     /// Pointer definition of ALMVariablesCalculationProcess
     KRATOS_CLASS_POINTER_DEFINITION(ALMVariablesCalculationProcess);
 
-    // General type definitions
-    typedef Node<3>                                          NodeType;
-    typedef Point                                        PointType;
-    typedef Geometry<NodeType>                           GeometryType;
-    typedef Geometry<PointType>                     GeometryPointType;
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
+    /// Size type definition
+    typedef std::size_t SizeType;
+
+    /// Index type definition
+    typedef std::size_t IndexType;
+
+    /// Node type definition
+    typedef Node<3> NodeType;
+
+    /// Geometry type definition
+    typedef Geometry<NodeType> GeometryType;
+
+    /// Nodes container definition
+    typedef ModelPart::NodesContainerType NodesArrayType;
+
+    /// Conditions container definition
+    typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -89,10 +99,7 @@ public:
         mFactorStiffness = ThisParameters["stiffness_factor"].GetDouble();
         mPenaltyScale = ThisParameters["penalty_scale_factor"].GetDouble();
 
-        if (rThisModelPart.GetNodalSolutionStepVariablesList().Has( rNodalLengthVariable ) == false ) // TODO: Ask Riccardo if it is necessary to use GetNodalSolutionStepVariablesList (REQUIRES BUFFER!!!!)
-        {
-            KRATOS_ERROR << "Missing variable " << rNodalLengthVariable;
-        }
+        KRATOS_ERROR_IF_NOT(rThisModelPart.HasNodalSolutionStepVariable( rNodalLengthVariable )) << "Missing variable " << rNodalLengthVariable;
 
         KRATOS_CATCH("")
     }

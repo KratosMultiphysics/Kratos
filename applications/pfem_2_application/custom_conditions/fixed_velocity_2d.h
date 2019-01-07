@@ -1,7 +1,7 @@
 #if !defined(KRATOS_FIXED_VELOCITY_CONDITION_H_INCLUDED )
 #define  KRATOS_FIXED_VELOCITY_CONDITION_H_INCLUDED
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 // Project includes
@@ -14,51 +14,50 @@
 
 namespace Kratos
 {
- class FixedVelocity2D
-  : public Condition
+class FixedVelocity2D : public Condition
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Counted pointer of FixedVelocity2D
+    KRATOS_CLASS_POINTER_DEFINITION(FixedVelocity2D);
+
+    /// Default constructor.
+    FixedVelocity2D(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    FixedVelocity2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    /// Destructor.
+    virtual ~FixedVelocity2D() override;
+
+
+    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
+
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+
+    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+
+    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo) override;
+
+protected:
+
+
+private:
+
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+    FixedVelocity2D() : Condition()
     {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-       /// Counted pointer of FixedVelocity2D
-       KRATOS_CLASS_POINTER_DEFINITION(FixedVelocity2D);
-      
-      /// Default constructor. 
-      FixedVelocity2D(IndexType NewId, GeometryType::Pointer pGeometry);
+    }
 
-      FixedVelocity2D(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-      /// Destructor.
-      virtual ~FixedVelocity2D();
-      
+}; // Class FixedVelocity2D
 
-      Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
-
-      void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-      
-      void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-      //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-      
-      void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-      void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo);
-
-   protected:
- 
- 
-   private:
-
-	friend class Serializer;
-
-	// A private default constructor necessary for serialization  
-	FixedVelocity2D() : Condition()
-       {
-       }
-        
-
-  }; // Class FixedVelocity2D 
-
-} //namespace kratos 
+} //namespace kratos
 #endif
