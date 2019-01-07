@@ -109,11 +109,12 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarCondit
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
 
     #pragma omp parallel for
     for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         if (!(it_cond->Has(INDEX_MAP))) {
             it_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
 //             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
@@ -682,6 +683,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 {
     // We iterate over the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
 
     std::vector<IndexType> master_conditions_ids;
@@ -693,7 +695,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 
         #pragma omp for
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
             IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
             if (p_indexes_pairs->size() > 0) {
                 it_cond->Set(SLAVE, true);
@@ -1110,10 +1112,11 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
     ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
     ConditionsArrayType& r_computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
+    const auto it_cond_begin = r_computing_conditions_array.begin();
     auto process_info = mrMainModelPart.GetProcessInfo();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_computing_conditions_array.size()); ++i) {
-        auto it_cond = r_computing_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         it_cond->AddExplicitContribution(process_info);
     }
 }
@@ -1207,12 +1210,13 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
     if (mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
             if (it_cond->Is(SLAVE) == !mInvertedSearch) {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
 
