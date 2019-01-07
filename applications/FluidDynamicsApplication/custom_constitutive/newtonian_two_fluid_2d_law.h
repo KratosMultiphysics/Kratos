@@ -38,7 +38,7 @@ public:
      * Type Definitions
      */
     typedef std::size_t             SizeType;
-    
+
     /**
      * Counted pointer of NewtonianTwoFluid2DLaw
      */
@@ -95,8 +95,8 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const;
+
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
 
@@ -140,4 +140,4 @@ private:
 
 }; // Class NewtonianTwoFluid2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_TWO_FLUID_2D_H_INCLUDED  defined 
+#endif // KRATOS_NEWTONIAN_TWO_FLUID_2D_H_INCLUDED  defined
