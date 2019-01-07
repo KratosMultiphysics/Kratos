@@ -42,7 +42,6 @@ class SwimmingDEMSolver(PythonSolver):
         self.solve_system = not self.project_parameters["fluid_already_calculated"].GetBool()
         self.first_DEM_iteration = True
         self.ConstructStationarityTool()
-        self.ConstructProjectionModule()
         self.ConstructDerivativeRecoverer()
         self.ConstructHistoryForceUtility()
         # Call the base Python solver constructor
@@ -56,14 +55,15 @@ class SwimmingDEMSolver(PythonSolver):
             SDP.FunctionsCalculator()
             )
 
-    def ConstructProjectionModule(self):
+    def _ConstructProjectionModule(self):
         # creating a projection module for the fluid-DEM coupling
         self.h_min = 0.01 #TODO: this must be set from interface and the method must be checked for 2D
         n_balls = 1
         fluid_volume = 10
         # the variable n_particles_in_depth is only relevant in 2D problems
         self.project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
-        self.projection_module = CFD_DEM_coupling.ProjectionModule(
+        
+        projection_module = CFD_DEM_coupling.ProjectionModule(
         self.fluid_solver.main_model_part,
         self.dem_solver.spheres_model_part,
         self.dem_solver.all_model_parts.Get("RigidFacePart"),
@@ -74,6 +74,10 @@ class SwimmingDEMSolver(PythonSolver):
         flow_field=self.pp.field_utility,
         domain_size=self.pp.domain_size
         )
+
+        projection_module.UpdateDatabase(self.h_min)
+
+        return projection_module
 
     def ConstructDerivativeRecoverer(self):
         self.derivative_recovery_counter = self.GetRecoveryCounter()
@@ -118,7 +122,7 @@ class SwimmingDEMSolver(PythonSolver):
     def UpdateALEMeshMovement(self, time): # TODO: move to derived solver
         if self.project_parameters["ALE_option"].GetBool():
             self.rotator.RotateMesh(self.fluid_solver.main_model_part, time)
-            self.projection_module.UpdateDatabase(self.CalculateMinElementSize())
+            self._GetProjectionModule().UpdateDatabase(self.CalculateMinElementSize())
 
     def CalculateMinElementSize(self):
         return self.h_min
@@ -130,7 +134,7 @@ class SwimmingDEMSolver(PythonSolver):
 
     def ComputePostProcessResults(self):
         if self.project_parameters["coupling_level_type"].GetInt():
-            self.projection_module.ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
+            self._GetProjectionModule().ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
 
     def CannotIgnoreFluidNow(self):
         return self.solve_system and self.calculating_fluid_in_current_step
@@ -140,10 +144,15 @@ class SwimmingDEMSolver(PythonSolver):
             self.fluid_solver.Predict()
 
     def ApplyForwardCoupling(self, alpha='None'):
-        self.projection_module.ApplyForwardCoupling(alpha)
+        self._GetProjectionModule().ApplyForwardCoupling(alpha)
 
     def ApplyForwardCouplingOfVelocityToSlipVelocityOnly(self, time=None):
-        self.projection_module.ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
+        self._GetProjectionModule().ApplyForwardCouplingOfVelocityToSlipVelocityOnly()
+
+    def _GetProjectionModule(self):
+        if not hasattr(self, 'projection_module'):
+            self.projection_module = self._ConstructProjectionModule()
+        return self.projection_module
 
     def SolveSolutionStep(self):
         # update possible movements of the fluid mesh

@@ -342,7 +342,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.FluidInitialize()
         self.DispersePhaseInitialize()
-        self._GetSolver().projection_module.UpdateDatabase(self._GetSolver().h_min)
 
         self.SetAllModelParts()
 
