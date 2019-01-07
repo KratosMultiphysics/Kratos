@@ -708,18 +708,18 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
         auto it_cond = r_conditions_array.begin() + i;
         if (it_cond->Is(SLAVE)) {
             GeometryType& r_geometry = it_cond->GetGeometry();
-            for (auto& node : r_geometry) {
-                node.SetLock();
-                node.Set(SLAVE, true);
-                node.UnSetLock();
+            for (NodeType& r_node : r_geometry) {
+                r_node.SetLock();
+                r_node.Set(SLAVE, true);
+                r_node.UnSetLock();
             }
         }
         if (it_cond->Is(MASTER)) {
             GeometryType& r_geometry = it_cond->GetGeometry();
-            for (auto& node : r_geometry) {
-                node.SetLock();
-                node.Set(MASTER, true);
-                node.UnSetLock();
+            for (NodeType& r_node : r_geometry) {
+                r_node.SetLock();
+                r_node.Set(MASTER, true);
+                r_node.UnSetLock();
             }
         }
     }
