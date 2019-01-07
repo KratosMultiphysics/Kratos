@@ -369,6 +369,29 @@ public:
                                 rCurrentProcessInfo);
     }
 
+    void GetValuesVector(Vector& rValues)
+    {
+        KRATOS_TRY
+
+        // const SizeType NumNodes = GetGeometry().PointsNumber();
+
+        if (this->Is(MARKER)){
+            if(rValues.size() != 2*NumNodes)
+                rValues.resize(2*NumNodes, false);
+
+            array_1d<double,NumNodes> distances;
+            GetWakeDistances(distances);
+            GetValuesOnSplitElement(rValues,distances);
+            
+        }else{
+            if(rValues.size() != NumNodes)
+                rValues.resize(NumNodes, false);
+            for (unsigned int i = 0; i < NumNodes; i++)
+                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+        }
+ 
+        KRATOS_CATCH("")
+    }
 
     /**
      * this determines the elemental equation ID vector for all elemental
