@@ -9,8 +9,8 @@
 //  Main authors:    Vicente Mataix Ferrandiz
 // 
 
-#if !defined(KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED )
-#define  KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED
+#if !defined(KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED )
+#define  KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED
 
 // System includes
 
@@ -20,7 +20,6 @@
 #include "processes/simple_mortar_mapper_process.h" 
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/openmp_utils.h"
 
 /* Custom includes*/
 #include "custom_includes/point_item.h"
@@ -55,7 +54,7 @@ namespace Kratos
 ///@{
     
 /** 
- * @class TreeContactSearch 
+ * @class BaseContactSearch
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This utilitiy has as objective to create the contact conditions.
  * @details The conditions that can be created are Mortar conditions (or segment to segment) conditions: The created conditions will be between two segments
@@ -66,7 +65,7 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster = TNumNodes>
-class TreeContactSearch
+class BaseContactSearch
 {
 public:
     ///@name Type Definitions
@@ -97,10 +96,13 @@ public:
     typedef SimpleMortarMapperProcess<TDim, TNumNodes, Variable<array_1d<double, 3>>, TNumNodesMaster> MapperType;
 
     /// The definition of zero tolerance
+    static constexpr double GapThreshold = 2.0e-3;
+
+    /// The definition of zero tolerance
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
-    /// Pointer definition of TreeContactSearch
-    KRATOS_CLASS_POINTER_DEFINITION( TreeContactSearch );
+    /// Pointer definition of BaseContactSearch
+    KRATOS_CLASS_POINTER_DEFINITION( BaseContactSearch );
       
     ///@}
     ///@name  Enum's
@@ -133,12 +135,12 @@ public:
      *          -# InterfaceMapper = InterfacePreprocess()
      *          -# InterfacePart = InterfaceMapper.GenerateInterfacePart(Complete_Model_Part)
      */
-    TreeContactSearch( 
+    BaseContactSearch(
         ModelPart& rMainModelPart, 
         Parameters ThisParameters =  Parameters(R"({})") 
         ); 
     
-    virtual ~TreeContactSearch()= default;;
+    virtual ~BaseContactSearch()= default;;
 
     ///@}
     ///@name Operators
@@ -210,7 +212,7 @@ public:
     
     virtual std::string Info() const
     {
-        return "TreeContactSearch";
+        return "BaseContactSearch";
     }
 
     /************************************ PRINT INFO ***********************************/
@@ -236,6 +238,17 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    ModelPart& mrMainModelPart;        /// The main model part
+    Parameters mThisParameters;        /// The configuration parameters
+    CheckGap mCheckGap;                /// If the gap is checked during the search
+    TypeSolution mTypeSolution;        /// The solution type
+    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
+    std::string mConditionName;        /// The name of the condition to be created
+    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
+    PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart
+    bool mMultipleSearchs;             /// If we consider multiple serach or not
+    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -243,6 +256,51 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method checks the pairing
+     * @param rComputingModelPart The modelpart  used in the assemble of the system
+     * @param rConditionId The ID of the new condition to be created
+     */
+    virtual void CheckPairing(
+        ModelPart& rComputingModelPart,
+        IndexType& rConditionId
+        );
+
+    /**
+     * @brief This method computes which nodes are active or inactive after after mapping the coordinates
+     */
+    virtual void ComputeActiveInactiveNodes();
+
+    /**
+     * @brief This method sets as active a node and it sets to an explicit approximation its LM
+     * @param ItNode The node iterator to set
+     * @param CommonEpsilon The penalty value
+     * @param ScaleFactor The scale factor
+     */
+    virtual void SetActiveNode(
+        NodesArrayType::iterator ItNode,
+        const double CommonEpsilon,
+        const double ScaleFactor = 1.0
+        );
+
+    /**
+     * @brief This method sets as inactive a node and it sets to zero its LM
+     * @param ItNode The node iterator to set
+     */
+    virtual void SetInactiveNode(NodesArrayType::iterator ItNode);
+
+    /**
+     * @brief This converts the framework string to an enum
+     * @param str The string
+     * @return CheckGap: The equivalent enum
+     */
+    CheckGap ConvertCheckGap(const std::string& str);
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    Parameters GetDefaultParameters();
 
     ///@}
     ///@name Protected  Access
@@ -265,17 +323,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-  
-    ModelPart& mrMainModelPart;        /// The main model part
-    Parameters mThisParameters;        /// The configuration parameters
-    CheckGap mCheckGap;                /// If the gap is checked during the search
-    TypeSolution mTypeSolution;        /// The solution type 
-    bool mInvertedSearch;              /// The search will be done inverting the way master and slave/master is assigned
-    std::string mConditionName;        /// The name of the condition to be created
-    bool mCreateAuxiliarConditions;    /// If the auxiliar conditions are created or not
-    PointVector mPointListDestination; /// A list that contents the all the points (from nodes) from the modelpart 
-    bool mMultipleSearchs;             /// If we consider multiple serach or not
-    bool mPredefinedMasterSlave;       /// If the master/slave sides are predefined
 
     ///@}
     ///@name Private Operators
@@ -294,31 +341,21 @@ private:
 
     /**
      * @brief This function clears the mortar conditions already created 
-     * @param NodesArray The array of nodes to clear
+     * @param rNodesArray The array of nodes to clear
      */
-    void ClearScalarMortarConditions(NodesArrayType& NodesArray);
+    void ClearScalarMortarConditions(NodesArrayType& rNodesArray);
     
     /**
      * @brief This function clears the mortar conditions already created 
-     * @param NodesArray The array of nodes to clear
+     * @param rNodesArray The array of nodes to clear
      */
-    void ClearComponentsMortarConditions(NodesArrayType& NodesArray);
+    void ClearComponentsMortarConditions(NodesArrayType& rNodesArray);
     
     /**
      * @brief This function clears the ALM frictionless mortar conditions already created 
-     * @param NodesArray The array of nodes to clear
+     * @param rNodesArray The array of nodes to clear
      */
-    void ClearALMFrictionlessMortarConditions(NodesArrayType& NodesArray);
-       
-    /**
-     * @brief This computes a simple linear regression to the gap and contact pressure
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void ComputeLinearRegressionGapPressure(
-        double& a,
-        double& b
-        );
+    void ClearALMFrictionlessMortarConditions(NodesArrayType& rNodesArray);
     
     /**
      * @brief It check the conditions if they are correctly detected
@@ -395,163 +432,10 @@ private:
         );
     
     /**
-     * @brief This method checks the pairing
-     * @param rComputingModelPart The modelpart  used in the assemble of the system
-     * @param rConditionId The ID of the new condition to be created
-     */
-    inline void CheckPairing(
-        ModelPart& rComputingModelPart,
-        IndexType& rConditionId
-        );
-    
-    /**
      * @brief This method computes the gap using a mapper 
      * @param SearchOrientation The orientation of the search (inverted or not)
      */
     inline void ComputeMappedGap(const bool SearchOrientation);
-    
-    /**
-     * @brief This method computes which nodes are active or inactive after after mapping the coordinates
-     */
-    inline void ComputeActiveInactiveNodes();
-    
-    /**
-     * @brief This method sets as active a node and it predicts the value of its LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void SetActiveNode(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This method sets as inactive a node and it sets to zero its LM
-     * @param ItNode The node iterator to set
-     */
-    inline void SetInactiveNode(NodesArrayType::iterator ItNode);
-    
-    /**
-     * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void CorrectScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void CorrectComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void CorrectALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void CorrectALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void CorrectALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the scalar LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void PredictScalarMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the vector LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void PredictComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictionless LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void PredictALMFrictionlessMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictionless in components LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void PredictALMFrictionlessComponentsMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
-    
-    /**
-     * @brief This function predicts the ALM frictional LM
-     * @param ItNode The node iterator to set
-     * @param a The first component of the regression
-     * @param b The second component of the regression
-     */
-    inline void PredictALMFrictionalMortarLM(
-        NodesArrayType::iterator ItNode,
-        const double a,
-        const double b
-        );
     
     /**
      * @brief This method sets as inactive a node and it sets to zero its LM
@@ -597,13 +481,6 @@ private:
      */
     SearchTreeType ConvertSearchTree(const std::string& str);
     
-    /**
-     * @brief This converts the framework string to an enum
-     * @param str The string
-     * @return CheckGap: The equivalent enum
-     */
-    CheckGap ConvertCheckGap(const std::string& str);
-    
     ///@}
     ///@name Private  Access
     ///@{
@@ -618,7 +495,7 @@ private:
 
     ///@}
 
-}; // Class TreeContactSearch
+}; // Class BaseContactSearch
 
 ///@}
 
@@ -635,14 +512,14 @@ private:
 // 
 // template<class TPointType, class TPointerType>
 // inline std::istream& operator >> (std::istream& rIStream,
-//                                   TreeContactSearch& rThis);
+//                                   BaseContactSearch& rThis);
 // 
 // /***************************** OUTPUT STREAM FUNCTION ******************************/
 // /***********************************************************************************/
 // 
 // template<class TPointType, class TPointerType>
 // inline std::ostream& operator << (std::ostream& rOStream,
-//                                   const TreeContactSearch& rThis)
+//                                   const BaseContactSearch& rThis)
 // {
 //     return rOStream;
 // }
@@ -651,4 +528,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TREE_CONTACT_SEARCH_H_INCLUDED  defined 
+#endif // KRATOS_BASE_CONTACT_SEARCH_H_INCLUDED  defined
