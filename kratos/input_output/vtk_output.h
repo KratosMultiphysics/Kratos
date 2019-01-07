@@ -94,7 +94,7 @@ protected:
      * @param IsSubModelPart whether the modelpart is to be treated as a submodelpart
      * this is only relevant for the file-name
      */
-    void WriteModelPart(const ModelPart& rModelPart, const bool IsSubModelPart);
+    void WriteModelPartInVTK(const ModelPart& rModelPart, const bool IsSubModelPart);
 
     /**
      * @brief Get the output file name based on the provided settings and the MPI rank
@@ -119,21 +119,21 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteHeader(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    void WriteHeaderInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the mesh from rModelPart. Nodes, Elements or/and Conditions.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteMesh(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    void WriteMeshInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the nodes in the rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodes(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    void WriteNodesInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Write the elements and conditions in rModelPart.
@@ -141,7 +141,7 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionsAndElements(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
+    void WriteConditionsAndElementsInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream) const;
 
     /**
      * @brief Calculate the total number of cells which are in the provided rModelPart. = num_elements + num_conditions
@@ -175,21 +175,21 @@ protected:
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteNodalResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteNodalResultsInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the elements of rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteElementResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteElementResultsInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results/flags on the conditions of rModelPart.
      * @param rModelPart modelpart which is beging output
      * @param rFileStream the file stream to which data is to be written.
      */
-    void WriteConditionResults(const ModelPart& rModelPart, std::ofstream& rFileStream);
+    void WriteConditionResultsInVTK(const ModelPart& rModelPart, std::ofstream& rFileStream);
 
     /**
      * @brief Write the results of rNodes. Synchronization is necessary because both local
