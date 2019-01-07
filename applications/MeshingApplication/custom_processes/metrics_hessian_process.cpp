@@ -107,33 +107,34 @@ array_1d<double, 3 * (TDim - 1)> ComputeHessianSolMetricProcess::ComputeHessianM
     // We first transform the Hessian into a matrix
     const MatrixType hessian_matrix = MathUtils<double>::VectorToSymmetricTensor<Vector, MatrixType>(rHessian);
 
-    // Calculating Metric parameters
-    const double mesh_constant = TDim == 3 ? 9.0/32.0 : 2.0/9.0; 
+    // Calculating Metric parameters (using equation from remark 4.2.2 on Metric-Based Anisotropic Mesh Adaptation)
     double interpolation_error = mInterpError;
     if (mEstimateInterpError) {
-        interpolation_error = mesh_constant * MathUtils<double>::Max(ElementMaxSize, ElementMaxSize * norm_frobenius(hessian_matrix));
+        interpolation_error = mMeshConstant * MathUtils<double>::Max(NodalH, NodalH * norm_frobenius(hessian_matrix)); // NOTE: To compute it properly instead of iterating over the nodes you should iterate over the elements and instead of ElementMaxSize you should iterate over the edges, this is equivalent when using nodes and computing NodalH previously
     }
-
-    // We check is the interpolation error is near zero. If it is we will correct it
-    if (interpolation_error < std::numeric_limits<double>::epsilon()) {
-        KRATOS_WARNING("ComputeHessianSolMetricProcess") << "WARNING: Your interpolation error is near zero: " << interpolation_error  <<  ". Computing a local L(inf) upper bound of the interpolation error"<< std::endl;
-        const double l_square = std::pow(NodalH, 2);
-        for (IndexType i = 0; i < 3 * (TDim - 1); ++i) {
-            interpolation_error = mesh_constant * MathUtils<double>::Max(interpolation_error, l_square * std::abs(rHessian[i]));
-        }
-    }
-    const double c_epslilon = mMeshConstant/interpolation_error;
-    const double min_ratio = 1.0/(ElementMinSize * ElementMinSize);
-    const double max_ratio = 1.0/(ElementMaxSize * ElementMaxSize);
 
     // Declaring the eigen system
     MatrixType eigen_vector_matrix, eigen_values_matrix;
 
     MathUtils<double>::EigenSystem<TDim>(hessian_matrix, eigen_vector_matrix, eigen_values_matrix, 1e-18, 20);
 
-    // Recalculate the Metric eigen values
-    for (IndexType i = 0; i < TDim; ++i)
-        eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epslilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
+    // We check is the interpolation error is near zero. If it is we will correct it
+    if (interpolation_error < std::numeric_limits<double>::epsilon()) { // In practice, the Hessian of function u can be 0, e.g. if u is linear, then |Hu| is not definite. In this particular case, the interpolation error is 0 and we want to prescribe a mesh size which is infinite. To solve this issue, this infinite size prescription is truncated by imposing lambda maximal size hmax . This is equivalent to truncate tiny eigenvalues by lambda  = 1/hmax^2 . This is taken from page 34 on Metric-Based Anisotropic Mesh Adaptation
+        KRATOS_WARNING("ComputeHessianSolMetricProcess") << "WARNING: Your interpolation error is near zero: " << interpolation_error  <<  ". Computing a local L(inf) upper bound of the interpolation error"<< std::endl;
+        const double l_square_minus1 = 1.0/std::pow(ElementMaxSize, 2);
+        for (IndexType i = 0; i < TDim; ++i) {
+            eigen_values_matrix(i, i) = l_square_minus1;
+        }
+    } else {
+        const double c_epsilon = mMeshConstant/interpolation_error;
+        const double min_ratio = 1.0/std::pow(ElementMinSize, 2);
+        const double max_ratio = 1.0/std::pow(ElementMaxSize, 2);
+
+        // Recalculate the Metric eigen values
+        for (IndexType i = 0; i < TDim; ++i) {
+            eigen_values_matrix(i, i) = MathUtils<double>::Min(MathUtils<double>::Max(c_epsilon * std::abs(eigen_values_matrix(i, i)), max_ratio), min_ratio);
+        }
+    }
 
     // Considering anisotropic
     if (AnisotropicRatio < 1.0) {
@@ -219,7 +220,7 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
         // Current geometry information
         const std::size_t local_space_dimension = r_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_geometry.PointsNumber();
-        
+
         // Resize if needed
         if (DN_DX.size1() != number_of_nodes || DN_DX.size2() != dimension)
             DN_DX.resize(number_of_nodes, dimension);
@@ -227,12 +228,12 @@ void ComputeHessianSolMetricProcess::CalculateAuxiliarHessian()
             N.resize(number_of_nodes);
         if (J0.size1() != dimension || J0.size2() != local_space_dimension)
             J0.resize(dimension, local_space_dimension);
-        
+
         // The integration points
         const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
         const auto& integration_points = r_geometry.IntegrationPoints(integration_method);
         const std::size_t number_of_integration_points = integration_points.size();
-        
+
         // The containers of the shape functions and the local gradients
         const auto& rNcontainer = r_geometry.ShapeFunctionsValues(integration_method);
         const auto& rDN_DeContainer = r_geometry.ShapeFunctionsLocalGradients(integration_method);
@@ -439,10 +440,10 @@ Parameters ComputeHessianSolMetricProcess::GetDefaultParameters() const
             "interpolation"                        : "Linear"
         }
     })" );
-    
+
     // Identify the dimension first
     const SizeType dimension = mThisModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    
+
     // The mesh dependent constant depends on dimension
     if (dimension == 2) {
         default_parameters["hessian_strategy_parameters"]["mesh_dependent_constant"].SetDouble(2.0/9.0);
