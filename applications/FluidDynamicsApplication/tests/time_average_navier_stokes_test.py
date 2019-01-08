@@ -23,37 +23,37 @@ class WorkFolderScope:
 class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
     def testCylinderFlow2D(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\cylinder"
+        self.work_folder = "TimeAveragedNavierStokesTest/cylinder"
         self.settings = "cylinder_2d.json"
         self.ExcecuteFlowTest()
 
 
     def testCylinderFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\cylinder"
+        self.work_folder = "TimeAveragedNavierStokesTest/cylinder"
         self.settings = "cylinder_2d_reference.json"
         self.ExcecuteFlowTest()
 
 
     def testBackStepFlow2D(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\back_step"
+        self.work_folder = "TimeAveragedNavierStokesTest/back_step"
         self.settings = "back_step_flow_100.json"
         self.ExcecuteFlowTest()
 
 
     def testBackStepFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\back_step"
+        self.work_folder = "TimeAveragedNavierStokesTest/back_step"
         self.settings = "back_step_flow_reference_100.json"
         self.ExcecuteFlowTest()
 
 
     def testPipeFlow2D(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\pipe_flow"
+        self.work_folder = "TimeAveragedNavierStokesTest/pipe_flow"
         self.settings = "pipe_flow.json"
         self.ExcecuteFlowTest()
 
 
     def testPipeFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest\\pipe_flow"
+        self.work_folder = "TimeAveragedNavierStokesTest/pipe_flow"
         self.settings = "pipe_flow_reference.json"
         self.ExcecuteFlowTest()
 
@@ -176,9 +176,9 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    # TimeAveragedNavierStokesTest().testCylinderFlow2D()
+    TimeAveragedNavierStokesTest().testCylinderFlow2D()
     # TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
-    TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    # TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
     # TimeAveragedNavierStokesTest().testPipeFlow2DReference()

@@ -63,8 +63,9 @@
         },
         "time_averaging_acceleration"        :{
             "considered_time"     : 5.0,
-            "minimum_delta_time"  : 1e-2,
-            "maximum_delta_time"  : 1.0
+            "minimum_delta_time"  : 1e-1,
+            "maximum_delta_time"  : 1.0,
+            "end_time"            : 20.0
         }
     },
     "initial_conditions_process_list"  : [],

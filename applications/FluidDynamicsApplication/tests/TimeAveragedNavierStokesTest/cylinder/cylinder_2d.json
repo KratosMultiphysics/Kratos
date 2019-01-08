@@ -6,7 +6,7 @@
         "parallel_type"   : "OpenMP",
         "echo_level"      : 1,
         "start_time"      : 0.0,
-        "end_time"        : 200.0
+        "end_time"        : 5000.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,7 +18,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 1.0,
+            "output_frequency"    : 50.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -60,6 +60,15 @@
         "time_stepping"               : {
             "automatic_time_step" : false,
             "time_step"           : 0.5
+        },
+        "time_averaging_acceleration"        :{
+            "considered_time"           : 100.0,
+            "minimum_delta_time"        : 0.5,
+            "maximum_delta_time"        : 20.0,
+            "minimum_CFL"               : 1.0,
+            "maximum_CFL"               : 20.0,
+            "start_acceleration_time"   : 100,
+            "end_time"                  : 5000.0
         }
     },
     "initial_conditions_process_list"  : [],

@@ -56,9 +56,13 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0
             },
             "time_averaging_acceleration"        :{
-                "considered_time"     : 5.0,
-                "minimum_delta_time"  : 1e-2,
-                "maximum_delta_time"  : 1.0
+            "considered_time"           : 100.0,
+            "minimum_delta_time"        : 0.5,
+            "maximum_delta_time"        : 20.0,
+            "minimum_CFL"               : 1.0,
+            "maximum_CFL"               : 20.0,
+            "start_acceleration_time"   : 100,
+            "end_time"                  : 5000.0
             },
             "periodic": "periodic",
             "move_mesh_flag": false
@@ -73,6 +77,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.element_name = "TimeAveragedNavierStokes"
         self.condition_name = "TimeAveragedNavierStokesWallCondition"
         self.min_buffer_size = 5
+        self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
@@ -171,9 +176,9 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def AdvanceInTime(self, current_time):
-        #dt = self._ComputeDeltaTime()
+        # dt = self._ComputeDeltaTime()
         current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        dt = self._ComputeIncreasedDt(current_dt)
+        dt = self._compute_increased_delta_time(current_time)
         new_time = current_time + dt
 
         self.main_model_part.CloneTimeStep(new_time)
@@ -223,12 +228,19 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
 
-    def _ComputeIncreasedDt(self, current_dt):
+    def _compute_increased_delta_time(self, current_time):
         dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
         dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
-        new_dt = current_dt + 0.01
-        if (new_dt >= dt_max):
-            new_dt = dt_max
+        CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
+        CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
+        start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
+
+        if ( current_time > start_acceleration_time): CFL = CFL_min + current_time / self.end_time * (CFL_max - CFL_min)
+        else: CFL = CFL_min
+        
+        EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, CFL, dt_min, dt_max, True)
+        new_dt = EstimateDeltaTimeUtility.EstimateDt()
+
         print("New dt is: ", new_dt)
         return new_dt
 
