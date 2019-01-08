@@ -109,11 +109,12 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::InitializeMortarCondit
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
 
     #pragma omp parallel for
     for(int i = 0; i < num_conditions; ++i) {
-        auto it_cond = r_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         if (!(it_cond->Has(INDEX_MAP))) {
             it_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
 //             it_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
@@ -147,22 +148,22 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationMo
     ModelPart& r_slave_model_part = rModelPart.GetSubModelPart("SlaveSubModelPart" + id_name);
 
     // The vectors containing the ids
-    std::vector<IndexType> slave_nodes_ids;
-    std::vector<IndexType> master_nodes_ids;
-    std::vector<IndexType> slave_conditions_ids;
-    std::vector<IndexType> master_conditions_ids;
+    std::vector<IndexType> slave_nodes_ids,  master_nodes_ids;
+    std::vector<IndexType> slave_conditions_ids, master_conditions_ids;
+
+    // Begin iterators
+    const auto it_node_begin = rModelPart.NodesBegin();
+    const auto it_cond_begin = rModelPart.ConditionsBegin();
 
     #pragma omp parallel
     {
         // Creating a buffer for parallel vector fill
-        std::vector<IndexType> slave_nodes_ids_buffer;
-        std::vector<IndexType> master_nodes_ids_buffer;
-        std::vector<IndexType> slave_conditions_ids_buffer;
-        std::vector<IndexType> master_conditions_ids_buffer;
+        std::vector<IndexType> slave_nodes_ids_buffer, master_nodes_ids_buffer;
+        std::vector<IndexType> slave_conditions_ids_buffer, master_conditions_ids_buffer;
 
         #pragma omp for
         for(int i=0; i<static_cast<int>(rModelPart.Nodes().size()); ++i) {
-            auto it_node = rModelPart.NodesBegin() + i;
+            auto it_node = it_node_begin + i;
 
             if (it_node->Is(SLAVE) == !mInvertedSearch) {
                 slave_nodes_ids_buffer.push_back(it_node->Id());
@@ -174,7 +175,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetOriginDestinationMo
 
         #pragma omp for
         for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_cond = rModelPart.ConditionsBegin() + i;
+            auto it_cond = it_cond_begin + i;
 
             if (it_cond->Is(SLAVE) == !mInvertedSearch) {
                 slave_conditions_ids_buffer.push_back(it_cond->Id());
@@ -244,39 +245,24 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckContactModelParts
 
     std::vector<Condition::Pointer> auxiliar_conditions_vector;
 
-    #pragma omp parallel
-    {
-        // Buffer for new conditions if created
-        std::vector<Condition::Pointer> auxiliar_conditions_vector_buffer;
+    for(Condition& r_cond : r_conditions_array) {
+        if (r_cond.Is(MARKER)) {
+            // Setting the flag to remove
+            r_cond.Set(TO_ERASE, true);
 
-        #pragma omp for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            // Creating new condition
+            Condition::Pointer p_new_cond = r_cond.Clone(total_number_conditions + r_cond.Id(), r_cond.GetGeometry());
+            auxiliar_conditions_vector.push_back(p_new_cond);
 
-            if (it_cond->Is(MARKER)) {
-                // Setting the flag to remove
-                it_cond->Set(TO_ERASE, true);
-
-                // Creating new condition
-                Condition::Pointer p_new_cond = it_cond->Clone(total_number_conditions + it_cond->Id(), it_cond->GetGeometry());
-                auxiliar_conditions_vector_buffer.push_back(p_new_cond);
-
-                p_new_cond->SetData(it_cond->GetData()); // TODO: Remove when fixed on the core
-                p_new_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
-//                 p_new_cond->GetValue(INDEX_MAP)->clear();
-//                 p_new_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
-                p_new_cond->Set(Flags(*it_cond));
-                p_new_cond->Set(MARKER, true);
-            } else {
-                // Setting the flag to mark
-                it_cond->Set(MARKER, true);
-            }
-        }
-
-        // Combine buffers together
-        #pragma omp critical
-        {
-            std::move(auxiliar_conditions_vector_buffer.begin(),auxiliar_conditions_vector_buffer.end(),back_inserter(auxiliar_conditions_vector));
+            p_new_cond->SetData(r_cond.GetData()); // TODO: Remove when fixed on the core
+            p_new_cond->SetValue(INDEX_MAP, Kratos::make_shared<IndexMap>());
+//             p_new_cond->GetValue(INDEX_MAP)->clear();
+//             p_new_cond->GetValue(INDEX_MAP)->reserve(mThisParameters["allocation_size"].GetInt());
+            p_new_cond->Set(Flags(r_cond));
+            p_new_cond->Set(MARKER, true);
+        } else {
+            // Setting the flag to mark
+            r_cond.Set(MARKER, true);
         }
     }
 
@@ -307,26 +293,12 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CreatePointListMortar(
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
-    #pragma omp parallel
-    {
-        // Creating a buffer for parallel vector fill
-        PointVector points_buffer;
-
-        #pragma omp for
-        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
-
-            if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
-                const PointTypePointer& p_point = Kratos::make_shared<PointItem>((*it_cond.base()));
-                (points_buffer).push_back(p_point);
-            }
-        }
-
-        // Combine buffers together
-        #pragma omp critical
-        {
-            std::move(points_buffer.begin(), points_buffer.end(), back_inserter(mPointListDestination));
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i) {
+        auto it_cond = it_cond_begin + i;
+        if (it_cond->Is(MASTER) == !mInvertedSearch || !mPredefinedMasterSlave) {
+            mPointListDestination.push_back(Kratos::make_shared<PointItem>((*it_cond.base())));
         }
     }
 
@@ -592,10 +564,12 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckMortarConditions(
         }
     }
 
+    // Iterate over the nodes
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
-        auto it_node = r_nodes_array.begin() + i;
+        auto it_node = it_node_begin + i;
         if (it_node->Is(ACTIVE))
             KRATOS_INFO("Check paired nodes") << "Node: " << it_node->Id() << " is active" << std::endl;
     }
@@ -682,6 +656,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 {
     // We iterate over the conditions
     ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
     const int num_conditions = static_cast<int>(r_conditions_array.size());
 
     std::vector<IndexType> master_conditions_ids;
@@ -693,7 +668,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
 
         #pragma omp for
         for(int i = 0; i < num_conditions; ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
             IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
             if (p_indexes_pairs->size() > 0) {
                 it_cond->Set(SLAVE, true);
@@ -733,18 +708,18 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::NotPredefinedMa
         auto it_cond = r_conditions_array.begin() + i;
         if (it_cond->Is(SLAVE)) {
             GeometryType& r_geometry = it_cond->GetGeometry();
-            for (auto& node : r_geometry) {
-                node.SetLock();
-                node.Set(SLAVE, true);
-                node.UnSetLock();
+            for (NodeType& r_node : r_geometry) {
+                r_node.SetLock();
+                r_node.Set(SLAVE, true);
+                r_node.UnSetLock();
             }
         }
         if (it_cond->Is(MASTER)) {
             GeometryType& r_geometry = it_cond->GetGeometry();
-            for (auto& node : r_geometry) {
-                node.SetLock();
-                node.Set(MASTER, true);
-                node.UnSetLock();
+            for (NodeType& r_node : r_geometry) {
+                r_node.SetLock();
+                r_node.Set(MASTER, true);
+                r_node.UnSetLock();
             }
         }
     }
@@ -927,14 +902,16 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGa
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ModelPart& r_master_model_part = r_sub_contact_model_part.GetSubModelPart("MasterSubModelPart"+mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array_master = r_master_model_part.Nodes();
+    const auto it_node_begin_master = r_nodes_array_master.begin();
     ModelPart& r_slave_model_part = r_sub_contact_model_part.GetSubModelPart("SlaveSubModelPart"+mThisParameters["id_name"].GetString());
     NodesArrayType& r_nodes_array_slave = r_slave_model_part.Nodes();
+    const auto it_node_begin_slave = r_nodes_array_slave.begin();
 
     // We set the auxiliar Coordinates
     const array_1d<double, 3> zero_array = ZeroVector(3);
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array_master.size()); ++i) {
-        auto it_node = r_nodes_array_master.begin() + i;
+        auto it_node = it_node_begin_master + i;
 
         if (SearchOrientation) {
             it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
@@ -944,7 +921,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGa
     }
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_nodes_array_slave.size()); ++i) {
-        auto it_node = r_nodes_array_slave.begin() + i;
+        auto it_node = it_node_begin_slave + i;
 
         if (!SearchOrientation) {
             it_node->SetValue(AUXILIAR_COORDINATES, it_node->Coordinates());
@@ -1110,10 +1087,11 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
     ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
     ConditionsArrayType& r_computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
+    const auto it_cond_begin = r_computing_conditions_array.begin();
     auto process_info = mrMainModelPart.GetProcessInfo();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_computing_conditions_array.size()); ++i) {
-        auto it_cond = r_computing_conditions_array.begin() + i;
+        auto it_cond = it_cond_begin + i;
         it_cond->AddExplicitContribution(process_info);
     }
 }
@@ -1207,12 +1185,13 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
     ModelPart& r_contact_model_part = mrMainModelPart.GetSubModelPart("Contact");
     ModelPart& r_sub_contact_model_part = !mMultipleSearchs ? r_contact_model_part : r_contact_model_part.GetSubModelPart("ContactSub"+mThisParameters["id_name"].GetString());
     ConditionsArrayType& r_conditions_array = r_sub_contact_model_part.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
 
     if (mrMainModelPart.Is(MODIFIED)) { // It has been remeshed. We remove everything
 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
-            auto it_cond = r_conditions_array.begin() + i;
+            auto it_cond = it_cond_begin + i;
             if (it_cond->Is(SLAVE) == !mInvertedSearch) {
                 IndexMap::Pointer p_indexes_pairs = it_cond->GetValue(INDEX_MAP);
 
