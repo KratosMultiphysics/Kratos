@@ -40,7 +40,7 @@ void TimeAveragingProcess::ExecuteInitialize() {
     int NumNodes = mrModelPart.NumberOfNodes();
     for (int i = 0; i < NumNodes; ++i)
     {
-        ModelPart::NodeIterator &inode = mrModelPart.NodesBegin() + i;
+        auto inode = mrModelPart.NodesBegin() + i;
         inode->SetValue(TIME_AVERAGED_VELOCITY,inode->FastGetSolutionStepValue(VELOCITY));
         inode->SetValue(TIME_AVERAGED_PRESSURE,inode->FastGetSolutionStepValue(PRESSURE));
     }
