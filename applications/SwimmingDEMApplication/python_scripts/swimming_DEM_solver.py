@@ -62,7 +62,7 @@ class SwimmingDEMSolver(PythonSolver):
         fluid_volume = 10
         # the variable n_particles_in_depth is only relevant in 2D problems
         self.project_parameters.AddEmptyValue("n_particles_in_depth").SetInt(int(math.sqrt(n_balls / fluid_volume)))
-        
+
         projection_module = CFD_DEM_coupling.ProjectionModule(
         self.fluid_solver.main_model_part,
         self.dem_solver.spheres_model_part,
@@ -132,6 +132,9 @@ class SwimmingDEMSolver(PythonSolver):
         self.stationarity = self.stationarity_tool.Assess(self.fluid_solver.main_model_part)
         self.stationarity_counter.Deactivate(self.stationarity)
 
+    # Compute nodal quantities to be printed that are not generated as part of the
+    # solution algorithm. For instance, the pressure gradient, which is not used for
+    # the coupling but can be of interest.
     def ComputePostProcessResults(self):
         if self.project_parameters["coupling_level_type"].GetInt():
             self._GetProjectionModule().ComputePostProcessResults(self.dem_solver.spheres_model_part.ProcessInfo)
@@ -171,11 +174,6 @@ class SwimmingDEMSolver(PythonSolver):
         # the calculation stops after reaching the solution.
         if self.stationarity_counter.Tick():
             self.AssessStationarity()
-
-        # Compute nodal quantities to be printed that are not generated as part of the
-        # solution algorithm. For instance, the pressure gradient, which is not used for
-        # the coupling but can be of interest.
-        self.ComputePostProcessResults() # TODO: Make sure this is run only when needed
 
         self.derivative_recovery_counter.Activate(self.time > self.interaction_start_time and self.calculating_fluid_in_current_step)
 

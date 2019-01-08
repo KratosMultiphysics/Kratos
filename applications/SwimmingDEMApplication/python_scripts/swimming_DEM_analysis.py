@@ -642,16 +642,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
-    def RunSolutionLoop(self):
-
-        while self.TheSimulationMustGoOn():
-            self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
-            self.InitializeSolutionStep()
-            self._GetSolver().Predict()
-            self._GetSolver().SolveSolutionStep()
-            self.FinalizeSolutionStep()
-            self.OutputSolutionStep()
-
     def OutputSolutionStep(self):
         # printing if required
 
