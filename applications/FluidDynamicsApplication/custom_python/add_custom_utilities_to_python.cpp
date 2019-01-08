@@ -60,7 +60,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     // Estimate time step utilities
     class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
-        .def(init< ModelPart&, const double, const double, const double >())
+        .def(init< ModelPart&, const double, const double, const double, const bool >())
         .def(init< ModelPart&, Parameters& >())
         .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
@@ -70,7 +70,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
-        .def(init< ModelPart&, const double, const double, const double >())
+        .def(init< ModelPart&, const double, const double, const double, const bool >())
         .def(init< ModelPart&, Parameters& >())
         .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
