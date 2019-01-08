@@ -235,26 +235,26 @@ public:
         KRATOS_TRY;
 
         int thread_id = OpenMPUtils::ThisThread();
-        std::cout<<"Initializing CalculatSystemContributions"<< std::endl;
+  
+
         // Get element stiffness matrix
         pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
-std::cout<<"hey"<< std::endl;
+
         if (rRHS_Contribution.size() != rLHS_Contribution.size1())
             rRHS_Contribution.resize(rLHS_Contribution.size1(), false);
 
         // Calculate transposed gradient of response function on element w.r.t. primal solution
         mpResponseFunction->CalculateGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-std::cout<<"hey1"<< std::endl;
+        KRATOS_WATCH(rRHS_Contribution)
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
-        pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        pCurrentElement->GetValuesVector(mAdjointValues[thread_id],0);
+
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
-std::cout<<"hey2"<< std::endl;
 
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
-        std::cout<<"Exiting CalculatSystemContributions"<< std::endl;
 
         KRATOS_CATCH("");
     }

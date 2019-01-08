@@ -99,7 +99,11 @@ namespace Kratos
                 {   
                     // auto p_element = rReferenceElement.Create(*it.base());
                     Element::Pointer p_element= Kratos::make_shared<IncompressibleAdjointPotentialFlowElement<2,3>>(*it.base());
+                    // Deep copy elemental data and flags                
+                    p_element->Data() = it->Data();
+                    p_element->Set(Flags(*it));
                     (*it.base()) = p_element;
+
                 }                
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
@@ -117,8 +121,9 @@ namespace Kratos
             {
                 if (condition_name == "IncompressibleAdjointPotentialWallCondition2D2N")
                 {
-                   auto p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
-
+                    auto p_condition = rReferenceCondition.Create(it->Id(), it->pGetGeometry(), it->pGetProperties());
+                    p_condition->Data() = it->Data();
+                    p_condition->Set(Flags(*it));
                     (*it.base()) = p_condition;
                 }
                 else
