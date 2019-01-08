@@ -457,7 +457,7 @@ double& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     } else if (rThisVariable == UNIAXIAL_STRESS_TENSION) {
        rValue = mTensionUniaxialStress;
     } else {
-       return BaseType::GetValue(rThisVariable, rValue);
+       //return BaseType::GetValue(rThisVariable, rValue);
     }
     return rValue;
 }
