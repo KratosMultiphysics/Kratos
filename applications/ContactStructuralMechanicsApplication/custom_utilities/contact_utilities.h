@@ -12,6 +12,12 @@
 #if !defined(KRATOS_CONTACT_UTILITIES)
 #define KRATOS_CONTACT_UTILITIES
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "utilities/openmp_utils.h"
 #include "utilities/math_utils.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/model_part.h"
@@ -50,12 +56,10 @@ public:
 
     // Some geometrical definitions
     typedef Node<3>                                              NodeType;
-    typedef Point                                               PointType;
-    typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
+    typedef Point::CoordinatesArrayType              CoordinatesArrayType;
 
     /// Definition of geometries
     typedef Geometry<NodeType>                               GeometryType;
-    typedef Geometry<PointType>                         GeometryPointType;
 
     /// The containers of the components of the model parts
     typedef ModelPart::NodesContainerType                  NodesArrayType;
@@ -95,7 +99,6 @@ public:
      * @brief This function computes the relative size of the mesh
      * @param rThisModelPart The modelpart to compute
      */
-
     static inline double CalculateRelativeSizeMesh(ModelPart& rThisModelPart)
     {
         return CalculateMaxNodalH(rThisModelPart)/CalculateMinimalNodalH(rThisModelPart);
@@ -108,13 +111,15 @@ public:
     static inline double CalculateMaxNodalH(ModelPart& rThisModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the max auxiliar value
 //         double max_value = 0.0;
+//
 //         #pragma omp parallel for reduction(max:max_value)
-//         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-//             auto it_node = nodes_array.begin() + i;
+//         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+//             auto it_node = it_node_begin + i;
 //             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
 //             max_value = std::max(max_value, it_node->FastGetSolutionStepValue(NODAL_H));
 //         }
@@ -126,8 +131,8 @@ public:
         std::vector<double> max_vector(num_threads, 0.0);
         double nodal_h;
         #pragma omp parallel for private(nodal_h)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
             nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
 
@@ -147,18 +152,20 @@ public:
     static inline double CalculateMeanNodalH(ModelPart& rThisModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
 
+        // Creating the sum auxiliar value
         double sum_nodal_h = 0.0;
 
         #pragma omp parallel for reduction(+:sum_nodal_h)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
             sum_nodal_h += it_node->FastGetSolutionStepValue(NODAL_H);;
         }
 
-        return sum_nodal_h/static_cast<double>(nodes_array.size());
+        return sum_nodal_h/static_cast<double>(r_nodes_array.size());
     }
 
     /**
@@ -168,13 +175,15 @@ public:
     static inline double CalculateMinimalNodalH(ModelPart& rThisModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the min auxiliar value
 //         double min_value = 0.0;
+//
 //         #pragma omp parallel for reduction(min:min_value)
-//         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-//             auto it_node = nodes_array.begin() + i;
+//         for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+//             auto it_node = it_node_begin + i;
 //             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
 //             min_value = std::min(min_value, it_node->FastGetSolutionStepValue(NODAL_H));
 //         }
@@ -186,8 +195,8 @@ public:
         std::vector<double> min_vector(num_threads, 0.0);
         double nodal_h;
         #pragma omp parallel for private(nodal_h)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
             KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(NODAL_H)) << "ERROR:: NODAL_H not added" << std::endl;
             nodal_h = it_node->FastGetSolutionStepValue(NODAL_H);
 
@@ -202,35 +211,33 @@ public:
 
     /**
      * @brief This function scales the points according to a factor (to increase the bounding box)
-     * @param PointToScale The point to scale
-     * @param Normal The normal of the point
+     * @param rPointToScale The point to scale
+     * @param rNormal The normal of the point
      * @param LengthSearch The factor considered to "grow" the node
      */
-    
     template<class TPointType>
     static inline void ScaleNode(
-        TPointType& PointToScale,
-        const array_1d<double, 3>& Normal,
+        TPointType& rPointToScale,
+        const array_1d<double, 3>& rNormal,
         const double LengthSearch
         )
     {        
-        PointToScale.Coordinates() = PointToScale.Coordinates() + Normal * LengthSearch;
+        noalias(rPointToScale.Coordinates()) = rPointToScale.Coordinates() + rNormal * LengthSearch;
     }
     
     /**
      * @brief Calculates the distance between nodes
-     * @param PointOrigin The first node
-     * @param PointDestiny The second node
+     * @param rPointOrigin The first node
+     * @param rPointDestiny The second node
      */
-    
     static inline double DistancePoints(
-        const GeometryType::CoordinatesArrayType& PointOrigin,
-        const GeometryType::CoordinatesArrayType& PointDestiny
+        const GeometryType::CoordinatesArrayType& rPointOrigin,
+        const GeometryType::CoordinatesArrayType& rPointDestiny
         )
     {
-        return std::sqrt((PointOrigin[0] - PointDestiny[0]) * (PointOrigin[0] - PointDestiny[0])
-                       + (PointOrigin[1] - PointDestiny[1]) * (PointOrigin[1] - PointDestiny[1])
-                       + (PointOrigin[2] - PointDestiny[2]) * (PointOrigin[2] - PointDestiny[2]));
+        return std::sqrt((rPointOrigin[0] - rPointDestiny[0]) * (rPointOrigin[0] - rPointDestiny[0])
+                       + (rPointOrigin[1] - rPointDestiny[1]) * (rPointOrigin[1] - rPointDestiny[1])
+                       + (rPointOrigin[2] - rPointDestiny[2]) * (rPointOrigin[2] - rPointDestiny[2]));
     }
     
     /**
@@ -239,29 +246,31 @@ public:
      * @param DeltaTime The increment of time considered
      * @param HalfJump If the jumpt is just half dt
      */
-    
     static inline void ComputeStepJump(
         ModelPart& rThisModelPart,
         const double DeltaTime,
         const bool HalfJump = true
         )
     {
-        // Time constants 
-        const double velocity_constant = HalfJump ? 0.25 : 0.5;     
+        // Time constants
+        const double velocity_constant = HalfJump ? 0.25 : 0.5;
         const double acceleration_constant = HalfJump ? 0.125 : 0.5;
-        
+
         // Iterate over the nodes
-        NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    
+        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+
+        // Node iterator
+        const auto it_node_begin = r_nodes_array.begin();
+
         // We compute the half jump
         array_1d<double, 3> new_delta_disp;
-        #pragma omp parallel for private(new_delta_disp)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)  {
-            auto it_node = nodes_array.begin() + i;
-            const array_1d<double, 3>& current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double, 3>& previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-            const array_1d<double, 3>& previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
-            new_delta_disp = velocity_constant * DeltaTime * (current_velocity + previous_velocity) + acceleration_constant * std::pow(DeltaTime, 2) * previous_acceleration;
+        #pragma omp parallel for firstprivate(new_delta_disp)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
+            auto it_node = it_node_begin + i;
+            const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double, 3>& r_previous_velocity = it_node->FastGetSolutionStepValue(VELOCITY, 1);
+            const array_1d<double, 3>& r_previous_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION, 1);
+            noalias(new_delta_disp) = velocity_constant * DeltaTime * (r_current_velocity + r_previous_velocity) + acceleration_constant * std::pow(DeltaTime, 2) * r_previous_acceleration;
             if (it_node->IsFixed(DISPLACEMENT_X)) new_delta_disp[0] = 0.0;
             if (it_node->IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
             if (it_node->IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
@@ -271,25 +280,24 @@ public:
     
     /**
      * @brief It calculates the center updated in u_n+1/2
-     * @param ThisGeometry The geometry to calculate
+     * @param rThisGeometry The geometry to calculate
      * @return point: The center in u_n+1/2 (Newmark)
      */
-    
-    static inline array_1d<double, 3> GetHalfJumpCenter(GeometryType& ThisGeometry)
+    static inline array_1d<double, 3> GetHalfJumpCenter(GeometryType& rThisGeometry)
     {
-        array_1d<double, 3> center = (ThisGeometry.Center()).Coordinates();
+        array_1d<double, 3> center = (rThisGeometry.Center()).Coordinates();
         
         // Initialize variables
         Vector N;
         GeometryType::CoordinatesArrayType local_point;
         
         // Get shape functions
-        ThisGeometry.PointLocalCoordinates( local_point, center );
-        ThisGeometry.ShapeFunctionsValues( N, local_point );
+        rThisGeometry.PointLocalCoordinates( local_point, center );
+        rThisGeometry.ShapeFunctionsValues( N, local_point );
         
-        KRATOS_DEBUG_ERROR_IF(ThisGeometry[0].Has(DELTA_COORDINATES) == false) << "WARNING:: Please call ComputeStepJump() first" << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(rThisGeometry[0].Has(DELTA_COORDINATES)) << "Please call ComputeStepJump() first" << std::endl;
 
-        const Vector new_delta_disp_center = prod(trans(GetVariableMatrix(ThisGeometry, DELTA_COORDINATES)), N);
+        const Vector new_delta_disp_center = prod(trans(GetVariableMatrix(rThisGeometry, DELTA_COORDINATES)), N);
         
         for (IndexType i = 0; i < new_delta_disp_center.size(); ++i)
             center[i] += new_delta_disp_center[i];
@@ -301,23 +309,22 @@ private:
 
     /**
      * @brief It calculates the matrix of a variable of a geometry
-     * @param Nodes The geometry to calculate
+     * @param rNodes The geometry to calculate
      * @param rVarName The name of the variable to calculate
      * @return var_matrix: The matrix containing the variables of the geometry
      */
-
     static inline Matrix GetVariableMatrix(
-        const GeometryType& Nodes,
+        const GeometryType& rNodes,
         const Variable<array_1d<double,3> >& rVarName
         )
     {
         /* DEFINITIONS */
-        const SizeType num_nodes = Nodes.size();
-        const SizeType dim = Nodes.WorkingSpaceDimension();
+        const SizeType num_nodes = rNodes.size();
+        const SizeType dim = rNodes.WorkingSpaceDimension();
         Matrix var_matrix(num_nodes, dim);
 
         for (IndexType i_node = 0; i_node < num_nodes; i_node++) {
-            const array_1d<double, 3> value = Nodes[i_node].GetValue(rVarName);
+            const array_1d<double, 3> value = rNodes[i_node].GetValue(rVarName);
             for (IndexType i_dof = 0; i_dof < dim; i_dof++)
                 var_matrix(i_node, i_dof) = value[i_dof];
         }

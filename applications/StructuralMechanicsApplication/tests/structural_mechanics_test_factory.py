@@ -231,6 +231,9 @@ class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
 
+class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
