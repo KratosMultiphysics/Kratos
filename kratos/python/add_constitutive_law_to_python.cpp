@@ -91,10 +91,31 @@ void DeprecatedInitializeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     // function wrapper to issue a deprecation-warning when called from python
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"InitializeSolutionStep\" "
         << "is deprecated, please don't use it" << std::endl;
+
+    #if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #elif defined(__GNUC__) || defined(__GNUG__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4996)
+    #endif
+
     rThisConstitutiveLaw.InitializeSolutionStep(rMaterialProperties,
                                                 rElementGeometry,
                                                 rShapeFunctionsValues,
                                                 rCurrentProcessInfo);
+
+    #if defined(__clang__)
+    #pragma clang diagnostic pop
+    #elif defined(__GNUC__) || defined(__GNUG__)
+    #pragma GCC diagnostic pop
+    #elif defined(_MSC_VER)
+    #pragma warning(pop)
+    #endif
+
 }
 
 void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
@@ -106,10 +127,30 @@ void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     // function wrapper to issue a deprecation-warning when called from python
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"FinalizeSolutionStep\" "
         << "is deprecated, please don't use it.\nUse \"FinalizeMaterialResponse\" instead" << std::endl;
+
+    #if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    #elif defined(__GNUC__) || defined(__GNUG__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    #elif defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable: 4996)
+    #endif
+
     rThisConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,
                                               rElementGeometry,
                                               rShapeFunctionsValues,
                                               rCurrentProcessInfo);
+
+    #if defined(__clang__)
+    #pragma clang diagnostic pop
+    #elif defined(__GNUC__) || defined(__GNUG__)
+    #pragma GCC diagnostic pop
+    #elif defined(_MSC_VER)
+    #pragma warning(pop)
+    #endif
 }
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
