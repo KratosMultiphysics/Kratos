@@ -1,7 +1,7 @@
-# ALM frictionless contact condition
+# Penalty frictionaless contact condition
 
 ## ELEMENT DESCRIPTION:
-Current directory contains the documentation for the symbolic derivation of the _"alm_frictionless_mortar_contact_condition"_ condition. This element includes a formulation of a ALM non-frictional contact condition using mortar formulation.
+Current directory contains the documentation for the symbolic derivation of the _"penalty_frictionless_mortar_contact_condition"_ condition. This element includes a formulation of a ALM non-frictional contact condition using mortar formulation.
 
 ## SYMBOLIC GENERATOR SETTINGS:
 * Nothing to add
