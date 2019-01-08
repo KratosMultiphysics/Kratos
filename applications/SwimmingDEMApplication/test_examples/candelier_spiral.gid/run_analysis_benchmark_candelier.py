@@ -11,7 +11,6 @@ import json
 import os
 
 import sys
-print(sys.path)
 
 import candelier_scripts.candelier_analysis as candelier_analysis
 
