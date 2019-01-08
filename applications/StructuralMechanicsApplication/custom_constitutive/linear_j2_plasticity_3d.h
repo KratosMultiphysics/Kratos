@@ -115,7 +115,7 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * @brief Dimension of the law:
+     * @brief dimension of the constitutive law
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -188,18 +188,6 @@ public:
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
-
-    /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues,
-                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -276,7 +264,7 @@ public:
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
@@ -357,6 +345,16 @@ protected:
     ///@{
 
     /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rPlasticStrain
+     * @param rAccumulatedPlasticStrain
+     */
+    void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
+                                 Vector& rPlasticStrain,
+                                 double& rAccumulatedPlasticStrain );
+
+    /**
      * @brief This method computes the yield function
      * @param NormDeviationStress The norm of the deviation stress
      * @param rMaterialProperties The properties of the current material considered
@@ -364,7 +362,8 @@ protected:
      */
     double YieldFunction(
         const double NormDeviationStress,
-        const Properties& rMaterialProperties
+        const Properties& rMaterialProperties,
+        const double accumulated_plastic_strain
         );
 
     /**
@@ -373,17 +372,14 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @return The increment of Gamma computed
      */
-    double GetDeltaGamma(
-        const double NormStressTrial,
-        const Properties& rMaterialProperties
-        );
+    double GetDeltaGamma(const double NormStressTrial, const Properties &rMaterialProperties, const double);
 
     /**
      * @brief This method gets the saturation hardening parameter
      * @param rMaterialProperties The properties of the material
      * @return The saturation hardening parameter
      */
-    double GetSaturationHardening(const Properties& rMaterialProperties);
+    double GetSaturationHardening(const Properties& rMaterialProperties, const double);
 
     /**
      * @brief This method computes the plastic potential
@@ -397,16 +393,17 @@ protected:
      * @brief This method computes the plastic potential
      * @param DeltaGamma The increment on the Gamma parameter
      * @param NormStressTrial The norm of the stress trial
-     * @param YieldFunctionNormalVector The yield function normal vector
+     * @param rYieldFunctionNormalVector The yield function normal vector
      * @param rMaterialProperties The properties of the material
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      */
     virtual void CalculateTangentTensor(
         const double DeltaGamma,
         const double NormStressTrial,
-        const Vector& YieldFunctionNormalVector,
+        const Vector& rYieldFunctionNormalVector,
         const Properties& rMaterialProperties,
-        Matrix& rElasticityTensor
+        Matrix& rElasticityTensor,
+        const double AccumulatedPlasticStrain
         );
 
     /**

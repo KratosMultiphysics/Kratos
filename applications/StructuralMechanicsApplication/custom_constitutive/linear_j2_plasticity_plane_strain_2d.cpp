@@ -124,7 +124,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Constituti
                                            stress_trial_dev(1) * stress_trial_dev(1) +
                                            stress_trial_dev(2) * stress_trial_dev(2) +
                                            2. * stress_trial_dev(3) * stress_trial_dev(3));
-        trial_yield_function = this->YieldFunction(norm_dev_stress, rMaterialProperties);
+        trial_yield_function = this->YieldFunction(norm_dev_stress, rMaterialProperties, mAccumulatedPlasticStrainOld);
 
         if (trial_yield_function <= 0.) {
             // ELASTIC
@@ -138,7 +138,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Constituti
             Vector yield_function_normal_vector = stress_trial_dev / norm_dev_stress;
             if (delta_k != 0.0 && hardening_exponent != 0.0) {
                 // Exponential softening
-                dgamma = GetDeltaGamma(norm_dev_stress, rMaterialProperties);
+                dgamma = GetDeltaGamma(norm_dev_stress, rMaterialProperties, mAccumulatedPlasticStrainOld);
             }
             else {
                 // Linear softening
@@ -167,7 +167,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateMaterialResponseCauchy(Constituti
             // Update derivative of the hardening-softening modulus
 
             CalculateTangentTensor(dgamma, norm_dev_stress, yield_function_normal_vector,
-                                   rMaterialProperties, tangent_tensor);
+                                   rMaterialProperties, tangent_tensor, mAccumulatedPlasticStrain);
         }
     }
 }
@@ -246,7 +246,8 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentTensor(
     const double NormStressTrial,
     const Vector& YieldFunctionNormalVector,
     const Properties& rMaterialProperties,
-    Matrix& rElasticityTensor
+    Matrix& rElasticityTensor,
+    double AccumulatedPlasticStrain
     )
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
@@ -260,7 +261,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateTangentTensor(
 
     const double kp_new = (theta * hardening_modulus) +
                     delta_k * (hardening_exponent *
-                               std::exp(-hardening_exponent * mAccumulatedPlasticStrain));
+                               std::exp(-hardening_exponent * AccumulatedPlasticStrain));
 
     const double theta_new = 1 - (2. * mu * DeltaGamma) / NormStressTrial;
     const double theta_new_b = 1. / (1. + kp_new / (3. * mu)) - (1. - theta_new);

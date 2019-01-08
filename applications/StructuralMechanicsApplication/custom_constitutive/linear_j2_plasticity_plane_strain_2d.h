@@ -226,7 +226,8 @@ protected:
         const double NormStressTrial,
         const Vector& YieldFunctionNormalVector,
         const Properties& rMaterialProperties,
-        Matrix& rElasticityTensor
+        Matrix& rElasticityTensor,
+        double
         ) override;
 
     /**
