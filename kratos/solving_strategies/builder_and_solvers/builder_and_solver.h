@@ -223,6 +223,8 @@ public:
         mDofSetIsInitialized = false;
 
         mReshapeMatrixFlag = false;
+
+        mCalculateReactionsFlag = false;
     }
 
     /** Constructor.
@@ -236,7 +238,7 @@ public:
 
         mReshapeMatrixFlag = false; //by default the matrix is shaped just once
         //		mVectorsAreInitialized = false;
-
+        mCalculateReactionsFlag = false;
     }
 
     /** Destructor.
