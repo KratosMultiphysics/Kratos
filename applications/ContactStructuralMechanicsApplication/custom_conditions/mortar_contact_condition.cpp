@@ -1123,6 +1123,156 @@ void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL, true, 3>::Calculat
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
 }
 
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<2,2, FrictionalCase::FRICTIONLESS_PENALTY, true, 2>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<2,2, FrictionalCase::FRICTIONAL_PENALTY, true, 2>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 3>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 4>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 4>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 3>::CalculateLocalLHS(
+//     Matrix& rLocalLHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalLHS, check your condition definition" << std::endl;
+// }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1573,6 +1723,156 @@ void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL, true, 3>::Calculat
     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
 }
 
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_PENALTY, true, 2>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<2, 2, FrictionalCase::FRICTIONAL_PENALTY, true, 2>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 3>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 4>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 4>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+//
+// /***********************************************************************************/
+// /***********************************************************************************/
+//
+// template<>
+// void MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 3>::CalculateLocalRHS(
+//     Vector& rLocalRHS,
+//     const MortarConditionMatrices& rMortarConditionMatrices,
+//     const DerivativeDataType& rDerivativeData,
+//     const IndexType rActiveInactive,
+//     const ProcessInfo& rCurrentProcessInfo
+//     )
+// {
+//     KRATOS_ERROR << "You are calling to the base class method CalculateLocalRHS, check your condition definition" << std::endl;
+// }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -1828,5 +2128,29 @@ template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL, true, 3>
 template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL, true, 4>;
 template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL, true, 4>;
 template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL, true, 3>;
+
+// // Frictionless penalty cases
+// template class MortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_PENALTY, false, 2>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, false, 3>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, false, 4>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, false, 4>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, false, 3>;
+// template class MortarContactCondition<2, 2, FrictionalCase::FRICTIONLESS_PENALTY, true, 2>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONLESS_PENALTY, true, 4>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONLESS_PENALTY, true, 3>;
+//
+// // Frictional penalty cases
+// template class MortarContactCondition<2, 2, FrictionalCase::FRICTIONAL_PENALTY, false, 2>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, false, 3>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, false, 4>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, false, 4>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, false, 3>;
+// template class MortarContactCondition<2, 2, FrictionalCase::FRICTIONAL_PENALTY, true, 2>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 3>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 4>;
+// template class MortarContactCondition<3, 3, FrictionalCase::FRICTIONAL_PENALTY, true, 4>;
+// template class MortarContactCondition<3, 4, FrictionalCase::FRICTIONAL_PENALTY, true, 3>;
 
 } // Namespace Kratos
