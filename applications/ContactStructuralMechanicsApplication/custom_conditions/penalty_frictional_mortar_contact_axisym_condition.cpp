@@ -26,38 +26,38 @@ namespace Kratos
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+Condition::Pointer PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared<  PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared<  PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation > >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+Condition::Pointer PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition( )
+PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition( )
 = default;
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
+double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);
     const double thickness = this->GetProperties()[THICKNESS];
@@ -68,7 +68,7 @@ double PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,T
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
+double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
 {
     KRATOS_TRY;
 
@@ -95,7 +95,7 @@ double PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,T
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<2, false>;
-template class PenaltyLagrangianMethodFrictionalMortarContactAxisymCondition<2, true>;
+template class PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<2, false>;
+template class PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<2, true>;
 
 } // Namespace Kratos

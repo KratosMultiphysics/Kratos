@@ -49,26 +49,26 @@ namespace Kratos
 ///@{
 
 /**
- * @class PenaltyFrictionalMortarContactAxisymCondition
+ * @class PenaltyMethodFrictionalMortarContactAxisymCondition
  * @ingroup ContactStructuralMechanicsApplication
- * @brief PenaltyFrictionalMortarContactAxisymCondition
+ * @brief PenaltyMethodFrictionalMortarContactAxisymCondition
  * @todo Complete this
  * @author Vicente Mataix Ferrandiz
  */
 template< std::size_t TNumNodes, bool TNormalVariation >
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyFrictionalMortarContactAxisymCondition
-    : public AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactAxisymCondition
+    : public PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PenaltyFrictionalMortarContactAxisymCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyFrictionalMortarContactAxisymCondition );
+    /// Counted pointer of PenaltyMethodFrictionalMortarContactAxisymCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactAxisymCondition );
 
     typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation> MortarBaseType;
 
-    typedef AugmentedLagrangianMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    typedef PenaltyMethodFrictionalMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
 
     typedef typename MortarBaseType::MortarConditionMatrices                                                   MortarConditionMatrices;
 
@@ -107,27 +107,27 @@ public:
     ///@{
 
     /// Default constructor
-    PenaltyFrictionalMortarContactAxisymCondition(): BaseType()
+    PenaltyMethodFrictionalMortarContactAxisymCondition(): BaseType()
     {
     }
 
     // Constructor 1
-    PenaltyFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
+    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry):BaseType(NewId, pGeometry)
     {
     }
 
     // Constructor 2
-    PenaltyFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
+    PenaltyMethodFrictionalMortarContactAxisymCondition(IndexType NewId, GeometryPointerType pGeometry, PropertiesPointerType pProperties):BaseType( NewId, pGeometry, pProperties )
     {
     }
 
     ///Copy constructor
-    PenaltyFrictionalMortarContactAxisymCondition( PenaltyFrictionalMortarContactAxisymCondition const& rOther)
+    PenaltyMethodFrictionalMortarContactAxisymCondition( PenaltyMethodFrictionalMortarContactAxisymCondition const& rOther)
     {
     }
 
     /// Destructor.
-    ~PenaltyFrictionalMortarContactAxisymCondition() override;
+    ~PenaltyMethodFrictionalMortarContactAxisymCondition() override;
 
     ///@}
     ///@name Operators
@@ -275,7 +275,7 @@ private:
 
     ///@}
 
-}; // Class PenaltyFrictionalMortarContactAxisymCondition
+}; // Class PenaltyMethodFrictionalMortarContactAxisymCondition
 
 ///@}
 

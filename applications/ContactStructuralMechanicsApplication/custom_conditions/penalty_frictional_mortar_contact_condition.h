@@ -49,24 +49,24 @@ namespace Kratos
 ///@{ *
 
 /**
- * @class PenaltyFrictionalMortarContactCondition
+ * @class PenaltyMethodFrictionalMortarContactCondition
  * @ingroup ContactStructuralMechanicsApplication
- * @brief PenaltyFrictionalMortarContactCondition
+ * @brief PenaltyMethodFrictionalMortarContactCondition
  * @details This is a contact condition which employes the mortar method with dual lagrange multiplier
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
  */
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyFrictionalMortarContactCondition
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactCondition
     : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PenaltyFrictionalMortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PenaltyFrictionalMortarContactCondition );
+    /// Counted pointer of PenaltyMethodFrictionalMortarContactCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactCondition );
 
     typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation> BaseType;
 
@@ -121,13 +121,13 @@ public:
     ///@{
 
     /// Default constructor
-    PenaltyFrictionalMortarContactCondition()
+    PenaltyMethodFrictionalMortarContactCondition()
         : BaseType()
     {
     }
 
     // Constructor 1
-    PenaltyFrictionalMortarContactCondition(
+    PenaltyMethodFrictionalMortarContactCondition(
         IndexType NewId,
         GeometryPointerType pGeometry
         ):BaseType(NewId, pGeometry)
@@ -135,7 +135,7 @@ public:
     }
 
     // Constructor 2
-    PenaltyFrictionalMortarContactCondition(
+    PenaltyMethodFrictionalMortarContactCondition(
         IndexType NewId,
         GeometryPointerType pGeometry,
         PropertiesPointerType pProperties
@@ -144,7 +144,7 @@ public:
     }
 
     // Constructor 3
-    PenaltyFrictionalMortarContactCondition(
+    PenaltyMethodFrictionalMortarContactCondition(
         IndexType NewId,
         GeometryPointerType pGeometry,
         PropertiesPointerType pProperties,
@@ -154,12 +154,12 @@ public:
     }
 
     ///Copy constructor
-    PenaltyFrictionalMortarContactCondition( PenaltyFrictionalMortarContactCondition const& rOther)
+    PenaltyMethodFrictionalMortarContactCondition( PenaltyMethodFrictionalMortarContactCondition const& rOther)
     {
     }
 
     /// Destructor.
-    ~PenaltyFrictionalMortarContactCondition() override;
+    ~PenaltyMethodFrictionalMortarContactCondition() override;
 
     ///@}
     ///@name Operators
@@ -501,7 +501,7 @@ private:
 
     ///@}
 
-}; // Class PenaltyFrictionalMortarContactCondition
+}; // Class PenaltyMethodFrictionalMortarContactCondition
 
 ///@}
 

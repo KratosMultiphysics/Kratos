@@ -26,38 +26,38 @@ namespace Kratos
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
 {
-    return Kratos::make_shared< PenaltyMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
+    return Kratos::make_shared< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, this->GetGeometry().Create( rThisNodes ), pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
+Condition::Pointer PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< PenaltyMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation> >( NewId, pGeom, pProperties );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-PenaltyMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~PenaltyMortarContactAxisymCondition( )
+PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes, TNormalVariation>::~PenaltyMethodFrictionlessMortarContactAxisymCondition( )
 = default;
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
+double PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);
     const double thickness = this->GetProperties()[THICKNESS];
@@ -68,7 +68,7 @@ double PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisy
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
-double PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
+double PenaltyMethodFrictionlessMortarContactAxisymCondition<TNumNodes,TNormalVariation>::CalculateRadius(const GeneralVariables& rVariables) const
 {
     KRATOS_TRY;
 
@@ -95,7 +95,7 @@ double PenaltyMortarContactAxisymCondition<TNumNodes,TNormalVariation>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class PenaltyMortarContactAxisymCondition<2, false>;
-template class PenaltyMortarContactAxisymCondition<2, true>;
+template class PenaltyMethodFrictionlessMortarContactAxisymCondition<2, false>;
+template class PenaltyMethodFrictionlessMortarContactAxisymCondition<2, true>;
 
 } // Namespace Kratos
