@@ -48,7 +48,7 @@ namespace Kratos
  * @class IntersectionUtilities
  * @ingroup KratosCore
  * @brief Utilities to compute intersections between different geometries
- * @details This class provides static methods to check if there is 
+ * @details This class provides static methods to check if there is
  * intersections between different entities, and if there is, give back
  * the intersection points.
  * @author Ruben Zorrilla
@@ -62,7 +62,7 @@ public:
 
     /// Pointer definition of IntersectionUtilities
     KRATOS_CLASS_POINTER_DEFINITION( IntersectionUtilities );
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -89,17 +89,17 @@ public:
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
      * @return rIntersectionPoint The intersection point coordinates
-     * @return The intersection type index: 
+     * @return The intersection type index:
      * -1 (the triangle is degenerate)
-     * 0 (disjoint - no intersection) 
+     * 0 (disjoint - no intersection)
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
      */
 	template <class TGeometryType>
 	static int ComputeTriangleLineIntersection(
-        const TGeometryType& rTriangleGeometry, 
-        const array_1d<double,3>& rLinePoint1, 
-        const array_1d<double,3>& rLinePoint2, 
+        const TGeometryType& rTriangleGeometry,
+        const array_1d<double,3>& rLinePoint1,
+        const array_1d<double,3>& rLinePoint2,
         array_1d<double,3>& rIntersectionPoint,
 		const double epsilon = 1e-12) {
 
@@ -124,7 +124,7 @@ public:
 
 		// Check if the ray is parallel to the triangle plane
 		if (std::abs(b) < epsilon){
-			if (a == 0.0){	
+			if (a == 0.0){
 				return 2;	// Edge lies in the triangle plane
 			} else {
 				return 0;	// Edge does not lie in the triangle plane
@@ -154,11 +154,11 @@ public:
 		const double s = (uv * wv - vv * wu) / D;
 		if (s < 0.0 - epsilon || s > 1.0 + epsilon){
 			return 0;	// Intersection point is outside the triangle
-		}			
+		}
 		const double t = (uv * wu - uu * wv) / D;
 		if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon){
 			return 0;	// Intersection point is outside the triangle
-		}  	
+		}
 
 		return 1;	// Intersection point is inside the triangle
 	}
@@ -169,29 +169,29 @@ public:
      * @param rLinePoint1 Coordinates of the first point of the intersecting line
      * @param rLinePoint2 Coordinates of the second point of the intersecting line
      * @return rIntersectionPoint The intersection point coordinates
-     * @return The intersection type index: 
-     * 0 (disjoint - no intersection) 
+     * @return The intersection type index:
+     * 0 (disjoint - no intersection)
      * 1 (intersect in a unique point)
      * 2 (overlap)
      * 3 (intersect in one endpoint)
      */
 	template <class TGeometryType>
 	static int ComputeLineLineIntersection(
-        const TGeometryType& rLineGeometry, 
-        const array_1d<double,3>& rLinePoint0, 
-        const array_1d<double,3>& rLinePoint1, 
+        const TGeometryType& rLineGeometry,
+        const array_1d<double,3>& rLinePoint0,
+        const array_1d<double,3>& rLinePoint1,
         array_1d<double,3>& rIntersectionPoint,
 		const double epsilon = 1e-12) {
 
 		const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
 		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;
-		const array_1d<double,3> p_q = rLineGeometry[0] - rLinePoint0;		// p - q 
+		//const array_1d<double,3> p_q = rLineGeometry[0] - rLinePoint0;		// p - q
 		const array_1d<double,3> q_p = rLinePoint0 - rLineGeometry[0];		// q - p
 
 		const double aux_1 = CrossProd2D(r,s);
 		const double aux_2 = CrossProd2D(q_p,r);
 		const double aux_3 = CrossProd2D(q_p,s);
-		
+
 		// Check intersection cases
 		// Check that the lines are not collinear
 		if (std::abs(aux_1) < epsilon && std::abs(aux_2) < epsilon){
@@ -226,7 +226,7 @@ public:
 			}
 		}
 		// Otherwise, the lines are non-parallel but do not intersect
-		return 0;														
+		return 0;
 	}
 
 	/**
@@ -260,11 +260,11 @@ public:
 			rLinePoint0[2] > rBoxPoint0[2] && rLinePoint0[2] < rBoxPoint1[2]) {
 			return true;
 		}
-		if ((GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint0[0], rLinePoint1[0]-rBoxPoint0[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) || 
-			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint0[1], rLinePoint1[1]-rBoxPoint0[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) || 
-			(GetLineBoxIntersection(rLinePoint0[2]-rBoxPoint0[2], rLinePoint1[2]-rBoxPoint0[2], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 3 )) || 
-			(GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint1[0], rLinePoint1[0]-rBoxPoint1[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) || 
-			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint1[1], rLinePoint1[1]-rBoxPoint1[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) || 
+		if ((GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint0[0], rLinePoint1[0]-rBoxPoint0[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) ||
+			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint0[1], rLinePoint1[1]-rBoxPoint0[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) ||
+			(GetLineBoxIntersection(rLinePoint0[2]-rBoxPoint0[2], rLinePoint1[2]-rBoxPoint0[2], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 3 )) ||
+			(GetLineBoxIntersection(rLinePoint0[0]-rBoxPoint1[0], rLinePoint1[0]-rBoxPoint1[0], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 1 )) ||
+			(GetLineBoxIntersection(rLinePoint0[1]-rBoxPoint1[1], rLinePoint1[1]-rBoxPoint1[1], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 2 )) ||
 			(GetLineBoxIntersection(rLinePoint0[2]-rBoxPoint1[2], rLinePoint1[2]-rBoxPoint1[2], rLinePoint0, rLinePoint1, intersection_point) && InBox(intersection_point, rBoxPoint0, rBoxPoint1, 3 ))){
 			return true;
 		}
@@ -323,10 +323,10 @@ private:
 	{
 		if ((Dist1 * Dist2) >= 0.0){
 			return 0;
-		} 
-		// if ( Dist1 == Dist2) return 0; 
+		}
+		// if ( Dist1 == Dist2) return 0;
 		if (std::abs(Dist1-Dist2) < 1e-12){
-			return 0; 
+			return 0;
 		}
 		rIntersectionPoint = rPoint1 + (rPoint2-rPoint1)*(-Dist1/(Dist2-Dist1));
 		return 1;
