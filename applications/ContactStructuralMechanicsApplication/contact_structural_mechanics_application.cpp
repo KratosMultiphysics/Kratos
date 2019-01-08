@@ -11,18 +11,17 @@
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 
+/* Variables */
 #include "contact_structural_mechanics_application.h"
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/variables.h"
-#include "includes/constitutive_law.h"
 
+/* Geometries */
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/line_2d_2.h"
