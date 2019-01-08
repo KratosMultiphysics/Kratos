@@ -187,7 +187,7 @@ public:
   
 
     void Initialize() override
-    {
+    {   
         mpPrimalElement->Initialize();
     }
 
@@ -203,6 +203,8 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
+        mpPrimalElement->Data() = this->Data();
+        mpPrimalElement->Set(Flags(*this));
         mpPrimalElement->InitializeSolutionStep(rCurrentProcessInfo);
     }
 
@@ -218,7 +220,8 @@ public:
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->FinalizeSolutionStep(rCurrentProcessInfo);
+        //avoiding check wake condition
+        //  mpPrimalElement->FinalizeSolutionStep(rCurrentProcessInfo);
     }
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
@@ -369,10 +372,23 @@ public:
                                 rCurrentProcessInfo);
     }
 
-    void GetValuesVector(Vector& rValues)
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
+    
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3> >& rVariable,
+            std::vector< array_1d<double,3> >& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalElement->GetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
+    }
+
+    void GetValuesVector(Vector& rValues, int Step=0) override
     {
         KRATOS_TRY
-
         // const SizeType NumNodes = GetGeometry().PointsNumber();
 
         if (this->Is(MARKER)){
@@ -389,7 +405,6 @@ public:
             for (unsigned int i = 0; i < NumNodes; i++)
                 rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
         }
- 
         KRATOS_CATCH("")
     }
 
