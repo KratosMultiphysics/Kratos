@@ -157,6 +157,7 @@ public:
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
     Matrix& GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue) override;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override;
 
     ///@}
 

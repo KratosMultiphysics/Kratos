@@ -81,6 +81,14 @@ Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vecto
     return rValue;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& LinearPlaneStrain::GetValue(const Variable<double>& rThisVariable, double& rValue)
+{
+    return rValue;
+}
+
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 /***********************************************************************************/
 
