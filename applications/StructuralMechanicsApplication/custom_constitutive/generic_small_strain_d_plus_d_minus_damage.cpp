@@ -133,7 +133,6 @@ void GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TConstL
         if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             if (is_damaging_tension || is_damaging_compression) { // Perturbations
                 this->CalculateTangentTensor(rValues);
-                noalias(r_tangent_tensor) = rValues.GetConstitutiveMatrix();
             } else { // Secant matrix
                 this->CalculateSecantTensor(rValues, r_tangent_tensor);
             }
