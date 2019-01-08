@@ -96,7 +96,6 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-        std::cout<<"Compute Lift Level Set Process Start"<< std::endl;
         double Cl,Cd,Rz;
 
         for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
