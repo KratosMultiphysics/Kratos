@@ -311,6 +311,37 @@ public:
         ) override;
 
     /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
       * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix The elemental mass matrix
       * @param rCurrentProcessInfo The current process info instance
@@ -686,7 +717,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -897,6 +928,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method computes directly the lumped mass vector
+     * @param rMassMatrix The lumped mass vector
+     */
+    void CalculateLumpedMassVector(VectorType& rMassVector);
+
+    /**
+     * @brief This method computes directly the lumped mass matrix
+     * @param rMassMatrix The lumped mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateDampingMatrixWithLumpedMass(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     /**
      * @brief This method gets a value directly in the CL
