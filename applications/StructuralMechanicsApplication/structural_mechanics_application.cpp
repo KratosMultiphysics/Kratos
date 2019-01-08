@@ -179,10 +179,11 @@ void KratosStructuralMechanicsApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    KRATOS_INFO("") << "    KRATOS   ___|  |                   |                   |                    " << std::endl
-                    << "           \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |                  " << std::endl
-                    << "                 | |   |    |   | (    |   |   | |   (   | |                    " << std::endl
-                    << "           _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS    " << std::endl;
+    KRATOS_INFO("") << "    KRATOS   ___|  |                   |                   |\n"
+                    << "           \\___ \\  __|  __| |   |  __| __| |   |  __| _` | |\n"
+                    << "                 | |   |    |   | (    |   |   | |   (   | |\n"
+                    << "           _____/ \\__|_|   \\__,_|\\___|\\__|\\__,_|_|  \\__,_|_| MECHANICS\n"
+                    << "Initializing KratosStructuralMechanicsApplication..." << std::endl;
 
     // General pourpose
     KRATOS_REGISTER_VARIABLE(INTEGRATION_ORDER); // The integration order considered on the element
@@ -568,7 +569,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("ViscousGeneralizedMaxwell3D", mViscousGeneralizedMaxwell3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("GenericSmallStrainViscoplasticity3D", mGenericSmallStrainViscoplasticity3D);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("PlasticityIsotropicKinematicJ2Law", mPlasticityIsotropicKinematicJ2);
-    
+
     // Custom Constitutive laws
     /// Plasticity
 
