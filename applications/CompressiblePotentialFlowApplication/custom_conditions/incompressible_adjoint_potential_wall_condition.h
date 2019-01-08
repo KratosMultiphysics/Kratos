@@ -205,6 +205,18 @@ public:
     }
 
     //Find the condition's parent element.
+    void GetValuesVector(Vector& rValues, int Step=0) override
+    {
+    
+        KRATOS_TRY
+  
+        if(rValues.size() != TNumNodes)
+            rValues.resize(TNumNodes, false);
+        for (unsigned int i = 0; i < TNumNodes; i++)
+            rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+        KRATOS_CATCH("");
+   
+    }
     void Initialize() override
     {
         KRATOS_TRY;
