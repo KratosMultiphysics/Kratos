@@ -43,7 +43,6 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
                     "estimate_interpolation_error"     : false,
                     "interpolation_error"              : 0.004
             },
-            "enforce_current"                   : false,
             "anisotropy_remeshing"              : true,
             "anisotropy_parameters":{
                 "reference_variable_name"          : "TEMPERATURE",
