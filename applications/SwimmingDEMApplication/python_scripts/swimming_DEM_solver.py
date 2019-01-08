@@ -5,8 +5,6 @@ import KratosMultiphysics
 from python_solver import PythonSolver
 
 # Import applications
-import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
-import KratosMultiphysics.DEMApplication as DEMApplication
 import KratosMultiphysics.SwimmingDEMApplication as SwimmingDEMApplication
 import swimming_DEM_procedures as SDP
 import CFD_DEM_coupling
@@ -19,8 +17,6 @@ def Say(*args):
 
 class SwimmingDEMSolver(PythonSolver):
     def _ValidateSettings(self, project_parameters):
-        pass # to-do
-
         return project_parameters
 
     def __init__(self, model, project_parameters, fluid_solver, dem_solver, pp):
