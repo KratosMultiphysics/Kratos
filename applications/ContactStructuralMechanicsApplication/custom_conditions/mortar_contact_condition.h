@@ -9,8 +9,8 @@
 //  Main authors:  Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_ALM_MORTAR_CONTACT_CONDITION_H_INCLUDED )
-#define  KRATOS_ALM_MORTAR_CONTACT_CONDITION_H_INCLUDED
+#if !defined(KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED )
+#define  KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED
 
 // System includes
 
@@ -53,7 +53,7 @@ namespace Kratos
     /**
      * @brief We use this to differentiate between cases of friction
      */
-    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2 };
+    enum class FrictionalCase {FRICTIONLESS = 0, FRICTIONLESS_COMPONENTS = 1, FRICTIONAL = 2, FRICTIONLESS_PENALTY = 3, FRICTIONAL_PENALTY = 4  };
 
 ///@}
 ///@name  Functions
@@ -64,9 +64,9 @@ namespace Kratos
 ///@{
 
 /**
- * @class AugmentedLagrangianMethodMortarContactCondition
+ * @class MortarContactCondition
  * @ingroup ContactStructuralMechanicsApplication
- * @brief AugmentedLagrangianMethodMortarContactCondition
+ * @brief MortarContactCondition
  * @details This is a contact condition which employes the mortar method with dual lagrange multiplier
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
@@ -78,15 +78,15 @@ namespace Kratos
  * @tparam TNumNodesMaster The number of nodes of the master
  */
 template< const SizeType TDim, const SizeType TNumNodes, const FrictionalCase TFrictional, const bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes>
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodMortarContactCondition
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) MortarContactCondition
     : public PairedCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of AugmentedLagrangianMethodMortarContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodMortarContactCondition );
+    /// Counted pointer of MortarContactCondition
+    KRATOS_CLASS_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
     typedef PairedCondition                                                               BaseType;
@@ -160,13 +160,13 @@ public:
     ///@{
 
     /// Default constructor
-    AugmentedLagrangianMethodMortarContactCondition()
+    MortarContactCondition()
         : PairedCondition(),
           mIntegrationOrder(2)
     {}
 
     // Constructor 1
-    AugmentedLagrangianMethodMortarContactCondition(
+    MortarContactCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry
         ) :PairedCondition(NewId, pGeometry),
@@ -174,7 +174,7 @@ public:
     {}
 
     // Constructor 2
-    AugmentedLagrangianMethodMortarContactCondition(
+    MortarContactCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
@@ -183,7 +183,7 @@ public:
     {}
 
     // Constructor 3
-    AugmentedLagrangianMethodMortarContactCondition(
+    MortarContactCondition(
         IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties,
@@ -194,10 +194,10 @@ public:
     {}
 
     ///Copy constructor
-    AugmentedLagrangianMethodMortarContactCondition( AugmentedLagrangianMethodMortarContactCondition const& rOther){}
+    MortarContactCondition( MortarContactCondition const& rOther){}
 
     /// Destructor.
-    ~AugmentedLagrangianMethodMortarContactCondition() override;
+    ~MortarContactCondition() override;
 
     ///@}
     ///@name Operators
@@ -701,7 +701,7 @@ private:
 
     ///@}
 
-}; // Class AugmentedLagrangianMethodMortarContactCondition
+}; // Class MortarContactCondition
 
 ///@}
 
@@ -716,4 +716,4 @@ private:
 
 }// namespace Kratos.
 
-#endif // KRATOS_ALM_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_MORTAR_CONTACT_CONDITION_H_INCLUDED  defined
