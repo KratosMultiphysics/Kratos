@@ -14,7 +14,12 @@ except ImportError:
     import pickle
 
 
-'''see /Examples/mmg_remeshing_examples/validation/hessian2D/source/test_hessian.py for details'''
+'''
+References:
+F. Alauzet, Metric-based anisotropic mesh adaptation, CEA-EDF-INRIA schools: Numerical Analysis Summer School. CEA, Cadarache, France
+Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
+'''
+
 '''
 function computing the refinement of the model based on the solution on the coarse mesh,
 exploiting the hessian metric of the solution
@@ -61,8 +66,6 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
         """{
             "echo_level"                       : 0}"""
             )
-    # remesh_param.AddEmptyValue("echo_level")
-    # remesh_param["echo_level"].SetInt(mmg_remeshing_info)
     MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
     MmgProcess.Execute()
     
