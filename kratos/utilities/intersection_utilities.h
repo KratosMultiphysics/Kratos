@@ -184,8 +184,7 @@ public:
 		const double epsilon = 1e-12) {
 
 		const array_1d<double,3> r = rLineGeometry[1] - rLineGeometry[0];
-		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;
-		//const array_1d<double,3> p_q = rLineGeometry[0] - rLinePoint0;		// p - q
+		const array_1d<double,3> s = rLinePoint1 - rLinePoint0;		
 		const array_1d<double,3> q_p = rLinePoint0 - rLineGeometry[0];		// q - p
 
 		const double aux_1 = CrossProd2D(r,s);
