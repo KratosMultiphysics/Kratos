@@ -91,38 +91,8 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
 
-        # We transfer the parameters to the base class
-        base_process_settings = KM.Parameters("""{}""")
-        base_process_settings.AddValue("mesh_id", self.contact_settings["mesh_id"])
-        base_process_settings.AddValue("model_part_name", self.contact_settings["model_part_name"])
-        base_process_settings.AddValue("computing_model_part_name", self.contact_settings["computing_model_part_name"])
-        base_process_settings.AddValue("search_model_part", self.contact_settings["contact_model_part"])
-        base_process_settings.AddValue("assume_master_slave", self.contact_settings["assume_master_slave"])
-        base_process_settings.AddValue("search_property_ids", self.contact_settings["contact_property_ids"])
-        base_process_settings.AddValue("interval", self.contact_settings["interval"])
-        base_process_settings.AddValue("integration_order", self.contact_settings["integration_order"])
-        base_process_settings.AddValue("search_parameters", self.contact_settings["search_parameters"])
-
         # Construct the base process.
-        super(PenaltyContactProcess, self).__init__(Model, base_process_settings)
-
-        # A check necessary for axisymmetric cases (the domain can not be 3D)
-        if (self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
-            raise NameError("3D and axisymmetric makes no sense")
-
-        # Getting the normal variation flag
-        self.normal_variation = super(PenaltyContactProcess, self)._get_enum_flag(self.contact_settings, "normal_variation", self.__normal_computation)
-
-        # Name of the frictional law
-        self.frictional_law = self.contact_settings["frictional_law"].GetString()
-
-        # If we compute a frictional contact simulation
-        if self.contact_settings["contact_type"].GetString() == "Frictional":
-            self.is_frictional = True
-            if self.normal_variation == CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION:
-                self.normal_variation = CSMA.NormalDerivativesComputation.NO_DERIVATIVES_COMPUTATION_WITH_NORMAL_UPDATE
-        else:
-            self.is_frictional = False
+        super(PenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
