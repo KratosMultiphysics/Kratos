@@ -10,7 +10,7 @@
     "model_part_name" : "Structure",
         "domain_size"     : 3,
         "solver_type"                        : "Static",
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -24,7 +24,7 @@
             "mortar_type"                    : "PenaltyContactFrictionless"
         },
         "time_stepping"                      : {
-            "time_step" : 0.5
+            "time_step" : 1.0
         },
         "block_builder"                      : true,
         "line_search"                        : false,
@@ -78,7 +78,11 @@
             "Parameters"            : {
                 "model_part_name"             : "Structure",
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
-                "contact_type"                : "Frictionless"
+                "contact_type"                : "Frictionless",
+                "advance_ALM_parameters" : {
+                    "manual_ALM"                  : true,
+                    "penalty"                     : 1.0e16
+                }
             }
         }
         ],
@@ -97,7 +101,7 @@
         }
         ]
     },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",

@@ -283,7 +283,7 @@ def AssembleTestSuites():
             TALMThreeDPatchComplexGeomTestContact,
             TALMTThreeDPatchMatchingTestContact,
             TALMThreeDPatchNotMatchingTestContact,
-            #TPenaltyThreeDSimplestPatchMatchingTestContact,
+            TPenaltyThreeDSimplestPatchMatchingTestContact,
             TComponentsALMHyperSimpleTrianglePatchTestContact,
             TComponentsALMHyperSimplePatchTestContact,
             TComponentsALMHyperSimpleSlopePatchTestContact,
