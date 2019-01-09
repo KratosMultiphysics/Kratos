@@ -34,7 +34,7 @@ PYBIND11_MODULE(KratosSolversApplication,m)
       .def(py::init<>())
       ;
 
-  AddCustomStrategiesToPython(m);
+  //AddCustomStrategiesToPython(m);
 
 }
 
