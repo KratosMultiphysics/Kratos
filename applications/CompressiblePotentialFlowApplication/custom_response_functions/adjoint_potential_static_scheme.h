@@ -246,7 +246,7 @@ public:
         // Calculate transposed gradient of response function on element w.r.t. primal solution
         mpResponseFunction->CalculateGradient(
             *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
-        KRATOS_WATCH(rRHS_Contribution)
+        
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // Calculate system contributions in residual form.
