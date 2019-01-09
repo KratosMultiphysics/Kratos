@@ -28,6 +28,7 @@
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
+#include "custom_processes/sliding_edge_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -49,10 +50,9 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         ;
 
-/*     class_<CableNetMpcProcess, CableNetMpcProcess::Pointer, ApplyMultipointConstraintsProcess>(m,"CableNetMpcProcess")
-        .def(init<ModelPart&,Parameters&>())
-        .def("CoupleModelParts", &CableNetMpcProcess::CoupleModelParts)
-        ;  */
+    py::class_<SlidingEdgeProcess, SlidingEdgeProcess::Pointer, Process>(m,"SlidingEdgeProcess")
+        .def(py::init<ModelPart&,Parameters>())
+        ;
 
     py::class_<ComputeMassMomentOfInertiaProcess, ComputeMassMomentOfInertiaProcess::Pointer, Process>(m,"ComputeMassMomentOfInertiaProcess")
         .def(py::init<ModelPart&, const Point&, const Point&>())

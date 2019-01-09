@@ -33,10 +33,6 @@
 #include "includes/kratos_parameters.h"
 #include "spatial_containers/spatial_containers.h"
 
-
-// Application includes
-#include "custom_processes/apply_multi_point_constraints_process.h"
-
 namespace Kratos
 {
 
@@ -233,6 +229,41 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
 
 
 
+    void CreateSpringElements(ModelPart &rMasterModelPart,ModelPart &rSlaveModelPart)
+    {
+        //idea: calculate internal force from each slave truss ->
+        // use this force to couple node to beam with K = f_int_slave_truss * nu_friction
+        auto slave_element_begin = rSlaveModelPart.ElementsBegin();
+        const ElementsArrayType& r_slave_elements = rSlaveModelPart.Elements();
+        const NodesArrayType& r_slave_nodes = rSlaveModelPart.Nodes();
+
+        auto master_element_begin = rMasterModelPart.ElementsBegin();
+        const ElementsArrayType& r_master_elements = rMasterModelPart.Elements();
+        const NodesArrayType& r_master_nodes = rMasterModelPart.Nodes();
+
+
+        for (SizeType slave_element_counter(0);slave_element_counter<r_slave_elements.size();slave_element_counter++)
+        {
+            auto slave_current_element = slave_element_begin+slave_element_counter;
+            const GeometryType& r_element_geometry = slave_current_element->GetGeometry();
+            const NodeType& r_node_a = r_element_geometry[0];
+            const NodeType& r_node_b = r_element_geometry[1];
+
+            VectorType right_hand_side = ZeroVector(6);
+            ProcessInfo &r_current_process_info = rSlaveModelPart.GetProcessInfo();
+            slave_current_element->CalculateRightHandSide(right_hand_side,r_current_process_info);
+            const double internal_truss_force = std::sqrt(std::pow(right_hand_side[3],2)+
+                std::pow(right_hand_side[4],2)+std::pow(right_hand_side[5],2));
+
+            const double friction_coeff = 10.0;
+            const double friction_stiff = friction_coeff*internal_truss_force;
+
+            for (SizeType master_element_counter(0);master_element_counter<r_master_elements.size();master_element_counter++)
+            {
+            }
+        }
+    }
+
 
     /////////////////////////////////////
     /////////----> test functions
@@ -280,41 +311,6 @@ class CableNetMpcProcess : public ApplyMultipointConstraintsProcess
     }
     //<------- ////////////////
     /////////////////////////////////////
-
-    void CreateSpringElements(ModelPart &rMasterModelPart,ModelPart &rSlaveModelPart)
-    {
-        //idea: calculate internal force from each slave truss ->
-        // use this force to couple node to beam with K = f_int_slave_truss * nu_friction
-        auto slave_element_begin = rSlaveModelPart.ElementsBegin();
-        const ElementsArrayType& r_slave_elements = rSlaveModelPart.Elements();
-        const NodesArrayType& r_slave_nodes = rSlaveModelPart.Nodes();
-
-        auto master_element_begin = rMasterModelPart.ElementsBegin();
-        const ElementsArrayType& r_master_elements = rMasterModelPart.Elements();
-        const NodesArrayType& r_master_nodes = rMasterModelPart.Nodes();
-
-
-        for (SizeType slave_element_counter(0);slave_element_counter<r_slave_elements.size();slave_element_counter++)
-        {
-            auto slave_current_element = slave_element_begin+slave_element_counter;
-            const GeometryType& r_element_geometry = slave_current_element->GetGeometry();
-            const NodeType& r_node_a = r_element_geometry[0];
-            const NodeType& r_node_b = r_element_geometry[1];
-
-            VectorType right_hand_side = ZeroVector(6);
-            ProcessInfo &r_current_process_info = rSlaveModelPart.GetProcessInfo();
-            slave_current_element->CalculateRightHandSide(right_hand_side,r_current_process_info);
-            const double internal_truss_force = std::sqrt(std::pow(right_hand_side[3],2)+
-                std::pow(right_hand_side[4],2)+std::pow(right_hand_side[5],2));
-
-            const double friction_coeff = 10.0;
-            const double friction_stiff = friction_coeff*internal_truss_force;
-
-            for (SizeType master_element_counter(0);master_element_counter<r_master_elements.size();master_element_counter++)
-            {
-            }
-        }
-    }
 
 
 

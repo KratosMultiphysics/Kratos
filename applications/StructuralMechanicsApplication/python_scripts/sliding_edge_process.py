@@ -1,0 +1,32 @@
+import KratosMultiphysics as KratosMultiphysics
+import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+
+def Factory(settings, Model):
+    if(type(settings) != KratosMultiphysics.Parameters):
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    return SlidingEdgeProcess(Model, settings["Parameters"])
+
+
+
+class SlidingEdgeProcess(KratosMultiphysics.Process):
+
+    def __init__(self, Model, settings ):
+        KratosMultiphysics.Process.__init__(self)
+        default_settings = KratosMultiphysics.Parameters("""
+        {
+            "constraint_set_name"           : "constraint_maker",
+            "master_sub_model_part_name"    : "master_connect",
+            "slave_sub_model_part_name"     : "slave_connect",
+            "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
+            "reform_every_step"             : true,
+            "debug_info"                    : true,
+            "neighbor_search_radius"        : 0.40,
+            "bucket_size"                   : 10
+        }
+        """)
+        default_settings.ValidateAndAssignDefaults(settings)
+        self.sliding_edge_process = StructuralMechanicsApplication.SlidingEdgeProcess(Model["Structure"], settings)
+
+
+    def ExecuteInitializeSolutionStep(self):
+        self.sliding_edge_process.ExecuteInitializeSolutionStep()
