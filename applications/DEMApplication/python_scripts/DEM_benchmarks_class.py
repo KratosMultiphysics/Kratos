@@ -4071,7 +4071,7 @@ class Benchmark32: ########## Fiber cluster bouncing without any damping (Veloci
 
     def compute_errors(self, output_filename):  #FINALIZATION STEP
 
-        lines_analytics = lines_DEM = list(range(0, 100));
+        lines_analytics = lines_DEM = list(range(0, 100))
         ref_data1 = []; ref_data2 = []; DEM_data1 = []; DEM_data1 = []; DEM_data2 = []; summation_of_ref_data1 = 0; summation_of_ref_data2 = 0
         i = 0
         with open('paper_data/benchmark' + str(sys.argv[1]) + '_graph.dat') as inf:  #with open('paper_data/reference_graph_benchmark32.dat') as inf:
@@ -4856,22 +4856,23 @@ class Benchmark40: # multiple benchmarks for general code verification.
 
         error_filename = 'errors.err'
         error_file = open(error_filename, 'a')
-        error_file.write("DEM Benchmark 40:")
 
         for index in range(self.number_of_DEM_benchmarks):
+            error_file.write("DEM Benchmark 40:")
             if (error1[index] < 10.0 and error2[index] < 10.0 and error3[index] < 10.0):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (spheres)\n" % index)
                 #shutil.rmtree('benchmark40_Post_Files', ignore_errors = True)
             else:
                 error_file.write(" KO!........ Test 40_%s FAILED (spheres)\n" % index)
-            error_file.write("DEM Benchmark 40:")
+
 
         for index in range(self.number_of_FEM_benchmarks):
+            error_file.write("DEM Benchmark 40:")
             if (error4[index] < 10.0 and error5[index] < 10.0):
                 error_file.write(" OK!........ Test 40_%s SUCCESSFUL (finite elements)\n" % index)
             else:
                 error_file.write(" KO!........ Test 40_%s FAILED (finite elements)\n" % index)
-            error_file.write("DEM Benchmark 40:")
+
         error_file.close()
 
     def compute_errors(self):
