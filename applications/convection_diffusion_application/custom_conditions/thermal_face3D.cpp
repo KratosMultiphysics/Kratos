@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -124,13 +124,13 @@ void ThermalFace3D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rR
         if(rRightHandSideVector.size() != MatSize )
             rRightHandSideVector.resize(MatSize,false);
 
-        rRightHandSideVector[0] =  emissivity*q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)
+        rRightHandSideVector[0] =  q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)
                                    -  convection_coefficient * ( T0 - ambient_temperature);
 
-        rRightHandSideVector[1] =  emissivity*q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux)
+        rRightHandSideVector[1] =  q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux)
                                    -  convection_coefficient * ( T1 - ambient_temperature);
 
-        rRightHandSideVector[2] =  emissivity*q2  - emissivity*StefenBoltzmann*(pow(T2,4) - aux)
+        rRightHandSideVector[2] =  q2  - emissivity*StefenBoltzmann*(pow(T2,4) - aux)
                                    -  convection_coefficient * ( T2 - ambient_temperature);
 
         rRightHandSideVector *= 0.3333333333333*area;
@@ -175,5 +175,3 @@ void ThermalFace3D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& C
 }
 
 } // Namespace Kratos
-
-
