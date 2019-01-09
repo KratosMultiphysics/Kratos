@@ -11,7 +11,6 @@
 #define KRATOS_SOLUTION_SCHEME_H_INCLUDED
 
 // System includes
-//#include <set>
 
 // External includes
 
@@ -391,7 +390,7 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+     const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
     // Update of displacement (by DOF)
     OpenMPUtils::PartitionVector DofPartition;
@@ -424,10 +423,14 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    if( mOptions.Is(LocalFlagType::INCREMENTAL_SOLUTION) )
-      AddSolution(rModelPart,rDofSet,rDx);  //dof = incremental variable
-    else
-      SetSolution(rModelPart,rDofSet,rDx);  //dof = total variable
+   if( mOptions.Is(LocalFlagType::INCREMENTAL_SOLUTION) ){
+     //AddSolution(rModelPart,rDofSet,rDx);  //dof = incremental variable
+     mpSolutionUpdater->AddSolution(rDofSet,rDx);
+   }
+   else{
+     //SetSolution(rModelPart,rDofSet,rDx);  //dof = total variable
+     mpSolutionUpdater->SetSolution(rDofSet,rDx);
+   }
 
     KRATOS_CATCH("")
   }
@@ -558,7 +561,10 @@ class SolutionScheme : public Flags
   /**
    * @brief Liberates internal storage.
    */
-  virtual void Clear() {}
+  virtual void Clear()
+  {
+    this->mpSolutionUpdater->Clear();
+  }
 
   /**
    * @brief This function is designed to be called once to perform all the checks needed
@@ -933,6 +939,8 @@ class SolutionScheme : public Flags
   ///@}
   ///@name Member Variables
   ///@{
+
+  typename TSparseSpace::SolutionUpdaterPointerType mpSolutionUpdater = TSparseSpace::CreateSolutionUpdater();
 
   ///@}
   ///@name Private Operators
