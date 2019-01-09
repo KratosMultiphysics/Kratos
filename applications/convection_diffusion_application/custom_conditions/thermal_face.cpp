@@ -15,6 +15,7 @@
 #include "flux_condition.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/variables.h"
+#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -235,7 +236,7 @@ void ThermalFace<TDim, TNodesNumber>::CalculateRightHandSide(
 template<unsigned int TDim, unsigned int TNodesNumber>
 inline GeometryData::IntegrationMethod ThermalFace<TDim, TNodesNumber>::GetIntegrationMethod()
 {
-    return GeometryData::GI_GAUSS_2;
+    return IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(this->GetGeometry());
 }
 
 template<unsigned int TDim, unsigned int TNodesNumber>
