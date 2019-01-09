@@ -5,6 +5,8 @@
 // #include <vector>
 
 // External includes
+// #include <ANurbs/src/CurveGeometry.h>
+// #include <Anurbs/src/CurveTessellation.h">
 
 // Project includes
 #include "iga_application_variables.h"
@@ -27,7 +29,8 @@ namespace Kratos
         ///@}
         ///@name functions
         ///@{
-        Matrix CreateTessellation();
+        void CreateTessellation(std::shared_ptr<NodeCurveGeometry3D> nodes_vector);
+        void CreateElements(); 
 
         ///@}
         ///@name Life Cycle
