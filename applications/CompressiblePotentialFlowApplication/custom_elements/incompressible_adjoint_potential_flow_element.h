@@ -408,6 +408,35 @@ public:
         KRATOS_CATCH("")
     }
 
+    void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        // KRATOS_WATCH("entering Sensitivity calculation")
+        // Get perturbation size
+        const double delta = this->GetPerturbationSize(rDesignVariable);
+        ProcessInfo process_info = rCurrentProcessInfo;
+
+        Vector RHS;
+        Vector RHS_perturbated;
+        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
+
+        if (rOutput.size1() != NumNodes || rOutput.size2() != RHS.size())
+            rOutput.resize(NumNodes, RHS.size(), false);
+
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            double distance_value = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
+            //perturbate distance
+            GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value+delta;
+            //compute perturbated RHS
+            pGetPrimalElement()->CalculateRightHandSide(RHS_perturbated, process_info);
+            //recover distance value
+            GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value;
+            for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++)
+                rOutput(i_node,i_dof) = (RHS(i_dof)-RHS_perturbated(i_dof))/delta;                
+            }
+        KRATOS_CATCH("")
+    }
     /**
      * this determines the elemental equation ID vector for all elemental
      * DOFs
@@ -831,6 +860,14 @@ private:
     ///@}
     ///@name Serialization
     ///@{
+
+    double GetPerturbationSize(const Variable<double>& rDesignVariable)
+    {
+        // const double correction_factor = this->GetPerturbationSizeModificationFactor(rDesignVariable);
+        const double delta = 1e-9;//this->GetValue(PERTURBATION_SIZE);
+        KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+        return delta;
+    }
 
     friend class Serializer;
 
