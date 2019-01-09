@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
-#include "solution_schemes/solution_updater.hpp"
+#include "linear_system/matrix_spaces/solution_updater.hpp"
 
 namespace Kratos
 {
