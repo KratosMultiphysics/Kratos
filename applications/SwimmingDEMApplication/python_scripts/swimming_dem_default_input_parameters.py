@@ -4,8 +4,8 @@ KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
 
-    default_settings = KratosMultiphysics.Parameters("""
-        {
+    default_settings = KratosMultiphysics.Parameters(
+        """{
             "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
@@ -100,30 +100,9 @@ def GetDefaultInputParameters():
             "regularization_coefficient"             : 0.0,
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
+            "basset_force_type"                      : 0,
 
-            "GraphExportFreq"                  : 1e-3,
-            "VelTrapGraphExportFreq"           : 1e-3,
             "OutputTimeStep"                   : 0.5,
-            "PostDisplacement"                 : true,
-            "PostVelocity"                     : true,
-            "PostElasticForces"                : false,
-            "PostContactForces"                : false,
-            "PostRigidElementForces"           : false,
-            "PostTangentialElasticForces"      : false,
-            "PostTotalForces"                  : false,
-            "PostShearStress"                  : false,
-            "PostNonDimensionalVolumeWear"     : false,
-            "PostNodalArea"                    : false,
-            "PostRHS"                          : false,
-            "PostDampForces"                   : false,
-            "PostAppliedForces"                : false,
-            "PostRadius"                       : true,
-            "PostGroupId"                      : false,
-            "PostExportId"                     : false,
-            "PostAngularVelocity"              : false,
-            "PostParticleMoment"               : false,
-            "PostEulerAngles"                  : false,
-            "PostBoundingBox"                  : false,
             "PostPressure"                     : false,
             "PostFluidPressure"                          : false,
             "print_REYNOLDS_NUMBER_option"               : false,
@@ -153,9 +132,10 @@ def GetDefaultInputParameters():
             "print_MEAN_HYDRODYNAMIC_REACTION_option"    : false,
             "print_VELOCITY_LAPLACIAN_option"            : false,
             "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
-
             "PredefinedSkinOption"             : false,
-            "MeanRadius"                       : 0.0001
+            "MeanRadius"                       : 0.0001,
+            "fluid_parameters" : {},
+            "dem_parameters" : {}
             }""")
 
     return default_settings

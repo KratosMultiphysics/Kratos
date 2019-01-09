@@ -116,5 +116,17 @@
             }
         }],
         "auxiliar_process_list"            : []
-    }
+    },
+    "_json_output_process"  : [{
+    "python_module" : "json_output_process",
+    "kratos_module" : "KratosMultiphysics",
+    "process_name"  : "JsonOutputProcess",
+    "Parameters"    : {
+        "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+        "output_file_name"     : "candelier_errors.json",
+        "model_part_name"      : "CandelierDEM",
+        "time_frequency"       : 0.001
+        }
+    }]
+
 }

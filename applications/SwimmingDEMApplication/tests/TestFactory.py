@@ -1,4 +1,5 @@
 import os
+import json
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -27,10 +28,13 @@ class TestFactory(KratosUnittest.TestCase):
             # Setting parameters
             varying_parameters = dict()
             varying_parameters['FinalTime'] = 1
+            varying_parameters['dem_json_path'] = os.getcwd() + '/candelier_tests/ProjectParametersDEM.json'
+            varying_parameters['fluid_json_path'] = os.getcwd() + '/candelier_tests/ProjectParameters.json'
+            with open(self.file_parameters,'r') as parameter_file:
+                parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
             # Create Model
-            model = Model()
-            parameters = Parameters(json.dumps(varying_parameters))
+            model = KratosMultiphysics.Model()
 
             # To avoid too many prints
             #if (parameters["problem_data"]["echo_level"].GetInt() == 0):

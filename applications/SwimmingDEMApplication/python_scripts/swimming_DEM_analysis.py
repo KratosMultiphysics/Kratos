@@ -88,14 +88,27 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.StartTimer()
         self.model = model
         self.main_path = os.getcwd()
-        self.ReadFluidParameters()
-        self.SetFluidAlgorithm()
-        self.fluid_solution.coupling_analysis = weakref.proxy(self)
+        self.dem_json_path = os.getcwd() + '/ProjectParametersDEM.json'
+        self.fluid_json_path = os.getcwd() + '/ProjectParameters.json'
+        self.project_parameters = parameters
+
+        if parameters.Has('dem_json_path'):
+            self.dem_json_path = parameters['dem_json_path'].GetString()
+        if parameters.Has('fluid_json_path'):
+            self.fluid_json_path = parameters['fluid_json_path'].GetString()
 
         self.SetCouplingParameters(parameters)
 
+        self.SetFluidParameters()
+
+        self.ModifyInputParametersForCoherence()
+
         self.SetDispersePhaseAlgorithm()
+
         self.disperse_phase_solution.coupling_analysis = weakref.proxy(self)
+
+        self.SetFluidAlgorithm()
+        self.fluid_solution.coupling_analysis = weakref.proxy(self)
 
         self.procedures = weakref.proxy(self.disperse_phase_solution.procedures)
         self.report = DEM_procedures.Report()
@@ -113,15 +126,16 @@ class SwimmingDEMAnalysis(AnalysisStage):
         vars_man.ConstructListsOfVariables(self.pp)
         super(SwimmingDEMAnalysis, self).__init__(model, self.pp.CFD_DEM) # TODO: The DEM jason is now interpreted as the coupling json. This must be changed
 
-    def ReadFluidParameters(self):
-        with open("ProjectParameters.json", 'r') as parameter_file:
+    def SetFluidParameters(self):
+        with open(self.fluid_json_path, 'r') as parameter_file:
             self.pp.fluid_parameters = Parameters(parameter_file.read())
-            gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
-            result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
-            gauss_point_results = result_file_configuration["gauss_point_results"]
-            nodal_variables = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
-            self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
-            self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
+
+        gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+        result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
+        gauss_point_results = result_file_configuration["gauss_point_results"]
+        nodal_variables = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+        self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
+        self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
     def SetFluidAlgorithm(self):
         import DEM_coupled_fluid_dynamics_analysis
@@ -134,11 +148,9 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
     def ReadDispersePhaseAndCouplingParameters(self):
 
-        with open(self.main_path + '/ProjectParametersDEM.json', 'r') as parameters_file:
-            self.pp.CFD_DEM = Parameters(parameters_file.read())
-
-        with open("ProjectParameters.json",'r') as fluid_parameter_file:
-            self.fpp = fluid_parameter_file
+        # with open(self.dem_json_path, 'r') as parameters_file:
+        #     self.pp.CFD_DEM = Parameters(parameters_file.read())
+        self.pp.CFD_DEM = self.project_parameters
 
         import dem_default_input_parameters
         dem_defaults = dem_default_input_parameters.GetDefaultInputParameters()
@@ -162,14 +174,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # Third, set the parameters fed to the particular case that you are running
         self.SetCustomBetaParameters(parameters)
 
-        # Finally adjust some of the parameters for consistency
-        #   This function should be reduced to a minimum since,
-        #   in principle, there should be no need to change the parameters
-        self.SetDerivedParameters()
-
-    def SetDerivedParameters(self):
-        self.SetDoSolveDEMVariable()
-
     def SetAllModelParts(self):
         self.all_model_parts = weakref.proxy(self.disperse_phase_solution.all_model_parts)
 
@@ -185,10 +189,12 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.timer = timer
         self.simulation_start_time = timer.time()
 
+    # Set input parameters that have not yet been transferred to the interface
+    # import the configuration data as read from the GiD
     def SetBetaParameters(self):
-        # These are input parameters that have not yet been transferred to the interface
-        # import the configuration data as read from the GiD
         Add = self.pp.CFD_DEM.AddEmptyValue
+        Add("dem_json_path").SetString(self.main_path + '/ProjectParametersDEM.json')
+        Add("fluid_json_path").SetString(self.main_path + '/ProjectParameters.json')
         Add("fluid_already_calculated").SetBool(False)
         Add("do_solve_dem").SetBool(True)
         Add("recovery_echo_level").SetInt(1)
@@ -258,11 +264,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Making all time steps be an exact multiple of the smallest time step
         self.Dt_DEM = self.pp.CFD_DEM["MaxTimeStep"].GetDouble()
-        self.Dt = self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
-        self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
-        self.fluid_solution._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.Dt)
-        self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
-        self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
 
         # vestigial variables
         Add("print_steps_per_plot_step").SetInt(1)
@@ -290,6 +291,18 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         # Setting body_force_per_unit_mass_variable_name
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
+
+    # This step is added to allow modifications to the possibly incompatibilities
+    # between the individual parameters coming from each sub-application
+    # (i.e., fluid and dem apps)
+    def ModifyInputParametersForCoherence(self):
+        self.output_time = self.pp.CFD_DEM["OutputTimeStep"].GetDouble()
+        self.output_time = int(self.output_time / self.Dt_DEM) * self.Dt_DEM
+        self.pp.CFD_DEM["OutputTimeStep"].SetDouble(self.output_time)
+        self.Dt = self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].GetDouble()
+        self.Dt = int(self.Dt / self.Dt_DEM) * self.Dt_DEM
+        self.pp.fluid_parameters["solver_settings"]["time_stepping"]["time_step"].SetDouble(self.Dt)
+        self.SetDoSolveDEMVariable()
 
     def SetDoSolveDEMVariable(self):
         self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
@@ -458,8 +471,6 @@ class SwimmingDEMAnalysis(AnalysisStage):
             SDP.FixModelPart(self.spheres_model_part)
 
         # choosing the directory in which we want to work (print to)
-
-        os.chdir(self.post_path)
 
         ##################################################
 
@@ -652,6 +663,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
         super(SwimmingDEMAnalysis, self).OutputSolutionStep()
 
     def _Print(self):
+        os.chdir(self.post_path)
+
         if self.particles_results_counter.Tick():
             self.io_tools.PrintParticlesResults(
                 self.pp.variables_to_print_in_file,
@@ -665,6 +678,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.time)
 
         self.post_utils.Writeresults(self.time)
+        os.chdir(self.main_path)
 
     def ComputePostProcessResults(self):
         if self.pp.CFD_DEM["coupling_level_type"].GetInt():
