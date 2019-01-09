@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","PoromechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -234,7 +231,7 @@ class UPwSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "poromechanics_U_Pw_solver",
-            "model_part_name": "PorousDomain",
+            "model_part_name": "PorousModelPart",
             "domain_size": 2,
             "start_time": 0.0,
             "time_step": 0.1,

@@ -68,16 +68,20 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                 : "in_radius",
-                "adapt_search"                : false,
-                "search_factor"               : 3.5,
-                "active_check_factor"         : 0.01,
-                "max_number_results"          : 1000,
-                "bucket_size"                 : 4,
-                "dynamic_search"              : false,
-                "database_step_update"        : 1,
-                "debug_mode"                  : false,
-                "check_gap"                   : "check_mapping"
+                "type_search"                         : "in_radius",
+                "simple_search"                       : false,
+                "adapt_search"                        : false,
+                "search_factor"                       : 3.5,
+                "active_check_factor"                 : 0.01,
+                "max_number_results"                  : 1000,
+                "bucket_size"                         : 4,
+                "dynamic_search"                      : false,
+                "static_check_movement"               : false,
+                "database_step_update"                : 1,
+                "consider_gap_threshold"              : false,
+                "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
+                "check_gap"                           : "check_mapping"
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -370,7 +374,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
-        if (self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool() is False):
+        if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
             alm_var_parameters = KM.Parameters("""{}""")
             alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advance_ALM_parameters"]["stiffness_factor"])
@@ -378,7 +382,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
             # We don't consider scale factor
-            if (self.contact_settings["advance_ALM_parameters"]["use_scale_factor"].GetBool() is False):
+            if not self.contact_settings["advance_ALM_parameters"]["use_scale_factor"].GetBool():
                 process_info[KM.SCALE_FACTOR] = 1.0
         else:
             # We set the values in the process info
@@ -386,9 +390,9 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             process_info[KM.SCALE_FACTOR] = self.contact_settings["advance_ALM_parameters"]["scale_factor"].GetDouble()
 
         # We set a minimum value
-        if (process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon):
+        if process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon:
             process_info[KM.INITIAL_PENALTY] = 1.0e0
-        if (process_info[KM.SCALE_FACTOR] < sys.float_info.epsilon):
+        if process_info[KM.SCALE_FACTOR] < sys.float_info.epsilon:
             process_info[KM.SCALE_FACTOR] = 1.0e0
 
         # We print the parameters considered
