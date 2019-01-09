@@ -37,6 +37,7 @@ set(KRATOS_IGA_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/iga_flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_json_io.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/nurbs_brep_modeler.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/embedded_iga_modeler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_edge.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_face.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/brep_topology/brep_model.cpp

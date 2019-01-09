@@ -100,6 +100,7 @@ namespace Kratos
         }
     }
 
+
     NurbsBrepModeler::NurbsBrepModeler(ModelPart& rModelPart)
         : m_model_part(rModelPart)
     {

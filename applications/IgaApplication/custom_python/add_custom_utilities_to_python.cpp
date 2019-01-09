@@ -24,6 +24,8 @@
 
 #include "custom_utilities/brep_json_io.h"
 #include "custom_utilities/nurbs_brep_modeler.h"
+#include "custom_utilities/embedded_iga_modeler.h"
+
 
 #include "custom_utilities/iga_flags.h"
 
@@ -837,6 +839,12 @@ void AddCustomUtilitiesToPython(
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
         ;
+    
+    pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
+        .def(pybind11::init<ModelPart&>())
+        .def("CreateTessellation", &EmbeddedIgaModeler::CreateTessellation)
+        ;
+
 }
 
 } // namespace Python

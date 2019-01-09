@@ -74,12 +74,12 @@ namespace Kratos
 
         ///@}
     protected:
+        ModelPart&                 m_model_part;
+        std::vector<BrepModel>     m_brep_model_vector;
 
     private:
         ///@name Member Variables
         ///@{
-        ModelPart&                 m_model_part;
-        std::vector<BrepModel>     m_brep_model_vector;
 
         ///@}
         ///@name Private Operations

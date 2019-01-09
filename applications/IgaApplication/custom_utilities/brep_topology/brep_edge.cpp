@@ -33,6 +33,12 @@ namespace Kratos
         return mBrepEdgeTopologyVector[rTopologyIndex];
     }
 
+
+    const Kratos::shared_ptr<NodeCurveGeometry3D> BrepEdge::GetCurve3d() const
+    {
+        return mNodeCurveGeometry3D;
+    }
+
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
