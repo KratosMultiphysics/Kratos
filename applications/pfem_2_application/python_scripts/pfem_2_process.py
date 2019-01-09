@@ -16,8 +16,7 @@ class PFEM2Process(KratosMultiphysics.Process):
             {
                 "model_part_name"      : "please_specify_model_part_name",
                 "variables_to_convect" : [""],
-                "projection_variables" : [""],
-                "maximum_number_of_particles" : 16
+                "projection_variables" : [""]
             }
             """
             )
@@ -26,9 +25,9 @@ class PFEM2Process(KratosMultiphysics.Process):
 
         self.use_mesh_velocity = False
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.max_num_of_particles = settings["maximum_number_of_particles"].GetInt()
         self.discriminate_streamlines = True
         self.dimension = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        self.max_num_of_particles = 8 * self.dimension
         self.pre_minimum_num_of_particles = self.dimension
         self.post_minimum_num_of_particles = 2 * self.dimension
         self.full_reset_boundary_conditions = True
@@ -48,7 +47,7 @@ class PFEM2Process(KratosMultiphysics.Process):
         if self.dimension == 2:
             self.moveparticles = Pfem2.MoveParticleUtilityPFEM22D(self.model_part, self.max_num_of_particles)
         else:
-            self.moveparticles = Pfem2.MoveParticleUtilityPFEM22D(self.model_part, self.max_num_of_particles)
+            self.moveparticles = Pfem2.MoveParticleUtilityPFEM23D(self.model_part, self.max_num_of_particles)
         self.moveparticles.MountBin()
 
     def ExecuteInitializeSolutionStep(self):

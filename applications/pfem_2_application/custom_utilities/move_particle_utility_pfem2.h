@@ -135,7 +135,7 @@ namespace Kratos
 		MoveParticleUtilityPFEM2(ModelPart& model_part, int maximum_number_of_particles)
 			: mr_model_part(model_part) , mmaximum_number_of_particles(maximum_number_of_particles)
 		{
-			std::cout << "initializing moveparticle utility" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Initializing utility" << std::endl;
 
 			Check();
 
@@ -255,7 +255,7 @@ namespace Kratos
             int particle_id=0;
 			mnelems = mr_model_part.Elements().size();
 
-			std::cout << "about to resize vectors" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to resize vectors" << std::endl;
 
 
 			//setting the right size to the vector containing the particles assigned to each element
@@ -272,19 +272,16 @@ namespace Kratos
 			//each element will have a list of pointers to all the particles that are inside.
 			//this vector contains the pointers to the vector of (particle) pointers of each element.
 			mpointers_to_particle_pointers_vectors.resize(mnelems);
-            //int artz;
-            //std::cin >> artz;
-			int i_int=0; //careful! it's not the id, but the position inside the array!
-			std::cout << "about to create particles" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "About to create particles" << std::endl;
 			//now we seed: LOOP IN ELEMENTS
 			//using loop index, DO NOT paralelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
 
 			for(unsigned int ii=0; ii<mr_model_part.Elements().size(); ii++)
 			{
 				ModelPart::ElementsContainerType::iterator ielem = ielembegin+ii;
-				(ielem->GetValue(FLUID_PARTICLE_POINTERS)) = ParticlePointerVector( mmaximum_number_of_particles*2);//, &firstparticle );
-				ParticlePointerVector&  particle_pointers =  (ielem->GetValue(FLUID_PARTICLE_POINTERS));
-				//now we link the mpointers_to_particle_pointers_vectors to the corresponding element
+				ielem->SetValue(FLUID_PARTICLE_POINTERS, ParticlePointerVector( mmaximum_number_of_particles*2) );//, &firstparticle );
+				ParticlePointerVector&  particle_pointers = ielem->GetValue(FLUID_PARTICLE_POINTERS);
+                //now we link the mpointers_to_particle_pointers_vectors to the corresponding element
 				mpointers_to_particle_pointers_vectors(ii) = &particle_pointers;
 				//now we resize the vector of particle pointers. it is double sized because we move the particles from an initial position (first half) to a final position (second half).
 				//for(int j=0; j<(mmaximum_number_of_particles*2); j++)
@@ -302,7 +299,7 @@ namespace Kratos
 				{
 					++particle_id;
 
-					PFEM_Particle_Fluid& pparticle =mparticles_vector[particle_id-1];
+					PFEM_Particle_Fluid& pparticle = mparticles_vector[particle_id-1];
 					pparticle.X()=pos(j,0);
 					pparticle.Y()=pos(j,1);
 					pparticle.Z()=pos(j,2);
@@ -310,9 +307,9 @@ namespace Kratos
 					pparticle.GetEraseFlag()=false;
 
 					array_1d<float, 3 > & vel = pparticle.GetVelocity();
-					float & distance= pparticle.GetDistance();
+					float & distance = pparticle.GetDistance();
 					noalias(vel) = ZeroVector(3);
-					distance=0.0;
+					distance = 0.0;
 
                     for (unsigned int k = 0; k < (TDim+1); k++)
                     {
@@ -320,27 +317,14 @@ namespace Kratos
 						distance +=  N(j, k) * geom[k].FastGetSolutionStepValue(DISTANCE);
 					}
 
-					if(	ii % 100000 == 0)
-						KRATOS_WATCH(particle_id);
-
-					if (distance<=0.0)
-					{
-						distance=-1.0;
-					}
-					//else if(distance<2.0)
-					//{
-					//	distance=1.0;
-					//}
+					if (distance <= 0.0)
+						distance = -1.0;
 					else
-					{
-						distance=1.0;
-					}
+						distance = 1.0;
 
 					particle_pointers(j) = &pparticle;
-					 number_of_particles++ ;
-
+					number_of_particles++;
 				}
-				++i_int;
 			}
 
 
@@ -367,10 +351,8 @@ namespace Kratos
 
 
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
-			KRATOS_WATCH(m_nparticles);
-			//KRATOS_WATCH(mlast_elem_id);
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Number of particles created : " << m_nparticles << std::endl;
 			mparticle_printing_tool_initialized=false;
-			//std::cin >> artz;
 		}
 
 
@@ -392,7 +374,7 @@ namespace Kratos
 			paux.swap(mpBinsObjectDynamic);
 			//BinsObjectDynamic<Configure>  mpBinsObjectDynamic(it_begin, it_end );
 
-			std::cout << "finished mounting Bins" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Finished mounting Bins" << std::endl;
 
 			KRATOS_CATCH("")
 		}
@@ -597,19 +579,11 @@ namespace Kratos
 							 mparticles_vector[freeparticle] =  pparticle;
 							 element_particle_pointers(offset+number_of_particles_in_elem) = &mparticles_vector[freeparticle];
 							number_of_particles_in_elem++;
-							//KRATOS_WATCH(number_of_particles_in_elem);
-							//KRATOS_WATCH(mparticles_vector[freeparticle])
-							//KRATOS_WATCH(geom)
 
-						  }
-					  }
-				  }
+                        }
+                    }
+                }
 			}
-
-
-
-
-
 
 			KRATOS_CATCH("")
 
@@ -989,7 +963,7 @@ namespace Kratos
 			else
 				muse_mesh_velocity_to_convect = false; //otherwise, we can avoid reading the values since we know it is zero everywhere (to save time!)
 
-			std::cout << "convecting particles" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Convecting particles" << std::endl;
             //We move the particles across the fixed mesh and saving change data into them (using the function MoveParticle)
 
 			const bool local_use_mesh_velocity_to_convect = muse_mesh_velocity_to_convect;
@@ -1100,7 +1074,7 @@ namespace Kratos
 			const double threshold= 0.0/(double(TDim)+1.0);
 
 
-			std::cout << "projecting info to mesh" << std::endl;
+            KRATOS_INFO("MoveParticleUtilityPfem2") << "Projecting info to mesh" << std::endl;
 
 
 			const int offset = CurrentProcessInfo[WATER_PARTICLE_POINTERS_OFFSET]; //the array of pointers for each element has twice the required size so that we use a part in odd timesteps and the other in even ones.
