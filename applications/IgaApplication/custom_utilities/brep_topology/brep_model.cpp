@@ -48,30 +48,6 @@ namespace Kratos
         return success;
     }
 
-    // void BrepModel::GetModelNodes()
-    // {
-    //     for (int i = 0; i < mBrepFaces.size(); ++i)
-    //     {
-    //         mBrepFaces[i].GetFaceNodes();
-    //     }
-    // }
-
-    // void BrepModel::PrintEdgeNodes()
-    // {
-    //     for (int i = 0; i < mBrepEdges.size(); ++i)
-    //     {
-    //         mBrepEdges[i].PrintNodes();
-    //     }
-    // }
-
-    // void BrepModel::PrintTrimmingNodes()
-    // {
-    //     for (int i = 0; i < mBrepFaces.size(); ++i)
-    //     {
-    //         mBrepFaces[i].PrintTrimNodes();
-    //     }
-    // }
-
     bool BrepModel::GetIntegrationDomainGeometry(
         ModelPart& rModelPart, 
         const int brep_id,

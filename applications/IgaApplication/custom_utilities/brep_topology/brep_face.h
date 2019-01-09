@@ -134,11 +134,6 @@ namespace Kratos
             Matrix& rShapeFunctionDerivative,
             Matrix& rShapeFunctionSecondDerivative
             ) const;
-            
-        // void GetFaceNodes(); 
-        // void PrintTrimNodes();
-
-
 
         const Kratos::shared_ptr<Curve<2>> GetTrimCurve(
             const int trim_index) const;
