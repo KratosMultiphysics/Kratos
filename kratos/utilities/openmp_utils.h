@@ -68,7 +68,51 @@ public:
         return 1;
 #endif
     }
-    
+
+    static inline int GetSetThreads()
+    {
+        #ifdef _OPENMP
+        return omp_get_num_threads();
+        #else
+        return 1;
+        #endif
+    }
+
+    static inline int GetNumProcs()
+    {
+        #ifdef _OPENMP
+        return omp_get_num_procs();
+        #else
+        return 1;
+        #endif
+    }
+
+    static inline int GetInParallel()
+    {
+        #ifdef _OPENMP
+        return omp_in_parallel();
+        #else
+        return 1;
+        #endif
+    }
+
+    static inline int GetDynamic()
+    {
+        #ifdef _OPENMP
+        return omp_get_dynamic();
+        #else
+        return 1;
+        #endif
+    }
+
+    static inline int GetNested()
+    {
+        #ifdef _OPENMP
+        return omp_get_nested();
+        #else
+        return 1;
+        #endif
+    }
 
     /// Wrapper for omp_get_thread_num().
     /**

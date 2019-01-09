@@ -341,6 +341,11 @@ void AddUtilitiesToPython(pybind11::module& m)
 //     .staticmethod("GetNumThreads")
     .def_static("PrintOMPInfo", &OpenMPUtils::PrintOMPInfo)
 //     .staticmethod("PrintOMPInfo")
+    .def_static("GetSetThreads", &OpenMPUtils::GetSetThreads)
+    .def_static("GetNumProcs", &OpenMPUtils::GetNumProcs)
+    .def_static("GetDynamic", &OpenMPUtils::GetDynamic)
+    .def_static("GetInParallel", &OpenMPUtils::GetInParallel)
+    .def_static("GetNested", &OpenMPUtils::GetNested)
     ;
 
     class_< BinBasedFastPointLocator < 2 > >(m,"BinBasedFastPointLocator2D")
