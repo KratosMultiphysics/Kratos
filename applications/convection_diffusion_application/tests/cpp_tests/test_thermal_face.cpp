@@ -235,5 +235,53 @@ namespace Testing
             }
         }
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(ThermalFace3D4N, KratosConvectionDiffusionFastSuite)
+    {
+        // Create the test condition
+        Model model;
+        ModelPart &test_model_part = model.CreateModelPart("TestModelPart");
+        SetTestModelPart(test_model_part);
+
+        // Set the condition properties
+        Properties::Pointer p_cond_prop = test_model_part.pGetProperties(0);
+        p_cond_prop->SetValue(EMISSIVITY, 1.0);
+        p_cond_prop->SetValue(AMBIENT_TEMPERATURE, 293.0);
+        p_cond_prop->SetValue(CONVECTION_COEFFICIENT, 20.0);
+
+        // Condition creation
+        test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        test_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        test_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+        test_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+        std::vector<ModelPart::IndexType> cond_nodes{1, 2, 3, 4};
+        test_model_part.CreateNewCondition("ThermalFace3D4N", 1, cond_nodes, p_cond_prop);
+
+        // Set the face heat flux
+        for (auto &i_node : test_model_part.Nodes()) {
+            i_node.FastGetSolutionStepValue(TEMPERATURE) = 400.0;
+            i_node.FastGetSolutionStepValue(FACE_HEAT_FLUX) = 200.0;
+            // i_node.FastGetSolutionStepValue(TEMPERATURE) = i_node.X() * 400.0;
+            // i_node.FastGetSolutionStepValue(FACE_HEAT_FLUX) = 200.0 + i_node.X() * 100.0;
+        }
+
+        // Test condition
+        Condition::Pointer p_condition = test_model_part.pGetCondition(1);
+        Vector RHS = ZeroVector(4);
+        Matrix LHS = ZeroMatrix(4,4);
+        p_condition->CalculateLocalSystem(LHS, RHS, test_model_part.GetProcessInfo());
+
+        std::vector<double> expected_RHS = {-743.41, -743.41, -743.41, -743.41};
+        std::vector<double> expected_LHS = {3.83502, 1.91751, 0.958756, 1.91751,
+                                            1.91751, 3.83502, 1.91751, 0.958756,
+                                            0.958756, 1.91751, 3.83502, 1.91751,
+                                            1.91751, 0.958756, 1.91751, 3.83502};
+        for (unsigned int i = 0; i < 4; ++i) {
+            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-3);
+            for (unsigned int j = 0; j < 4; ++j) {
+                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*4+j], 1.0e-5);
+            }
+        }
+    }
 } // namespace Testing
 } // namespace Kratos.
