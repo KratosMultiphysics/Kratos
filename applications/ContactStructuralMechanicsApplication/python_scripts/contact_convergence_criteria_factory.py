@@ -169,10 +169,18 @@ class convergence_criterion:
                 Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
             else:
                 Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria()
+        elif self.mortar_type == "PenaltyContactFrictionless":
+            if include_table:
+                Mortar = CSMA.PenaltyFrictionlessMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
+            else:
+                Mortar = CSMA.PenaltyFrictionlessMortarConvergenceCriteria()
+        elif self.mortar_type == "PenaltyContactFrictional":
+            if include_table:
+                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria(self.print_convergence_criterion, self.gidio_debug)
+            else:
+                Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria()
         elif "MeshTying" in self.mortar_type:
             Mortar = CSMA.MeshTyingMortarConvergenceCriteria()
-
-        # TODO: Add penalty methods!!!
 
         Mortar.SetEchoLevel(self.echo_level)
 

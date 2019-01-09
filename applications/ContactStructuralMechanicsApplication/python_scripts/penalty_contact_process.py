@@ -211,11 +211,6 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                     condition_name = "PenaltyFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "PenaltyFrictionlessMortarContact"
-        elif self.contact_settings["contact_type"].GetString() == "FrictionlessComponents":
-            if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                condition_name = "PenaltyNVFrictionlessComponentsMortarContact"
-            else:
-                condition_name = "PenaltyFrictionlessComponentsMortarContact"
         elif self.is_frictional is True:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
                 if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:

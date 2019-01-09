@@ -33,8 +33,10 @@
 #include "custom_strategies/custom_convergencecriterias/mortar_and_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/mesh_tying_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictionless_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/penalty_frictionless_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictionless_components_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/alm_frictional_mortar_criteria.h"
+#include "custom_strategies/custom_convergencecriterias/penalty_frictional_mortar_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_contact_criteria.h"
 #include "custom_strategies/custom_convergencecriterias/displacement_lagrangemultiplier_frictional_contact_criteria.h"
@@ -86,8 +88,10 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef MortarAndConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MortarAndConvergenceCriteriaType;
     typedef MeshTyingMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > MeshTyingMortarConvergenceCriteriaType;
     typedef ALMFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessMortarConvergenceCriteriaType;
+    typedef PenaltyFrictionlessMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > PenaltyFrictionlessMortarConvergenceCriteriaType;
     typedef ALMFrictionlessComponentsMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionlessComponentsMortarConvergenceCriteriaType;
     typedef ALMFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ALMFrictionalMortarConvergenceCriteriaType;
+    typedef PenaltyFrictionalMortarConvergenceCriteria< SparseSpaceType,  LocalSpaceType > PenaltyFrictionalMortarConvergenceCriteriaType;
     typedef DisplacementContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementContactCriteriaType;
     typedef DisplacementLagrangeMultiplierContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierContactCriteriaType;
     typedef DisplacementLagrangeMultiplierFrictionalContactCriteria< SparseSpaceType,  LocalSpaceType > DisplacementLagrangeMultiplierFrictionalContactCriteriaType;
@@ -171,6 +175,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init<bool, bool>())
         ;
 
+    // Dual set strategy for SSNM Convergence Criterion (frictionless penalty case)
+    py::class_< PenaltyFrictionlessMortarConvergenceCriteriaType, typename PenaltyFrictionlessMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "PenaltyFrictionlessMortarConvergenceCriteria")
+        .def(py::init< >())
+        .def(py::init<bool>())
+        .def(py::init<bool, bool>())
+        ;
+
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
     py::class_< ALMFrictionlessComponentsMortarConvergenceCriteriaType, typename ALMFrictionlessComponentsMortarConvergenceCriteriaType::Pointer,
         ConvergenceCriteriaType >
@@ -184,6 +197,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< ALMFrictionalMortarConvergenceCriteriaType, typename ALMFrictionalMortarConvergenceCriteriaType::Pointer,
         ConvergenceCriteriaType >
         (m, "ALMFrictionalMortarConvergenceCriteria")
+        .def(py::init< >())
+        .def(py::init<bool>())
+        .def(py::init<bool, bool>())
+        ;
+
+    // Dual set strategy for SSNM Convergence Criterion (frictional penalty case)
+    py::class_< PenaltyFrictionalMortarConvergenceCriteriaType, typename PenaltyFrictionalMortarConvergenceCriteriaType::Pointer,
+        ConvergenceCriteriaType >
+        (m, "PenaltyFrictionalMortarConvergenceCriteria")
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
