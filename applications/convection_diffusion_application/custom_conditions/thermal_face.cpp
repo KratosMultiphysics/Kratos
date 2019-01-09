@@ -136,7 +136,7 @@ void ThermalFace<TDim, TNodesNumber>::CalculateLeftHandSide(
     KRATOS_TRY
 
     // Check (and resize) LHS matrix
-    if (rLeftHandSideMatrix.size1() != TNodesNumber || rLeftHandSideMatrix.size2() == TNodesNumber) {
+    if (rLeftHandSideMatrix.size1() != TNodesNumber || rLeftHandSideMatrix.size2() != TNodesNumber) {
         rLeftHandSideMatrix.resize(TNodesNumber, TNodesNumber, false);
     }
 

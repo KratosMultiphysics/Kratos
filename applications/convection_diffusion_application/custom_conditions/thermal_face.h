@@ -32,95 +32,6 @@
 namespace Kratos
 {
 
-///@addtogroup ConvectionDiffusionApplication
-///@{
-
-// namespace ThermalFaceInternals
-// {
-// ///@name Auxiliary data structure to hold FEM data
-// ///@{
-
-// template<unsigned int TDim, unsigned int TNodesNumber>
-// class IntegrationData
-// {
-// public:
-
-//     IntegrationData(
-//         Geometry< Node<3> >& rGeometry,
-//         const Variable<double>& rFluxVar):
-//         mGaussPoint(0),
-//         mNodalFluxes(TNodesNumber,0.0)
-//     {
-//         NumGauss = rGeometry.IntegrationPointsNumber(GeometryData::GI_GAUSS_2);
-//         Vector DetJ = ZeroVector(NumGauss);
-//         rGeometry.DeterminantOfJacobian(DetJ,GeometryData::GI_GAUSS_2);
-
-//         mShapeFunctionValues.resize(NumGauss,TNodesNumber);
-//         mIntegrationWeights.resize(NumGauss);
-
-//         noalias(mShapeFunctionValues) = rGeometry.ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
-
-//         const auto& IntegrationPoints = rGeometry.IntegrationPoints(GeometryData::GI_GAUSS_2);
-
-//         for (unsigned int g = 0; g < NumGauss; g++)
-//         {
-//             mIntegrationWeights[g] = DetJ[g]*IntegrationPoints[g].Weight();
-//         }
-
-//         for (unsigned int i = 0; i < TNodesNumber; i++)
-//         {
-//             mNodalFluxes[i] = rGeometry[i].FastGetSolutionStepValue(rFluxVar);
-//         }
-//     }
-
-//     void SetCurrentGaussPoint(unsigned int g)
-//     {
-//         mGaussPoint = g;
-//     }
-
-//     double N(unsigned int i) const
-//     {
-//         return mShapeFunctionValues(mGaussPoint,i);
-//     }
-
-//     double NodalFlux(unsigned int i) const
-//     {
-//         return mNodalFluxes[i];
-//     }
-
-//     double GaussPointFlux() const
-//     {
-//         double flux = mNodalFluxes[0]*mShapeFunctionValues(mGaussPoint,0);
-//         for (unsigned int i = 1; i < TNodesNumber; i++)
-//         {
-//             flux += mNodalFluxes[i]*mShapeFunctionValues(mGaussPoint,i);
-//         }
-//         return flux;
-//     }
-
-//     double IntegrationWeight() const
-//     {
-//         return mIntegrationWeights[mGaussPoint];
-//     }
-
-//     unsigned int NumGauss;
-
-// private:
-
-//     unsigned int mGaussPoint;
-
-//     array_1d<double,TNodesNumber> mNodalFluxes;
-
-//     Matrix mShapeFunctionValues;
-
-//     Vector mIntegrationWeights;
-// };
-
-// ///@}
-
-// }
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -169,7 +80,7 @@ public:
         {
             double gauss_pt_val = 0.0;
             for (unsigned int i = 0; i < N.size(); ++i) {
-                gauss_pt_val += N[i] + rNodalValues[i];
+                gauss_pt_val += N[i] * rNodalValues[i];
             }
             return gauss_pt_val;
         }
