@@ -299,6 +299,7 @@ public:
             table.AddColumn("EXP. RAT", 10);
             table.AddColumn("ABS", 10);
             table.AddColumn("EXP. ABS", 10);
+            table.AddColumn("CONVERGENCE", 15);
             mTableIsInitialized = true;
         }
     }
