@@ -909,9 +909,9 @@ public:
         //Triangle_2d_3
         //GI_GAUSS_2
 
-        rExtrapolationMatrix(0,0) = 1.6666666666666666421; rExtrapolationMatrix(0,1) = -0.33333333333333334443; rExtrapolationMatrix(0,2) = -0.33333333333333334443;
-        rExtrapolationMatrix(1,0) = -0.33333333333333339776; rExtrapolationMatrix(1,1) = 1.6666666666666668555; rExtrapolationMatrix(1,2) = -0.33333333333333338444;
-        rExtrapolationMatrix(2,0) = -0.33333333333333353109; rExtrapolationMatrix(2,1) = -0.33333333333333335776; rExtrapolationMatrix(2,2) = 1.6666666666666668822;
+        rExtrapolationMatrix(0,0) = 1.6666666666666666666; rExtrapolationMatrix(0,1) = -0.33333333333333333333; rExtrapolationMatrix(0,2) = -0.33333333333333333333;
+        rExtrapolationMatrix(1,0) = -0.33333333333333333333; rExtrapolationMatrix(1,1) = 1.6666666666666666666; rExtrapolationMatrix(1,2) = -0.33333333333333333333;
+        rExtrapolationMatrix(2,0) = -0.33333333333333333333; rExtrapolationMatrix(2,1) = -0.33333333333333333333; rExtrapolationMatrix(2,2) = 1.6666666666666666666;
     }
 
     //----------------------------------------------------------------------------------------
