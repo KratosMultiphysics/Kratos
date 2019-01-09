@@ -4,7 +4,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
 from potential_flow_solver import PotentialSolver
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
+# import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 def CreateSolver(model, custom_settings):
     return PotentialAdjointSolver(model, custom_settings["solver_settings"])
@@ -39,8 +39,7 @@ class PotentialAdjointSolver(PotentialSolver):
         super(PotentialAdjointSolver, self).AddVariables()
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_SENSITIVITY)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
         
@@ -56,7 +55,7 @@ class PotentialAdjointSolver(PotentialSolver):
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
-        self.adjoint_postprocess = StructuralMechanicsApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
+        self.adjoint_postprocess = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
         self.adjoint_postprocess.Initialize()
 
         scheme = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialStaticScheme(self.scheme_settings, self.response_function)
@@ -90,6 +89,8 @@ class PotentialAdjointSolver(PotentialSolver):
     def FinalizeSolutionStep(self):
         super(PotentialAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
+        for node in self.main_model_part.Nodes:
+            print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()
