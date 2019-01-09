@@ -158,7 +158,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         // Compute the active set
-        const IndexType is_converged = ActiveUtilities::ComputePenaltyFrictionlessActiveSet(rModelPart);
+        const IndexType is_converged = ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet(rModelPart);
 
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged == 0 ? true : false);

@@ -39,19 +39,19 @@ namespace Kratos
 ///@{
     
 /** 
- * @class ActiveUtilities
+ * @class ActiveSetUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class includes some utilities used for contact active set computations
  * @author Vicente Mataix Ferrandiz
  */
-class ActiveUtilities
+class ActiveSetUtilities
 {
 public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of MortarUtilities
-    KRATOS_CLASS_POINTER_DEFINITION( ActiveUtilities );
+    KRATOS_CLASS_POINTER_DEFINITION( ActiveSetUtilities );
 
     // Some geometrical definitions
     typedef Node<3>                                              NodeType;
@@ -222,7 +222,7 @@ public:
         return is_converged;
     }
 
-};// class ActiveUtilities
+};// class ActiveSetUtilities
 
 }
 #endif /* KRATOS_ACTIVE_SET_UTILITIES defined */

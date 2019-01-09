@@ -161,7 +161,7 @@ public:
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
         // Compute the active set
-        const array_1d<std::size_t, 2> is_converged = ActiveUtilities::ComputePenaltyFrictionalActiveSet(rModelPart);
+        const array_1d<std::size_t, 2> is_converged = ActiveSetUtilities::ComputePenaltyFrictionalActiveSet(rModelPart);
 
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged[0] + is_converged[1]) == 0 ? true : false;
