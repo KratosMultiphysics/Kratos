@@ -24,6 +24,7 @@
 // #include "custom_response_functions/adjoint_structural_response_function.h"
 #include "custom_response_functions/adjoint_lift_response_function.h"
 #include "custom_response_functions/adjoint_potential_static_scheme.h"
+#include "custom_response_functions/adjoint_postprocess.h"
 
 
 namespace Kratos {
@@ -47,6 +48,14 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<AdjointPotentialStaticSchemeType, AdjointPotentialStaticSchemeType::Pointer, BaseSchemeType>
     (m, "AdjointPotentialStaticScheme")
         .def(py::init<Parameters, AdjointResponseFunction::Pointer>());
+
+    py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
+    (m, "AdjointPostprocess")
+        .def(py::init<ModelPart&, AdjointResponseFunction&, Parameters>())
+        .def("Initialize", &AdjointPostprocess::Initialize)
+        .def("InitializeSolutionStep", &AdjointPostprocess::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &AdjointPostprocess::FinalizeSolutionStep)
+        .def("UpdateSensitivities", &AdjointPostprocess::UpdateSensitivities);
 
 }
 
