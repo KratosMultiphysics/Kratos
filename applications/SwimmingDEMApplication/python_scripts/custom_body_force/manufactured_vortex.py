@@ -1,14 +1,18 @@
 import KratosMultiphysics
 import numpy as np
 
+def CreateManufacturedSolution(custom_settings):
+    return ManufacturedVortex(custom_settings)
+
 class ManufacturedVortex(object):
     def __init__(self, settings):
 
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "velocity"  : 1.0,
-                "length"    : 1.0,
-                "viscosity" : 1.0e-3
+                "velocity"    : 1.0,
+                "length"      : 1.0,
+                "viscosity"   : 1.0e-3,
+                "time_factor" : 1.0
             }
             """
             )
@@ -19,7 +23,7 @@ class ManufacturedVortex(object):
         self.L = settings["length"].GetDouble()
         self.nu = settings["viscosity"].GetDouble()
         self.T = self.L / self.U
-        self.omega = 2 * np.pi / self.T
+        self.omega = settings["time_factor"].GetDouble() * 2 * np.pi / self.T
         self.k = np.pi / self.L
 
     def BodyForce(self, x1, x2, t):
@@ -29,7 +33,7 @@ class ManufacturedVortex(object):
         return [self.body_force1(x1, x2, t), self.body_force2(x1, x2, t), self.body_force3(x1, x2, t)]
 
     def amplitude(self, t):
-        return self.U * np.sin(self.omega * t)
+        return self.U * np.cos(self.omega * t)
 
     def ustatic1(self, x1, x2):
         return np.sin(2 * self.k * x2) * np.sin(self.k * x1)
