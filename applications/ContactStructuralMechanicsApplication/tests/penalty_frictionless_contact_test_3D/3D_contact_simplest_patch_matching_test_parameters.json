@@ -78,11 +78,7 @@
             "Parameters"            : {
                 "model_part_name"             : "Structure",
                 "contact_model_part"          : { "0" : ["Contact_Part"]},
-                "contact_type"                : "Frictionless",
-                "advance_ALM_parameters" : {
-                    "manual_ALM"                  : true,
-                    "penalty"                     : 1.0e16
-                }
+                "contact_type"                : "Frictionless"
             }
         }
         ],
@@ -93,10 +89,10 @@
             "help"                  : "",
             "process_name"          : "FromJsonCheckResultProcess",
             "Parameters"            : {
-                "check_variables"      : ["DISPLACEMENT_Y"],
+                "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_results.json",
                 "model_part_name"      : "Contact_Part",
-                "time_frequency"       : 1.0
+                "time_frequency"       : 0.5
             }
         }
         ]
@@ -139,10 +135,10 @@
         "help"                  : "",
         "process_name"          : "JsonOutputProcess",
         "Parameters"            : {
-            "output_variables"     : ["DISPLACEMENT_Y"],
+            "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_results.json",
             "model_part_name"      : "Contact_Part",
-            "time_frequency"       : 1.0
+            "time_frequency"       : 0.5
         }
     }
     ],

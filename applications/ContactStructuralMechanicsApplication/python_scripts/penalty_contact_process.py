@@ -76,7 +76,7 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                 "stiffness_factor"            : 1.0,
                 "penalty_scale_factor"        : 1.0,
                 "use_scale_factor"            : true,
-                "penalty"                     : 1.0e-12,
+                "penalty"                     : 1.0e16,
                 "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
                 "max_gap_factor"              : 1.0e-3
@@ -194,3 +194,39 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
                     condition_name = "PenaltyFrictionalMortarContact"
 
         return condition_name
+
+    def _initialize_problem_parameters(self):
+        """ This method initializes the ALM parameters from the process info
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
+        # We call to the base process (in fact not, to avoid writing twice the values)
+        #super(PenaltyContactProcess, self)._initialize_problem_parameters()
+
+        # We call the process info
+        process_info = self.main_model_part.ProcessInfo
+
+        if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
+            # We compute NODAL_H that can be used in the search and some values computation
+            self.find_nodal_h = KM.FindNodalHProcess(self.computing_model_part)
+            self.find_nodal_h.Execute()
+
+            # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
+            alm_var_parameters = KM.Parameters("""{}""")
+            alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advance_ALM_parameters"]["stiffness_factor"])
+            alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advance_ALM_parameters"]["penalty_scale_factor"])
+            self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
+            self.alm_var_process.Execute()
+            process_info[KM.INITIAL_PENALTY] = 1.0e3 * process_info[KM.INITIAL_PENALTY] # We rescale, the process is designed for ALM formulation
+        else:
+            # We set the values in the process info
+            process_info[KM.INITIAL_PENALTY] = self.contact_settings["advance_ALM_parameters"]["penalty"].GetDouble()
+
+        # We set a minimum value
+        if process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon:
+            process_info[KM.INITIAL_PENALTY] = 1.0e16
+
+        # We print the parameters considered
+        KM.Logger.PrintInfo("INITIAL_PENALTY: ", "{:.2e}".format(process_info[KM.INITIAL_PENALTY]))
