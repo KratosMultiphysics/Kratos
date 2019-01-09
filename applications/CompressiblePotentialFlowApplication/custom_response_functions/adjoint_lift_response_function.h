@@ -110,6 +110,7 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
+    void ComputeInitialLift();
 
     double CalculateValue(ModelPart& rModelPart) override;
 
@@ -170,9 +171,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mTracedDofLabel;
-    PointTypePointer  mpTracedNode;
-    Element::Pointer mpNeighboringElement;
+    double mInitialLift;
+    bool mComputeLift=true;
 
     ///@}
     ///@name Private Operators
