@@ -18,7 +18,7 @@
 #include "custom_solvers/solution_strategies/solution_strategy.hpp"
 
 // Application includes
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {

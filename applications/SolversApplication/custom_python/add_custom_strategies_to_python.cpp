@@ -24,16 +24,10 @@
 #include "custom_solvers/solution_strategies/eigensolver_strategy.hpp"
 #include "custom_solvers/solution_strategies/segregated_strategy.hpp"
 
-// to update
-#include "custom_solvers/solution_strategies/explicit_hamilton_strategy.hpp"
-
 // Solution builders and solvers
 #include "linear_system/system_builders/block_builder_and_solver.hpp"
 #include "linear_system/system_builders/reduction_builder_and_solver.hpp"
 #include "linear_system/system_builders/explicit_builder_and_solver.hpp"
-
-// to update
-#include "linear_system/system_builders/explicit_hamilton_builder_and_solver.hpp"
 
 // Convergence criteria
 #include "custom_solvers/convergence_criteria/residual_criterion.hpp"
@@ -46,7 +40,6 @@
 #include "custom_solvers/solution_schemes/eigensolver_scheme.hpp"
 
 #include "custom_solvers/solution_schemes/explicit_central_differences_scheme.hpp"
-#include "custom_solvers/solution_schemes/explicit_hamilton_scheme.hpp"
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -78,7 +71,7 @@ typedef UBlasSpace<double, CompressedMatrix, Vector>                            
 typedef UBlasSpace<double, Matrix, Vector>                                                          LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                             LinearSolverType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
-typedef SolutionBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>   SolutionBuilderAndSolverType;
+typedef SystemBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>       SystemBuilderAndSolverType;
 typedef SolutionScheme<SparseSpaceType, LocalSpaceType>                                         SolutionSchemeType;
 typedef ConvergenceCriterion<SparseSpaceType, LocalSpaceType>                             ConvergenceCriterionType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
@@ -266,13 +259,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Linear Strategy
   py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, SolutionStrategyType>(m,"LinearStrategy")
-      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SystemBuilderAndSolverType::Pointer, Flags&>())
       .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, Flags&>())
       ;
 
   // Newton Raphson Strategy
   py::class_<NewtonRaphsonStrategyType, typename NewtonRaphsonStrategyType::Pointer, LinearStrategyType>(m,"NewtonRaphsonStrategy")
-      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SystemBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def("SetMaxIterationNumber", &NewtonRaphsonStrategyType::SetMaxIterationNumber)
       .def("GetMaxIterationNumber", &NewtonRaphsonStrategyType::GetMaxIterationNumber)
@@ -280,8 +273,8 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Newton Raphson Line Search Strategy
   py::class_<LineSearchStrategyType, typename LineSearchStrategyType::Pointer, NewtonRaphsonStrategyType>(m,"LineSearchStrategy")
-      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
-      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SystemBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SystemBuilderAndSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int>())
       .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriterionType::Pointer, Flags&, unsigned int, unsigned int>())
       ;
@@ -294,46 +287,46 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   // Eigensolver Strategy
   py::class_<EigensolverStrategyType, typename EigensolverStrategyType::Pointer, SolutionStrategyType>(m,"EigensolverStrategy")
-      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SolutionBuilderAndSolverType::Pointer, Flags&, bool>())
+      .def(py::init<ModelPart&, SolutionSchemeType::Pointer, SystemBuilderAndSolverType::Pointer, Flags&, bool>())
       ;
 
 
   //*******************BUILDER AND SOLVER CLASSES***********************
 
   // Base Builder and Solver
-  py::class_<SolutionBuilderAndSolverType, typename SolutionBuilderAndSolverType::Pointer, Flags>
-      (m,"SolutionBuilderAndSolver")
+  py::class_<SystemBuilderAndSolverType, typename SystemBuilderAndSolverType::Pointer, Flags>
+      (m,"SystemBuilderAndSolver")
       .def(py::init<LinearSolverType::Pointer> ())
       .def(py::init<>())
-      .def("BuildLHS", &SolutionBuilderAndSolverType::BuildLHS)
-      .def("BuildRHS", &SolutionBuilderAndSolverType::BuildRHS)
-      .def("Build", &SolutionBuilderAndSolverType::Build)
-      .def("SystemSolve", &SolutionBuilderAndSolverType::SystemSolve)
-      .def("BuildAndSolve", &SolutionBuilderAndSolverType::BuildAndSolve)
-      .def("BuildRHSAndSolve", &SolutionBuilderAndSolverType::BuildRHSAndSolve)
-      .def("SetUpDofSet", &SolutionBuilderAndSolverType::SetUpDofSet)
-      .def("GetDofSet", &SolutionBuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
-      .def("SetUpSystem", &SolutionBuilderAndSolverType::SetUpSystem)
-      .def("SetUpSystemMatrices", &SolutionBuilderAndSolverType::SetUpSystemMatrices)
-      .def("InitializeSolutionStep", &SolutionBuilderAndSolverType::InitializeSolutionStep)
-      .def("FinalizeSolutionStep", &SolutionBuilderAndSolverType::FinalizeSolutionStep)
-      .def("CalculateReactions", &SolutionBuilderAndSolverType::CalculateReactions)
-      .def("GetEquationSystemSize", &SolutionBuilderAndSolverType::GetEquationSystemSize)
-      .def("Clear", &SolutionBuilderAndSolverType::Clear)
-      .def("Check", &SolutionBuilderAndSolverType::Check)
-      .def("SetEchoLevel", &SolutionBuilderAndSolverType::SetEchoLevel)
-      .def("GetEchoLevel", &SolutionBuilderAndSolverType::GetEchoLevel)
+      .def("BuildLHS", &SystemBuilderAndSolverType::BuildLHS)
+      .def("BuildRHS", &SystemBuilderAndSolverType::BuildRHS)
+      .def("Build", &SystemBuilderAndSolverType::Build)
+      .def("SystemSolve", &SystemBuilderAndSolverType::SystemSolve)
+      .def("BuildAndSolve", &SystemBuilderAndSolverType::BuildAndSolve)
+      .def("BuildRHSAndSolve", &SystemBuilderAndSolverType::BuildRHSAndSolve)
+      .def("SetUpDofSet", &SystemBuilderAndSolverType::SetUpDofSet)
+      .def("GetDofSet", &SystemBuilderAndSolverType::GetDofSet, py::return_value_policy::reference_internal)
+      .def("SetUpSystem", &SystemBuilderAndSolverType::SetUpSystem)
+      .def("SetUpSystemMatrices", &SystemBuilderAndSolverType::SetUpSystemMatrices)
+      .def("InitializeSolutionStep", &SystemBuilderAndSolverType::InitializeSolutionStep)
+      .def("FinalizeSolutionStep", &SystemBuilderAndSolverType::FinalizeSolutionStep)
+      .def("CalculateReactions", &SystemBuilderAndSolverType::CalculateReactions)
+      .def("GetEquationSystemSize", &SystemBuilderAndSolverType::GetEquationSystemSize)
+      .def("Clear", &SystemBuilderAndSolverType::Clear)
+      .def("Check", &SystemBuilderAndSolverType::Check)
+      .def("SetEchoLevel", &SystemBuilderAndSolverType::SetEchoLevel)
+      .def("GetEchoLevel", &SystemBuilderAndSolverType::GetEchoLevel)
       ;
 
-  py::class_<ReductionBuilderAndSolverType, typename ReductionBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ReductionBuilderAndSolver")
+  py::class_<ReductionBuilderAndSolverType, typename ReductionBuilderAndSolverType::Pointer, SystemBuilderAndSolverType>(m,"ReductionBuilderAndSolver")
       .def(py::init<LinearSolverType::Pointer>())
       ;
 
-  py::class_<BlockBuilderAndSolverType, typename BlockBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"BlockBuilderAndSolver")
+  py::class_<BlockBuilderAndSolverType, typename BlockBuilderAndSolverType::Pointer, SystemBuilderAndSolverType>(m,"BlockBuilderAndSolver")
       .def(py::init<LinearSolverType::Pointer>())
       ;
 
-  py::class_<ExplicitBuilderAndSolverType, typename ExplicitBuilderAndSolverType::Pointer, SolutionBuilderAndSolverType>(m,"ExplicitBuilderAndSolver")
+  py::class_<ExplicitBuilderAndSolverType, typename ExplicitBuilderAndSolverType::Pointer, SystemBuilderAndSolverType>(m,"ExplicitBuilderAndSolver")
       .def(py::init<>())
       ;
 

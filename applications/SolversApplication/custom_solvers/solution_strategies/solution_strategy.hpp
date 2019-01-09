@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
-#include "custom_solvers/solution_builders_and_solvers/solution_builder_and_solver.hpp"
+#include "linear_system/system_builders/system_builder_and_solver.hpp"
 
 namespace Kratos
 {
@@ -63,7 +63,7 @@ class SolutionStrategy : public Flags
   typedef typename TSparseSpace::VectorPointerType                         SystemVectorPointerType;
 
   typedef SolutionScheme<TSparseSpace, TDenseSpace>                                     SchemeType;
-  typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>  BuilderAndSolverType;
+  typedef SystemBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>    BuilderAndSolverType;
 
 
   /// Pointer definition of SolutionStrategy

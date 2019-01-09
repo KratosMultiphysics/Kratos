@@ -25,7 +25,7 @@
 #include "custom_solvers/solution_schemes/solution_scheme.hpp"
 
 // Application includes
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {
@@ -286,4 +286,3 @@ class EigensolverScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 }  // namespace Kratos.
 
 #endif // KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED  defined
-

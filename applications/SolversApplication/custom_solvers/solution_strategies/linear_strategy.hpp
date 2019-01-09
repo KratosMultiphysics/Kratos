@@ -18,7 +18,7 @@
 #include "custom_solvers/solution_strategies/solution_strategy.hpp"
 
 //default builder and solver
-#include "custom_solvers/solution_builders_and_solvers/block_builder_and_solver.hpp"
+#include "linear_system/system_builders/block_builder_and_solver.hpp"
 
 namespace Kratos
 {

@@ -16,7 +16,7 @@
 
 // Project includes
 #include "custom_solvers/solution_strategies/solution_strategy.hpp"
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 //default builder and solver
 #include "linear_system/system_builders/explicit_builder_and_solver.hpp"

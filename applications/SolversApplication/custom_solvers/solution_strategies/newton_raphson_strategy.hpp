@@ -20,7 +20,7 @@
 //default convergence criterion
 #include "custom_solvers/convergence_criteria/convergence_criterion.hpp"
 
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {

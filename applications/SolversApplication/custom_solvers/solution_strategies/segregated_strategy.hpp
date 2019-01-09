@@ -22,7 +22,7 @@
 //default convergence criterion
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {
