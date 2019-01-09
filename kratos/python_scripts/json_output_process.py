@@ -107,7 +107,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         for node in self.sub_model_part.Nodes:
             compute = self.__check_flag(node)
 
-            if (compute == True):
+            if compute:
                 if not self.resultant_solution:
                     data["NODE_" + str(node.Id)] = {}
                 else:
