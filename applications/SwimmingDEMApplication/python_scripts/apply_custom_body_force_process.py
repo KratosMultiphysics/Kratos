@@ -27,7 +27,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
 
         if settings["body_force_type"].GetString() == "vortex":
-            from manufactured_vortex import ManufacturedVortex
+            from custom_body_force.manufactured_vortex import ManufacturedVortex
             self.body_force = ManufacturedVortex(settings["Parameters"])
         else:
             msg = "Body force type not implemented"
