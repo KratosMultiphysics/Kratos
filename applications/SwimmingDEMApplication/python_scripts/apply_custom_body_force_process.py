@@ -15,7 +15,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
             {
                 "model_part_name"     : "please_specify_model_part_name",
                 "variable_name"       : "BODY_FORCE",
-                "body_force_type"     : "vortex",
+                "benchmark_name"      : "vortex",
                 "Parameters"          : {}
             }
             """
@@ -26,12 +26,8 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
 
-        if settings["body_force_type"].GetString() == "vortex":
-            from custom_body_force.manufactured_vortex import ManufacturedVortex
-            self.body_force = ManufacturedVortex(settings["Parameters"])
-        else:
-            msg = "Body force type not implemented"
-            raise Exception(msg)
+        benchmark_module = __import__(settings["benchmark_name"].GetString(), fromlist=[None])
+        self.benchmark = benchmark_module.CreateManufacturedSolution(settings["Parameters"])
 
     def ExecuteBeforeSolutionLoop(self):
         pass
@@ -42,5 +38,5 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
     def CalculateBodyForce(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         for node in self.model_part.Nodes:
-            value = self.body_force.BodyForce(node.X, node.Y, node.Z, current_time)
+            value = self.benchmark.BodyForce(node.X, node.Y, node.Z, current_time)
             node.SetSolutionStepValue(self.variable, value)
