@@ -332,9 +332,15 @@ class MonolithicSolver(object):
         return convergence_criterion.GetConvergenceCriterion()
 
     def _create_linear_solver(self):
-        import linear_solver_factory
-        linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-        return linear_solver
+        # old linear solver factory
+        #import linear_solver_factory
+        #linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        #return linear_solver
+        linear_solver_settings = self.settings["linear_solver_settings"]
+        if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_settings["solver_type"].GetString()):
+            return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_settings)
+        else:
+            return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_settings)
 
     def _create_builder_and_solver(self):
         linear_solver = self._get_linear_solver()

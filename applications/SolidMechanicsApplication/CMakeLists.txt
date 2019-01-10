@@ -6,7 +6,12 @@ message("**** configuring KratosSolidMechanicsApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolversApplication )
 #include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ConstitutiveModelsApplication )
+
+if(NOT (${SOLVERS_APPLICATION} MATCHES "ON"))
+    message(SEND_ERROR "The SolversApplication must be compiled before this one. Set SOLVERS_APPLICATION=ON in the configure file.")
+endif(NOT (${SOLVERS_APPLICATION} MATCHES "ON"))
 
 if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The ConsitutiveModelsApplication must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
@@ -16,13 +21,6 @@ endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 set( KRATOS_SOLID_MECHANICS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/solid_mechanics_application_variables.cpp
-
-	# Time integration methods
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/solution_local_flags.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/static_step_rotation_method.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/emc_step_rotation_method.cpp
 
 	# Solid elements
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/solid_elements/solid_element.cpp
@@ -182,7 +180,6 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
         # Custom python
   	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/solid_mechanics_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_constitutive_laws_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
@@ -190,8 +187,9 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosSolidMechanicsCore SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_CORE} ${KRATOS_SOLID_MECHANICS_APPLICATION_TESTS})
+#target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
 #target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosConstitutiveModelsCore)
-target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore)
+target_link_libraries(KratosSolidMechanicsCore PUBLIC KratosCore KratosSolversCore)
 set_target_properties(KratosSolidMechanicsCore PROPERTIES COMPILE_DEFINITIONS "SOLID_MECHANICS_APPLICATION=EXPORT,API")
 
 ###############################################################

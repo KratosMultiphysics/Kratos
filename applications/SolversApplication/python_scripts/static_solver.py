@@ -1,22 +1,22 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.SolversApplication as KratosSolver
 
 # Import the mechanical solver base class
-import solid_mechanics_implicit_dynamic_solver as BaseSolver
+import implicit_dynamic_solver as BaseSolver
 
 def CreateSolver(custom_settings, Model):
     return StaticMonolithicSolver(Model, custom_settings)
 
 class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
-    """The solid mechanics static solver.
+    """The static solver.
 
     This class creates the mechanical solvers for static analysis.
 
     Public member variables:
 
-    See solid_mechanics_monolithic_solver.py for more information.
+    See monolithic_solver.py for more information.
     """
     def __init__(self, Model, custom_settings):
 
@@ -55,7 +55,7 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
                 mechanical_solver = self._create_newton_raphson_strategy()
             else:
                 mechanical_solver = self._create_linear_strategy()
-        mechanical_solver.Set(KratosSolid.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
+        mechanical_solver.Set(KratosSolver.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
 
 
@@ -64,10 +64,10 @@ class StaticMonolithicSolver(BaseSolver.ImplicitMonolithicSolver):
         builder_and_solver = self._get_builder_and_solver()
 
         options = KratosMultiphysics.Flags()
-        options.Set(KratosSolid.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
-        options.Set(KratosSolid.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
+        options.Set(KratosSolver.SolverLocalFlags.COMPUTE_REACTIONS, self.settings["solving_strategy_settings"]["compute_reactions"].GetBool())
+        options.Set(KratosSolver.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-        return KratosSolid.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)
+        return KratosSolver.LinearStrategy(self.model_part, solution_scheme, builder_and_solver, options)
 
     @classmethod
     def _class_prefix(self):

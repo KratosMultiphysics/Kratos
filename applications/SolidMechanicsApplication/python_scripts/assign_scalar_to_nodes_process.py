@@ -2,7 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 #import kratos core and applications
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-
+import KratosMultiphysics.SolversApplication as KratosSolver
 
 ## This proces sets the value of a scalar variable
 ## Note that in some cases can be a vector of scalars (used in conditions with multiple nodes)
@@ -230,9 +230,9 @@ class AssignScalarToNodesProcess(KratosMultiphysics.Process):
         self.fix_time_integration  = False
 
         self.TimeIntegrationMethod = None
-        time_integration_container = KratosSolid.ComponentTimeIntegrationMethods()
-        if( time_integration_container.HasProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
-            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolid.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
+        time_integration_container = KratosSolver.ComponentTimeIntegrationMethods()
+        if( time_integration_container.HasProcessInfo(KratosSolver.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo) ):
+            time_integration_methods = time_integration_container.GetFromProcessInfo(KratosSolver.COMPONENT_TIME_INTEGRATION_METHODS, self.model_part.ProcessInfo)
 
             if( time_integration_methods.Has(self.variable_name) ):
                 self.TimeIntegrationMethod = time_integration_methods.Get(self.variable_name).Clone()

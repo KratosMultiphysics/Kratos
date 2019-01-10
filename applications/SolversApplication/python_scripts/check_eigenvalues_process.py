@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as SolidMechanicsApplication
+import KratosMultiphysics.SolversApplication as KratosSolver
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -27,7 +27,7 @@ class CheckEigenvaluesProcess(KratosMultiphysics.Process, KratosUnittest.TestCas
         KratosMultiphysics.Process.__init__(self)
         self.model    = Model
         self.settings = settings
-        self.variable = getattr(SolidMechanicsApplication, settings["variable_name"].GetString())
+        self.variable = getattr(KratosSolver, settings["variable_name"].GetString())
         self.reference_values = []
         reference_values = settings["reference_values"].GetString()
         for ev in reference_values.strip('[]').split(','):

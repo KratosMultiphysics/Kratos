@@ -1,11 +1,13 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
+
+// must be updated !!
 
 #if !defined(KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED)
 #define  KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED
@@ -26,7 +28,7 @@
 #include "includes/variables.h"
 #include "utilities/quaternion.h"
 
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {
@@ -1124,4 +1126,3 @@ namespace Kratos
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_HAMILTON_SCHEME_H_INCLUDED  defined */
-

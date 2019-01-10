@@ -315,8 +315,8 @@ class Solution(object):
         else:
             import KratosMultiphysics.SolversApplication
 
-        python_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
-        return python_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"], self.model.GetModel())
+        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString().split("solid_mechanics_",1)[1])
+        return solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"], self.model.GetModel())
 
     def _get_time_settings(self):
 

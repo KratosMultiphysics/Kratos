@@ -58,6 +58,11 @@
 // Time integration methods container
 #include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 
+//to update
+//#include "custom_solvers/solution_strategies/explicit_hamilton_strategy.hpp"
+//#include "custom_solvers/solution_schemes/explicit_hamilton_scheme.hpp"
+//#include "linear_system/system_builder/explicit_hamilton_builder_and_solver.hpp"
+
 
 namespace Kratos
 {
@@ -191,6 +196,25 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
   typedef BossakStepRotationMethod<VariableComponentType, double>      BossakStepRotationMethodComponentType;
   typedef SimoStepRotationMethod<VariableComponentType, double>          SimoStepRotationMethodComponentType;
   typedef EmcStepRotationMethod<VariableComponentType, double>            EmcStepRotationMethodComponentType;
+
+  // to update
+  //typedef ExplicitHamiltonStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                 ExplicitHamiltonStrategyType;
+  //typedef ExplicitHamiltonScheme<SparseSpaceType, LocalSpaceType>                                       ExplicitHamiltonSchemeType;
+  //typedef ExplicitHamiltonBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> ExplicitHamiltonBuilderAndSolverType;
+
+  // Explicit Hamilton
+  // py::class_<ExplicitHamiltonSchemeType, typename ExplicitHamiltonSchemeType::Pointer, SolutionSchemeType> (m,"ExplicitHamiltonScheme")
+  //  .def(py::init<double, double, double, bool>())
+  //   ;
+
+  // py::class_<ExplicitHamiltonStrategyType, BaseSolvingStrategyType>(m,"ExplicitHamiltonStrategy")
+  //   .def(py::init<ModelPart&, SolutionSchemeType::Pointer, LinearSolverType::Pointer, bool, bool, bool>())
+  //   ;
+
+  // py::class_<ExplicitHamiltonBuilderAndSolverType, typename ExplicitHamiltonBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ExplicitHamiltonBuilderAndSolver")
+  //   .def(py::init<LinearSolverType::Pointer> ())
+  //;
+
 
 
   //*********************CONVERGENCE CRITERION FLAGS*********************

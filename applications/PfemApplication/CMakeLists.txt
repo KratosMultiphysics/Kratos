@@ -6,8 +6,9 @@ message("**** configuring KratosPfemApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolversApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 
 ## Set a default value for triangle and tetgen in case the user does not set it
 ## to avoid problems with the define linkage block. By default we will compile the lib

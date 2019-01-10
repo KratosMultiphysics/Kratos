@@ -1,9 +1,13 @@
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Last modified by:    $Author:            JMCarbonell $
-//   Date:                $Date:            December 2015 $
-//   Revision:            $Revision:                  0.1 $
+//
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
+
+// must be updated !!
 
 #if !defined(KRATOS_EXPLICIT_HAMILTON_BUILDER_AND_SOLVER )
 #define  KRATOS_EXPLICIT_HAMILTON_BUILDER_AND_SOLVER
@@ -27,7 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/beam_math_utilities.hpp"
 
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {

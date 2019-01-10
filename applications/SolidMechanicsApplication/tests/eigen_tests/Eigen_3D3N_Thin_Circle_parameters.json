@@ -9,7 +9,7 @@
         "processes_parts_list" : ["DISPLACEMENT_support","ROTATION_support"]
     },
     "solver_settings"          : {
-	"solver_type" : "solid_mechanics_eigensolver",
+	"solver_type" : "solid_mechanics_eigen_solver",
 	"Parameters"  : {
             "time_integration_settings" : {
                 "solution_type"      : "Dynamic",
@@ -39,7 +39,7 @@
 	"constrained"     : false
     }],
     "check_process_list" :[{
-        "kratos_module" : "KratosMultiphysics.SolidMechanicsApplication",
+        "kratos_module" : "KratosMultiphysics.SolversApplication",
         "python_module" : "check_eigenvalues_process",
         "process_name"  : "CheckEigenvaluesProcess",
         "Parameters"    : {

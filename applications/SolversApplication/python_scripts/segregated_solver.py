@@ -37,7 +37,7 @@ class SegregatedSolver(BaseSolver.MonolithicSolver):
         self.solvers = []
         solvers_list = self.settings["solvers"]
         for i in range(solvers_list.size()):
-            solver_module = __import__(solvers_list[i]["solver_type"].GetString())
+            solver_module = __import__(solvers_list[i]["solver_type"].GetString().split("solid_mechanics_",1)[1])
             self.solvers.append(solver_module.CreateSolver(solvers_list[i]["Parameters"], Model))
 
         # Model

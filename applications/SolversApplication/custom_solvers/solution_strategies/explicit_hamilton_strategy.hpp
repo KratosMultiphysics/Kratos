@@ -1,11 +1,13 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2015 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
+
+// must be updated !!
 
 #if !defined(KRATOS_EXPLICIT_HAMILTON_STRATEGY)
 #define  KRATOS_EXPLICIT_HAMILTON_STRATEGY
@@ -22,7 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 //default builder and solver
-#include "custom_solvers/solution_builders_and_solvers/explicit_hamilton_builder_and_solver.hpp"
+#include "linear_system/system_builders/explicit_hamilton_builder_and_solver.hpp"
 
 
 namespace Kratos
@@ -595,4 +597,3 @@ protected:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_EXPLICIT_HAMILTON_BEAM_STRATEGY  defined */
-

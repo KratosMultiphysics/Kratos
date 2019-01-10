@@ -33,50 +33,50 @@ namespace Kratos
 ///@addtogroup SolversApplication
 ///@{
 
-#ifdef _OPENMP
-// The function object multiplies an element by a Factor
-template <class Type>
-class MultValueNoAdd
-{
- private:
+// #ifdef _OPENMP
+// // The function object multiplies an element by a Factor
+// template <class Type>
+// class MultValueNoAdd
+// {
+//  private:
 
-  Type Factor; // The value to multiply by
+//   Type Factor; // The value to multiply by
 
- public:
-  // Constructor initializes the value to multiply by
-  MultValueNoAdd(const Type& _Val) : Factor(_Val)
-  {
-  }
+//  public:
+//   // Constructor initializes the value to multiply by
+//   MultValueNoAdd(const Type& _Val) : Factor(_Val)
+//   {
+//   }
 
-  // The function call for the element to be multiplied
+//   // The function call for the element to be multiplied
 
-  inline Type operator () (const Type& elem) const
-  {
-    return elem * Factor;
-  }
-};
+//   inline Type operator () (const Type& elem) const
+//   {
+//     return elem * Factor;
+//   }
+// };
 
-template <class Type>
-class MultAndAddValue : public std::binary_function<Type, Type, Type>
-{
- private:
+// template <class Type>
+// class MultAndAddValue : public std::binary_function<Type, Type, Type>
+// {
+//  private:
 
-  Type Factor; // The value to multiply by
+//   Type Factor; // The value to multiply by
 
- public:
-  // Constructor initializes the value to multiply by
-  MultAndAddValue(const Type& _Val) : Factor(_Val)
-  {
-  }
+//  public:
+//   // Constructor initializes the value to multiply by
+//   MultAndAddValue(const Type& _Val) : Factor(_Val)
+//   {
+//   }
 
-  // The function call for the element to be multiplied
+//   // The function call for the element to be multiplied
 
-  inline Type operator () (const Type& elem1, const Type& elem2) const
-  {
-    return elem1 * Factor + elem2;
-  }
-};
-#endif
+//   inline Type operator () (const Type& elem1, const Type& elem2) const
+//   {
+//     return elem1 * Factor + elem2;
+//   }
+// };
+// #endif
 
 ///@name Kratos Globals
 ///@{

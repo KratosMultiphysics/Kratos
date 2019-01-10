@@ -27,12 +27,12 @@
 
 // Project includes
 #include "includes/kratos_application.h"
-
 #include "includes/variables.h"
 #include "includes/mat_variables.h"
 #include "includes/kratos_flags.h"
-#include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
 #include "custom_utilities/shell_cross_section.hpp"
+
+#include "solvers_application_variables.h"
 
 namespace Kratos
 {
@@ -40,20 +40,6 @@ namespace Kratos
   ///@{
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
-
-  typedef array_1d<double, 3>                                                                      VectorType;
-  typedef Variable<VectorType>                                                             VariableVectorType;
-  typedef Variable<double>                                                                 VariableScalarType;
-  typedef VariableComponent<VectorComponentAdaptor<VectorType>>                         VariableComponentType;
-
-  typedef TimeIntegrationMethodsContainer<VariableVectorType, double>      VectorTimeIntegrationContainerType;
-  typedef VectorTimeIntegrationContainerType::Pointer               VectorTimeIntegrationContainerPointerType;
-
-  typedef TimeIntegrationMethodsContainer<VariableScalarType, double>      ScalarTimeIntegrationContainerType;
-  typedef ScalarTimeIntegrationContainerType::Pointer               ScalarTimeIntegrationContainerPointerType;
-
-  typedef TimeIntegrationMethodsContainer<VariableComponentType, double> ComponentTimeIntegrationContainerType;
-  typedef ComponentTimeIntegrationContainerType::Pointer          ComponentTimeIntegrationContainerPointerType;
 
   typedef std::vector<Node<3>*>                                                          NodePointerVectorType;
   typedef std::vector<Element*>                                                       ElementPointerVectorType;
@@ -65,35 +51,14 @@ namespace Kratos
 
   //Define Variables
 
-  // Generalized eigenvalue problem
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, int, BUILD_LEVEL )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Vector, EIGENVALUE_VECTOR)
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix , EIGENVECTOR_MATRIX )
-
-  //for integration methods
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, VectorTimeIntegrationContainerPointerType, VECTOR_TIME_INTEGRATION_METHODS )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, ScalarTimeIntegrationContainerPointerType, SCALAR_TIME_INTEGRATION_METHODS )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, ComponentTimeIntegrationContainerPointerType, COMPONENT_TIME_INTEGRATION_METHODS )
-
-  //for explicit schemes
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, COMPUTE_CONSISTENT_MASS_MATRIX )
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, MIDDLE_VELOCITY )
-
   //variables
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, PRESSURE_VELOCITY )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, PRESSURE_ACCELERATION )
 
   //solution
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, DELTA_TIME_CHANGED )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, CONVERGENCE_ACHIEVED )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, int, SEGREGATED_STEP )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, int, WRITE_ID )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, int, TIME_INTEGRATION_ORDER )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, RAYLEIGH_ALPHA )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, RAYLEIGH_BETA )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, MESHING_STEP_TIME )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, CONTACT_STEP_TIME )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, RESTART_STEP_TIME )
+
 
   //geometrical
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix, GEOMETRIC_STIFFNESS )
@@ -161,23 +126,6 @@ namespace Kratos
   KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, VELOCITY_REACTION )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, PRESSURE_REACTION )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, TEMPERATURE_REACTION )
-
-  //explicit beam
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, EXTERNAL_MOMENT )
-
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, POSITION_MOMENTUM )
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, ROTATION_MOMENTUM )
-
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix, INERTIA_DYADIC )
-
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS( SOLID_MECHANICS_APPLICATION, RESIDUAL_LYAPUNOV )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix, TANGENT_MATRIX )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, Matrix, TANGENT_LYAPUNOV )
-
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, ALPHA_TRAPEZOIDAL_RULE )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, POSITION_UPDATE_LABEL )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, ROTATION_UPDATE_LABEL )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, bool, MOMENTUM_UPDATE_LABEL )
 
   //reading beam section properties
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLID_MECHANICS_APPLICATION, double, SECTION_HEIGHT )
