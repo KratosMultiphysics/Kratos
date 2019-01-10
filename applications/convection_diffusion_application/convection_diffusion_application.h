@@ -24,14 +24,12 @@
 #include "includes/kratos_application.h"
 #include "convection_diffusion_application_variables.h"
 
-#include "custom_elements/eulerian_conv_diff.h"
-
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
-#include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/eulerian_diff.h"
-
+#include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
+
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
 

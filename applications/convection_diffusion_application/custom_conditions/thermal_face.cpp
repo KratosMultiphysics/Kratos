@@ -12,10 +12,9 @@
 //
 
 
-#include "flux_condition.h"
-#include "includes/convection_diffusion_settings.h"
-#include "includes/variables.h"
+#include "thermal_face.h"
 #include "utilities/integration_utilities.h"
+#include "includes/convection_diffusion_settings.h"
 
 namespace Kratos
 {
@@ -210,7 +209,11 @@ void ThermalFace::GetValueOnIntegrationPoints(
     const unsigned int n_gauss = this->GetGeometry().IntegrationPointsNumber(this->GetIntegrationMethod());
     rValues.resize(n_gauss);
     if (rVariable == NORMAL) {
-        this->CalculateNormal(rValues[0]);
+        const auto &r_geometry = this->GetGeometry();
+        const auto &r_gauss_pts = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+        for (unsigned int g = 0; g < n_gauss; ++g) {
+            rValues[g] = r_geometry.Normal(r_gauss_pts[g].Coordinates());
+        }
     } else {
         /* The cast is done to avoid modification of the element's data. Data modification
          * would happen if rVariable is not stored now (would initialize a pointer to &rVariable
@@ -219,11 +222,10 @@ void ThermalFace::GetValueOnIntegrationPoints(
          */
         const ThermalFace* const_this = static_cast< const ThermalFace* >(this);
         rValues[0] = const_this->GetValue(rVariable);
-    }
-
-    // Copy the values to the different gauss points
-    for (unsigned int g = 1; g < n_gauss; ++g) {
-        noalias(rValues[g]) = rValues[0];
+        // Copy the values to the different gauss points
+        for (unsigned int g = 1; g < n_gauss; ++g) {
+            noalias(rValues[g]) = rValues[0];
+        }
     }
 }
 
@@ -374,40 +376,6 @@ void ThermalFace::FillConditionDataStructure(
     rData.Emissivity = r_prop[EMISSIVITY];
     rData.AmbientTemperature = r_prop[AMBIENT_TEMPERATURE];
     rData.ConvectionCoefficient = r_prop[CONVECTION_COEFFICIENT];
-}
-
-// template <>
-// void ThermalFace<2,2>::CalculateNormal(array_1d<double,3> &rNormal)
-// {
-//     const auto &r_geometry = this->GetGeometry();
-//     rNormal[0] = r_geometry[1].Y() - r_geometry[0].Y();
-//     rNormal[1] = r_geometry[0].X() - r_geometry[1].X();
-//     rNormal[2] = 0.0;
-// }
-
-
-// template <>
-// void ThermalFace<3,3>::CalculateNormal(array_1d<double,3> &rNormal)
-// {
-//     const auto &r_geometry = this->GetGeometry();
-
-//     const array_1d<double,3> v1 = r_geometry[1] - r_geometry[0];
-//     const array_1d<double,3> v2 = r_geometry[2] - r_geometry[0];
-
-//     MathUtils<double>::CrossProduct(rNormal, v1, v2);
-//     rNormal *= 0.5;
-// }
-
-// template <>
-// void ThermalFace<3,4>::CalculateNormal(array_1d<double,3> &rNormal)
-// {
-//     KRATOS_ERROR << "This function is not yet implemented" << std::endl;
-
-// }
-
-void ThermalFace::CalculateNormal(array_1d<double,3> &rNormal)
-{
-    KRATOS_ERROR << "This function is not yet implemented" << std::endl;
 }
 
 // Serialization //////////////////////////////////////////////////////////////

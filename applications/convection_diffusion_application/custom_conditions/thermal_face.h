@@ -194,8 +194,6 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         const ConditionDataStruct &rData);
 
-    void CalculateNormal(array_1d<double,3> &rNormal);
-
     void FillConditionDataStructure(
         const ProcessInfo &rCurrentProcessInfo,
         ConditionDataStruct &rData);
