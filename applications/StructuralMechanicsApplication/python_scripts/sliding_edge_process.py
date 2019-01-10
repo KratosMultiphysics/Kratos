@@ -25,8 +25,21 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
         }
         """)
         default_settings.ValidateAndAssignDefaults(settings)
+
+        # The computing model part
+        self.computing_model_part = Model["Structure"].GetSubModelPart("computing_domain")
+        self.master_model_part = Model["Structure"].GetSubModelPart(settings["master_sub_model_part_name"].GetString())
+
+
+
         self.sliding_edge_process = StructuralMechanicsApplication.SlidingEdgeProcess(Model["Structure"], settings)
+
 
 
     def ExecuteInitializeSolutionStep(self):
         self.sliding_edge_process.ExecuteInitializeSolutionStep()
+        for constraint in self.master_model_part.MasterSlaveConstraints:
+            self.computing_model_part.AddMasterSlaveConstraint(constraint)
+
+    def ExecuteFinalizeSolutionStep(self):
+        self.sliding_edge_process.ExecuteFinalizeSolutionStep()

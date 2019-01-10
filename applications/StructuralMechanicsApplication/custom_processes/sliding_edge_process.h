@@ -51,6 +51,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
     typedef DoubleVector::iterator DoubleVectorIterator;
     typedef std::size_t SizeType;
     typedef ModelPart::VariableComponentType VariableComponentType;
+    typedef ModelPart::MasterSlaveConstraintType::Pointer ConstraintPointer;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
@@ -62,7 +63,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
     /// Constructor.
     SlidingEdgeProcess(ModelPart &rModelPart,
-     Parameters rParameters):mrModelPart(rModelPart),mrParameters(rParameters)
+     Parameters InputParameters):mrModelPart(rModelPart),mParameters(InputParameters)
     {
         KRATOS_TRY;
         Parameters default_parameters = Parameters(R"(
@@ -76,16 +77,42 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             "neighbor_search_radius"        : 0.40,
             "bucket_size"                   : 10
         })" );
-        default_parameters.ValidateAndAssignDefaults(rParameters);
+        default_parameters.ValidateAndAssignDefaults(InputParameters);
         KRATOS_CATCH("")
     }
+
 
     void ExecuteInitializeSolutionStep() override
     {
       KRATOS_TRY;
-      ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mrParameters["master_sub_model_part_name"].GetString());
-      ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mrParameters["slave_sub_model_part_name"].GetString());
-      const int bucket_size           = mrParameters["bucket_size"].GetInt();
+      if (this->GetmIsInitialized())
+      {
+        if (mParameters["reform_every_step"].GetBool())
+        {
+          this->CoupleModelParts();
+        }
+      }
+      else this->CoupleModelParts();
+      KRATOS_CATCH("");
+    }
+
+    void ExecuteFinalizeSolutionStep() override
+    {
+      KRATOS_TRY;
+      if (mParameters["reform_every_step"].GetBool())
+      {
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        master_model_part.RemoveMasterSlaveConstraintsFromAllLevels(TO_ERASE);
+      }
+      KRATOS_CATCH("")
+    }
+
+    void CoupleModelParts()
+    {
+      KRATOS_TRY;
+      ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+      ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+      const int bucket_size           = mParameters["bucket_size"].GetInt();
       NodesArrayType &r_nodes_master  = master_model_part.Nodes();
       NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
 
@@ -99,10 +126,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
       for(NodeType& node_i : r_nodes_slave)
       {
-          double neighbor_search_radius = mrParameters["neighbor_search_radius"].GetDouble();
+          double neighbor_search_radius = mParameters["neighbor_search_radius"].GetDouble();
           SizeType number_of_neighbors = 0;
           NodeVector neighbor_nodes( max_number_of_neighbors );
           DoubleVector resulting_squared_distances( max_number_of_neighbors );
+
+          node_i.Set(SLAVE);
 
           int nr_searches(0);
           while (number_of_neighbors<1)
@@ -121,20 +150,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
                 << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
           }
 
-          if(mrParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
+          if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
           DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
           this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
           this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
       }
-
+      this->SetmIsInitialized(true);
       KRATOS_CATCH("");
     }
 
-
     void CreateListOfNodesOfMasterSubModelPart(NodeVector& rMasterNodeList)
     {
-        ModelPart &master_model_part = mrModelPart.GetSubModelPart(mrParameters["master_sub_model_part_name"].GetString());
+        ModelPart &master_model_part = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
         NodesArrayType &r_nodes = master_model_part.Nodes();
 
         rMasterNodeList.resize(r_nodes.size());
@@ -168,44 +196,53 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
     }
 
     void CoupleSlaveToNeighborMasterNodes(const NodeType& rCurrentSlaveNode,
-        const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
-        const SizeType& rNumberOfNeighbors)
+      const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
+      const SizeType& rNumberOfNeighbors)
+    {
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+        NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
+
+
+        for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
         {
-            ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mrParameters["master_sub_model_part_name"].GetString());
-            ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mrParameters["slave_sub_model_part_name"].GetString());
-            NodesArrayType &r_nodes_master  = master_model_part.Nodes();
-            NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
+            VariableComponentType current_dof =
+              KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
 
-
-            for(SizeType dof_iterator=0;dof_iterator<mrParameters["variable_names"].size();++dof_iterator)
+            for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
-                VariableComponentType current_dof =
-                 KratosComponents<VariableComponentType>::Get(mrParameters["variable_names"][dof_iterator].GetString());
 
-                for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
-                {
+                ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
 
-                    /* ApplyMultipointConstraintsProcess::AddMasterSlaveRelationWithNodesAndVariableComponents(
-                        r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,
-                        r_nodes_slave[rCurrentSlaveNode.Id()],current_dof,rNodalNeighborWeights[master_iterator],0); */
+                ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(mParameters["constraint_set_name"].GetString(),current_id,
+                  r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,r_nodes_slave[rCurrentSlaveNode.Id()],
+                  current_dof,rNodalNeighborWeights[master_iterator],0.0);
 
-                    if(mrParameters["debug_info"].GetBool()){
-                        std::cout << rNeighborNodes[master_iterator]->Id()
-                        << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator]
-                        << " ::: " << mrParameters["variable_names"][dof_iterator].GetString() << std::endl;
-                    }
+                p_current_constraint->Set(TO_ERASE);
 
-                } // each master node
-            }  // each dof
 
-        }
+                if(mParameters["debug_info"].GetBool()){
+                    std::cout << rNeighborNodes[master_iterator]->Id()
+                    << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator]
+                    << " ::: " << mParameters["variable_names"][dof_iterator].GetString() << std::endl;
+                }
+
+            } // each master node
+        }  // each dof
+
+    }
+
+    void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
+    const bool GetmIsInitialized() const {return this->mIsInitialized;}
 
   protected:
 
   private:
 
     ModelPart& mrModelPart;
-    Parameters mrParameters;
+    Parameters mParameters;
+    bool mIsInitialized = false;
 
 }; // Class
 
