@@ -30,11 +30,12 @@ void ComputeDynamicFactorProcess::Execute()
 //     const double distance_threshold = r_process_info[DISTANCE_THRESHOLD]; // TODO: Think about this!!!!!
 
     // We iterate over the node
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = it_node_begin + i;
 
         // Weighted values
         const double nodal_area = it_node->GetValue(NODAL_AREA);

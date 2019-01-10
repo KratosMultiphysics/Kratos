@@ -47,14 +47,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	KRATOS_SET_MPI_COMMUNICATOR_PROCESS_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <mpi.h>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "processes/process.h"
