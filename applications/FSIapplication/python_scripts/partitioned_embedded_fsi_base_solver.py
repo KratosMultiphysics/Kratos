@@ -214,8 +214,10 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
 
     def SolveSolutionStep(self):
         ## Non-Linear interface coupling iteration ##
-        for nl_it in range(1,self.max_nl_it+1):
-
+        # for nl_it in range(1,self.max_nl_it+1):
+        nl_it = 0
+        while (nl_it < self.max_nl_it and self.fluid_solver._TimeBufferIsInitialized()):
+            nl_it += 1
             self._PrintInfoOnRankZero("","\tFSI non-linear iteration = ", nl_it)
 
             self.fluid_solver.main_model_part.ProcessInfo[KratosMultiphysics.CONVERGENCE_ACCELERATOR_ITERATION] = nl_it
@@ -258,8 +260,7 @@ class PartitionedEmbeddedFSIBaseSolver(PythonSolver):
         # Recompute the distance field with the obtained solution
         # This needs to be done here since the distance modification
         # process will modify it in the next ExecuteInitializeSolutionStep
-        update_distance_process = True
-        self._get_distance_to_skin_process(update_distance_process).Execute()
+        self._get_distance_to_skin_process().Execute()
 
         # Recompute the new embedded intersections model part
         self._get_embedded_skin_utility().GenerateSkin()
