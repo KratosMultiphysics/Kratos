@@ -22,13 +22,7 @@
 #endif
 
 // Project includes
-#include "includes/define.h"
-#include "includes/io.h"
 #include "includes/model_part_io.h"
-
-#include "processes/process.h"
-#include "processes/graph_coloring_process.h"
-
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
 
 // This one needs mpi
