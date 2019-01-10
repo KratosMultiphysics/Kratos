@@ -1349,19 +1349,20 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        const Matrix& ShapeFunctionsGradientInIntegrationPoint = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
+        const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += (( *this )[i]).Coordinates()[k]*ShapeFunctionsGradientInIntegrationPoint(i,m);
+        const SizeType points_number = this->PointsNumber();
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += r_coordinates[k] * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1379,7 +1380,7 @@ public:
     @param ThisMethod integration method which jacobians has to
     be calculated in its integration points.
 
-    @param DeltaPosition Matrix with the nodes position increment which describes
+    @param rDeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
@@ -1389,21 +1390,22 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix& DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, const Matrix& rDeltaPosition ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        const Matrix& ShapeFunctionsGradientInIntegrationPoint = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
+        const Matrix& r_shape_functions_gradient_in_integration_point = ShapeFunctionsLocalGradients( ThisMethod )[ IntegrationPointIndex ];
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += ( (( *this )[i]).Coordinates()[k]  - DeltaPosition(i,k)  )*ShapeFunctionsGradientInIntegrationPoint(i,m);
+        const SizeType points_number = this->PointsNumber();
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += (r_coordinates[k] - rDeltaPosition(i,k)) * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1424,20 +1426,21 @@ public:
     */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType points_number = this->PointsNumber();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += (( *this )[i]).Coordinates()[k]*shape_functions_gradients(i,m);
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += r_coordinates[k] * shape_functions_gradients(i,m);
                 }
             }
         }
@@ -1451,7 +1454,7 @@ public:
     @param rCoordinates point which jacobians has to
     be calculated in it.
 
-    @param DeltaPosition Matrix with the nodes position increment which describes
+    @param rDeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
@@ -1460,22 +1463,23 @@ public:
     @see InverseOfJacobian
     */
 
-    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rCoordinates, Matrix& rDeltaPosition ) const
     {
-        if(rResult.size1() != this->WorkingSpaceDimension() || rResult.size2() != this->LocalSpaceDimension())
-            rResult.resize( this->WorkingSpaceDimension(), this->LocalSpaceDimension(), false );
+        const SizeType working_space_dimension = this->WorkingSpaceDimension();
+        const SizeType local_space_dimension = this->LocalSpaceDimension();
+        const SizeType points_number = this->PointsNumber();
+        if(rResult.size1() != working_space_dimension || rResult.size2() != local_space_dimension)
+            rResult.resize( working_space_dimension, local_space_dimension, false );
 
-        Matrix shape_functions_gradients(this->PointsNumber(), this->LocalSpaceDimension());
+        Matrix shape_functions_gradients(points_number, local_space_dimension);
         ShapeFunctionsLocalGradients( shape_functions_gradients, rCoordinates );
 
         rResult.clear();
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            for(unsigned int k=0; k<this->WorkingSpaceDimension(); k++)
-            {
-                for(unsigned int m=0; m<this->LocalSpaceDimension(); m++)
-                {
-                    rResult(k,m) += ( (( *this )[i]).Coordinates()[k] - DeltaPosition(i,k))*shape_functions_gradients(i,m);
+        for (IndexType i = 0; i < points_number; ++i ) {
+            const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
+            for(IndexType k = 0; k< working_space_dimension; ++k) {
+                for(IndexType m = 0; m < local_space_dimension; ++m) {
+                    rResult(k,m) += (r_coordinates[k] - rDeltaPosition(i,k)) * shape_functions_gradients(i,m);
                 }
             }
         }
