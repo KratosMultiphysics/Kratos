@@ -30,11 +30,12 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     ExplicitMeshMovingUtilities::ExplicitMeshMovingUtilities(
-        ModelPart &rModelPart,
+        ModelPart &rVirtualModelPart,
         ModelPart &rStructureModelPart,
         const double SearchRadius) :
         mSearchRadius(SearchRadius),
-        mrVirtualModelPart(rModelPart),
+        mpOriginModelPart(nullptr),
+        mrVirtualModelPart(rVirtualModelPart),
         mrStructureModelPart(rStructureModelPart)
     {
         if (mrStructureModelPart.GetBufferSize() < 2) {
@@ -43,27 +44,23 @@ namespace Kratos
         }
     }
 
-    void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart){
-
+    void ExplicitMeshMovingUtilities::FillVirtualModelPart(ModelPart& rOriginModelPart)
+    {
         // Check that the origin model part has nodes and elements to be copied
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfNodes() == 0) << "Origin model part has no nodes.";
         KRATOS_ERROR_IF(rOriginModelPart.NumberOfElements() == 0) << "Origin model part has no elements.";
 
+        // Save the selected origin model part
+        mpOriginModelPart = &rOriginModelPart;
+
         // Set the buffer size in the virtual model part
         mrVirtualModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
 
-        // Copy the origin model part nodes and fixity
+        // Copy the origin model part nodes
         auto &r_nodes_array = rOriginModelPart.NodesArray();
-        for(auto it_node : r_nodes_array){
+        for(auto &it_node : r_nodes_array){
             // Create a copy of the origin model part node
             auto p_node = mrVirtualModelPart.CreateNewNode(it_node->Id(),*it_node, 0);
-            // Check fixity
-            if (it_node->IsFixed(MESH_DISPLACEMENT_X))
-                p_node->Fix(MESH_DISPLACEMENT_X);
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Y))
-                p_node->Fix(MESH_DISPLACEMENT_Y);
-            if (it_node->IsFixed(MESH_DISPLACEMENT_Z))
-                p_node->Fix(MESH_DISPLACEMENT_Z);
         }
 
         // Copy the origin model part elements
@@ -206,7 +203,16 @@ namespace Kratos
             const auto i_fl_str_dists = rSearchDistanceResults[i_fl];
             const std::size_t n_str_nodes = i_fl_str_nodes.size();
 
-            // Initialize the current virtal model part node MESH_DISPLACEMENT
+            // Check origin model part mesh displacementfixity
+            const auto it_orig_node = mpOriginModelPart->NodesBegin() + i_fl;
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_X))
+                it_node->Fix(MESH_DISPLACEMENT_X);
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Y))
+                it_node->Fix(MESH_DISPLACEMENT_Y);
+            if (it_orig_node->IsFixed(MESH_DISPLACEMENT_Z))
+                it_node->Fix(MESH_DISPLACEMENT_Z);
+
+            // Initialize the current virtual model part node MESH_DISPLACEMENT
             auto &r_mesh_disp = it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
             r_mesh_disp = ZeroVector(3);
 
@@ -215,7 +221,7 @@ namespace Kratos
                 // Compute the average MESH_DISPLACEMENT
                 for(unsigned int i_str = 0; i_str < n_str_nodes; ++i_str){
                     // Compute the structure point weight according to the kernel function
-                    const double normalised_distance = i_fl_str_dists[i_str] / mSearchRadius;
+                    const double normalised_distance = std::sqrt(i_fl_str_dists[i_str]) / mSearchRadius;
                     const double weight = this->ComputeKernelValue(normalised_distance);
 
                     // Accumulate the current step structure pt. DISPLACEMENT values
@@ -237,7 +243,9 @@ namespace Kratos
 
     inline double ExplicitMeshMovingUtilities::ComputeKernelValue(const double NormalisedDistance){
         // Epanechnikov (parabolic) kernel function
-        return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
+        // return (std::abs(NormalisedDistance) <= 1.0) ? std::abs((3.0/4.0)*(1.0-std::pow(NormalisedDistance,2))) : 0.0;
+        // Triangle kernel function
+        return (std::abs(NormalisedDistance) <= 1.0) ? 1.0 - std::abs(NormalisedDistance) : 0.0;
     }
 
     /* External functions *****************************************************/
