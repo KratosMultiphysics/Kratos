@@ -181,16 +181,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         const double numerical_limit = std::numeric_limits<double>::epsilon();
         double total_nodal_distance = 0.00;
 
-        if (std::abs(rResultingSquaredDistances[0])<numerical_limit) rNodalNeighborWeights[0] = 1.00;
-        else if (std::abs(rResultingSquaredDistances[1])<numerical_limit) rNodalNeighborWeights[1] = 1.00;
+        if (rNumberOfNeighbors == 1) rNodalNeighborWeights[0] = 1.00;
         else
         {
-            for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);
-            for (SizeType i=0;i<rNumberOfNeighbors;++i)
+            if (std::abs(rResultingSquaredDistances[0])<numerical_limit) rNodalNeighborWeights[0] = 1.00;
+            else if (std::abs(rResultingSquaredDistances[1])<numerical_limit) rNodalNeighborWeights[1] = 1.00;
+            else
             {
-                // change order because smaller distance gets bigger weight!
-                double current_weight = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
-                (current_weight>numerical_limit) ? (rNodalNeighborWeights[i]=current_weight) : (rNodalNeighborWeights[i]=0.00);
+                for (SizeType i=0;i<rNumberOfNeighbors;++i) total_nodal_distance+=std::sqrt(rResultingSquaredDistances[i]);
+                for (SizeType i=0;i<rNumberOfNeighbors;++i)
+                {
+                    // change order because smaller distance gets bigger weight!
+                    double current_weight = std::sqrt(rResultingSquaredDistances[rNumberOfNeighbors-(i+1)])/total_nodal_distance;
+                    (current_weight>numerical_limit) ? (rNodalNeighborWeights[i]=current_weight) : (rNodalNeighborWeights[i]=0.00);
+                }
             }
         }
     }
