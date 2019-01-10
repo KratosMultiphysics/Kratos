@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
 
@@ -14,7 +13,9 @@ def GetDefaultInputParameters():
                 "start_time"    : 0.0,
                 "end_time"      : 1
             },
+            "do_print_results_option"                : true,
             "processes" : {},
+            "json_output_process"  : [],
             "coupling_level_type"                    : 1,
             "time_averaging_type"                    : 0,
             "interaction_start_time"                 : 0.0,
@@ -101,6 +102,8 @@ def GetDefaultInputParameters():
             "power_law_k"                            : 0.0,
             "power_law_n"                            : 0.0,
             "basset_force_type"                      : 0,
+            "frame_of_reference_type"                : 0,
+            "angular_velocity_of_frame_Z"            : 0.0,
 
             "OutputTimeStep"                   : 0.5,
             "PostPressure"                     : false,

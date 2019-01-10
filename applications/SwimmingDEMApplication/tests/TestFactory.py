@@ -26,10 +26,7 @@ class TestFactory(KratosUnittest.TestCase):
     def setUp(self):
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             # Setting parameters
-            varying_parameters = dict()
-            varying_parameters['FinalTime'] = 1
-            varying_parameters['dem_json_path'] = os.getcwd() + '/candelier_tests/ProjectParametersDEM.json'
-            varying_parameters['fluid_json_path'] = os.getcwd() + '/candelier_tests/ProjectParameters.json'
+
             with open(self.file_parameters,'r') as parameter_file:
                 parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
@@ -37,8 +34,7 @@ class TestFactory(KratosUnittest.TestCase):
             model = KratosMultiphysics.Model()
 
             # To avoid too many prints
-            #if (parameters["problem_data"]["echo_level"].GetInt() == 0):
-                #KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+            KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
 
             self.test = CandelierBenchmarkAnalysis(model, parameters)
 

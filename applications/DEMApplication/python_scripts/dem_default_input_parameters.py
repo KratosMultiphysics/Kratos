@@ -6,6 +6,7 @@ def GetDefaultInputParameters():
 
     default_settings = KratosMultiphysics.Parameters("""
         {
+            "do_print_results_option"          : true,
             "Dimension"                        : 3,
             "PeriodicDomainOption"             : false,
             "BoundingBoxOption"                : false,

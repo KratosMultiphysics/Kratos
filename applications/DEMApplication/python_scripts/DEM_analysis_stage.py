@@ -66,6 +66,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.model = model
         self.main_path = self.GetMainPath()
         self.LoadParametersFile()
+        self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         self.solver_strategy = self.SetSolverStrategy()
         self.creator_destructor = self.SetParticleCreatorDestructor()
         self.dem_fem_search = self.SetDemFemSearch()
@@ -83,7 +84,7 @@ class DEMAnalysisStage(AnalysisStage):
         [self.post_path,
         self.data_and_results,
         self.graphs_path,
-        MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name))
+        MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)
 
         # Prepare modelparts
         self.CreateModelParts()

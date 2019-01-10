@@ -1,44 +1,14 @@
 {
 "Dimension"                        : 3,
-"PeriodicDomainOption"             : false,
-"BoundingBoxOption"                : true,
-"AutomaticBoundingBoxOption"       : false,
-"BoundingBoxEnlargementFactor"     : 1.0,
-"BoundingBoxStartTime"             : 0.0,
-"BoundingBoxStopTime"              : 1000.0,
-"BoundingBoxMaxX"                  : 1000.0,
-"BoundingBoxMaxY"                  : 1000.0,
-"BoundingBoxMaxZ"                  : 1000.0,
-"BoundingBoxMinX"                  : -1000.0,
-"BoundingBoxMinY"                  : -1000.0,
-"BoundingBoxMinZ"                  : -1000.0,
-
-"dem_inlet_option"                 : false,
 "GravityX"                         : 0.0,
 "GravityY"                         : 0.0,
 "GravityZ"                         : -9.81,
 
-"VelocityTrapOption"               : false,
-"RotationOption"                   : true,
-"CleanIndentationsOption"          : false,
-"RemoveBallsInEmbeddedOption"      : true,
-
-"DeltaOption"                      : "Absolute",
-"SearchTolerance"                  : 0.0001,
-"CoordinationNumber"               : 10,
-"AmplifiedSearchRadiusExtension"   : 0.0,
-"ModelDataInfo"                    : false,
-"VirtualMassCoefficient"           : 1.0,
-"RollingFrictionOption"            : false,
-"DontSearchUntilFailure"           : false,
-"ContactMeshOption"                : false,
 "OutputFileType"                   : "Binary",
 "Multifile"                        : "multiple_files",
 
 "TranslationalIntegrationScheme"   : "Hybrid_Bashforth",
-"RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
-"DeltaTimeSafetyFactor"            : 1.0,
 "MaxTimeStep"                      : 0.005,
 "FinalTime"                        : 1.0,
 "ControlTime"                      : 4.0,
@@ -47,6 +17,7 @@
 
 "ElementType"                      : "SwimmingDEMElement",
 
+"do_print_results_option"                : false,
 "coupling_level_type"                    : 1,
 "time_averaging_type"                    : 0,
 "interaction_start_time"                 : 0.0,
@@ -124,6 +95,7 @@
 "meso_scale_length"                      : 0.2,
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
+"basset_force_type"                      : 0,
 
 "OutputTimeStep"                   : 0.5,
 "PostPressure"                     : false,
@@ -156,24 +128,35 @@
 "print_VELOCITY_LAPLACIAN_option"            : false,
 "print_VELOCITY_LAPLACIAN_RATE_option"       : false,
 
-"PredefinedSkinOption"             : false,
-"MeanRadius"                       : 0.0001,
 
 "problem_name" : "Candelier",
 
 "processes" : {
-    "_auxiliar_process_list" : [{
+    "auxiliar_process_list" : [{
         "python_module"   : "from_json_check_result_process",
         "kratos_module"   : "KratosMultiphysics",
         "process_name"    : "FromJsonCheckResultProcess",
         "Parameters"      : {
             "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "input_file_name"      : "candelier_errors.json",
+            "input_file_name"      : "candelier_tests/candelier_errors_no_history.json",
             "model_part_name"      : "SpheresPart",
             "time_frequency"       : 0.5
         }
         }]
+
     },
+
+    "json_output_process"  : [{
+        "python_module" : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "process_name"  : "JsonOutputProcess",
+        "Parameters"    : {
+            "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+            "output_file_name"     : "candelier_tests/candelier_errors_no_history.json",
+            "model_part_name"      : "SpheresPart",
+            "time_frequency"       : 0.5
+        }
+    }],
 
 "fluid_parameters" : {
     "problem_data"     : {
@@ -183,38 +166,7 @@
         "start_time"    : 0.0,
         "end_time"      : 1
     },
-    "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
-            "Parameters"    : {
-                "model_part_name"        : "FluidModelPart.fluid_computational_model_part",
-                "output_name"            : "CandelierFluid",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "MultipleFiles"
-                        },
-                        "file_label"          : "time",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1,
-                        "body_output"         : true,
-                        "node_output"         : true,
-                        "skin_output"         : false,
-                        "plane_output"        : [],
-                        "nodal_results"       : ["VELOCITY","PRESSURE"],
-                        "gauss_point_results" : []
-                    },
-                    "point_data_configuration"  : []
-                }
-            }
-        }]
-    },
+   
     "solver_settings"  : {
         "model_part_name"             : "FluidModelPart",
         "domain_size"                 : 3,
@@ -293,18 +245,7 @@
             }
         }],
         "auxiliar_process_list"            : []
-    },
-    "_json_output_process"  : [{
-    "python_module" : "json_output_process",
-    "kratos_module" : "KratosMultiphysics",
-    "process_name"  : "JsonOutputProcess",
-    "Parameters"    : {
-        "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-        "output_file_name"     : "candelier_errors.json",
-        "model_part_name"      : "CandelierDEM",
-        "time_frequency"       : 0.001
-            }
-        }]
+        }
     },
 
     "dem_parameters" : {
@@ -315,6 +256,7 @@
             "start_time"    : 0.0,
             "end_time"      : 1
         },
+        "do_print_results_option"          : false,
         "Dimension"                        : 3,
         "PeriodicDomainOption"             : false,
         "BoundingBoxOption"                : true,
@@ -385,7 +327,9 @@
         "PostParticleMoment"               : false,
         "PostEulerAngles"                  : false,
         "PostBoundingBox"                  : false,
-        "PostPressure"                     : false
+        "PostPressure"                     : false,
+        "PredefinedSkinOption"             : false,
+        "MeanRadius"                       : 0.0001
     }
 
 }
