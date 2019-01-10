@@ -47,7 +47,7 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
         _apply_fix(fix)
 
         if debug:
-            gid_output = __create_post_process(mp, constitutive_law_type)
+            gid_output = _create_post_process(mp, constitutive_law_type)
 
         w = 5.0 # Frequency  movement
         dt = 0.01 # Delta time
@@ -243,7 +243,7 @@ def _create_reference_solution(current_model):
 
     return out
 
-def __create_post_process(main_model_part, constitutive_law_type):
+def _create_post_process(main_model_part, constitutive_law_type):
     from gid_output_process import GiDOutputProcess
     gid_output = GiDOutputProcess(main_model_part,
                                 "gid_output_" + constitutive_law_type,
