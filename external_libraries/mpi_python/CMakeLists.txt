@@ -31,3 +31,4 @@ endif(USE_COTIRE MATCHES ON)
 # Install library and Python file
 install(TARGETS mpipython DESTINATION libs )
 # install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/mpi.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/legacy_mpi_python_interface.py" DESTINATION KratosMultiphysics )
