@@ -29,16 +29,16 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class ActiveSetUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class includes some utilities used for contact active set computations
@@ -69,7 +69,7 @@ public:
 
     /// Size type definition
     typedef std::size_t                                          SizeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -89,11 +89,11 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This function computes the active set for penalty frictionless cases
      * @param rThisModelPart The modelpart to compute
@@ -153,6 +153,9 @@ public:
         is_converged[0] = 0;
         is_converged[1] = 0;
 
+        std::size_t& is_converged_0 = is_converged[0];
+        std::size_t& is_converged_1 = is_converged[1];
+
         // We get the process info
         ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
 
@@ -164,7 +167,7 @@ public:
             NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
             const auto it_node_begin = r_nodes_array.begin();
 
-            #pragma omp parallel for reduction(+:is_converged)
+            #pragma omp parallel for reduction(+:is_converged_0, is_converged_1)
             for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = it_node_begin + i;
 
@@ -191,7 +194,7 @@ public:
                     // We activate the deactivated nodes and add the contribution
                     if (it_node->IsNot(ACTIVE)) {
                         it_node->Set(ACTIVE, true);
-                        is_converged[0] += 1;
+                        is_converged_0 += 1;
                     }
 
                     // Check for the slip/stick state
@@ -200,12 +203,12 @@ public:
 //                         it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array; // NOTE: In case of stick should be zero, if not this means that is not properly working
                         if (it_node->Is(SLIP)) {
                             it_node->Set(SLIP, false);
-                            is_converged[1] += 1;
+                            is_converged_1 += 1;
                         }
                     } else { // SLIP CASE
                         if (it_node->IsNot(SLIP)) {
                             it_node->Set(SLIP, true);
-                            is_converged[1] += 1;
+                            is_converged_1 += 1;
                         }
                     }
                 } else {
@@ -213,7 +216,7 @@ public:
                     if (it_node->Is(ACTIVE)) {
                         it_node->Set(ACTIVE, false);
                         it_node->Set(SLIP, false);
-                        is_converged[0] += 1;
+                        is_converged_0 += 1;
                     }
                 }
             }
