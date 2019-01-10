@@ -33,8 +33,6 @@
 
 #include "custom_elements/laplacian_element.h"
 #include "custom_conditions/thermal_face.h"
-#include "custom_conditions/thermal_face2D.h"
-#include "custom_conditions/thermal_face3D.h"
 #include "custom_conditions/flux_condition.h"
 
 #include "includes/variables.h"
@@ -238,8 +236,6 @@ private:
     const ThermalFace mThermalFace2D2N;
     const ThermalFace mThermalFace3D3N;
     const ThermalFace mThermalFace3D4N;
-    const ThermalFace2D  mThermalFace2D;
-    const ThermalFace3D  mThermalFace3D;
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
