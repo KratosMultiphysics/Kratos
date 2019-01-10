@@ -12,6 +12,11 @@
 //
 //
 
+/// ATTENTION!!! When using this scheme with a free dirichlet condition
+///            "constrained"     : [true,false,true],
+///            "value"           : [0.0,null,0.0],
+
+
 #if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED)
 #define KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED
 
@@ -160,7 +165,7 @@ public:
         BaseType::Check(rModelPart);
 
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size for Central Difference Scheme. It has to be > 2" << std::endl;
-        
+
         KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined on ProcessInfo. Please define" << std::endl;
 
         return 0;
