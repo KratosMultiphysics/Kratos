@@ -22,8 +22,8 @@ namespace Kratos
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
     IndexType NewId,
     NodesArrayType const& rThisNodes,
     PropertiesPointerType pProperties ) const
@@ -34,41 +34,41 @@ Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesPointerType pProperties) const
 {
-    return Kratos::make_shared< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation> >( NewId, pGeom, pProperties );
+    return Kratos::make_shared< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties );
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Create(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+Condition::Pointer PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Create(
     IndexType NewId,
     GeometryPointerType pGeom,
     PropertiesType::Pointer pProperties,
     GeometryType::Pointer pMasterGeom ) const
 {
-    return Kratos::make_shared< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation> >( NewId, pGeom, pProperties, pMasterGeom );
+    return Kratos::make_shared< PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster> >( NewId, pGeom, pProperties, pMasterGeom );
 }
 
 /************************************* DESTRUCTOR **********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::~PenaltyMethodFrictionalMortarContactCondition( )
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::~PenaltyMethodFrictionalMortarContactCondition( )
 = default;
 
 //************************** STARTING - ENDING  METHODS ***************************//
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Initialize( )
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Initialize( )
 {
     KRATOS_TRY;
 
@@ -83,8 +83,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -180,8 +180,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -409,8 +409,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /****************************** END AD REPLACEMENT *********************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::EquationIdVector(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& CurrentProcessInfo 
     )
@@ -448,8 +448,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::GetDofList(
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
     ProcessInfo& rCurrentProcessInfo 
 )
@@ -487,8 +487,8 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 /***********************************************************************************/
 /***********************************************************************************/
 
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
-int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation>::Check( const ProcessInfo& rCurrentProcessInfo )
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
+int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::Check( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -515,11 +515,15 @@ int PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariatio
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class PenaltyMethodFrictionalMortarContactCondition<2, 2, false>;
-template class PenaltyMethodFrictionalMortarContactCondition<3, 3, false>;
-template class PenaltyMethodFrictionalMortarContactCondition<3, 4, false>;
-template class PenaltyMethodFrictionalMortarContactCondition<2, 2, true>;
-template class PenaltyMethodFrictionalMortarContactCondition<3, 3, true>;
-template class PenaltyMethodFrictionalMortarContactCondition<3, 4, true>;
+template class PenaltyMethodFrictionalMortarContactCondition<2, 2, false, 2>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 3, false, 3>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 4, false, 4>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 3, false, 4>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 4, false, 3>;
+template class PenaltyMethodFrictionalMortarContactCondition<2, 2, true,  2>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 3, true,  3>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 4, true,  4>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 3, true,  4>;
+template class PenaltyMethodFrictionalMortarContactCondition<3, 4, true,  3>;
 
 } // Namespace Kratos
