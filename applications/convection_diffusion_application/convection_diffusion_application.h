@@ -235,9 +235,9 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
-    const ThermalFace<2,2>  mThermalFace2D2N;
-    const ThermalFace<3,3>  mThermalFace3D3N;
-    const ThermalFace<3,4>  mThermalFace3D4N;
+    const ThermalFace mThermalFace2D2N;
+    const ThermalFace mThermalFace3D3N;
+    const ThermalFace mThermalFace3D4N;
     const ThermalFace2D  mThermalFace2D;
     const ThermalFace3D  mThermalFace3D;
     const FluxCondition<2>  mFluxCondition2D2N;

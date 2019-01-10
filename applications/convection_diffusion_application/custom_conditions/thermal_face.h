@@ -40,7 +40,6 @@ namespace Kratos
  *  variable defined as SurfaceSourceVariable by the
  *  CONVECTION_DIFFUSION_SETTINGS variable in the given ProcessInfo.
  */
-template<unsigned int TDim, unsigned int TNodesNumber>
 class ThermalFace: public Condition
 {
 public:
@@ -56,15 +55,15 @@ public:
      */
     struct ConditionDataStruct
     {
-        double Weight;                    // Gauss point weight
-        array_1d<double, 3> Normal;       // Condition normal
-        array_1d<double, TNodesNumber> N; // Gauss point shape functions values
+        double Weight;              // Gauss point weight
+        array_1d<double, 3> Normal; // Condition normal
+        Vector N;                   // Gauss point shape functions values
 
-        double Emissivity;                                 // Ambient emissivity value
-        double AmbientTemperature;                         // Ambient temperature value
-        double ConvectionCoefficient;                      // Ambient convection coefficient
-        array_1d<double, TNodesNumber> UnknownValues;      // Previous iteration unknown values
-        array_1d<double, TNodesNumber> FaceHeatFluxValues; // Nodal face heat flux values
+        double Emissivity;            // Ambient emissivity value
+        double AmbientTemperature;    // Ambient temperature value
+        double ConvectionCoefficient; // Ambient convection coefficient
+        Vector UnknownValues;         // Previous iteration unknown values
+        Vector FaceHeatFluxValues;    // Nodal face heat flux values
 
         const double inline GaussPointUnknown() const
         {
@@ -76,7 +75,7 @@ public:
             return InterpolateInGaussPoint(FaceHeatFluxValues);
         }
 
-        const double inline InterpolateInGaussPoint(const array_1d<double, TNodesNumber> &rNodalValues) const
+        const double inline InterpolateInGaussPoint(const Vector &rNodalValues) const
         {
             double gauss_pt_val = 0.0;
             for (unsigned int i = 0; i < N.size(); ++i) {
@@ -196,6 +195,10 @@ protected:
         const ConditionDataStruct &rData);
 
     void CalculateNormal(array_1d<double,3> &rNormal);
+
+    void FillConditionDataStructure(
+        const ProcessInfo &rCurrentProcessInfo,
+        ConditionDataStruct &rData);
 
     ///@}
 
