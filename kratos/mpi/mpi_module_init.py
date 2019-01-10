@@ -14,14 +14,10 @@ if sys.platform.startswith('linux'):
     sys.setdlopenflags(dll_load_flags)
 
 from KratosMPI import *
-import mpipython
 from .. import legacy_mpi_python_interface
 
 if sys.platform.startswith('linux'):
     # restore default system flags
     sys.setdlopenflags(flags)
 
-old_mpi_interface = mpipython.GetMPIInterface()
-legacy_mpi_wrapper = legacy_mpi_python_interface.LegacyMPIPythonInterface()
-
-mpi = old_mpi_interface
+mpi = legacy_mpi_python_interface.LegacyMPIPythonInterface()
