@@ -36,9 +36,15 @@ class ManufacturedSolution(object):
         return [self.u1(x1, x2, t), self.u2(x1, x2, t), self.u3(x1, x2, t)]
 
     def Velocity(self, x1, x2, x3, t):
-        return [self.u1(x1, x2, t), self.u2(x1, x2, t), self.u3(x1, x2, x3, t)]
+        return [self.u1(x1, x2, t), self.u2(x1, x2, t), self.u3(x1, x2, t)]
 
-    # Physic operators
+    def Pressure(self, x1, x2, t):
+        return self.p(x1, x2, t)
+
+    def Pressure(self, x1, x2, x3, t):
+        return self.p(x1, x2, t)
+
+    # Operators
 
     def body_force1(self, x1, x2, t):
         return self.du1dt(x1, x2, t) + self.convective1(x1, x2, t) + 1 / self.rho * self.press_grad1(x1, x2, t) - self.nu * self.laplacian1(x1, x2, t)
