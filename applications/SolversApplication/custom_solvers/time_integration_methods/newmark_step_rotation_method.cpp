@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2017 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -87,5 +87,3 @@ namespace Kratos
     template class NewmarkStepRotationMethod< Variable<double>, double >;
 
 }  // namespace Kratos.
-
-

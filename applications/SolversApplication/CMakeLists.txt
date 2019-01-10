@@ -11,7 +11,20 @@ include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 set( KRATOS_SOLVERS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solvers_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/solvers_application_variables.cpp
+
+	# Time integration methods
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/solution_local_flags.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/static_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/emc_step_rotation_method.cpp
+
 )
+
+## generate variables with the testing sources
+if(${KRATOS_BUILD_TESTING} MATCHES ON)
+  file(GLOB_RECURSE KRATOS_SOLVERS_APPLICATION_TESTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE

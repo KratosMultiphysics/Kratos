@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2017 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-///@addtogroup SolidMechanicsApplication
+///@addtogroup SolversApplication
 ///@{
 
 ///@name Kratos Globals
@@ -44,7 +44,7 @@ namespace Kratos
 /** @brief Solver local flags class definition
  *  @details This is the base class for solver local flags
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolverLocalFlags
+class KRATOS_API(SOLVERS_APPLICATION) SolverLocalFlags
 {
  public:
   /// Flags for the solution control:
@@ -70,7 +70,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SolverLocalFlags
 /** @brief Solver local flags class definition
  *  @details This is the base class for criterion local flags
  */
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) CriterionLocalFlags
+class KRATOS_API(SOLVERS_APPLICATION) CriterionLocalFlags
 {
  public:
   /// Flags for the solution control:
@@ -88,7 +88,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) CriterionLocalFlags
  *  @details This is the base class for time integration local flags
  */
 
-class KRATOS_API(SOLID_MECHANICS_APPLICATION) TimeIntegrationLocalFlags
+class KRATOS_API(SOLVERS_APPLICATION) TimeIntegrationLocalFlags
 {
  public:
 

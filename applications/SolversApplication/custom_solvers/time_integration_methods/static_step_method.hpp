@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2017 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup SolidMechanicsApplication
+  ///@addtogroup SolversApplication
   ///@{
 
   ///@name Kratos Globals
@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) StaticStepMethod : public StaticMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLVERS_APPLICATION) StaticStepMethod : public StaticMethod<TVariableType,TValueType>
   {
   public:
 

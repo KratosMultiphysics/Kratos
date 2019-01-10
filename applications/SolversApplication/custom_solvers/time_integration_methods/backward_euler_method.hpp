@@ -1,12 +1,11 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:               April 2018 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
-
 #if !defined(KRATOS_BACKWARD_EULER_METHOD_H_INCLUDED)
 #define  KRATOS_BACKWARD_EULER_METHOD_H_INCLUDED
 
@@ -19,7 +18,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup SolidMechanicsApplication
+  ///@addtogroup SolversApplication
   ///@{
 
   ///@name Kratos Globals

@@ -1,12 +1,11 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:   michael.andre@tum.de $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:           September 2016 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
-
 
 #if !defined(KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED)
 #define  KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED

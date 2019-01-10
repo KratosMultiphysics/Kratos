@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2017 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup SolidMechanicsApplication
+  ///@addtogroup SolversApplication
   ///@{
 
   ///@name Kratos Globals
@@ -47,7 +47,7 @@ namespace Kratos
    * This class performs predict and update of dofs variables, their time derivatives and time integrals
    */
   template<class TVariableType, class TValueType>
-  class KRATOS_API(SOLID_MECHANICS_APPLICATION) NewmarkMethod : public TimeIntegrationMethod<TVariableType,TValueType>
+  class KRATOS_API(SOLVERS_APPLICATION) NewmarkMethod : public TimeIntegrationMethod<TVariableType,TValueType>
   {
   protected:
 
@@ -465,7 +465,7 @@ namespace Kratos
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
-      
+
       CurrentSecondDerivative = ( 1.0 / (this->mNewmark.gamma * this->mNewmark.delta_time) ) * ( CurrentFirstDerivative - PreviousFirstDerivative - ( 1.0 - this->mNewmark.gamma ) * this->mNewmark.delta_time * PreviousSecondDerivative );
 
       KRATOS_CATCH( "" )

@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolversApplication    $
-//   Created by:          $Author:        JMCarbonell $
-//   Last modified by:    $Co-Author:                 $
-//   Date:                $Date:         January 2019 $
-//   Revision:            $Revision:              0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -15,7 +15,7 @@
 
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
-
+#include "solvers_application_variables.h"
 #include "solvers_application.h"
 
 namespace Kratos
@@ -34,7 +34,31 @@ PYBIND11_MODULE(KratosSolversApplication,m)
       .def(py::init<>())
       ;
 
-  //AddCustomStrategiesToPython(m);
+  AddCustomStrategiesToPython(m);
+
+  // Register python variables:
+
+  // time settings
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MESHING_STEP_TIME )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_STEP_TIME )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESTART_STEP_TIME )
+
+  // time integration methods
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, VECTOR_TIME_INTEGRATION_METHODS)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPONENT_TIME_INTEGRATION_METHODS)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, SCALAR_TIME_INTEGRATION_METHODS)
+
+  // implicit solver
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, TIME_INTEGRATION_ORDER)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_ALPHA)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RAYLEIGH_BETA)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVERGENCE_ACHIEVED)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTE_CONSISTENT_MASS_MATRIX)
+
+  // eigenvalue solver
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, BUILD_LEVEL)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_VECTOR)
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVECTOR_MATRIX)
 
 }
 

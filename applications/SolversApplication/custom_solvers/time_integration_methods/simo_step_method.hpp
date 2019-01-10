@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:            November 2017 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -19,7 +19,7 @@
 
 namespace Kratos
 {
-  ///@addtogroup SolidMechanicsApplication
+  ///@addtogroup SolversApplication
   ///@{
 
   ///@name Kratos Globals
@@ -190,7 +190,7 @@ namespace Kratos
       TValueType& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
       CurrentSecondDerivative -= CurrentSecondDerivative;
 
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -215,12 +215,12 @@ namespace Kratos
     void PredictVariable(NodeType& rNode) override
     {
       KRATOS_TRY
-          
+
       // const TValueType& CurrentStepVariable = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
       // TValueType& CurrentVariable           = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
 
       // CurrentVariable += CurrentStepVariable;
-      
+
       KRATOS_CATCH( "" )
     }
 

@@ -1,9 +1,19 @@
+//------------------------------------------------------------------
+//           ___      _                                            .
+//   KRATOS / __| ___| |_ _ ___ _ _ ___                            .
+//          \__ \/ _ \ \ V / -_) '_|_-<                            .
+//          |___/\___/_|\_/\___|_| /__/ APPLICATION                .
+//                                                                 .
+//   License:(BSD)	  SolversApplication/license.txt           .
+//   Main authors:        Josep Maria Carbonell                    .
+//                        ..                                       .
+//------------------------------------------------------------------
 //
-//   Project Name:        KratosSolversApplication    $
-//   Created by:          $Author:        JMCarbonell $
-//   Last modified by:    $Co-Author:                 $
-//   Date:                $Date:         January 2019 $
-//   Revision:            $Revision:              0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 

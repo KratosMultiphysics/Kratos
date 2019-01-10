@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolversApplication    $
-//   Created by:          $Author:        JMCarbonell $
-//   Last modified by:    $Co-Author:                 $
-//   Date:                $Date:         January 2019 $
-//   Revision:            $Revision:              0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -30,7 +30,7 @@
 
 namespace Kratos
 {
-///@addtogroup SolidMechanicsApplication
+///@addtogroup SolversApplication
 ///@{
 
 #ifdef _OPENMP

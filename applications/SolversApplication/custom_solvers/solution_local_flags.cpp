@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:            JMCarbonell $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:                 May 2018 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -69,4 +69,3 @@ KRATOS_CREATE_LOCAL_FLAG( TimeIntegrationLocalFlags, PREDICT_PRIMARY_VARIABLE,  
 ///@} addtogroup block
 
 }  // namespace Kratos.
-

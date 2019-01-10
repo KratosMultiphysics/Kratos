@@ -1,9 +1,9 @@
 //
-//   Project Name:        KratosSolversApplication    $
-//   Created by:          $Author:        JMCarbonell $
-//   Last modified by:    $Co-Author:                 $
-//   Date:                $Date:         January 2019 $
-//   Revision:            $Revision:              0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
@@ -233,7 +233,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //*************************STRATEGY CLASSES***************************
 
-  // Solid Mechanics Base Solution Strategy
+  //  Base Solution Strategy
   py::class_<SolutionStrategyType, typename SolutionStrategyType::Pointer, Flags>(m,"SolutionStrategy")
       .def(py::init<ModelPart&>())
       .def(py::init<ModelPart&, Flags&>())
@@ -249,7 +249,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
       .def("GetEchoLevel", &SolutionStrategyType::GetEchoLevel)
       ;
 
-  // Solid Mechanics Segregated Strategy
+  //  Segregated Strategy
   py::class_<SegregatedStrategyType, typename SegregatedStrategyType::Pointer, SolutionStrategyType>(m,"SegregatedStrategy")
       .def(py::init<ModelPart&, Flags&>())
       .def(py::init<ModelPart&, Flags&,  SolutionStrategiesContainer&>())
@@ -333,7 +333,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
   //*************************SHCHEME CLASSES****************************
 
-  // Solid Mechanics Base Scheme
+  // Base Scheme
   py::class_<SolutionSchemeType, typename SolutionSchemeType::Pointer, Flags>(m,"SolutionScheme")
       .def(py::init<>())
       .def(py::init<Flags&>())
