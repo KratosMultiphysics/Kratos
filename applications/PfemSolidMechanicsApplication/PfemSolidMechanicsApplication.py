@@ -1,5 +1,6 @@
 # Applications requiered
-from KratosDelaunayMeshingApplication import *
+from KratosMultiphysics.DelaunayMeshingApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 
 from KratosPfemSolidMechanicsApplication import *
 application = KratosPfemSolidMechanicsApplication()
