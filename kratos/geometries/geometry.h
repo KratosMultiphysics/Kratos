@@ -1361,8 +1361,9 @@ public:
         for (IndexType i = 0; i < points_number; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k];
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
-                    rResult(k,m) += r_coordinates[k] * r_shape_functions_gradient_in_integration_point(i,m);
+                    rResult(k,m) += value * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1404,8 +1405,9 @@ public:
         for (IndexType i = 0; i < points_number; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k] - rDeltaPosition(i,k);
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
-                    rResult(k,m) += (r_coordinates[k] - rDeltaPosition(i,k)) * r_shape_functions_gradient_in_integration_point(i,m);
+                    rResult(k,m) += value * r_shape_functions_gradient_in_integration_point(i,m);
                 }
             }
         }
@@ -1439,8 +1441,9 @@ public:
         for (IndexType i = 0; i < points_number; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k];
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
-                    rResult(k,m) += r_coordinates[k] * shape_functions_gradients(i,m);
+                    rResult(k,m) += value * shape_functions_gradients(i,m);
                 }
             }
         }
@@ -1478,8 +1481,9 @@ public:
         for (IndexType i = 0; i < points_number; ++i ) {
             const array_1d<double, 3>& r_coordinates = (*this)[i].Coordinates();
             for(IndexType k = 0; k< working_space_dimension; ++k) {
+                const double value = r_coordinates[k] - rDeltaPosition(i,k);
                 for(IndexType m = 0; m < local_space_dimension; ++m) {
-                    rResult(k,m) += (r_coordinates[k] - rDeltaPosition(i,k)) * shape_functions_gradients(i,m);
+                    rResult(k,m) += value * shape_functions_gradients(i,m);
                 }
             }
         }
