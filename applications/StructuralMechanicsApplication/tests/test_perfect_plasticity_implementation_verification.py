@@ -67,7 +67,7 @@ class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
             check.ExecuteFinalizeSolutionStep()
 
             #if step == 1:
-                #out = self._create_reference_solution(current_model)
+                #out = _create_reference_solution(current_model)
             #out.ExecuteFinalizeSolutionStep()
 
             if debug:
@@ -132,7 +132,7 @@ def _apply_material_properties(mp, constitutive_law_type = "LinearJ2Plasticity3D
     # Define properties
     mp.GetProperties()[1].SetValue(KratosMultiphysics.YOUNG_MODULUS, 2.0e11)
     mp.GetProperties()[1].SetValue(KratosMultiphysics.POISSON_RATIO, 0.3)
-    mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 3.0)
+    mp.GetProperties()[1].SetValue(KratosMultiphysics.YIELD_STRESS, 9.0)
 
     if constitutive_law_type == "LinearJ2Plasticity3DLaw" or constitutive_law_type == "PlasticityIsotropicKinematicJ2Law":
         mp.GetProperties()[1].SetValue(KratosMultiphysics.REFERENCE_HARDENING_MODULUS, 1.0)
@@ -158,9 +158,9 @@ def _define_movement():
     A[2,0] = -0.2e-10;  A[2,1] = 0.0;     A[2,2] = -0.3e-10
 
     B = KratosMultiphysics.Matrix(3,3)
-    B[0,0] = 1.0e-10;   B[0,1] = 2.0e-10; B[0,2] = 0.0
-    B[1,0] = 0.5e-10;   B[1,1] = 0.7e-10; B[1,2] = 0.1e-10
-    B[2,0] = -0.2e-10;  B[2,1] = 0.0;     B[2,2] = -0.3e-10
+    B[0,0] = 0.0;     B[0,1] = 7.0e-10; B[0,2] = 0.0
+    B[1,0] = 2.5e-10; B[1,1] = 1.7e-10; B[1,2] = 0.1e-10
+    B[2,0] = 0.0;     B[2,1] = 1.0e-10;     B[2,2] = -0.3e-10
 
     b = KratosMultiphysics.Vector(3)
     b[0] = 0.0
