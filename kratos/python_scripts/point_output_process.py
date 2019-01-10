@@ -76,7 +76,8 @@ class PointOutputProcess(KratosMultiphysics.Process):
         self.output_variables.append(output_vars)
         # validate types of variables
         for var in self.output_variables[0]:
-            self.__CheckVariableIsSolutionStepVariable(var)
+            if self.historical_value:
+                self.__CheckVariableIsSolutionStepVariable(var)
             if type(var) == KratosMultiphysics.DoubleVariable:
                 continue
             elif type(var) == KratosMultiphysics.Array1DVariable3:
