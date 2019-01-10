@@ -492,7 +492,7 @@ public:
 
     //***********************************************************************
 
-    static void GatherValues(const VectorType& x, const std::vector<std::size_t>& IndexArray, double* pValues)
+    static void GatherValues(const VectorType& x, const std::vector<int>& IndexArray, DataType* pValues)
     {
         KRATOS_TRY
         double tot_size = IndexArray.size();
