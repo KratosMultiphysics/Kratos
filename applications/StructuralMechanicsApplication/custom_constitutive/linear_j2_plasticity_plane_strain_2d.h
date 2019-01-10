@@ -69,13 +69,16 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw       CLBaseType;
-    typedef LinearJ2Plasticity3D    BaseType;
-    typedef std::size_t             SizeType;
+    typedef ProcessInfo ProcessInfoType;
+    typedef LinearJ2Plasticity3D BaseType;
+    typedef std::size_t SizeType;
 
-    // Counted pointer of LinearJ2Plasticity3D
+    // Counted pointer
     KRATOS_CLASS_POINTER_DEFINITION(LinearJ2PlasticityPlaneStrain2D);
+
+    ///@}
+    ///@name Lyfe Cycle
+    ///@{
 
     /**
      * @brief Default constructor.
@@ -128,62 +131,6 @@ public:
         return 4;
     };
 
-    /**
-     * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Kirchhoff stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Computes the material response in terms of Cauchy stresses and constitutive tensor
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Kirchhoff stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
-
-    /**
-     * @brief Finalize the material response in terms of Cauchy stresses
-     * @param rValues The specific parameters of the current constitutive law
-     * @see Parameters
-     */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -214,6 +161,18 @@ protected:
     ///@{
 
     /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rPlasticStrain
+     * @param rAccumulatedPlasticStrain
+     */
+    void CalculateStressResponse(
+            ConstitutiveLaw::Parameters& rValues,
+            Vector& rPlasticStrain,
+            double& rAccumulatedPlasticStrain
+            ) override;
+
+    /**
      * @brief This method computes the plastic potential
      * @param DeltaGamma The increment on the Gamma parameter
      * @param NormStressTrial The norm of the stress trial
@@ -221,24 +180,17 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      */
-    void CalculateTangentTensor(
-        const double DeltaGamma,
-        const double NormStressTrial,
-        const Vector& YieldFunctionNormalVector,
-        const Properties& rMaterialProperties,
-        Matrix& rElasticityTensor,
-        double
-        ) override;
+    void CalculateTangentTensor(const double DeltaGamma, const double NormStressTrial,
+                                const Vector &YieldFunctionNormalVector,
+                                const Properties &rMaterialProperties,
+                                const double AccumulatedPlasticStrain, Matrix &rElasticityTensor) override;
 
     /**
      * @brief This method computes the elastic tensor
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
-    void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-        ) override;
+    void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor) override;
 
     ///@}
     ///@name Protected  Access

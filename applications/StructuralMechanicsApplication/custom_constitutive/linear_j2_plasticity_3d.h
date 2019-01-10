@@ -68,9 +68,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
+    typedef ProcessInfo ProcessInfoType;
+    typedef ConstitutiveLaw BaseType;
+    typedef std::size_t SizeType;
 
     // Counted pointer of LinearJ2Plasticity3D
     KRATOS_CLASS_POINTER_DEFINITION(LinearJ2Plasticity3D);
@@ -331,10 +331,8 @@ protected:
     ///@{
 
     bool mInelasticFlag; /// This flags tells if we are in a elastic or ineslastic regime
-    Vector mPlasticStrain; /// The current plastic strain (one for each of the strain components)
-    Vector mPlasticStrainOld; /// The previous plastic strain (one for each of the strain components)
-    double mAccumulatedPlasticStrain; /// The current accumulated plastic strain
-    double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
+    Vector mPlasticStrain; /// The previous plastic strain (one for each of the strain components)
+    double mAccumulatedPlasticStrain; /// The previous accumulated plastic strain
 
     ///@}
     ///@name Protected Operators
@@ -350,7 +348,7 @@ protected:
      * @param rPlasticStrain
      * @param rAccumulatedPlasticStrain
      */
-    void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
+    virtual void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
                                  Vector& rPlasticStrain,
                                  double& rAccumulatedPlasticStrain );
 
@@ -363,7 +361,7 @@ protected:
     double YieldFunction(
         const double NormDeviationStress,
         const Properties& rMaterialProperties,
-        const double accumulated_plastic_strain
+        const double AccumulatedPlasticStrain
         );
 
     /**
@@ -397,24 +395,17 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      */
-    virtual void CalculateTangentTensor(
-        const double DeltaGamma,
-        const double NormStressTrial,
-        const Vector& rYieldFunctionNormalVector,
-        const Properties& rMaterialProperties,
-        Matrix& rElasticityTensor,
-        const double AccumulatedPlasticStrain
-        );
+    virtual void CalculateTangentTensor(const double DeltaGamma, const double NormStressTrial,
+                                        const Vector &rYieldFunctionNormalVector,
+                                        const Properties &rMaterialProperties,
+                                        const double AccumulatedPlasticStrain, Matrix &rElasticityTensor);
 
     /**
      * @brief This method computes the elastic tensor
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
-    virtual void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-        );
+    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor);
 
     ///@}
     ///@name Protected  Access
