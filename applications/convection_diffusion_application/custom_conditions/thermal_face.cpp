@@ -369,9 +369,11 @@ void ThermalFace::FillConditionDataStructure(
     }
 
     // Fill data container values from properties
-    rData.Emissivity = (this->GetProperties())[EMISSIVITY];
-    rData.AmbientTemperature = (this->GetProperties())[AMBIENT_TEMPERATURE];
-    rData.ConvectionCoefficient = (this->GetProperties())[CONVECTION_COEFFICIENT];
+    // Const reference is required to have thread-safe access
+    const auto &r_prop = this->GetProperties();
+    rData.Emissivity = r_prop[EMISSIVITY];
+    rData.AmbientTemperature = r_prop[AMBIENT_TEMPERATURE];
+    rData.ConvectionCoefficient = r_prop[CONVECTION_COEFFICIENT];
 }
 
 // template <>
