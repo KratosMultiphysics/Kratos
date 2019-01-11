@@ -17,7 +17,9 @@ set( KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_SOURCES
 
   ## UTILITIES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/interface_preprocess.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tree_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/base_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_contact_search.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/simple_contact_search.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/process_factory_utility.cpp
 
   ## CUSTOM PYTHON
@@ -103,4 +105,4 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosContactStructuralMechanicsApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/ContactStructuralMechanicsApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ContactStructuralMechanicsApplication.py" DESTINATION "KratosMultiphysics/ContactStructuralMechanicsApplication" RENAME "__init__.py")

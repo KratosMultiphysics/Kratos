@@ -243,7 +243,7 @@ class ConstructionUtility
             if (mAging == false)
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -253,7 +253,7 @@ class ConstructionUtility
             else
             {
                 ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
-            #pragma omp parallel for
+                #pragma omp parallel for
                 for (int i = 0; i < nnodes; ++i)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -303,7 +303,7 @@ class ConstructionUtility
                         if (it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION)==0)
                         {
                             it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TIME_ACTIVATION) = time_activation * mTimeUnitConverter;
-                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = initial_temperature;
+                            it_thermal->GetGeometry()[i].FastGetSolutionStepValue(TEMPERATURE) = it_thermal->GetGeometry()[i].FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) = initial_temperature;
                         }
                     }
                 }
@@ -356,6 +356,7 @@ class ConstructionUtility
                     for (unsigned int i = 0; i < number_of_points; i++)
                     {
                         it->GetGeometry()[i].Set(ACTIVE, true);
+                        it->GetGeometry()[i].Set(SOLID, false);
                     }
                 }
             }
@@ -410,6 +411,61 @@ class ConstructionUtility
                 }
                 if (active_condition) it_cond_thermal->Set(ACTIVE, true);
                 else it_cond_thermal->Set(ACTIVE, false);
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void CheckTemperature(Parameters &CheckTemperatureParameters)
+    {
+        KRATOS_TRY;
+
+        const int nnodes = mrThermalModelPart.GetMesh(0).Nodes().size();
+
+        // Getting CheckTemperature Values
+        const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
+        const double maximum_temperature_aux = CheckTemperatureParameters["maximum_temperature"].GetDouble();
+        const double minimum_temperature_aux = CheckTemperatureParameters["minimum_temperature"].GetDouble();
+
+        ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
+
+        #pragma omp parallel for
+        for (int i = 0; i < nnodes; ++i)
+        {
+            ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+            if (it->Is(ACTIVE) && it->IsNot(SOLID))
+            {
+                double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, maximum_temperature_aux);
+                double minimum_temperature = std::min(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE), minimum_temperature_aux);
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
+                }
+                else if (current_temperature < minimum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
+                }
+            }
+            else if (it->Is(ACTIVE) && it->Is(SOLID))
+            {
+                double maximum_temperature = maximum_temperature_aux;
+                double minimum_temperature = minimum_temperature_aux;
+                double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
+
+                if (current_temperature > maximum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
+                }
+                else if (current_temperature < minimum_temperature)
+                {
+                    it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
+                }
             }
         }
 

@@ -125,13 +125,13 @@ namespace Kratos
 
       if( rCurrentRadius == 0 ){
 
-         WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+         NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
 
          double counter = 0;
 
          for(unsigned int i = 0; i < rN.size(); i++)
          {
-            array_1d<double, 3 > & NodePosition = rN[i].Coordinates();
+            array_1d<double, 3 > & NodePosition = rN[i]->Coordinates();
             if( NodePosition[0] != 0 ){
                rCurrentRadius += NodePosition[0] * 0.225;
                counter ++;

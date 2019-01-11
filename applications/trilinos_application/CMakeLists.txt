@@ -46,8 +46,8 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_trilinos_communicator_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_zoltan_processes_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/trilinos_linear_solver_factory.cpp
     ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp  #TODO: this should REALLY NOT BE HERE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi_normal_calculation_utilities.cpp;
 )
@@ -109,4 +109,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/python_scripts/__init__.py" DESTINATION "KratosMultiphysics/TrilinosApplication")
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/TrilinosApplication.py" DESTINATION "KratosMultiphysics/TrilinosApplication" RENAME "__init__.py")
