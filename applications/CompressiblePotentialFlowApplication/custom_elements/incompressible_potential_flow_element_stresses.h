@@ -459,9 +459,12 @@ public:
             double penalty=rCurrentProcessInfo[INITIAL_PENALTY];
             double n_parameter=rCurrentProcessInfo[WATER_PRESSURE];
             double alpha=rCurrentProcessInfo[TEMPERATURE];
+            double geometry_angle=rCurrentProcessInfo[MIU];
+         
             bounded_matrix<double, 2, 1 > n_kutta;
-            n_kutta(0,0)=0;
-            n_kutta(1,0)=1;
+            n_kutta(0,0)=sin(geometry_angle*3.1415926/180);
+            n_kutta(1,0)=cos(geometry_angle*3.1415926/180);
+                     
           
             Matrix test=prod(data.DN_DX,n_kutta);
 
@@ -487,55 +490,15 @@ public:
             noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
             noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
            
-            if (false){
-                std::cout<<"SOLVING KUTTA ELEMENT #"<<this->Id()<<std::endl;
-                Vector n_plus=n;
-                Vector n_minus=n;
-                Matrix tangent_operator_plus=IdentityMatrix(Dim,Dim) - outer_prod(n_plus,n_plus);
-                Matrix tangent_operator_minus=IdentityMatrix(Dim,Dim) - outer_prod(n_minus,n_minus);
-
-                Matrix aux_plus = prod(tangent_operator_plus, lhs_sigma_plus);
-                Matrix aux_minus = prod(tangent_operator_minus, lhs_sigma_minus);
-                noalias(lhs_sigma_plus)=aux_plus;
-                noalias(lhs_sigma_minus)=aux_minus;
-                Matrix aux_sigma_sigma=prod(tangent_operator_plus, lhs_sigma_sigma_no_inv);
-                noalias(lhs_sigma_sigma_no_inv)=aux_sigma_sigma;
-                
-                // Matrix aux_plus2 = prod(lhs_sigma_plus_alpha,tangent_operator_plus);
-                // Matrix aux_minus2 = prod(lhs_sigma_minus_alpha,tangent_operator_minus);
-                // noalias(lhs_sigma_plus_alpha)=aux_plus2;
-                // noalias(lhs_sigma_minus_alpha)=aux_minus2;
-
-                forcing_sigma_plus=ZeroMatrix(NumNodes,Dim);
-                forcing_sigma_minus=ZeroMatrix(NumNodes,Dim);
-
-                // for(unsigned int i=0; i<nsubdivisions; ++i){
-                //     if(PartitionsSign[i] > 0)
-                //         noalias(lhs_positive_n)+=-1.0/n_parameter*Volumes[i]*prod(data.DN_DX, Matrix(prod(tangent_operator_plus,trans(data.DN_DX))));                     
-                //     else
-                //         noalias(lhs_negative_n)+=-1.0/n_parameter*Volumes[i]*prod(data.DN_DX, Matrix(prod(tangent_operator_minus,trans(data.DN_DX))));
-                        
-                // }      
-                noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
-                noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
-                noalias(lhs_plus_plus)   = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-                noalias(lhs_plus_minus)  = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
-                noalias(lhs_minus_plus)  = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
-                noalias(lhs_minus_minus) = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
-                noalias(lhs_plus_rhs)    = prod(lhs_plus_sigma,lhs_sigma_sigma);
-                noalias(lhs_minus_rhs)   = prod(lhs_minus_sigma,lhs_sigma_sigma);
-            }
-            else{
-                noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
-                noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
-           
-                noalias(lhs_plus_plus)   = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
-                noalias(lhs_plus_minus)  = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));   
-                noalias(lhs_minus_plus)  = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
-                noalias(lhs_minus_minus) = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));
-                noalias(lhs_plus_rhs)    = prod(lhs_plus_sigma+forcing_sigma_plus,lhs_sigma_sigma);
-                noalias(lhs_minus_rhs)   = prod(lhs_minus_sigma+forcing_sigma_minus,lhs_sigma_sigma);
-            }
+            noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
+            noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
+        
+            noalias(lhs_plus_plus)   = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
+            noalias(lhs_plus_minus)  = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));   
+            noalias(lhs_minus_plus)  = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
+            noalias(lhs_minus_minus) = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));
+            noalias(lhs_plus_rhs)    = prod(lhs_plus_sigma+forcing_sigma_plus,lhs_sigma_sigma);
+            noalias(lhs_minus_rhs)   = prod(lhs_minus_sigma+forcing_sigma_minus,lhs_sigma_sigma);
 
             if(kutta_element)//false
             {

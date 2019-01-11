@@ -185,9 +185,19 @@ public:
         {
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
+            if(this->IsNot(STRUCTURE)){
+                for (unsigned int i = 0; i < NumNodes; i++)
+                    rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+            }
+            else{
+                for (unsigned int i = 0; i < NumNodes; i++){
+                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                        rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+                    else
+                        rResult[i] = GetGeometry()[i].GetDof(NEGATIVE_POTENTIAL).EquationId();
+                }
 
-            for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(POSITIVE_POTENTIAL).EquationId();
+            }
 
         }
         else//wake element
@@ -233,8 +243,19 @@ public:
             if (rElementalDofList.size() != NumNodes)
                 rElementalDofList.resize(NumNodes);
 
-            for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+            if(this->IsNot(STRUCTURE)){
+                for (unsigned int i = 0; i < NumNodes; i++)
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+            }
+            else{
+                for (unsigned int i = 0; i < NumNodes; i++){
+                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                        rElementalDofList[i] = GetGeometry()[i].pGetDof(POSITIVE_POTENTIAL);
+                    else
+                        rElementalDofList[i] = GetGeometry()[i].pGetDof(NEGATIVE_POTENTIAL);
+                }
+
+            }
         }
         else//wake element
         {
@@ -289,22 +310,22 @@ public:
         array_1d<double,NumNodes> elemental_distance;
         //calculate shape functions
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-        //gather nodal data
-        for(unsigned int i=0; i<NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-
         
-        //TEST:
         bool kutta_element = false;
-        if (this->Is(INTERFACE))
+        if (this->IsNot(STRUCTURE)){
+            for(unsigned int i=0; i<NumNodes; i++)
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+        }else{
             kutta_element = true;
-        for(unsigned int i=0; i<NumNodes; ++i)
-            if(GetGeometry()[i].Is(STRUCTURE))
-            {
-                kutta_element = true;
-                this->Set(INTERFACE);
-                break;
+            for(unsigned int i=0; i<NumNodes; i++){
+                if (GetGeometry()[i].IsNot(STRUCTURE))
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                else
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
             }
+
+        }
+
 
         if(this->IsNot(MARKER))//normal element (non-wake) - eventually an embedded
         {
@@ -461,65 +482,94 @@ public:
        
             double penalty=rCurrentProcessInfo[INITIAL_PENALTY];
             double n_parameter=rCurrentProcessInfo[WATER_PRESSURE];
-            double alpha=rCurrentProcessInfo[TEMPERATURE];
+            double geometry_angle=rCurrentProcessInfo[MIU];
+         
             bounded_matrix<double, 2, 1 > n_kutta;
-            n_kutta(0,0)=0.08715574275;
-            n_kutta(1,0)=0.9961946981;
+            n_kutta(0,0)=sin(geometry_angle*3.1415926/180);
+            n_kutta(1,0)=cos(geometry_angle*3.1415926/180);
           
             Matrix test=prod(data.DN_DX,n_kutta);
 
+            Vector normal_gradient=prod(n,sigma_shape_func);
+            for (unsigned int i_gauss=0;i_gauss<positive_side_interface_weights.size();i_gauss++){
+                for (unsigned int i = 0; i<NumNodes; ++i){
+                    for (unsigned int j= 0; j<Dim; ++j){
+                        forcing_sigma(i,j)+=-positive_side_interface_sh_func(i_gauss,i)*normal_gradient(j)*positive_side_interface_weights(i_gauss);
+                    }
+                }
+            }
+            forcing_sigma_plus=forcing_sigma;
+            forcing_sigma_minus=-forcing_sigma;
+
             lhs_sigma_sigma=n_parameter*sigma_shape_func/data.vol;
             lhs_sigma_sigma_no_inv=-1/n_parameter*sigma_shape_func*data.vol;
+            lhs_sigma_plus = 1.0/n_parameter*data.vol*prod(sigma_shape_func,trans(data.DN_DX)); 
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0){
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_positive,data); //K++                    
                     noalias(lhs_plus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);
-                    noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));   
+                    // noalias(lhs_sigma_plus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));   
                     noalias(lhs_penalty_positive) += Volumes[i] * prod(test,trans(test));         
                 }
                 else{
                     ComputeLHSGaussPointContribution(Volumes[i],lhs_negative,data); //K--
                     noalias(lhs_minus_sigma) += 1.0/n_parameter*Volumes[i]*prod(data.DN_DX,sigma_shape_func);                  
-                    noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));           
+                    // noalias(lhs_sigma_minus) += 1.0/n_parameter*Volumes[i]*prod(sigma_shape_func,trans(data.DN_DX));           
                     noalias(lhs_penalty_negative) += -Volumes[i] * prod(test,trans(test));                        
                 }
             }
 
-            Matrix lhs_sigma_plus_alpha = alpha*data.vol*prod(sigma_shape_func,trans(data.DN_DX));
-            Matrix lhs_sigma_minus_alpha = -alpha*data.vol*prod(sigma_shape_func,trans(data.DN_DX));
             noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
             noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
-           
            
             noalias(lhs_positive_n) = -1.0/n_parameter*lhs_positive;
             noalias(lhs_negative_n) = -1.0/n_parameter*lhs_negative;
         
-            noalias(lhs_plus_plus)   = prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
-            noalias(lhs_plus_minus)  = lhs_plus_minus_uncond + prod(lhs_plus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));   
-            noalias(lhs_minus_plus)  = lhs_minus_plus_uncond + prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus+lhs_sigma_plus_alpha)));
-            noalias(lhs_minus_minus) = prod(lhs_minus_sigma,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus+lhs_sigma_minus_alpha)));
-            noalias(lhs_plus_rhs)    = prod(lhs_plus_sigma,lhs_sigma_sigma);
-            noalias(lhs_minus_rhs)   = prod(lhs_minus_sigma,lhs_sigma_sigma);
+            noalias(lhs_plus_plus)   = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_plus_minus)  = prod(lhs_plus_sigma+forcing_sigma_plus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));   
+            noalias(lhs_minus_plus)  = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_plus)));
+            noalias(lhs_minus_minus) = prod(lhs_minus_sigma+forcing_sigma_minus,Matrix(prod(lhs_sigma_sigma,lhs_sigma_minus)));
+            noalias(lhs_plus_rhs)    = prod(lhs_plus_sigma+forcing_sigma_plus,lhs_sigma_sigma);
+            noalias(lhs_minus_rhs)   = prod(lhs_minus_sigma+forcing_sigma_minus,lhs_sigma_sigma);
             
 
-            if(kutta_element)//false
+           if(kutta_element)//false
             {
                 std::cout<<"SOLVING KUTTA ELEMENT #"<<this->Id()<<std::endl;
                 for(unsigned int i=0; i<NumNodes; ++i)
                 {
-                    for(unsigned int j=0; j<NumNodes; ++j)
-                    {
-                        rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+penalty*lhs_penalty_positive(i,j);  
-                        rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
+                    if (GetGeometry()[i].Is(STRUCTURE)){
+                        for(unsigned int j=0; j<NumNodes; ++j)
+                        {
+                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+lhs_positive_n(i,j)+penalty*lhs_penalty_positive(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
 
-                        rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+penalty*lhs_penalty_negative(i,j); 
-                        rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j)+lhs_negative_n(i,j)+penalty*lhs_penalty_negative(i,j);
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
+
+                            lhs_uncondensed(i,j)                       =  lhs_positive(i,j)+lhs_positive_n(i,j)+penalty*lhs_penalty_positive(i,j);  
+                            lhs_uncondensed(i+NumNodes,j+NumNodes)     =  lhs_negative(i,j)+lhs_negative_n(i,j)+penalty*lhs_penalty_negative(i,j);
+                        }
+                    }else{
+                        for(unsigned int j=0; j<NumNodes; ++j)
+                        {
+                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j)+lhs_plus_plus(i,j)+lhs_positive_n(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)          =  lhs_plus_minus(i,j);                                  
+                            
+                            lhs_uncondensed(i,j)                       =  lhs_positive(i,j)+lhs_positive_n(i,j);   
+                            lhs_uncondensed(i+NumNodes,j+NumNodes)     =  lhs_negative(i,j)+lhs_negative_n(i,j);
+                        }
+                        lhs_uncondensed(i,2*NumNodes)                  =  lhs_plus_sigma(i,0)+forcing_sigma_plus(i,0);
+                        lhs_uncondensed(i,2*NumNodes+1)                =  lhs_plus_sigma(i,1)+forcing_sigma_plus(i,1);
+
+                        lhs_uncondensed(i+NumNodes,2*NumNodes)         =  lhs_minus_sigma(i,0)+forcing_sigma_minus(i,0);
+                        lhs_uncondensed(i+NumNodes,2*NumNodes+1)       =  lhs_minus_sigma(i,1)+forcing_sigma_minus(i,1);
                     }
                 }
-                Vector split_element_values(NumNodes*2);
-                GetValuesOnSplitElement(split_element_values, data.distances);
-                noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
+                // Vector split_element_values(NumNodes*2);
+                // GetValuesOnSplitElement(split_element_values, data.distances);
+                // noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
             }
             else
             {
@@ -536,8 +586,6 @@ public:
 
                         lhs_uncondensed(i,j)                       =  lhs_positive(i,j)+lhs_positive_n(i,j);   
                         lhs_uncondensed(i+NumNodes,j+NumNodes)     =  lhs_negative(i,j)+lhs_negative_n(i,j);
-                        lhs_uncondensed(i,j+NumNodes)              =  lhs_plus_minus_uncond(i,j); 
-                        lhs_uncondensed(i+NumNodes,j)              =  lhs_minus_plus_uncond(i,j); 
                     }
                     lhs_uncondensed(i,2*NumNodes)                  =  lhs_plus_sigma(i,0)+forcing_sigma_plus(i,0);
                     lhs_uncondensed(i,2*NumNodes+1)                =  lhs_plus_sigma(i,1)+forcing_sigma_plus(i,1);
@@ -546,54 +594,54 @@ public:
                     lhs_uncondensed(i+NumNodes,2*NumNodes+1)       =  lhs_minus_sigma(i,1)+forcing_sigma_minus(i,1);
                     
                 }
-            
-                Vector split_element_values(NumNodes*2);
-                Vector split_element_values_uncondensed=ZeroVector(NumNodes*2+2);
-                Vector split_plus(NumNodes);
-                Vector split_minus(NumNodes);
-                Vector split_prev_plus(NumNodes);
-                Vector split_prev_minus(NumNodes);
-                Vector residual_sigma(Dim);
-                Vector sigma_aux(Dim);
-                Vector residual_sigma_prev(Dim);
-                Vector rhs_sigma(NumNodes*2);
-                Vector rhs_sigma_plus(NumNodes);
-                Vector rhs_sigma_minus(NumNodes);
-                Vector rhs_uncondensed(2*NumNodes+2);
-
-                GetValuesOnSplitElement(split_element_values, data.distances);
-                
-                for (unsigned int i = 0; i<NumNodes; ++i){
-                    split_plus(i) = split_element_values(i);
-                    split_minus(i)= split_element_values(i+NumNodes);
-                    split_element_values_uncondensed(i) = split_element_values(i);
-                    split_element_values_uncondensed(i+NumNodes)= split_element_values(i+NumNodes);
-                }   
-                
-                array_1d<double,Dim> velocity;
-                ComputeVelocity(velocity);
-                sigma(0)=0;//velocity(0);
-                sigma(1)=0;//velocity(1);
-
-                split_element_values_uncondensed(2*NumNodes)=sigma(0);
-                split_element_values_uncondensed(2*NumNodes+1)=sigma(1);
-        
-                residual_sigma = -prod(lhs_sigma_plus+lhs_sigma_plus_alpha,split_plus) - prod(lhs_sigma_minus+lhs_sigma_minus_alpha,split_minus)-prod(lhs_sigma_sigma_no_inv,trans(sigma));
-                sigma_aux = prod(lhs_sigma_plus+lhs_sigma_plus_alpha,split_plus) + prod(lhs_sigma_minus+lhs_sigma_minus_alpha,split_minus) + residual_sigma;
-                noalias(sigma) = prod(lhs_sigma_sigma,-residual_sigma);
-                this->GetValue(Y1) = sigma(0);
-                this->GetValue(Y2) = sigma(1);
-                rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);
-                rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);
-
-                for (unsigned int i = 0; i < NumNodes; ++i){
-                    rhs_sigma(i) = rhs_sigma_plus(i);                
-                    rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
-                }
-                
-                // noalias(rRightHandSideVector) = -prod(K_uu,split_element_values)+rhs_sigma;
-                noalias(rRightHandSideVector) = -prod(lhs_uncondensed,split_element_values_uncondensed)+rhs_sigma;
             }
+        
+            Vector split_element_values(NumNodes*2);
+            Vector split_element_values_uncondensed=ZeroVector(NumNodes*2+2);
+            Vector split_plus(NumNodes);
+            Vector split_minus(NumNodes);
+            Vector split_prev_plus(NumNodes);
+            Vector split_prev_minus(NumNodes);
+            Vector residual_sigma(Dim);
+            Vector sigma_aux(Dim);
+            Vector residual_sigma_prev(Dim);
+            Vector rhs_sigma(NumNodes*2);
+            Vector rhs_sigma_plus(NumNodes);
+            Vector rhs_sigma_minus(NumNodes);
+            Vector rhs_uncondensed(2*NumNodes+2);
+
+            GetValuesOnSplitElement(split_element_values, data.distances);
+            
+            for (unsigned int i = 0; i<NumNodes; ++i){
+                split_plus(i) = split_element_values(i);
+                split_minus(i)= split_element_values(i+NumNodes);
+                split_element_values_uncondensed(i) = split_element_values(i);
+                split_element_values_uncondensed(i+NumNodes)= split_element_values(i+NumNodes);
+            }   
+            
+            array_1d<double,Dim> velocity;
+            ComputeVelocity(velocity);
+            sigma(0)=0;//velocity(0);
+            sigma(1)=0;//velocity(1);
+
+            split_element_values_uncondensed(2*NumNodes)=sigma(0);
+            split_element_values_uncondensed(2*NumNodes+1)=sigma(1);
+    
+            residual_sigma = -prod(lhs_sigma_plus,split_plus) - prod(lhs_sigma_minus,split_minus)-prod(lhs_sigma_sigma_no_inv,trans(sigma));
+            sigma_aux = prod(lhs_sigma_plus,split_plus) + prod(lhs_sigma_minus,split_minus) + residual_sigma;
+            noalias(sigma) = prod(lhs_sigma_sigma,-residual_sigma);
+            this->GetValue(Y1) = sigma(0);
+            this->GetValue(Y2) = sigma(1);
+            rhs_sigma_plus=prod(lhs_plus_rhs,residual_sigma);
+            rhs_sigma_minus=prod(lhs_minus_rhs,residual_sigma);
+
+            for (unsigned int i = 0; i < NumNodes; ++i){
+                rhs_sigma(i) = rhs_sigma_plus(i);                
+                rhs_sigma(i+NumNodes) = rhs_sigma_minus(i);
+            }
+            
+            // noalias(rRightHandSideVector) = -prod(K_uu,split_element_values)+rhs_sigma;
+            noalias(rRightHandSideVector) = -prod(lhs_uncondensed,split_element_values_uncondensed)+rhs_sigma;
         }        
     }
 
@@ -937,8 +985,17 @@ protected:
     void ComputeVelocityNormalElement(array_1d<double,Dim>& velocity)
     {
         ElementalData<NumNodes, Dim> data;
-        for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+        if (this->IsNot(STRUCTURE)){
+            for(unsigned int i=0; i<NumNodes; i++)
+                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+        }else{
+            for(unsigned int i=0; i<NumNodes; i++){
+                if (GetGeometry()[i].IsNot(STRUCTURE))
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                else
+                    data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+            }
+        }
 
         GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
 
