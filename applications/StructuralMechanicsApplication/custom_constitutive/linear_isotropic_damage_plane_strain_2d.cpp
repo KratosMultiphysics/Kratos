@@ -26,9 +26,6 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D()
 
 LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
     const LinearIsotropicDamagePlaneStrain2D &rOther) = default;
-//    : LinearIsotropicDamage3D(rOther)
-//{
-//}
 
 //********************************CLONE***********************************************
 //************************************************************************************
@@ -46,26 +43,29 @@ LinearIsotropicDamagePlaneStrain2D::~LinearIsotropicDamagePlaneStrain2D() = defa
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::CalculateConstitutiveMatrix(const Properties &rMaterialProperties, Matrix &rConstitTensor)
+void LinearIsotropicDamagePlaneStrain2D::CalculateElasticMatrix(
+    const Properties &rMaterialProperties, Matrix &rElasticMatrix)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double nu = rMaterialProperties[POISSON_RATIO];
     const double Ebar = E / (1. - nu * nu);
     const double nubar = nu / (1. - nu);
 
-    rConstitTensor.clear();
+    if (rElasticMatrix.size1() != 3 || rElasticMatrix.size2() != 3)
+        rElasticMatrix.resize(3, 3, false);
+    rElasticMatrix.clear();
 
-    rConstitTensor(0, 0) = 1;
-    rConstitTensor(0, 1) = nubar;
-    rConstitTensor(0, 2) = 0;
-    rConstitTensor(1, 0) = nubar;
-    rConstitTensor(1, 1) = 1;
-    rConstitTensor(1, 2) = 0;
-    rConstitTensor(2, 0) = 0;
-    rConstitTensor(2, 1) = 0;
-    rConstitTensor(2, 2) = 0.5 * (1 - nubar);
+    rElasticMatrix(0, 0) = 1;
+    rElasticMatrix(0, 1) = nubar;
+    rElasticMatrix(0, 2) = 0;
+    rElasticMatrix(1, 0) = nubar;
+    rElasticMatrix(1, 1) = 1;
+    rElasticMatrix(1, 2) = 0;
+    rElasticMatrix(2, 0) = 0;
+    rElasticMatrix(2, 1) = 0;
+    rElasticMatrix(2, 2) = 0.5 * (1 - nubar);
 
-    rConstitTensor *= Ebar / (1. - nubar * nubar);
+    rElasticMatrix *= Ebar / (1. - nubar * nubar);
 }
 
 //************************************************************************************

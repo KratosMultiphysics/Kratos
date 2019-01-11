@@ -388,24 +388,24 @@ protected:
             const double accumulated_plastic_strain);
 
     /**
-     * @brief This method computes the plastic potential
+     * @brief This method computes the constitutive tensor
      * @param DeltaGamma The increment on the Gamma parameter
      * @param NormStressTrial The norm of the stress trial
-     * @param rYieldFunctionNormalVector The yield function normal vector
+     * @param rYFNormalVector The yield function normal vector
      * @param rMaterialProperties The properties of the material
-     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     * @param rTMatrix The elastic tensor/matrix to be computed
      */
-    virtual void CalculateTangentTensor(const double DeltaGamma, const double NormStressTrial,
-                                        const Vector &rYieldFunctionNormalVector,
+    virtual void CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
+                                        const Vector &rYFNormalVector,
                                         const Properties &rMaterialProperties,
-                                        const double AccumulatedPlasticStrain, Matrix &rElasticityTensor);
+                                        const double AccumulatedPlasticStrain, Matrix &rTMatrix);
 
     /**
      * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     * @param rElasticMatrix The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
-    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticityTensor);
+    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
 
     ///@}
     ///@name Protected  Access

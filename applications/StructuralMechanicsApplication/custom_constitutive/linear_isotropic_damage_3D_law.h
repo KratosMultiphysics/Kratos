@@ -290,7 +290,7 @@ protected:
     ///@name Protected member Variables
     ///@{
     bool mInelasticFlag; /// Flags when in inelastic regime
-    double mStrainVariableOld;
+    double mStrainVariable;
     ///@}
 
     ///@name Protected Operators
@@ -314,9 +314,9 @@ protected:
     /**
      * @brief This method computes the constitutive tensor
      * @param rMaterialProperties The properties of the material
-     * @param rTensor The elastic tensor/matrix to be computed
+     * @param rElasticMatrix The elastic tensor/matrix to be computed
      */
-    virtual void CalculateConstitutiveMatrix(const Properties &rMaterialProperties, Matrix &rTensor);
+    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
     ///@}
 
 private:

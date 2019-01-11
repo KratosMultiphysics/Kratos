@@ -128,7 +128,7 @@ protected:
 
     ///@name Protected Operators
     ///@{
-    void CalculateConstitutiveMatrix(const Properties &rMaterialProperties, Matrix &constitutiveMatrix) override;
+    void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix) override;
     ///@}
 
     ///@name Protected Operations

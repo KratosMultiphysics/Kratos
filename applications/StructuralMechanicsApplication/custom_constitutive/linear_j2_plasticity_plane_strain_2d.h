@@ -180,7 +180,7 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @param rElasticityTensor The elastic tensor/matrix to be computed
      */
-    void CalculateTangentTensor(const double DeltaGamma, const double NormStressTrial,
+    void CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
                                 const Vector &YieldFunctionNormalVector,
                                 const Properties &rMaterialProperties,
                                 const double AccumulatedPlasticStrain, Matrix &rElasticityTensor) override;

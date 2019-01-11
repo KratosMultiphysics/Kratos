@@ -155,7 +155,7 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateStressResponse(
 
             // We update the tangent tensor
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-                CalculateTangentTensor(dgamma, norm_dev_stress, yield_function_normal_vector,
+                CalculateTangentMatrix(dgamma, norm_dev_stress, yield_function_normal_vector,
                                        r_material_properties, rAccumulatedPlasticStrain, tangent_tensor);
             }
         }
@@ -198,10 +198,11 @@ void LinearJ2PlasticityPlaneStrain2D::CalculateElasticMatrix(const Properties &r
 //************************************************************************************
 //************************************************************************************
 
-void LinearJ2PlasticityPlaneStrain2D::CalculateTangentTensor(const double DeltaGamma, const double NormStressTrial,
+void LinearJ2PlasticityPlaneStrain2D::CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
                                                              const Vector &YieldFunctionNormalVector,
                                                              const Properties &rMaterialProperties,
-                                                             const double AccumulatedPlasticStrain, Matrix &rElasticityTensor)
+                                                             const double AccumulatedPlasticStrain,
+                                                             Matrix &rElasticityTensor)
 {
     const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
     const double theta = rMaterialProperties[REFERENCE_HARDENING_MODULUS];
