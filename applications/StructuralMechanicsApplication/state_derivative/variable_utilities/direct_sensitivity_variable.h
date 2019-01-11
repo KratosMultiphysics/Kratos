@@ -19,6 +19,12 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
+#include "includes/process_info.h"
+#include "includes/ublas_interface.h"
+#include "containers/array_1d.h"
+#include "containers/variable.h"
+
 
 
 namespace Kratos
@@ -52,9 +58,13 @@ public:
 
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
 
+    typedef Vector VectorType;
+
     typedef std::size_t IndexType;
 
     typedef std::size_t SizeType;
+
+    
 
     ///@}
     ///@name Pointer Definitions
@@ -84,24 +94,52 @@ public:
 
     virtual void FinalizeSolutionStep(){};
        
-    virtual void CalculatePseudoLoadVector(Matrix& rPseudoLoadVector, ProcessInfo& rProcessInfo);
+    virtual void CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rRHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
+
+    virtual void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
+
+    virtual void PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable);
+    
+    virtual void UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable);
 
     ///@}
 
 protected:
-    ///@name Protected member Variables
+    ///@name protected member Variables
     ///@{
 
     ModelPart& mrModelPart;
-
+    double mDelta;
      
+    ///@}
+    ///@name protected Operators
+    ///@{
+
+    ///@}
+    ///@name protected Operations
+    ///@{
+
+    ///@} 
+
 private:
-    ///@name Member Variables
+    ///@name private Member Variables
     ///@{
 
     /*std::string mSensitivityModelPartName;
     unsigned int mGradientMode;
-    double mDelta;*/
+    */
+
+    ///@}
+    ///@name private Operators
+    ///@{
+
+    ///@}
+    ///@name private Operations
+    ///@{
+    virtual Variable<double> ReadScalarDesignVariables(std::string const& rVariableName);
+
+    virtual Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName);
+    ///@} 
         
 };
 

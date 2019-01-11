@@ -18,7 +18,7 @@
 #include "utilities/openmp_utils.h"
 #include "direct_sensitivity_variable.h"
 #include "utilities/variable_utils.h"
-
+#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 
 namespace Kratos
 {
@@ -30,9 +30,9 @@ namespace Kratos
         KRATOS_TRY;
 
         //Get perturbation size
-        //const double mDelta = VariableSettings["delta"].GetDouble();
+        //mDelta = VariableSettings["delta"].GetDouble();
 
-        std::cout << "DirectSensitivityVariable wurde konstruiert!!!!!!!!!" << std::endl;
+        std::cout << "[DirectSensitivityDataVariable] :: Construction finished" << std::endl;
 
         KRATOS_CATCH("");
     }
@@ -40,6 +40,7 @@ namespace Kratos
     /// Destructor.
     DirectSensitivityVariable::~DirectSensitivityVariable()
     {
+        std::cout << "[DirectSensitivityDataVariable] :: Destruction finished" << std::endl;
     }
 
     ///@}
@@ -49,15 +50,48 @@ namespace Kratos
     void DirectSensitivityVariable::Initialize()
     {
         KRATOS_TRY;
-        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
+        
         KRATOS_CATCH("");
     }
 
       
-    void DirectSensitivityVariable::CalculatePseudoLoadVector( Matrix& rPseudoLoadVector, ProcessInfo& rProcessInfo)
+    void DirectSensitivityVariable::CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rRHS, 
+                                    Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo)
     {
-        /*KRATOS_TRY;
-        KRATOS_ERROR << "This should be implemented in the derived class." << std::endl;
-        KRATOS_CATCH("");*/
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "CalculatePseudoLoadVector should be implemented in the derived class." << std::endl;
+
+        KRATOS_CATCH("");
     }  
+
+    void DirectSensitivityVariable::CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, 
+                                    Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY;
+
+        KRATOS_ERROR << "CalculatePseudoLoadVector should be implemented in the derived class." << std::endl;
+
+        KRATOS_CATCH("");
+    }  
+
+    void DirectSensitivityVariable::PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable)
+    {
+        KRATOS_ERROR << "PerturbDesignVariable should be implemented in the derived class." << std::endl;
+    }
+    
+    void DirectSensitivityVariable::UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable)
+    {
+        KRATOS_ERROR << "UnperturbDesignVariable should be implemented in the derived class." << std::endl;
+    }
+
+    Variable<double> DirectSensitivityVariable::ReadScalarDesignVariables(std::string const& rVariableName)
+    {
+        KRATOS_ERROR << "ReadScalarDesignVariables should be implemented in the derived class." << std::endl;
+    }
+
+    Variable<array_1d<double,3>> DirectSensitivityVariable::ReadVectorDesignVariables(std::string const& rVariableName)
+    {
+        KRATOS_ERROR << "ReadVectorDesignVariables should be implemented in the derived class." << std::endl;
+    }
 }   
