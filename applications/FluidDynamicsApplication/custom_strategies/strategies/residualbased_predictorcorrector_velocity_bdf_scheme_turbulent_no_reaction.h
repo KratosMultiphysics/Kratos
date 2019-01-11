@@ -116,7 +116,11 @@ namespace Kratos {
 			:ResidualBasedPredictorCorrectorBDFSchemeTurbulent<TSparseSpace, TDenseSpace>(DomainSize, rSlipVar)
 		{
 		}
-
+        /* Constructor withou a Turbulence model and using a flag instead of a variable*/
+        ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(unsigned int DomainSize, Flags& rSlipFlag):
+            ResidualBasedPredictorCorrectorBDFSchemeTurbulent<TSparseSpace, TDenseSpace>(DomainSize, rSlipFlag)
+        {
+        }
 		/** Constructor with a turbulence model
 		*/
 		ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(unsigned int DomainSize, Process::Pointer pTurbulenceModel)

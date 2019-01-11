@@ -69,7 +69,7 @@ public:
 #endif
     }
 
-    static inline int GetSetThreads()
+    static inline int GetCurrentNumberOfThreads()
     {
         #ifdef _OPENMP
         return omp_get_num_threads();
@@ -78,7 +78,7 @@ public:
         #endif
     }
 
-    static inline int GetNumProcs()
+    static inline int GetNumberOfProcessors()
     {
         #ifdef _OPENMP
         return omp_get_num_procs();
@@ -87,7 +87,7 @@ public:
         #endif
     }
 
-    static inline int GetInParallel()
+    static inline int IstInParallel()
     {
         #ifdef _OPENMP
         return omp_in_parallel();
@@ -96,7 +96,7 @@ public:
         #endif
     }
 
-    static inline int GetDynamic()
+    static inline int IsDynamic()
     {
         #ifdef _OPENMP
         return omp_get_dynamic();
@@ -105,7 +105,7 @@ public:
         #endif
     }
 
-    static inline int GetNested()
+    static inline int IsNested()
     {
         #ifdef _OPENMP
         return omp_get_nested();

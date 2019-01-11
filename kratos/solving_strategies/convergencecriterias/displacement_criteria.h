@@ -159,7 +159,7 @@ public:
 
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
-                KRATOS_INFO("DisplacementCriteria") << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
+                KRATOS_INFO("ConvergenceCriteria") << "DISPLACEMENT CRITERION :: [ Obtained ratio = " << ratio << "; Expected ratio = " << mRatioTolerance << "; Absolute norm = " << AbsoluteNorm << "; ]" << std::endl;
             }
 
             rModelPart.GetProcessInfo()[CONVERGENCE_RATIO] = ratio;
@@ -169,7 +169,7 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    KRATOS_INFO("DisplacementCriteria") << "Convergence is achieved" << std::endl;
+                    KRATOS_INFO("ConvergenceCriteria") << "Convergence is achieved" << std::endl;
                 }
 
                 return true;
