@@ -18,6 +18,7 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
 
     def __init__(self, model, custom_settings):
 
+        
         direct_settings = KratosMultiphysics.Parameters("""
         {
             "scheme_settings" : {
@@ -34,6 +35,7 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
         # Construct the base solver.
         super(StructuralMechanicsDirectSensitivitySolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Construction finished")
+        
 
     def AddVariables(self):
         super(StructuralMechanicsDirectSensitivitySolver, self).AddVariables()
@@ -47,7 +49,7 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
 
     def PrepareModelPart(self):
         if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]!= 3):
-            raise Exception("there are currently only 3D adjoint elements available")
+            raise Exception("there are currently only 3D direct elements available")
         super(StructuralMechanicsDirectSensitivitySolver, self).PrepareModelPart()
         # TODO Why does replacement need to happen after reading materials?
         StructuralMechanicsApplication.ReplaceElementsAndConditionsForAdjointProblemProcess(self.main_model_part).Execute()
@@ -68,18 +70,14 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
         if self.direct_settings["variable_type"].GetString() == "element_data_variable":
             self.variable = StructuralMechanicsApplication.DirectSensitivityElementDataVariable(self.main_model_part, self.direct_settings)
         else:
-            raise Exception("invalid variable_type: " + self.variable_settings["variable_type"].GetString())
+            raise Exception("invalid variable_type: " + self.direct_settings["variable_type"].GetString())
 
         
         super(StructuralMechanicsDirectSensitivitySolver, self).Initialize()
 
         self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Finished initialization.")
 
-        my_variable = StructuralMechanicsApplication.DirectSensitivityVariable(self.main_model_part, self.variable_settings)
-        del my_variable
-        my_element_data_variable = StructuralMechanicsApplication.DirectSensitivityElementDataVariable(self.main_model_part, self.variable_settings)
-        del my_element_data_variable
-       
+              
     def InitializeSolutionStep(self):
         super(StructuralMechanicsDirectSensitivitySolver, self).InitializeSolutionStep()
         self.variable.InitializeSolutionStep()
