@@ -96,13 +96,22 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 
     // Computing the force residual
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
-        if (this->Is(ACTIVE)) {
-            // Getting the geometry
-            GeometryType& r_slave_geometry = this->GetGeometry();
-            GeometryType& r_master_slave_geometry = this->GetGeometry();
+        // Getting slave geometry
+        GeometryType& r_slave_geometry = this->GetGeometry();
+//         const bool is_active = this->Is(ACTIVE);
+        bool is_active = false;
+        for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
+                if (r_slave_geometry[i_master].Is(ACTIVE)) {
+                    is_active = true;
+                    break;
+                }
+        }
+        if (is_active) {
+            // Getting master geometry
+            GeometryType& r_master_geometry = this->GetGeometry();
 
             for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
-                NodeType& r_master_node = r_master_slave_geometry[i_master];
+                NodeType& r_master_node = r_master_geometry[i_master];
                 const IndexType index = TDim * i_master;
 
                 array_1d<double, 3>& r_force_residual = r_master_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
