@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 
-with open("adjoint_strain_energy_response_parameters_truss.json",'r') as parameter_file:
+with open("adjoint_strain_energy_response_parameters_single_truss.json",'r') as parameter_file:
     parameters = KratosMultiphysics.Parameters( parameter_file.read())
 
 model = KratosMultiphysics.Model()

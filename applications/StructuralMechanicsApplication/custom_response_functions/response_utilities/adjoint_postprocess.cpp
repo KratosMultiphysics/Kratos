@@ -209,7 +209,7 @@ namespace Kratos
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
         int k = 0;
-
+        int i = 0;
         for (auto& elem_i : mrModelPart.Elements())
         {
             Element::GeometryType& r_geom = elem_i.GetGeometry();
@@ -249,8 +249,11 @@ namespace Kratos
                 // Get the adjoint displacement field
                 elem_i.GetValuesVector(adjoint_vector[k]);
 
+                // TODO Mahmoud: this is modified to work for nonlinear analysis
+                // It should be modified to work for both linear and non-linear
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
-                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+                //noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] - sensitivity_matrix_last_step[i], adjoint_vector[k]);
             }
 
             if(response_gradient[k].size() > 0)
@@ -267,8 +270,10 @@ namespace Kratos
                 this->AssembleNodalSensitivityContribution(
                     rOutputVariable, sensitivity_vector[k], r_geom);
             }
-        }
 
+            sensitivity_matrix_last_step[i] = sensitivity_matrix[k];
+            i += 1;
+        }
         KRATOS_CATCH("");
     }
     template <typename TDataType>
@@ -304,6 +309,8 @@ namespace Kratos
             // contributions from the condition.
             cond_i.CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
+
+            std::cout << "condition sensitivity Matrix" << sensitivity_matrix[k] << std::endl;
 
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
@@ -383,6 +390,8 @@ namespace Kratos
             it->CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
+            std::cout << "update element sensitivity Matrix" << sensitivity_matrix[k] << std::endl;
+
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
             mrResponseFunction.CalculatePartialSensitivity(
@@ -455,6 +464,7 @@ namespace Kratos
             it->CalculateSensitivityMatrix(
                 rSensitivityVariable, sensitivity_matrix[k], r_process_info);
 
+            std::cout << "update condition sensitivity Matrix" << sensitivity_matrix[k] << std::endl;
             // This part of the sensitivity is computed from the objective
             // with primal variables treated as constant.
             mrResponseFunction.CalculatePartialSensitivity(

@@ -159,7 +159,10 @@ private:
     std::vector<std::vector<Variable<array_1d<double,3>>>> mNodalSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
-
+    
+    // TODO: remove this hard coded matrix
+    std::vector<Matrix> sensitivity_matrix_last_step = {ZeroMatrix(6,6),ZeroMatrix(6,6)};
+    
     ///@}
     ///@name Private Operators
     ///@{

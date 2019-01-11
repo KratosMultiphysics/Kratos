@@ -308,7 +308,8 @@ public:
 
         std::cout << "condition rRHS_Contribution" << rRHS_Contribution << ":" << std::endl;
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        // TODO Mahmoud: why this is negative here
+       // noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // TODO consult Mike:
         // LHS may be resized to 0,0 if the condition does not have a LHS. 
@@ -321,10 +322,8 @@ public:
 
         // Calculate system contributions in residual form.
         pCurrentCondition->GetValuesVector(mAdjointValues[thread_id]);
-        std::cout << "condition mAdjointValues[thread_id]_1 : " <<  mAdjointValues[thread_id] << ":" << std::endl;
-        std::cout << "condition rLHS_Contribution_1" << rLHS_Contribution << ":" << std::endl;
+
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
-        std::cout << "condition rRHS_Contribution_1" << rRHS_Contribution << ":" << std::endl;
 
         pCurrentCondition->EquationIdVector(rEquationId, rCurrentProcessInfo);
 

@@ -427,7 +427,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         ## run the solution loop
         # TODO Mahmoud: this leads to wrong result because calculatevalue() is called twice for the last step
         # import csv
-        # with open('response_values_perturb_node2Z_0.00001.csv', mode='w') as response_values:
+        # with open('response_values_perturb_single_truss.csv', mode='w') as response_values:
         #     self.writer = csv.writer(response_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
@@ -438,8 +438,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.OutputSolutionStep()
             self.CalculateResponseIncrement()
                 
-            #    self.writer.writerow([self.primal_analysis.time, self.response_value])
-        #response_values.close()
+        #         self.writer.writerow([self.primal_analysis.time, self.response_value])
+        # response_values.close()
 
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 

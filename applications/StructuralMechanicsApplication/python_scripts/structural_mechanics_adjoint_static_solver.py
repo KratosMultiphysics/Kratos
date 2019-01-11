@@ -83,6 +83,13 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
 
     def InitializeSolutionStep(self):
         super(StructuralMechanicsAdjointStaticSolver, self).InitializeSolutionStep()
+
+        # TODO Armin: hdf5 is reading the displacement but not updating the coordinates
+        for node in self.main_model_part.Nodes:
+            node.X = node.X0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[0]
+            node.Y = node.Y0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
+            node.Z = node.Z0 + node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[2]
+        
         self.response_function.InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -100,7 +107,6 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         
         print("Shape sensitivity node 1", self.main_model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
         print("Shape sensitivity node 2", self.main_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
-        print("Shape sensitivity node 3", self.main_model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
 
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):

@@ -300,7 +300,10 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
 {
     KRATOS_TRY;
 
-    const double delta = this->GetPerturbationSize(rDesignVariable);
+    // TODO Mahmoud: The perturbation value here changes with change in the displacement
+    // TODO: modify GetPerturbationSize() function
+    //const double delta = this->GetPerturbationSize(rDesignVariable);
+    const double delta = this->GetValue(PERTURBATION_SIZE); 
     ProcessInfo process_info = rCurrentProcessInfo;
 
     if( rDesignVariable == SHAPE )

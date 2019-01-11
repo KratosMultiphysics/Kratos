@@ -96,7 +96,7 @@ namespace Kratos
                 rNode.GetInitialPosition()[coord_dir] += rPertubationSize;
                 rNode.Coordinates()[coord_dir] += rPertubationSize;
 
-                // compute LHS after perturbation
+                // compute RHS after perturbation
                 rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
                 //compute derivative of RHS w.r.t. design variable with finite differences
