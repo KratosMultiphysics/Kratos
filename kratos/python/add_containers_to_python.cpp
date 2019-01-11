@@ -196,6 +196,7 @@ void  AddContainersToPython(pybind11::module& m)
 
     py::class_<VariableData>(m, "VariableData" )
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
+    .def("Key", &VariableData::Key)
     .def("__str__", PrintObject<VariableData>)
     ;
 

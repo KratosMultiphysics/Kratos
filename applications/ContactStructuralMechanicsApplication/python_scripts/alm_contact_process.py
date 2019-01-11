@@ -2,10 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Check that applications were imported in the main script
-KM.CheckRegisteredApplications("StructuralMechanicsApplication")
-KM.CheckRegisteredApplications("ContactStructuralMechanicsApplication")
-
 import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
@@ -72,16 +68,20 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             "integration_order"           : 2,
             "clear_inactive_for_post"     : true,
             "search_parameters" : {
-                "type_search"                 : "in_radius",
-                "adapt_search"                : false,
-                "search_factor"               : 3.5,
-                "active_check_factor"         : 0.01,
-                "max_number_results"          : 1000,
-                "bucket_size"                 : 4,
-                "dynamic_search"              : false,
-                "database_step_update"        : 1,
-                "debug_mode"                  : false,
-                "check_gap"                   : "check_mapping"
+                "type_search"                         : "in_radius",
+                "simple_search"                       : false,
+                "adapt_search"                        : false,
+                "search_factor"                       : 3.5,
+                "active_check_factor"                 : 0.01,
+                "max_number_results"                  : 1000,
+                "bucket_size"                         : 4,
+                "dynamic_search"                      : false,
+                "static_check_movement"               : false,
+                "database_step_update"                : 1,
+                "consider_gap_threshold"              : false,
+                "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
+                "check_gap"                           : "check_mapping"
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
@@ -178,6 +178,36 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         """
         # We call to the base process
         super(ALMContactProcess, self).ExecuteFinalizeSolutionStep()
+
+        # Debug we compute if the total load corresponds with the total contact force and the reactions
+        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
+            total_load = KM.Vector(3)
+            total_load[0] = 0.0
+            total_load[1] = 0.0
+            total_load[2] = 0.0
+            total_reaction = KM.Vector(3)
+            total_reaction[0] = 0.0
+            total_reaction[1] = 0.0
+            total_reaction[2] = 0.0
+            total_contact_force = 0
+
+            # Computing total load applied (I will consider only surface loads for now)
+            for cond in self.computing_model_part.Conditions:
+                geom = cond.GetGeometry()
+                if cond.Has(SMA.LINE_LOAD):
+                    total_load += geom.Length() * cond.GetValue(SMA.LINE_LOAD)
+                if cond.Has(SMA.SURFACE_LOAD):
+                    total_load += geom.Area() * cond.GetValue(SMA.SURFACE_LOAD)
+
+            for node in self.computing_model_part.Nodes:
+                if node.Has(KM.NODAL_AREA) and node.Has(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE):
+                    total_contact_force += node.GetValue(KM.NODAL_AREA) * node.GetValue(CSMA.AUGMENTED_NORMAL_CONTACT_PRESSURE)
+
+                total_reaction += node.GetSolutionStepValue(KM.REACTION)
+
+            KM.Logger.PrintWarning("TOTAL LOAD: ", "X: {:.2e}".format(total_load[0]), "\t Y: {:.2e}".format(total_load[1]), "\tZ: {:.2e}".format(total_load[2]))
+            KM.Logger.PrintWarning("TOTAL REACTION: ", "X: {:.2e}".format(total_reaction[0]), "\t Y: {:.2e}".format(total_reaction[1]), "\tZ: {:.2e}".format(total_reaction[2]))
+            KM.Logger.PrintWarning("TOTAL CONTACT FORCE: ", "{:.2e}".format(total_contact_force))
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
@@ -344,7 +374,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call the process info
         process_info = self.main_model_part.ProcessInfo
 
-        if (self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool() is False):
+        if not self.contact_settings["advance_ALM_parameters"]["manual_ALM"].GetBool():
             # Computing the scale factors or the penalty parameters (StiffnessFactor * E_mean/h_mean)
             alm_var_parameters = KM.Parameters("""{}""")
             alm_var_parameters.AddValue("stiffness_factor", self.contact_settings["advance_ALM_parameters"]["stiffness_factor"])
@@ -352,7 +382,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
             # We don't consider scale factor
-            if (self.contact_settings["advance_ALM_parameters"]["use_scale_factor"].GetBool() is False):
+            if not self.contact_settings["advance_ALM_parameters"]["use_scale_factor"].GetBool():
                 process_info[KM.SCALE_FACTOR] = 1.0
         else:
             # We set the values in the process info
@@ -360,9 +390,9 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
             process_info[KM.SCALE_FACTOR] = self.contact_settings["advance_ALM_parameters"]["scale_factor"].GetDouble()
 
         # We set a minimum value
-        if (process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon):
+        if process_info[KM.INITIAL_PENALTY] < sys.float_info.epsilon:
             process_info[KM.INITIAL_PENALTY] = 1.0e0
-        if (process_info[KM.SCALE_FACTOR] < sys.float_info.epsilon):
+        if process_info[KM.SCALE_FACTOR] < sys.float_info.epsilon:
             process_info[KM.SCALE_FACTOR] = 1.0e0
 
         # We print the parameters considered

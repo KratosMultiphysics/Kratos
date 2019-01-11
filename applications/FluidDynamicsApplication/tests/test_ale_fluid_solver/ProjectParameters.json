@@ -13,6 +13,9 @@
         "mesh_motion_solver_settings" : {
             "solver_type"         : "mesh_solver_structural_similarity"
         },
+        "mesh_velocity_calculation"   : {
+            "time_scheme" : "bdf2"
+        },
         "fluid_solver_settings" :{
             "model_part_name"             : "FluidModelPart",
             "domain_size"                 : 2,
@@ -22,8 +25,8 @@
                 "input_filename" : "ale_fluid_test"
             },
             "echo_level"                  : 0,
-            "stabilization" : {
-                "formulation": "vms"
+            "formulation" : {
+                "element_type"            : "vms"
             },
             "maximum_iterations"          : 10,
             "relative_velocity_tolerance" : 0.001,
@@ -151,7 +154,7 @@
             "Parameters" :{
                 "output_file_name"    : "cylinder_test_probe_1.dat",
                 "reference_file_name" : "cylinder_test_probe_1_ref.dat",
-                "comparison_type"     : "dat_file",
+                "comparison_type"     : "dat_file_variables_time_history",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-6
             }
@@ -163,7 +166,7 @@
             "Parameters" :{
                 "output_file_name"    : "cylinder_test_probe_2.dat",
                 "reference_file_name" : "cylinder_test_probe_2_ref.dat",
-                "comparison_type"     : "dat_file",
+                "comparison_type"     : "dat_file_variables_time_history",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-6
             }
@@ -175,7 +178,7 @@
             "Parameters" :{
                 "output_file_name"    : "cylinder_test_probe_3.dat",
                 "reference_file_name" : "cylinder_test_probe_3_ref.dat",
-                "comparison_type"     : "dat_file",
+                "comparison_type"     : "dat_file_variables_time_history",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-6
             }
@@ -187,7 +190,7 @@
             "Parameters" :{
                 "output_file_name"    : "cylinder_test_probe_4.dat",
                 "reference_file_name" : "cylinder_test_probe_4_ref.dat",
-                "comparison_type"     : "dat_file",
+                "comparison_type"     : "dat_file_variables_time_history",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-6
             }
@@ -199,7 +202,7 @@
             "Parameters" :{
                 "output_file_name"    : "FluidModelPart.NoSlip2D_cylinder_drag.dat",
                 "reference_file_name" : "FluidModelPart.NoSlip2D_cylinder_drag_ref.dat",
-                "comparison_type"     : "dat_file",
+                "comparison_type"     : "dat_file_variables_time_history",
                 "remove_output_file"    : true,
                 "tolerance"             : 1e-6
             }

@@ -26,6 +26,7 @@
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
+#include "input_output/vtk_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -74,13 +75,19 @@ void FlagsPrintOnGaussPoints( GidIO<>& dummy, Kratos::Flags rFlag, std::string r
     dummy.PrintFlagsOnGaussPoints( rFlag, rFlagName, rModelPart, SolutionTag );
 }
 
-void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
+void BoolPrintOnGaussPoints( GidIO<>& dummy, const Variable<bool>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
 }
 
 void IntPrintOnGaussPoints( GidIO<>& dummy, const Variable<int>& rVariable,
+                               ModelPart& rModelPart, double SolutionTag )
+{
+    dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
+}
+
+void DoublePrintOnGaussPoints( GidIO<>& dummy, const Variable<double>& rVariable,
                                ModelPart& rModelPart, double SolutionTag )
 {
     dummy.PrintOnGaussPoints( rVariable, rModelPart, SolutionTag );
@@ -252,8 +259,9 @@ void  AddIOToPython(pybind11::module& m)
 
 //                     .def("PrintOnGaussPoints", pointer_to_double_print_on_gauss_points)
     .def("PrintFlagsOnGaussPoints", FlagsPrintOnGaussPoints)
-    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
+    .def("PrintOnGaussPoints", BoolPrintOnGaussPoints)
     .def("PrintOnGaussPoints", IntPrintOnGaussPoints)
+    .def("PrintOnGaussPoints", DoublePrintOnGaussPoints)
     .def("PrintOnGaussPoints", Array1DPrintOnGaussPoints)
     .def("PrintOnGaussPoints", VectorPrintOnGaussPoints)
     .def("PrintOnGaussPoints", MatrixPrintOnGaussPoints)
@@ -292,6 +300,12 @@ void  AddIOToPython(pybind11::module& m)
     .value("SingleFile",SingleFile)
     .value("MultipleFiles",MultipleFiles)
     ;
+
+
+    py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
+        .def(py::init< ModelPart&, Parameters >())
+        .def("PrintOutput", &VtkOutput::PrintOutput)
+        ;
 }
 }  // namespace Python.
 
