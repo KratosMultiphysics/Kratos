@@ -56,6 +56,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.upper_surface_model_part_name=settings["upper_surface_model_part_name"].GetString()
         self.lower_surface_model_part_name=settings["lower_surface_model_part_name"].GetString()
         self.wake_line_model_part=Model.CreateModelPart("wake")
+        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         angle=math.radians(-self.geometry_parameter)
         for node in self.wake_line_model_part.Nodes:
             node.X = ox+math.cos(angle)*(node.X - ox)-math.sin(angle)*(node.Y - oy)
@@ -125,6 +126,16 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 max_x=node.X 
                 kutta_node=node
         return kutta_node
+    
+    def MarkTrailingEdgeElements(self, elem):
+        # This function marks the elements touching the trailing
+        # edge and saves them in the trailing_edge_model_part for
+        # further computations
+        for elnode in elem.GetNodes():
+            if(elnode.Is(KratosMultiphysics.STRUCTURE)):
+                elem.Set(KratosMultiphysics.STRUCTURE, True)
+                self.trailing_edge_model_part.Elements.append(elem)
+                break
         
         
     def FindWake(self):
@@ -242,9 +253,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     x0 = node.X
                     y0 = node.Y
                     for elem in self.fluid_model_part.Elements:
-                    
-                        
-        
+                        self.MarkTrailingEdgeElements(elem)                           
                         #check in the potentially active portion
                         potentially_active_portion = False
                         for elnode in elem.GetNodes():
@@ -299,8 +308,22 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                     #if elnode.Is(KratosMultiphysics.STRUCTURE):
                                         #elem.Set(KratosMultiphysics.ACTIVE,False)
                                         #elem.Set(KratosMultiphysics.MARKER,False)
-                                        
-       
+
+                #find element with the maximum X value
+                max_X_center = -1e10    
+                for element in self.trailing_edge_model_part.Elements:
+                    center_X=element.GetGeometry().Center().X
+                    if center_X>max_X_center:
+                        max_id=element.Id
+                        max_X_center=center_X
+                #only the max element of the trailing edge is considered part of the wake. 
+                for element in self.trailing_edge_model_part.Elements:
+                    if not (element.Id==max_id):
+                        element.Set(KratosMultiphysics.MARKER,False)
+                        if len(element.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))==0:
+                            element.Set(KratosMultiphysics.STRUCTURE,False)
+                    
+                    
                             
             else: #3D case
                 print("3D wake")

@@ -32,6 +32,7 @@
 #include "custom_elements/incompressible_adjoint_potential_flow_element.h"
 #include "custom_elements/incompressible_potential_flow_element_stresses.h"
 #include "custom_elements/incompressible_potential_flow_element_alpha.h"
+#include "custom_elements/incompressible_potential_flow_element_full.h"
 #include "custom_elements/incompressible_potential_flow_element_alpha_full.h"
 #include "custom_elements/incompressible_potential_flow_element_stresses_mix.h"
 #include "custom_conditions/compressible_potential_wall_condition.h"
@@ -192,6 +193,7 @@ private:
 	///@name Member Variables
 	///@{
 		const IncompressiblePotentialFlowElement<2,3> mIncompressiblePotentialFlowElement2D3N;
+		const IncompressibleFullPotentialFlowElement<2,3> mIncompressibleFullPotentialFlowElement2D3N;
 		const IncompressibleAdjointPotentialFlowElement<2,3> mIncompressibleAdjointPotentialFlowElement2D3N;
 		const IncompressibleStressesPotentialFlowElement<2,3> mIncompressibleStressesPotentialFlowElement2D3N;
 		const IncompressibleAlphaPotentialFlowElement<2,3> mIncompressibleAlphaPotentialFlowElement2D3N;

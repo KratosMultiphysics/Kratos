@@ -30,6 +30,7 @@ namespace Kratos {
 KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowApplication():
     KratosApplication("CompressiblePotentialFlowApplication"),
     mIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+    mIncompressibleFullPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressibleStressesPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressibleAlphaPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
     mIncompressibleAlphaFullPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
@@ -67,6 +68,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
 
         //Register elements
         KRATOS_REGISTER_ELEMENT("IncompressiblePotentialFlowElement2D3N",mIncompressiblePotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
+        KRATOS_REGISTER_ELEMENT("IncompressibleFullPotentialFlowElement2D3N",mIncompressibleFullPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleAdjointPotentialFlowElement2D3N",mIncompressibleAdjointPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleStressesPotentialFlowElement2D3N",mIncompressibleStressesPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention
         KRATOS_REGISTER_ELEMENT("IncompressibleAlphaPotentialFlowElement2D3N",mIncompressibleAlphaPotentialFlowElement2D3N); //this is the name the element should have according to the naming convention

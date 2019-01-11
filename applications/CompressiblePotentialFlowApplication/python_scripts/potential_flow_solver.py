@@ -69,10 +69,10 @@ class PotentialSolver(PythonSolver):
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2.0)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,100.0)# alpha penalty
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2)#n_parameter
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)# alpha penalty
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,3)#geometry angle
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
         
@@ -171,6 +171,16 @@ class PotentialSolver(PythonSolver):
                         """)
                 else:
                     raise Exception("Domain size is not 2 or 3!!")
+            elif (self.settings["problem_type"].GetString() == "incompressible_full"):
+                if(self.domain_size == 2):
+                    self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
+                        {
+                        "element_name":"IncompressibleFullPotentialFlowElement2D3N",
+                        "condition_name": "IncompressiblePotentialWallCondition2D2N"
+                        }
+                        """)
+                else:
+                    raise Exception("Domain size is not 2!!")
             elif (self.settings["problem_type"].GetString() == "compressible"):
                 if(self.domain_size == 3):
                     self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
