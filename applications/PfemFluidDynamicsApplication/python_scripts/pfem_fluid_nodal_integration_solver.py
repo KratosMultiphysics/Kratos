@@ -6,9 +6,6 @@ import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
 import pfem_fluid_solver as BaseSolver
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return PfemFluidNodalIntegrationSolver(main_model_part, custom_settings)
 
