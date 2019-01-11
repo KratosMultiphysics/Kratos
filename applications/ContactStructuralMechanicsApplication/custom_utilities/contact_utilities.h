@@ -97,21 +97,21 @@ public:
     
     /**
      * @brief This function computes the relative size of the mesh
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateRelativeSizeMesh(ModelPart& rThisModelPart)
+    static inline double CalculateRelativeSizeMesh(ModelPart& rModelPart)
     {
-        return CalculateMaxNodalH(rThisModelPart)/CalculateMinimalNodalH(rThisModelPart);
+        return CalculateMaxNodalH(rModelPart)/CalculateMinimalNodalH(rModelPart);
     }
 
     /**
      * @brief This method computes the maximal nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMaxNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMaxNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the max auxiliar value
@@ -147,12 +147,12 @@ public:
 
     /**
      * @brief This method computes the mean nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMeanNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMeanNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
         // Creating the sum auxiliar value
@@ -170,12 +170,12 @@ public:
 
     /**
      * @brief This method computes the minimal nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMinimalNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMinimalNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the min auxiliar value
@@ -242,12 +242,12 @@ public:
     
     /**
      * @brief It calculates the center updated in u_n+1 or u_n+1/2
-     * @param rThisModelPart The modelpart to update
+     * @param rModelPart The modelpart to update
      * @param DeltaTime The increment of time considered
      * @param HalfJump If the jumpt is just half dt
      */
     static inline void ComputeStepJump(
-        ModelPart& rThisModelPart,
+        ModelPart& rModelPart,
         const double DeltaTime,
         const bool HalfJump = true
         )
@@ -257,7 +257,7 @@ public:
         const double acceleration_constant = HalfJump ? 0.125 : 0.5;
 
         // Iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
 
         // Node iterator
         const auto it_node_begin = r_nodes_array.begin();
@@ -275,6 +275,50 @@ public:
             if (it_node->IsFixed(DISPLACEMENT_Y)) new_delta_disp[1] = 0.0;
             if (it_node->IsFixed(DISPLACEMENT_Z)) new_delta_disp[2] = 0.0;
             it_node->SetValue(DELTA_COORDINATES, new_delta_disp);
+        }
+    }
+
+    /**
+     * @brief It checks the activity of the current contact simulation
+     * @param rModelPart The modelpart to update
+     */
+    static inline void CheckActivity(ModelPart& rModelPart)
+    {
+        // Iterate over the nodes
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
+
+        // Node iterator
+        const auto it_node_begin = r_nodes_array.begin();
+
+        // We compute the half jump
+        IndexType aux_check = 0;
+        #pragma omp parallel for reduction(+:aux_check)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
+            auto it_node = it_node_begin + i;
+            if (it_node->Is(SLAVE)) {
+                if (it_node->Is(ACTIVE)) {
+                    aux_check += 1;
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF(aux_check == 0) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+    }
+
+    /**
+     * @brief It computes the explicit contributions of the conditions
+     * @param rModelPart The modelpart to update
+     */
+    static inline void ComputeExplicitContributionConditions(ModelPart& rModelPart)
+    {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+        const auto it_cond_begin = r_conditions_array.begin();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            it_cond->AddExplicitContribution(r_process_info);
         }
     }
     
