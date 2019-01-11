@@ -7,7 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Aditya Ghantasala
 //
 
 
@@ -19,9 +19,7 @@
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -71,7 +69,6 @@ public:
 	/// Destructor.
 	virtual ~KratosCoSimulationApplication() override {}
 
-
 	///@}
 	///@name Operators
 	///@{
@@ -81,7 +78,9 @@ public:
 	///@name Operations
 	///@{
 	///@{
-  		void Register() override;
+
+	void Register() override;
+
 	///@}
 	///@name Access
 	///@{
@@ -113,7 +112,6 @@ public:
 			KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
 			KratosApplication::PrintData(rOStream);
     }
-
 
 	///@}
 	///@name Friends
@@ -163,7 +161,6 @@ private:
 	///@name Static Member Variables
 	///@{
 
-	// static const ApplicationCondition  msApplicationCondition;
 
 	///@}
 	///@name Member Variables
@@ -199,7 +196,6 @@ private:
 	/// Copy constructor.
 	KratosCoSimulationApplication(KratosCoSimulationApplication const& rOther);
 
-
 	///@}
 
 }; // Class KratosCoSimulationApplication
@@ -216,7 +212,6 @@ private:
 ///@{
 
 ///@}
-
 
 }  // namespace Kratos.
 
