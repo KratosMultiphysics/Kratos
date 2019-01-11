@@ -17,7 +17,7 @@
 /* Mortar includes */
 #include "custom_conditions/penalty_frictional_mortar_contact_condition.h"
 
-namespace Kratos 
+namespace Kratos
 {
 /************************************* OPERATIONS **********************************/
 /***********************************************************************************/
@@ -379,13 +379,16 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
     // Computing the force residual
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
         for (IndexType i = 0; i < TNumNodes; ++i) {
-            const IndexType index = TDim * i;
+            NodeType& r_node = r_geometry[i];
+            if (r_node.Is(ACTIVE)) {
+                const IndexType index = TDim * i;
 
-            array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+                array_1d<double, 3>& r_force_residual = r_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-            for (IndexType j = 0; j < TDim; ++j) {
-                #pragma omp atomic
-                r_force_residual[j] += rRHSVector[index + j];
+                for (IndexType j = 0; j < TDim; ++j) {
+                    #pragma omp atomic
+                    r_force_residual[j] += rRHSVector[index + j];
+                }
             }
         }
     }
@@ -412,20 +415,20 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& CurrentProcessInfo 
+    ProcessInfo& CurrentProcessInfo
     )
 {
-    KRATOS_TRY;   
-    
+    KRATOS_TRY;
+
     if (rResult.size() != MatrixSize)
         rResult.resize( MatrixSize, false );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE ] */
     GeometryType& r_geometry = this->GetGeometry();
     GeometryType& r_current_master = this->GetPairedGeometry();
-    
+
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodes; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
         NodeType& r_master_node = r_current_master[i_master];
@@ -451,16 +454,16 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
 template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster>
 void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariation, TNumNodesMaster>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo 
+    ProcessInfo& rCurrentProcessInfo
 )
 {
     KRATOS_TRY;
-    
+
     if (rConditionalDofList.size() != MatrixSize)
         rConditionalDofList.resize( MatrixSize );
-    
+
     IndexType index = 0;
-    
+
     /* ORDER - [ MASTER, SLAVE ] */
     GeometryType& r_geometry = this->GetGeometry();
     GeometryType& r_current_master = this->GetPairedGeometry();
@@ -480,7 +483,7 @@ void PenaltyMethodFrictionalMortarContactCondition<TDim,TNumNodes,TNormalVariati
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
     }
-    
+
     KRATOS_CATCH( "" );
 }
 
