@@ -546,7 +546,7 @@ def ImportApplications(kernel, applications_path=application_directory):
         print("importing KratosSolversApplication ...")
         sys.path.append(applications_path + '/Solvers/Linux')
         from KratosSolversApplication import *
-        pet_sc_application = KratosSolversApplication()
+        solvers_application = KratosSolversApplication()
         kernel.ImportApplication(solvers_application)
         print("KratosSolversApplication Succesfully imported")
 
