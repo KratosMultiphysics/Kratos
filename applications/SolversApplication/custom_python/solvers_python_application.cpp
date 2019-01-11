@@ -14,6 +14,7 @@
 // External includes
 
 // Project includes
+#include "custom_python/add_custom_linear_solvers_to_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -37,6 +38,7 @@ PYBIND11_MODULE(KratosSolversApplication,m)
       .def(py::init<>())
       ;
 
+  AddCustomLinearSolversToPython(m);
   AddCustomStrategiesToPython(m);
   AddCustomProcessesToPython(m);
   AddCustomUtilitiesToPython(m);

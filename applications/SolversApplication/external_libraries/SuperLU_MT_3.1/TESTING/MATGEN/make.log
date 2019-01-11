@@ -1,0 +1,151 @@
+	cc -D_CRAY -O3 -DUpCase -c dlatms.c
+cc-324 cc: ERROR dlatms.c, Line = 6, File = ./Cnames.h, Line = 191
+  A "#endif" directive is missing from the source file.
+cc-106 cc: WARNING dlatms.c, Line = 6, File = ./f2c.h, Line = 17
+  The declaration of "endif" has no type specifier.
+cc-633 cc: ERROR dlatms.c, Line = 6, File = ./f2c.h, Line = 17
+  The token "typedef" appears where a semicolon is expected.
+cc-633 cc: ERROR File = dlatms.c, Line = 10
+  The token "c__1" appears where a semicolon is expected.
+cc-500 cc: ERROR File = dlatms.c, Line = 16
+  A "," or ")" does not appear after a function parameter.
+cc-500 cc: ERROR File = dlatms.c, Line = 16
+  A "," or ")" does not appear after a function parameter.
+cc-521 cc: ERROR File = dlatms.c, Line = 16
+  The identifier "integer" is used more than once in a function declarator.
+cc-500 cc: ERROR File = dlatms.c, Line = 16
+  A "," or ")" does not appear after a function parameter.
+cc-521 cc: ERROR File = dlatms.c, Line = 16
+  The identifier "*" is used more than once in a function declarator.
+cc-500 cc: ERROR File = dlatms.c, Line = 16
+  A "," or ")" does not appear after a function parameter.
+cc-501 cc: ERROR File = dlatms.c, Line = 16
+  An identifier is expected to follow a ","; "char" appears instead.
+cc-455 cc: ERROR File = dlatms.c, Line = 22
+  The identifier "a_dim1" is used improperly within an expression.
+cc-476 cc: ERROR File = dlatms.c, Line = 23
+  The identifier "doublereal" designates neither an object nor a function.
+cc-476 cc: ERROR File = dlatms.c, Line = 24
+  The identifier "logical" designates neither an object nor a function.
+cc-518 cc: ERROR File = dlatms.c, Line = 27
+  At the beginning of a statement, "double" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 31
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 33
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 35
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 37
+  At the beginning of a statement, "extern" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 40
+  At the beginning of a statement, "extern" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 42
+  At the beginning of a statement, "extern" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 45
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 48
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 52
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 54
+  At the beginning of a statement, "extern" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 63
+  At the beginning of a statement, "static" is not valid.
+cc-518 cc: ERROR File = dlatms.c, Line = 65
+  At the beginning of a statement, "static" is not valid.
+cc-478 cc: ERROR File = dlatms.c, Line = 331
+  The identifier "d" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 332
+  The identifier "a_dim1" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 332
+  The identifier "lda" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 333
+  The identifier "a_offset" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 334
+  The identifier "a" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 335
+  The identifier "work" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 338
+  The identifier "info" is not declared.
+cc-591 cc: ERROR File = dlatms.c, Line = 338
+  The lvalue of an assignment must designate an object.
+cc-511 cc: ERROR File = dlatms.c, Line = 342
+  The operand of the unary "*" operator is not type "pointer to".
+cc-478 cc: ERROR File = dlatms.c, Line = 348
+  The identifier "dist" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 349
+  The identifier "idist" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 351
+  The identifier "idist" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 353
+  The identifier "idist" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 355
+  The identifier "idist" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 360
+  The identifier "sym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 361
+  The identifier "isym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 362
+  The identifier "irsign" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 364
+  The identifier "isym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 365
+  The identifier "irsign" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 367
+  The identifier "isym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 368
+  The identifier "irsign" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 370
+  The identifier "isym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 371
+  The identifier "irsign" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 373
+  The identifier "isym" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 378
+  The identifier "isympk" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 379
+  The identifier "pack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 380
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 382
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 385
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 388
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 391
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 394
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 397
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 400
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 402
+  The identifier "ipack" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 407
+  The identifier "mnmin" is not declared.
+cc-511 cc: ERROR File = dlatms.c, Line = 407
+  The operand of the unary "*" operator is not type "pointer to".
+cc-458 cc: ERROR File = dlatms.c, Line = 407
+  A relational operator "<=" is used improperly within an expression.
+cc-478 cc: ERROR File = dlatms.c, Line = 409
+  The identifier "i__1" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 409
+  The identifier "kl" is not declared.
+cc-478 cc: ERROR File = dlatms.c, Line = 409
+  The identifier "i__2" is not declared.
+cc-511 cc: ERROR File = dlatms.c, Line = 409
+  The operand of the unary "*" operator is not type "pointer to".
+cc-478 cc: ERROR File = dlatms.c, Line = 410
+  The identifier "llb" is not declared.
+cc-172 cc: WARNING File = dlatms.c, Line = 410
+  No code is generated for a superfluous expression.
+cc-172 cc: WARNING File = dlatms.c, Line = 410
+  No code is generated for a superfluous expression.
+cc-478 cc: ERROR File = dlatms.c, Line = 412
+  The identifier "ku" is not declared.
+cc-958 cc: LIMIT File = dlatms.c, Line = 412
+  The compilation is aborted due to the number of errors.
+Make: "cc -D_CRAY -O3 -DUpCase -c dlatms.c": Error code 1
+cmd-2436 make: Stop.

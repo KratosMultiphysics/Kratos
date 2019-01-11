@@ -1,0 +1,49 @@
+
+This directory contains sample programs to illustrate how to use
+various functions provded in SuperLU_MT. The users can modify these templates
+to suit their applications. The command line option "nprocs" indicates the 
+number of processes to be used. If this option is not provided at the 
+command line, the programs will run on a single processor.
+
+1. To run example calling simple driver xGSSV:
+        % pslinsol -p [nprocs] < big.rua
+        % pdlinsol -p [nprocs] < big.rua
+        % pclinsol -p [nprocs] < cmat
+        % pzlinsol -p [nprocs] < cmat
+
+2. To run example calling expert driver xGSSVX: 
+	% pslinsolx -p [nprocs] < big.rua
+	% pdlinsolx -p [nprocs] < big.rua
+	% pclinsolx -p [nprocs] < cmat
+	% pzlinsolx -p [nprocs] < cmat
+
+3. To run example calling expert driver xGSSVX to solve systems repeatedly
+   with the same sparsity pattern:
+	% pslinsolx1 -p [nprocs] < big.rua
+	% pdlinsolx1 -p [nprocs] < big.rua
+	% pclinsolx1 -p [nprocs] < cmat
+	% pzlinsolx1 -p [nprocs] < cmat
+
+4. To run example that uses the symmetric mode:
+	% pslinsolx2 -p [nprocs] < big.rua
+	% pdlinsolx2 -p [nprocs] < big.rua
+	% pclinsolx2 -p [nprocs] < cmat
+	% pzlinsolx2 -p [nprocs] < cmat
+
+5. To run example that performs repeated factorizations for the matrix
+   with the same sparsity pattern:
+	% psrepeat -p [nprocs] < big.rua
+	% pdrepeat -p [nprocs] < big.rua
+	% pcrepeat -p [nprocs] < cmat
+	% pzrepeat -p [nprocs] < cmat
+
+6. To run example that integrates with other multithreaded application,
+   but threads are created only once:
+	% psspmd -p [nprocs] < big.rua
+	% pdspmd -p [nprocs] < big.rua
+	% pcspmd -p [nprocs] < cmat
+	% pzspmd -p [nprocs] < cmat
+
+7. To use Fortran interface, do the following:
+        1) make f77exm
+    	2) f77exm -p [nprocs] < g10

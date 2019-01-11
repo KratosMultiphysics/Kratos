@@ -1,0 +1,65 @@
+############################################################################
+#
+#  Program:         SuperLU_MT
+#
+#  Module:          make.inc
+#
+#  Purpose:         Top-level Definitions
+#
+#  Creation date:   August 15, 1997
+#
+#  Modified:	    September 1, 1999 version 1.0
+#
+############################################################################
+#
+#  The machine (platform) identifier to append to the library names
+#
+PLAT = _dec
+
+#
+#  The name of the libraries to be created/linked to
+#
+TMGLIB       = tmglib$(PLAT).a
+SUPERLULIB   = libsuperlu_mt$(PLAT).a
+BLASDEF	     = -DUSE_VENDOR_BLAS
+BLASLIB      = -ldxml
+MATHLIB	     = -lm
+MPLIB        = -threads
+
+#
+#  The archiver and the flag(s) to use when building archive (library)
+#  If your system has no ranlib, set RANLIB = echo.
+#
+ARCH         = ar
+ARCHFLAGS    = cr
+RANLIB       = ranlib
+
+############################################################################
+# Definitions used by CPP:
+PREDEFS      = -D__DEC
+#
+CC           = cc
+CFLAGS       = $(PREDEFS) -migrate -O5 -tune ev5 -ansi_alias -fp_reorder
+#
+# There are a few files that should NOT be optimized, which appear in the
+# end of SRC/Makefile, taking the flag $(NOOPTS)
+# NOOPTS should be defined to explicitly turn off any optimization.
+NOOPTS	 = -O0
+
+############################################################################
+
+LOADER       = cc
+LOADOPTS     = -migrate -O5
+
+############################################################################
+
+FORTRAN	     = f77
+FFLAGS	     = -O5 -tune ev5 -fast -ur=2
+FLIBS	     = -lfor
+PROFFLAG     = #-p -non_shared
+
+############################################################################
+#
+#  C preprocessor defs for compilation (-DNoChange, -DAdd_, or -DUpCase)
+#
+CDEFS        = -DAdd_
