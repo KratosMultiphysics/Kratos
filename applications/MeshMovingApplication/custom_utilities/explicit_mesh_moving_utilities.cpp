@@ -59,8 +59,11 @@ namespace Kratos
         // Copy the origin model part nodes
         auto &r_nodes_array = rOriginModelPart.NodesArray();
         for(auto &it_node : r_nodes_array){
-            // Create a copy of the origin model part node
+            // Create a copy of the origin model part node and add DOFs
             auto p_node = mrVirtualModelPart.CreateNewNode(it_node->Id(),*it_node, 0);
+            p_node->pAddDof(MESH_DISPLACEMENT_X);
+            p_node->pAddDof(MESH_DISPLACEMENT_Y);
+            p_node->pAddDof(MESH_DISPLACEMENT_Z);
         }
 
         // Copy the origin model part elements
@@ -193,8 +196,8 @@ namespace Kratos
 
     void ExplicitMeshMovingUtilities::ComputeMeshDisplacement(
         const VectorResultNodesContainerType &rSearchResults,
-        const DistanceVectorContainerType &rSearchDistanceResults){
-
+        const DistanceVectorContainerType &rSearchDistanceResults)
+    {
         #pragma omp parallel for
         for(int i_fl = 0; i_fl < static_cast<int>(mrVirtualModelPart.NumberOfNodes()); ++i_fl){
             // Get auxiliar current fluid node info.
