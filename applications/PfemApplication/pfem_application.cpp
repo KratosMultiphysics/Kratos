@@ -41,11 +41,11 @@ namespace Kratos
 
     std::stringstream banner;
 
-    banner << "            ___  __                      \n"
-           << "    KRATOS | _ \\/ _|___ _ __             \n"
-           << "           |  _/  _/ -_) '  \\            \n"
-           << "           |_| |_| \\___|_|_|_|APPLICATION\n"
-           << "Initialize KratosPfemApplication...      " << std::endl;
+    banner << "            ___  __                       \n"
+           << "    KRATOS | _ \\/ _|___ _ __              \n"
+           << "           |  _/  _/ -_) '  \\             \n"
+           << "           |_| |_| \\___|_|_|_| APPLICATION\n"
+           << "Initialize KratosPfemApplication...       " << std::endl;
 
     // mpi initialization
     int mpi_is_initialized = 0;
