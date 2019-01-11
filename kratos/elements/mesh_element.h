@@ -53,13 +53,13 @@ public:
 
     /// We define the base class Element
     typedef Element BaseType;
-    
+
     /// Dfinition of the index type
     typedef BaseType::IndexType IndexType;
 
     /// Definition of the size type
     typedef BaseType::SizeType SizeType;
-    
+
     /// Definition of the node type
     typedef BaseType::NodeType NodeType;
 
@@ -71,10 +71,10 @@ public:
 
     /// Definition of nodes container type, redefined from GeometryType
     typedef BaseType::NodesArrayType NodesArrayType;
-    
+
     /// Counted pointer of MeshElement
     KRATOS_CLASS_POINTER_DEFINITION( MeshElement);
-    
+
     ///@}
 
 public:
@@ -94,7 +94,7 @@ public:
      * @param rThisNodes The array of nodes that will define the geometry that will define the element
      */
     MeshElement(
-        IndexType NewId, 
+        IndexType NewId,
         const NodesArrayType& rThisNodes
         );
 
@@ -104,7 +104,7 @@ public:
      * @param pGeometry The pointer to the geometry that will define the element
      */
     MeshElement(
-        IndexType NewId, 
+        IndexType NewId,
         GeometryType::Pointer pGeometry
         );
 
@@ -115,8 +115,8 @@ public:
      * @param pProperties The pointer to the properties that will define the behaviour of the element
      */
     MeshElement(
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry, 
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties
         );
 
@@ -136,7 +136,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-   
+
     /**
      * @brief Creates a new element pointer
      * @param NewId the ID of the new element
@@ -145,7 +145,7 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Create(
-        IndexType NewId, 
+        IndexType NewId,
         NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override;
@@ -171,14 +171,59 @@ public:
      * @return a Pointer to the new element
      */
     Element::Pointer Clone (
-        IndexType NewId, 
+        IndexType NewId,
         NodesArrayType const& ThisNodes
         ) const override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const MatrixType& rLHSMatrix,
+        const Variable<MatrixType>& rLHSVariable,
+        Variable<Matrix>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
 
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -199,7 +244,7 @@ public:
     {
         pGetGeometry()->PrintData(rOStream);
     }
-        
+
     ///@}
 
 private:
@@ -211,7 +256,7 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-        
+
     ///@}
 
 }; // Class MeshElement
