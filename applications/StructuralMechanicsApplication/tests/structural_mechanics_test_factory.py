@@ -144,6 +144,9 @@ class SprismMembranePatchTests(StructuralMechanicsTestFactory):
 class SprismBendingPatchTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
+class ExplicitSolidBeam(StructuralMechanicsTestFactory):
+    file_name = "explicit_tests/explicit_solid_beam_test"
+
 class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 

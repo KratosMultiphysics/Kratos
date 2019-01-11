@@ -213,7 +213,7 @@ public:
         KRATOS_TRY
         
         // Auxiliar zero array
-        const array_1d<double, 3> zero_array(3, 0.0);
+        const array_1d<double, 3> zero_array = ZeroVector(3);
 
         // Set to zero the weighted gap
         ModelPart& r_model_part = StrategyBaseType::GetModelPart();
