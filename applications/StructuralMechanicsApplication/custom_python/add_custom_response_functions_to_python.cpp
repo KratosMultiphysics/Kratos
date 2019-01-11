@@ -87,8 +87,8 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, Parameters>())
         .def("Initialize", &DirectSensitivityVariable::Initialize)
         .def("InitializeSolutionStep", &DirectSensitivityVariable::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &DirectSensitivityVariable::FinalizeSolutionStep)
-        .def("CalculatePseudoLoadVector", &DirectSensitivityVariable::CalculatePseudoLoadVector);
+        .def("FinalizeSolutionStep", &DirectSensitivityVariable::FinalizeSolutionStep);
+        
 
     py::class_<DirectSensitivityElementDataVariable, DirectSensitivityElementDataVariable::Pointer, DirectSensitivityVariable>
         (m, "DirectSensitivityElementDataVariable")
