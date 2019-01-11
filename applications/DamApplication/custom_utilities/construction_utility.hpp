@@ -725,12 +725,12 @@ class ConstructionUtility
         const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Noorzai Values
-        double density = NoorzaiParameters["density"].GetDouble();
-        double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
-        double alpha = NoorzaiParameters["alpha"].GetDouble();
-        double t_max = NoorzaiParameters["t_max"].GetDouble();
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
-        double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+        const double density = NoorzaiParameters["density"].GetDouble();
+        const double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
+        const double alpha = NoorzaiParameters["alpha"].GetDouble();
+        const double t_max = NoorzaiParameters["t_max"].GetDouble();
+        const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
