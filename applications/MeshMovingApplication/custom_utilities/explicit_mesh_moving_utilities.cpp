@@ -20,10 +20,12 @@
 #include "explicit_mesh_moving_utilities.h"
 
 // Project includes
+#include "includes/mesh_moving_variables.h"
 #include "spatial_containers/spatial_containers.h"
+#include "utilities/variable_utils.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/spatial_containers_configure.h"
-#include "includes/mesh_moving_variables.h"
+#include "custom_utilities/mesh_velocity_calculation.h"
 
 namespace Kratos
 {
@@ -34,9 +36,9 @@ namespace Kratos
         ModelPart &rStructureModelPart,
         const double SearchRadius) :
         mSearchRadius(SearchRadius),
-        mpOriginModelPart(nullptr),
         mrVirtualModelPart(rVirtualModelPart),
-        mrStructureModelPart(rStructureModelPart)
+        mrStructureModelPart(rStructureModelPart),
+        mpOriginModelPart(nullptr)
     {
         if (mrStructureModelPart.GetBufferSize() < 2) {
             (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
@@ -88,15 +90,16 @@ namespace Kratos
             << "Origin and virtual model part have different number of elements.";
     }
 
-    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime){
-
-        const int time_order = 1;
+    void ExplicitMeshMovingUtilities::ComputeExplicitMeshMovement(const double DeltaTime)
+    {
         VectorResultNodesContainerType search_results;
         DistanceVectorContainerType search_distance_results;
 
         SearchStructureNodes(search_results, search_distance_results);
         ComputeMeshDisplacement(search_results, search_distance_results);
-        MoveMeshUtilities::CalculateMeshVelocities(mrVirtualModelPart, time_order, DeltaTime);
+        TimeDiscretization::BDF1 time_disc_BDF1;
+        mrVirtualModelPart.GetProcessInfo()[DELTA_TIME] = DeltaTime;
+        MeshVelocityCalculation::CalculateMeshVelocities(mrVirtualModelPart, time_disc_BDF1);
         MoveMeshUtilities::MoveMesh(mrVirtualModelPart.Nodes());
 
         // Check that the moved virtual mesh has no negative Jacobian elements
@@ -104,10 +107,10 @@ namespace Kratos
             KRATOS_ERROR_IF((it_elem->GetGeometry()).Area() < 0.0) << "Element " << it_elem->Id() << " in virtual model part has negative jacobian." << std::endl;
     }
 
-    void ExplicitMeshMovingUtilities::UndoMeshMovement(){
-
+    void ExplicitMeshMovingUtilities::UndoMeshMovement()
+    {
         auto &r_nodes = mrVirtualModelPart.Nodes();
-        MoveMeshUtilities::SetMeshToInitialConfiguration(r_nodes);
+        VariableUtils().UpdateCurrentToInitialConfiguration(r_nodes);
     }
 
     template <unsigned int TDim>
