@@ -1,5 +1,5 @@
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.SolversApplication as KratosSolver
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -22,7 +22,7 @@ class PrintEigenvaluesProcess(KratosMultiphysics.Process):
 
         KratosMultiphysics.Process.__init__(self)
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.variable = getattr(KratosSolid, settings["variable_name"].GetString())
+        self.variable = getattr(KratosSolver, settings["variable_name"].GetString())
 
     def ExecuteFinalizeSolutionStep(self):
 

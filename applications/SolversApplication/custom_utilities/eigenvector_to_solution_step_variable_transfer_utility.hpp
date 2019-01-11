@@ -1,26 +1,24 @@
 //
-//   Project Name:        KratosSolidMechanicsApplication $
-//   Created by:          $Author:   michael.andre@tum.de $
-//   Last modified by:    $Co-Author:                     $
-//   Date:                $Date:           September 2016 $
-//   Revision:            $Revision:                  0.0 $
+//   Project Name:        KratosSolversApplication $
+//   Created by:          $Author:     JMCarbonell $
+//   Last modified by:    $Co-Author:              $
+//   Date:                $Date:      January 2019 $
+//   Revision:            $Revision:           0.0 $
 //
 //
 
-#if !defined(KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY)
-#define  KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY
+#if !defined(KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY_H_INCLUDED)
+#define  KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY_H_INCLUDED
 
 // System includes
-//#include <iterator>
 
 // External includes
 
 // Project includes
-//#include "includes/define.h"
 #include "includes/model_part.h"
 
 // Application includes
-#include "solid_mechanics_application_variables.h"
+#include "solvers_application_variables.h"
 
 namespace Kratos {
 
@@ -172,4 +170,4 @@ private:
 
 }
  // namespace Kratos
-#endif  // KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY defined
+#endif  // KRATOS_EIGENVECTOR_TO_SOLUTION_STEP_VARIABLE_TRANSFER_UTILITY_H_INCLUDED defined

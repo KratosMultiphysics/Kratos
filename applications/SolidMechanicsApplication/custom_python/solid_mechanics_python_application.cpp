@@ -45,6 +45,16 @@ PYBIND11_MODULE(KratosSolidMechanicsApplication,m)
 
   //registering variables in python ( if must to be seen from python )
 
+  // time settings
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, MESHING_STEP_TIME )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONTACT_STEP_TIME )
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, RESTART_STEP_TIME )
+
+  // implicit solver
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVERGENCE_ACHIEVED)
+
+  // eigenvalue solver
+  KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, EIGENVALUE_VECTOR)
 
   // For integration schemes
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_TIME_CHANGED )

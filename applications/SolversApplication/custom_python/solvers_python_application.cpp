@@ -16,7 +16,7 @@
 // Project includes
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_python/add_custom_linear_solvers_to_python.h"
+#include "custom_python/add_custom_utilities_to_python.h"
 
 #include "solvers_application_variables.h"
 #include "solvers_application.h"
@@ -39,7 +39,7 @@ PYBIND11_MODULE(KratosSolversApplication,m)
 
   AddCustomStrategiesToPython(m);
   AddCustomProcessesToPython(m);
-  AddCustomLinearSolversToPython(m);
+  AddCustomUtilitiesToPython(m);
 
   // Register python variables:
 

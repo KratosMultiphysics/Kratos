@@ -425,11 +425,11 @@ class SolutionScheme : public Flags
 
    if( mOptions.Is(LocalFlagType::INCREMENTAL_SOLUTION) ){
      //AddSolution(rModelPart,rDofSet,rDx);  //dof = incremental variable
-     mpSolutionUpdater->AddSolution(rDofSet,rDx);
+     mpDofUpdater->AddSolution(rDofSet,rDx);
    }
    else{
      //SetSolution(rModelPart,rDofSet,rDx);  //dof = total variable
-     mpSolutionUpdater->SetSolution(rDofSet,rDx);
+     mpDofUpdater->SetSolution(rDofSet,rDx);
    }
 
     KRATOS_CATCH("")
@@ -563,7 +563,7 @@ class SolutionScheme : public Flags
    */
   virtual void Clear()
   {
-    this->mpSolutionUpdater->Clear();
+    this->mpDofUpdater->Clear();
   }
 
   /**
@@ -940,7 +940,7 @@ class SolutionScheme : public Flags
   ///@name Member Variables
   ///@{
 
-  typename TSparseSpace::SolutionUpdaterPointerType mpSolutionUpdater = TSparseSpace::CreateSolutionUpdater();
+  typename TSparseSpace::DofUpdaterPointerType mpDofUpdater = TSparseSpace::CreateDofUpdater();
 
   ///@}
   ///@name Private Operators
