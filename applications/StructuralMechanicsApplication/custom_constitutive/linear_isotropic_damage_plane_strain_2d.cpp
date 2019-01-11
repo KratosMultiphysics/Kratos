@@ -23,11 +23,12 @@ LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D()
 
 //********************************COPY CONSTRUCTOR************************************
 //************************************************************************************
+
 LinearIsotropicDamagePlaneStrain2D::LinearIsotropicDamagePlaneStrain2D(
-    const LinearIsotropicDamagePlaneStrain2D &rOther)
-    : LinearIsotropicDamage3D(rOther)
-{
-}
+    const LinearIsotropicDamagePlaneStrain2D &rOther) = default;
+//    : LinearIsotropicDamage3D(rOther)
+//{
+//}
 
 //********************************CLONE***********************************************
 //************************************************************************************
@@ -45,10 +46,7 @@ LinearIsotropicDamagePlaneStrain2D::~LinearIsotropicDamagePlaneStrain2D() = defa
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamagePlaneStrain2D::CalculateConstitutiveMatrix(
-    Matrix &rConstitTensor,
-    const Properties &rMaterialProperties
-    )
+void LinearIsotropicDamagePlaneStrain2D::CalculateConstitutiveMatrix(const Properties &rMaterialProperties, Matrix &rConstitTensor)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double nu = rMaterialProperties[POISSON_RATIO];
@@ -79,8 +77,8 @@ void LinearIsotropicDamagePlaneStrain2D::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-    rFeatures.mStrainSize = WorkingSpaceDimension();
-    rFeatures.mSpaceDimension = GetStrainSize();
+    rFeatures.mStrainSize = this->WorkingSpaceDimension();
+    rFeatures.mSpaceDimension = this->GetStrainSize();
 }
 
 //************************************************************************************

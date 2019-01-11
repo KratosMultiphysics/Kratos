@@ -161,18 +161,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues,
-                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -263,14 +251,6 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-
-    /**
-     * @brief calculates the value of a specified variable
-     * @param rValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
     double& CalculateValue(Parameters& rValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
@@ -310,7 +290,6 @@ protected:
     ///@name Protected member Variables
     ///@{
     bool mInelasticFlag; /// Flags when in inelastic regime
-    double mStrainVariable;
     double mStrainVariableOld;
     ///@}
 
@@ -320,8 +299,24 @@ protected:
 
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rStrainVariable
+     */
+    virtual void CalculateStressResponse(
+            ConstitutiveLaw::Parameters& rValues,
+            double& rStrainVariable);
+
     double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
-    virtual void CalculateConstitutiveMatrix(Matrix &rConstitTensor, const Properties &rMaterialProperties);
+
+    /**
+     * @brief This method computes the constitutive tensor
+     * @param rMaterialProperties The properties of the material
+     * @param rTensor The elastic tensor/matrix to be computed
+     */
+    virtual void CalculateConstitutiveMatrix(const Properties &rMaterialProperties, Matrix &rTensor);
     ///@}
 
 private:
