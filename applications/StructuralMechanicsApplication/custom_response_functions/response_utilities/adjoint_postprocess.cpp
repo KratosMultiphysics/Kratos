@@ -61,6 +61,18 @@ namespace Kratos
         this->ReadDesignVariables(mConditionSensitivityScalarVariables, mConditionSensitivityVectorVariables, SensitivitySettings["condition_sensitivity_variables"]);
 
         //MFusseder TODO: evalutate if gradient mode should also a memeber of this class?
+
+        // Initialize map for stored sensitivity matrices
+        for(auto& elem_i : rModelPart.Elements())
+        {
+            SizeType number_of_nodes = elem_i.GetGeometry().size();
+            SizeType dimension = elem_i.GetGeometry().WorkingSpaceDimension();
+            SizeType mat_size = number_of_nodes * dimension;
+
+            mSensitivityMatrixI[elem_i.Id()] = ZeroMatrix(mat_size,mat_size);
+            KRATOS_WATCH(mat_size)
+        }
+
         KRATOS_CATCH("");
     }
 
@@ -209,7 +221,6 @@ namespace Kratos
         std::vector<Matrix> sensitivity_matrix(num_threads);
 
         int k = 0;
-        int i = 0;
         for (auto& elem_i : mrModelPart.Elements())
         {
             Element::GeometryType& r_geom = elem_i.GetGeometry();
@@ -253,7 +264,7 @@ namespace Kratos
                 // It should be modified to work for both linear and non-linear
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
                 //noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
-                noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] - sensitivity_matrix_last_step[i], adjoint_vector[k]);
+               noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] - mSensitivityMatrixI[elem_i.Id()], adjoint_vector[k]);
             }
 
             if(response_gradient[k].size() > 0)
@@ -271,8 +282,7 @@ namespace Kratos
                     rOutputVariable, sensitivity_vector[k], r_geom);
             }
 
-            sensitivity_matrix_last_step[i] = sensitivity_matrix[k];
-            i += 1;
+            mSensitivityMatrixI[elem_i.Id()] = sensitivity_matrix[k];
         }
         KRATOS_CATCH("");
     }

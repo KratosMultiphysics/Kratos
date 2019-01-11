@@ -160,9 +160,8 @@ private:
     std::vector<std::vector<Variable<array_1d<double,3>>>> mElementSensitivityVectorVariables;
     std::vector<std::vector<Variable<array_1d<double,3>>>> mConditionSensitivityVectorVariables;
     
-    // TODO: remove this hard coded matrix
-    std::vector<Matrix> sensitivity_matrix_last_step = {ZeroMatrix(6,6),ZeroMatrix(6,6)};
-    
+    // map that stores sensitivity matrices for each element in the previous step
+    std::map<int, Matrix> mSensitivityMatrixI;
     ///@}
     ///@name Private Operators
     ///@{

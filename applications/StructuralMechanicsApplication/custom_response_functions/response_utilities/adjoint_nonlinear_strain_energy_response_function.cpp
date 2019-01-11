@@ -28,7 +28,7 @@ namespace Kratos
             SizeType number_of_nodes = cond_i.GetGeometry().size();
             SizeType dimension = cond_i.GetGeometry().WorkingSpaceDimension();
             SizeType vec_size = number_of_nodes * dimension;
-           // mConditionsRHS.push_back(ZeroVector(vec_size));
+          
             mConditionsRHS[cond_i.Id()] = ZeroVector(vec_size);
 
             // This saves a vector of pointers to the model condition as a member variable because I can not use const condition in 
