@@ -94,17 +94,29 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 {
     KRATOS_TRY;
 
-    // Getting the geometry
-    GeometryType& r_geometry = this->GetGeometry();
-
     // Computing the force residual
     if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
-        for (IndexType i = 0; i < TNumNodes; ++i) {
-            NodeType& r_node = r_geometry[i];
-            if (r_node.Is(ACTIVE)) {
-                const IndexType index = TDim * i;
+        if (this->Is(ACTIVE)) {
+            // Getting the geometry
+            GeometryType& r_slave_geometry = this->GetGeometry();
+            GeometryType& r_master_slave_geometry = this->GetGeometry();
 
-                array_1d<double, 3>& r_force_residual = r_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
+                NodeType& r_master_node = r_master_slave_geometry[i_master];
+                const IndexType index = TDim * i_master;
+
+                array_1d<double, 3>& r_force_residual = r_master_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                for (IndexType j = 0; j < TDim; ++j) {
+                    #pragma omp atomic
+                    r_force_residual[j] += rRHSVector[index + j];
+                }
+            }
+            for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
+                NodeType& r_slave_node = r_slave_geometry[i_slave];
+                const IndexType index = TDim * (TNumNodesMaster + i_slave);
+
+                array_1d<double, 3>& r_force_residual = r_slave_node.FastGetSolutionStepValue(FORCE_RESIDUAL);
 
                 for (IndexType j = 0; j < TDim; ++j) {
                     #pragma omp atomic
