@@ -5,8 +5,10 @@
 // #include <vector>
 
 // External includes
-// #include <ANurbs/src/CurveGeometry.h>
-// #include <Anurbs/src/CurveTessellation.h">
+#include "anurbs.h"
+#include "containers/model.h"
+// #include "ANurbs/src/CurveGeometry.h"
+
 
 // Project includes
 #include "iga_application_variables.h"
@@ -29,7 +31,7 @@ namespace Kratos
         ///@}
         ///@name functions
         ///@{
-        void CreateTessellation(std::shared_ptr<NodeCurveGeometry3D> nodes_vector);
+        ANurbs::CurveTessellation3D CreateTessellation();
         void CreateElements(); 
 
         ///@}
@@ -49,6 +51,7 @@ namespace Kratos
         ///@name Member Variables
         ///@{
         ModelPart&                 m_model_part;
+        
         
         
 
