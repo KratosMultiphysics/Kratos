@@ -52,14 +52,19 @@ namespace Kratos
  * @class PenaltyMethodFrictionalMortarContactCondition
  * @ingroup ContactStructuralMechanicsApplication
  * @brief PenaltyMethodFrictionalMortarContactCondition
- * @details This is a contact condition which employes the mortar method with dual lagrange multiplier
+ * @details This is a frictional contact condition which employes the mortar method with penalty
  * The method has been taken from the Alexander Popps thesis:
  * Popp, Alexander: Mortar Methods for Computational Contact Mechanics and General Interface Problems, Technische Universität München, jul 2012
  * @author Vicente Mataix Ferrandiz
+ * @tparam TDim The dimension of work
+ * @tparam TNumNodes The number of nodes of the slave
+ * @tparam TFrictional If we are solving a frictional or frictionless problem
+ * @tparam TNormalVariation If we are consider normal variation
+ * @tparam TNumNodesMaster The number of nodes of the master
  */
-template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation >
+template< std::size_t TDim, std::size_t TNumNodes, bool TNormalVariation, std::size_t TNumNodesMaster >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) PenaltyMethodFrictionalMortarContactCondition
-    : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation>
+    : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +73,7 @@ public:
     /// Counted pointer of PenaltyMethodFrictionalMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( PenaltyMethodFrictionalMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation> BaseType;
+    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONAL_PENALTY, TNormalVariation, TNumNodesMaster> BaseType;
 
     typedef Condition                                                                                             ConditionBaseType;
 
@@ -86,7 +91,7 @@ public:
 
     typedef typename BaseType::ConditionArrayListType                                                        ConditionArrayListType;
 
-    typedef MortarOperator<TNumNodes>                                                                   MortarBaseConditionMatrices;
+    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                                  MortarBaseConditionMatrices;
 
     typedef typename ConditionBaseType::VectorType                                                                       VectorType;
 
@@ -112,9 +117,9 @@ public:
 
     typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type                                   DecompositionType;
 
-    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation>                                          DerivativeDataType;
+    typedef DerivativeDataFrictional<TDim, TNumNodes, TNormalVariation, TNumNodesMaster>                         DerivativeDataType;
 
-    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodes);
+    static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
 
     ///@}
     ///@name Life Cycle
@@ -404,10 +409,10 @@ protected:
     {
         // The friction coefficient
         array_1d<double, TNumNodes> friction_coeffient_vector;
-        auto& geom = this->GetGeometry();
+        auto& r_geometry = this->GetGeometry();
 
         for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node) {
-            friction_coeffient_vector[i_node] = geom[i_node].GetValue(FRICTION_COEFFICIENT);
+            friction_coeffient_vector[i_node] = r_geometry[i_node].GetValue(FRICTION_COEFFICIENT);
         }
 
         // TODO: Define the "CL" or friction law to compute this
