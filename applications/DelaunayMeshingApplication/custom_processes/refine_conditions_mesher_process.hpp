@@ -231,7 +231,7 @@ public:
 
       if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 ){
 
-	Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
+	Element::ElementType& MasterElement = *pCondition->GetValue(MASTER_ELEMENTS).back();
 
 	std::vector<double> Value;
 
@@ -836,6 +836,9 @@ public:
 	      //set flags
 	      pNode->Set(NEW_ENTITY);
 	      pNode->Set(BOUNDARY);
+
+              //set boundary model part names from one of the condition nodes
+              pNode->SetValue(MODEL_PART_NAMES, rGeometry[0].GetValue(MODEL_PART_NAMES));
 
 	      //set variables
 	      this->SetNewNodeVariables(rModelPart, *(i_cond.base()), pNode);

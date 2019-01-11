@@ -41,11 +41,9 @@ namespace Kratos
 
 		// Each component == Each edge
 		mNumberOfEdges = 12;
-		mF_sigmas = ZeroVector(mNumberOfEdges);   // Equivalent stress
 		mThresholds = ZeroVector(mNumberOfEdges); // Stress mThreshold on edge
 		mDamages = ZeroVector(mNumberOfEdges); // Converged mDamage on each edge
 		mNonConvergedDamages = ZeroVector(mNumberOfEdges); // mDamages on edges of "i" iteration
-		mNonConvergedFsigmas = ZeroVector(mNumberOfEdges); // Equivalent stress of "i" iteration
 	}
 
 	//******************************COPY CONSTRUCTOR**************************************
@@ -136,25 +134,29 @@ namespace Kratos
 		Vector average_stress_edge = ZeroVector(voigt_size);
 		Vector average_strain_edge = ZeroVector(voigt_size);
 		double characteristic_length;
+		bool is_damaging;
 
 		// Loop over edges to compute the elemental damage
 		for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 			this->CalculateAverageStressOnEdge(average_stress_edge, edge);
 			this->CalculateAverageStrainOnEdge(average_strain_edge, edge);
 			this->CalculateCharacteristicLength(characteristic_length, edge);
-			Vector integrated_edge_stress;
 
-			this->IntegrateStressDamageMechanics(
-				integrated_edge_stress, damages_edges(edge),
-				average_strain_edge, average_stress_edge, edge,
-				characteristic_length);
-
-			this->SetNonConvergedDamages(damages_edges(edge), edge);
+			double damage_edge = mDamages[edge];
+			double threshold = mThresholds[edge];
+			
+			this->IntegrateStressDamageMechanics(threshold, 
+												 damage_edge,
+												 average_strain_edge, 
+												 average_stress_edge, 
+												 edge, 
+												 characteristic_length,
+												 is_damaging);
+			mNonConvergedDamages[edge] = damage_edge;
+			mNonConvergedThresholds[edge] = threshold;
 		}
-		double damage_element = this->CalculateElementalDamage(damages_edges);
-		if (damage_element >= 0.999)
-			damage_element = 0.999;
-		this->SetNonConvergedDamages(damage_element);
+		const double damage_element = this->CalculateElementalDamage(damages_edges);
+
 
 		//get the shape functions parent coodinates derivative [dN/d�] (for the order of the default integration method)
 		const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
@@ -182,7 +184,7 @@ namespace Kratos
 			Vector strain_vector, predictive_stress_vector;
 			this->CalculateInfinitesimalStrain(strain_vector, DN_DX);
 			this->CalculateStressVector(predictive_stress_vector, ConstitutiveMatrix, strain_vector);
-			const Vector integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
+			const Vector& integrated_stress_vector = (1.0 - damage_element) * predictive_stress_vector;
 
 			noalias(rLeftHandSideMatrix) += prod(
 				trans(B), IntegrationWeight * (1.0 - damage_element) * Matrix(prod(ConstitutiveMatrix, B)));  // LHS
@@ -275,26 +277,7 @@ namespace Kratos
 
 	void FemDem3DHexahedronElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 	{
-		//Loop over edges
-		for (unsigned int cont = 0; cont < this->GetNumberOfEdges(); cont++) {
-			this->SetConvergedDamages(this->GetNonConvergedDamages(cont), cont);
-			this->SetConvergedEquivalentStress(this->GetNonConvergedEquivalentStress(cont), cont);
-			const double current_equivalent_stress = this->GetConvergedEquivalentStress(cont);
-			
-			if (current_equivalent_stress > this->GetThreshold(cont)) {
-				this->SetThreshold(current_equivalent_stress, cont);
-			}
-
-		} // End Loop over edges
-
-		const double damage_element = this->GetNonConvergedDamage();
-		this->SetConvergedDamage(damage_element);
-
-		if (damage_element >= 0.98) {
-			this->Set(ACTIVE, false);
-		}
-		this->ResetNonConvergedVars();
-		this->SetValue(DAMAGE_ELEMENT, damage_element);
+		FemDem3DElement::FinalizeSolutionStep(rCurrentProcessInfo);
 	}
 
 
@@ -353,7 +336,7 @@ namespace Kratos
 
 		if (rVariable == DAMAGE_ELEMENT) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
-				rOutput[PointNumber] = this->GetDamage();
+				rOutput[PointNumber] = mDamage;
 			}
 		} else if (rVariable == IS_DAMAGED) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
@@ -361,7 +344,7 @@ namespace Kratos
 			}
 		} else if (rVariable == STRESS_THRESHOLD) {
 			for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
-				rOutput[PointNumber] = this->GetValue(STRESS_THRESHOLD);
+				rOutput[PointNumber] = mThreshold;
 			}
 		}
 	}
@@ -505,8 +488,6 @@ namespace Kratos
 					rOutput[PointNumber].resize( dimension, dimension, false );
 				rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(IntegratedStressVector[PointNumber]);
 			}
-
 		}
 	}
-
 } // namespace Kratos

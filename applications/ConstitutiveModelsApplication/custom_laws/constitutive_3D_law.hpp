@@ -83,21 +83,6 @@ namespace Kratos
 			    const GeometryType& rElementGeometry,
 			    const Vector& rShapeFunctionsValues ) override;
 
-    /**
-     * Step Initialize
-     */
-    void InitializeSolutionStep(const Properties& rProperties,
-                                const GeometryType& rElementGeometry, //this is just to give the array of nodes
-				const Vector& rShapeFunctionsValues ,
-				const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Step Finalize
-     */
-    void FinalizeSolutionStep(const Properties& rProperties,
-			      const GeometryType& rElementGeometry, //this is just to give the array of nodes
-			      const Vector& rShapeFunctionsValues ,
-			      const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Computes the material response:

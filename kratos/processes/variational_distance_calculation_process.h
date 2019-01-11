@@ -71,6 +71,7 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG(PERFORM_STEP1);
     KRATOS_DEFINE_LOCAL_FLAG(DO_EXPENSIVE_CHECKS);
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
 
     ///@name Type Definitions
     ///@{
@@ -121,12 +122,12 @@ public:
     VariationalDistanceCalculationProcess(
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
-        unsigned int max_iterations = 10)
-        :mr_base_model_part(base_model_part)
+        unsigned int max_iterations = 10,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        :mr_base_model_part(base_model_part),
+         mOptions(Options)
     {
         KRATOS_TRY
-
-
 
         mmax_iterations = max_iterations;
         mdistance_part_is_initialized = false; //this will be set to true upon completing ReGenerateDistanceModelPart
@@ -258,10 +259,16 @@ public:
             // The element is cut by the interface
             if(this->IsSplit(distances)){
                 // Compute the unsigned distance using GeometryUtils
-                if(TDim==3){
-                    GeometryUtils::CalculateTetrahedraDistances(geom, distances);
-                } else {
-                    GeometryUtils::CalculateTriangleDistances(geom, distances);
+                if (mOptions.Is(CALCULATE_EXACT_DISTANCES_TO_PLANE)) {
+                    GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
+                }
+                else {
+                    if(TDim==3){
+                        GeometryUtils::CalculateTetrahedraDistances(geom, distances);
+                    }
+                    else {
+                        GeometryUtils::CalculateTriangleDistances(geom, distances);
+                    }
                 }
 
                 // Assign the sign using the original distance values
@@ -398,8 +405,9 @@ protected:
     /// Minimal constructor for derived classes
     VariationalDistanceCalculationProcess(
         ModelPart &base_model_part,
-        unsigned int max_iterations)
-        : mr_base_model_part(base_model_part)
+        unsigned int max_iterations,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        : mr_base_model_part(base_model_part), mOptions(Options)
     {
         mdistance_part_is_initialized = false;
         mmax_iterations = max_iterations;
@@ -413,6 +421,7 @@ protected:
     unsigned int mmax_iterations;
 
     ModelPart& mr_base_model_part;
+    Flags mOptions;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -611,7 +620,11 @@ const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDen
 template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
 const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::DO_EXPENSIVE_CHECKS(Kratos::Flags::Create(1));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2));
 
+template< unsigned int TDim,class TSparseSpace, class TDenseSpace, class TLinearSolver >
+const Kratos::Flags VariationalDistanceCalculationProcess<TDim,TSparseSpace,TDenseSpace,TLinearSolver>::NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE(Kratos::Flags::Create(2, false));
 
 ///@}
 
@@ -646,5 +659,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
-
-

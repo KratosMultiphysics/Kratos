@@ -1131,14 +1131,6 @@ void FluidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
     InitializeExplicitContributions();
 
-    for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
-    {
-      mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
-                                                         GetGeometry(),
-                                                         row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
-                                                         rCurrentProcessInfo );
-    }
-
     this->Set(FluidElement::FINALIZED_STEP,false);
 
     KRATOS_CATCH( "" )
@@ -1191,12 +1183,6 @@ void FluidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
-
-        //call the constitutive law to finalize the solution step
-        mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
-								   GetGeometry(),
-								   Variables.N,
-								   rCurrentProcessInfo );
 
 	//call the element internal variables update
 	this->FinalizeStepVariables(Variables,PointNumber);
@@ -1820,6 +1806,15 @@ void FluidElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHand
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "VELOCITY_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
+
     }
     else{
 
@@ -1889,6 +1884,15 @@ void FluidElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix
 
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
+
+
+      if(rCurrentProcessInfo.Has(COMPONENT_TIME_INTEGRATION_METHODS)){
+        std::string integration = "VELOCITY_X";
+        integration = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->GetMethodVariableName(integration);
+        double parameter = 1.0;
+        parameter = rCurrentProcessInfo[COMPONENT_TIME_INTEGRATION_METHODS]->Get(integration)->GetSecondDerivativeInertialFactor(parameter);
+        rLeftHandSideMatrix *= parameter;
+      }
 
     }
     else{

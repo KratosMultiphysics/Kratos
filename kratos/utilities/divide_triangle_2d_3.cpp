@@ -91,7 +91,9 @@ namespace Kratos
             mNegativeSubdivisions.reserve(2);
 
             // Add the original geometry points
+            std::vector<int> gl_ids_split_edges(mSplitEdges);
             for (unsigned int i = 0; i < n_nodes; ++i) {
+                gl_ids_split_edges[i] = geometry[i].Id();
                 const array_1d<double, 3> aux_point_coords = geometry[i].Coordinates();
                 IndexedPointPointerType paux_point = Kratos::make_shared<IndexedPoint>(aux_point_coords, i);
                 mAuxPointsContainer.push_back(paux_point);
@@ -108,6 +110,7 @@ namespace Kratos
                 if(nodal_distances(edge_node_i) * nodal_distances(edge_node_j) < 0) {
                     // Set the new node id. in the split edge array corresponding slot
                     mSplitEdges[idedge + n_nodes] = aux_node_id;
+                    gl_ids_split_edges[idedge + n_nodes] = aux_node_id;
 
                     // Edge nodes coordinates
                     const array_1d<double, 3> i_node_coords = geometry[edge_node_i].Coordinates();
@@ -130,7 +133,7 @@ namespace Kratos
 
             // Call the splitting mode computation function
             std::vector<int> edge_ids(3);
-            TriangleSplitMode(mSplitEdges.data(), edge_ids.data());
+            TriangleSplitMode(gl_ids_split_edges.data(), edge_ids.data());
 
             // Call the splitting function
             std::vector<int> t(12);     // Ids of the generated subdivisions
@@ -144,9 +147,10 @@ namespace Kratos
                 TriangleGetNewConnectivityGID(idivision, t.data(), mSplitEdges.data(), &i0, &i1, &i2);
 
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
-                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTriangleType>(mAuxPointsContainer(i0),
-                                                                                                               mAuxPointsContainer(i1),
-                                                                                                               mAuxPointsContainer(i2));
+                IndexedPointGeometryPointerType p_aux_partition = Kratos::make_shared<IndexedPointTriangleType>(
+                    mAuxPointsContainer(i0),
+                    mAuxPointsContainer(i1),
+                    mAuxPointsContainer(i2));
 
                 // Determine if the subdivision is wether in the negative or the positive side
                 unsigned int neg = 0, pos = 0;

@@ -332,13 +332,13 @@ namespace Kratos
 
     for(unsigned int el = 0; el<rModelPart.Elements().size(); el++)
       {
-	WeakPointerVector<Element >& rE = (element_begin+el)->GetValue(NEIGHBOUR_ELEMENTS);
+	ElementPointerVectorType& rE = (element_begin+el)->GetValue(NEIGHBOR_ELEMENTS);
 
 	for(unsigned int pn=0; pn<nds; pn++){
-	  if( (element_begin+el)->Id() == rE[pn].Id() )
+	  if( (element_begin+el)->Id() == rE[pn]->Id() )
 	    ElementNeighbourList[el*nds+pn] = 0;
 	  else
-	    ElementNeighbourList[el*nds+pn] = rE[pn].Id();
+	    ElementNeighbourList[el*nds+pn] = rE[pn]->Id();
 	}
 
       }
@@ -356,7 +356,7 @@ namespace Kratos
     KRATOS_TRY
 
     if( this->GetEchoLevel() > 0 ){
-      std::cout<<" [ SET ELEMENT NEIGHBOURS : "<<std::endl;
+      std::cout<<" [ SET ELEMENT NEIGHBORS : "<<std::endl;
       std::cout<<"   Initial Faces : "<<rModelPart.Conditions().size()<<std::endl;
     }
 
@@ -372,8 +372,8 @@ namespace Kratos
 
 
 	int number_of_faces = iii->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	(iii->GetValue(NEIGHBOUR_ELEMENTS)).resize(number_of_faces);
-	WeakPointerVector< Element >& neighb = iii->GetValue(NEIGHBOUR_ELEMENTS);
+	(iii->GetValue(NEIGHBOR_ELEMENTS)).resize(number_of_faces);
+	ElementPointerVectorType& neighb = iii->GetValue(NEIGHBOR_ELEMENTS);
 
 	for(int i = 0; i<number_of_faces; i++)
 	  {
@@ -389,12 +389,12 @@ namespace Kratos
 
 	    if(index > 0)
 	      {
-		neighb(i) = *((el_begin + index -1 ).base());
+		neighb[i] = (*((el_begin + index -1 ).base())).get();
 	      }
 	    else
 	      {
 		//neighb(i) = Element::WeakPointer();
-		neighb(i) = *(iii.base());
+		neighb[i] = (*(iii.base())).get();
 		facecounter++;
 	      }
 	  }
@@ -402,7 +402,7 @@ namespace Kratos
 
     if( this->GetEchoLevel() > 0 ){
       std::cout<<"   Final Faces : "<<facecounter<<std::endl;
-      std::cout<<"   SET ELEMENT NEIGHBOURS ]; "<<std::endl;
+      std::cout<<"   SET ELEMENT NEIGHBORS ]; "<<std::endl;
     }
 
     KRATOS_CATCH( "" )
