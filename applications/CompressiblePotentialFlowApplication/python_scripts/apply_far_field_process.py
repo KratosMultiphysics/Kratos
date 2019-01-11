@@ -97,9 +97,10 @@ class ApplyFarFieldProcess(KratosMultiphysics.Process):
                 for node in cond.GetNodes():
                     inlet_phi=node.X*self.velocity_infinity[0] + node.Y*self.velocity_infinity[1] + node.Z*self.velocity_infinity[2]
                     node.Fix(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
+                    # node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,inlet_phi)
                     if (self.is_adjoint):
                         node.Fix(CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
-                    node.SetSolutionStepValue(CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL,0,inlet_phi)
+                        node.SetSolutionStepValue(CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL,0.0)
 
 
 

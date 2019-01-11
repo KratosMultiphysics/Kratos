@@ -48,68 +48,98 @@ namespace Kratos
         Vector resultForce(3);
         auto geom = rAdjointElement.GetGeometry();
         unsigned int NumNodes = geom.PointsNumber();
-        double epsilon=1e-9;
+        double epsilon=1e-6;
         double perturbated_lift=0.0;
-        if (rAdjointElement.IsNot(MARKER)){
-            for (unsigned int i=0;i<NumNodes;i++)
-            {
-                int node_id = geom[i].Id();
-                double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
-                ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
-                perturbated_lift=resultForce(1);
-                rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+        if (true){
+            if (rAdjointElement.IsNot(MARKER)){
+                for (unsigned int i=0;i<NumNodes;i++)
+                {   
+                    Vector resultForce(3);
+                    int node_id = geom[i].Id();
+                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                    ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
+                    perturbated_lift=resultForce(1);
+                    rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+                    if (rResponseGradient(0)!=0.0){
+                        KRATOS_WATCH(mInitialLift)
+                        KRATOS_WATCH(perturbated_lift)
+                        KRATOS_WATCH(rResponseGradient)
+                    }
 
+                }
+            }else{
+                array_1d<double,3> distances;
+                distances=rAdjointElement.GetValue(ELEMENTAL_DISTANCES);
+                for (unsigned int i=0;i<NumNodes;i++)
+                {
+                    Vector resultForce(3);
+                    int node_id = geom[i].Id();
+                    if(distances[i] > 0){
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
+                        perturbated_lift=resultForce(1);
+                        rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+
+                    }
+                    else{
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
+                        ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
+                        perturbated_lift=resultForce(1);
+        
+                        rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                    }
+                    if (rResponseGradient(0)!=0.0){
+                        KRATOS_WATCH(mInitialLift)
+                        KRATOS_WATCH(perturbated_lift)
+                        KRATOS_WATCH(rResponseGradient)
+                    }
+                }
+                for (unsigned int i=0;i<NumNodes;i++)
+                {
+                    Vector resultForce(3);
+                    int node_id = geom[i].Id();
+                    if(distances[i] < 0){
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
+                        perturbated_lift=resultForce(1);
+                        rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
+
+                    }
+                    else{
+                        double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon ;
+                        ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
+                        perturbated_lift=resultForce(1);
+                        rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
+                        mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                    }
+                    if (rResponseGradient(0)!=0.0){
+                        KRATOS_WATCH(mInitialLift)
+                        KRATOS_WATCH(perturbated_lift)
+                        KRATOS_WATCH(rResponseGradient)
+                    }
+                }
             }
+
         }else{
-            array_1d<double,3> distances;
-            distances=rAdjointElement.GetValue(ELEMENTAL_DISTANCES);
-            for (unsigned int i=0;i<NumNodes;i++)
-            {
-                if(distances[i] > 0){
-                    int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
-                    ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
-                    perturbated_lift=resultForce(1);
-                    rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
-
+                for (unsigned int i=0;i<NumNodes;i++)
+                {
+                    rResponseGradient(i)=0.0;
                 }
-                else{
-                    int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon;
-                    ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
-                    perturbated_lift=resultForce(1);
-       
-                    rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
+                if (rAdjointElement.Is(MARKER)){
+                    for (unsigned int i=0;i<NumNodes;i++)
+                    {
+                        rResponseGradient(i+NumNodes)=0.0;
+                    }  
                 }
-            }
-            for (unsigned int i=0;i<NumNodes;i++)
-            {
-                if(distances[i] < 0){
-                    int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL);
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
-                    ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
-                    perturbated_lift=resultForce(1);
-                    rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
-
-                }
-                else{
-                    int node_id = geom[i].Id();
-                    double unperturbed_potential=geom[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL);
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon ;
-                    ComputeLiftLevelSetProcess(mrModelPart,resultForce).Execute();
-                    perturbated_lift=resultForce(1);
-                    rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
-                    mrModelPart.GetNode(node_id,0).FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
-                }
-            }
         }
 
         KRATOS_CATCH("");
