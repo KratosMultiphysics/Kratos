@@ -20,6 +20,8 @@
 #include "direct_sensitivity_variable.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/kratos_parameters.h"
+#include "structural_mechanics_application_variables.h"
 
 
 namespace Kratos
@@ -35,7 +37,7 @@ public:
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointLinearStrainEnergyResponseFunction
+    /// Pointer definition of DirectSensitivityElementDataVariable
     KRATOS_CLASS_POINTER_DEFINITION(DirectSensitivityElementDataVariable);
 
     ///@}
@@ -43,7 +45,7 @@ public:
     ///@{
 
     /// Default constructor.
-    DirectSensitivityElementDataVariable(ModelPart& rModelPart, Parameters ResponseSettings);
+    DirectSensitivityElementDataVariable(ModelPart& rModelPart, Parameters VariableSettings);
 
     /// Destructor.
     ~DirectSensitivityElementDataVariable();
@@ -58,8 +60,13 @@ public:
 
     void Initialize() override;
 
-    void CalculatePseudoLoadVector(Matrix& rPseudoLoadVector, ProcessInfo& rProcessInfo) override;
+    void CalculatePseudoLoadVector(Element& rDirectElem, const Matrix& rRHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;
 
+    void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;    
+
+    void PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable) override;
+    
+    void UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable) override;
     ///@}
     ///@name Access
     ///@{
@@ -79,14 +86,41 @@ public:
     ///@}
 
 protected:
+    ///@name protected member Variables
+    ///@{
+    ///@}
+
+    ///@name protected Operators
+    ///@{
+
+    ///@}
+    ///@name protected Operations
+    ///@{
+
+    ///@}
     
 private:
+    ///@name private member Variables
+    ///@{
+        int mIdTracedElement;
+        Element mTracedElement;   
+        Element::Pointer mpTracedElement;
+        std::string mDesignVariableName;
+        ProcessInfo mProcessInfo;
+    ///@}
 
-/*const int mIdTracedElement;
-Element mTracedElement;    
-const Variable<double> mDesignVariable;
-double mDelta;*/
-}; // Class AdjointLinearStrainEnergyResponseFunction
+    ///@name private Operators
+    ///@{
+
+    ///@}
+    ///@name private Operations
+    ///@{
+        Variable<double> ReadScalarDesignVariables(std::string const& rVariableName) override;
+
+        Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName) override;
+    ///@}
+
+}; // Class DirectSensitivityElementDataVariable
 
 ///@}
 
@@ -101,4 +135,4 @@ double mDelta;*/
 
 } // namespace Kratos.
 
-#endif // ADJOINT_LINEAR_STRAIN_ENERGY_RESPONSE_FUNCTION_H_INCLUDED
+#endif // DIRECT_SENSITIVITY_ELEMENT_DATA_VARIABLE_H_INCLUDED
