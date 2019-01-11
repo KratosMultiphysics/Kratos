@@ -278,15 +278,6 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
-    
-    /**
-     * @brief Computes the material response
-     * This method computes the material response taking into account if the 
-     * element is air or fluid. The material response is saved in the data container.
-     * @param rData Reference to the element data container
-     */
-    void CalculateMaterialResponse(
-        TElementData& rData) const override;
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -324,6 +315,36 @@ protected:
 		MatrixType& rH,
 		MatrixType& rKee,
 		VectorType& rRHS_ee);
+
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const override;
+
+    /// Set up the element's data for a cut element and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     *  @param[in] rNenr Values of nodal enriched shape functions at the integration point.
+     *  @param[in] rDN_DXenr Values of nodal enriched shape functions gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::MatrixRowType& rNenr,
+        const typename TElementData::ShapeDerivativesType& rDN_DXenr) const;
 
     ///@}
     ///@name Protected  Access
