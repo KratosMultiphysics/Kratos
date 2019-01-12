@@ -177,7 +177,7 @@ for normalvar in range(2):
             for slip in range(3):
                 rv_galerkin = 0
                 if (slip == 0): # Inactive
-                    rv_galerkin = 0
+                    rv_galerkin += 0
                 else:
                     augmented_normal_contact_pressure = (PenaltyParameter[node] * NormalGap[node])
                     rv_galerkin += DynamicFactor[node] * augmented_normal_contact_pressure * Dw1Mw2Gap[node]
