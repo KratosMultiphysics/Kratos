@@ -7,8 +7,6 @@ from KratosMultiphysics.StructuralApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 # import mpi interface
 from KratosMultiphysics.mpi import *
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
 
 # Parameters contain:
 # perform_contact_analysis_flag
