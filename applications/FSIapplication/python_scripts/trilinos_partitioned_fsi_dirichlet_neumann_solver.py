@@ -218,10 +218,12 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosMultiphysics.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            disp_residual)
 
         return disp_residual
 
@@ -237,9 +239,11 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
         # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
         disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosMultiphysics.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            disp_residual)
 
         return disp_residual

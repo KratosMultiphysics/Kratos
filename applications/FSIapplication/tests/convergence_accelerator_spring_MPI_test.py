@@ -59,9 +59,13 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         force2(model_part,KratosMultiphysics.REACTION)
 
         residual = self.partitioned_utilities.SetUpInterfaceVector(model_part)
-        self.partitioned_utilities.ComputeInterfaceResidualVector(model_part,KratosMultiphysics.FORCE,
-                                                                  KratosMultiphysics.REACTION,
-                                                                  residual)
+        self.partitioned_utilities.ComputeInterfaceResidualVector(
+            model_part,
+            KratosMultiphysics.FORCE,
+            KratosMultiphysics.REACTION,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            residual)
+
         return residual
 
     def ComputeResidualNorm(self,residual):
@@ -112,7 +116,7 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         self.space = KratosTrilinos.TrilinosSparseSpace()
         self.epetra_comm = KratosTrilinos.CreateCommunicator()
 
-        self.partitioned_utilities = KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self.epetra_comm)
+        self.partitioned_utilities = KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray3D(self.epetra_comm)
 
     def tearDown(self):
         if self.print_gid_output:

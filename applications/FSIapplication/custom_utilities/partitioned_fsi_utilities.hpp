@@ -1,11 +1,13 @@
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \.
+//    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:          BSD License
-//  Original author:  Ruben Zorrilla
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ruben Zorrilla
 //
 
 #if !defined( KRATOS_PARTITIONED_FSI_UTILITIES )
@@ -84,11 +86,7 @@ public:
     /**
     * Empty constructor
     */
-    PartitionedFSIUtilities()
-    {
-    }
-
-    /*@} */
+    PartitionedFSIUtilities(){}
 
     /** Copy constructor.
     */
@@ -100,10 +98,7 @@ public:
     /** Destructor.
      */
 
-    /*@{ */
-    virtual ~PartitionedFSIUtilities()
-    {
-    }
+    virtual ~PartitionedFSIUtilities(){}
 
     /*@} */
     /**@name Public Operators*/
@@ -143,9 +138,11 @@ public:
      */
     int GetInterfaceResidualSize(ModelPart& rInterfaceModelPart)
     {
-        int local_number_of_nodes = (rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes())*TDim;
+        // Check the block size. 1 for double coupling variables an TDim for array type coupling variables
+        double A; // Fake double to check the type from
+        unsigned int block_size = typeid(TValueType).hash_code() == typeid(A).hash_code() ? 1 : TDim;
+        int local_number_of_nodes = (rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes()) * block_size;
         rInterfaceModelPart.GetCommunicator().SumAll(local_number_of_nodes);
-
         return local_number_of_nodes;
     }
 
@@ -208,20 +205,20 @@ public:
         ModelPart &rInterfaceModelPart,
         const Variable<TValueType> &rOriginalVariable,
         const Variable<TValueType> &rModifiedVariable,
+        const Variable<TValueType> &rResidualVariable,
         VectorType &rInterfaceResidual,
-        const std::string ResidualType = "nodal",
-        const Variable<TValueType> &rArrayResidualVariable = FSI_INTERFACE_RESIDUAL,
-        const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM)
+        const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM,
+        const std::string ResidualType = "nodal")
     {
         TSpace::SetToZero(rInterfaceResidual);
 
         // Call compute the provided variables residual
         if (ResidualType == "nodal") {
             // Compute node-by-node residual
-            this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rArrayResidualVariable);
+            this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         } else if (ResidualType == "consistent") {
             // Compute consitent residual
-            this->ComputeConsistentResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rArrayResidualVariable);
+            this->ComputeConsistentResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
         } else {
             KRATOS_ERROR << "Provided interface residual type " << ResidualType << " is not available. Available options are \"nodal\" and \"consistent\"" << std::endl;
         }
@@ -232,7 +229,7 @@ public:
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
         for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-            const auto &r_res_value = it_node->FastGetSolutionStepValue(rArrayResidualVariable);
+            const auto &r_res_value = it_node->FastGetSolutionStepValue(rResidualVariable);
             this->AuxSetLocalValue(rInterfaceResidual, r_res_value, k);
         }
 
@@ -240,6 +237,48 @@ public:
         rInterfaceModelPart.GetProcessInfo().GetValue(rResidualNormVariable) = TSpace::TwoNorm(rInterfaceResidual);
     }
 
+    double ComputeInterfaceResidualNorm(
+        ModelPart &rInterfaceModelPart,
+        const Variable<TValueType> &rOriginalVariable,
+        const Variable<TValueType> &rModifiedVariable,
+        const Variable<TValueType> &rResidualVariable,
+        const std::string ResidualType = "nodal")
+    {
+        // Set an auxiliar interface vector
+        VectorPointerType p_interface_residual = this->SetUpInterfaceVector(rInterfaceModelPart);
+
+        // Call compute the provided variables residual
+        if (ResidualType == "nodal") {
+            // Compute node-by-node residual
+            this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
+        } else if (ResidualType == "consistent") {
+            // Compute consitent residual
+            this->ComputeConsistentResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rResidualVariable);
+        } else {
+            KRATOS_ERROR << "Provided interface residual type " << ResidualType << " is not available. Available options are \"nodal\" and \"consistent\"" << std::endl;
+        }
+
+        // Assemble the final consistent residual values
+        auto &rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
+        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
+        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
+        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
+            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin + k;
+            const auto &r_res_value = it_node->FastGetSolutionStepValue(rResidualVariable);
+            this->AuxSetLocalValue(*p_interface_residual, r_res_value, k);
+        }
+
+        // Return the L2 norm of the error in the fluid process info
+        return TSpace::TwoNorm(*p_interface_residual);
+    }
+
+    /**
+     * @brief Auxiliar call to SetLocalValue for double type
+     * This method serves as an auxiliar call to the SetLocalValue function for double variables
+     * @param rInterfaceResidual Interface residual vector in where the value is set
+     * @param rResidualValue Double residual value
+     * @param AuxPosition Position in rInterfaceResidual where the value is to be set
+     */
     virtual void AuxSetLocalValue(
         VectorType &rInterfaceResidual,
         const double &rResidualValue,
@@ -248,6 +287,15 @@ public:
         this->SetLocalValue(rInterfaceResidual, AuxPosition, rResidualValue);
     }
 
+    /**
+     * @brief Auxiliar call to SetLocalValue for array type
+     * This method serves as an auxiliar call to the SetLocalValue function for array variables
+     * @param rInterfaceResidual Interface residual vector in where the value is set
+     * @param rResidualValue Double residual value
+     * @param AuxPosition Position in rInterfaceResidual where the value is to be set. Note that
+     * the final position is computed using the TDim template value, since each entry in the
+     * residual vector contains a component of the residual variable value.
+     */
     virtual void AuxSetLocalValue(
         VectorType &rInterfaceResidual,
         const array_1d<double,3> &rResidualValue,
@@ -259,150 +307,62 @@ public:
         }
     }
 
-    // /**
-    //  * @brief Compute double variable interface residual vector
-    //  * This function computes (and stores in a vector) the residual of a vector variable over the fluid interface.
-    //  * The residual is defined as the OriginalVariable value minus the ModifiedVariable value.
-    //  * The nodal values of the residual are stored in the FSI_INTERFACE_RESIDUAL variable.
-    //  * Besides, the norm of the residual vector is stored in the ProcessInfo.
-    //  * @param rInterfaceModelPart interface modelpart in where the residual is computed
-    //  * @param rOriginalVariable origin variable to compute the residual
-    //  * @param rModifiedVariable end variable to compute the residual
-    //  * @param rInterfaceResidual reference to the residual vector
-    //  * @param ResidualType residual computation type (nodal or consistent)
-    //  * @param rArrayResidualVariable variable to save the residual values
-    //  * @param rResidualNormVariable variable to save the residual norm
-    //  */
-    // virtual void ComputeInterfaceResidualVectorDouble(
-    //     ModelPart &rInterfaceModelPart,
-    //     const Variable<double> &rOriginalVariable,
-    //     const Variable<double> &rModifiedVariable,
-    //     VectorType &rInterfaceResidual,
-    //     const std::string ResidualType = "nodal",
-    //     const Variable<double> &rDoubleResidualVariable = SCALAR_PROJECTED,
-    //     const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM)
-    // {
-    //     TSpace::SetToZero(rInterfaceResidual);
-
-    //     // Call compute the provided variables residual
-    //     if (ResidualType == "nodal") {
-    //         // Compute node-by-node residual
-    //         this->ComputeNodeByNodeResidual(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rDoubleResidualVariable);
-    //     } else if (ResidualType == "consistent") {
-    //         // Compute consitent residual
-    //         this->ComputeConsistentResidualDouble(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rDoubleResidualVariable);
-    //     } else {
-    //         KRATOS_ERROR << "Provided interface residual type " << ResidualType << " is not available. Available options are \"nodal\" and \"consistent\"" << std::endl;
-    //     }
-
-    //     // Assemble the final consistent residual values
-    //     auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
-    //     ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
-    //     #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-    //     for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
-    //         const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-    //         const double &fsi_res = it_node->FastGetSolutionStepValue(rDoubleResidualVariable);
-    //         this->SetLocalValue(rInterfaceResidual, k, fsi_res);
-    //     }
-
-    //     // Store the L2 norm of the error in the fluid process info
-    //     rInterfaceModelPart.GetProcessInfo().GetValue(rResidualNormVariable) = TSpace::TwoNorm(rInterfaceResidual);
-    // }
-
-    /**
-     * This function computes the mesh velocity residual over the fluid interface.
-     * The mesh velocity residual is defined as the fluid velocity value minus the
-     * mesh velocity value.
-     * The nodal values of the residual are stored in the FSI_INTERFACE_MESH_RESIDUAL variable.
-     * Besides, the norm of the mesh residual vector is stored in the ProcessInfo using
-     * the FSI_INTERFACE_MESH_RESIDUAL_NORM variable.
-     * @param rFluidInterfaceModelPart interface modelpart in where the residual is computed
-     * @param ResidualType residual computation type (nodal or consistent)
-     */
-    void ComputeFluidInterfaceMeshVelocityResidualNorm(
-        ModelPart& rFluidInterfaceModelPart,
-        const std::string ResidualType = "nodal")
-    {
-        // VectorPointerType p_fluid_interface_mesh_residual = TSpace::CreateEmptyVectorPointer();
-        VectorPointerType p_fluid_interface_mesh_residual = this->SetUpInterfaceVector(rFluidInterfaceModelPart);
-
-        // Call compute the provided variables residual
-        if (ResidualType == "nodal") {
-            // Compute node-by-node residual
-            this->ComputeNodeByNodeResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
-        } else if (ResidualType == "consistent") {
-            // Compute consitent residual
-            this->ComputeConsistentResidual(rFluidInterfaceModelPart, VELOCITY, MESH_VELOCITY, FSI_INTERFACE_MESH_RESIDUAL);
-        } else {
-            KRATOS_ERROR << "Provided interface residual type " << ResidualType << " is not available. Available options are \"nodal\" and \"consistent\"" << std::endl;
-        }
-
-        // Assemble the final consistent residual values
-        auto& rLocalMesh = rFluidInterfaceModelPart.GetCommunicator().LocalMesh();
-        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
-        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k)
-        {
-            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
-            const unsigned int base_i = k*TDim;
-
-            const array_1d<double,3>& fsi_mesh_res = it_node->FastGetSolutionStepValue(FSI_INTERFACE_MESH_RESIDUAL);
-            for (unsigned int jj=0; jj<TDim; ++jj)
-            {
-                this->SetLocalValue(*p_fluid_interface_mesh_residual, base_i+jj, fsi_mesh_res[jj]);
-            }
-        }
-
-        // Store the L2 norm of the error in the fluid process info
-        rFluidInterfaceModelPart.GetProcessInfo().GetValue(FSI_INTERFACE_MESH_RESIDUAL_NORM) = TSpace::TwoNorm(*p_fluid_interface_mesh_residual);
-    }
-
     /**
      * Sets the values in the corrected guess vector inside the selected nodal array variable.
      * @param rInterfaceModelPart: interface modelpart in where the residual is computed
      * @param rSolutionVariable: variable in where the corrected solution is to be stored
      * @param rCorrectedGuess: vector containing the interface corrected values
      */
-    virtual void UpdateInterfaceValuesArray(
-        ModelPart& rInterfaceModelPart,
-        const Variable<array_1d<double, 3 > >& rSolutionVariable,
-        const VectorType& rCorrectedGuess)
+    virtual void UpdateInterfaceValues(
+        ModelPart &rInterfaceModelPart,
+        const Variable<TValueType> &rSolutionVariable,
+        const VectorType &rCorrectedGuess)
     {
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
         for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k){
             const ModelPart::NodeIterator it_node = local_mesh_nodes_begin + k;
-            const unsigned int base_i = k*TDim;
-            array_1d<double,3>& updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
-            for (unsigned int jj = 0; jj < TDim; ++jj){
-                updated_value[jj] = this->GetLocalValue(rCorrectedGuess, base_i+jj);
-            }
+            TValueType &r_updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
+            this->UpdateInterfaceLocalValue(rCorrectedGuess, r_updated_value, k);
         }
 
         rInterfaceModelPart.GetCommunicator().SynchronizeVariable(rSolutionVariable);
     }
 
     /**
-     * Sets the values in the corrected guess vector inside the selected nodal double variable.
-     * @param rInterfaceModelPart: interface modelpart in where the residual is computed
-     * @param rSolutionVariable: variable in where the corrected solution is to be stored
-     * @param rCorrectedGuess: vector containing the interface corrected values
+     * @brief Corrected guess local double value update
+     * This auxiliar method helps to update the nodal database using the values from
+     * a corrected guess vector values.
+     * @param rCorrectedGuess Corrected coupling guess vector
+     * @param rValueToUpdate Reference in where the updated value is to be stored
+     * @param AuxPosition Position in rCorrectedGuess from where the value is retrieved
      */
-    virtual void UpdateInterfaceValuesDouble(
-        ModelPart &rInterfaceModelPart,
-        const Variable<double> &rSolutionVariable,
-        const VectorType& rCorrectedGuess)
+    void UpdateInterfaceLocalValue(
+        const VectorType &rCorrectedGuess,
+        double &rValueToUpdate,
+        const int AuxPosition)
     {
-        auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
-        ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
-        #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
-            const ModelPart::NodeIterator it_node = local_mesh_nodes_begin + k;
-            double &r_updated_value = it_node->FastGetSolutionStepValue(rSolutionVariable);
-            r_updated_value = this->GetLocalValue(rCorrectedGuess, k);
+        rValueToUpdate = this->GetLocalValue(rCorrectedGuess, AuxPosition);
+    }
+
+    /**
+     * @brief Corrected guess local array value update
+     * This auxiliar method helps to update the nodal database using the values from
+     * a corrected guess vector values. Note that it performs the array components loop.
+     * @param rCorrectedGuess Corrected coupling guess vector
+     * @param rValueToUpdate Reference in where the updated value is to be stored
+     * @param AuxPosition Position in rCorrectedGuess from where the value is retrieved
+     */
+    void UpdateInterfaceLocalValue(
+        const VectorType &rCorrectedGuess,
+        array_1d<double, 3> &rValueToUpdate,
+        const int AuxPosition)
+    {
+        const int base_i = AuxPosition * TDim;
+        for (unsigned int jj = 0; jj < TDim; ++jj){
+            rValueToUpdate[jj] = this->GetLocalValue(rCorrectedGuess, base_i + jj);
         }
-        rInterfaceModelPart.GetCommunicator().SynchronizeVariable(rSolutionVariable);
     }
 
     /**
@@ -588,7 +548,7 @@ public:
             auto it_cond = rInterfaceModelPart.ConditionsBegin() + i_cond;
 
             auto& rGeom = it_cond->GetGeometry();
-            const unsigned int BlockSize = typeid(TValueType) == "double" ? 1 : TDim;
+            // const unsigned int BlockSize = typeid(TValueType).name() == "double" ? 1 : TDim;
             const unsigned int n_nodes = rGeom.PointsNumber();
 
             // Auxiliar array to save the computed consisted residual
@@ -617,23 +577,14 @@ public:
                         const double aux_val = w_gauss * N_gauss[i_node] * N_gauss[j_node];
                         const TValueType value = rGeom[j_node].FastGetSolutionStepValue(rOriginalVariable);
                         const TValueType value_projected = rGeom[j_node].FastGetSolutionStepValue(rModifiedVariable);
-                        cons_res_vect[i_node] += value - value_projected;
-                        // const TValueType j_node_res = value - value_projected;
-                        // for (unsigned int dim = 0; dim < BlockSize; ++dim) {
-                        //     cons_res_vect[i_node*BlockSize + dim] += aux_val * j_node_res[dim];
-                        // }
+                        cons_res_vect[i_node] += aux_val * (value - value_projected);
                     }
                 }
             }
 
             // Save the computed consistent residual values
             for (unsigned int i_node = 0; i_node < n_nodes; ++i_node) {
-                // array_1d<double, 3> aux_val = ZeroVector(3);
-                // for (unsigned int dim = 0; dim < BlockSize; ++dim) {
-                //     aux_val[dim] = cons_res_vect[i_node * BlockSize + dim];
-                // }
                 rGeom[i_node].SetLock(); // So it is safe to write in the condition node in OpenMP
-                // rGeom[i_node].FastGetSolutionStepValue(rErrorStorageVariable) += aux_val;
                 rGeom[i_node].FastGetSolutionStepValue(rErrorStorageVariable) += cons_res_vect[i_node];
                 rGeom[i_node].UnSetLock(); // Free the condition node for other threads
             }
