@@ -842,7 +842,6 @@ void AddCustomUtilitiesToPython(
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
-        .def("CreateTessellation", &EmbeddedIgaModeler::CreateTessellation)
         .def("CreateElements", &EmbeddedIgaModeler::CreateElements)
         ;
 

@@ -2,19 +2,14 @@
 #define  KRATOS_EMBEDDED_IGA_MODELER_H_INCLUDED
 
 // System includes
-// #include <vector>
 
 // External includes
 #include "anurbs.h"
 #include "containers/model.h"
-// #include "ANurbs/src/CurveGeometry.h"
-
 
 // Project includes
 #include "iga_application_variables.h"
 #include "nurbs_brep_modeler.h"
-#include "brep_json_io.h"
-#include "brep_topology/brep_model.h"
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -31,7 +26,8 @@ namespace Kratos
         ///@}
         ///@name functions
         ///@{
-        ANurbs::CurveTessellation3D CreateTessellation();
+        
+        void CreateTessellation(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation); 
         void CreateElements(); 
 
         ///@}
@@ -51,9 +47,6 @@ namespace Kratos
         ///@name Member Variables
         ///@{
         ModelPart&                 m_model_part;
-        
-        
-        
 
         ///@}
         ///@name Private Operations
