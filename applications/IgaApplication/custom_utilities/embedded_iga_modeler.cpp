@@ -53,9 +53,8 @@ void EmbeddedIgaModeler::CreateTessellation(ANurbs::Pointer<ANurbs::CurveTessell
 
             // Create the three dimensional curve which is to be tessellated
             ANurbs::Curve3D curve(geometry); 
-            const double flatness = 1e-2;
-
-            tessellation->Compute(curve, flatness); 
+        
+            tessellation->Compute(curve, 1e-2); 
             
             // for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)
             // {
@@ -63,7 +62,6 @@ void EmbeddedIgaModeler::CreateTessellation(ANurbs::Pointer<ANurbs::CurveTessell
             //     KRATOS_WATCH(tessellation->Point(i).Y())
             //     KRATOS_WATCH(tessellation->Point(i).Z())    
             // }
-            
         }
     }
 }
@@ -86,18 +84,15 @@ void EmbeddedIgaModeler::CreateElements()
     // skin_model_part property Container (Container is empty, but for the skin no properties are needed)
     Properties::Pointer prop = skin_model_part.pGetProperties(0);
     
-    unsigned int start_node_id = 0; 
-    unsigned int end_node_id = 1; 
-
+    unsigned int node_id = 0; 
+    
     // Create Elements in skin_model_part
     for (unsigned int element_i = 0; element_i < tessellation->NbPoints() - 1; ++element_i)
     {
-        skin_model_part.CreateNewElement("Element2D2N", element_i, {{start_node_id, end_node_id}}, prop); 
-        start_node_id += 1; 
-        end_node_id += 1; 
-
-        // KRATOS_WATCH(skin_model_part.GetElement(element_i))
+        skin_model_part.CreateNewElement("Element2D2N", element_i, {{node_id, node_id + 1}}, prop); 
+        node_id += 1; 
         
+        // KRATOS_WATCH(skin_model_part.GetElement(element_i))
     }
     
     // return skin_model_part; 
