@@ -722,15 +722,15 @@ class STMonolithicSolver:
         dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
 	################## For sessile drop examples
         for node in self.model_part.Nodes:
-                #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
-                    ###node.Set(TO_ERASE,False)
-                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-                    #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-                    #node.Fix(VELOCITY_X)
-                    #node.Fix(VELOCITY_Y)
-                    #node.Fix(VELOCITY_Z)
-                #if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
+                    ##node.Set(TO_ERASE,False)
+                    node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
+                    node.Fix(VELOCITY_X)
+                    node.Fix(VELOCITY_Y)
+                    node.Fix(VELOCITY_Z)
+                if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
                         #if ((node.GetSolutionStepValue(CONTACT_ANGLE) < theta_adv) and (node.GetSolutionStepValue(CONTACT_ANGLE) > theta_rec)):
                             #v_cl = Vector(3)
                             #v_cl[0] = 0.0
