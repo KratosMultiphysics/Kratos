@@ -3,8 +3,7 @@
 	"materials_file_name" : "material_tests/necking_2D/necking_2D_materials.json"
     },
     "problem_data" : {
-        "echo_level" : 0,
-        "threads"    : 2
+        "echo_level" : 0
     },
     "time_settings" : {
         "time_step" : 0.05,
@@ -60,12 +59,6 @@
 			"residual_relative_tolerance" : 1e-6,
 			"residual_absolute_tolerance" : 1e-9
 		    },
-		    "linear_solver_settings"    : {
-			"solver_type" : "SuperLUSolver",
-			"tolerance"   : 1e-7,
-			"max_iteration" : 5000,
-			"scaling"     : false
-		    },
 		    "dofs" : ["DISPLACEMENT","PRESSURE"],
 		    "solving_model_part": "computing_domain"
 		}
@@ -88,12 +81,6 @@
 			"convergence_criterion"       : "Residual_criterion",
 			"residual_relative_tolerance" : 1e-6,
 			"residual_absolute_tolerance" : 1e-9
-		    },
-		    "linear_solver_settings"    : {
-			"solver_type" : "SuperLUSolver",
-			"tolerance"   : 1e-7,
-			"max_iteration" : 5000,
-			"scaling"     : false
 		    },
 		    "dofs" : ["TEMPERATURE"],
 		    "solving_model_part": "thermal_computing_domain"
