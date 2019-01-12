@@ -158,8 +158,7 @@ public:
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::ConditionIterator local_mesh_conditions_begin = rLocalMesh.ConditionsBegin();
         #pragma omp parallel for firstprivate(local_mesh_conditions_begin) reduction(+:interface_area)
-        for(int k=0; k < static_cast<int>(rLocalMesh.NumberOfConditions()); ++k)
-        {
+        for(int k=0; k < static_cast<int>(rLocalMesh.NumberOfConditions()); ++k) {
             const ModelPart::ConditionIterator it_cond = local_mesh_conditions_begin+k;
             const Condition::GeometryType& rGeom = it_cond->GetGeometry();
             interface_area += rGeom.Length();
