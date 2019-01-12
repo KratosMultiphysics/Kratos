@@ -259,6 +259,6 @@ pdgssv(int_t nprocs, SuperMatrix *A, int_t *perm_c, int_t *perm_r,
 	ParallelProfile(n, Lstore->nsuper+1, Gstat.num_panels, nprocs, &Gstat);
     }
 #endif
-    PrintStat(&Gstat);
+    //PrintStat(&Gstat);
     StatFree(&Gstat);
 }

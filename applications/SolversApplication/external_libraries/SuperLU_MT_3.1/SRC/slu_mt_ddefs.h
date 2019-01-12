@@ -297,6 +297,10 @@ extern void PartDomains(const int_t, const float, SuperMatrix *, int_t *, int_t 
 extern void
 dCreate_CompCol_Matrix(SuperMatrix *, int_t, int_t, int_t, double *,
 		      int_t *, int_t *, Stype_t, Dtype_t, Mtype_t);
+extern void
+dCreate_CompRow_Matrix(SuperMatrix *, int_t, int_t, int_t, double *,
+		      int_t *, int_t *, Stype_t, Dtype_t, Mtype_t);
+
 void
 dCreate_CompCol_Permuted(SuperMatrix *, int_t, int_t, int_t, double *, int_t *,
 			 int_t *, int_t *, Stype_t, Dtype_t, Mtype_t);
