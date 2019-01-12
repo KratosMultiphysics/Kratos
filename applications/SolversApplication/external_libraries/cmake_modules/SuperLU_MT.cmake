@@ -6,6 +6,14 @@ option(enable_double    "Enable double precision library" ON)
 option(enable_complex   "Enable complex precision library" ON)
 option(enable_complex16 "Enable complex16 precision library" ON)
 
+add_definitions( -DNoChange )
+add_definitions( -D__OPENMP )
+add_definitions( -DPRNTlevel=0 )
+add_definitions( -DDEBUGlevel=0 )
+add_definitions( -w )
+
+message(STATUS "****compiling cblas*****")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/Cblas_MT.cmake")
 
 set(SUPER_LU_HEADERS
   ${SUPER_LU_MT_DIR}/SRC/supermatrix.h
@@ -187,7 +195,7 @@ endif(enable_complex)
 if(enable_complex16)
   list(APPEND SUPER_LU_HEADERS
     ${SUPER_LU_MT_DIR}/SRC/slu_mt_zdefs.h
-  )
+    )
 
   list(APPEND SUPER_LU_SOURCES
     ${SUPER_LU_MT_DIR}/SRC/dcomplex.c
@@ -240,21 +248,17 @@ if(enable_single OR enable_complex)
 endif(enable_single OR enable_complex)
 
 if(enable_double OR enable_complex16)
-    list(APPEND SUPER_LU_SOURCES
+  list(APPEND SUPER_LU_SOURCES
     ${SUPER_LU_MT_DIR}/SRC/dlamch.c
     )
   set_source_files_properties(dmach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_double OR enable_complex16)
 
-set(PLAT _OPENMP)
+message(STATUS "****compiling super_lu_mt*****")
 
-add_definitions( -DUSE_VENDOR_BLAS )
+#add_definitions( -DUSE_VENDOR_BLAS )
 #add_definitions( -D_LONGINT )
-add_definitions( -DNoChange )
-add_definitions( -D__OPENMP )
-add_definitions( -DPRNTlevel=0 )
-add_definitions( -DDEBUGlevel=0 )
-add_definitions( -w )
 
-#add_library(super_lu_mt STATIC ${SUPER_LU_SOURCES} ${SUPER_LU_HEADERS})
+add_library(super_lu_mt STATIC ${SUPER_LU_SOURCES} ${SUPER_LU_HEADERS})
 #target_link_libraries(super_lu_mt ${BLAS_LIBRARIES})
+target_link_libraries(super_lu_mt libblas_mt)

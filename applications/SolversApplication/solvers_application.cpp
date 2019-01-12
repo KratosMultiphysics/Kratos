@@ -106,8 +106,8 @@ void KratosSolversApplication::Register()
   KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
   //Register Solver Factories
-  KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_DirectSolver", mSuperLUDirectSolverFactory);
-  //KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_MT_DirectSolver", mSuperLUmtDirectSolverFactory);
+  //KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_DirectSolver", mSuperLUDirectSolverFactory);
+  KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_MT_DirectSolver", mSuperLUmtDirectSolverFactory);
   //KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_IterativeSolver", mSuperLUIterativeSolverFactory);
 
 

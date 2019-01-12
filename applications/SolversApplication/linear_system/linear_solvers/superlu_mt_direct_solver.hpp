@@ -108,13 +108,16 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
 
   bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
   {
-    double start_define = OpenMPUtils::GetCurrentTime();
+    // double start_define = OpenMPUtils::GetCurrentTime();
 
     if(this->IsNotConsistent(rA, rX, rB))
       return false;
 
     //Fill the SuperLUmt matrices
     SuperMatrix lhs, rhs, L, U;
+
+    // number of threads
+    int_t nprocs = OpenMPUtils::GetNumThreads();
 
     //can not avoid a copy as ublas uses unsigned int internally
     int_t *index1_vector = new (std::nothrow) int[rA.index1_data().size()];
@@ -126,24 +129,25 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
     for( unsigned int i = 0; i < rA.index2_data().size(); i++ )
       index2_vector[i] = (int_t)rA.index2_data()[i];
 
-    //double *values_vector = new (std::nothrow) double[rA.value_data().size()];
-    //for( unsigned int i = 0; i < rA.value_data().size(); i++ )
-    //  values_vector[i] = (double)rA.value_data()[i];
-
+    // double *values_vector = new (std::nothrow) double[rA.value_data().size()];
+    // for( unsigned int i = 0; i < rA.value_data().size(); i++ )
+    //   values_vector[i] = (double)rA.value_data()[i];
 
     //create a copy of the rhs vector (it will be overwritten with the solution)
-    VectorType b_rhs = rB;
-    // double *b_rhs = new (std::nothrow) double[rB.size()];
-    // for( unsigned int i = 0; i < rB.size(); i++ )
-    //   b_rhs[i] = rB[i];
+    int size = rB.size();
+    VectorType b_rhs(size);
+    noalias(b_rhs)= rB;
+
+    // Creation of a Column Matrix (option0)
+    //dCreate_CompCol_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), values_vector, index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
 
     // Creation of a Column Matrix (option1)
-    dCreate_CompCol_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), rA.value_data().begin(), index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
+    // dCreate_CompCol_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), rA.value_data().begin(), index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
 
     // Creation of a Row Matrix (option2)
-    //dCreate_CompRow_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), rA.value_data().begin(), index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
+    dCreate_CompRow_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), rA.value_data().begin(), index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
 
-    dCreate_Dense_Matrix (&rhs, b_rhs.size(), 1, &b_rhs[0], b_rhs.size(), SLU_DN, SLU_D, SLU_GE);
+    dCreate_Dense_Matrix (&rhs, size, 1, &b_rhs[0], size, SLU_DN, SLU_D, SLU_GE);
 
     //allocate memory for permutation arrays
     int_t* perm_c;
@@ -151,45 +155,53 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
     if ( !(perm_c = intMalloc(rA.size1())) ) SUPERLU_ABORT("Malloc fails for perm_c[].");
     if ( !(perm_r = intMalloc(rA.size2())) ) SUPERLU_ABORT("Malloc fails for perm_r[].");
 
-    double stop_define = OpenMPUtils::GetCurrentTime();
-    if(mEchoLevel > 2)
-      KRATOS_INFO("superlu_define_time") << stop_define - start_define << std::endl;
-
+    // double stop_define = OpenMPUtils::GetCurrentTime();
+    // if(mEchoLevel > 2)
+    //   KRATOS_INFO("superlu_define_time") << stop_define - start_define << std::endl;
 
     //initialize container for information
     int_t info;
 
-    double start_solve = OpenMPUtils::GetCurrentTime();
+    //double start_solve = OpenMPUtils::GetCurrentTime();
 
-    // number of threads
-    int_t nprocs = OpenMPUtils::GetNumThreads();
+    /*
+     * Get column permutation vector perm_c[], according to permc_spec:
+     *   permc_spec = 0: natural ordering
+     *   permc_spec = 1: minimum degree ordering on structure of A'*A
+     *   permc_spec = 2: minimum degree ordering on structure of A'+A
+     *   permc_spec = 3: approximate minimum degree for unsymmetric matrices
+     */
+    int_t permc_spec = 0;
+    get_perm_c(permc_spec, &lhs, perm_c);
 
     // Resolution of the linear system:
     pdgssv(nprocs, &lhs, perm_c, perm_r, &L, &U, &rhs, &info);
 
-
     //resubstitution of results
 #pragma omp parallel for
-    for(int i=0; i<static_cast<int>(b_rhs.size()); ++i)
+    for(int i=0; i<size; ++i)
       rX[i] = b_rhs[i]; // rhs(i,0);
-
 
     // Free superlu allocated space
     SUPERLU_FREE (perm_r);
     SUPERLU_FREE (perm_c);
 
     // Destroy the matrices and vectors that are not used anymore
-    Destroy_CompCol_Matrix(&lhs);
+    //Destroy_CompCol_Matrix(&lhs);
+    Destroy_SuperMatrix_Store(&lhs);
     Destroy_SuperMatrix_Store(&rhs);
     Destroy_SuperNode_SCP(&L);
     Destroy_CompCol_NCP(&U);
 
     delete [] index1_vector;
     delete [] index2_vector;
+    //delete [] values_vector;
 
-    double stop_solve = OpenMPUtils::GetCurrentTime();
-    if(mEchoLevel > 2)
-      KRATOS_INFO("superlu_solve_time") << stop_solve - start_solve << std::endl;
+    std::cout.clear();
+
+    // double stop_solve = OpenMPUtils::GetCurrentTime();
+    // if(mEchoLevel > 2)
+    //   KRATOS_INFO("superlu_solve_time") << stop_solve - start_solve << std::endl;
 
     return true;
   }

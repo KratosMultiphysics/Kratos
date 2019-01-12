@@ -31,8 +31,8 @@
 #include "includes/standard_linear_solver_factory.h"
 
 //linear solvers
-#include "linear_system/linear_solvers/superlu_direct_solver.hpp"
-//#include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
+//#include "linear_system/linear_solvers/superlu_direct_solver.hpp"
+#include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
 
 
 namespace Kratos {
@@ -66,8 +66,8 @@ class KratosSolversApplication : public KratosApplication {
   typedef UblasSpace<double, CompressedMatrix, Vector>                       SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                  LocalSpaceType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType>                     LinearSolverType;
-  typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
-  //typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
+  //typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
+  typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
   //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
 
   ///@}
@@ -161,8 +161,8 @@ class KratosSolversApplication : public KratosApplication {
   ///@name Static Member Variables
   ///@{
 
-  const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
-  //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
+  //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
+  const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
   //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUIterativeSolverType> mSuperLUIterativeSolverFactory;
 
   ///@}

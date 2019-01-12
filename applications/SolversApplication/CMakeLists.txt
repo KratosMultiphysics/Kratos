@@ -8,14 +8,14 @@ include(pybind11Tools)
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
 # compile SuperLU
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1)
-set(SUPER_LU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1)
+#set(SUPER_LU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
+#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
 
 # compile SuperLU_MT
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
-#set(SUPER_LU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
-#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
+set(SUPER_LU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
 
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE
@@ -47,8 +47,8 @@ set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosSolversCore SHARED ${KRATOS_SOLVERS_APPLICATION_CORE})
-target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu)
-#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu_mt)
+#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu)
+target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu_mt)
 set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_APPLICATION=EXPORT,API")
 
 ###############################################################
