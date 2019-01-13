@@ -38,9 +38,9 @@ KRATOS_CREATE_LOCAL_FLAG( NodalConcentratedElement, COMPUTE_ACTIVE_NODE_FLAG,   
 //***********************DEFAULT CONSTRUCTOR******************************************
 /***********************************************************************************/
 
-NodalConcentratedElement::NodalConcentratedElement( 
-    IndexType NewId, 
-    GeometryType::Pointer pGeometry, 
+NodalConcentratedElement::NodalConcentratedElement(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
     const bool UseRayleighDamping,
     const bool ComputeActiveNodeFlag
     )
@@ -56,9 +56,9 @@ NodalConcentratedElement::NodalConcentratedElement(
 //******************************CONSTRUCTOR*******************************************
 /***********************************************************************************/
 
-NodalConcentratedElement::NodalConcentratedElement( 
-    IndexType NewId, GeometryType::Pointer pGeometry, 
-    PropertiesType::Pointer pProperties, 
+NodalConcentratedElement::NodalConcentratedElement(
+    IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties,
     const bool UseRayleighDamping,
     const bool ComputeActiveNodeFlag
     )
@@ -108,21 +108,21 @@ Element::Pointer NodalConcentratedElement::Create(
 /***********************************************************************************/
 
 Element::Pointer NodalConcentratedElement::Create(
-    IndexType NewId, 
+    IndexType NewId,
     GeometryType::Pointer pGeom,
-    PropertiesType::Pointer pProperties 
+    PropertiesType::Pointer pProperties
     ) const
 {
-    //NEEDED TO CREATE AN ELEMENT   
+    //NEEDED TO CREATE AN ELEMENT
     return Kratos::make_shared<NodalConcentratedElement>( NewId, pGeom, pProperties, mELementalFlags.Is(NodalConcentratedElement::COMPUTE_RAYLEIGH_DAMPING) );
 }
 
 //************************************CLONE*******************************************
 /***********************************************************************************/
 
-Element::Pointer NodalConcentratedElement::Clone( 
-    IndexType NewId, 
-    NodesArrayType const& rThisNodes 
+Element::Pointer NodalConcentratedElement::Clone(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
     ) const
 {
     //YOU CREATE A NEW ELEMENT CLONING THEIR VARIABLES
@@ -143,14 +143,14 @@ NodalConcentratedElement::~NodalConcentratedElement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::GetDofList( 
-    DofsVectorType& rElementalDofList, 
+void NodalConcentratedElement::GetDofList(
+    DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    //NEEDED TO DEFINE THE DOFS OF THE ELEMENT 
+    //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     // Resizing as needed
     const SizeType system_size = ComputeSizeOfSystem();
 
@@ -186,8 +186,8 @@ void NodalConcentratedElement::GetDofList(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::EquationIdVector( 
-    EquationIdVectorType& rResult, 
+void NodalConcentratedElement::EquationIdVector(
+    EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -362,7 +362,7 @@ void NodalConcentratedElement::Initialize()
     KRATOS_TRY;
 
     // Defining auxiliar zero array
-    const array_1d<double, 3> zero_array(3, 0.0);
+    const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // We get the reference
     const auto& rconst_this = *this;
@@ -520,10 +520,10 @@ void NodalConcentratedElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::CalculateLocalSystem(
+void NodalConcentratedElement::PrivateCalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
 
@@ -532,12 +532,24 @@ void NodalConcentratedElement::CalculateLocalSystem(
     /* Calculate elemental system */
 
     // Compute RHS (RHS = rRightHandSideVector = Fext - Fint)
-    this->CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+    this->PrivateCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 
     // Compute LHS
-    this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+    this->PrivateCalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     KRATOS_CATCH( "" );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    PrivateCalculateLocalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -546,6 +558,17 @@ void NodalConcentratedElement::CalculateLocalSystem(
 void NodalConcentratedElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
     ProcessInfo& rCurrentProcessInfo
+    )
+{
+    PrivateCalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::PrivateCalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -559,7 +582,7 @@ void NodalConcentratedElement::CalculateRightHandSide(
     rRightHandSideVector = ZeroVector( system_size ); //resetting RHS
 
     // Auxiliar value
-    const array_1d<double, 3> zero_array(3, 0.0);
+    const array_1d<double, 3> zero_array = ZeroVector(3);
 
     // We get the reference
     const auto& rconst_this = *this;
@@ -615,6 +638,17 @@ void NodalConcentratedElement::CalculateLeftHandSide(
     ProcessInfo& rCurrentProcessInfo
     )
 {
+    PrivateCalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::PrivateCalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     // Resizing as needed the LHS
@@ -627,7 +661,7 @@ void NodalConcentratedElement::CalculateLeftHandSide(
 
     // We get the reference
     const auto& rconst_this = *this;
-    
+
     // Auxiliar index
     IndexType aux_index = 0;
 
@@ -654,12 +688,140 @@ void NodalConcentratedElement::CalculateLeftHandSide(
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+
+    // We get the reference
+    const auto& rconst_this = *this;
+
+    // The displacement terms
+    // Computing the nodal mass
+    if (rDestinationVariable == NODAL_MASS ) {
+        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+
+            const double nodal_mass = HasProperties() ? (GetProperties().Has(NODAL_MASS) ? GetProperties().GetValue(NODAL_MASS) : rconst_this.GetValue(NODAL_MASS)) : rconst_this.GetValue(NODAL_MASS);
+
+            #pragma omp atomic
+            r_geom[0].GetValue(NODAL_MASS) += nodal_mass;
+
+        }
+    }
+
+    // The rotational terms
+    // Computing the nodal inertia
+    if (rDestinationVariable == NODAL_INERTIA ) {
+        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+
+            const array_1d<double, 3>& const_nodal_inertia =  HasProperties() ? (GetProperties().Has(NODAL_INERTIA) ? GetProperties().GetValue(NODAL_INERTIA) : rconst_this.GetValue(NODAL_INERTIA)) : rconst_this.GetValue(NODAL_INERTIA);
+
+            array_1d<double, 3>& r_nodal_inertia = r_geom[0].GetValue(NODAL_INERTIA);
+
+            for (IndexType i_dim = 0; i_dim < 3; ++i_dim) {
+                #pragma omp atomic
+                r_nodal_inertia[i_dim] += const_nodal_inertia[i_dim];
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+    const auto& r_prop = this->GetProperties();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType system_size = ComputeSizeOfSystem();
+
+    Vector damping_residual_contribution = ZeroVector(system_size);
+
+    // Calculate damping contribution to residual -->
+    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+        Vector current_nodal_velocities = ZeroVector(system_size);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+
+        Matrix damping_matrix = ZeroMatrix(system_size, system_size);
+        this->PrivateCalculateDampingMatrix(damping_matrix, rCurrentProcessInfo);
+
+        // Current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+    }
+
+    // Auxiliar index
+    IndexType aux_index = 0;
+
+    // Computing the force residual
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_DISPLACEMENT_STIFFNESS) ||
+            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_MASS)) {
+
+            array_1d<double, 3>& r_force_residual = r_geom[0].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+            for (IndexType j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[j] - damping_residual_contribution[j];
+            }
+
+            aux_index += dimension;
+        }
+    }
+
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL) {
+        if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
+            mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
+
+            array_1d<double, 3>& r_moment_residual = r_geom[0].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+            for (IndexType j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_moment_residual[j] += rRHSVector[aux_index + j] - damping_residual_contribution[aux_index + j];
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
 //*************************COMPUTE DELTA POSITION*************************************
 /***********************************************************************************/
 
 void NodalConcentratedElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo
+    )
+{
+    PrivateCalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::PrivateCalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY
@@ -672,10 +834,10 @@ void NodalConcentratedElement::CalculateMassMatrix(
         rMassMatrix.resize( system_size, system_size, false );
 
     rMassMatrix = ZeroMatrix( system_size, system_size );
-    
+
     // We get the reference
     const auto& rconst_this = *this;
-    
+
     // Auxiliar index
     IndexType aux_index = 0;
 
@@ -695,10 +857,10 @@ void NodalConcentratedElement::CalculateMassMatrix(
     if( mELementalFlags.Is(NodalConcentratedElement::COMPUTE_ROTATIONAL_STIFFNESS) ||
         mELementalFlags.Is(NodalConcentratedElement::COMPUTE_NODAL_INERTIA)) {
 
-        const array_1d<double, 3>& nodal_inertia =  HasProperties() ? (GetProperties().Has(NODAL_INERTIA) ? GetProperties().GetValue(NODAL_INERTIA) : rconst_this.GetValue(NODAL_INERTIA)) : rconst_this.GetValue(NODAL_INERTIA);
+        const array_1d<double, 3>& r_nodal_inertia =  HasProperties() ? (GetProperties().Has(NODAL_INERTIA) ? GetProperties().GetValue(NODAL_INERTIA) : rconst_this.GetValue(NODAL_INERTIA)) : rconst_this.GetValue(NODAL_INERTIA);
 
         for ( IndexType j = 0; j < dimension; ++j )
-            rMassMatrix( aux_index + j, aux_index + j ) += nodal_inertia[j];
+            rMassMatrix( aux_index + j, aux_index + j ) += r_nodal_inertia[j];
     }
 
     KRATOS_CATCH( "" );
@@ -707,9 +869,20 @@ void NodalConcentratedElement::CalculateMassMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void NodalConcentratedElement::CalculateDampingMatrix( 
-    MatrixType& rDampingMatrix, 
-    ProcessInfo& rCurrentProcessInfo 
+void NodalConcentratedElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    PrivateCalculateDampingMatrix(rDampingMatrix, rCurrentProcessInfo);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NodalConcentratedElement::PrivateCalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -728,16 +901,16 @@ void NodalConcentratedElement::CalculateDampingMatrix(
         //1.-Calculate StiffnessMatrix:
 
         MatrixType stiffness_matrix       = ZeroMatrix( system_size, system_size );
-        VectorType right_hand_side_vector = ZeroVector( system_size ); 
+        VectorType right_hand_side_vector = ZeroVector( system_size );
 
-        this->CalculateLocalSystem( stiffness_matrix, right_hand_side_vector, rCurrentProcessInfo );
+        this->PrivateCalculateLocalSystem( stiffness_matrix, right_hand_side_vector, rCurrentProcessInfo );
 
         //2.-Calculate MassMatrix:
 
         MatrixType mass_matrix  = ZeroMatrix( system_size, system_size );
 
-        this->CalculateMassMatrix ( mass_matrix, rCurrentProcessInfo );
-        
+        this->PrivateCalculateMassMatrix ( mass_matrix, rCurrentProcessInfo );
+
         //3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
         double alpha = 0.0;
         if( GetProperties().Has(RAYLEIGH_ALPHA) )
@@ -752,7 +925,7 @@ void NodalConcentratedElement::CalculateDampingMatrix(
             beta = rCurrentProcessInfo[RAYLEIGH_BETA];
 
         //4.-Compose the Damping Matrix:
-    
+
         //Rayleigh Damping Matrix: alpha*M + beta*K
         mass_matrix      *= alpha;
         stiffness_matrix *= beta;
@@ -809,9 +982,9 @@ std::size_t NodalConcentratedElement::ComputeSizeOfSystem()
 /***********************************************************************************/
 
 int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
-{    
+{
     KRATOS_TRY
-    
+
     // Check that all required variables have been registered
 
     // The displacement terms
@@ -837,7 +1010,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CHECK_VARIABLE_KEY(NODAL_DAMPING_RATIO)
     KRATOS_CHECK_VARIABLE_KEY(NODAL_ROTATIONAL_DAMPING_RATIO)
     KRATOS_CHECK_VARIABLE_KEY(VOLUME_ACCELERATION)
-    
+
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     NodeType& rnode = this->GetGeometry()[0];
 
@@ -861,7 +1034,7 @@ int NodalConcentratedElement::Check( const ProcessInfo& rCurrentProcessInfo )
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Y,rnode)
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_Z,rnode)
     }
-    
+
     return 0;
 
     KRATOS_CATCH( "Problem in the Check in the NodalConcentratedElement" )

@@ -147,7 +147,7 @@ public:
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
     void GetDofList(
-        DofsVectorType& rElementalDofList, 
+        DofsVectorType& rElementalDofList,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -155,7 +155,7 @@ public:
      * Sets on rResult the ID's of the element degrees of freedom
      */
     void EquationIdVector(
-        EquationIdVectorType& rResult, 
+        EquationIdVectorType& rResult,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -206,64 +206,87 @@ public:
     //************* COMPUTING  METHODS
 
     /**
-     * This is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand side
+     * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
     void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix, 
-        VectorType& rRightHandSideVector, 
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
-
-
-    /**
-     * This calculates just the RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rRightHandSideVector: the elemental right hand side
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-
-    void CalculateRightHandSide( 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-     * This calculates just the LHS
+     * @brief This calculates just the RHS
      * @param rLeftHandSideMatrix: the elemental left hand side matrix
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
 
-    void CalculateLeftHandSide( 
+    /**
+     * @brief This calculates just the LHS
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateMassMatrix(
-        MatrixType& rMassMatrix, 
+        MatrixType& rMassMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
+      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
     void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix, 
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -347,6 +370,65 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+      * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+      * @details Private method to use const ProcessInfo
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void PrivateCalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+      * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+      * @details Private method to use const ProcessInfo
+      * @param rDampingMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void PrivateCalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief This is called during the assembling process in order to calculate all elemental contributions to the global system  matrix and the right hand side
+     * @details Private method to use const ProcessInfo
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void PrivateCalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief This calculates just the RHS
+     * @details Private method to use const ProcessInfo
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void PrivateCalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
+    /**
+     * @brief This calculates just the LHS
+     * @details Private method to use const ProcessInfo
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void PrivateCalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -381,4 +463,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_NODAL_CONCENTRATED_ELEMENT_H_INCLUDED  defined
