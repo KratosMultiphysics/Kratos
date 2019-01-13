@@ -180,10 +180,12 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
 
     // The number of elements
     const SizeType number_elements = r_root_model_part.NumberOfElements();
+    const auto it_elem_begin = r_root_model_part.ElementsBegin();
+
     // Reorder ids
     #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(r_root_model_part.Elements().size()); i++) {
-        auto it_elem = r_model_part.ElementsBegin() + i;
+    for(int i=0; i< static_cast<int>(number_elements); ++i) {
+        auto it_elem = it_elem_begin + i;
         it_elem->SetId(i + 1);
     }
 
@@ -191,76 +193,46 @@ void AssignNodalElementsToNodes::ExecuteInitialize()
     const bool rayleigh_damping = mThisParameters["rayleigh_damping"].GetBool();
     const bool assign_active_flag_node = mThisParameters["assign_active_flag_node"].GetBool();
     PointerVector<NodeType> aux_node_array(1);
-    aux_node_array(0) = *(r_model_part.NodesBegin()).base();
+    const auto it_node_begin = r_model_part.NodesBegin();
+    aux_node_array(0) = *(it_node_begin).base();
 
-    if (domain_size == 2) {
-        GeometryType::Pointer p_dummy_geom = Kratos::make_shared<Point2D<NodeType>>(aux_node_array);
-        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
+    const SizeType number_of_nodes = r_model_part.Nodes().size();
+    std::vector<Element::Pointer> auxiliar_elements_vector;
 
-        std::vector<Element::Pointer> auxiliar_elements_vector;
+    GeometryType::Pointer p_dummy_geom = GetPointGeometryFromNode(aux_node_array, domain_size);
+    const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
 
-        #pragma omp parallel
-        {
-            // Buffer for new elements if created
-            std::vector<Element::Pointer> auxiliar_elements_vector_buffer;
+    #pragma omp parallel
+    {
+        // Buffer for new elements if created
+        std::vector<Element::Pointer> auxiliar_elements_vector_buffer;
 
-            #pragma omp for
-            for(int i=0; i< static_cast<int>(r_model_part.Nodes().size()); i++) {
-                auto it_node = r_model_part.NodesBegin() + i;
+        #pragma omp for
+        for(int i=0; i< static_cast<int>(number_of_nodes); ++i) {
+            auto it_node = it_node_begin + i;
 
-                PointerVector<NodeType> this_node_array(1);
-                this_node_array(0) = *(it_node).base();
+            PointerVector<NodeType> this_node_array(1);
+            this_node_array(0) = *(it_node).base();
 
-                auto p_element = rReferenceElement.Create(number_elements + 1 + i, Kratos::make_shared<Point2D<NodeType>>(this_node_array), p_properties);
+            auto p_element = rReferenceElement.Create(number_elements + 1 + i, GetPointGeometryFromNode(this_node_array, domain_size), p_properties);
+            auxiliar_elements_vector_buffer.push_back(p_element);
 
-                // Deep copy elemental data and flags
-//                 p_element->Data() = it_node->Data();
-                p_element->Set(Flags(*it_node));
-            }
-
-            // Combine buffers together
-            #pragma omp critical
-            {
-                std::move(auxiliar_elements_vector_buffer.begin(),auxiliar_elements_vector_buffer.end(),back_inserter(auxiliar_elements_vector));
-            }
-        }
-    } else {
-        GeometryType::Pointer p_dummy_geom = Kratos::make_shared<Point3D<NodeType>>(aux_node_array);
-        const Element& rReferenceElement = NodalConcentratedElement(0, p_dummy_geom, rayleigh_damping, assign_active_flag_node);
-
-        std::vector<Element::Pointer> auxiliar_elements_vector;
-
-        #pragma omp parallel
-        {
-            // Buffer for new elements if created
-            std::vector<Element::Pointer> auxiliar_elements_vector_buffer;
-
-            #pragma omp for
-            for(int i=0; i< static_cast<int>(r_model_part.Nodes().size()); i++) {
-                auto it_node = r_model_part.NodesBegin() + i;
-
-                PointerVector<NodeType> this_node_array(1);
-                this_node_array(0) = *(it_node).base();
-
-                auto p_element = rReferenceElement.Create(number_elements + 1 + i, Kratos::make_shared<Point3D<NodeType>>(this_node_array), p_properties);
-
-                // Deep copy elemental data and flags
-//                 p_element->Data() = it_node->Data();
-                p_element->Set(Flags(*it_node));
-            }
-
-            // Combine buffers together
-            #pragma omp critical
-            {
-                std::move(auxiliar_elements_vector_buffer.begin(),auxiliar_elements_vector_buffer.end(),back_inserter(auxiliar_elements_vector));
-            }
+            // Deep copy elemental data and flags
+//             p_element->Data() = it_node->Data();
+            p_element->Set(Flags(*it_node));
         }
 
-        // Adding to the model part
-        ElementsArrayType aux_elems;
-        aux_elems.GetContainer() = auxiliar_elements_vector;
-        r_model_part.AddElements(aux_elems.begin(), aux_elems.end());
+        // Combine buffers together
+        #pragma omp critical
+        {
+            std::move(auxiliar_elements_vector_buffer.begin(),auxiliar_elements_vector_buffer.end(),back_inserter(auxiliar_elements_vector));
+        }
     }
+
+    // Adding to the model part
+    ElementsArrayType aux_elems;
+    aux_elems.GetContainer() = auxiliar_elements_vector;
+    r_model_part.AddElements(aux_elems.begin(), aux_elems.end());
 
     // We Initialize the elements
     InitializeElements(r_model_part);
@@ -281,14 +253,15 @@ void AssignNodalElementsToNodes::ExecuteInitializeSolutionStep()
     // We get the proper model part
     const std::string& model_part_name = mThisParameters["model_part_name"].GetString();
     ModelPart& r_model_part = (model_part_name == "") ? mrThisModelPart : mrThisModelPart.GetSubModelPart(model_part_name);
+    const auto it_elem_begin = r_model_part.Elements().begin();
 
     // Check the interval
     if (mThisParameters["interval"][0].GetDouble() > 0.0 || mThisParameters["interval"][1].GetDouble() < 1e30) {
         if (this->IsNot(ACTIVE)) {
             // Initialize initial displacement and rotation
             #pragma omp parallel for
-            for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); i++) {
-                auto it_elem = r_model_part.ElementsBegin() + i;
+            for(int i=0; i< static_cast<int>(r_model_part.Elements().size()); ++i) {
+                auto it_elem = it_elem_begin + i;
                 if (it_elem->Has(INITIAL_DISPLACEMENT)) {
                     it_elem->SetValue(INITIAL_DISPLACEMENT, it_elem->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT));
                 }
@@ -316,13 +289,31 @@ void AssignNodalElementsToNodes::ExecuteInitializeSolutionStep()
 
 void AssignNodalElementsToNodes::InitializeElements(ModelPart& rModelPart)
 {
-    ElementsArrayType& element_array = rModelPart.Elements();
+    ElementsArrayType& r_elements_array = rModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
     #pragma omp parallel for
-    for(int i=0; i< static_cast<int>(element_array.size()); i++)
-        (element_array.begin() + i)->Initialize();
+    for(int i=0; i< static_cast<int>(r_elements_array.size()); i++)
+        (it_elem_begin + i)->Initialize();
 
     // Inactive by default
     VariableUtils().SetFlag(ACTIVE, false, rModelPart.Elements());
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+AssignNodalElementsToNodes::GeometryType::Pointer AssignNodalElementsToNodes::GetPointGeometryFromNode(
+    PointerVector<NodeType>& rArrayNodes,
+    const SizeType Dimension
+    )
+{
+    if (Dimension == 2) {
+        return Kratos::make_shared<Point2D<NodeType>>(rArrayNodes);
+    } else {
+        return Kratos::make_shared<Point3D<NodeType>>(rArrayNodes);
+    }
+
+    return nullptr;
 }
 
 // class AssignNodalElementsToNodes

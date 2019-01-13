@@ -29,19 +29,19 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
     /// The size definition
     typedef std::size_t SizeType;
 
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class AssignNodalElementsToNodes
  * @ingroup StructuralMechanicsApplication
  * @brief This process assign nodal elements to a submodelpart of nodes
@@ -57,7 +57,7 @@ public:
 
     /// Pointer definition of AssignNodalElementsToNodes
     KRATOS_CLASS_POINTER_DEFINITION(AssignNodalElementsToNodes);
-    
+
     /// The index definition
     typedef std::size_t                                     IndexType;
 
@@ -103,7 +103,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -112,11 +112,11 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief Execute method is used to execute the Process algorithms.
      */
@@ -127,7 +127,7 @@ public:
      * right after reading the model and the groups
      */
     void ExecuteInitialize() override;
-    
+
     /**
      * @brief This function will be executed at every time step BEFORE performing the solve phase
      */
@@ -189,7 +189,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -215,7 +215,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart;   /// The main model part
     Parameters mThisParameters;   /// The parameters (can be used for general pourposes)
 
@@ -231,8 +231,18 @@ private:
      * @brief After we have transfer the information from the previous modelpart we initilize the elements
      * @param rModelPart The model part contining the elements
      */
-
     void InitializeElements(ModelPart& rModelPart);
+
+    /**
+     * @brief It returns a point geometry from an array of nodes
+     * @param rArrayNodes The array containing nodes
+     * @param Dimension The current dimension of work
+     * @return The pointer of the geometry of interest
+     */
+    GeometryType::Pointer GetPointGeometryFromNode(
+        PointerVector<NodeType>& rArrayNodes,
+        const SizeType Dimension
+        );
 
     ///@}
     ///@name Private  Access
@@ -272,7 +282,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   AssignNodalElementsToNodes& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const AssignNodalElementsToNodes& rThis)
@@ -280,7 +290,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

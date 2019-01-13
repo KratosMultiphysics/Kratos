@@ -45,7 +45,6 @@ namespace Kratos
         * Checks the correct work of the AssignNodalElementsToNodes process
         * Test 1. No rotation
         */
-
         KRATOS_TEST_CASE_IN_SUITE(TestAssignNodalElementsToNodes1, KratosStructuralMechanicsFastSuite)
         {
             Model model;
@@ -62,7 +61,7 @@ namespace Kratos
                 "nodal_stiffness"                : [1.0, null, 0.0]
             })" );
 
-            AssignNodalElementsToNodes assign_nodal_elements_to_nodes = AssignNodalElementsToNodes(this_model_part, parameters);
+            AssignNodalElementsToNodes assign_nodal_elements_to_nodes(this_model_part, parameters);
             assign_nodal_elements_to_nodes.Execute();
 
             KRATOS_CHECK_EQUAL(this_model_part.Elements().size(), this_model_part.Nodes().size());
@@ -79,7 +78,6 @@ namespace Kratos
         * Checks the correct work of the AssignNodalElementsToNodes process
         * Test 2. WIth rotation
         */
-
         KRATOS_TEST_CASE_IN_SUITE(TestAssignNodalElementsToNodes2, KratosStructuralMechanicsFastSuite)
         {
             Model model;
@@ -101,7 +99,7 @@ namespace Kratos
                 "nodal_rotational_stiffness"     : [1.0, null, 1.0]
             })" );
 
-            AssignNodalElementsToNodes assign_nodal_elements_to_nodes = AssignNodalElementsToNodes(this_model_part, parameters);
+            AssignNodalElementsToNodes assign_nodal_elements_to_nodes(this_model_part, parameters);
             assign_nodal_elements_to_nodes.Execute();
 
             KRATOS_CHECK_EQUAL(this_model_part.Elements().size(), this_model_part.Nodes().size());
