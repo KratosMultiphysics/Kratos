@@ -15,6 +15,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
 
   ## UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/structural_mechanics_element_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
@@ -79,7 +80,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
-  
+
   ## ELEMENTS
   #Adding truss element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp

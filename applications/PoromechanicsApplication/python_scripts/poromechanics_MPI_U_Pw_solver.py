@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("PoromechanicsApplication","MetisApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 import KratosMultiphysics.MetisApplication as MetisApplication
