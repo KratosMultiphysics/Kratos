@@ -218,7 +218,7 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             self._GetFluidInterfaceSubmodelPart(),
             KratosMultiphysics.MESH_DISPLACEMENT,
             KratosMultiphysics.VECTOR_PROJECTED,
-            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
             disp_residual)
 
         return disp_residual
