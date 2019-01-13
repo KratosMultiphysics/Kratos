@@ -99,7 +99,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         continue # skip the check for the MainModelPart
                     if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
                         model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                        KratosMultiphysics.Logger.PrintWarning(model_part_name)
+                        KratosMultiphysics.Logger.PrintInfo(model_part_name)
                     if model_part_name not in list_proc_smp_names:
                         proc_name = processes_block[i_proc]["python_module"].GetString()
                         warn_msg  = 'The SubModelPart with name "' + model_part_name + '"\n'
