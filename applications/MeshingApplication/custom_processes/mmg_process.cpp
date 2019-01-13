@@ -296,7 +296,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     for (auto sub_model_part_name : sub_model_part_names) {
         ModelPart& r_sub_model_part = AssignUniqueModelPartCollectionTagUtility::GetRecursiveSubModelPart(mrThisModelPart, sub_model_part_name);
 
-        KRATOS_WARNING_IF("MmgProcess", (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
+        KRATOS_WARNING_IF("MmgProcess", mEchoLevel > 0 && (r_sub_model_part.NumberOfNodes() > 0 && (r_sub_model_part.NumberOfConditions() == 0 && r_sub_model_part.NumberOfElements() == 0))) <<
         "The submodelpart: " << sub_model_part_name << " contains only nodes and no geometries (conditions/elements)." << std::endl <<
         "It is not guaranteed that the submodelpart will be preserved." << std::endl <<
         "PLEASE: Add some \"dummy\" conditions to the submodelpart to preserve it" << std::endl;
@@ -810,10 +810,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         /* We move the mesh */
         nodes_array = mrThisModelPart.Nodes();
+        const auto it_node_begin = nodes_array.begin();
 
         #pragma omp parallel for
         for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+            auto it_node = it_node_begin + i;
 
             noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
             noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT, step);
@@ -830,6 +831,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
     // Finally remove old model part
     owner_model.DeleteModelPart(mrThisModelPart.Name()+"_Old");
+
+    /* We clean conditions with duplicated geometries (this is an error on fluid simulations) */
+    if (mFramework == FrameworkEulerLagrange::EULERIAN) {
+        ClearConditionsDuplicatedGeometries();
+    }
 }
 
 /***********************************************************************************/
@@ -838,17 +844,23 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::ReorderAllIds()
 {
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    for(SizeType i = 0; i < nodes_array.size(); ++i)
-        (nodes_array.begin() + i)->SetId(i + 1);
+    // Iterate over nodes
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    for(IndexType i = 0; i < r_nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
 
-    ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
-    for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->SetId(i + 1);
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    for(IndexType i = 0; i < r_conditions_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
 
-    ElementsArrayType& element_array = mrThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->SetId(i + 1);
+    // Iterate over elements
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    for(IndexType i = 0; i < r_elements_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
@@ -857,13 +869,19 @@ void MmgProcess<TMMGLibray>::ReorderAllIds()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
-    ConditionsArrayType& condition_array = mrThisModelPart.Conditions();
-    for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->Initialize();
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    const auto it_cond_begin = r_conditions_array.begin();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
+        (it_cond_begin + i)->Initialize();
 
-    ElementsArrayType& element_array = mrThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->Initialize();
+    // Iterate over elements
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
+    const auto it_elem_begin = r_elements_array.begin();
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
+        (it_elem_begin + i)->Initialize();
 }
 
 /***********************************************************************************/
@@ -2831,6 +2849,45 @@ void MmgProcess<TMMGLibray>::AssignAndClearAuxiliarSubModelPartForFlags()
     }
 
     mrThisModelPart.RemoveSubModelPart("AUXILIAR_MODEL_PART_TO_LATER_REMOVE");
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::ClearConditionsDuplicatedGeometries()
+{
+    // Next check that the conditions are oriented accordingly to do so begin by putting all of the conditions in a set
+    typedef std::unordered_set<DenseVector<IndexType>, KeyHasherRange<DenseVector<IndexType>>, KeyComparorRange<DenseVector<IndexType>> > HashSetType;
+    HashSetType faces_set;
+
+    // Iterate over conditions
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    for(auto& r_cond : r_conditions_array) {
+
+        GeometryType& r_geom = r_cond.GetGeometry();
+        DenseVector<IndexType> ids(r_geom.size());
+
+        for(IndexType i = 0; i < ids.size(); ++i) {
+            ids[i] = r_geom[i].Id();
+        }
+
+        //*** THE ARRAY OF IDS MUST BE ORDERED!!! ***
+        std::sort(ids.begin(), ids.end());
+
+        // Insert a pointer to the condition identified by the hash value ids
+        HashSetType::iterator it_face = faces_set.find(ids);
+        if(it_face != faces_set.end() ) { // Already defined vector
+            r_cond.Set(TO_ERASE);
+            KRATOS_INFO_IF("MmgProcess", mEchoLevel > 2) << "Condition created ID:\t" << r_cond.Id() << " will be removed" << std::endl;
+        } else {
+            faces_set.insert( HashSetType::value_type(ids) );
+        }
+    }
+
+    // We remove the conditions marked to be removed
+    mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 }
 
 /***********************************************************************************/

@@ -222,23 +222,37 @@ public:
 
             // Set Nodal Mass to zero
             NodesArrayType& r_nodes = r_model_part.Nodes();
+            VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+
+            // Iterate over the elements
             ElementsArrayType& r_elements = r_model_part.Elements();
+            const auto it_elem_begin = r_elements.begin();
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
 
-            VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
-            const array_1d<double, 3> zero_array(3, 0.0);
-            if (r_model_part.NodesBegin()->HasDofFor(ROTATION_Z))
+            Vector dummy_vector;
+            // If we consider the rotation DoF
+            const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z) {
+                const array_1d<double, 3> zero_array = ZeroVector(3);
                 VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
 
-            Vector dummy_vector;
-            #pragma omp parallel for firstprivate(dummy_vector)
-            for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-                // Getting nodal mass and inertia from element
-                // this function needs to be implemented in the respective
-                // element to provide inertias and nodal masses
-                auto it_elem = r_elements.begin() + i;
-                it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                            NODAL_INERTIA, r_current_process_info);
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide inertias and nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                }
+            } else { // Only NODAL_MASS is needed
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                }
             }
 
             this->mInitializeWasPerformed = true;
@@ -267,16 +281,29 @@ public:
         if (BaseType::mRebuildLevel > 0) {
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
             ElementsArrayType& r_elements = r_model_part.Elements();
+            const auto it_elem_begin = r_elements.begin();
 
             Vector dummy_vector;
-            #pragma omp parallel for firstprivate(dummy_vector)
-            for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-                // Getting nodal mass and inertia from element
-                // this function needs to be implemented in the respective
-                // element to provide inertias and nodal masses
-                auto it_elem = r_elements.begin() + i;
-                it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR,
-                                            NODAL_INERTIA, r_current_process_info);
+            // If we consider the rotation DoF
+            const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z) {
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide inertias and nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                }
+            } else { // Only NODAL_MASS is needed
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                }
             }
         }
 
@@ -299,26 +326,19 @@ public:
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
         ElementsArrayType& r_elements = rModelPart.Elements();
 
-        #pragma omp parallel for
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
             auto it_cond = r_conditions.begin() + i;
-            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
-            Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-
-            pScheme->Condition_Calculate_RHS_Contribution(
-                (*it_cond.base()), RHS_Condition_Contribution,
-                equation_id_vector_dummy, r_current_process_info);
+            pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
             auto it_elem = r_elements.begin() + i;
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-            Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-
-            pScheme->Calculate_RHS_Contribution(
-                (*it_elem.base()), RHS_Contribution, equation_id_vector_dummy,
-                r_current_process_info);
+            pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
         KRATOS_CATCH("")
@@ -362,9 +382,9 @@ public:
         // to avoid error accumulation
         pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
 
-        // move the mesh if needed
-        if (BaseType::MoveMeshFlag() == true)
-        BaseType::MoveMesh();
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag())
+            BaseType::MoveMesh();
 
         // Cleaning memory after the solution
         pScheme->Clean();
@@ -462,12 +482,6 @@ protected:
     ///@{
 
     typename TSchemeType::Pointer mpScheme;
-
-    typename TLinearSolver::Pointer mpLinearSolver;
-
-    TSystemVectorPointerType mpDx;
-    TSystemVectorPointerType mpb;
-    TSystemMatrixPointerType mpA;
 
     /**
     Flag telling if it is needed to reform the DofSet at each
