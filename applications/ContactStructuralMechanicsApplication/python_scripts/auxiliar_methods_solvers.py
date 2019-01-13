@@ -90,7 +90,7 @@ def AuxiliarAddVariables(main_model_part, mortar_type = ""):
         main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H) # Add nodal size variable
         if mortar_type == "PenaltyContactFrictionless":
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
-        elif mortar_type == "PenaltyContactFrictionless":
+        elif mortar_type == "PenaltyContactFrictional":
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_GAP)                         # Add normal contact gap
             main_model_part.AddNodalSolutionStepVariable(CSMA.WEIGHTED_SLIP)                        # Add contact slip
         elif mortar_type == "ALMContactFrictionless":
