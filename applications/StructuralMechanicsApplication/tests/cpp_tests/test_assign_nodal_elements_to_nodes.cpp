@@ -15,18 +15,19 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
 #include "testing/testing.h"
 
 /* Processes */
 #include "custom_processes/assign_nodal_elements_to_nodes.h"
 #include "structural_mechanics_application_variables.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void AssignNodalElementsToNodesCreateModelPart(ModelPart& ThisModelPart)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
@@ -47,8 +48,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestAssignNodalElementsToNodes1, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model model;
+            ModelPart& this_model_part = model.CreateModelPart("Main");
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -81,8 +82,8 @@ namespace Kratos
 
         KRATOS_TEST_CASE_IN_SUITE(TestAssignNodalElementsToNodes2, KratosStructuralMechanicsFastSuite)
         {
-            ModelPart this_model_part("Main");
-            this_model_part.SetBufferSize(2);
+            Model model;
+            ModelPart& this_model_part = model.CreateModelPart("Main", 2);
 
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
             this_model_part.AddNodalSolutionStepVariable(VELOCITY);
