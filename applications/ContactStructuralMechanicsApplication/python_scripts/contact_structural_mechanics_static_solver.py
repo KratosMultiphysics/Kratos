@@ -105,7 +105,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         return is_converged
 
     def ExecuteFinalizeSolutionStep(self):
-        super(ContactStaticMechanicalSolver(), self).ExecuteFinalizeSolutionStep()
+        super(ContactStaticMechanicalSolver, self).ExecuteFinalizeSolutionStep()
         if self.contact_settings["ensure_contact"].GetBool():
             computing_model_part = self.GetComputingModelPart()
             CSMA.ContactUtilities.CheckActivity(computing_model_part)
