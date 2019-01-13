@@ -9,16 +9,12 @@ except ModuleNotFoundError:
     exit()
 
 try :
-    import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
-    import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
+    from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 except ModuleNotFoundError:
-    print(tools.bcolors.FAIL + 'KRATOS_STRUCTURAL_MECHANICS is not available ! Please ensure that it is available for usage !'+ tools.bcolors.ENDC)
+    print(tools.bcolors.FAIL + 'KRATOS_FLUID_DYNAMICS is not available ! Please ensure that it is available for usage !'+ tools.bcolors.ENDC)
     exit()
 # Importing the base class
 from . import kratos_base_field_solver
-
-# Other imports
-from fluid_dynamics_analysis import FluidDynamicsAnalysis
 
 def Create(name, cosim_solver_settings):
     return KratosCoSimulationFluidSolver(name, cosim_solver_settings)

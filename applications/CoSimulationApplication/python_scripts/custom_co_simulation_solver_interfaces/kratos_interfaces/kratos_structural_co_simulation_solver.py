@@ -9,15 +9,12 @@ except ModuleNotFoundError:
     exit()
 
 try :
-    import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
+    from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 except ModuleNotFoundError:
     print(tools.bcolors.FAIL + 'KRATOS_STRUCTURAL_MECHANICS is not available ! Please ensure that it is available for usage !'+ tools.bcolors.ENDC)
     exit()
 # Importing the base class
 from . import kratos_base_field_solver
-
-# Other imports
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 def Create(solver_name, cosim_solver_settings):
     return KratosStructuralSolver(solver_name, cosim_solver_settings)
