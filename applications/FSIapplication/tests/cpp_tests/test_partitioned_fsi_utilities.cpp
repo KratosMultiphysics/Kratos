@@ -33,10 +33,11 @@ namespace Testing {
     void SetTestInterface(ModelPart &rTestModelPart)
     {
         rTestModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
-        rTestModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rTestModelPart.AddNodalSolutionStepVariable(SCALAR_PROJECTED);
         rTestModelPart.AddNodalSolutionStepVariable(SCALAR_INTERFACE_RESIDUAL);
+        rTestModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         rTestModelPart.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
+        rTestModelPart.AddNodalSolutionStepVariable(FSI_INTERFACE_RESIDUAL);
 
         rTestModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
         rTestModelPart.CreateNewNode(2, 0.0, 1.0, 0.0);
@@ -49,6 +50,22 @@ namespace Testing {
         for (auto &it_node : rTestModelPart.Nodes()) {
             it_node.FastGetSolutionStepValue(TEMPERATURE) = it_node.Y();
             it_node.FastGetSolutionStepValue(SCALAR_PROJECTED) = it_node.Y() + 1.0;
+        }
+    }
+
+    void SetTestArrayValues(ModelPart &rTestModelPart)
+    {
+        for (auto &it_node : rTestModelPart.Nodes()) {
+            array_1d<double,3> aux_disp = ZeroVector(3);
+            aux_disp[0] = it_node.Y();
+            aux_disp[1] = 2.0 * it_node.Y();
+            aux_disp[2] = 3.0 * it_node.Y();
+            array_1d<double,3> aux_mesh_disp = ZeroVector(3);
+            aux_mesh_disp[0] = 2.0 * it_node.Y();
+            aux_mesh_disp[1] = 3.0 * it_node.Y();
+            aux_mesh_disp[2] = 4.0 * it_node.Y();
+            it_node.FastGetSolutionStepValue(DISPLACEMENT) = aux_disp;
+            it_node.FastGetSolutionStepValue(MESH_DISPLACEMENT) = aux_mesh_disp;
         }
     }
 
@@ -155,7 +172,59 @@ namespace Testing {
         }
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorNodal, FSIApplicationFastSuite)
+    {
+        // Set test model part
+        Model model;
+        auto &r_test_model_part = model.CreateModelPart("TestModelPart");
+        SetTestInterface(r_test_model_part);
+        SetTestArrayValues(r_test_model_part);
 
+        // Test ComputeInterfaceResidualVector()
+        PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 2> part_fsi_utils_array_2D;
+        auto p_interface_vector = part_fsi_utils_array_2D.SetUpInterfaceVector(r_test_model_part);
+
+        part_fsi_utils_array_2D.ComputeInterfaceResidualVector(
+            r_test_model_part,
+            DISPLACEMENT,
+            MESH_DISPLACEMENT,
+            FSI_INTERFACE_RESIDUAL,
+            *p_interface_vector);
+
+        const double tolerance = 1.0e-8;
+        std::vector<double> expected_values = {0.0, 0.0, -1.0, -1.0, -2.0, -2.0, -3.0, -3.0};
+        for (unsigned int i = 0; i < expected_values.size(); ++i) {
+            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
+        }
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(PartitionedFSIUtilitiesArray2DComputeInterfaceResidualVectorConsistent, FSIApplicationFastSuite)
+    {
+        // Set test model part
+        Model model;
+        auto &r_test_model_part = model.CreateModelPart("TestModelPart");
+        SetTestInterface(r_test_model_part);
+        SetTestArrayValues(r_test_model_part);
+
+        // Test ComputeInterfaceResidualVector()
+        PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 2> part_fsi_utils_array_2D;
+        auto p_interface_vector = part_fsi_utils_array_2D.SetUpInterfaceVector(r_test_model_part);
+
+        part_fsi_utils_array_2D.ComputeInterfaceResidualVector(
+            r_test_model_part,
+            DISPLACEMENT,
+            MESH_DISPLACEMENT,
+            FSI_INTERFACE_RESIDUAL,
+            *p_interface_vector,
+            "consistent");
+
+        KRATOS_WATCH(*p_interface_vector)
+        const double tolerance = 1.0e-8;
+        std::vector<double> expected_values = {0.0, 0.0, -1.0, -1.0, -2.0, -2.0, -3.0, -3.0};
+        for (unsigned int i = 0; i < expected_values.size(); ++i) {
+            KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
+        }
+    }
 
 } // namespace Testing
 }  // namespace Kratos.

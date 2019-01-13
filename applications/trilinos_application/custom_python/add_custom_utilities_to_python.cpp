@@ -68,8 +68,8 @@ void AuxiliarComputeInterfaceResidualVector(
     const Variable<TValueType> &rModifiedVariable,
     const Variable<TValueType> &rResidualVariable,
     AuxiliaryVectorWrapper &rInterfaceResidual,
-    const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM,
-    const std::string ResidualType = "nodal")
+    const std::string ResidualType = "nodal",
+    const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM)
 {
     dummy.ComputeInterfaceResidualVector(
         rInterfaceModelPart,
@@ -77,8 +77,8 @@ void AuxiliarComputeInterfaceResidualVector(
         rModifiedVariable,
         rResidualVariable,
         rInterfaceResidual.GetReference(),
-        rResidualNormVariable,
-        ResidualType);
+        ResidualType,
+        rResidualNormVariable);
 }
 
 void AuxiliarUpdateSolution(

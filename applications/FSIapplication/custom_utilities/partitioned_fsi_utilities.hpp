@@ -206,8 +206,8 @@ public:
         const Variable<TValueType> &rModifiedVariable,
         const Variable<TValueType> &rResidualVariable,
         VectorType &rInterfaceResidual,
-        const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM,
-        const std::string ResidualType = "nodal")
+        const std::string ResidualType = "nodal",
+        const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM)
     {
         TSpace::SetToZero(rInterfaceResidual);
 
@@ -236,6 +236,17 @@ public:
         rInterfaceModelPart.GetProcessInfo().GetValue(rResidualNormVariable) = TSpace::TwoNorm(rInterfaceResidual);
     }
 
+    /**
+     * @brief Computes the interface residual norm
+     * This method computes the interface residual norm. To do that it firstly
+     * computes the residual vector as is done in ComputeInterfaceResidualVector.
+     * @param rInterfaceModelPart interface modelpart in where the residual is computed
+     * @param rOriginalVariable origin variable to compute the residual
+     * @param rModifiedVariable end variable to compute the residual
+     * @param rInterfaceResidual reference to the residual vector
+     * @param ResidualType residual computation type (nodal or consistent)
+     * @return double interface residual norm
+     */
     double ComputeInterfaceResidualNorm(
         ModelPart &rInterfaceModelPart,
         const Variable<TValueType> &rOriginalVariable,
@@ -628,12 +639,12 @@ protected:
         auto& rLocalMesh = rInterfaceModelPart.GetCommunicator().LocalMesh();
         ModelPart::NodeIterator local_mesh_nodes_begin = rLocalMesh.NodesBegin();
         #pragma omp parallel for firstprivate(local_mesh_nodes_begin)
-        for(int k=0; k<static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
+        for(int k = 0; k < static_cast<int>(rLocalMesh.NumberOfNodes()); ++k) {
             ModelPart::NodeIterator it_node = local_mesh_nodes_begin+k;
             auto &r_error_storage = it_node->FastGetSolutionStepValue(rErrorStorageVariable);
-            const auto &value_fluid = it_node->FastGetSolutionStepValue(rOriginalVariable);
-            const auto &value_fluid_projected = it_node->FastGetSolutionStepValue(rModifiedVariable);
-            r_error_storage = value_fluid - value_fluid_projected;
+            const auto &value_origin = it_node->FastGetSolutionStepValue(rOriginalVariable);
+            const auto &value_modified = it_node->FastGetSolutionStepValue(rModifiedVariable);
+            r_error_storage = value_origin - value_modified;
         }
     }
 
