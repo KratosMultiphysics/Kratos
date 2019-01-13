@@ -207,9 +207,11 @@ void TetrahedralMeshOrientationCheck::Execute()
 
 
     if (mThrowErrors && (ElemSwitchCount+CondSwitchCount) > 0) {
+        mrModelPart.GetProcessInfo().SetValue(FLAG_VARIABLE, 0.0); //Set flag variable as check, this is not supposed to reach here anyway
         KRATOS_ERROR << OutMsg.str() << std::endl;
     } else {
         KRATOS_INFO("TetrahedralMeshOrientationCheck") << OutMsg.str();
+        mrModelPart.GetProcessInfo().SetValue(FLAG_VARIABLE, 1.0); //Set flag variable as check
     }
 
 

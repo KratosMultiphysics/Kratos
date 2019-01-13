@@ -20,6 +20,8 @@ class TestTetrahedralMeshOrientationCheck(KratosUnittest.TestCase):
         check_mesh = KratosMultiphysics.TetrahedralMeshOrientationCheck(model_part, True)
         check_mesh.Execute()
 
+        self.assertGreater(model_part.ProcessInfo[KratosMultiphysics.FLAG_VARIABLE], 0.0)
+
 if __name__ == '__main__':
     KratosUnittest.main()
 
