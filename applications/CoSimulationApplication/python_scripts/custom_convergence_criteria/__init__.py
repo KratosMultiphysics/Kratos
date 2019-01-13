@@ -2,6 +2,8 @@
 import sys, os
 sys.path.append(os.path.dirname(__file__))
 
+#Comment this is not up to date
+
 """
 This is a map of the name of available convergence accelerators to be specified in
 JSON file and their python module (file) name. New accelerators should be registered here by an

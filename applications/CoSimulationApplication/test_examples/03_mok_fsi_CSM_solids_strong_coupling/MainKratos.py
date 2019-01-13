@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
-import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
+import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication #Comment cannot be here
 import co_simulation_tools as cs_tools
-from CoSimulationApplication import *
+from CoSimulationApplication import * #Comment cannot be here
 import sys
 
-class CoSimulationAnalysis(object):
+class CoSimulationAnalysis(object): #Comment why reimplemented?
     """
     The base class for the CoSimulation-AnalysisStage
     """
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     parameter_file_name = argv[1]
     global cs_data_structure
-    cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name) 
+    cs_data_structure = cs_tools.ImportDataStructure(parameter_file_name)
 
     # Now we import actual parameters from the cs_data_structure
     with open(parameter_file_name,'r') as parameter_file:

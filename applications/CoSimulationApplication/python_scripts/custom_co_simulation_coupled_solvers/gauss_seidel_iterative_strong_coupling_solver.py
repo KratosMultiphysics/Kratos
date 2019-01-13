@@ -1,5 +1,5 @@
 # co simulation imports
-from CoSimulationApplication import *
+from CoSimulationApplication import * #Comment cannot be here
 from base_co_simulation_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
 import co_simulation_tools as tools
 
@@ -8,7 +8,9 @@ import os
 
 def Create(custom_settings):
     return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
-
+#Comment I would say we either use "Strong" or "Iterative"
+#Comment same for weak/loose
+#Comment I vote for strong & weak
 class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
         super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
@@ -22,6 +24,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         for p in range(0,self.number_of_participants) :
             self.participating_solver_names.append(self.participants_setting_dict[p]['name'])
 
+        #Comment how the settings are specified has to be consistent!
         ### Making the convergence accelerator for this strategy
         self.convergence_accelerators_list = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
 
@@ -79,7 +82,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                 for conv_criteria in self.convergence_criteria_list:
                     conv_criteria.FinalizeNonLinearIteration()
 
-                is_converged = True
+                is_converged = True #Comment I think this would be suitable for list-comprehension
                 for conv_criteria in self.convergence_criteria_list:
                     is_converged = is_converged and conv_criteria.IsConverged()
                 if is_converged:
