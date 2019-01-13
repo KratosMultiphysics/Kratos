@@ -132,56 +132,25 @@ class BaseDynamicSchemesTests(KratosUnittest.TestCase):
         mp.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 2
         add_variables(mp, scheme_name)
 
-        if (scheme_name == "explicit"):
-            # Create node
-            node = mp.CreateNewNode(1,0.0,0.0,0.0)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
-            second_node = mp.CreateNewNode(2,1.0,0.0,0.0)
-            second_node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            second_node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            second_node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+        # Create node
+        node = mp.CreateNewNode(1,0.0,0.0,0.0)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+        node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
 
-            #add bcs and initial values
-            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
-            second_node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            second_node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-            second_node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
+        #add bcs and initial values
+        node.Fix(KratosMultiphysics.DISPLACEMENT_X)
+        node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
 
-            #create element
-            prop = mp.GetProperties()[1]
-            prop.SetValue(KratosMultiphysics.CONSTITUTIVE_LAW, StructuralMechanicsApplication.TrussConstitutiveLaw())
-            prop.SetValue(KratosMultiphysics.DENSITY, 1.0)
-            prop.SetValue(StructuralMechanicsApplication.CROSS_AREA, 1.0)
-            prop.SetValue(KratosMultiphysics.YOUNG_MODULUS, 1.0)
-            prop.SetValue(StructuralMechanicsApplication.TRUSS_PRESTRESS_PK2, 0.0)
-            element = mp.CreateNewElement("TrussElement3D2N", 1, [1, 2], prop)
-            gravity = -9.81
-            node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
-            second_node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
-        else:
-            # Create node
-            node = mp.CreateNewNode(1,0.0,0.0,0.0)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
-            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
-
-            #add bcs and initial values
-            node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-            node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,0.0)
-
-            #create element
-            element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
-            mass = 1.0
-            stiffness = 0.0
-            element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
-            element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
-            gravity = -9.81
-            node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
+        #create element
+        element = mp.CreateNewElement("NodalConcentratedElement3D1N", 1, [1], mp.GetProperties()[1])
+        mass = 1.0
+        stiffness = 0.0
+        element.SetValue(KratosMultiphysics.NODAL_MASS, mass)
+        element.SetValue(StructuralMechanicsApplication.NODAL_STIFFNESS, [0, stiffness,0])
+        gravity = -9.81
+        node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y,0,gravity)
 
         #time integration parameters
         time = 0.0
