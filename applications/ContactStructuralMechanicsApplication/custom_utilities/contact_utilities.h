@@ -30,17 +30,17 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
- * @class ContactUtilities 
+
+/**
+ * @class ContactUtilities
  * @ingroup ContactStructuralMechanicsApplication
  * @brief This class includes some utilities used for contact computations
  * @author Vicente Mataix Ferrandiz
@@ -70,7 +70,7 @@ public:
 
     /// Size type definition
     typedef std::size_t                                          SizeType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -90,28 +90,28 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
      * @brief This function computes the relative size of the mesh
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateRelativeSizeMesh(ModelPart& rThisModelPart)
+    static inline double CalculateRelativeSizeMesh(ModelPart& rModelPart)
     {
-        return CalculateMaxNodalH(rThisModelPart)/CalculateMinimalNodalH(rThisModelPart);
+        return CalculateMaxNodalH(rModelPart)/CalculateMinimalNodalH(rModelPart);
     }
 
     /**
      * @brief This method computes the maximal nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMaxNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMaxNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the max auxiliar value
@@ -147,12 +147,12 @@ public:
 
     /**
      * @brief This method computes the mean nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMeanNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMeanNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
         // Creating the sum auxiliar value
@@ -170,12 +170,12 @@ public:
 
     /**
      * @brief This method computes the minimal nodal H
-     * @param rThisModelPart The modelpart to compute
+     * @param rModelPart The modelpart to compute
      */
-    static inline double CalculateMinimalNodalH(ModelPart& rThisModelPart)
+    static inline double CalculateMinimalNodalH(ModelPart& rModelPart)
     {
         // We iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
 
 //         // Creating the min auxiliar value
@@ -221,10 +221,10 @@ public:
         const array_1d<double, 3>& rNormal,
         const double LengthSearch
         )
-    {        
+    {
         noalias(rPointToScale.Coordinates()) = rPointToScale.Coordinates() + rNormal * LengthSearch;
     }
-    
+
     /**
      * @brief Calculates the distance between nodes
      * @param rPointOrigin The first node
@@ -239,15 +239,15 @@ public:
                        + (rPointOrigin[1] - rPointDestiny[1]) * (rPointOrigin[1] - rPointDestiny[1])
                        + (rPointOrigin[2] - rPointDestiny[2]) * (rPointOrigin[2] - rPointDestiny[2]));
     }
-    
+
     /**
      * @brief It calculates the center updated in u_n+1 or u_n+1/2
-     * @param rThisModelPart The modelpart to update
+     * @param rModelPart The modelpart to update
      * @param DeltaTime The increment of time considered
      * @param HalfJump If the jumpt is just half dt
      */
     static inline void ComputeStepJump(
-        ModelPart& rThisModelPart,
+        ModelPart& rModelPart,
         const double DeltaTime,
         const bool HalfJump = true
         )
@@ -257,7 +257,7 @@ public:
         const double acceleration_constant = HalfJump ? 0.125 : 0.5;
 
         // Iterate over the nodes
-        NodesArrayType& r_nodes_array = rThisModelPart.Nodes();
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
 
         // Node iterator
         const auto it_node_begin = r_nodes_array.begin();
@@ -277,7 +277,78 @@ public:
             it_node->SetValue(DELTA_COORDINATES, new_delta_disp);
         }
     }
-    
+
+    /**
+     * @brief It checks the activity of the current contact simulation
+     * @param rModelPart The modelpart to update
+     */
+    static inline void CheckActivity(ModelPart& rModelPart)
+    {
+        // Iterate over the nodes
+        NodesArrayType& r_nodes_array = rModelPart.Nodes();
+
+        // Node iterator
+        const auto it_node_begin = r_nodes_array.begin();
+
+        // We compute the half jump
+        IndexType aux_check = 0;
+        #pragma omp parallel for reduction(+:aux_check)
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)  {
+            auto it_node = it_node_begin + i;
+            if (it_node->Is(SLAVE)) {
+                if (it_node->Is(ACTIVE)) {
+                    aux_check += 1;
+                }
+            }
+        }
+
+        KRATOS_ERROR_IF(aux_check == 0) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+    }
+
+    /**
+     * @brief It computes the explicit contributions of the conditions
+     * @param rModelPart The modelpart to update
+     */
+    static inline void ComputeExplicitContributionConditions(ModelPart& rModelPart)
+    {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+        const auto it_cond_begin = r_conditions_array.begin();
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            it_cond->AddExplicitContribution(r_process_info);
+        }
+    }
+
+    /**
+     * @brief It activates the conditions with active nodes
+     * @param rModelPart The modelpart to check
+     */
+    static inline void ActivateConditionWithActiveNodes(ModelPart& rModelPart)
+    {
+        ConditionsArrayType& r_conditions_array = rModelPart.Conditions();
+        KRATOS_TRACE_IF("Empty model part", r_conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
+        const auto it_cond_begin = r_conditions_array.begin();
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
+            if (it_cond->Is(SLAVE)) {
+                GeometryType& r_geometry = it_cond->GetGeometry();
+                bool is_active = false;
+                for ( IndexType i_node = 0; i_node < r_geometry.size(); ++i_node ) {
+                    if (r_geometry[i_node].Is(ACTIVE)) {
+                        is_active = true;
+                        break;
+                    }
+                }
+                it_cond->Set(ACTIVE, is_active);
+            }
+        }
+    }
+
     /**
      * @brief It calculates the center updated in u_n+1/2
      * @param rThisGeometry The geometry to calculate
@@ -286,25 +357,25 @@ public:
     static inline array_1d<double, 3> GetHalfJumpCenter(GeometryType& rThisGeometry)
     {
         array_1d<double, 3> center = (rThisGeometry.Center()).Coordinates();
-        
+
         // Initialize variables
         Vector N;
         GeometryType::CoordinatesArrayType local_point;
-        
+
         // Get shape functions
         rThisGeometry.PointLocalCoordinates( local_point, center );
         rThisGeometry.ShapeFunctionsValues( N, local_point );
-        
+
         KRATOS_DEBUG_ERROR_IF_NOT(rThisGeometry[0].Has(DELTA_COORDINATES)) << "Please call ComputeStepJump() first" << std::endl;
 
         const Vector new_delta_disp_center = prod(trans(GetVariableMatrix(rThisGeometry, DELTA_COORDINATES)), N);
-        
+
         for (IndexType i = 0; i < new_delta_disp_center.size(); ++i)
             center[i] += new_delta_disp_center[i];
-        
+
         return center;
     }
-    
+
 private:
 
     /**

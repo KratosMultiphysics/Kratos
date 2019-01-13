@@ -15,6 +15,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/structural_mechanics_application_variables.cpp
 
   ## UTILITIES
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/structural_mechanics_element_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_cross_section.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/shell_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/static_condensation_utility.cpp
