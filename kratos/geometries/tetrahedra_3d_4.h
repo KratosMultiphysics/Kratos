@@ -355,8 +355,8 @@ public:
      */
     double Length() const override
     {
-        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;       // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::cbrt(std::fabs(Volume())); // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**

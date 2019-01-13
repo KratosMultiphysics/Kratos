@@ -32,6 +32,16 @@ namespace Kratos
 	}
 
 	template<std::size_t TDim>
+	CalculateDistanceToSkinProcess<TDim>::CalculateDistanceToSkinProcess(
+		ModelPart& rVolumePart, 
+		ModelPart& rSkinPart,
+		const double ExtraRaysEpsilon)
+		: CalculateDiscontinuousDistanceToSkinProcess<TDim>(rVolumePart, rSkinPart),
+		mExtraRaysEpsilon(ExtraRaysEpsilon)
+	{
+	}
+
+	template<std::size_t TDim>
 	CalculateDistanceToSkinProcess<TDim>::~CalculateDistanceToSkinProcess()
 	{
 	}
@@ -194,12 +204,11 @@ namespace Kratos
 	template<std::size_t TDim>
 	double CalculateDistanceToSkinProcess<TDim>::DistancePositionInSpace(const Node<3> &rNode)
 	{
-		typedef Element::GeometryType intersection_geometry_type;
-        typedef std::vector<std::pair<double, intersection_geometry_type*> > intersections_container_type;
-
         const double epsilon = 1e-12;
 		array_1d<double,TDim> distances;
-        intersections_container_type intersections;
+		unsigned int n_ray_pos(0), n_ray_neg(0);
+        IntersectionsContainerType intersections;
+		const array_1d<double,3> &r_coords = rNode.Coordinates();
 
 		// Loop the x,y and z (3D) ray directions
         for (unsigned int i_direction = 0; i_direction < TDim; i_direction++){
@@ -207,8 +216,7 @@ namespace Kratos
 			distances[i_direction] = 1.0;
 
             // Creating the ray
-			const array_1d<double,3> coords = rNode.Coordinates();
-            double ray[3] = {coords[0], coords[1], coords[2]};
+            double ray[3] = {r_coords[0], r_coords[1], r_coords[2]};
 			OctreeType* pOctree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
             pOctree->NormalizeCoordinates(ray);
             ray[i_direction] = 0; // Starting from the lower extreme
@@ -218,7 +226,7 @@ namespace Kratos
             int ray_color = 1;
             std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
             while (i_intersection != intersections.end()) {
-                double int_d = coords[i_direction] - i_intersection->first; // Octree ray intersection distance
+                double int_d = r_coords[i_direction] - i_intersection->first; // Octree ray intersection distance
                 if (int_d > epsilon) {
                     ray_color = -ray_color;
                     distances[i_direction] = int_d;
@@ -236,7 +244,18 @@ namespace Kratos
             }
 
             distances[i_direction] *= ray_color;
+			if (ray_color == -1) {
+				n_ray_neg++;
+			} else {
+				n_ray_pos++;
+			}
         }
+
+		// Check the obtained cartesian ray colors
+		// If this situation happens, do the "evolved Predator" raycasting to vote
+		if (n_ray_neg != 0 && n_ray_pos != 0) {
+			this->ComputeExtraRayColors(epsilon, mExtraRaysEpsilon, r_coords, distances);
+		}
 
         double distance = (std::abs(distances[0]) > std::abs(distances[1])) ? distances[1] : distances[0];
 		if (TDim == 3){
@@ -244,6 +263,132 @@ namespace Kratos
 		}
 
         return distance;
+	}
+
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::ComputeExtraRayColors(
+		const double Epsilon,
+		const double RayPerturbation,
+		const array_1d<double,3> &rCoords,
+        array_1d<double,TDim> &rDistances)
+	{
+		// Set the extra ray origins
+		std::vector<array_1d<double,3>> extra_ray_origs;
+		this->GetExtraRayOrigins(RayPerturbation, rCoords, extra_ray_origs);
+
+		// Get the pointer to the base Octree binary
+		OctreeType* p_octree = CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess::mFindIntersectedObjectsProcess.GetOctreePointer();
+
+		// Loop the extra rays to compute its color
+		unsigned int n_ray_pos = 0; // Positive rays counter
+		unsigned int n_ray_neg = 0; // Negative rays counter
+		IntersectionsContainerType intersections; // Ray intersections container initialization
+		for (unsigned int i_direction = 0; i_direction < TDim; ++i_direction) {
+			for (unsigned int i_ray = 0; i_ray < extra_ray_origs.size(); ++i_ray) {
+				// Creating the ray
+				array_1d<double,3> aux_ray = extra_ray_origs[i_ray];
+				double ray[3] = {aux_ray[0], aux_ray[1], aux_ray[2]};				
+				p_octree->NormalizeCoordinates(ray);
+				ray[i_direction] = 0; // Starting from the lower extreme
+				this->CorrectExtraRayOrigin(ray); // Avoid extra ray normalized coordinates to be larger than 1 or 0
+				this->GetRayIntersections(ray, i_direction, intersections);
+
+				// Compute the extra rays intersections
+				int ray_color = 1;
+				std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+				while (i_intersection != intersections.end()) {
+					double int_d = extra_ray_origs[i_ray][i_direction] - i_intersection->first; // Octree ray intersection distance
+					if (int_d > Epsilon) {
+						ray_color = -ray_color;
+					} else if (int_d > -Epsilon) {
+						break;
+					} else {
+						break;
+					}
+					i_intersection++;
+				}
+
+				// Update the extra rays color counters
+				if (ray_color == -1) {
+					n_ray_neg++;
+				} else {
+					n_ray_pos++;
+				}
+			}
+
+		}
+
+		// Do the extra rays voting
+		int ray_color = n_ray_neg > n_ray_pos ? -1 : 1;
+		for (unsigned int i_direction = 0; i_direction < TDim; ++i_direction) {
+			rDistances[i_direction] = std::abs(rDistances[i_direction]) * ray_color;
+		}
+	}
+
+	template<>
+	void CalculateDistanceToSkinProcess<2>::GetExtraRayOrigins(
+        const double RayEpsilon,
+        const array_1d<double,3> &rCoords,
+		std::vector<array_1d<double,3>> &rExtraRayOrigs)
+	{
+		if (rExtraRayOrigs.size() != 5) {
+			rExtraRayOrigs.resize(5);
+		}
+
+		array_1d<double,3> aux_1; aux_1[0] = rCoords[0]; aux_1[1] = rCoords[1]; aux_1[2] = rCoords[2];
+		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*RayEpsilon; aux_2[1] = rCoords[1] + RayEpsilon; aux_2[2] = rCoords[2];
+		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + RayEpsilon; aux_3[1] = rCoords[1] + 2*RayEpsilon; aux_3[2] = rCoords[2];
+		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*RayEpsilon; aux_4[1] = rCoords[1] - RayEpsilon; aux_4[2] = rCoords[2];
+		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - RayEpsilon; aux_5[1] = rCoords[1] - 2*RayEpsilon; aux_5[2] = rCoords[2];
+
+		rExtraRayOrigs[0] = aux_1;
+		rExtraRayOrigs[1] = aux_2;
+		rExtraRayOrigs[2] = aux_3;
+		rExtraRayOrigs[3] = aux_4;
+		rExtraRayOrigs[4] = aux_5;
+	}
+
+	template<>
+	void CalculateDistanceToSkinProcess<3>::GetExtraRayOrigins(
+        const double RayEpsilon,
+        const array_1d<double,3> &rCoords,
+		std::vector<array_1d<double,3>> &rExtraRayOrigs)
+	{
+		if (rExtraRayOrigs.size() != 9) {
+			rExtraRayOrigs.resize(9);
+		}
+
+		array_1d<double,3> aux_1; aux_1[0] = rCoords[0]; aux_1[1] = rCoords[1]; aux_1[2] = rCoords[2];
+		array_1d<double,3> aux_2; aux_2[0] = rCoords[0] + 2*RayEpsilon; aux_2[1] = rCoords[1] + RayEpsilon; aux_2[2] = rCoords[2] - RayEpsilon;
+		array_1d<double,3> aux_3; aux_3[0] = rCoords[0] + RayEpsilon; aux_3[1] = rCoords[1] + 2*RayEpsilon; aux_3[2] = rCoords[2] - RayEpsilon;
+		array_1d<double,3> aux_4; aux_4[0] = rCoords[0] - 2*RayEpsilon; aux_4[1] = rCoords[1] - RayEpsilon; aux_4[2] = rCoords[2] - RayEpsilon;
+		array_1d<double,3> aux_5; aux_5[0] = rCoords[0] - RayEpsilon; aux_5[1] = rCoords[1] - 2*RayEpsilon; aux_5[2] = rCoords[2] - RayEpsilon;
+		array_1d<double,3> aux_6; aux_6[0] = rCoords[0] + 2*RayEpsilon; aux_6[1] = rCoords[1] + RayEpsilon; aux_6[2] = rCoords[2] + RayEpsilon;
+		array_1d<double,3> aux_7; aux_7[0] = rCoords[0] + RayEpsilon; aux_7[1] = rCoords[1] + 2*RayEpsilon; aux_7[2] = rCoords[2] + RayEpsilon;
+		array_1d<double,3> aux_8; aux_8[0] = rCoords[0] - 2*RayEpsilon; aux_8[1] = rCoords[1] - RayEpsilon; aux_8[2] = rCoords[2] + RayEpsilon;
+		array_1d<double,3> aux_9; aux_9[0] = rCoords[0] - RayEpsilon; aux_9[1] = rCoords[1] - 2*RayEpsilon; aux_9[2] = rCoords[2] + RayEpsilon;
+
+		rExtraRayOrigs[0] = aux_1;
+		rExtraRayOrigs[1] = aux_2;
+		rExtraRayOrigs[2] = aux_3;
+		rExtraRayOrigs[3] = aux_4;
+		rExtraRayOrigs[4] = aux_5;
+		rExtraRayOrigs[5] = aux_6;
+		rExtraRayOrigs[6] = aux_7;
+		rExtraRayOrigs[7] = aux_8;
+		rExtraRayOrigs[8] = aux_9;
+	}
+
+	template<std::size_t TDim>
+	void CalculateDistanceToSkinProcess<TDim>::CorrectExtraRayOrigin(double* ExtraRayCoords)
+	{
+		for (unsigned int d = 0; d < 3; ++d) {
+			if (ExtraRayCoords[d] > 1.0) {
+				ExtraRayCoords[d] = 1.0;
+			} else if (ExtraRayCoords[d] < 0.0) {
+				ExtraRayCoords[d] = 0.0;
+			}
+		}
 	}
 
 	template<std::size_t TDim>
@@ -340,7 +485,7 @@ namespace Kratos
 
 		for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); ++i_object){
 			double intersection[3]={0.0, 0.0, 0.0};
-			int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
+			const int is_intersected = ComputeRayIntersection((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection);
 			if (is_intersected == 1){ // There is an intersection but not coplanar
 				rIntersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
 			}
@@ -357,7 +502,6 @@ namespace Kratos
         double* pIntersectionPoint)
 	{
 		// Auxiliar arrays 
-		array_1d<double,3> int_pt;
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -366,6 +510,7 @@ namespace Kratos
 		}
 
 		// Call the line - line intersection util
+		array_1d<double,3> int_pt = ZeroVector(3);
 		const double tolerance = 1.0e-6*rGeometry.Length();
 		const int is_intersected =  IntersectionUtilities::ComputeLineLineIntersection(
 			rGeometry,
@@ -390,7 +535,6 @@ namespace Kratos
         double* pIntersectionPoint)
 	{
 		// Auxiliar arrays 
-		array_1d<double,3> int_pt;
 		array_1d<double,3> ray_pt_1;
 		array_1d<double,3> ray_pt_2;
 		for (unsigned int i = 0; i < 3; ++i){
@@ -399,6 +543,7 @@ namespace Kratos
 		}
 
 		// Call the line - triangle intersection util
+		array_1d<double,3> int_pt = ZeroVector(3);
 		const double tolerance = 1.0e-6*std::sqrt(rGeometry.Length());
 		const int is_intersected = IntersectionUtilities::ComputeTriangleLineIntersection(
 			rGeometry,

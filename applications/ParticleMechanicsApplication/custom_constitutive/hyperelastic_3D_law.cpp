@@ -154,33 +154,11 @@ void HyperElastic3DLaw::InitializeMaterial( const Properties& rMaterialPropertie
         const Vector& rShapeFunctionsValues )
 {
   mDeterminantF0                = 1;
-  mInverseDeformationGradientF0 = identity_matrix<double> (3);
+  mInverseDeformationGradientF0 = IdentityMatrix(3);
   mStrainEnergy                 = 0;
 
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void HyperElastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-void HyperElastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry, //this is just to give the array of nodes
-        const Vector& rShapeFunctionsValues,
-        const ProcessInfo& rCurrentProcessInfo)
-{
-
-}
 
 //*****************************MATERIAL RESPONSES*************************************
 //************************************************************************************
@@ -209,7 +187,7 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
-    ElasticVariables.Identity = identity_matrix<double> ( 3 );
+    ElasticVariables.Identity = IdentityMatrix(3);
 
     //1.- Lame constants
     const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
@@ -353,7 +331,7 @@ void HyperElastic3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 {
     // e = 0.5*(1-invFT*invF) or e = 0.5*(1-inv(b))
     //Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
+    Matrix InverseLeftCauchyGreen = ZeroMatrix( 3, 3 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
@@ -443,7 +421,7 @@ Vector&  HyperElastic3DLaw::CalculateVolumetricPressureFactors (const MaterialRe
 {
     double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
 
-    if(rFactors.size()!=3) rFactors.resize(3);
+    if(rFactors.size()!=3) rFactors.resize(3,false);
 
     //(ln(J))
     rFactors[0] =  1.0;
@@ -496,7 +474,7 @@ void HyperElastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariable
 						  Vector& rVolStressVector )
 {
 
-    Matrix VolStressMatrix ( 3 , 3 );
+    Matrix VolStressMatrix = ZeroMatrix( 3 , 3 );
 
     double Pressure = 0;
     Pressure = this->CalculateVolumetricPressure (rElasticVariables, Pressure);
@@ -682,16 +660,15 @@ Matrix& HyperElastic3DLaw::Transform2DTo3D (Matrix& rMatrix)
 {
     if (rMatrix.size1() == 2 && rMatrix.size2() == 2)
     {
-        rMatrix.resize( 3, 3, true);
+        const BoundedMatrix<double,2,2> temp_matrix = rMatrix;
+        rMatrix.resize( 3, 3, false);
+        rMatrix = IdentityMatrix(3);
 
-        rMatrix( 0 , 2 ) = 0.0;
-        rMatrix( 1 , 2 ) = 0.0;
+        rMatrix(0,0) = temp_matrix(0,0);
+        rMatrix(1,1) = temp_matrix(1,1);
 
-        rMatrix( 2 , 0 ) = 0.0;
-        rMatrix( 2 , 1 ) = 0.0;
-
-        rMatrix( 2 , 2 ) = 1.0;
-
+        rMatrix(0,1) = temp_matrix(0,1);
+        rMatrix(1,0) = temp_matrix(1,0);
     }
     else if(rMatrix.size1() != 3 && rMatrix.size2() != 3)
     {
@@ -741,7 +718,8 @@ int HyperElastic3DLaw::Check(const Properties& rMaterialProperties,
     KRATOS_ERROR_IF (YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00) << "YOUNG_MODULUS has Key zero or invalid value " << std::endl;
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
+    const double tolerance = 10.e-7;
+    const bool check = bool( (nu > 0.5-tolerance ) || (nu < (-1.0 + tolerance)) );
 
     KRATOS_ERROR_IF (POISSON_RATIO.Key() == 0 || check==true) << "POISSON_RATIO has Key zero invalid value " << std::endl;
     KRATOS_ERROR_IF (DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00) << "DENSITY has Key zero or invalid value " << std::endl;

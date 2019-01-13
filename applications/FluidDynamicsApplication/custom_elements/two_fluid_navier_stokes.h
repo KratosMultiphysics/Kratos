@@ -181,6 +181,16 @@ public:
         VectorType &rRightHandSideVector,
         ProcessInfo &rCurrentProcessInfo) override;
 
+
+    /**
+     * @brief MassMatrix Calculate the local mass matrix.
+     * @param rFluidStress Viscous stress in the fluid given in Voigt notation
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void Calculate( const Variable<Vector>& rVariable,
+                    Vector& rOutput,
+                    const ProcessInfo& rCurrentProcessInfo) override;
+
     /// Auxiliar element check function
     /**
      * This function calls the base element check method and adds the
@@ -215,6 +225,20 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Function to visualize the divergence field
+
+    /**
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     *
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rValues Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
+    void GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                        std::vector<double> &rValues,
+                                        const ProcessInfo &rCurrentProcessInfo ) override;
+
+
     ///@}
     ///@name Friends
     ///@{
@@ -238,9 +262,9 @@ protected:
 
     /**
      * @brief Computes time integrated LHS and RHS arrays
-     * This method computes both the Left Hand Side and 
-     * Right Hand Side time integrated contributions. 
-     * @param rData Reference to the element data container 
+     * This method computes both the Left Hand Side and
+     * Right Hand Side time integrated contributions.
+     * @param rData Reference to the element data container
      * @param rLHS Reference to the Left Hand Side matrix to be filled
      * @param rRHS Reference to the Right Hand Side vector to be filled
      */
@@ -268,10 +292,10 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
-    
+
     /**
      * @brief Computes the material response
-     * This method computes the material response taking into account if the 
+     * This method computes the material response taking into account if the
      * element is air or fluid. The material response is saved in the data container.
      * @param rData Reference to the element data container
      */
@@ -300,7 +324,7 @@ protected:
 
     /**
      * @brief Computes the pressure enrichment contributions
-     * This method computes the pressure enrichment contributions for 
+     * This method computes the pressure enrichment contributions for
      * a Gauss pt. in both the left hand side and righ hand side of the equations.
      * @param rData Reference to the element data container
      * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations

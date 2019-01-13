@@ -234,7 +234,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
@@ -248,7 +248,7 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH, const M
         for ( SizeType i = 0; i < number_of_nodes; i++ )
         {
 
-            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
             rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
             rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );

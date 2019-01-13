@@ -28,14 +28,14 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 PYBIND11_MODULE(KratosDamApplication, m)
 {
-    class_<KratosDamApplication,
+    py::class_<KratosDamApplication,
     KratosDamApplication::Pointer,
     KratosApplication>(m, "KratosDamApplication")
-    .def(init<>());
+    .def(py::init<>());
 
     AddCustomStrategiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);
@@ -74,6 +74,7 @@ PYBIND11_MODULE(KratosDamApplication, m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_REFERENCE_TEMPERATURE )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, NODAL_CAUCHY_STRESS_TENSOR )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, INITIAL_NODAL_CAUCHY_STRESS_TENSOR )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( m, PLACEMENT_TEMPERATURE )
 }
 
 }  // namespace Python.

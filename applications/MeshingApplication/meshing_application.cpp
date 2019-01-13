@@ -37,6 +37,13 @@ KRATOS_CREATE_VARIABLE(Vector, AUXILIAR_HESSIAN);                             //
 KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
 KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
 
+KRATOS_CREATE_VARIABLE(int, NUMBER_OF_DIVISIONS)
+KRATOS_CREATE_VARIABLE(int, SUBSCALE_INDEX)
+KRATOS_CREATE_VARIABLE(Node<3>::Pointer, SLAVE_NODE)
+KRATOS_CREATE_VARIABLE(Element::Pointer, FATHER_ELEMENT)
+KRATOS_CREATE_VARIABLE(Condition::Pointer, FATHER_CONDITION)
+KRATOS_CREATE_VARIABLE(std::vector<double>, FATHER_NODES_WEIGHTS)
+
 //for ULF (surface_tension) application:
 KRATOS_CREATE_VARIABLE(double, TRIPLE_POINT)
 KRATOS_CREATE_VARIABLE(double, CONTACT_ANGLE)
@@ -49,7 +56,7 @@ KratosMeshingApplication::KratosMeshingApplication()
 void KratosMeshingApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing Kratos MeshingApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing Kratos MeshingApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);                                  // The average nodal error
     KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);                                    // The anisotropic aspect ratio
@@ -57,6 +64,13 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(AUXILIAR_HESSIAN);                                     // An auxiliar hessian needed to compute the metric
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_2D); // A 2D metric vector
     KRATOS_REGISTER_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_COMPONENTS(METRIC_TENSOR_3D); // A 3D metric vector
+
+    KRATOS_REGISTER_VARIABLE(NUMBER_OF_DIVISIONS)
+    KRATOS_REGISTER_VARIABLE(SUBSCALE_INDEX)
+    KRATOS_REGISTER_VARIABLE(SLAVE_NODE)
+    KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
+    KRATOS_REGISTER_VARIABLE(FATHER_CONDITION)
+    KRATOS_REGISTER_VARIABLE(FATHER_NODES_WEIGHTS)
 
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)

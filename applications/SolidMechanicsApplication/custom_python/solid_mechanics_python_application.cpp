@@ -27,16 +27,16 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 PYBIND11_MODULE(KratosSolidMechanicsApplication,m)
 {
 
-  class_<KratosSolidMechanicsApplication,
+  py::class_<KratosSolidMechanicsApplication,
          KratosSolidMechanicsApplication::Pointer,
          KratosApplication>(m,"KratosSolidMechanicsApplication")
-      .def(init<>())
+      .def(py::init<>())
       ;
 
   AddCustomUtilitiesToPython(m);
@@ -61,7 +61,7 @@ PYBIND11_MODULE(KratosSolidMechanicsApplication,m)
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, COMPUTE_CONSISTENT_MASS_MATRIX )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, DELTA_TIME_CHANGED )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, CONVERGENCE_ACHIEVED )
-      
+
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, STEP_DISPLACEMENT )
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, STEP_ROTATION )
   KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, MIDDLE_VELOCITY )

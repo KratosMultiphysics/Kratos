@@ -32,6 +32,7 @@
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
 #include "includes/cfd_variables.h"
+#include "includes/dem_variables.h"
 #include "delaunay_meshing_application_variables.h"
 
 namespace Kratos
@@ -91,7 +92,6 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_FLUID_DYNAMICS_APPLICATION, double, NODAL_VOLUMETRIC_DEF_RATE )
     KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_FLUID_DYNAMICS_APPLICATION, double, NODAL_MEAN_MESH_SIZE )
     KRATOS_DEFINE_APPLICATION_VARIABLE( PFEM_FLUID_DYNAMICS_APPLICATION, double, NODAL_FREESURFACE_AREA )
-
 
 
     //Define Variables

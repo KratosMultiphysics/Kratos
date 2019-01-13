@@ -18,6 +18,8 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/serializer.h"
+#include "includes/file_serializer.h"
+#include "includes/stream_serializer.h"
 #include "python/add_serializer_to_python.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
@@ -25,8 +27,10 @@
 
 namespace Kratos
 {
+    
 namespace Python
 {
+    
 namespace py = pybind11;
 
 template< class TObjectType >
@@ -41,6 +45,8 @@ void SerializerLoad(Serializer& rSerializer, std::string const & rName, TObjectT
     return rSerializer.load(rName, rObject);
 }
 
+
+
 void SerializerPrint(Serializer& rSerializer)
 {
     std::cout << "Serializer buffer:";
@@ -49,11 +55,20 @@ void SerializerPrint(Serializer& rSerializer)
 
 void  AddSerializerToPython(pybind11::module& m)
 {
+
     py::class_<Serializer, Serializer::Pointer >(m,"Serializer")
-    .def(py::init<>())
-    .def(py::init<std::string const&>())
-    .def(py::init<Serializer::TraceType>())
-    .def(py::init<std::string const&, Serializer::TraceType>())
+    .def(py::init([](const std::string& FileName) {
+                    KRATOS_WARNING("DEPRECATION") << "Please use FileSerializer(FileName) instead of Serializer(FileName)" << std::endl;
+                    return std::make_shared<FileSerializer>(FileName);
+                }
+            )
+        )
+    .def(py::init([](const std::string& FileName, Serializer::TraceType& rTraceType) {
+                    KRATOS_WARNING("DEPRECATION") << "Please use FileSerializer(FileName,TraceType) instead of Serializer(FileName,TraceType)" << std::endl;
+                    return std::make_shared<FileSerializer>(FileName,rTraceType);
+                }
+            )
+        ) 
     .def("Load",SerializerLoad<ModelPart>)
     .def("Save",SerializerSave<ModelPart>)
     .def("Load",SerializerLoad<Parameters>)
@@ -61,6 +76,27 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("Load",SerializerLoad<Model>)
     .def("Save",SerializerSave<Model>)
     .def("Print", SerializerPrint)
+    ;
+
+    py::class_<FileSerializer, FileSerializer::Pointer, Serializer >(m,"FileSerializer")
+    .def(py::init<std::string const&>())
+    .def(py::init<std::string const&, Serializer::TraceType>())
+    ;
+    
+    py::class_<StreamSerializer, StreamSerializer::Pointer, Serializer >(m,"StreamSerializer")
+    .def(py::init<>())
+    .def(py::init<std::string const&>())
+    .def(py::init<Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType>())
+    .def(py::pickle(
+            [](StreamSerializer &self) { // __getstate__
+                return py::make_tuple(py::bytes(self.GetStringRepresentation()),self.GetTraceType());
+            },
+            [](py::tuple t) { // __setstate__, note: no `self` argument
+                return Kratos::make_shared<StreamSerializer>(t[0].cast<std::string>(), t[1].cast<Serializer::TraceType>());
+            }
+        )
+    )
     ;
 
     py::enum_<Serializer::TraceType>(m,"SerializerTraceType")

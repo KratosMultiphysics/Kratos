@@ -26,24 +26,24 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
   // models
-  class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "VonMisesSmallStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
-  class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "VonMisesLargeStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
-  class_<HypoplasticSmallStrainUmatModel, typename HypoplasticSmallStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<HypoplasticSmallStrainUmatModel, typename HypoplasticSmallStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "HypoplasticSmallStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 }
 

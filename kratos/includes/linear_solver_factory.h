@@ -75,6 +75,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    virtual ~LinearSolverFactory(){}
+
     ///@}
     ///@name Operators
     ///@{
@@ -99,8 +101,10 @@ public:
     virtual typename LinearSolver<TSparseSpace,TLocalSpace>::Pointer Create(Kratos::Parameters Settings)
     {
         if(KratosComponents< FactoryType >::Has( Settings["solver_type"].GetString())== false) {
-            KRATOS_ERROR << "Trying to construct a Linear solver with solver_type = " << Settings["solver_type"].GetString() << std::endl << "which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
-                         KratosComponents< FactoryType >() << std::endl;
+            KRATOS_ERROR << "Trying to construct a Linear solver with solver_type:\n\""
+                << Settings["solver_type"].GetString() << "\" which does not exist.\n"
+                << "The list of available options (for currently loaded applications) is:\n"
+                << KratosComponents< FactoryType >() << std::endl;
         }
         const auto& aux = KratosComponents< FactoryType >::Get( Settings["solver_type"].GetString()  );
         return aux.CreateSolver( Settings );

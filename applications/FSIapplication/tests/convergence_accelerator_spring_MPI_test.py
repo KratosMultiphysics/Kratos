@@ -156,12 +156,9 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
         coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(top_part, self.epetra_comm, accelerator_settings)
 
         coupling_utility.Initialize()
-
-        nl_it = 0
-        convergence = False
-
         coupling_utility.InitializeSolutionStep()
 
+        nl_it = 0
         x_guess = self.partitioned_utilities.SetUpInterfaceVector(top_part)
         residual = self.ComputeResidual(top_part,x_guess,force1,force2)
         res_norm = self.ComputeResidualNorm(residual)
@@ -177,7 +174,6 @@ class ConvergenceAcceleratorSpringMPITest(KratosUnittest.TestCase):
                 coupling_utility.FinalizeNonLinearIteration()
             else:
                 coupling_utility.FinalizeSolutionStep()
-                convergence = True
                 break
 
             nl_it += 1

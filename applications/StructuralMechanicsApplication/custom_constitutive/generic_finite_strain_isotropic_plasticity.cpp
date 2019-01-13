@@ -28,6 +28,7 @@
 #include "custom_constitutive/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/von_mises_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
+#include "custom_constitutive/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/rankine_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/simo_ju_yield_surface.h"
 #include "custom_constitutive/yield_surfaces/drucker_prager_yield_surface.h"
@@ -38,6 +39,7 @@
 #include "custom_constitutive/plastic_potentials/von_mises_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
+#include "custom_constitutive/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/plastic_potentials/drucker_prager_plastic_potential.h"
 
 namespace Kratos
@@ -538,6 +540,10 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
     )
 {
     if (rThisVariable == EQUIVALENT_PLASTIC_STRAIN) {
+        // Calculate the stress vector
+        Vector stress_vector;
+        this->CalculateValue(rParameterValues, PK2_STRESS_VECTOR, stress_vector);
+
         // The plastic deformation gradient
         const Matrix& r_plastic_deformation_gradient = this->GetPlasticDeformationGradient();
 
@@ -550,8 +556,8 @@ double& GenericFiniteStrainIsotropicPlasticity<TElasticBehaviourLaw, TConstLawIn
         Vector plastic_strain;
         this->CalculateValue(rParameterValues, GREEN_LAGRANGE_STRAIN_VECTOR, plastic_strain);
 
-        const Vector& r_stress_vector = rParameterValues.GetStressVector();
-        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(r_stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
+        // Compute the equivalent plastic strain
+        TConstLawIntegratorType::CalculateEquivalentPlasticStrain(stress_vector, mUniaxialStress, plastic_strain, 0.0, rParameterValues, rValue);
 
         // We revert the deformation gradient
         rParameterValues.SetDeterminantF(deformation_gradient_determinant_backup);
@@ -661,6 +667,13 @@ template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirch
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicKirchhoff3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 
 // Neo-Hookean hyper elasticity
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
@@ -679,5 +692,11 @@ template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHo
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
 template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<TrescaPlasticPotential<6>>>>;
-
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<MohrCoulombYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<TrescaYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericFiniteStrainIsotropicPlasticity<HyperElasticIsotropicNeoHookean3D, GenericFiniteStrainConstitutiveLawIntegratorPlasticity<DruckerPragerYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 } // namespace Kratos
