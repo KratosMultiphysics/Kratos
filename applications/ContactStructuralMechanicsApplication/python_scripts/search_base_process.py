@@ -546,14 +546,19 @@ class SearchBaseProcess(KM.Process):
             for cond in self.computing_model_part.Conditions:
                 if cond.Is(KM.SLAVE):
                     number_nodes = len(cond.GetNodes())
-                    slave_defined = True
+                    if number_nodes > 1:
+                        slave_defined = True
                 if cond.Is(KM.MASTER):
                     number_nodes_master = len(cond.GetNodes())
-                    master_defined = True
+                    if number_nodes_master > 1:
+                        master_defined = True
                 if slave_defined and master_defined:
                     break
         else:
-            number_nodes = len(self.computing_model_part.Conditions[1].GetNodes())
+            for cond in self.computing_model_part.Conditions:
+                number_nodes = len(cond.GetNodes())
+                if number_nodes > 1:
+                    break
             number_nodes_master = number_nodes
 
         return number_nodes, number_nodes_master
