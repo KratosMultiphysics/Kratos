@@ -45,6 +45,15 @@ namespace Testing {
         rTestModelPart.CreateNewNode(4, 0.0, 3.0, 0.0);
     }
 
+    void SetTestInterfaceConditions2D(ModelPart &rTestModelPart)
+    {
+        Properties::Pointer p_cond_prop = Kratos::make_shared<Properties>();
+        rTestModelPart.AddProperties(p_cond_prop, 0);
+        rTestModelPart.CreateNewCondition("Condition2D2N", 1, {{1,2}}, p_cond_prop);
+        rTestModelPart.CreateNewCondition("Condition2D2N", 2, {{2,3}}, p_cond_prop);
+        rTestModelPart.CreateNewCondition("Condition2D2N", 3, {{3,4}}, p_cond_prop);
+    }
+
     void SetTestDoubleValues(ModelPart &rTestModelPart)
     {
         for (auto &it_node : rTestModelPart.Nodes()) {
@@ -192,7 +201,7 @@ namespace Testing {
             *p_interface_vector);
 
         const double tolerance = 1.0e-8;
-        std::vector<double> expected_values = {0.0, 0.0, -1.0, -1.0, -2.0, -2.0, -3.0, -3.0};
+        std::vector<double> expected_values = {0.0,0.0,-1.0,-1.0,-2.0,-2.0,-3.0,-3.0};
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
             KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }
@@ -205,6 +214,7 @@ namespace Testing {
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
         SetTestInterface(r_test_model_part);
         SetTestArrayValues(r_test_model_part);
+        SetTestInterfaceConditions2D(r_test_model_part);
 
         // Test ComputeInterfaceResidualVector()
         PartitionedFSIUtilities<SpaceType, array_1d<double,3>, 2> part_fsi_utils_array_2D;
@@ -218,9 +228,8 @@ namespace Testing {
             *p_interface_vector,
             "consistent");
 
-        KRATOS_WATCH(*p_interface_vector)
         const double tolerance = 1.0e-8;
-        std::vector<double> expected_values = {0.0, 0.0, -1.0, -1.0, -2.0, -2.0, -3.0, -3.0};
+        std::vector<double> expected_values = {-0.166666667,-0.166666667,-1.0,-1.0,-2.0,-2.0,-1.333333333,-1.333333333};
         for (unsigned int i = 0; i < expected_values.size(); ++i) {
             KRATOS_CHECK_NEAR(expected_values[i], (*p_interface_vector)[i], tolerance);
         }

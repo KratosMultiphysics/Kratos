@@ -326,26 +326,19 @@ public:
         ConditionsArrayType& r_conditions = rModelPart.Conditions();
         ElementsArrayType& r_elements = rModelPart.Elements();
 
-        #pragma omp parallel for
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
         for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
             auto it_cond = r_conditions.begin() + i;
-            LocalSystemVectorType RHS_Condition_Contribution = LocalSystemVectorType(0);
-            Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-
-            pScheme->Condition_Calculate_RHS_Contribution(
-                (*it_cond.base()), RHS_Condition_Contribution,
-                equation_id_vector_dummy, r_current_process_info);
+            pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
-        #pragma omp parallel for
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
         for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
             auto it_elem = r_elements.begin() + i;
-            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-            Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
-
-            pScheme->Calculate_RHS_Contribution(
-                (*it_elem.base()), RHS_Contribution, equation_id_vector_dummy,
-                r_current_process_info);
+            pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
         }
 
         KRATOS_CATCH("")
