@@ -36,6 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixSelection, KratosStructuralMechanicsFastSuit
     aux_process_info[COMPUTE_LUMPED_MASS_MATRIX] = true;
     KRATOS_CHECK(StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(aux_props, aux_process_info));
 
+    // setting provided through ProcessInfo has priority!
     aux_props[COMPUTE_LUMPED_MASS_MATRIX] = false;
     aux_process_info[COMPUTE_LUMPED_MASS_MATRIX] = true;
     KRATOS_CHECK(StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(aux_props, aux_process_info));
@@ -43,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(MassMatrixSelection, KratosStructuralMechanicsFastSuit
     // setting provided through ProcessInfo has priority!
     aux_props[COMPUTE_LUMPED_MASS_MATRIX] = true;
     aux_process_info[COMPUTE_LUMPED_MASS_MATRIX] = false;
-    KRATOS_CHECK(StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(aux_props, aux_process_info));
+    KRATOS_CHECK_IS_FALSE(StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(aux_props, aux_process_info));
 }
 
 } // namespace Testing
