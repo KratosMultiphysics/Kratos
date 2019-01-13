@@ -25,6 +25,7 @@
 #include "custom_utilities/advanced_contact_search.h"
 #include "custom_utilities/process_factory_utility.h"
 #include "custom_utilities/contact_utilities.h"
+#include "custom_utilities/active_set_utilities.h"
 
 namespace Kratos
 {
@@ -198,6 +199,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def("CheckActivity",&ContactUtilities::CheckActivity)
     .def("ComputeExplicitContributionConditions",&ContactUtilities::ComputeExplicitContributionConditions)
     .def("ActivateConditionWithActiveNodes",&ContactUtilities::ActivateConditionWithActiveNodes)
+    ;
+
+    // Active set utilities
+    py::class_<ActiveSetUtilities, typename ActiveSetUtilities::Pointer>(m, "ActiveSetUtilities")
+    .def(py::init<>())
+    .def("ComputePenaltyFrictionlessActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionlessActiveSet)
+    .def("ComputePenaltyFrictionalActiveSet",&ActiveSetUtilities::ComputePenaltyFrictionalActiveSet)
     ;
 }
 
