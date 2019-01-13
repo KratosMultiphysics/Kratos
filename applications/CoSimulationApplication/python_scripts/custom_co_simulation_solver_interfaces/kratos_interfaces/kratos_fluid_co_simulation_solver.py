@@ -6,7 +6,7 @@ try :
     from KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis import FluidDynamicsAnalysis
 except ModuleNotFoundError:
     print(tools.bcolors.FAIL + 'KRATOS_FLUID_DYNAMICS is not available ! Please ensure that it is available for usage !'+ tools.bcolors.ENDC)
-    exit()
+    exit() # TODO @Aditya why use exit? Usually we use raise Exception (or in this case "raise ModuleNotFoundError" would probably be more appropriate)
 
 # Importing the base class
 from . import kratos_base_field_solver
