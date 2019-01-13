@@ -99,7 +99,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
         if (this->Is(ACTIVE)) {
             // Getting geometries
             GeometryType& r_slave_geometry = this->GetGeometry();
-            GeometryType& r_master_geometry = this->GetGeometry();
+            GeometryType& r_master_geometry = this->GetPairedGeometry();
 
             for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) {
                 NodeType& r_master_node = r_master_geometry[i_master];
@@ -159,12 +159,12 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_geometry = this->GetGeometry();
-    GeometryType& r_current_master = this->GetPairedGeometry();
+    GeometryType& r_slave_geometry = this->GetGeometry();
+    GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_current_master[i_master];
+        NodeType& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -172,7 +172,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_geometry[ i_slave ];
+        NodeType& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -198,12 +198,12 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
     IndexType index = 0;
 
     /* ORDER - [ MASTER, SLAVE ] */
-    GeometryType& r_geometry = this->GetGeometry();
-    GeometryType& r_current_master = this->GetPairedGeometry();
+    GeometryType& r_slave_geometry = this->GetGeometry();
+    GeometryType& r_master_geometry = this->GetPairedGeometry();
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        NodeType& r_master_node = r_current_master[i_master];
+        NodeType& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -211,7 +211,7 @@ void PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVaria
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        NodeType& r_slave_node = r_geometry[ i_slave ];
+        NodeType& r_slave_node = r_slave_geometry[i_slave];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -236,9 +236,9 @@ int PenaltyMethodFrictionlessMortarContactCondition<TDim,TNumNodes,TNormalVariat
     KRATOS_CHECK_VARIABLE_KEY(NORMAL)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
-    GeometryType& r_geometry = this->GetGeometry();
+    GeometryType& r_slave_geometry = this->GetGeometry();
     for ( IndexType i = 0; i < TNumNodes; ++i ) {
-        NodeType& r_node = r_geometry[i];
+        NodeType& r_node = r_slave_geometry[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
     }
 
