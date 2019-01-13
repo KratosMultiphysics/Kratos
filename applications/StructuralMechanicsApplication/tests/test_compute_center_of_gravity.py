@@ -94,7 +94,7 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
             mp.CreateNewNode(i+1,i*dx,0.00,0.00)
         #add dofs
 
-        #create Element
+        # Create Element
         elem1 = mp.CreateNewElement("NodalConcentratedElement2D1N", 1, [1], mp.GetProperties()[0])
         elem2 = mp.CreateNewElement("NodalConcentratedElement2D1N", 2, [2], mp.GetProperties()[0])
         elem3 = mp.CreateNewElement("NodalConcentratedElement3D1N", 3, [3], mp.GetProperties()[0])
@@ -104,6 +104,10 @@ class TestComputeCenterOfGravity(KratosUnittest.TestCase):
         elem2.SetValue(KratosMultiphysics.NODAL_MASS,5.234)
         elem3.SetValue(KratosMultiphysics.NODAL_MASS,112.234)
         elem4.SetValue(KratosMultiphysics.NODAL_MASS,78.234)
+
+        # Initialize elements
+        for elem in mp.Elements:
+            elem.Initialize()
 
         cog_process = StructuralMechanicsApplication.ComputeCenterOfGravityProcess(mp)
         cog_process.Execute()
