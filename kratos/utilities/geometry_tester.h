@@ -413,8 +413,7 @@ public:
             succesful=false;
         }
 
-        if(succesful == false)
-            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
 
         return succesful;
     }
@@ -583,8 +582,7 @@ public:
             succesful=false;
         }
 
-        if(succesful == false)
-            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
 
         return succesful;
     }
@@ -686,8 +684,7 @@ public:
             succesful=false;
         }
 
-        if(succesful == false)
-            KRATOS_THROW_ERROR(std::logic_error,"", error_msg.str());
+        KRATOS_ERROR_IF_NOT(succesful) << error_msg.str() << std::endl;
 
         return succesful;
     }
