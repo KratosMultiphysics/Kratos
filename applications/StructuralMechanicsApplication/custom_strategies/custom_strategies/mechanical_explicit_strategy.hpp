@@ -21,6 +21,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
+#include "utilities/helper_classes_for_constraint_builder.h"
 
 namespace Kratos {
 ///@name Kratos Globals
@@ -67,6 +68,11 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
+    typedef Matrix MatrixType;
+    typedef Internals::GlobalMasterSlaveRelationContainerType GlobalMasterSlaveRelationContainerType;
+    typedef std::size_t SizeType;
+    typedef Vector VectorType;
 
     /// Counted pointer of MechanicalExplicitStrategy
     KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
@@ -369,6 +375,35 @@ public:
 
         pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,
                         mb); // Explicitly integrates the equation of motion.
+
+
+
+/*         auto& meshes = r_model_part.GetMeshes();
+        //contributions to the system
+        MatrixType transformation_matrix;
+        VectorType constant_vector;
+        ProcessInfo process_info = r_model_part.GetProcessInfo();
+
+        for(auto it_mesh = meshes.begin() ; it_mesh != meshes.end() ; it_mesh++) {
+            // Count the constraints to be erase
+            const SizeType n_constraints = it_mesh->MasterSlaveConstraints().size();
+            const auto it_constraint_begin = it_mesh->MasterSlaveConstraintsBegin();
+
+            for(int i=0; i<static_cast<int>(n_constraints); ++i) {
+                auto it_const = it_constraint_begin + i;
+                it_const->CalculateLocalSystem(transformation_matrix, constant_vector, process_info);
+
+
+
+                std::cout << it_const->Id() << std::endl;
+                KRATOS_WATCH(transformation_matrix);
+                KRATOS_WATCH(constant_vector);
+
+            }
+        } */
+
+
+
         return true;
     }
 
@@ -449,6 +484,8 @@ public:
     ///@name Friends
     ///@{
 private:
+
+    //GlobalMasterSlaveRelationContainerType mGlobalMasterSlaveConstraints;
     ///@name Static Member Variables
     ///@{
     ///@}

@@ -134,7 +134,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
           node_i.Set(SLAVE);
 
           int nr_searches(0);
-          while (number_of_neighbors<1)
+/*           while (number_of_neighbors<1)
           {
               nr_searches++;
               neighbor_nodes.clear();
@@ -148,7 +148,20 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
               (nr_searches>10)?(KRATOS_ERROR << "found no neighbor for slave node "
                 << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
-          }
+          } */
+
+            neighbor_nodes.clear();
+            resulting_squared_distances.clear();
+            //1.) find nodal neighbors
+            number_of_neighbors = search_tree->SearchInRadius( node_i,
+                                                                    neighbor_search_radius,
+                                                                    neighbor_nodes.begin(),
+                                                                    resulting_squared_distances.begin(),
+                                                                    max_number_of_neighbors );
+            if (number_of_neighbors<1)
+            {
+                KRATOS_ERROR << "found no neighbor for slave node " << node_i.Id() << " " << node_i.Coordinates() << std::endl;
+            }
 
           if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
           DoubleVector list_of_weights( number_of_neighbors, 0.0 );
