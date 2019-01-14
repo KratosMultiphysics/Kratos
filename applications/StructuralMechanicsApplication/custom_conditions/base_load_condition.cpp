@@ -86,7 +86,7 @@ Condition::Pointer BaseLoadCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::Initialize()
+void BaseLoadCondition::Initialize( const ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add somethig if necessary
 }
@@ -94,7 +94,7 @@ void BaseLoadCondition::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseLoadCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add somethig if necessary
 }
@@ -102,7 +102,7 @@ void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseLoadCondition::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add somethig if necessary
 }
@@ -110,7 +110,7 @@ void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProce
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseLoadCondition::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add somethig if necessary
 }
@@ -118,7 +118,7 @@ void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcess
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseLoadCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add somethig if necessary
 }
@@ -128,8 +128,8 @@ void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 
 void BaseLoadCondition::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -165,8 +165,8 @@ void BaseLoadCondition::EquationIdVector(
 /***********************************************************************************/
 void BaseLoadCondition::GetDofList(
     DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY
 
@@ -199,7 +199,7 @@ void BaseLoadCondition::GetDofList(
 void BaseLoadCondition::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
@@ -224,7 +224,7 @@ void BaseLoadCondition::GetValuesVector(
 void BaseLoadCondition::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
@@ -249,7 +249,7 @@ void BaseLoadCondition::GetFirstDerivativesVector(
 void BaseLoadCondition::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
@@ -273,7 +273,7 @@ void BaseLoadCondition::GetSecondDerivativesVector(
 
 void BaseLoadCondition::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -289,7 +289,7 @@ void BaseLoadCondition::CalculateRightHandSide(
 void BaseLoadCondition::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -304,7 +304,7 @@ void BaseLoadCondition::CalculateLocalSystem(
 
 void BaseLoadCondition::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rMassMatrix.size1() != 0) {
@@ -317,7 +317,7 @@ void BaseLoadCondition::CalculateMassMatrix(
 
 void BaseLoadCondition::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     if(rDampingMatrix.size1() != 0) {
@@ -330,7 +330,7 @@ void BaseLoadCondition::CalculateDampingMatrix(
 
 void BaseLoadCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     bool CalculateStiffnessMatrixFlag,
     bool CalculateResidualVectorFlag
     )
@@ -341,7 +341,7 @@ void BaseLoadCondition::CalculateAll(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     // Base check
     Condition::Check(rCurrentProcessInfo);
@@ -352,7 +352,7 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
     const SizeType number_of_nodes = this->GetGeometry().size();
     for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-        NodeType &rnode = this->GetGeometry()[i];
+        const NodeType &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
@@ -381,7 +381,7 @@ double BaseLoadCondition::GetIntegrationWeight(
 void BaseLoadCondition::AddExplicitContribution(
     const VectorType& rRHS,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double,3> >& rDestinationVariable,
+    const Variable<array_1d<double,3> >& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
