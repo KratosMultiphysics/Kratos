@@ -170,10 +170,10 @@ void UpdateGeometryValues(
 	const MatrixRowType& rNenr,
 	const BoundedMatrix<double, TNumNodes, TDim>& rDN_DXenr)
 {
-	FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
-	ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
-	noalias(this->Nenr) = rNenr;
-	noalias(this->DN_DXenr) = rDN_DXenr;
+    FluidElementData<TDim, TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex, NewWeight, rN, rDN_DX);
+    ElementSize = ElementSizeCalculator<TDim, TNumNodes>::GradientsElementSize(rDN_DX);
+    noalias(this->Nenr) = rNenr;
+    noalias(this->DN_DXenr) = rDN_DXenr;
     CalculateDensityAtGaussPoint();
 }
 

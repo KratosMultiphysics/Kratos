@@ -83,7 +83,7 @@ for dim in dim_vector:
     dyn_tau = Symbol('dyn_tau', positive = True)
     stab_c1 = Symbol('stab_c1', positive = True)
     stab_c2 = Symbol('stab_c2', positive = True)
-    K_darcy = Symbol('K_darcy') #positive??
+    K_darcy = Symbol('K_darcy', positive = True)
 
     ## Backward differences coefficients
     bdf0 = Symbol('bdf0')
