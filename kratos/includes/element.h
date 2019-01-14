@@ -683,7 +683,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-        KRATOS_ERROR << "Base element classes is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+        KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
     /**
@@ -701,7 +701,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo
         )
     {
-         KRATOS_ERROR << "Base element classes is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
+         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
     /**
