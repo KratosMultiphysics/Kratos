@@ -18,8 +18,8 @@ class CheckAndPrepareModelProcess(KM.Process):
     """
     def __init__(self, Model, Parameters):
         KM.Process.__init__(self)
-        self.model_part_name = Parameters["model_part_name"].GetString()
-        self.main_model_part = Model[self.model_part_name]
+        self.main_model_part_name = Parameters["model_part_name"].GetString()
+        self.main_model_part = Model[self.main_model_part_name]
         self.model = Model
 
         self.computing_model_part_name  = Parameters["computing_model_part_name"].GetString()
@@ -28,19 +28,8 @@ class CheckAndPrepareModelProcess(KM.Process):
 
     def Execute(self):
 
-        structural_parts = []
-        for i in range(self.structural_model_part_names.size()):
-            # only submodelparts of the MainModelPart can be used!
-            sub_model_part_name = self.structural_model_part_names[i].GetString()
-            full_model_part_name = self.model_part_name + "." + sub_model_part_name
-            structural_parts.append(self.model[full_model_part_name])
-
-        processes_parts = []
-        for i in range(self.processes_model_part_names.size()):
-            # only submodelparts of the MainModelPart can be used!
-            sub_model_part_name = self.processes_model_part_names[i].GetString()
-            full_model_part_name = self.model_part_name + "." + sub_model_part_name
-            processes_parts.append(self.model[full_model_part_name])
+        structural_parts = self.__ExtractModelparts(self.structural_model_part_names)
+        processes_parts  = self.__ExtractModelparts(self.processes_model_part_names)
 
         # Construct a model part which contains both the skin and the volume
         if (self.main_model_part.HasSubModelPart(self.computing_model_part_name)):
@@ -51,10 +40,29 @@ class CheckAndPrepareModelProcess(KM.Process):
         structural_computational_model_part.Properties  = self.main_model_part.Properties
 
         for part in structural_parts:
-            transfer_process = KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDELEMENTS)
-            transfer_process.Execute()
-        for part in processes_parts:
-            transfer_process = KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part, KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS)
-            transfer_process.Execute()
+            KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part,
+                KM.FastTransferBetweenModelPartsProcess.EntityTransfered.NODESANDELEMENTS).Execute()
 
-        KM.Logger.PrintInfo("Computing model part:", structural_computational_model_part)
+        for part in processes_parts:
+            KM.FastTransferBetweenModelPartsProcess(structural_computational_model_part, part,
+                KM.FastTransferBetweenModelPartsProcess.EntityTransfered.CONDITIONS).Execute()
+
+        KM.Logger.PrintInfo("Computing model part", structural_computational_model_part)
+
+    def __ExtractModelparts(self, params_list):
+        """Extracting a list of SubModelParts to be added to the ComputingModelPart
+        If the MainModelPart is to be added to the ComputingModelPart, then this is
+        done directly, no need to also add the SubModelParts, since they are contained
+        in the MainModelpart
+        """
+        list_model_part_names = [params_list[i].GetString() for i in range(params_list.size())]
+        if self.main_model_part_name in list_model_part_names:
+            # directly return if the MainModelPart is to be added to the ComputingModelPart
+            return [self.main_model_part]
+        else:
+            model_parts_list = []
+            for model_part_name  in list_model_part_names:
+                # only SubModelParts of the MainModelPart can be used!
+                full_model_part_name = self.main_model_part_name + "." + model_part_name
+                model_parts_list.append(self.model[full_model_part_name])
+            return model_parts_list
