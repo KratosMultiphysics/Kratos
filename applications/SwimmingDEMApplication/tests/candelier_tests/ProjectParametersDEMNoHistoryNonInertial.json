@@ -78,7 +78,6 @@
 "similarity_transformation_type_comment" : " no transformation (0), Tsuji (1)",
 "dem_inlet_element_type"                 : "SphericSwimmingParticle3D",
 "dem_inlet_element_type_comment"         : " SphericParticle3D, SphericSwimmingParticle3D",
-"drag_modifier_type"                     : 2,
 "drag_modifier_type_comment"             : " Hayder (2), Chien (3) # problemtype option",
 "drag_porosity_correction_type"          : 0,
 "drag_porosity_correction_type_comment"  : " No correction (0), Richardson and Zaki (1)",
@@ -98,7 +97,6 @@
 "basset_force_type"                      : 0,
 "frame_of_reference_type"                : 1,
 "angular_velocity_of_frame_Z"            : 0.5,
-
 "OutputTimeStep"                   : 0.5,
 "PostPressure"                     : false,
 "PostFluidPressure"                          : false,

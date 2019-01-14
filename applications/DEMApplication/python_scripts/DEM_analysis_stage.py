@@ -84,8 +84,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         [self.post_path,
         self.data_and_results,
-        self.graphs_path,
-        MPI_results] = self.procedures.CreateDirectories(str(self.main_path), str(self.problem_name), do_print_results=self.do_print_results_option)
+        self.graphs_path] = self.procedures.CreateDirectories(str(self.main_path),
+                                                              str(self.problem_name),
+                                                              do_print_results=self.do_print_results_option)[:-1]
 
         # Prepare modelparts
         self.CreateModelParts()

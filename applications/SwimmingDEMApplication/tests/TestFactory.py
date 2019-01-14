@@ -1,5 +1,4 @@
 import os
-import json
 
 # Importing the Kratos Library
 import KratosMultiphysics
