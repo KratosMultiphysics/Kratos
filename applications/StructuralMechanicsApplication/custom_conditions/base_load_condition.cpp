@@ -291,8 +291,8 @@ void BaseLoadCondition::CalculateDampingMatrix(
 void BaseLoadCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_ERROR << "You are calling the CalculateAll from the base class for loads" << std::endl;

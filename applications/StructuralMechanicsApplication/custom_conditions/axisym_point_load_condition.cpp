@@ -78,7 +78,7 @@ namespace Kratos
     //********************************* PROTECTED ****************************************
     //************************************************************************************
 
-    double AxisymPointLoadCondition::GetPointLoadIntegrationWeight()
+    double AxisymPointLoadCondition::GetPointLoadIntegrationWeight() const
     {
         // We calculate the axisymmetric coefficient
         const double Radius = StructuralMechanicsMathUtilities::CalculateRadiusPoint(GetGeometry());
@@ -94,7 +94,6 @@ namespace Kratos
 
     void AxisymPointLoadCondition::save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "AxisymPointLoadCondition" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoadCondition );
     }
 
