@@ -409,7 +409,7 @@ private:
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag) override;
 
@@ -423,7 +423,7 @@ private:
     * Returns the behavior of this shell (thin/thick)
     * @return the shell behavior
     */
-    ShellCrossSection::SectionBehaviorType GetSectionBehavior() override;
+    ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
     ///@}
 

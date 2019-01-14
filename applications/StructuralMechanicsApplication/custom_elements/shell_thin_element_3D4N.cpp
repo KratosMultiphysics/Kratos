@@ -1982,7 +1982,7 @@ void ShellThinElement3D4N::CalculateGaussPointContribution
 
 void ShellThinElement3D4N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -2407,7 +2407,7 @@ ShellThinElement3D4N::CalculationData::CalculationData
 {
 }
 
-ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType ShellThinElement3D4N::GetSectionBehavior() const
 {
     return ShellCrossSection::Thin;
 }

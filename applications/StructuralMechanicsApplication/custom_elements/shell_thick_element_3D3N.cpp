@@ -1750,7 +1750,7 @@ void ShellThickElement3D3N::AddBodyForces(CalculationData& data, VectorType& rRi
 
 void ShellThickElement3D3N::CalculateAll(MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
@@ -2140,7 +2140,7 @@ bool ShellThickElement3D3N::TryCalculateOnIntegrationPoints_GeneralizedStrainsOr
     return true;
 }
 
-ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType ShellThickElement3D3N::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
 }
