@@ -92,7 +92,7 @@ public:
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
 
     typedef Element::WeakPointer ElementWeakPointerType;
-    
+
     typedef Element::Pointer ElementPointerType;
 
     ///@}
@@ -204,7 +204,7 @@ public:
     }
 
     //Find the condition's parent element.
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
 
@@ -233,7 +233,7 @@ public:
     }
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
-                               ProcessInfo &rCurrentProcessInfo) override
+                               const ProcessInfo &rCurrentProcessInfo) override
     {
         VectorType RHS;
         this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
@@ -247,7 +247,7 @@ public:
       */
     void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                               VectorType &rRightHandSideVector,
-                              ProcessInfo &rCurrentProcessInfo) override
+                              const ProcessInfo &rCurrentProcessInfo) override
     {
         if (rLeftHandSideMatrix.size1() != TNumNodes)
             rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
@@ -270,7 +270,7 @@ public:
     }
 
     /// Check that all data required by this condition is available and reasonable
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
         KRATOS_TRY;
 
@@ -314,7 +314,7 @@ public:
          * @param rCurrentProcessInfo the current process info object (unused)
          */
         void EquationIdVector(EquationIdVectorType& rResult,
-                                      ProcessInfo& rCurrentProcessInfo) override
+                                      const ProcessInfo& rCurrentProcessInfo) const override
         {
             if (rResult.size() != TNumNodes)
                 rResult.resize(TNumNodes, false);
@@ -330,7 +330,7 @@ public:
          * @param rCurrentProcessInfo the current process info instance
          */
         void GetDofList(DofsVectorType& ConditionDofList,
-                                ProcessInfo& CurrentProcessInfo) override
+                                const ProcessInfo& CurrentProcessInfo) const override
         {
             if (ConditionDofList.size() != TNumNodes)
                 ConditionDofList.resize(TNumNodes);
@@ -340,7 +340,7 @@ public:
 
         }
 
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
         {
             std::vector<double> rValues;
             ElementPointerType pElem = pGetElement();

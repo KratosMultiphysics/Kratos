@@ -177,7 +177,7 @@ public:
      * @param rResult: the elemental equation ID vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -224,7 +224,7 @@ public:
      * @param ElementalDofList: the list of DOFs
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& CurrentProcessInfo) override
+    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo) const override
     {
         if(this->IsNot(MARKER)) //normal element
         {
@@ -281,7 +281,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         ElementalData<NumNodes,Dim> data;
 
@@ -293,8 +293,8 @@ public:
         {
             data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
         }
-        
-        
+
+
         //TEST:
         bool kutta_element = false;
         for(unsigned int i=0; i<NumNodes; ++i)
@@ -313,21 +313,21 @@ public:
             rLeftHandSideMatrix.clear();
 
             ComputeLHSGaussPointContribution(data.vol,rLeftHandSideMatrix,data);
-                        
+
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix, data.phis);
-            
+
         }
         else //it is a wake element
         {
             GetWakeDistances(data.distances);
-            
+
             //note that the lhs and rhs have double the size!!
             if(rLeftHandSideMatrix.size1() != 2*NumNodes || rLeftHandSideMatrix.size2() != 2*NumNodes)
                 rLeftHandSideMatrix.resize(2*NumNodes,2*NumNodes,false);
             if(rRightHandSideVector.size() != 2*NumNodes)
                 rRightHandSideVector.resize(2*NumNodes,false);
             rLeftHandSideMatrix.clear();
-            
+
             //subdivide the element
             constexpr unsigned int nvolumes = 3*(Dim-1);
             bounded_matrix<double,NumNodes, Dim > Points;
@@ -336,12 +336,12 @@ public:
             array_1d<double,nvolumes> PartitionsSign;
             std::vector<Matrix> GradientsValue(nvolumes);
             bounded_matrix<double,nvolumes, 2> NEnriched;
-            
+
             for(unsigned int i=0; i<GradientsValue.size(); ++i)
                 GradientsValue[i].resize(2,Dim,false);
-           
-            
-            
+
+
+
             for(unsigned int i = 0; i<NumNodes; ++i)
             {
                 const array_1d<double, 3>& coords = GetGeometry()[i].Coordinates();
@@ -350,19 +350,19 @@ public:
                     Points(i, k) = coords[k];
                 }
             }
-            
+
             const unsigned int nsubdivisions = EnrichmentUtilities::CalculateEnrichedShapeFuncions(Points,
                                                                                             data.DN_DX,
                                                                                             data.distances,
-                                                                                            Volumes, 
-                                                                                            GPShapeFunctionValues, 
-                                                                                            PartitionsSign, 
-                                                                                            GradientsValue, 
+                                                                                            Volumes,
+                                                                                            GPShapeFunctionValues,
+                                                                                            PartitionsSign,
+                                                                                            GradientsValue,
                                                                                             NEnriched);
             //compute the lhs and rhs that would correspond to it not being divided
             Matrix lhs_positive = ZeroMatrix(NumNodes,NumNodes);
             Matrix lhs_negative = ZeroMatrix(NumNodes,NumNodes);
-            
+
             for(unsigned int i=0; i<nsubdivisions; ++i)
             {
                 if(PartitionsSign[i] > 0)
@@ -372,12 +372,12 @@ public:
             }
 
             //also next version works - NON SYMMETRIC - but it does not require a penalty
-//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY]; 
+//                 array_1d<double,Dim> n = prod(data.DN_DX,data.distances); //rCurrentProcessInfo[VELOCITY];
 //                 n /= norm_2(n);
 //                 bounded_matrix<double,Dim,Dim> nn = outer_prod(n,n);
 //                 bounded_matrix<double,NumNodes,Dim> tmp = prod(data.DN_DX,nn);
 //                 bounded_matrix<double,NumNodes,NumNodes> constraint = data.vol*prod(tmp, trans(data.DN_DX));
-//                                 
+//
 //                 bounded_matrix<double,Dim,Dim> P = IdentityMatrix(Dim,Dim) - nn;
 //                 noalias(tmp) = prod(data.DN_DX,P);
 //                 bounded_matrix<double,NumNodes,NumNodes> tangent_constraint = /*1e3**/data.vol*prod(tmp, trans(data.DN_DX));
@@ -387,11 +387,11 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i,j)            =  lhs_positive(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)   =  0.0;
+
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
                 }
@@ -401,15 +401,15 @@ public:
                     {
                         for(unsigned int j=0; j<NumNodes; ++j)
                         {
-                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j); 
-                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0; 
-                            
-                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j); 
-                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0; 
+                            rLeftHandSideMatrix(i,j)                   =  lhs_positive(i,j);
+                            rLeftHandSideMatrix(i,j+NumNodes)          =  0.0;
+
+                            rLeftHandSideMatrix(i+NumNodes,j+NumNodes) =  lhs_negative(i,j);
+                            rLeftHandSideMatrix(i+NumNodes,j)          =  0.0;
                         }
                     }
-                    
-                
+
+
                     //side1  -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
                     {
@@ -417,21 +417,21 @@ public:
                         {
                                 for(unsigned int j=0; j<NumNodes; ++j)
                                 {
-                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j); 
-                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j); 
+                                    rLeftHandSideMatrix(i,j)          = lhs_positive(i,j);
+                                    rLeftHandSideMatrix(i,j+NumNodes) = -lhs_positive(i,j);
                                 }
                         }
                     }
-                    
+
                     //side2 -assign constraint only on the NEGATIVE_FACE_PRESSURE dofs
                     for(unsigned int i=0; i<NumNodes; ++i)
-                    {                            
+                    {
                         if(data.distances[i]>0)
-                        {   
+                        {
                             for(unsigned int j=0; j<NumNodes; ++j)
                                 {
                                     rLeftHandSideMatrix(i+NumNodes,j+NumNodes) = lhs_negative(i,j);
-                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j); 
+                                    rLeftHandSideMatrix(i+NumNodes,j) = -lhs_negative(i,j);
                                 }
                         }
                     }
@@ -440,7 +440,7 @@ public:
             GetValuesOnSplitElement(split_element_values, data.distances);
             noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,split_element_values);
         }
-        
+
     }
 
 
@@ -450,14 +450,14 @@ public:
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override
     {
         //TODO: improve speed
         Matrix tmp;
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
     {
         bool active = true;
         if ((this)->IsDefined(ACTIVE))
@@ -476,7 +476,7 @@ public:
      * @param rCurrentProcessInfo
      * this method is: MANDATORY
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override
     {
 
         KRATOS_TRY
@@ -590,7 +590,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    void GetWakeDistances(array_1d<double,NumNodes>& distances)
+    void GetWakeDistances(array_1d<double,NumNodes>& distances) const
     {
         noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
