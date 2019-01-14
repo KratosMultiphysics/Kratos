@@ -91,6 +91,11 @@ namespace Kratos
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix, 
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
@@ -105,10 +110,11 @@ namespace Kratos
       MatrixType& rMassMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
 
+/*
     void CalculateDampingMatrix(
       MatrixType& rDampingMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
-
+*/
     void FinalizeSolutionStep(
       ProcessInfo& rCurrentProcessInfo) override;
 
@@ -185,14 +191,12 @@ namespace Kratos
         array_1d<double, 3>& rgab,
         array_1d<double, 3>& rGab);
 
-    void CalculateAndAdd_BodyForce(
-      const Vector& rN,
-      const ProcessInfo& rCurrentProcessInfo,
-      array_1d<double, 3>& BodyForce,
-      VectorType& rRightHandSideVector,
-      const double& rWeight);
+    void CalculateAndAddBodyForce(
+        VectorType& rRightHandSideVector,
+        const IndexType PointNumber,
+        const double& rWeight) const;
 
-    void CalculateAndAdd_PressureForce(
+    void CalculateAndAddPressureForce(
       VectorType& rResidualVector,
       const Vector& N,
       const array_1d<double, 3>& rv3,

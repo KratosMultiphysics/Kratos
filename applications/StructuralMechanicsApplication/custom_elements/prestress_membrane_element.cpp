@@ -175,6 +175,60 @@ void PrestressMembraneElement::CalculateRightHandSide(
     CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
+
+//***********************************************************************************
+//***********************************************************************************
+
+void PrestressMembraneElement::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const SizeType num_dofs = number_of_nodes * 3;
+
+    if ( rDampingMatrix.size1() != num_dofs )
+        rDampingMatrix.resize( num_dofs, num_dofs, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix( num_dofs, num_dofs );
+
+    // 1.-Calculate StiffnessMatrix:
+
+    MatrixType StiffnessMatrix  = Matrix();
+    VectorType ResidualVector  = Vector();
+
+    CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+
+    // 2.-Calculate MassMatrix:
+
+    MatrixType MassMatrix  = Matrix();
+
+    CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+
+    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0.0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+    double beta  = 0.0;
+    if( GetProperties().Has(RAYLEIGH_BETA) )
+        beta = GetProperties()[RAYLEIGH_BETA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+    // 4.-Compose the Damping Matrix:
+
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+    noalias( rDampingMatrix ) += alpha * MassMatrix;
+    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
+
+    KRATOS_CATCH( "" )
+}
+
 //***********************************************************************************
 //***********************************************************************************
 
@@ -224,7 +278,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+    const double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
 
     Vector lump_fact;
 
@@ -241,45 +295,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
         }
     }
 
-    KRATOS_CATCH("")
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void PrestressMembraneElement::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo)
-
-{
-    KRATOS_TRY
-
-    // LUMPED DAMPING MATRIX
-
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int mat_size = number_of_nodes * 3;
-
-    if (rDampingMatrix.size1() != mat_size)
-        rDampingMatrix.resize(mat_size, mat_size);
-
-    rDampingMatrix = ZeroMatrix(mat_size, mat_size);
-
-    double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
-
-    Vector lump_fact;
-
-    lump_fact = GetGeometry().LumpingFactors(lump_fact);
-
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        double temp = lump_fact[i] * total_mass;
-
-        for (unsigned int j = 0; j < 3; j++)
-        {
-            unsigned int index = i * 3 + j;
-            rDampingMatrix(index, index) = temp;
-        }
-    }
+  
 
     KRATOS_CATCH("")
 }
@@ -525,39 +541,43 @@ void PrestressMembraneElement::CalculateStrain(
 
 //***********************************************************************************
 //***********************************************************************************
-void PrestressMembraneElement::CalculateAndAdd_BodyForce(
-    const Vector& rN,
-    const ProcessInfo& rCurrentProcessInfo,
-    array_1d<double, 3>& BodyForce,
+void PrestressMembraneElement::CalculateAndAddBodyForce(
     VectorType& rRightHandSideVector,
-    const double& rWeight)
+    const IndexType PointNumber,
+    const double& rWeight) const
 
 {
     KRATOS_TRY
 
-        unsigned int number_of_nodes = this->GetGeometry().size();
-    const double density = this->GetProperties()[DENSITY];
 
+    const double density = GetProperties()[DENSITY];
 
-    noalias(BodyForce) = ZeroVector(3);
-    for (unsigned int i = 0; i<number_of_nodes; i++)
-        BodyForce += rN[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    BodyForce *= density;
+    VectorType body_force = ZeroVector(3); 
+    const SizeType number_of_nodes = this->GetGeometry().size();
+    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints();
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    VectorType N = ZeroVector(number_of_nodes);
+    const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
+    N = row(this->GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
+
+    const double integration_weight = integration_points[PointNumber].Weight();
+
+    for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
     {
-        int index = 3 * i;
+        noalias(body_force) += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        IndexType index = 3 * i_node;
 
-        for (unsigned int j = 0; j < 3; j++)
-            rRightHandSideVector[index + j] += rWeight * rN[i] * BodyForce[j];
+        for (IndexType j = 0; j < 3; ++j)
+            rRightHandSideVector[index + j] += rWeight * N[i_node] * body_force[j];
     }
 
     KRATOS_CATCH("")
 }
 
+
 //***********************************************************************************
 //***********************************************************************************
-void PrestressMembraneElement::CalculateAndAdd_PressureForce(
+void PrestressMembraneElement::CalculateAndAddPressureForce(
     VectorType& rResidualVector,
     const Vector& rN,
     const array_1d<double, 3>& rv3,
@@ -726,6 +746,8 @@ void PrestressMembraneElement::CalculateAll(
         // RIGHT HAND SIDE VECTOR
         if (rCalculateResidualVectorFlag == true)         // calculation of the matrix is required
         {
+
+            CalculateAndAddBodyForce(rRightHandSideVector, point_number, int_reference_weight);
             // operation performed: rRighthandSideVector -= Weight* IntForce
             noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
         }
@@ -1308,6 +1330,7 @@ void PrestressMembraneElement::ComputePrestress(const unsigned int rIntegrationP
                             prestress_axis_1(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_1_GLOBAL](i_strain);
                         if(GetProperties().Has(PRESTRESS_AXIS_2_GLOBAL))
                             prestress_axis_2(i_strain,point_number) = GetProperties()[PRESTRESS_AXIS_2_GLOBAL](i_strain);
+
                     }
                     // in case that no prestress directions are prescribed: hardcode the prestress direction
                     if (GetProperties().Has(PRESTRESS_AXIS_1_GLOBAL) == false){
