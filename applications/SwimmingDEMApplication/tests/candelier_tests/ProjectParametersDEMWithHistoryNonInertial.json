@@ -92,7 +92,7 @@
 "meso_scale_length"                      : 0.2,
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
-"basset_force_type"                      CandelierFluid: 2,
+"basset_force_type"                      : 2,
 "frame_of_reference_type"                : 1,
 "angular_velocity_of_frame_Z"            : 0.5,
 
