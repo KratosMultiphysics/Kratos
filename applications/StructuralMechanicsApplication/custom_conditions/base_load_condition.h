@@ -274,9 +274,12 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    virtual bool HasRotDof(){return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    virtual bool HasRotDof() const
+    {
+        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
+    }
 
-    unsigned int GetBlockSize()
+    unsigned int GetBlockSize() const
     {
         unsigned int dim = GetGeometry().WorkingSpaceDimension();
         if( HasRotDof() ) { // if it has rotations
@@ -356,7 +359,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -371,7 +374,7 @@ protected:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const SizeType PointNumber,
         const double detJ
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access
