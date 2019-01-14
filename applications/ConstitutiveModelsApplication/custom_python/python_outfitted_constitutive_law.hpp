@@ -133,17 +133,6 @@ public:
                              const GeometryType& rElementGeometry,
                              const Vector& rShapeFunctionsValues );
 
-
-    void InitializeSolutionStep( const Properties& rProperties,
-                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
-                                 const ProcessInfo& rCurrentProcessInfo);
-
-    void FinalizeSolutionStep( const Properties& rProperties,
-                               const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
-                               const ProcessInfo& rCurrentProcessInfo);
-
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix

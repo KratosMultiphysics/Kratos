@@ -47,8 +47,8 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		KratosMultiphysics.Logger.PrintInfo("| $$      | $$      | $$\  $ | $$| $$      | $$  | $$| $$      | $$\  $ | $$")
 		KratosMultiphysics.Logger.PrintInfo("| $$      | $$$$$$$$| $$ \/  | $$| $$$$$$$$| $$$$$$$/| $$$$$$$$| $$ \/  | $$")
 		KratosMultiphysics.Logger.PrintInfo("|__/      |________/|__/     |__/|________/|_______/ |________/|__/     |__/ 3D Application")
-                                                                          
-
+		KratosMultiphysics.Logger.PrintInfo("")
+                             
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
@@ -59,9 +59,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.FEM_Solution.step = self.FEM_Solution.step + 1
 		self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.FEM_Solution.step
 
+		self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+		self.nodal_neighbour_finder.Execute()
+
 		if self.DoRemeshing:
 			is_remeshing = self.CheckIfHasRemeshed()
-			
+
 			if is_remeshing:
 				# Extrapolate the VonMises normalized stress to nodes (remeshing)
 				KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
@@ -71,41 +74,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 
 			# Perform remeshing
 			self.RemeshingProcessMMG.ExecuteInitializeSolutionStep()
+
 			if is_remeshing:
 				self.RefineMappedVariables()
-
-			self.nodal_neighbour_finder.Execute()
-
-			if is_remeshing:
-				# Initialize the "flag" IS_DEM in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
-				# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
-				# Initialize the "flag" RADIUS in all the nodes
-				KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
-
-				# Remove DEMS from previous mesh
-				self.SpheresModelPart.Elements.clear()
-				self.SpheresModelPart.Nodes.clear()
-
-				self.InitializeDummyNodalForces()
-
-				self.InitializeMMGvariables()
-				self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
-				self.FEM_Solution.model_processes.ExecuteInitialize()
-				self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
-				self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
-
-			# Search the skin nodes for the remeshing
-			skin_detection_process_param = KratosMultiphysics.Parameters("""
-			{
-				"name_auxiliar_model_part" : "SkinDEMModelPart",
-				"name_auxiliar_condition"  : "Condition",
-				"echo_level"               : 0
-			}""")
-			skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
-																			skin_detection_process_param)
-			skin_detection_process.Execute()
+				self.InitializeSolutionAfterRemeshing()
+				self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+				self.nodal_neighbour_finder.Execute()
 
 		self.FEM_Solution.InitializeSolutionStep()
 
@@ -114,13 +88,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		if self.create_initial_dem_skin and self.FEM_Solution.step == 1:
 			self.CreateInitialSkinDEM()
 
-		# Create the DEM after the remeshing
-		if self.DoRemeshing and is_remeshing:
-			self.GenerateDemAfterRemeshing()
-
 #============================================================================================================================
 	def SolveSolutionStep(self):
-		
+
 		# Function to perform the coupling FEM <-> DEM
 		self.FEM_Solution.clock_time = self.FEM_Solution.StartTimeMeasuring()
 
@@ -132,7 +102,6 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.SpheresModelPart = self.ParticleCreatorDestructor.GetSpheresModelPart()
 		self.CheckForPossibleIndentations()
 
-		# self.CheckInactiveNodes()
 		self.UpdateDEMVariables()     # We update coordinates, displ and velocities of the DEM according to FEM
 
 		self.DEM_Solution.InitializeTimeStep()
@@ -140,7 +109,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		self.DEM_Solution.time = self.FEM_Solution.time
 		self.DEM_Solution.step = self.FEM_Solution.step
 
-		self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts, self.DEM_Solution.time,self.DEM_Solution.dt,self.DEM_Solution.step, self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
+		self.DEM_Solution.DEMFEMProcedures.UpdateTimeInModelParts(self.DEM_Solution.all_model_parts, self.DEM_Solution.time,self.DEM_Solution.solver.dt,self.DEM_Solution.step, self.DEM_Solution.IsTimeToPrintPostProcess(self.DEM_Solution.time))
 		self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
 
 		#### SOLVE DEM #########################################
@@ -148,21 +117,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		########################################################
 		self.DEM_Solution.AfterSolveOperations()
 
-		self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.dt)
+		self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 
 		self.UpdateDEMVariables() # to print DEM with the FEM coordinates
 
-		# DEM GiD print output
-		if self.DEM_Solution.step == 1: # always print the 1st step
-			self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-			self.DEM_Solution.time_old_print = self.DEM_Solution.time
-		else:
-			time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
-
-			if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.dt):
-
-				self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-				self.DEM_Solution.time_old_print = self.DEM_Solution.time
+		self.PrintDEMResultsForGid()
 
 		self.DEM_Solution.FinalizeTimeStep(self.DEM_Solution.time)
 
@@ -219,7 +178,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, Radius1)
 
 					# Look to the Node 2 ---------------------------------------------
-					#Radius2 = self.GetMinimumValue3(dist01-Radius1, dist12*0.5, dist13*0.5) 
+					#Radius2 = self.GetMinimumValue3(dist01-Radius1, dist12*0.5, dist13*0.5)
 					Radius2 = dist01-Radius1
 					Coordinates2 = self.GetNodeCoordinates(Element.GetNodes()[1])
 					Id2 = Element.GetNodes()[1].Id
@@ -406,7 +365,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
 
 					# DEM generated for this Element
-					Element.SetValue(KratosFemDem.DEM_GENERATED, True)	
+					Element.SetValue(KratosFemDem.DEM_GENERATED, True)
 					Element.Set(KratosMultiphysics.TO_ERASE, True)
 
 				# --------------------- 4RD SCENARIO -----------------------------
@@ -433,7 +392,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						#R2 = self.GetMinimumValue3(dist02-R2, dist01-R1, dist23*0.5)
 						R2 = self.GetMinimumValue3(dist02-R0, dist01-R1, 1000000)
 						R3 = self.GetMinimumValue3(dist03-R0, dist13-R1, dist23-R2)
-							
+
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates2, R2, Id2)
 						Element.GetNodes()[2].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
 						Element.GetNodes()[2].SetValue(KratosMultiphysics.RADIUS, R2)
@@ -546,11 +505,11 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						Coordinates0 = self.GetNodeCoordinates(Element.GetNodes()[0])
 						Coordinates3 = self.GetNodeCoordinates(Element.GetNodes()[3])
 						Id0 = Element.GetNodes()[0].Id
-						Id3 = Element.GetNodes()[3].Id	
+						Id3 = Element.GetNodes()[3].Id
 
 						#R0 = self.GetMinimumValue3(dist01-R1, dist02-R2, dist03*0.5)
 						R0 = self.GetMinimumValue3(dist01-R1, dist02-R2, 100000)
-						R3 = self.GetMinimumValue3(dist13-R1, dist23-R2, dist03-R0)			
+						R3 = self.GetMinimumValue3(dist13-R1, dist23-R2, dist03-R0)
 
 						self.ParticleCreatorDestructor.FEMDEM_CreateSphericParticle(Coordinates0, R0, Id0)
 						Element.GetNodes()[0].SetValue(KratosFemDem.IS_DEM, True)        # Has an asociated DEM now
@@ -591,7 +550,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R0 = self.GetMinimumValue3(R0, 0.5*dist02, 1000000)
 						R2 = dist02 - R0
 
-						# assign the new radius to the DEM nodes 
+						# assign the new radius to the DEM nodes
 						self.DEM_Solution.spheres_model_part.GetNode(Id0).SetSolutionStepValue(KratosMultiphysics.RADIUS, R0)
 						self.DEM_Solution.spheres_model_part.GetNode(Id2).SetSolutionStepValue(KratosMultiphysics.RADIUS, R2)
 						Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, R0)
@@ -601,7 +560,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 						R0 = self.GetMinimumValue3(R0, 0.5*dist03, 1000000)
 						R3 = dist03 - R0
 
-						# assign the new radius to the DEM nodes 
+						# assign the new radius to the DEM nodes
 						self.DEM_Solution.spheres_model_part.GetNode(Id0).SetSolutionStepValue(KratosMultiphysics.RADIUS, R0)
 						self.DEM_Solution.spheres_model_part.GetNode(Id3).SetSolutionStepValue(KratosMultiphysics.RADIUS, R3)
 						Element.GetNodes()[0].SetValue(KratosMultiphysics.RADIUS, R0)
@@ -802,12 +761,12 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					NumberOfActiveElements += 1
 					node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, NumberOfActiveElements)
 
-		NumberOfActiveElements = 0	
+		NumberOfActiveElements = 0
 		for node in FEM_Nodes:
 			NumberOfActiveElements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
 			if NumberOfActiveElements == 0 and node.GetValue(KratosFemDem.INACTIVE_NODE) == False:
 				Id = node.Id
-				print("nodo eliminado: ", Id)
+				# print("nodo eliminado: ", Id)
 				DEMnode = self.SpheresModelPart.GetNode(Id)
 				node.SetValue(KratosFemDem.INACTIVE_NODE, True)
 				node.Set(KratosMultiphysics.TO_ERASE, True) # added
@@ -861,7 +820,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 #============================================================================================================================
 	def PrintPlotsFiles(self):
 
-		# Print the general file 
+		# Print the general file
 		time = self.FEM_Solution.time
 		TotalReaction_x     = 0.0
 		TotalDisplacement_x = 0.0
@@ -889,7 +848,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 				TotalReaction_z += node.GetSolutionStepValue(KratosMultiphysics.REACTION_Z)
 
 			self.PlotFile = open("PlotFile.txt","a")
-			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_x).rjust(11) + 
+			self.PlotFile.write("    " + "{0:.4e}".format(time).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_x).rjust(11) +
 				"    " + "{0:.4e}".format(TotalDisplacement_y).rjust(11) + "    " + "{0:.4e}".format(TotalDisplacement_z).rjust(11) +
 				"    " + "{0:.4e}".format(TotalReaction_x).rjust(11) + "    " + "{0:.4e}".format(TotalReaction_y).rjust(11) + "    " +
 				"{0:.4e}".format(TotalReaction_z).rjust(11) + "\n")
@@ -925,9 +884,9 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					az = acceleration[2]
 
 					self.PlotFilesNodesList[inode].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
-					 "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " + "{0:.4e}".format(dz).rjust(11) + "    " + 
-					 "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " + 
-					 "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " + 
+					 "{0:.4e}".format(dx).rjust(11) + "    " + "{0:.4e}".format(dy).rjust(11) + "    " + "{0:.4e}".format(dz).rjust(11) + "    " +
+					 "{0:.4e}".format(vx).rjust(11) + "    " + "{0:.4e}".format(vy).rjust(11) + "    " + "{0:.4e}".format(vz).rjust(11) + "    " +
+					 "{0:.4e}".format(ax).rjust(11) + "    " + "{0:.4e}".format(ay).rjust(11) + "    " + "{0:.4e}".format(az).rjust(11) + "    " +
 					 "{0:.4e}".format(Rx).rjust(11) + "    " + "{0:.4e}".format(Ry).rjust(11) + "    " + "{0:.4e}".format(Rz).rjust(11) + "\n")
 
 					self.PlotFilesNodesList[inode].close()
@@ -960,17 +919,17 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 					damage = Elem.GetValue(KratosFemDem.DAMAGE_ELEMENT)
 
 					self.PlotFilesElementsList[iElem].write("    " + "{0:.4e}".format(time).rjust(11) + "    " +
-					 "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " + 
+					 "{0:.4e}".format(Sxx).rjust(11) + "    " + "{0:.4e}".format(Syy).rjust(11) + "    " +
 					 "{0:.4e}".format(Szz).rjust(11) + "    " + "{0:.4e}".format(Sxy).rjust(11) + "    " +
 					 "{0:.4e}".format(Syz).rjust(11) + "    " + "{0:.4e}".format(Sxz).rjust(11) + "    " +
-					 "{0:.4e}".format(Exx).rjust(11) + 
-					 "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Ezz).rjust(11) + 
-					 "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) + 
+					 "{0:.4e}".format(Exx).rjust(11) +
+					 "    " + "{0:.4e}".format(Eyy).rjust(11) + "    " + "{0:.4e}".format(Ezz).rjust(11) +
+					 "    " + "{0:.4e}".format(Exy).rjust(11) + "    " + "{0:.4e}".format(Eyz).rjust(11) +
 					 "    " + "{0:.4e}".format(Exz).rjust(11) +
 					 "   "  + "{0:.4e}".format(damage).rjust(11) + "\n")
 
 					self.PlotFilesElementsList[iElem].close()
-					
+
 			self.TimePreviousPlotting = time
 
 #============================================================================================================================
@@ -1025,3 +984,53 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 			if elem.GetValue(KratosFemDem.DAMAGE_ELEMENT) < 0.0:
 				elem.SetValue(KratosFemDem.DAMAGE_ELEMENT, 0.0)
 
+#============================================================================================================================
+
+	def InitializeSolutionAfterRemeshing(self):
+
+		# Initialize the "flag" IS_DEM in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.IS_DEM, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" NODAL_FORCE_APPLIED in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosFemDem.NODAL_FORCE_APPLIED, False, self.FEM_Solution.main_model_part.Nodes)
+		# Initialize the "flag" RADIUS in all the nodes
+		KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.RADIUS, False, self.FEM_Solution.main_model_part.Nodes)
+
+		# Remove DEMS from previous mesh
+		self.SpheresModelPart.Elements.clear()
+		self.SpheresModelPart.Nodes.clear()
+
+		self.InitializeDummyNodalForces()
+
+		self.InitializeMMGvariables()
+		self.FEM_Solution.model_processes = self.FEM_Solution.AddProcesses()
+		self.FEM_Solution.model_processes.ExecuteInitialize()
+		self.FEM_Solution.model_processes.ExecuteBeforeSolutionLoop()
+		self.FEM_Solution.model_processes.ExecuteInitializeSolutionStep()
+
+		# Search the skin nodes for the remeshing
+		skin_detection_process_param = KratosMultiphysics.Parameters("""
+		{
+			"name_auxiliar_model_part" : "SkinDEMModelPart",
+			"name_auxiliar_condition"  : "Condition",
+			"echo_level"               : 0
+		}""")
+		skin_detection_process = KratosMultiphysics.SkinDetectionProcess3D(self.FEM_Solution.main_model_part,
+																		skin_detection_process_param)
+		skin_detection_process.Execute()
+		self.GenerateDemAfterRemeshing()
+
+#============================================================================================================================
+
+	def PrintDEMResultsForGid(self):
+
+		# DEM GiD print output
+		if self.DEM_Solution.step == 1: # always print the 1st step
+			self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+			self.DEM_Solution.time_old_print = self.DEM_Solution.time
+		else:
+			time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
+
+			if (self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt):
+
+				self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
+				self.DEM_Solution.time_old_print = self.DEM_Solution.time

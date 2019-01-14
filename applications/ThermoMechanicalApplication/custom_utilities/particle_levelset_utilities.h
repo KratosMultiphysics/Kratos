@@ -155,7 +155,7 @@ public:
         KRATOS_TRY
 
         array_1d<double, 3 > veulerian;
-        array_1d<double, TDim + 1 > N;
+        Vector N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -257,7 +257,7 @@ public:
 	}
         //loop over particles
 	double particle_dist= 0.0;
-        array_1d<double, TDim + 1 > N;
+        Vector N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -352,7 +352,7 @@ public:
   {
     KRATOS_TRY;
     double particle_dist = 0.0;
-    array_1d<double, TDim + 1 > N;
+    Vector N;
     const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
@@ -412,7 +412,7 @@ public:
         }
 
         //count particles that fall within an element
-        array_1d<double, TDim + 1 > N;
+        Vector N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         const int nparticles = rLagrangianModelPart.Nodes().size();

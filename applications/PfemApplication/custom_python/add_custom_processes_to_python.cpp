@@ -23,6 +23,7 @@
 #include "custom_processes/manage_isolated_nodes_process.hpp"
 #include "custom_processes/manage_selected_elements_process.hpp"
 #include "custom_processes/recover_volume_losses_process.hpp"
+#include "custom_processes/volume_shaping_process.hpp"
 
 // PreMeshing processes
 #include "custom_processes/inlet_mesher_process.hpp"
@@ -101,6 +102,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   py::class_<ManageSelectedElementsProcess, ManageSelectedElementsProcess::Pointer, Process>
       (m, "ManageSelectedElementsProcess")
       .def(py::init<ModelPart&>());
+
+  //*********VOLUME SHAPING PROCESS********//
+  py::class_<VolumeShapingProcess, VolumeShapingProcess::Pointer, Process>
+      (m, "VolumeShapingProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>());
 
 }
 

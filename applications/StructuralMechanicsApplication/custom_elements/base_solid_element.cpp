@@ -104,8 +104,8 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-        // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+        // Compute constitutive law variables
+        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->InitializeMaterialResponse(Values, GetStressMeasure());
@@ -180,8 +180,8 @@ void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-        // Compute material reponse
-        CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+        // Compute constitutive law variables
+        SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
         // Call the constitutive law to update material variables
         mConstitutiveLawVector[point_number]->FinalizeMaterialResponse(Values, GetStressMeasure());
@@ -378,6 +378,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
             rValues[index + k] = acceleration[k];
     }
 }
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -392,6 +393,89 @@ void BaseSolidElement::CalculateRightHandSide(
     MatrixType temp = Matrix();
 
     CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+}
+
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType mat_size = number_of_nodes * dimension;
+
+    // Compiting the nodal mass
+    if (rDestinationVariable == NODAL_MASS ) {
+        VectorType element_mass_vector(mat_size);
+        this->CalculateLumpedMassVector(element_mass_vector);
+
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const IndexType index = i * dimension;
+
+            #pragma omp atomic
+            r_geom[i].GetValue(NODAL_MASS) += element_mass_vector[index];
+        }
+    }
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::AddExplicitContribution(
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    auto& r_geom = this->GetGeometry();
+    const auto& r_prop = this->GetProperties();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType element_size = dimension * number_of_nodes;
+
+    Vector damping_residual_contribution = ZeroVector(element_size);
+
+    // Calculate damping contribution to residual -->
+    if (r_prop.Has(RAYLEIGH_ALPHA) || r_prop.Has(RAYLEIGH_BETA)) {
+        Vector current_nodal_velocities = ZeroVector(element_size);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+
+        Matrix damping_matrix = ZeroMatrix(element_size, element_size);
+        this->CalculateDampingMatrixWithLumpedMass(damping_matrix, rCurrentProcessInfo);
+
+        // Current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+    }
+
+    // Computing the force residual
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+        for (IndexType i = 0; i < number_of_nodes; ++i) {
+            const IndexType index = dimension * i;
+
+            array_1d<double, 3>& r_force_residual = r_geom[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+            for (IndexType j = 0; j < dimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
+        }
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
@@ -409,6 +493,9 @@ void BaseSolidElement::CalculateLocalSystem(
 
     CalculateAll( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                              ProcessInfo& rCurrentProcessInfo)
@@ -429,36 +516,34 @@ void BaseSolidElement::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
     const auto& r_prop = GetProperties();
+
+    const auto& r_geom = GetGeometry();
     SizeType dimension = r_geom.WorkingSpaceDimension();
     SizeType number_of_nodes = r_geom.size();
     SizeType mat_size = dimension * number_of_nodes;
 
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size, false );
     rMassMatrix = ZeroMatrix( mat_size, mat_size );
 
-    KRATOS_ERROR_IF_NOT(r_prop.Has( DENSITY )) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+    // Checking density
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
-    const double density = r_prop[DENSITY];
-    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
-
-    const bool compute_lumped_mass_matrix =  rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX) ? rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX] : false;
+    // Checking if computing lumped mass matrix
+    const bool compute_lumped_mass_matrix =  r_prop.Has(COMPUTE_LUMPED_MASS_MATRIX) ? r_prop[COMPUTE_LUMPED_MASS_MATRIX] : false;
 
     // LUMPED MASS MATRIX
-    if (compute_lumped_mass_matrix == true) {
-        const double total_mass = GetGeometry().Volume() * density * thickness;
-
-        Vector lumping_factors;
-        lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
-
-        for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-            const double temp = lumping_factors[i] * total_mass;
-            for ( IndexType j = 0; j < dimension; ++j ) {
-                IndexType index = i * dimension + j;
-                rMassMatrix( index, index ) = temp;
-            }
-        }
+    if (compute_lumped_mass_matrix) {
+        VectorType temp_vector(mat_size);
+        CalculateLumpedMassVector(temp_vector);
+        for (IndexType i = 0; i < mat_size; ++i)
+            rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
+        const double density = r_prop[DENSITY];
+        const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
         Matrix J0(dimension, dimension);
 
         IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
@@ -506,21 +591,21 @@ void BaseSolidElement::CalculateDampingMatrix(
     // Resizing as needed the LHS
     unsigned int mat_size = number_of_nodes * dimension;
 
-    if ( rDampingMatrix.size1() != mat_size )
+    if ( rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size )
         rDampingMatrix.resize( mat_size, mat_size, false );
 
     noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
 
     // 1.-Calculate StiffnessMatrix:
 
-    MatrixType StiffnessMatrix  = Matrix();
-    VectorType ResidualVector  = Vector();
+    MatrixType StiffnessMatrix( mat_size, mat_size );
+    VectorType ResidualVector( mat_size );
 
     this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
 
     // 2.-Calculate MassMatrix:
 
-    MatrixType MassMatrix  = Matrix();
+    MatrixType MassMatrix( mat_size, mat_size );
 
     this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
 
@@ -652,6 +737,12 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 
+            // Set constitutive law flags:
+            Flags& ConstitutiveLawOptions=Values.GetOptions();
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, UseElementProvidedStrain());
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
             // Reading integration points
             const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
@@ -662,14 +753,14 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-                // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                // Compute constitutive law variables
+                SetConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points);
 
                 double StrainEnergy = 0.0;
 
                 mConstitutiveLawVector[point_number]->CalculateValue(Values, STRAIN_ENERGY, StrainEnergy);
 
-                rOutput[point_number] = StrainEnergy;  // 1/2 * sigma * epsilon
+                rOutput[point_number] = StrainEnergy;
             }
         } else if ( rVariable == ERROR_INTEGRATION_POINT ) {
             const SizeType number_of_nodes = GetGeometry().size();
@@ -942,20 +1033,22 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
             Values.SetStrainVector(this_constitutive_variables.StrainVector);
 
+            const ConstitutiveLaw::StressMeasure this_stress_measure = rVariable == GREEN_LAGRANGE_STRAIN_VECTOR ? ConstitutiveLaw::StressMeasure_PK2 : ConstitutiveLaw::StressMeasure_Kirchhoff;
+
             //reading integration points
             for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
                 // Compute element kinematics B, F, DN_DX ...
                 CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
                 // Compute material reponse
-                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
+                CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, this_stress_measure);
 
                 if ( rOutput[point_number].size() != strain_size)
                     rOutput[point_number].resize( strain_size, false );
 
                 rOutput[point_number] = this_constitutive_variables.StrainVector;
             }
-        }  else {
+        } else {
             CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
         }
     }
@@ -1036,9 +1129,6 @@ void BaseSolidElement::CalculateOnIntegrationPoints(
 
                 // Compute material reponse
                 CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, Values, point_number, integration_points, GetStressMeasure());
-
-                // Call the constitutive law to update material variables
-                mConstitutiveLawVector[point_number]->CalculateMaterialResponse(Values, GetStressMeasure());
 
                 if( rOutput[point_number].size2() != this_constitutive_variables.D.size2() )
                     rOutput[point_number].resize( this_constitutive_variables.D.size1() , this_constitutive_variables.D.size2() , false );
@@ -1378,7 +1468,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 void BaseSolidElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -1405,23 +1495,31 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
 {
     KRATOS_TRY;
 
-    const auto& r_geom = GetGeometry();
+    // Properties
     const auto& r_prop = GetProperties();
-    unsigned dim = r_geom.WorkingSpaceDimension();
-    rMassMatrix = ZeroMatrix(dim * r_geom.size(), dim * r_geom.size());
 
-    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY))
-        << "DENSITY has to be provided for the calculation of the MassMatrix!"
-        << std::endl;
+    // Geometry information
+    const auto& r_geom = GetGeometry();
+    SizeType dimension = r_geom.WorkingSpaceDimension();
+    SizeType number_of_nodes = r_geom.size();
+    SizeType mat_size = dimension * number_of_nodes;
 
+    // Clear matrix
+    if (rMassMatrix.size1() != mat_size || rMassMatrix.size2() != mat_size)
+        rMassMatrix.resize( mat_size, mat_size, false );
+    rMassMatrix = ZeroMatrix(mat_size, mat_size);
+
+    // Checking density
+    KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
+
+    // Getting density
     const double density = r_prop[DENSITY];
-    const double thickness =
-        (dim == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
         IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom);
     const Matrix& Ncontainer = r_geom.ShapeFunctionsValues(integration_method);
-    Matrix J0(dim, dim), DN_DX0_deriv;
+    Matrix J0(dimension, dimension), DN_DX0_deriv;
     const auto& integration_points = r_geom.IntegrationPoints(integration_method);
     for (unsigned point_number = 0; point_number < integration_points.size(); ++point_number)
     {
@@ -1437,14 +1535,14 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
 
         for (unsigned i = 0; i < r_geom.size(); ++i)
         {
-            const unsigned index_i = i * dim;
+            const unsigned index_i = i * dimension;
 
             for (unsigned j = 0; j < r_geom.size(); ++j)
             {
-                const unsigned index_j = j * dim;
+                const unsigned index_j = j * dimension;
                 const double NiNj_weight = rN[i] * rN[j] * integration_weight * density;
 
-                for (unsigned k = 0; k < dim; ++k)
+                for (unsigned k = 0; k < dimension; ++k)
                     rMassMatrix(index_i + k, index_j + k) += NiNj_weight;
             }
         }
@@ -1477,6 +1575,24 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     const ConstitutiveLaw::StressMeasure ThisStressMeasure
     )
 {
+    // Setting the variables for the CL
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
+
+    // Actually do the computations in the ConstitutiveLaw
+    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::SetConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+    )
+{
     // Here we essentially set the input parameters
     rValues.SetShapeFunctionsValues(rThisKinematicVariables.N); // shape functions
     rValues.SetDeterminantF(rThisKinematicVariables.detF); // Assuming the determinant is computed somewhere else
@@ -1485,9 +1601,6 @@ void BaseSolidElement::CalculateConstitutiveVariables(
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); // Assuming the determinant is computed somewhere else
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
-
-    // Actually do the computations in the ConstitutiveLaw
-    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
 }
 
 /***********************************************************************************/
@@ -1665,6 +1778,104 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 
         for ( IndexType j = 0; j < dimension; ++j )
             rRightHandSideVector[index + j] += Weight * rN[i] * rBodyForce[j];
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector)
+{
+    KRATOS_TRY;
+
+    const auto& r_geom = GetGeometry();
+    const auto& r_prop = GetProperties();
+    const SizeType dimension = r_geom.WorkingSpaceDimension();
+    const SizeType number_of_nodes = r_geom.size();
+    const SizeType mat_size = dimension * number_of_nodes;
+
+    // Clear matrix
+    if (rMassVector.size() != mat_size)
+        rMassVector.resize( mat_size, false );
+
+    const double density = r_prop[DENSITY];
+    const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
+
+    // LUMPED MASS MATRIX
+    const double total_mass = GetGeometry().DomainSize() * density * thickness;
+
+    Vector lumping_factors;
+    lumping_factors = GetGeometry().LumpingFactors( lumping_factors );
+
+    for ( IndexType i = 0; i < number_of_nodes; ++i ) {
+        const double temp = lumping_factors[i] * total_mass;
+        for ( IndexType j = 0; j < dimension; ++j ) {
+            IndexType index = i * dimension + j;
+            rMassVector[index] = temp;
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
+
+    unsigned int number_of_nodes = GetGeometry().size();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // Resizing as needed the LHS
+    unsigned int mat_size = number_of_nodes * dimension;
+
+    if ( rDampingMatrix.size1() != mat_size )
+        rDampingMatrix.resize( mat_size, mat_size, false );
+
+    noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
+
+    // 1.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
+    double alpha = 0.0;
+    if( GetProperties().Has(RAYLEIGH_ALPHA) )
+        alpha = GetProperties()[RAYLEIGH_ALPHA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
+        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
+
+    double beta  = 0.0;
+    if( GetProperties().Has(RAYLEIGH_BETA) )
+        beta = GetProperties()[RAYLEIGH_BETA];
+    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
+        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
+
+    // Compose the Damping Matrix:
+    // Rayleigh Damping Matrix: alpha*M + beta*K
+
+    // 2.-Calculate mass matrix:
+    if (alpha > std::numeric_limits<double>::epsilon()) {
+        MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
+        VectorType temp_vector(mat_size);
+        CalculateLumpedMassVector(temp_vector);
+        for (IndexType i = 0; i < mat_size; ++i)
+            mass_matrix(i, i) = temp_vector[i];
+
+        noalias( rDampingMatrix ) += alpha * mass_matrix;
+    }
+
+    // 3.-Calculate StiffnessMatrix:
+    if (beta > std::numeric_limits<double>::epsilon()) {
+        MatrixType stiffness_matrix( mat_size, mat_size );
+        VectorType residual_vector( mat_size );
+
+        this->CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
+
+        noalias( rDampingMatrix ) += beta  * stiffness_matrix;
     }
 
     KRATOS_CATCH( "" )

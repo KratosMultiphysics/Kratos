@@ -13,32 +13,36 @@ class ProjectionModule:
                 fluid_model_part,
                 balls_model_part,
                 FEM_DEM_model_part,
-                pp,
-                flow_field = None):
+                project_parameters,
+                coupling_dem_vars,
+                coupling_fluid_vars,
+                time_filtered_vars,
+                flow_field=None,
+                domain_size=3):
 
         self.fluid_model_part            = fluid_model_part
         self.particles_model_part        = balls_model_part
         self.FEM_DEM_model_part          = FEM_DEM_model_part
-        self.pp                          = pp
-        self.dimension                   = pp.domain_size
-        self.coupling_type               = pp.CFD_DEM["coupling_weighing_type"].GetInt()
-        self.meso_scale_length           = pp.CFD_DEM["meso_scale_length"].GetDouble()
-        self.shape_factor                = pp.CFD_DEM["shape_factor"].GetDouble()
-        self.do_impose_flow_from_field   = pp.CFD_DEM["do_impose_flow_from_field_option"].GetBool()
+        self.project_parameters          = project_parameters
+        self.dimension                   = domain_size
+        self.coupling_type               = project_parameters["coupling_weighing_type"].GetInt()
+        self.meso_scale_length           = project_parameters["meso_scale_length"].GetDouble()
+        self.shape_factor                = project_parameters["shape_factor"].GetDouble()
+        self.do_impose_flow_from_field   = project_parameters["do_impose_flow_from_field_option"].GetBool()
         self.flow_field                  = flow_field
 
         # Create projector_parameters
         self.projector_parameters = Parameters("{}")
-        self.projector_parameters.AddValue("min_fluid_fraction",pp.CFD_DEM["min_fluid_fraction"])
-        self.projector_parameters.AddValue("coupling_type",pp.CFD_DEM["coupling_weighing_type"])
-        self.projector_parameters.AddValue("time_averaging_type",pp.CFD_DEM["time_averaging_type"])
-        self.projector_parameters.AddValue("viscosity_modification_type",pp.CFD_DEM["viscosity_modification_type"])
-        self.projector_parameters.AddValue("n_particles_per_depth_distance",pp.CFD_DEM["n_particles_in_depth"])
-        self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name",pp.CFD_DEM["body_force_per_unit_mass_variable_name"])
+        self.projector_parameters.AddValue("min_fluid_fraction",project_parameters["min_fluid_fraction"])
+        self.projector_parameters.AddValue("coupling_type",project_parameters["coupling_weighing_type"])
+        self.projector_parameters.AddValue("time_averaging_type",project_parameters["time_averaging_type"])
+        self.projector_parameters.AddValue("viscosity_modification_type",project_parameters["viscosity_modification_type"])
+        self.projector_parameters.AddValue("n_particles_per_depth_distance",project_parameters["n_particles_in_depth"])
+        self.projector_parameters.AddValue("body_force_per_unit_mass_variable_name",project_parameters["body_force_per_unit_mass_variable_name"])
 
         if self.dimension == 3:
 
-            if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
+            if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
                 self.projector = BinBasedNanoDEMFluidCoupledMapping3D(self.projector_parameters)
 
             else:
@@ -46,7 +50,7 @@ class ProjectionModule:
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            if pp.CFD_DEM["ElementType"].GetString() == "SwimmingNanoParticle":
+            if project_parameters["ElementType"].GetString() == "SwimmingNanoParticle":
                 self.projector = BinBasedNanoDEMFluidCoupledMapping2D(self.projector_parameters)
 
             else:
@@ -55,19 +59,19 @@ class ProjectionModule:
 
         # telling the projector which variables we are interested in modifying
 
-        for var in pp.coupling_dem_vars:
+        for var in coupling_dem_vars:
             self.projector.AddDEMCouplingVariable(var)
 
-        for var in pp.coupling_fluid_vars:
+        for var in coupling_fluid_vars:
             self.projector.AddFluidCouplingVariable(var)
 
-        for var in pp.coupling_dem_vars:
+        for var in coupling_dem_vars:
             if var in {FLUID_VEL_PROJECTED, FLUID_ACCEL_PROJECTED, FLUID_VEL_LAPL_PROJECTED, FLUID_ACCEL_FOLLOWING_PARTICLE_PROJECTED}:
                 self.projector.AddDEMVariablesToImpose(var)
-                pp.coupling_dem_vars.remove(var)
+                coupling_dem_vars.remove(var)
             self.projector.AddDEMVariablesToImpose(SLIP_VELOCITY)
 
-        for var in pp.time_filtered_vars:
+        for var in time_filtered_vars:
             self.projector.AddFluidVariableToBeTimeFiltered(var, 0.004)
 
         # calculating the fluid nodal areas that are needed for the coupling
@@ -101,7 +105,7 @@ class ProjectionModule:
     def ProjectFromFluid(self, alpha):
         self.projector.InterpolateFromFluidMesh(self.fluid_model_part,
                                                 self.particles_model_part,
-                                                self.pp.CFD_DEM,
+                                                self.project_parameters,
                                                 self.bin_of_objects_fluid,
                                                 alpha)
 

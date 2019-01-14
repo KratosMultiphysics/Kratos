@@ -369,7 +369,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
             GPValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, GPValues[i] );
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -400,7 +400,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         }
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -409,7 +409,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -435,7 +435,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -444,7 +444,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -470,7 +470,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
         this->CalculateOnIntegrationPoints(rVariable, GPValues, rCurrentProcessInfo);
 
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = Geom.IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 
@@ -482,7 +482,7 @@ void UPwSmallStrainInterfaceElement<TDim,TNumNodes>::GetValueOnIntegrationPoints
     else
     {
         //Printed on standard GiD Gauss points
-        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( GeometryData::GI_GAUSS_2 );
+        const unsigned int OutputGPoints = this->GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
         if ( rValues.size() != OutputGPoints )
             rValues.resize( OutputGPoints );
 

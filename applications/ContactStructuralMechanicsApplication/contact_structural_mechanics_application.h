@@ -29,7 +29,9 @@
 #include "custom_conditions/mesh_tying_mortar_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_components_mortar_contact_condition.h"
+#include "custom_conditions/penalty_frictionless_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictionless_mortar_contact_axisym_condition.h"
+#include "custom_conditions/penalty_frictionless_mortar_contact_axisym_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_condition.h"
 #include "custom_conditions/ALM_frictional_mortar_contact_axisym_condition.h"
 
@@ -231,6 +233,19 @@ private:
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 3, true> mALMNVFrictionalMortarContactCondition3D3N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, false> mALMFrictionalMortarContactCondition3D4N;
     const AugmentedLagrangianMethodFrictionalMortarContactCondition<3, 4, true> mALMNVFrictionalMortarContactCondition3D4N;
+    // Frictionless penalty cases
+    const PenaltyMethodFrictionlessMortarContactCondition<2, 2, false> mPenaltyFrictionlessMortarContactCondition2D2N;
+    const PenaltyMethodFrictionlessMortarContactCondition<2, 2, true> mPenaltyNVFrictionlessMortarContactCondition2D2N;
+    const PenaltyMethodFrictionlessMortarContactAxisymCondition<2, false> mPenaltyFrictionlessAxisymMortarContactCondition2D2N;
+    const PenaltyMethodFrictionlessMortarContactAxisymCondition<2, true> mPenaltyNVFrictionlessAxisymMortarContactCondition2D2N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 3, false, 3> mPenaltyFrictionlessMortarContactCondition3D3N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 3, true,  3> mPenaltyNVFrictionlessMortarContactCondition3D3N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 4, false, 4> mPenaltyFrictionlessMortarContactCondition3D4N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 4, true,  4> mPenaltyNVFrictionlessMortarContactCondition3D4N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 3, false, 4> mPenaltyFrictionlessMortarContactCondition3D3N4N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 3, true,  4> mPenaltyNVFrictionlessMortarContactCondition3D3N4N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 4, false, 3> mPenaltyFrictionlessMortarContactCondition3D4N3N;
+    const PenaltyMethodFrictionlessMortarContactCondition<3, 4, true,  3> mPenaltyNVFrictionlessMortarContactCondition3D4N3N;
 
     ///@}
     ///@name Private Operators
