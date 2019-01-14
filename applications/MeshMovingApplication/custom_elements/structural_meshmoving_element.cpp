@@ -57,7 +57,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
-                                                  int Step) {
+                                                  int Step) const {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();

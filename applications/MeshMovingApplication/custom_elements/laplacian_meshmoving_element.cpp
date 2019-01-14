@@ -150,7 +150,7 @@ void LaplacianMeshMovingElement::EquationIdVector(
   KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION))
     << "LAPLACIAN_DIRECTION not defined in the ProcessInfo!" << std::endl;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -194,7 +194,7 @@ void LaplacianMeshMovingElement::GetDofList(DofsVectorType &rElementalDofList,
   KRATOS_DEBUG_ERROR_IF_NOT(rCurrentProcessInfo.Has(LAPLACIAN_DIRECTION))
     << "LAPLACIAN_DIRECTION not defined in the ProcessInfo!" << std::endl;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.size();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
