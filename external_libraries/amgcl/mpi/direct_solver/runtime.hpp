@@ -62,7 +62,7 @@ enum type {
 #endif
 };
 
-std::ostream& operator<<(std::ostream &os, type s)
+inline std::ostream& operator<<(std::ostream &os, type s)
 {
     switch (s) {
         case skyline_lu:
@@ -82,7 +82,7 @@ std::ostream& operator<<(std::ostream &os, type s)
     }
 }
 
-std::istream& operator>>(std::istream &in, type &s)
+inline std::istream& operator>>(std::istream &in, type &s)
 {
     std::string val;
     in >> val;

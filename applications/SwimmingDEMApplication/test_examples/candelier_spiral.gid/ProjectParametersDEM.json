@@ -39,7 +39,7 @@
 "RotationalIntegrationScheme"      : "Direct_Integration",
 "AutomaticTimestep"                : false,
 "DeltaTimeSafetyFactor"            : 1.0,
-"MaxTimeStep"                      : 0.01,
+"MaxTimeStep"                      : 0.005,
 "FinalTime"                        : 1.0,
 "ControlTime"                      : 4.0,
 "NeighbourSearchFrequency"         : 1,

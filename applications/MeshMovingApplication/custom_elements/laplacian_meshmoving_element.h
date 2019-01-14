@@ -163,12 +163,6 @@ private:
   ///@{
   ///@}
 
-  ///@name Serialization
-  ///@{
-  friend class Serializer;
-  LaplacianMeshMovingElement() {}
-  ///@}
-
   ///@name Private Operators
   ///@{
   ///@}
@@ -176,14 +170,14 @@ private:
   ///@name Private Operations
   ///@{
 
+  // A private default constructor necessary for serialization
+  LaplacianMeshMovingElement() {}
+
   void CalculateDeltaPosition(VectorType &IntermediateDisplacements,
-                              const ProcessInfo &rCurrentProcessInfo);
+                              const ProcessInfo &rCurrentProcessInfo) const;
 
   void CheckElementMatrixDimension(MatrixType &rLeftHandSideMatrix,
-                                   VectorType &rRightHandSideVector);
-
-  MatrixType CalculateDerivatives(const int &rdimension,
-                                  const double &rPointNumber);
+                                   VectorType &rRightHandSideVector) const;
   ///@}
 
   ///@name Private  Access
@@ -196,6 +190,24 @@ private:
 
   ///@name Un accessible methods
   ///@{
+  ///@}
+
+
+  ///@name Serialization
+  ///@{
+
+  friend class Serializer;
+
+  void save(Serializer& rSerializer) const override
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
+  }
+
+  void load(Serializer& rSerializer) override
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
+  }
+
   ///@}
 
 }; // Class LaplacianMeshMovingElement

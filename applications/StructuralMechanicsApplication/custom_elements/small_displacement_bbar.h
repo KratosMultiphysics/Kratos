@@ -267,12 +267,12 @@ protected:
     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
     */
     void CalculateAll(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
-            const bool CalculateStiffnessMatrixFlag,
-            const bool CalculateResidualVectorFlag
-            ) override;
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
 
     /**
     * Calculation of the Deformation Matrix B

@@ -268,10 +268,11 @@ class Algorithm(object):
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
 
     def SetDoSolveDEMVariable(self):
-        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
         if self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool():
-            self.do_solve_dem = False
+            self.pp.CFD_DEM["do_solve_dem"].SetBool(False)
+
+        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
     def SetCustomBetaParameters(self, custom_parameters):
         custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
@@ -397,15 +398,19 @@ class Algorithm(object):
                 self.fluid_model_part,
                 self.spheres_model_part,
                 self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
+                self.pp.CFD_DEM,
+                self.pp.coupling_dem_vars,
+                self.pp.coupling_fluid_vars,
+                self.pp.time_filtered_vars,
+                flow_field=self.GetFieldUtility(),
+                dimension=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
+        self.custom_functions_tool = SDP.FunctionsCalculator(self.domain_size)
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(

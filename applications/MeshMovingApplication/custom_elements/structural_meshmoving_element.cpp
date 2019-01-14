@@ -57,7 +57,7 @@ StructuralMeshMovingElement::Create(IndexType NewId,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
-                                                  int Step) const {
+                                                  int Step) {
   const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -91,13 +91,13 @@ void StructuralMeshMovingElement::GetValuesVector(VectorType &rValues,
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
 StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
-    const int &Dimension, const double &rPointNumber) {
+    const int Dimension, const double PointNumber) const {
   KRATOS_TRY;
 
   GeometryType::JacobiansType J0;
   GeometryType::JacobiansType invJ0;
   VectorType detJ0;
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
 
@@ -105,8 +105,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
 
-  MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber],
-                                  detJ0[rPointNumber]);
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+                                  detJ0[PointNumber]);
 
   // Stiffening of elements using Jacobian determinants and exponent between
   // 0.0 and 2.0
@@ -115,8 +115,8 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
                          // into the fluid mesh
   const double xi = 1.5; // 1.5 Exponent influences stiffening of smaller
                          // elements; 0 = no stiffening
-  const double quotient = factor / detJ0[rPointNumber];
-  const double weighting_factor = detJ0[rPointNumber] * std::pow(quotient, xi);
+  const double quotient = factor / detJ0[PointNumber];
+  const double weighting_factor = detJ0[PointNumber] * std::pow(quotient, xi);
   const double poisson_coefficient = 0.3;
 
   // The ratio between lambda and mu affects relative stiffening against
@@ -162,11 +162,11 @@ StructuralMeshMovingElement::SetAndModifyConstitutiveLaw(
 //******************************************************************************
 //******************************************************************************
 StructuralMeshMovingElement::MatrixType
-StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
-                                              const double &rPointNumber) {
+StructuralMeshMovingElement::CalculateBMatrix(const int Dimension,
+                                              const double PointNumber) const {
   KRATOS_TRY;
 
-  GeometryType &rgeom = this->GetGeometry();
+  const GeometryType &rgeom = this->GetGeometry();
   const IntegrationMethod this_integration_method =
       rgeom.GetDefaultIntegrationMethod();
   GeometryType::ShapeFunctionsGradientsType DN_De =
@@ -178,10 +178,10 @@ StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
   MoveMeshUtilities::CheckJacobianDimension(invJ0, detJ0, rgeom);
 
   J0 = GetGeometry().Jacobian(J0, this_integration_method);
-  MathUtils<double>::InvertMatrix(J0[rPointNumber], invJ0[rPointNumber],
-                                  detJ0[rPointNumber]);
+  MathUtils<double>::InvertMatrix(J0[PointNumber], invJ0[PointNumber],
+                                  detJ0[PointNumber]);
 
-  Matrix DN_DX = prod(DN_De[rPointNumber], invJ0[rPointNumber]);
+  Matrix DN_DX = prod(DN_De[PointNumber], invJ0[PointNumber]);
 
   const SizeType num_nodes = rgeom.PointsNumber();
 
@@ -228,8 +228,8 @@ StructuralMeshMovingElement::CalculateBMatrix(const int &Dimension,
 //******************************************************************************
 //******************************************************************************
 void StructuralMeshMovingElement::CheckElementMatrixDimension(
-    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) {
-  GeometryType &rgeom = this->GetGeometry();
+    MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector) const {
+  const GeometryType &rgeom = this->GetGeometry();
   const SizeType num_nodes = rgeom.PointsNumber();
   const unsigned int dimension = rgeom.WorkingSpaceDimension();
   const unsigned int local_size = num_nodes * dimension;
