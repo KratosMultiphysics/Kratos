@@ -470,7 +470,7 @@ public:
     template <typename TContainerType>
     void ApplyConstraints(TContainerType& rCurrentContainer,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          ProcessInfo& rCurrentProcessInfo)
+                          const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         this->Reset();
@@ -517,7 +517,7 @@ public:
                           LocalSystemMatrixType& rLHSContribution,
                           LocalSystemVectorType& rRHSContribution,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          ProcessInfo& rCurrentProcessInfo)
+                          const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
@@ -642,7 +642,7 @@ private:
     /**
      * @brief   This function does two operation : F = T'*(F-K*b). This operation is done in place.
      *          Meaning that there is no memory duplication and no explicit matrix and matrix or matrix vector multiplication.
-     *          Individual entries of K and F are modified to achieve the result. 
+     *          Individual entries of K and F are modified to achieve the result.
      * @param   rLHSContribution The lhs matrix of the container
      * @param   rRHSContribution The rhs vector of the container
      * @param   rEquationIds the list of equation ids (extended with the masters).
