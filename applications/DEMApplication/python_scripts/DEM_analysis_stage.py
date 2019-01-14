@@ -38,9 +38,16 @@ class DEMAnalysisStage(AnalysisStage):
 
     def LoadParametersFile(self):
         self.DEM_parameters = self.GetInputParameters()
-        self.project_parameters = self.GetInputParameters()
+        self.project_parameters = self.DEM_parameters
         default_input_parameters = self.GetDefaultInputParameters()
         self.DEM_parameters.ValidateAndAssignDefaults(default_input_parameters)
+        self.FixParametersInconsistencies()
+
+    def FixParametersInconsistencies(self): # TODO: This is here to avoid inconsistencies until the jsons become standard
+        final_time = self.DEM_parameters["FinalTime"].GetDouble()
+        problem_name = self.DEM_parameters["problem_name"].GetString()
+        self.project_parameters["problem_data"]["end_time"].SetDouble(final_time)
+        self.project_parameters["problem_data"]["problem_name"].SetString(problem_name)
 
     @classmethod
     def GetDefaultInputParameters(self):
@@ -93,7 +100,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.step_count = 0
         self.p_count = self.p_frequency
 
-        self.solver = self.SetSolver()
+        self.solver = self._GetSolver()
         self.SetDt()
         self.SetFinalTime()
         super(DEMAnalysisStage, self).__init__(model, self.DEM_parameters)
@@ -232,12 +239,14 @@ class DEMAnalysisStage(AnalysisStage):
         return SolverStrategy
 
     def SetSolver(self):
+        return self._CreateSolver()
+
+    def _CreateSolver(self):
         return self.solver_strategy.ExplicitStrategy(self.all_model_parts,
                                                      self.creator_destructor,
                                                      self.dem_fem_search,
                                                      self.DEM_parameters,
                                                      self.procedures)
-
 
     def AddVariables(self):
         self.procedures.AddAllVariablesInAllModelParts(self.solver, self.translational_scheme, self.rotational_scheme, self.all_model_parts, self.DEM_parameters)
@@ -296,10 +305,6 @@ class DEMAnalysisStage(AnalysisStage):
         #self.creator_destructor.SetMaxNodeId(max_Id)
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
-        #Strategy Initialization
-
-        self.SolverInitialize()
-
         #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
         #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
         self.SetInlet()
@@ -321,6 +326,9 @@ class DEMAnalysisStage(AnalysisStage):
 
         self.post_utils = DEM_procedures.PostUtils(self.DEM_parameters, self.spheres_model_part)
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
+
+        super(DEMAnalysisStage, self).Initialize()
+
         self.KRATOSprint(self.report.BeginReport(timer))
 
     def AddAllDofs(self):
@@ -426,27 +434,23 @@ class DEMAnalysisStage(AnalysisStage):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
                 self.FaceAnalyzerClass.RemoveOldFile()
 
-    def IsTimeToPrintPostProcess(self, time):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.solver.dt
+    def IsTimeToPrintPostProcess(self):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.solver.dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
-        if self.IsTimeToPrintPostProcess(self.time):
+        if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
-
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
+        self.solver.UpdateTimeInModelParts(self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
 
     def UpdateTimeInOneModelPart(self):
         pass
 
     def SolverSolve(self):
         self.solver.SolveSolutionStep()
-
-    def _GetSolver(self):
-        return self.solver
 
     def SetInlet(self):
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -461,9 +465,6 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
-
-        self.UpdateTimeInModelParts()
-
         self.BeforeSolveOperations(self.time)
 
     def BeforeSolveOperations(self, time):
@@ -478,7 +479,7 @@ class DEMAnalysisStage(AnalysisStage):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
         self.AfterSolveOperations()
 
-        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+        self._GetSolver().MoveAllMeshes(self.time, self.solver.dt)
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -503,12 +504,12 @@ class DEMAnalysisStage(AnalysisStage):
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess(self.time):
+            if self.IsTimeToPrintPostProcess():
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
         #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
     def FinalizeTimeStep(self, time):
         pass
@@ -604,7 +605,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+        self._GetSolver().MoveAllMeshes(self.time, self.solver.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -631,6 +632,10 @@ class DEMAnalysisStage(AnalysisStage):
             self.time_old_print = self.time
         self.FinalizeTimeStep(self.time)
 
+    def _GetSolver(self):
+        if not hasattr(self, 'solver'):
+            self.solver = self._CreateSolver()
+        return self.solver
 
 if __name__ == "__main__":
     model = Model()
