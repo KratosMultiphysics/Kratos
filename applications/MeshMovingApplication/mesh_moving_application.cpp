@@ -69,43 +69,44 @@ KratosMeshMovingApplication::KratosMeshMovingApplication()
       mStructuralMeshMovingElement(
           0, Element::GeometryType::Pointer(new Geometry<Node<3>>())) {}
 
-void KratosMeshMovingApplication::Register() {
-  // calling base class register to register Kratos components
-  KratosApplication::Register();
+void KratosMeshMovingApplication::Register()
+{
+    // calling base class register to register Kratos components
+    KratosApplication::Register();
 
-  std::cout << "KRATOS __  __        _    __  __         _                       " << std::endl;
-  std::cout << "      |  \\/  |___ __| |_ |  \\/  |_____ _(_)_ _  __ _           " << std::endl;
-  std::cout << "      | |\\/| / -_|_-< ' \\| |\\/| / _ \\ V / | ' \\/ _` |       " << std::endl;
-  std::cout << "      |_|  |_\\___/__/_||_|_|  |_\\___/\\_/|_|_||_\\__, |        " << std::endl;
-  std::cout << "                                               |___/  application" << std::endl;
-  std::cout << "Initializing KratosMeshMovingApplication...                      " << std::endl;
+    KRATOS_INFO("") << "    KRATOS  __  __        _    __  __         _\n"
+                    << "           |  \\/  |___ __| |_ |  \\/  |_____ _(_)_ _  __ _\n"
+                    << "           | |\\/| / -_|_-< ' \\| |\\/| / _ \\ V / | ' \\/ _` |\n"
+                    << "           |_|  |_\\___/__/_||_|_|  |_\\___/\\_/|_|_||_\\__, |\n"
+                    << "                                                    |___/\n"
+                    << "Initializing KratosMeshMovingApplication..." << std::endl;
 
 
-  // register elements
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement2D3N",
-                          mLaplacianMeshMovingElement2D3N);
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemtent3D4N",
-                          mLaplacianMeshMovingElement3D4N);
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement2D4N",
-                          mLaplacianMeshMovingElement2D4N);
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement3D8N",
-                          mLaplacianMeshMovingElement3D8N);
-  KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement",
-                          mLaplacianMeshMovingElement);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D3N",
-                          mStructuralMeshMovingElement2D3N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D4N",
-                          mStructuralMeshMovingElement2D4N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D4N",
-                          mStructuralMeshMovingElement3D4N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D8N",
-                          mStructuralMeshMovingElement3D8N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D6N",
-                          mStructuralMeshMovingElement3D6N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D15N",
-                          mStructuralMeshMovingElement3D15N);
-  KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement",
-                          mStructuralMeshMovingElement);
+    // register elements
+    KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement2D3N",
+                            mLaplacianMeshMovingElement2D3N);
+    KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemtent3D4N",
+                            mLaplacianMeshMovingElement3D4N);
+    KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement2D4N",
+                            mLaplacianMeshMovingElement2D4N);
+    KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement3D8N",
+                            mLaplacianMeshMovingElement3D8N);
+    KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElement",
+                            mLaplacianMeshMovingElement);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D3N",
+                            mStructuralMeshMovingElement2D3N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement2D4N",
+                            mStructuralMeshMovingElement2D4N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D4N",
+                            mStructuralMeshMovingElement3D4N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D8N",
+                            mStructuralMeshMovingElement3D8N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D6N",
+                            mStructuralMeshMovingElement3D6N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement3D15N",
+                            mStructuralMeshMovingElement3D15N);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElement",
+                            mStructuralMeshMovingElement);
 
 }
 
