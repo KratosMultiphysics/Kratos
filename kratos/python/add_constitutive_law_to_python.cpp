@@ -92,29 +92,14 @@ void DeprecatedInitializeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"InitializeSolutionStep\" "
         << "is deprecated, please don't use it" << std::endl;
 
-    #if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    #elif defined(__GNUC__) || defined(__GNUG__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    #elif defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4996)
-    #endif
+    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 
     rThisConstitutiveLaw.InitializeSolutionStep(rMaterialProperties,
                                                 rElementGeometry,
                                                 rShapeFunctionsValues,
                                                 rCurrentProcessInfo);
 
-    #if defined(__clang__)
-    #pragma clang diagnostic pop
-    #elif defined(__GNUC__) || defined(__GNUG__)
-    #pragma GCC diagnostic pop
-    #elif defined(_MSC_VER)
-    #pragma warning(pop)
-    #endif
+    KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 
 }
 
@@ -128,29 +113,14 @@ void DeprecatedFinalizeSolutionStep( ConstitutiveLaw& rThisConstitutiveLaw,
     KRATOS_WARNING_FIRST_N("ConstitutiveLaw-Python Interface", 10) << "\"FinalizeSolutionStep\" "
         << "is deprecated, please don't use it.\nUse \"FinalizeMaterialResponse\" instead" << std::endl;
 
-    #if defined(__clang__)
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    #elif defined(__GNUC__) || defined(__GNUG__)
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-    #elif defined(_MSC_VER)
-    #pragma warning(push)
-    #pragma warning(disable: 4996)
-    #endif
+    KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 
     rThisConstitutiveLaw.FinalizeSolutionStep(rMaterialProperties,
                                               rElementGeometry,
                                               rShapeFunctionsValues,
                                               rCurrentProcessInfo);
 
-    #if defined(__clang__)
-    #pragma clang diagnostic pop
-    #elif defined(__GNUC__) || defined(__GNUG__)
-    #pragma GCC diagnostic pop
-    #elif defined(_MSC_VER)
-    #pragma warning(pop)
-    #endif
+   KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
 }
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
