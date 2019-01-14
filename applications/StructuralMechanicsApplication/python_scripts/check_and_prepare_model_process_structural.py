@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
-# Import applications
-import KratosMultiphysics.StructuralMechanicsApplication as SMA
-
 def Factory(settings, Model):
     if(type(settings) != KM.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
