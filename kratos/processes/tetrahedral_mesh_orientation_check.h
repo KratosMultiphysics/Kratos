@@ -61,14 +61,23 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_NODAL_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(COMPUTE_CONDITION_NORMALS);
     KRATOS_DEFINE_LOCAL_FLAG(MAKE_VOLUMES_POSITIVE);
-    KRATOS_DEFINE_LOCAL_FLAG(ALLOW_CONDITIONS_WITH_SAME_GEOMETRY);
+    KRATOS_DEFINE_LOCAL_FLAG(ALLOW_REPEATED_CONDITIONS);
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(TetrahedralMeshOrientationCheck);
 
-    typedef ModelPart::ElementType ElementType;
-    typedef ModelPart::ConditionType ConditionType;
-
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+    
+    /// The definition of the size type
+    typedef std::size_t SizeType;
+    
+    /// Definition of the node type
+    typedef Node<3> NodeType;
+    
+    // Definition of the geometry
+    typedef Geometry<NodeType> GeometryType;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -194,7 +203,6 @@ private:
 
     /// Copy constructor.
     TetrahedralMeshOrientationCheck(TetrahedralMeshOrientationCheck const& rOther);
-
 
     ///@}
 

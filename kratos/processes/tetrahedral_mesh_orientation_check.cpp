@@ -30,7 +30,7 @@ KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ASSIGN_NEIGHBOUR_ELEMEN
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_NODAL_NORMALS, 1);
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,COMPUTE_CONDITION_NORMALS, 2);
 KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,MAKE_VOLUMES_POSITIVE, 3);
-KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ALLOW_CONDITIONS_WITH_SAME_GEOMETRY, 4);
+KRATOS_CREATE_LOCAL_FLAG(TetrahedralMeshOrientationCheck,ALLOW_REPEATED_CONDITIONS, 4);
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -45,25 +45,25 @@ void TetrahedralMeshOrientationCheck::Execute()
     }
 
     // Begin by orienting all of the elements in the volume
-    unsigned int ElemSwitchCount = 0;
+    SizeType elem_switch_count = 0;
 
-    for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
-        GeometryType& rGeom = it_elem->GetGeometry();
-        GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
+    for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+        GeometryType& r_geometry = it_elem->GetGeometry();
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3) {
-            const bool Switched = this->Orient(rGeom);
-            if (Switched)
-                ElemSwitchCount++;
+        if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
+            const bool switched = this->Orient(r_geometry);
+            if (switched)
+                elem_switch_count++;
         }
     }
 
     // Generate output message, throw error if necessary
-    std::stringstream OutMsg;
-    if (ElemSwitchCount > 0) {
-        OutMsg << "Mesh orientation check found " << ElemSwitchCount << " inverted elements." << std::endl;
+    std::stringstream out_message;
+    if (elem_switch_count > 0) {
+        out_message << "Mesh orientation check found " << elem_switch_count << " inverted elements." << std::endl;
     } else {
-        OutMsg << "No inverted elements found" << std::endl;
+        out_message << "No inverted elements found" << std::endl;
     }
 
     // Reset the flag BOUNDARY on all of the nodes
@@ -74,15 +74,13 @@ void TetrahedralMeshOrientationCheck::Execute()
     typedef std::unordered_map<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
     hashmap faces_map;
 
-    for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
-    {
-        itCond->Set(VISITED, false); //mark
+    for (auto it_cond = mrModelPart.ConditionsBegin(); it_cond != mrModelPart.ConditionsEnd(); it_cond++) {
+        it_cond->Set(VISITED, false); //mark
 
-        GeometryType& geom = itCond->GetGeometry();
+        GeometryType& geom = it_cond->GetGeometry();
         DenseVector<int> ids(geom.size());
 
-        for(unsigned int i=0; i<ids.size(); i++)
-        {
+        for(IndexType i=0; i<ids.size(); i++) {
             geom[i].Set(BOUNDARY,true);
             ids[i] = geom[i].Id();
         }
@@ -93,40 +91,35 @@ void TetrahedralMeshOrientationCheck::Execute()
         // Insert a pointer to the condition identified by the hash value ids
         hashmap::iterator it_face = faces_map.find(ids);
         if(it_face != faces_map.end() ) { // Already defined geometry
-            KRATOS_ERROR_IF_NOT(mrOptions.Is(ALLOW_CONDITIONS_WITH_SAME_GEOMETRY)) << "The condition of ID:\t" << itCond->Id() << " shares the same geometry as the condition ID:\t" << it_face->second[0]->Id() << " this is not allowed. Please, check your mesh" << std::endl;
-            it_face->second.push_back(*itCond.base());
+            KRATOS_ERROR_IF_NOT(mrOptions.Is(ALLOW_REPEATED_CONDITIONS)) << "The condition of ID:\t" << it_cond->Id() << " shares the same geometry as the condition ID:\t" << it_face->second[0]->Id() << " this is not allowed. Please, check your mesh" << std::endl;
+            it_face->second.push_back(*it_cond.base());
         } else {
-            faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*itCond.base()})) );
+            faces_map.insert( hashmap::value_type(ids, std::vector<Condition::Pointer>({*it_cond.base()})) );
         }
     }
 
     // Now loop for all the elements and for each face of the element check if it is in the "faces_map"
     // if it happens to be there check the orientation
-    unsigned int CondSwitchCount = 0;
-    for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++)
-    {
-        GeometryType& rGeom = it_elem->GetGeometry();
-        GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
+    SizeType cond_switch_count = 0;
+    for (auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++) {
+        GeometryType& r_geometry = it_elem->GetGeometry();
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if (GeoType == GeometryData::Kratos_Tetrahedra3D4  || GeoType == GeometryData::Kratos_Triangle2D3)
-        {
+        if (geometry_type == GeometryData::Kratos_Tetrahedra3D4  || geometry_type == GeometryData::Kratos_Triangle2D3) {
             // Allocate a work array long enough to contain the Ids of a face
-            DenseVector<int> aux( rGeom.size() - 1);
+            DenseVector<int> aux( r_geometry.size() - 1);
 
             // Loop over the faces
-            for(unsigned int outer_node_index=0; outer_node_index< rGeom.size(); outer_node_index++)
-            {
-                unsigned int localindex_node_on_face = -1;
+            for(IndexType outer_node_index=0; outer_node_index< r_geometry.size(); outer_node_index++) {
+                IndexType localindex_node_on_face = -1;
                 // We put in "aux" the indices of all of the nodes which do not
                 // coincide with the face_index we are currently considering telling in other words:
                 // face_index will contain the local_index of the node which is NOT on the face
                 // localindex_node_on_face the local_index of one of the nodes on the face
-                unsigned int counter = 0;
-                for(unsigned int i=0; i<rGeom.size(); i++)
-                {
-                    if(i != outer_node_index)
-                    {
-                        aux[counter++] = rGeom[i].Id();
+                IndexType counter = 0;
+                for(IndexType i=0; i<r_geometry.size(); i++) {
+                    if(i != outer_node_index) {
+                        aux[counter++] = r_geometry[i].Id();
                         localindex_node_on_face = i;
                     }
                 }
@@ -135,21 +128,19 @@ void TetrahedralMeshOrientationCheck::Execute()
                 std::sort(aux.begin(), aux.end());
 
                 hashmap::iterator it_face = faces_map.find(aux);
-                if(it_face != faces_map.end() ) // It was actually found!!
-                {
+                if(it_face != faces_map.end()) { // It was actually found!!
                     // Mark the condition as visited. This will be useful for a check at the endif
                     std::vector<Condition::Pointer>& list_conditions = it_face->second;
                     for (Condition::Pointer p_cond : list_conditions) {
                         p_cond->Set(VISITED,true);
                     }
 
-                    if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS))
-                    {
-                        WeakPointerVector< Element > VectorOfNeighbours;
-                        VectorOfNeighbours.resize(1);
-                        VectorOfNeighbours(0) = Element::WeakPointer( *it_elem.base() );
+                    if(mrOptions.Is(ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS)) {
+                        WeakPointerVector< Element > vector_of_neighbours;
+                        vector_of_neighbours.resize(1);
+                        vector_of_neighbours(0) = Element::WeakPointer( *it_elem.base() );
                         for (Condition::Pointer p_cond : list_conditions) {
-                            p_cond->SetValue(NEIGHBOUR_ELEMENTS, VectorOfNeighbours);
+                            p_cond->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
                         }
                     }
 
@@ -163,23 +154,24 @@ void TetrahedralMeshOrientationCheck::Execute()
 
                     // Do a dotproduct with the DenseVector that goes from
                     // "outer_node_index" to any of the nodes in aux;
-                    array_1d<double,3> lvec = rGeom[outer_node_index]-rGeom[localindex_node_on_face];
+                    array_1d<double,3> lvec = r_geometry[outer_node_index]-r_geometry[localindex_node_on_face];
 
                     const double dotprod = inner_prod(lvec, face_normal);
 
                     // If dotprod > 0 then the normal to the face goes in the same half space as
                     // an edge that goes from the space to the node not on the face hence the face need to be swapped
-                    if(dotprod > 0) {
+                    if(dotprod > 0.0) {
                         r_face_geom(0).swap(r_face_geom(1));
                         face_normal = -face_normal;
 
-                        CondSwitchCount++;
+                        cond_switch_count++;
                     }
 
                     if(mrOptions.Is(COMPUTE_NODAL_NORMALS)) {
-                        double factor = 1.0/static_cast<double>(r_face_geom.size());
-                        for(unsigned int i=0; i<r_face_geom.size(); i++)
-                            r_face_geom[i].FastGetSolutionStepValue(NORMAL) += factor*face_normal;
+                        for(IndexType i=0; i<r_face_geom.size(); i++) {
+                            r_face_geom.PointLocalCoordinates(local_coords, r_face_geom[i].Coordinates());
+                            r_face_geom[i].FastGetSolutionStepValue(NORMAL) += r_face_geom.Normal(local_coords);
+                        }
                     }
                     if(mrOptions.Is(COMPUTE_CONDITION_NORMALS)) {
                         for (Condition::Pointer p_cond : list_conditions) {
@@ -198,19 +190,17 @@ void TetrahedralMeshOrientationCheck::Execute()
         KRATOS_ERROR_IF(r_cond.IsNot(VISITED)) << "Found a condition without any corresponding element. ID of condition = " << r_cond.Id() << std::endl;
     }
 
-
-    if (CondSwitchCount > 0) {
-        OutMsg << "Mesh orientation check found " << CondSwitchCount << " inverted conditions." << std::endl;
+    if (cond_switch_count > 0) {
+        out_message << "Mesh orientation check found " << cond_switch_count << " inverted conditions." << std::endl;
     } else {
-        OutMsg << "No inverted conditions found" << std::endl;
+        out_message << "No inverted conditions found" << std::endl;
     }
 
-
-    if (mThrowErrors && (ElemSwitchCount+CondSwitchCount) > 0) {
+    if (mThrowErrors && (elem_switch_count+cond_switch_count) > 0) {
         mrModelPart.GetProcessInfo().SetValue(FLAG_VARIABLE, 0.0); //Set flag variable as check, this is not supposed to reach here anyway
-        KRATOS_ERROR << OutMsg.str() << std::endl;
+        KRATOS_ERROR << out_message.str() << std::endl;
     } else {
-        KRATOS_INFO("TetrahedralMeshOrientationCheck") << OutMsg.str();
+        KRATOS_INFO("TetrahedralMeshOrientationCheck") << out_message.str();
         mrModelPart.GetProcessInfo().SetValue(FLAG_VARIABLE, 1.0); //Set flag variable as check
     }
 
@@ -223,13 +213,12 @@ void TetrahedralMeshOrientationCheck::Execute()
 
 void TetrahedralMeshOrientationCheck::SwapAll()
 {
-    for (ModelPart::ConditionIterator itCond = mrModelPart.ConditionsBegin(); itCond != mrModelPart.ConditionsEnd(); itCond++)
-    {
-        ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-        GeometryData::KratosGeometryType GeoType = rGeom.GetGeometryType();
+    for (auto& r_cond : mrModelPart.Conditions()) {
+        GeometryType& r_geometry = r_cond.GetGeometry();
+        const GeometryData::KratosGeometryType geometry_type = r_geometry.GetGeometryType();
 
-        if ( GeoType == GeometryData::Kratos_Triangle3D3 )
-            rGeom(0).swap(rGeom(1));
+        if ( geometry_type == GeometryData::Kratos_Triangle3D3 )
+            r_geometry(0).swap(r_geometry(1));
     }
 }
 
@@ -238,10 +227,9 @@ void TetrahedralMeshOrientationCheck::SwapAll()
 
 void TetrahedralMeshOrientationCheck::SwapNegativeElements()
 {
-    for (ModelPart::ElementIterator it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); it_elem++)
-    {
-        if(it_elem->GetGeometry().Volume() < 0.0) {
-            it_elem->GetGeometry()(0).swap(it_elem->GetGeometry()(1));
+    for (auto& r_elem : mrModelPart.Elements()) {
+        if(r_elem.GetGeometry().Volume() < 0.0) {
+            r_elem.GetGeometry()(0).swap(r_elem.GetGeometry()(1));
         }
     }
 }
@@ -249,19 +237,20 @@ void TetrahedralMeshOrientationCheck::SwapNegativeElements()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeom)
+bool TetrahedralMeshOrientationCheck::Orient(GeometryType& rGeometry)
 {
-    const unsigned int PointIndex = 0;
-    const GeometryData::IntegrationMethod Method = GeometryData::GI_GAUSS_1;
+    const IndexType point_index = 0;
+    const GeometryData::IntegrationMethod integration_method = GeometryData::GI_GAUSS_1;
 
     // Re-orient the element if needed
-    double DetJ = rGeom.DeterminantOfJacobian(PointIndex,Method);
+    const double DetJ = rGeometry.DeterminantOfJacobian(point_index,integration_method);
     if (DetJ < 0.0) {
         // Swap two nodes to change orientation
-        rGeom(0).swap(rGeom(1));
+        rGeometry(0).swap(rGeometry(1));
         return true;
-    } else
+    } else {
         return false;
+    }
 }
 
 } // namespace Kratos
