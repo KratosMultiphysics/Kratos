@@ -65,7 +65,7 @@ ShapeOptimizationCondition::~ShapeOptimizationCondition()
 }
 
 // ------------------------------------------------------------------------------
-int ShapeOptimizationCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+int ShapeOptimizationCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     return 0;
 }
