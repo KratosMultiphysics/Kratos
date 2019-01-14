@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -63,7 +63,7 @@ template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -81,7 +81,7 @@ void FluxCondition<TNodeNumber>::CalculateLocalSystem(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -111,7 +111,7 @@ void FluxCondition<TNodeNumber>::CalculateRightHandSide(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -119,13 +119,13 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
     ConvectionDiffusionSettings& rSettings = *(rProcessInfo[CONVECTION_DIFFUSION_SETTINGS]);
 
     const Variable<double>& rUnknownVar = rSettings.GetUnknownVariable();
-    
+
     if (rResult.size() != TNodeNumber)
     {
         rResult.resize(TNodeNumber,false);
     }
 
-    Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {
@@ -138,7 +138,7 @@ void FluxCondition<TNodeNumber>::EquationIdVector(
 template< unsigned int TNodeNumber >
 void FluxCondition<TNodeNumber>::GetDofList(
     DofsVectorType& rConditionalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -152,7 +152,7 @@ void FluxCondition<TNodeNumber>::GetDofList(
         rConditionalDofList.resize(TNodeNumber);
     }
 
-    Geometry< Node<3> >& rGeometry = this->GetGeometry();
+    const Geometry< Node<3> >& rGeometry = this->GetGeometry();
 
     for (unsigned int i = 0; i < TNodeNumber; i++)
     {
@@ -163,7 +163,7 @@ void FluxCondition<TNodeNumber>::GetDofList(
 }
 
 template< unsigned int TNodeNumber >
-GeometryData::IntegrationMethod FluxCondition<TNodeNumber>::GetIntegrationMethod()
+GeometryData::IntegrationMethod FluxCondition<TNodeNumber>::GetIntegrationMethod() const
 {
     return GeometryData::GI_GAUSS_2;
 }
@@ -334,7 +334,7 @@ template <>
 void FluxCondition<4>::CalculateNormal(array_1d<double,3>& An )
 {
     KRATOS_ERROR << "This function is not yet implemented" << std::endl;
-  
+
 }
 
 // Serialization //////////////////////////////////////////////////////////////

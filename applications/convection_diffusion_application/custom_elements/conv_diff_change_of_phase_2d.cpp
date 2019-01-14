@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -76,7 +76,7 @@ ConvDiffChangeOfPhase2D::~ConvDiffChangeOfPhase2D()
 
 //************************************************************************************
 //************************************************************************************
-void ConvDiffChangeOfPhase2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -504,7 +504,7 @@ Vector ConvDiffChangeOfPhase2D::Z(Matrix M, double N1, double N2, double N3,doub
 
 
 //Calculation of Contribution of Latent heat for: Gauss Integration  + BDF1
-void ConvDiffChangeOfPhase2D::CC(double int_weight,double rho, double N1, double N2, double N3, double Tn2, double Tn1, MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::CC(double int_weight,double rho, double N1, double N2, double N3, double Tn2, double Tn1, MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
     double temp = int_weight * rho * (BDFcoeffs[0] * f(Tn2) + BDFcoeffs[1] * f(Tn1));
@@ -556,7 +556,7 @@ void ConvDiffChangeOfPhase2D::DD(double int_weight,double rho, double N1, double
 
 //************************************************************************************
 //************************************************************************************
-void ConvDiffChangeOfPhase2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 }
@@ -565,7 +565,7 @@ void ConvDiffChangeOfPhase2D::CalculateRightHandSide(VectorType& rRightHandSideV
 //************************************************************************************
 // this subroutine calculates the nodal contributions for the explicit steps of the
 // fractional step procedure
-void ConvDiffChangeOfPhase2D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
     int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
@@ -615,7 +615,7 @@ void ConvDiffChangeOfPhase2D::InitializeSolutionStep(ProcessInfo& CurrentProcess
 
 //************************************************************************************
 //************************************************************************************
-void ConvDiffChangeOfPhase2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
@@ -627,7 +627,7 @@ void ConvDiffChangeOfPhase2D::EquationIdVector(EquationIdVectorType& rResult, Pr
 
 //************************************************************************************
 //************************************************************************************
-void ConvDiffChangeOfPhase2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void ConvDiffChangeOfPhase2D::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)

@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -80,16 +80,16 @@ public:
     ///@{
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const override;
-    
+
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom,  PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

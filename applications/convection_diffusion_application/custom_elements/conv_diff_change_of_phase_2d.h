@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -80,34 +80,34 @@ public:
     ///@{
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
-    
+
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
     //void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(const ProcessInfo& CurrentProcessInfo) override;
 
     double AA(double, double, double, double, double, double);
 
     Vector Z(Matrix, double, double, double, double, double, double, double, double, double);
 
-    void CC(double, double, double, double, double, double, double, MatrixType&, VectorType&, ProcessInfo&);
+    void CC(double, double, double, double, double, double, double, MatrixType&, VectorType&, const ProcessInfo&);
 
-    void DD(double, double, double, double, double, double, double, double, MatrixType&, VectorType& , ProcessInfo&);
+    void DD(double, double, double, double, double, double, double, double, MatrixType&, VectorType& , const ProcessInfo&);
 
 
-    void A2(double ,double, double, double, double,double ,double,double, MatrixType&, VectorType& , ProcessInfo&);
+    void A2(double ,double, double, double, double,double ,double,double, MatrixType&, VectorType& , const ProcessInfo&);
 
-    void A1(double,double, double, double, double,double,double, MatrixType& , VectorType& , ProcessInfo&);
+    void A1(double,double, double, double, double,double,double, MatrixType& , VectorType& , const ProcessInfo&);
 
     ///@}
     ///@name Access
@@ -285,6 +285,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_CONVDIFF_2_ELEM_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGULAR_CONVDIFF_2_ELEM_H_INCLUDED  defined
 
 

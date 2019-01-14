@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -65,14 +65,14 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Element::Pointer Create(
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
         PropertiesType::Pointer pProperties
         ) const override
     {
         return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     }
-    
+
     Element::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
@@ -82,13 +82,13 @@ public:
         return Kratos::make_shared<EulerianConvectionDiffusionElement>(NewId, pGeom, pProperties);
     }
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ protected:
 
     double ComputeH(BoundedMatrix<double,TNumNodes,TDim>& rDN_DX);
 
-    void GetNodalValues(ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo);
+    void GetNodalValues(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     double CalculateTau(const ElementVariables& rVariables, double norm_vel, double h);
 

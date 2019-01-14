@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -55,7 +55,7 @@ LaplacianElement::~LaplacianElement()
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     const unsigned int number_of_points = GetGeometry().size();
@@ -95,17 +95,17 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
     {
         //calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
-        
+
         //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
-        
+
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
         noalias(rLeftHandSideMatrix) += IntToReferenceWeight * prod(DN_DX, trans(DN_DX)); //
 
         // Calculating the local RHS
         auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double qgauss = inner_prod(N, heat_flux_local);
-        
+
         noalias(rRightHandSideVector) += IntToReferenceWeight*qgauss*N;
     }
 
@@ -116,14 +116,14 @@ void LaplacianElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vec
 
     //axpy_prod(rLeftHandSideMatrix, temp, rRightHandSideVector, false);  //RHS -= K*temp
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
-     
-    
+
+
     KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     MatrixType temp(0,0);
     CalculateLocalSystem(temp, rRightHandSideVector, rCurrentProcessInfo);
@@ -131,7 +131,7 @@ void LaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVector, 
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
@@ -144,7 +144,7 @@ void LaplacianElement::EquationIdVector(EquationIdVectorType& rResult, ProcessIn
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void LaplacianElement::GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& CurrentProcessInfo) const
 {
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
