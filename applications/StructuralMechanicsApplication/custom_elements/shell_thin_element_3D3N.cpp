@@ -128,14 +128,14 @@ void ShellThinElement3D3N::Initialize()
 
 void ShellThinElement3D3N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThinElement3D3N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -144,14 +144,14 @@ void ShellThinElement3D3N::InitializeSolutionStep(ProcessInfo& rCurrentProcessIn
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep();
 }
 
 void ShellThinElement3D3N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep();
 }
 
 void ShellThinElement3D3N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)

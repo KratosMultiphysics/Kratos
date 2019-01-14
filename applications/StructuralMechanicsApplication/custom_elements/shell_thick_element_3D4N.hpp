@@ -178,11 +178,11 @@ public:
 
         inline void Initialize(const GeometryType& geom);
 
-        inline void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void InitializeSolutionStep();
 
-        inline void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeSolutionStep();
 
-        inline void FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo);
+        inline void FinalizeNonLinearIteration(const Vector& displacementVector);
 
     private:
 

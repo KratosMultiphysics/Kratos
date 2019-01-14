@@ -161,19 +161,19 @@ void ShellThickElement3D4N::EASOperatorStorage::Initialize(const GeometryType& g
     }
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::InitializeSolutionStep()
 {
     displ = displ_converged;
     alpha = alpha_converged;
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::FinalizeSolutionStep()
 {
     displ_converged = displ;
     alpha_converged = alpha;
 }
 
-void ShellThickElement3D4N::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector, ProcessInfo& CurrentProcessInfo)
+void ShellThickElement3D4N::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
 {
     Vector incrementalDispl(24);
     noalias(incrementalDispl) = displacementVector - displ;
@@ -415,21 +415,21 @@ void ShellThickElement3D4N::Initialize()
 
 void ShellThickElement3D4N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->InitializeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeNonLinearIteration();
 
     BaseInitializeNonLinearIteration(rCurrentProcessInfo);
 }
 
 void ShellThickElement3D4N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
 {
-    mpCoordinateTransformation->FinalizeNonLinearIteration(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeNonLinearIteration();
 
     ShellQ4_LocalCoordinateSystem LCS( mpCoordinateTransformation->CreateLocalCoordinateSystem() );
     Vector globalDisplacementVector(24);
     GetValuesVector(globalDisplacementVector);
     Vector localDisplacementVector( mpCoordinateTransformation->CalculateLocalDisplacements( LCS, globalDisplacementVector ) );
 
-    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector, rCurrentProcessInfo);
+    mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
 
     BaseFinalizeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -438,18 +438,18 @@ void ShellThickElement3D4N::InitializeSolutionStep(ProcessInfo& rCurrentProcessI
 {
     BaseInitializeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->InitializeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->InitializeSolutionStep();
 
-    mEASStorage.InitializeSolutionStep(rCurrentProcessInfo);
+    mEASStorage.InitializeSolutionStep();
 }
 
 void ShellThickElement3D4N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     BaseFinalizeSolutionStep(rCurrentProcessInfo);
 
-    mpCoordinateTransformation->FinalizeSolutionStep(rCurrentProcessInfo);
+    mpCoordinateTransformation->FinalizeSolutionStep();
 
-    mEASStorage.FinalizeSolutionStep(rCurrentProcessInfo);
+    mEASStorage.FinalizeSolutionStep();
 }
 
 void ShellThickElement3D4N::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
