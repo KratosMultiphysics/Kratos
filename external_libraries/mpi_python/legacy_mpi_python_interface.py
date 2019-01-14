@@ -62,33 +62,47 @@ class LegacyMPIPythonInterface(object):
         return comm_wrapper.comm.SumAll(value)
 
     def scatter_double(self, comm_wrapper, local_values, source_rank):
-        return comm_wrapper.comm.ScatterDoubles(local_values, source_rank)
+        output_list = comm_wrapper.comm.ScatterDoubles(local_values, source_rank)
+        return output_list[0]
 
-    def scatter_ints(self, comm_wrapper, local_values, source_rank):
-        return comm_wrapper.comm.ScatterInts(local_values, source_rank)
+    def scatter_int(self, comm_wrapper, local_values, source_rank):
+        output_list = comm_wrapper.comm.ScatterInts(local_values, source_rank)
+        return output_list[0]
 
     def scatterv_double(self, comm_wrapper, local_values, source_rank):
         return comm_wrapper.comm.ScattervDoubles(local_values, source_rank)
 
-    def scatterv_ints(self, comm_wrapper, local_values, source_rank):
+    def scatterv_int(self, comm_wrapper, local_values, source_rank):
         return comm_wrapper.comm.ScattervInts(local_values, source_rank)
 
-    def gather_double(self, comm_wrapper, local_values, gather_rank):
-        return comm_wrapper.comm.GatherDoubles(local_values, gather_rank)
+    def gather_double(self, comm_wrapper, local_value, gather_rank):
+        wraper_list = [local_value,]
+        return comm_wrapper.comm.GatherDoubles(wraper_list, gather_rank)
 
-    def gather_ints(self, comm_wrapper, local_values, gather_rank):
-        return comm_wrapper.comm.GatherInts(local_values, gather_rank)
+    def gather_int(self, comm_wrapper, local_value, gather_rank):
+        wraper_list = [local_value,]
+        return comm_wrapper.comm.GatherInts(wraper_list, gather_rank)
 
     def gatherv_double(self, comm_wrapper, local_values, gather_rank):
-        return comm_wrapper.comm.GathervDoubles(local_values, gather_rank)
+        output = comm_wrapper.comm.GathervDoubles(local_values, gather_rank)
+        if self.__world.Rank() == gather_rank:
+            return output
+        else:
+            return []
 
-    def gatherv_ints(self, comm_wrapper, local_values, gather_rank):
-        return comm_wrapper.comm.GathervInts(local_values, gather_rank)
+    def gatherv_int(self, comm_wrapper, local_values, gather_rank):
+        output = comm_wrapper.comm.GathervInts(local_values, gather_rank)
+        if self.__world.Rank() == gather_rank:
+            return output
+        else:
+            return []
 
-    def allgather_double(self, comm_wrapper, local_values):
-        return comm_wrapper.comm.AllGatherDoubles(local_values)
+    def allgather_double(self, comm_wrapper, local_value):
+        wraper_list = [local_value,]
+        return comm_wrapper.comm.AllGatherDoubles(wraper_list)
 
-    def allgather_ints(self, comm_wrapper, local_values):
-        return comm_wrapper.comm.AllGatherInts(local_values)
+    def allgather_int(self, comm_wrapper, local_value):
+        wraper_list = [local_value,]
+        return comm_wrapper.comm.AllGatherInts(wraper_list)
 
 
