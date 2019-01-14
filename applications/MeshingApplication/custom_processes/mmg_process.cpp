@@ -869,19 +869,20 @@ void MmgProcess<TMMGLibray>::ReorderAllIds()
 template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::InitializeElementsAndConditions()
 {
+    const auto& r_current_process_info = mrThisModelPart.GetProcessInfo();
     // Iterate over conditions
     ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
     const auto it_cond_begin = r_conditions_array.begin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
-        (it_cond_begin + i)->Initialize();
+        (it_cond_begin + i)->Initialize(r_current_process_info);
 
     // Iterate over elements
     ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
     const auto it_elem_begin = r_elements_array.begin();
     #pragma omp parallel for
     for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
-        (it_elem_begin + i)->Initialize();
+        (it_elem_begin + i)->Initialize(r_current_process_info);
 }
 
 /***********************************************************************************/
