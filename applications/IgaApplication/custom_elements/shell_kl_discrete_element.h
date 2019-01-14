@@ -64,7 +64,7 @@ public:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     ) override;
@@ -103,10 +103,7 @@ public:
     * or that no common error is found.
     * @param rCurrentProcessInfo
     */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     std::string Info() const override
     {

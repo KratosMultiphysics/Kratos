@@ -75,7 +75,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const std::size_t number_of_dofs = NumberOfDofs();
 
@@ -101,7 +101,7 @@ public:
      */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const std::size_t number_of_dofs = NumberOfDofs();
 
@@ -125,7 +125,7 @@ public:
      */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo) override
+        const ProcessInfo& rCurrentProcessInfo) override
     {
         const std::size_t number_of_dofs = NumberOfDofs();
 
@@ -155,7 +155,7 @@ public:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool ComputeLeftHandSide,
         const bool ComputeRightHandSide) = 0;
 
@@ -194,9 +194,9 @@ protected:
         DofsVectorType& rElementalDofList,
         const std::size_t NodeIndex,
         const std::size_t DofTypeIndex,
-        const TVariable& Variable)
+        const TVariable& Variable) const
     {
-        Node<3>& node = GetGeometry()[NodeIndex];
+        const Node<3>& node = GetGeometry()[NodeIndex];
 
         rElementalDofList[NodeIndex * DofsPerNode() + DofTypeIndex] =
             node.pGetDof(Variable);
@@ -214,9 +214,9 @@ protected:
         EquationIdVectorType& rResult,
         const std::size_t NodeIndex,
         const std::size_t DofTypeIndex,
-        const TVariable& Variable)
+        const TVariable& Variable) const
     {
-        Node<3>& node = GetGeometry()[NodeIndex];
+        const Node<3>& node = GetGeometry()[NodeIndex];
 
         rResult[NodeIndex * DofsPerNode() + DofTypeIndex] =
             node.GetDof(Variable).EquationId();

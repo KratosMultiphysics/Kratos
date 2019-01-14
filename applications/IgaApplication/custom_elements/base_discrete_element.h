@@ -104,7 +104,7 @@ public:
     * @brief Called to initialize the element.
     * @warning Must be called before any calculation is done
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * @brief This resets the constitutive law
@@ -118,7 +118,7 @@ public:
     */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
@@ -128,7 +128,7 @@ public:
     */
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
@@ -138,8 +138,8 @@ public:
     */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -148,8 +148,8 @@ public:
     */
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    ) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
     * @brief This function provides a more general interface to the element.
@@ -161,7 +161,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
@@ -171,7 +171,7 @@ public:
     */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
@@ -181,7 +181,7 @@ public:
     */
     void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     /**
@@ -192,7 +192,7 @@ public:
     void GetValuesVector(
         Vector& rValues,
         int Step = 0
-    ) override;
+    ) const override;
 
     /**
     * @brief Sets on rValues the nodal velocities
@@ -202,7 +202,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-    ) override;
+    ) const override;
 
     /**
     * @brief Sets on rValues the nodal accelerations
@@ -212,7 +212,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-    ) override;
+    ) const override;
 
 
 /********************************************************************/
@@ -366,7 +366,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag);
 

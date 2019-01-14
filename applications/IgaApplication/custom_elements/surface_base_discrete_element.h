@@ -161,11 +161,11 @@ public:
     * Called to initialize the element.
     * Must be called before any calculation is done
     */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     ) override;
 
     ///@}
@@ -187,7 +187,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     ) override;

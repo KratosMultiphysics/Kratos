@@ -30,7 +30,7 @@ namespace Kratos
     void ShellKLDiscreteElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -488,7 +488,7 @@ namespace Kratos
     }
     //************************************************************************************
     //************************************************************************************
-    int ShellKLDiscreteElement::Check(const ProcessInfo& rCurrentProcessInfo)
+    int ShellKLDiscreteElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY;
         if (DISPLACEMENT.Key() == 0)

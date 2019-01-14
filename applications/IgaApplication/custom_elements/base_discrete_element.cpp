@@ -23,7 +23,7 @@
 
 namespace Kratos
 {
-    void BaseDiscreteElement::Initialize()
+    void BaseDiscreteElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
@@ -75,8 +75,8 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -101,8 +101,8 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-    )
+        const ProcessInfo& rCurrentProcessInfo
+    ) const
     {
         KRATOS_TRY;
 
@@ -124,7 +124,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         // Calculation flags
@@ -138,7 +138,7 @@ namespace Kratos
     /***********************************************************************************/
     /***********************************************************************************/
     void BaseDiscreteElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo)
+        const ProcessInfo& rCurrentProcessInfo)
     {
         // Calculation flags
         const bool CalculateStiffnessMatrixFlag = true;
@@ -153,7 +153,7 @@ namespace Kratos
     void BaseDiscreteElement::CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         //calculation flags
@@ -167,7 +167,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_ERROR << "You have called to the CalculateMassMatrix() from the base class BaseDiscreteElement" << std::endl;
@@ -177,7 +177,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;
@@ -393,7 +393,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetValuesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int mat_size = number_of_control_points * 3;
@@ -416,7 +416,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetFirstDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int mat_size = number_of_control_points * 3;
@@ -438,7 +438,7 @@ namespace Kratos
     /***********************************************************************************/
     void BaseDiscreteElement::GetSecondDerivativesVector(
         Vector& rValues,
-        int Step)
+        int Step) const
     {
         const unsigned int number_of_control_points = GetGeometry().size();
         const unsigned int mat_size = number_of_control_points * 3;
@@ -461,7 +461,7 @@ namespace Kratos
     void BaseDiscreteElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
     {

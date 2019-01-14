@@ -43,18 +43,18 @@ public:
 
     void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool ComputeLeftHandSide,
         const bool ComputeRightHandSide) override;
 

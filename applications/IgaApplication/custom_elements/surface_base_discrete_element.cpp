@@ -28,12 +28,12 @@
 
 namespace Kratos
 {
-    void SurfaceBaseDiscreteElement::Initialize()
+    void SurfaceBaseDiscreteElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
         //Constitutive Law initialisation
-        BaseDiscreteElement::Initialize();
+        BaseDiscreteElement::Initialize(rCurrentProcessInfo);
 
         MetricVariables initial_metric(3);
         CalculateMetric(initial_metric);
@@ -49,7 +49,7 @@ namespace Kratos
     void SurfaceBaseDiscreteElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
     )
@@ -677,7 +677,7 @@ namespace Kratos
     //***********************************************************************************
     void SurfaceBaseDiscreteElement::CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
     )
     {
         KRATOS_TRY;

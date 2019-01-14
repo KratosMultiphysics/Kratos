@@ -34,7 +34,7 @@ Element::Pointer IgaTrussElement::Create(
 
 void IgaTrussElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -51,7 +51,7 @@ void IgaTrussElement::GetDofList(
 
 void IgaTrussElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
@@ -66,7 +66,7 @@ void IgaTrussElement::EquationIdVector(
     KRATOS_CATCH("")
 }
 
-void IgaTrussElement::Initialize()
+void IgaTrussElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     mReferenceBaseVector = GetActualBaseVector();
 }
@@ -90,7 +90,7 @@ IgaTrussElement::Vector3 IgaTrussElement::GetActualBaseVector() const
 void IgaTrussElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool ComputeLeftHandSide,
     const bool ComputeRightHandSide)
 {
