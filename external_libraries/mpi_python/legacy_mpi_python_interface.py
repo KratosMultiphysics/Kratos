@@ -9,7 +9,7 @@ class LegacyMPICommInterface(object):
         self.comm = comm
 
     def barrier(self):
-        self.comm.Barrier()
+        self.GetWithDeprecationWarning("barrier").Barrier()
 
     def GetWithDeprecationWarning(self, func_name):
         if self.comm.Rank() == 0:
