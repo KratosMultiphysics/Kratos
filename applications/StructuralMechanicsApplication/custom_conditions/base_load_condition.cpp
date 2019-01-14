@@ -86,46 +86,6 @@ Condition::Pointer BaseLoadCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::Initialize()
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseLoadCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
