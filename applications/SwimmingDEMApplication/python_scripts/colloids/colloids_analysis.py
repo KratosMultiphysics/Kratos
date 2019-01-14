@@ -21,6 +21,7 @@ class ColloidsAnalysis(BaseAnalysis):
         self.pp.fluid_speed = 1e-6
         self.pp.cation_concentration_frequence = 1
         self.pp.CFD_DEM.drag_force_type = 9
+        self.pp.CFD_DEM["do_solve_dem"].SetBool(False)
 
     def PerformInitialDEMStepOperations(self, time = None):
         if self.cation_concentration_counter.Tick():
@@ -34,6 +35,3 @@ class ColloidsAnalysis(BaseAnalysis):
 
     def GetCationConcentrationCounter(self):
         return SDP.Counter(self.pp.cation_concentration_frequence, 1)
-
-    def DoSolveDEMVariable(self):
-        self.do_solve_dem = False
