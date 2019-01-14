@@ -523,6 +523,7 @@ void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, P
 
 		Vector N = row(Ncontainer, PointNumber);
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		integration_weight *= this->GetProperties()[THICKNESS];
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
 		for (unsigned int i = 0; i < number_of_nodes; i++) {

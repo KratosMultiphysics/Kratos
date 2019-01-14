@@ -95,9 +95,9 @@ void ALMVariablesCalculationProcess::Execute()
     
     mean_nodal_h_master       /= (total_area_master   + tolerance);
     mean_young_modulus_master /= (total_volume_master + tolerance);
-    
+
     // Finally we compute the penalty factor
-    const double penalty_parameter_slave  = mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance);
+    const double penalty_parameter_slave  = (mean_young_modulus_slave > epsilon) ? mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance) : mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
     const double scale_factor_slave       = mPenaltyScale * mFactorStiffness * mean_young_modulus_slave/(mean_nodal_h_slave + tolerance);
     const double penalty_parameter_master = mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);
     const double scale_factor_master      = mPenaltyScale * mFactorStiffness * mean_young_modulus_master/(mean_nodal_h_master + tolerance);

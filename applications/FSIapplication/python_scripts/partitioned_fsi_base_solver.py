@@ -229,8 +229,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
-        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
+        mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
+            "nodal")
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
@@ -363,9 +367,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosFSI.PartitionedFSIUtilities2D()
+            return KratosFSI.PartitionedFSIUtilitiesArray2D()
         else:
-            return KratosFSI.PartitionedFSIUtilities3D()
+            return KratosFSI.PartitionedFSIUtilitiesArray3D()
 
     def _SetUpMapper(self):
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
