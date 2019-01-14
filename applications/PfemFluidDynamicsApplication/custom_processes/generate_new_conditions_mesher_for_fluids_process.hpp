@@ -40,6 +40,9 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
+  typedef  std::vector<Node<3>*> NodePointerVectorType;
+  typedef  std::vector<Element*> ElementPointerVectorType;
+
   ///@}
   ///@name  Enum's
   ///@{
@@ -187,7 +190,7 @@ namespace Kratos
     //**************************************************************************
 
 
-    
+
     bool UniqueSkinSearch( ModelPart& rModelPart )
     {
 
@@ -209,9 +212,9 @@ namespace Kratos
       for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in!=rModelPart.NodesEnd(); ++in)
 	{
 
-	  in->Reset(BOUNDARY); 
-	  in->Reset(FREE_SURFACE); 
- 
+	  in->Reset(BOUNDARY);
+	  in->Reset(FREE_SURFACE);
+
 	  if( any_node_to_erase == false )
 	    if( in->Is(TO_ERASE) )
 	      any_node_to_erase = true;
@@ -281,7 +284,7 @@ namespace Kratos
       KRATOS_CATCH( "" )
     }
 
-    
+
     bool BuildCompositeConditions( ModelPart& rModelPart, ModelPart::ConditionsContainerType& rTemporaryConditions, std::vector<int>& rPreservedConditions, unsigned int& rConditionId ) override
     {
 
@@ -341,7 +344,7 @@ namespace Kratos
 	    DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
 	    DenseVector<unsigned int> lnofa; //number of points defining faces
 
-	    WeakPointerVector<Element >& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
+	    ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
 
 	    //get matrix nodes in faces
 	    rElementGeometry.NodesInFaces(lpofa);
@@ -352,12 +355,12 @@ namespace Kratos
 
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
-	    for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
+	    for(ElementPointerVectorType::iterator ne = rE.begin(); ne!=rE.end(); ++ne)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
 
-		if (ne->Id() == ie->Id())
+		if ((*ne)->Id() == ie->Id())
 		  {
 
 		    //if no neighbour is present => the face is free surface
@@ -492,13 +495,13 @@ namespace Kratos
 
 			//std::cout<<" _IDa_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-			WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
-			MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
+			ElementPointerVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+			MasterElements.push_back( (*(ie.base())).get() );
 			p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
-			//p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,i)) ) );
-			WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-			MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,iface)) ) );
+			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)).get() );
+			NodePointerVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)).get() );
 			p_cond->SetValue(MASTER_NODES,MasterNodes);
 
 		      }
@@ -526,17 +529,17 @@ namespace Kratos
 
 			MeshDataTransferUtilities TransferUtilities;
 
-			TransferUtilities.InitializeBoundaryData(p_cond, *(mrRemesh.Transfer), rCurrentProcessInfo);
+			TransferUtilities.InitializeBoundaryData(p_cond.get(), *(mrRemesh.Transfer), rCurrentProcessInfo);
 
 			//std::cout<<" _IDb_ "<<p_cond->Id()<<" MASTER ELEMENT "<<ie->Id()<<" MASTER NODE "<<rElementGeometry[lpofa(0,iface)].Id()<<" or "<<rElementGeometry[lpofa(NumberNodesInFace,iface)].Id()<<std::endl;
 
-			WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
-			MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
+			ElementPointerVectorType& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+			MasterElements.push_back( (*(ie.base())).get() );
 			p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 
-			//p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,i)) ) );
-			WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
-			MasterNodes.push_back( Node<3>::WeakPointer( rElementGeometry(lpofa(0,iface)) ) );
+			//p_cond->GetValue(MASTER_NODES).push_back( rElementGeometry(lpofa(0,i)).get() );
+			NodePointerVectorType& MasterNodes = p_cond->GetValue(MASTER_NODES);
+			MasterNodes.push_back( rElementGeometry(lpofa(0,iface)).get() );
 			p_cond->SetValue(MASTER_NODES,MasterNodes);
 
 		      }

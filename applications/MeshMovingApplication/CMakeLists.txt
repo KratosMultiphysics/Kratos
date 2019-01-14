@@ -14,6 +14,7 @@ set( KRATOS_MESH_MOVING_APPLICATION_SOURCES
 	      ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/mesh_moving_python_application.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/move_mesh_utilities.cpp
 		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/explicit_mesh_moving_utilities.cpp
+		  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_velocity_calculation.cpp
 )
 
 ## define mesh moving test sources
@@ -50,4 +51,4 @@ endif(USE_COTIRE MATCHES ON)
 install(TARGETS KratosMeshMovingApplication DESTINATION libs )
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshMovingApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/MeshMovingApplication.py" DESTINATION "KratosMultiphysics/MeshMovingApplication" RENAME "__init__.py")

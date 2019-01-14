@@ -9,16 +9,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "MetisApplication",
-    "TrilinosApplication",
-    "MappingApplication",
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
@@ -90,9 +80,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities2D(self._GetEpetraCommunicator())
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray2D(self._GetEpetraCommunicator())
         else:
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self._GetEpetraCommunicator())
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray3D(self._GetEpetraCommunicator())
 
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
@@ -111,7 +101,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             mapper_project_parameters["interface_submodel_part_origin"].SetString(fluid_submodelpart_name)
             mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                              self.structure_solver.main_model_part,
                                                                              mapper_project_parameters)
 
@@ -140,7 +130,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             pos_mapper_project_parameters["interface_submodel_part_origin"].SetString(pos_face_submodelpart_name)
             pos_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.pos_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  pos_mapper_project_parameters)
 
@@ -154,7 +144,7 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
             neg_mapper_project_parameters["interface_submodel_part_origin"].SetString(neg_face_submodelpart_name)
             neg_mapper_project_parameters["interface_submodel_part_destination"].SetString(structure_submodelpart_name)
 
-            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMapper(self.fluid_solver.main_model_part,
+            self.neg_interface_mapper = KratosMapping.MapperFactory.CreateMPIMapper(self.fluid_solver.main_model_part,
                                                                                  self.structure_solver.main_model_part,
                                                                                  neg_mapper_project_parameters)
 
