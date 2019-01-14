@@ -142,7 +142,7 @@ TVariableType CreateVariable(const std::string& name)
                                                          <<"Please change the name of the variable. "<<std::endl;
     }
 
-    AddKratosComponent((*new_var_unq_ptr).Name(), name);
+    AddKratosComponent((*new_var_unq_ptr).Name(),  (*new_var_unq_ptr));
     KratosComponents<VariableData>::Add((*new_var_unq_ptr).Name(), (*new_var_unq_ptr));
 
     vector_unique_pointers_for_variables.push_back(std::move(new_var_unq_ptr));
@@ -164,7 +164,7 @@ TVariableComponentType CreateVariableComponent(const std::string& name, const st
                                                          <<"Please change the name of the variable component. "<<std::endl;
     }
 
-    AddKratosComponent((*new_var_unq_ptr).Name(), name);
+    AddKratosComponent((*new_var_unq_ptr).Name(), (*new_var_unq_ptr));
     KratosComponents<VariableData>::Add((*new_var_unq_ptr).Name(), (*new_var_unq_ptr));
 
     vector_unique_pointers_for_variable_components.push_back(std::move(new_var_unq_ptr));
