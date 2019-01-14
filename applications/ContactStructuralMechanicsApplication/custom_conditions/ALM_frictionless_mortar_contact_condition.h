@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/ALM_mortar_contact_condition.h"
+#include "custom_conditions/mortar_contact_condition.h"
 
 namespace Kratos
 {
@@ -59,7 +59,7 @@ namespace Kratos
  */
 template< SizeType TDim, SizeType TNumNodes, bool TNormalVariation, const SizeType TNumNodesMaster = TNumNodes >
 class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) AugmentedLagrangianMethodFrictionlessMortarContactCondition
-    : public AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster>
+    : public MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster>
 {
 public:
     ///@name Type Definitions
@@ -68,7 +68,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
+    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
 
     typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
 

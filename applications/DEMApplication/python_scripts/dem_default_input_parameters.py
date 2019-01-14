@@ -42,6 +42,7 @@ def GetDefaultInputParameters():
             "strategy_parameters" :{
                 "RemoveBallsInitiallyTouchingWalls": false
             },
+            "echo_level"                  : 1,
             "problem_data"     : {
                 "problem_name"  : "dummy_name.Provide_a_real_one",
                 "parallel_type" : "OpenMP",
@@ -143,7 +144,8 @@ def GetDefaultInputParameters():
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
 
-            "problem_name" : "dummy_name.Provide_a_real_one"
+            "problem_name" : "dummy_name.Provide_a_real_one",
+            "processes" : {}
             }""")
 
     return default_settings

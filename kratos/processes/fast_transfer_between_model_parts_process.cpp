@@ -111,13 +111,6 @@ void FastTransferBetweenModelPartsProcess::TransferWithoutFlags()
 
 void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 {
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<NodesArrayType> nodes_buffer_vector(num_threads);
-    std::vector<ElementsArrayType> elements_buffer_vector(num_threads);
-    std::vector<ConditionsArrayType> conditions_buffer_vector(num_threads);
-    std::vector<MasterSlaveConstraintArrayType> constraints_buffer_vector(num_threads);
-
     // Auxiliar sizes
     const int num_nodes = static_cast<int>(mrOriginModelPart.Nodes().size());
     const int num_elements = static_cast<int>(mrOriginModelPart.Elements().size());
@@ -126,75 +119,70 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        NodesArrayType nodes_buffer_vector;
+        ElementsArrayType elements_buffer_vector;
+        ConditionsArrayType conditions_buffer_vector;
+        MasterSlaveConstraintArrayType constraints_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_node_begin = mrOriginModelPart.NodesBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
-                auto it_node = mrOriginModelPart.NodesBegin() + i;
+                auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
-                    (nodes_buffer_vector[thread_id]).insert((nodes_buffer_vector[thread_id]).begin(), *(it_node.base()));
+                    nodes_buffer_vector.insert(nodes_buffer_vector.begin(), *(it_node.base()));
                 }
             }
         }
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
-            #pragma omp for
+            const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
-                auto it_elem = mrOriginModelPart.ElementsBegin() + i;
+                auto it_elem = it_elem_begin + i;
                 if (it_elem->Is(mFlag)) {
-                    (elements_buffer_vector[thread_id]).insert((elements_buffer_vector[thread_id]).begin(), *(it_elem.base()));
+                    elements_buffer_vector.insert(elements_buffer_vector.begin(), *(it_elem.base()));
                 }
             }
         }
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
-                auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
+                auto it_cond = it_cond_begin + i;
                 if (it_cond->Is(mFlag)) {
-                    (conditions_buffer_vector[thread_id]).insert((conditions_buffer_vector[thread_id]).begin(), *(it_cond.base()));
+                    conditions_buffer_vector.insert(conditions_buffer_vector.begin(), *(it_cond.base()));
                 }
             }
         }
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
             #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
-                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
-                    (constraints_buffer_vector[thread_id]).insert((constraints_buffer_vector[thread_id]).begin(), *(it_const.base()));
+                    constraints_buffer_vector.insert(constraints_buffer_vector.begin(), *(it_const.base()));
                 }
             }
         }
 
         // We transfer
-        #pragma omp single
+        #pragma omp critical
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& node_buffer_vector : nodes_buffer_vector)
-                    mrDestinationModelPart.AddNodes(node_buffer_vector.begin(),node_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
-                for( auto& element_buffer_vector : elements_buffer_vector)
-                    mrDestinationModelPart.AddElements(element_buffer_vector.begin(),element_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& condition_buffer_vector : conditions_buffer_vector)
-                    mrDestinationModelPart.AddConditions(condition_buffer_vector.begin(),condition_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
-                for( auto& constraint_buffer_vector : constraints_buffer_vector)
-                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer_vector.begin(),constraint_buffer_vector.end());
+                mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
     }
 }
@@ -205,20 +193,24 @@ void FastTransferBetweenModelPartsProcess::TransferWithFlags()
 void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPart)
 {
     NodesArrayType& nodes_array = rThisModelPart.Nodes();
-    for(SizeType i = 0; i < nodes_array.size(); ++i)
-        (nodes_array.begin() + i)->SetId(i + 1);
+    const auto it_node_begin = nodes_array.begin();
+    for(IndexType i = 0; i < nodes_array.size(); ++i)
+        (it_node_begin + i)->SetId(i + 1);
 
     ElementsArrayType& element_array = rThisModelPart.Elements();
-    for(SizeType i = 0; i < element_array.size(); ++i)
-        (element_array.begin() + i)->SetId(i + 1);
+    const auto it_elem_begin = element_array.begin();
+    for(IndexType i = 0; i < element_array.size(); ++i)
+        (it_elem_begin + i)->SetId(i + 1);
 
     ConditionsArrayType& condition_array = rThisModelPart.Conditions();
-    for(SizeType i = 0; i < condition_array.size(); ++i)
-        (condition_array.begin() + i)->SetId(i + 1);
+    const auto it_cond_begin = condition_array.begin();
+    for(IndexType i = 0; i < condition_array.size(); ++i)
+        (it_cond_begin + i)->SetId(i + 1);
 
     MasterSlaveConstraintArrayType& constraint_array = rThisModelPart.MasterSlaveConstraints();
-    for(SizeType i = 0; i < constraint_array.size(); ++i)
-        (constraint_array.begin() + i)->SetId(i + 1);
+    const auto it_const_begin = constraint_array.begin();
+    for(IndexType i = 0; i < constraint_array.size(); ++i)
+        (it_const_begin + i)->SetId(i + 1);
 }
 
 /***********************************************************************************/
@@ -226,13 +218,6 @@ void FastTransferBetweenModelPartsProcess::ReorderAllIds(ModelPart& rThisModelPa
 
 void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 {
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<NodesArrayType> nodes_buffer_vector(num_threads);
-    std::vector<ElementsArrayType> elements_buffer_vector(num_threads);
-    std::vector<ConditionsArrayType> conditions_buffer_vector(num_threads);
-    std::vector<MasterSlaveConstraintArrayType> constraints_buffer_vector(num_threads);
-
     // Reordering ids (necessary for consistency)
     ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
     ReorderAllIds(root_model_part);
@@ -249,72 +234,67 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        NodesArrayType nodes_buffer_vector;
+        ElementsArrayType elements_buffer_vector;
+        ConditionsArrayType conditions_buffer_vector;
+        MasterSlaveConstraintArrayType constraints_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_node_begin = mrOriginModelPart.NodesBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
-                auto it_node = mrOriginModelPart.NodesBegin() + i;
+                auto it_node = it_node_begin + i;
                 NodeType::Pointer p_new_node = it_node->Clone();
                 p_new_node->SetId(total_num_nodes + i + 1);
-                (nodes_buffer_vector[thread_id]).insert((nodes_buffer_vector[thread_id]).begin(), p_new_node);
+                nodes_buffer_vector.insert(nodes_buffer_vector.begin(), p_new_node);
             }
         }
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
-            #pragma omp for
+            const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
-                auto it_elem = mrOriginModelPart.ElementsBegin() + i;
+                auto it_elem = it_elem_begin + i;
                 Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry());
-                (elements_buffer_vector[thread_id]).insert((elements_buffer_vector[thread_id]).begin(), p_new_elem);
+                elements_buffer_vector.insert(elements_buffer_vector.begin(), p_new_elem);
             }
         }
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
-                auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
+                auto it_cond = it_cond_begin + i;
                 Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry());
-                (conditions_buffer_vector[thread_id]).insert((conditions_buffer_vector[thread_id]).begin(), p_new_cond);
+                conditions_buffer_vector.insert(conditions_buffer_vector.begin(), p_new_cond);
             }
         }
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
             #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
-                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                auto it_const = it_const_begin + i;
                 MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
-                (constraints_buffer_vector[thread_id]).insert((constraints_buffer_vector[thread_id]).begin(), p_new_const);
+                constraints_buffer_vector.insert(constraints_buffer_vector.begin(), p_new_const);
             }
         }
 
         // We add to the model part
-        #pragma omp single
+        #pragma omp critical
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& node_buffer_vector : nodes_buffer_vector)
-                    mrDestinationModelPart.AddNodes(node_buffer_vector.begin(),node_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
-                for( auto& element_buffer_vector : elements_buffer_vector)
-                    mrDestinationModelPart.AddElements(element_buffer_vector.begin(),element_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& condition_buffer_vector : conditions_buffer_vector)
-                    mrDestinationModelPart.AddConditions(condition_buffer_vector.begin(),condition_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
-                for( auto& constraint_buffer_vector : constraints_buffer_vector)
-                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer_vector.begin(),constraint_buffer_vector.end());
+                mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
     }
 }
@@ -324,13 +304,6 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithoutFlags()
 
 void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 {
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<NodesArrayType> nodes_buffer_vector(num_threads);
-    std::vector<ElementsArrayType> elements_buffer_vector(num_threads);
-    std::vector<ConditionsArrayType> conditions_buffer_vector(num_threads);
-    std::vector<MasterSlaveConstraintArrayType> constraints_buffer_vector(num_threads);
-
     // Reordering ids (necessary for consistency)
     ModelPart& root_model_part = mrOriginModelPart.GetRootModelPart();
     ReorderAllIds(root_model_part);
@@ -347,80 +320,75 @@ void FastTransferBetweenModelPartsProcess::ReplicateWithFlags()
 
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        NodesArrayType nodes_buffer_vector;
+        ElementsArrayType elements_buffer_vector;
+        ConditionsArrayType conditions_buffer_vector;
+        MasterSlaveConstraintArrayType constraints_buffer_vector;
 
         if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_node_begin = mrOriginModelPart.NodesBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_nodes; ++i) {
-                auto it_node = mrOriginModelPart.NodesBegin() + i;
+                auto it_node = it_node_begin + i;
                 if (it_node->Is(mFlag)) {
                     NodeType::Pointer p_new_node = it_node->Clone();
                     p_new_node->SetId(total_num_nodes + i + 1);
-                    (nodes_buffer_vector[thread_id]).insert((nodes_buffer_vector[thread_id]).begin(), p_new_node);
+                    (nodes_buffer_vector).insert(nodes_buffer_vector.begin(), p_new_node);
                 }
             }
         }
 
         if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS)) {
-            #pragma omp for
+            const auto it_elem_begin = mrOriginModelPart.ElementsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_elements; ++i) {
-                auto it_elem = mrOriginModelPart.ElementsBegin() + i;
+                auto it_elem = it_elem_begin + i;
                 if (it_elem->Is(mFlag)) {
                     Element::Pointer p_new_elem = it_elem->Clone(total_num_elements + i + 1, it_elem->GetGeometry());
-                    (elements_buffer_vector[thread_id]).insert((elements_buffer_vector[thread_id]).begin(), p_new_elem);
+                    (elements_buffer_vector).insert(elements_buffer_vector.begin(), p_new_elem);
                 }
             }
         }
 
         if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS)) {
-            #pragma omp for
+            const auto it_cond_begin = mrOriginModelPart.ConditionsBegin();
+            #pragma omp for schedule(guided, 512) nowait
             for(int i = 0; i < num_conditions; ++i) {
-                auto it_cond = mrOriginModelPart.ConditionsBegin() + i;
+                auto it_cond = it_cond_begin + i;
                 if (it_cond->Is(mFlag)) {
                     Condition::Pointer p_new_cond = it_cond->Clone(total_num_conditions + i + 1, it_cond->GetGeometry());
-                    (conditions_buffer_vector[thread_id]).insert((conditions_buffer_vector[thread_id]).begin(), p_new_cond);
+                    (conditions_buffer_vector).insert(conditions_buffer_vector.begin(), p_new_cond);
                 }
             }
         }
 
         if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS)) {
+            const auto it_const_begin = mrOriginModelPart.MasterSlaveConstraintsBegin();
             #pragma omp for
             for(int i = 0; i < num_constraints; ++i) {
-                auto it_const = mrOriginModelPart.MasterSlaveConstraintsBegin() + i;
+                auto it_const = it_const_begin + i;
                 if (it_const->Is(mFlag)) {
                     MasterSlaveConstraint::Pointer p_new_const = it_const->Clone(total_num_constraints + i + 1);
-                    (constraints_buffer_vector[thread_id]).insert((constraints_buffer_vector[thread_id]).begin(), p_new_const);
+                    (constraints_buffer_vector).insert(constraints_buffer_vector.begin(), p_new_const);
                 }
             }
         }
 
         // We add to the model part
-        #pragma omp single
+        #pragma omp critical
         {
             if (num_nodes != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::NODES || mEntity == EntityTransfered::NODESANDELEMENTS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& node_buffer_vector : nodes_buffer_vector)
-                    mrDestinationModelPart.AddNodes(node_buffer_vector.begin(),node_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddNodes(nodes_buffer_vector.begin(),nodes_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_elements != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::ELEMENTS || mEntity == EntityTransfered::NODESANDELEMENTS))
-                for( auto& element_buffer_vector : elements_buffer_vector)
-                    mrDestinationModelPart.AddElements(element_buffer_vector.begin(),element_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddElements(elements_buffer_vector.begin(),elements_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_conditions != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONDITIONS || mEntity == EntityTransfered::NODESANDCONDITIONS))
-                for( auto& condition_buffer_vector : conditions_buffer_vector)
-                    mrDestinationModelPart.AddConditions(condition_buffer_vector.begin(),condition_buffer_vector.end());
-        }
+                mrDestinationModelPart.AddConditions(conditions_buffer_vector.begin(),conditions_buffer_vector.end());
 
-        #pragma omp single
-        {
             if (num_constraints != 0 && (mEntity == EntityTransfered::ALL || mEntity == EntityTransfered::CONSTRAINTS || mEntity == EntityTransfered::NODESANDCONSTRAINTS))
-                for( auto& constraint_buffer_vector : constraints_buffer_vector)
-                    mrDestinationModelPart.AddMasterSlaveConstraints(constraint_buffer_vector.begin(),constraint_buffer_vector.end());
+                mrDestinationModelPart.AddMasterSlaveConstraints(constraints_buffer_vector.begin(),constraints_buffer_vector.end());
         }
     }
 }
