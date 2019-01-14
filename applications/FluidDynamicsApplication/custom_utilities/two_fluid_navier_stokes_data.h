@@ -355,14 +355,14 @@ void CalculateEffectiveViscosityAtGaussPoint()
 
 void ComputeDarcyTerm()
 {
-    array_1d<double, 3> advec_velocity(3, 0.0);
+    array_1d<double, 3> convective_velocity(3, 0.0);
     for (size_t i = 0; i < TNumNodes; i++) {
         for (size_t j = 0; j < TDim; j++) {
-            advec_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
+            convective_velocity[j] += this->N[i] * (Velocity(i, j) - MeshVelocity(i, j));
         }
     }
-    const double advec_velocity_norm = MathUtils<double>::Norm(advec_velocity);
-    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * advec_velocity_norm;
+    const double convective_velocity_norm = MathUtils<double>::Norm(convective_velocity);
+    DarcyTerm = this->EffectiveViscosity * LinearDarcyCoefficient + Density * NonLinearDarcyCoefficient * convective_velocity_norm;
 }
 ///@}
 
