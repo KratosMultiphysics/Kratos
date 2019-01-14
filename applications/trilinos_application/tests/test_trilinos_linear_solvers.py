@@ -130,6 +130,49 @@ class TestLinearSolvers(KratosUnittest.TestCase):
             }
             """)
 
+    def test_amesos_superludist_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Superludist") ):
+            self.skipTest("Amesos_Superludist is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "super_lu_dist"
+                    }
+                ]
+            }
+            """)
+
+    def test_amesos_mumps_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Mumps") ):
+            self.skipTest("Amesos_Mumps is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "mumps"
+                    }
+                ]
+            }
+            """)
+
+
+    def test_amesos_klu_2(self):
+        if( not KratosMultiphysics.TrilinosApplication.AmesosSolver.HasSolver("Amesos_Klu") ):
+            self.skipTest("Amesos_Klu is not among the available Amesos Solvers")
+
+        self._RunParametrized("""
+            {
+                "test_list" : [
+                    {
+                        "solver_type" : "klu"
+                    }
+                ]
+            }
+            """)
+
     def test_aztec_cg(self):
         self._RunParametrized("""
             {
