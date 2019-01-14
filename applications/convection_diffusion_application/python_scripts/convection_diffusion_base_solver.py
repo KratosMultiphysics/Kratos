@@ -100,7 +100,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             },
             "element_replace_settings" : {
                 "element_name" : "EulerianConvDiff",
-                "condition_name" : "FluxCondition"
+                "condition_name" : "ThermalFace"
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
@@ -489,15 +489,16 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _get_element_condition_replace_settings(self):
-        # Duplicate model part
+        domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+
+        ## Elements
         num_nodes_elements = 0
         if (len(self.main_model_part.Elements) > 0):
             for elem in self.main_model_part.Elements:
                 num_nodes_elements = len(elem.GetNodes())
                 break
 
-        ## Elements
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+        if domain_size == 2:
             if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
                 if (num_nodes_elements == 3):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D")
@@ -505,7 +506,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff2D4N")
             elif (self.settings["element_replace_settings"]["element_name"].GetString() == "LaplacianElement"):
                 self.settings["element_replace_settings"]["element_name"].SetString("LaplacianElement2D3N")
-        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+        elif domain_size == 3:
             if (self.settings["element_replace_settings"]["element_name"].GetString() == "EulerianConvDiff"):
                 if (num_nodes_elements == 4):
                     self.settings["element_replace_settings"]["element_name"].SetString("EulerianConvDiff3D")
@@ -527,31 +528,20 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             for cond in self.main_model_part.Conditions:
                 num_nodes_conditions = len(cond.GetNodes())
                 break
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+
+        if domain_size == 2:
             if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
                 self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition2D2N")
             elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D")
-            else:
-                self.settings["element_replace_settings"]["condition_name"].SetString("LineCondition2D2N")
-        elif self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3:
+                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace2D2N")
+        elif domain_size == 3:
+            aux_str = "3D" + str(num_nodes_conditions) + "N"
             if (self.settings["element_replace_settings"]["condition_name"].GetString() == "FluxCondition"):
-                if (num_nodes_conditions == 3):
-                    self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition3D3N")
-                else:
-                    self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition3D4N")
+                self.settings["element_replace_settings"]["condition_name"].SetString("FluxCondition" + aux_str)
             elif (self.settings["element_replace_settings"]["condition_name"].GetString() == "ThermalFace"):
-                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace3D")
-            else:
-                if (num_nodes_conditions == 3):
-                    self.settings["element_replace_settings"]["condition_name"].SetString("SurfaceCondition3D3N")
-                else:
-                    self.settings["element_replace_settings"]["condition_name"].SetString("SurfaceCondition3D4N")
+                self.settings["element_replace_settings"]["condition_name"].SetString("ThermalFace" + aux_str)
         else:
             raise Exception("DOMAIN_SIZE not set")
-
-        #modeler = KratosMultiphysics.ConnectivityPreserveModeler()
-        #modeler.GenerateModelPart(self.main_model_part, self.GetComputingModelPart(), self.settings["element_replace_settings"]["element_name"].GetString(), self.settings["element_replace_settings"]["condition_name"].GetString())
 
         return self.settings["element_replace_settings"]
 
