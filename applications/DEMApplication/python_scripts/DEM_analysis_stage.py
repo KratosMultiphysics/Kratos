@@ -65,6 +65,7 @@ class DEMAnalysisStage(AnalysisStage):
     def __init__(self, model, parameters):
         self.model = model
         self.main_path = self.GetMainPath()
+        self.mdpas_folder_path = self.main_path
         self.LoadParametersFile()
         self.do_print_results_option = self.DEM_parameters["do_print_results_option"].GetBool()
         self.solver_strategy = self.SetSolverStrategy()
@@ -347,7 +348,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.solver.Initialize() # Possible modifications of number of elements and number of nodes
 
     def GetProblemNameWithPath(self):
-        return self.DEM_parameters["problem_name"].GetString()
+        return os.path.join(self.mdpas_folder_path, self.DEM_parameters["problem_name"].GetString())
 
     def GetMpFilename(self):
         return self.GetProblemNameWithPath() + "DEM"

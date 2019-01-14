@@ -95,7 +95,7 @@
 "meso_scale_length"                      : 0.2,
 "meso_scale_length_comment"              : " the radius of the support of the averaging function for homogenization (<=0 for automatic calculation)",
 "shape_factor"                           : 0.5,
-"basset_force_type"                      : 2,
+"basset_force_type"                      CandelierFluid: 2,
 "frame_of_reference_type"                : 1,
 "angular_velocity_of_frame_Z"            : 0.5,
 
@@ -168,14 +168,14 @@
         "start_time"    : 0.0,
         "end_time"      : 1
     },
-   
+
     "solver_settings"  : {
         "model_part_name"             : "FluidModelPart",
         "domain_size"                 : 3,
         "solver_type"                 : "Monolithic",
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "CandelierFluid"
+            "input_filename" : "candelier_tests/CandelierFluid"
         },
         "stabilization": {
             "formulation": "vms"

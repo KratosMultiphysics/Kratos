@@ -16,6 +16,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
+        self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)

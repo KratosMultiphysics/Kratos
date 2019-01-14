@@ -166,14 +166,14 @@
         "start_time"    : 0.0,
         "end_time"      : 1
     },
-   
+
     "solver_settings"  : {
         "model_part_name"             : "FluidModelPart",
         "domain_size"                 : 3,
         "solver_type"                 : "Monolithic",
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "CandelierFluid"
+            "input_filename" : "candelier_tests/CandelierFluid"
         },
         "stabilization": {
             "formulation": "vms"
