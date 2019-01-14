@@ -273,7 +273,7 @@ void CrBeamElement2D2N::CalculateLeftHandSide(
 /////////////////////////////////////////////////
 
 BoundedVector<double, CrBeamElement2D2N::msElementSize>
-CrBeamElement2D2N::CalculateBodyForces() {
+CrBeamElement2D2N::CalculateBodyForces() const {
   KRATOS_TRY
   // getting shapefunctionvalues for linear SF
   const Matrix &Ncontainer =
@@ -316,7 +316,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
     const BoundedVector<double, 3> ForceInput,
     BoundedVector<double, CrBeamElement2D2N::msElementSize>
         &rRightHandSideVector,
-    const double GeometryLength) {
+    const double GeometryLength) const {
   KRATOS_TRY;
   // calculate orthogonal load vector
   const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -382,7 +382,7 @@ void CrBeamElement2D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::CalculateShearModulus() {
+double CrBeamElement2D2N::CalculateShearModulus() const {
   KRATOS_TRY;
   const double nu = this->GetProperties()[POISSON_RATIO];
   const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -391,7 +391,7 @@ double CrBeamElement2D2N::CalculateShearModulus() {
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::CalculatePsi(const double I, const double A_eff) {
+double CrBeamElement2D2N::CalculatePsi(const double I, const double A_eff) const {
 
   KRATOS_TRY;
   const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -410,7 +410,7 @@ double CrBeamElement2D2N::CalculatePsi(const double I, const double A_eff) {
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::CalculateInitialElementAngle() {
+double CrBeamElement2D2N::CalculateInitialElementAngle() const{
   KRATOS_TRY;
   const double numerical_limit = std::numeric_limits<double>::epsilon();
 
@@ -471,7 +471,7 @@ double CrBeamElement2D2N::CalculateDeformedElementAngle() {
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::CalculateLength() {
+double CrBeamElement2D2N::CalculateLength() const {
   KRATOS_TRY;
   const double numerical_limit = std::numeric_limits<double>::epsilon();
   const double du =
@@ -492,7 +492,7 @@ double CrBeamElement2D2N::CalculateLength() {
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::CalculateReferenceLength() {
+double CrBeamElement2D2N::CalculateReferenceLength() const {
   KRATOS_TRY;
   const double numerical_limit = std::numeric_limits<double>::epsilon();
   const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
@@ -507,7 +507,7 @@ double CrBeamElement2D2N::CalculateReferenceLength() {
 
 BoundedMatrix<double, CrBeamElement2D2N::msElementSize,
                CrBeamElement2D2N::msLocalSize>
-CrBeamElement2D2N::CalculateTransformationS() {
+CrBeamElement2D2N::CalculateTransformationS() const {
   KRATOS_TRY;
   const double L = this->CalculateLength();
   BoundedMatrix<double, msElementSize, msLocalSize> S =
@@ -526,7 +526,7 @@ CrBeamElement2D2N::CalculateTransformationS() {
 
 BoundedMatrix<double, CrBeamElement2D2N::msLocalSize,
                CrBeamElement2D2N::msLocalSize>
-CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_mat() {
+CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_mat() const {
   KRATOS_TRY
   // element properties
   const double E = this->GetProperties()[YOUNG_MODULUS];
@@ -555,7 +555,7 @@ CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_mat() {
 
 BoundedMatrix<double, CrBeamElement2D2N::msLocalSize,
                CrBeamElement2D2N::msLocalSize>
-CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_geo() {
+CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_geo() const {
   KRATOS_TRY
   // element properties
   const double L = this->CalculateLength();
@@ -573,7 +573,7 @@ CrBeamElement2D2N::CreateElementStiffnessMatrix_Kd_geo() {
 
 BoundedMatrix<double, CrBeamElement2D2N::msElementSize,
                CrBeamElement2D2N::msElementSize>
-CrBeamElement2D2N::CreateElementStiffnessMatrix_Kr() {
+CrBeamElement2D2N::CreateElementStiffnessMatrix_Kr() const {
   KRATOS_TRY
   // element properties
   const double L = this->CalculateLength();
@@ -603,7 +603,7 @@ CrBeamElement2D2N::CreateElementStiffnessMatrix_Kr() {
 
 BoundedMatrix<double, CrBeamElement2D2N::msElementSize,
                CrBeamElement2D2N::msElementSize>
-CrBeamElement2D2N::CreateElementStiffnessMatrix_Total() {
+CrBeamElement2D2N::CreateElementStiffnessMatrix_Total() const {
   KRATOS_TRY
   // co-rotating K
   BoundedMatrix<double, msElementSize, msElementSize> K_r =
@@ -805,7 +805,7 @@ CrBeamElement2D2N::ReturnElementForces_Local() {
   KRATOS_CATCH("")
 }
 
-double CrBeamElement2D2N::Modulus2Pi(double A) {
+double CrBeamElement2D2N::Modulus2Pi(double A) const {
   KRATOS_TRY;
   const int B = A / (2.00 * Globals::Pi);
   const double C = A - (B * 2.00 * Globals::Pi);
