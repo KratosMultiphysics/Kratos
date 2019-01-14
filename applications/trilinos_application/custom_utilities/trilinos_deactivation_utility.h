@@ -118,13 +118,16 @@ public:
     void Initialize( ModelPart& model_part )
     {
         std::cout << "initializing deactivation utility" << std::endl;
+
+        const auto& r_current_process_info = model_part.GetProcessInfo();
+
         //initializing elements
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
         {
             if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->Set(ACTIVE, false);
             else (*it)->Set(ACTIVE, true);
-            (*it)->Initialize();
+            (*it)->Initialize(r_current_process_info);
         }
         for ( ConditionsArrayType::ptr_iterator it=model_part.Conditions().ptr_begin();
                 it != model_part.Conditions().ptr_end(); ++it)
@@ -135,7 +138,7 @@ public:
             }
             if( (*it)->GetValue(ACTIVATION_LEVEL) < 0 ) (*it)->Set(ACTIVE, false);
             else (*it)->Set(ACTIVE, true);
-            (*it)->Initialize();
+            (*it)->Initialize(r_current_process_info);
         }
         std::cout << "deactivation utility initialized" << std::endl;
     }
@@ -242,6 +245,8 @@ public:
     {
         KRATOS_TRY;
 
+        const auto& r_current_process_info = model_part.GetProcessInfo();
+
         for ( ElementsArrayType::ptr_iterator it=model_part.Elements().ptr_begin();
                 it!=model_part.Elements().ptr_end(); ++it)
         {
@@ -249,7 +254,7 @@ public:
             if( (*it)->GetValue( ACTIVATION_LEVEL ) >= from_level
                     && (*it)->GetValue( ACTIVATION_LEVEL ) <= to_level)
             {
-                (*it)->Initialize();
+                (*it)->Initialize(r_current_process_info);
                 (*it)->SetValue(ACTIVATION_LEVEL, 0 );
             }
         }
