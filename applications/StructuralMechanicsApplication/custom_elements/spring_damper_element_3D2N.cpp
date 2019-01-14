@@ -109,7 +109,7 @@ SpringDamperElement3D2N::~SpringDamperElement3D2N()
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE THE DOFS OF THE ELEMENT
 
@@ -129,7 +129,7 @@ void SpringDamperElement3D2N::GetDofList( DofsVectorType& rElementalDofList, Pro
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
 {
     //NEEDED TO DEFINE GLOBAL IDS FOR THE CORRECT ASSEMBLY
     if ( rResult.size() != OPT_NUM_DOFS )
@@ -152,7 +152,7 @@ void SpringDamperElement3D2N::EquationIdVector( EquationIdVectorType& rResult, P
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT DISPLACEMENTS)
     if ( rValues.size() != OPT_NUM_DOFS )
@@ -179,7 +179,7 @@ void SpringDamperElement3D2N::GetValuesVector( Vector& rValues, int Step )
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT VELOCITIES)
     if ( rValues.size() != OPT_NUM_DOFS )
@@ -207,7 +207,7 @@ void SpringDamperElement3D2N::GetFirstDerivativesVector( Vector& rValues, int St
 //*********************************ACCELERATION***************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step )
+void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     //GIVES THE VECTOR WITH THE TIME SECOND DERIVATIVE OF THE DOFS VARIABLES OF THE ELEMENT (i.e. ELEMENT ACCELERATIONS)
     if ( rValues.size() != OPT_NUM_DOFS )
@@ -236,7 +236,7 @@ void SpringDamperElement3D2N::GetSecondDerivativesVector( Vector& rValues, int S
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::Initialize()
+void SpringDamperElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -246,7 +246,7 @@ void SpringDamperElement3D2N::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void SpringDamperElement3D2N::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -255,7 +255,7 @@ void SpringDamperElement3D2N::InitializeSolutionStep( ProcessInfo& rCurrentProce
 
 ////************************************************************************************
 ////************************************************************************************
-void SpringDamperElement3D2N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
 
 }
@@ -263,7 +263,7 @@ void SpringDamperElement3D2N::InitializeNonLinearIteration( ProcessInfo& rCurren
 ////************************************************************************************
 ////************************************************************************************
 
-void SpringDamperElement3D2N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
 
 }
@@ -271,7 +271,7 @@ void SpringDamperElement3D2N::FinalizeNonLinearIteration( ProcessInfo& rCurrentP
 ////************************************************************************************
 ////************************************************************************************
 
-void SpringDamperElement3D2N::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -288,7 +288,7 @@ void SpringDamperElement3D2N::FinalizeSolutionStep( ProcessInfo& rCurrentProcess
 void SpringDamperElement3D2N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
 
@@ -307,7 +307,7 @@ void SpringDamperElement3D2N::CalculateLocalSystem(
 //***********************************************************************************
 //***********************************************************************************
 
-void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo )
 {
 
     if ( rRightHandSideVector.size() != OPT_NUM_DOFS )
@@ -349,7 +349,7 @@ void SpringDamperElement3D2N::CalculateRightHandSide(VectorType& rRightHandSideV
 //***********************************************************************************
 //***********************************************************************************
 
-void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     // Resizing the LHS
     unsigned int system_size = OPT_NUM_DOFS;
@@ -407,7 +407,7 @@ void SpringDamperElement3D2N::ClearNodalForces()
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
@@ -427,7 +427,7 @@ void SpringDamperElement3D2N::CalculateMassMatrix( MatrixType& rMassMatrix, Proc
 //************************************************************************************
 //************************************************************************************
 
-void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo )
+void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY;
 
@@ -458,7 +458,7 @@ void SpringDamperElement3D2N::CalculateDampingMatrix( MatrixType& rDampingMatrix
 //************************************************************************************
 //************************************************************************************
 
-int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo )
+int SpringDamperElement3D2N::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

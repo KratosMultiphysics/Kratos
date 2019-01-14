@@ -478,7 +478,7 @@ bool TotalLagrangian::IsAxissymmetric() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int  TotalLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

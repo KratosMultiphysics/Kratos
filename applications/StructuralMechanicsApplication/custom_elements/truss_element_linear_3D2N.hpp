@@ -77,15 +77,15 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function adds forces from prestressing to the force vector
@@ -130,7 +130,7 @@ namespace Kratos
 			BoundedVector<double,msLocalSize>& rInternalForces) override;
 
 
-        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+        void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 
         /**

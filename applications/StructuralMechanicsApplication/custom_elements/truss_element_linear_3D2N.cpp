@@ -66,7 +66,7 @@ TrussElementLinear3D2N::CreateElementStiffnessMatrix(
 
 void TrussElementLinear3D2N::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
   BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
@@ -107,7 +107,7 @@ void TrussElementLinear3D2N::AddPrestressLinear(
 }
 
 void TrussElementLinear3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   rRightHandSideVector = ZeroVector(msLocalSize);
@@ -133,7 +133,7 @@ void TrussElementLinear3D2N::CalculateRightHandSide(
 }
 
 void TrussElementLinear3D2N::CalculateLeftHandSide(
-    MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
 
@@ -260,7 +260,7 @@ void TrussElementLinear3D2N::UpdateInternalForces(BoundedVector<double,msLocalSi
 }
 
 
-void TrussElementLinear3D2N::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void TrussElementLinear3D2N::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
   KRATOS_TRY;
   this->GetConstitutiveLawTrialResponse(rCurrentProcessInfo,true);

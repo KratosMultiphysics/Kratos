@@ -66,9 +66,9 @@ UpdatedLagrangian::~UpdatedLagrangian()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::Initialize( )
+void UpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseSolidElement::Initialize();
+    BaseSolidElement::Initialize(rCurrentProcessInfo);
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
@@ -92,7 +92,7 @@ void UpdatedLagrangian::Initialize( )
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void UpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseSolidElement::InitializeSolutionStep(rCurrentProcessInfo);
 
@@ -102,7 +102,7 @@ void UpdatedLagrangian::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void UpdatedLagrangian::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     // Create and initialize element variables:
     const SizeType number_of_nodes = GetGeometry().size();
@@ -517,7 +517,7 @@ void UpdatedLagrangian::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo )
+int UpdatedLagrangian::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 
