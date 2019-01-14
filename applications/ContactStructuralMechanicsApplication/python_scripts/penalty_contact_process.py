@@ -214,7 +214,8 @@ class PenaltyContactProcess(alm_contact_process.ALMContactProcess):
             alm_var_parameters.AddValue("penalty_scale_factor", self.contact_settings["advance_ALM_parameters"]["penalty_scale_factor"])
             self.alm_var_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, alm_var_parameters)
             self.alm_var_process.Execute()
-            process_info[KM.INITIAL_PENALTY] = 1.0e3 * process_info[KM.INITIAL_PENALTY] # We rescale, the process is designed for ALM formulation
+            # We rescale, the process is designed for ALM formulation
+            process_info[KM.INITIAL_PENALTY] = 1.0e4 * process_info[KM.INITIAL_PENALTY]
         else:
             # We set the values in the process info
             process_info[KM.INITIAL_PENALTY] = self.contact_settings["advance_ALM_parameters"]["penalty"].GetDouble()
