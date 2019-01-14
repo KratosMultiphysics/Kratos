@@ -20,6 +20,7 @@
 #include "utilities/table_stream_utility.h"
 #include "custom_strategies/custom_convergencecriterias/base_mortar_criteria.h"
 #include "utilities/color_utilities.h"
+#include "custom_utilities/active_set_utilities.h"
 
 namespace Kratos
 {
@@ -92,8 +93,9 @@ public:
     /// Default constructors
     explicit ALMFrictionlessComponentsMortarConvergenceCriteria(
         const bool PrintingOutput = false,
+        const bool ComputeDynamicFactor = false,
         const bool GiDIODebug = false
-        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(GiDIODebug),
+        ) : BaseMortarConvergenceCriteria< TSparseSpace, TDenseSpace >(ComputeDynamicFactor, GiDIODebug),
         mPrintingOutput(PrintingOutput),
         mTableIsInitialized(false)
     {
@@ -156,50 +158,12 @@ public:
         // We call the base class
         BaseType::PostCriteria(rModelPart, rDofSet, rA, rDx, rb);
 
-        // Defining the convergence
-        IndexType is_converged = 0;
-
-        // We get the process info
-        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
-
-        // We check the active/inactive set during the first non-linear iteration or for the general semi-smooth case
-        if (rModelPart.Is(INTERACTION) || r_process_info[NL_ITERATION_NUMBER] == 1) {
-            const double common_epsilon = r_process_info[INITIAL_PENALTY];
-            const double scale_factor = r_process_info[SCALE_FACTOR];
-
-            NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-
-            #pragma omp parallel for reduction(+:is_converged)
-            for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-                auto it_node = nodes_array.begin() + i;
-
-                const double epsilon = it_node->Has(INITIAL_PENALTY) ? it_node->GetValue(INITIAL_PENALTY) : common_epsilon;
-
-                const array_1d<double,3>& lagrange_multiplier = it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER);
-                const array_1d<double,3>& nodal_normal = it_node->FastGetSolutionStepValue(NORMAL);
-                const double normal_lagrange_multiplier = inner_prod(nodal_normal, lagrange_multiplier);
-
-                const double augmented_normal_pressure = scale_factor * normal_lagrange_multiplier + epsilon * it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
-
-                it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, augmented_normal_pressure); // NOTE: This value is purely for debugging interest (to see the "effective" pressure)
-
-                if (augmented_normal_pressure < 0.0) { // NOTE: This could be conflictive (< or <=)
-                    if (it_node->IsNot(ACTIVE)) {
-                        noalias(it_node->FastGetSolutionStepValue(VECTOR_LAGRANGE_MULTIPLIER)) = nodal_normal * augmented_normal_pressure/scale_factor;
-                        it_node->Set(ACTIVE, true);
-                        is_converged += 1;
-                    }
-                } else {
-                    if (it_node->Is(ACTIVE)) {
-                        it_node->Set(ACTIVE, false);
-                        is_converged += 1;
-                    }
-                }
-            }
-        }
+        // Compute the active set
+        const IndexType is_converged = ActiveSetUtilities::ComputeALMFrictionlessComponentsActiveSet(rModelPart);
 
         // We save to the process info if the active set has converged
         const bool active_set_converged = (is_converged == 0 ? true : false);
+        ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
         r_process_info[ACTIVE_SET_CONVERGED] = active_set_converged;
 
         if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0) {

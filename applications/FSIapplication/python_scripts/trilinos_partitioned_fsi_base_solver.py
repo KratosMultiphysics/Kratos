@@ -80,9 +80,9 @@ class TrilinosPartitionedFSIBaseSolver(partitioned_fsi_base_solver.PartitionedFS
 
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities2D(self._GetEpetraCommunicator())
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray2D(self._GetEpetraCommunicator())
         else:
-            return KratosTrilinos.TrilinosPartitionedFSIUtilities3D(self._GetEpetraCommunicator())
+            return KratosTrilinos.TrilinosPartitionedFSIUtilitiesArray3D(self._GetEpetraCommunicator())
 
     ### TODO: SUBSTITUTE IN THIS METHOD THE OLD MAPPER BY THE ONE IN THE FSI APPLICATION
     def _SetUpMapper(self):
