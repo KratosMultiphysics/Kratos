@@ -470,7 +470,7 @@ public:
     template <typename TContainerType>
     void ApplyConstraints(TContainerType& rCurrentContainer,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          const ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         this->Reset();
@@ -517,7 +517,7 @@ public:
                           LocalSystemMatrixType& rLHSContribution,
                           LocalSystemVectorType& rRHSContribution,
                           typename TContainerType::EquationIdVectorType& rEquationIds,
-                          const ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
         // If no slave is found for this container , no need of going on
