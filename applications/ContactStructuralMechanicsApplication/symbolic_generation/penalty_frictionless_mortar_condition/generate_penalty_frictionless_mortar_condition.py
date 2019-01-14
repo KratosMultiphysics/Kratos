@@ -6,7 +6,6 @@ from KratosMultiphysics.ContactStructuralMechanicsApplication  import *
 from sympy import *
 from sympy.physics.vector import *
 from custom_sympy_fe_utilities import *
-import operator
 
 do_simplifications = False
 mode = "c" #to output to a c++ file
@@ -169,7 +168,7 @@ for normalvar in range(normal_combs):
             rhs_out = OutputVector_CollectingFactors(rhs,"rhs", mode, 1, number_dof)
             print("Substitution strings are ready....")
 
-            if (active_inactive_comb == 1):
+            if active_inactive_comb == 1:
                 lhs_string += lhs_template_begin_string
                 lhs_string += "    if (rActiveInactive == " + str(convert_active_inactive_int(active_inactive)) + " )\n    {\n    "
             else:
@@ -177,10 +176,10 @@ for normalvar in range(normal_combs):
             lhs_string += lhs_out.replace("\n","\n    ")
             lhs_string += "}"
 
-            if (active_inactive_comb == len(active_inactive_combinations)):
+            if active_inactive_comb == len(active_inactive_combinations):
                 lhs_string += lhs_template_end_string
 
-            if (active_inactive_comb == 1):
+            if active_inactive_comb == 1:
                 rhs_string += rhs_template_begin_string
                 rhs_string += "    if (rActiveInactive == "+str(convert_active_inactive_int(active_inactive)) + " )\n    {\n    "
             else:
@@ -188,7 +187,7 @@ for normalvar in range(normal_combs):
             rhs_string += rhs_out.replace("\n","\n    ")
             rhs_string += "}"
 
-            if (active_inactive_comb == len(active_inactive_combinations)):
+            if active_inactive_comb == len(active_inactive_combinations):
                 rhs_string += rhs_template_end_string
 
             lhs_string = lhs_string.replace("TDim", str(dim))
@@ -230,11 +229,11 @@ for normalvar in range(normal_combs):
             lhs_string = lhs_string.replace("//subsvar_", "")
             rhs_string = rhs_string.replace("//subsvar_", "")
 
-            for index in range(len(der_var_strings)):
+            for index, value in enumerate(der_var_strings):
                 lhs_string = lhs_string.replace(der_var_strings[index], der_var_list[index])
                 rhs_string = rhs_string.replace(der_var_strings[index], der_var_list[index])
 
-            for index in range(len(var_strings)):
+            for index, value in enumerate(var_strings):
                 lhs_string = lhs_string.replace(var_strings[index], var_strings_subs[index])
                 rhs_string = rhs_string.replace(var_strings[index], var_strings_subs[index])
 
@@ -266,13 +265,14 @@ for normalvar in range(normal_combs):
             #############################################################################
 
             if (active_inactive_comb == 1 and output_count == 1):
-                input = open("penalty_frictionless_mortar_contact_condition_template.cpp",'r').read()
+                first_input = open("penalty_frictionless_mortar_contact_condition_template.cpp",'r').read()
+                outputstring = first_input.replace("// replace_lhs", lhs_string)
             else:
                 input = open("penalty_frictionless_mortar_contact_condition.cpp",'r').read()
-            if (output_count < total_combs or active_inactive_comb < len(active_inactive_combinations)):
+                outputstring = input.replace("// replace_lhs", lhs_string)
+            if output_count < total_combs or active_inactive_comb < len(active_inactive_combinations):
                 lhs_string += "// replace_lhs"
                 rhs_string += "// replace_rhs"
-            outputstring = input.replace("// replace_lhs", lhs_string)
             outputstring = outputstring.replace("// replace_rhs", rhs_string)
             output = open("penalty_frictionless_mortar_contact_condition.cpp",'w')
             output.write(outputstring)
