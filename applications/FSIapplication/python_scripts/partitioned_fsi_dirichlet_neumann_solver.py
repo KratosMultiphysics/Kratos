@@ -191,7 +191,9 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             KratosMultiphysics.MESH_DISPLACEMENT,
             KratosMultiphysics.VECTOR_PROJECTED,
             KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
-            disp_residual)
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual
 
@@ -219,6 +221,8 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
             KratosMultiphysics.MESH_DISPLACEMENT,
             KratosMultiphysics.VECTOR_PROJECTED,
             KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
-            disp_residual)
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual

@@ -229,11 +229,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
-        mesh_res_norm = self.partitioned_fsi_utilities.ComputeFluidInterfaceResidualNorm(
+        mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
             self._GetFluidInterfaceSubmodelPart(),
             KratosMultiphysics.VELOCITY,
             KratosMultiphysics.MESH_VELOCITY,
-            KratosFSI.FSI_INTERFACE_MESH_RESIDUAL)
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
+            "nodal")
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
