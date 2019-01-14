@@ -466,72 +466,58 @@ public:
       return this->size();
     }
 
-    /** This method calculate and return Length or charactereistic
-     * length of this geometry depending to it's dimension. For one
-     * dimensional geometry for example Line it returns length of it
-     * and for the other geometries it gives Characteristic length
-     * otherwise.
-     *
-     * @return double value contains length or Characteristic
-     * length
-     *
+    /** 
+     * @brief This method calculate and return Length or characteristic length of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry for example Line it returns length of it and for the other geometries it gives Characteristic length otherwise.
+     * @return double value contains length or Characteristic length
      * @see Area()
      * @see Volume()
      * @see DomainSize()
      */
     virtual double Length() const {
-      KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Length' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns length, for two dimensional it gives area
-     * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
-     *
+    /** 
+     * @brief This method calculate and return area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns length, for two dimensional it gives area and for three dimensional geometries it gives surface area.
+     * @return double value contains area or surface area.
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
     virtual double Area() const {
-      KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Area' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return volume of this
-     * geometry. For one and two dimensional geometry it returns
-     * zero and for three dimensional it gives volume of geometry.
-     *
+    /** 
+     * @brief This method calculate and return volume of this geometry. 
+     * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
-     *
      * @see Length()
      * @see Area()
      * @see DomainSize()
      */
     virtual double Volume() const {
-      KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'Volume' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
-    /** This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /** 
+     * @brief This method calculate and return length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
-     *
      * @see Length()
      * @see Area()
      * @see Volume()
      */
     virtual double DomainSize() const {
-        const SizeType local_space_dimension = this->LocalSpaceDimension();
-        if (local_space_dimension == 1) { // 1D geometry
+        const SizeType dimension = this->Dimension();
+        if (dimension == 1) { // 1D geometry
             return this->Length();
-        } else if (local_space_dimension == 2) { // 2D geometry
+        } else if (dimension == 2) { // 2D geometry
             return this->Area();
         } else { // 3D geometry
             return this->Volume();
@@ -548,8 +534,8 @@ public:
      * @see AverageEdgeLength()
      */
     virtual double MinEdgeLength() const {
-      KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
-      return 0.0;
+        KRATOS_ERROR << "Calling base class 'MinEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** This method calculates and returns the maximum edge.

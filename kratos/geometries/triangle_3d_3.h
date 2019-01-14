@@ -400,20 +400,14 @@ public:
         return std::sqrt(2.0 * Area());
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double Area() const override
     {
@@ -426,19 +420,25 @@ public:
         return std::sqrt(s*(s-a)*(s-b)*(s-c));
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
-     * @return double value contains length, area or volume.
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Zero, the volume of a 2D geometry is 0
      * @see Length()
      * @see Area()
      * @see Volume()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+    double Volume() const override
+    {
+        return 0.0;
+    }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
      */
     double DomainSize() const override
     {

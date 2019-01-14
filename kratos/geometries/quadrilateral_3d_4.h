@@ -406,36 +406,17 @@ public:
         return std::sqrt( Area() );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
-     * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
-     * @see Length()
-     * @see Volume()
-     * @see DomainSize()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
-    double Area() const override
-    {
-        // Finite element way
-        Vector temp;
-        DeterminantOfJacobian( temp, GeometryData::GI_GAUSS_3 );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::GI_GAUSS_3 );
-        double area = 0.0;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-           area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
-
+//     /** 
+//      * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+//      * @details For one dimensional geometry it returns zero, for two dimensional it gives area
+//      * and for three dimensional geometries it gives surface area.
+//      * @return double value contains area or surface area
+//      * @see Length()
+//      * @see Volume()
+//      * @see DomainSize()
+//      */
+//     double Area() const override
+//     {
 //         // 24/01/2014 - Massimo Petracca
 //         // the following procedure calculates the area of a general
 //         // quadrilateral (flat or warped) using the parametric representation
@@ -490,32 +471,56 @@ public:
 //             std::sqrt( std::pow(C4*C14 - C7*C13, 2) + std::pow(C4*C15 - C8*C13, 2) + std::pow(C7*C15 - C8*C14, 2)) +
 //             std::sqrt( std::pow(C5*C14 - C6*C13, 2) + std::pow(C5*C15 - C9*C13, 2) + std::pow(C6*C15 - C9*C14, 2))
 //             );
+//     }
+
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
+     * and for three dimensional geometries it gives surface area.
+     * @return double value contains area or surface area
+     * @see Length()
+     * @see Volume()
+     * @see DomainSize()
+     */
+    double Area() const override
+    {
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double area = 0.0;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            area += temp[i] * integration_points[i].Weight();
+        }
+
+        return area;
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Zero, the volume of a 2D geometry is 0
+     * @see Length()
+     * @see Area()
+     * @see Volume()
+     */
+    double Volume() const override
+    {
+        return 0.0;
+    }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double DomainSize() const override
     {
         return Area();
     }
-
-
-    double Volume() const override
-    {
-        return Area();
-    }
+    
 
     /**
      * Returns whether given arbitrary point is inside the Geometry and the respective

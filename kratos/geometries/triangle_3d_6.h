@@ -422,53 +422,48 @@ public:
 		return MathUtils<double>::Norm3(vx);
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /** 
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-        //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
-        // Approximation to avoid errors. Can be improved.
-        
-        array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
-		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
-		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
-		array_1d<double, 3> p3 = BaseType::GetPoint( 3 );
-		
-		array_1d<double, 3> vx( p1 - p0 );
-		array_1d<double, 3> vy( p2 - p3 );
-        
-		double base = MathUtils<double>::Norm3(vx);
-        double length = MathUtils<double>::Norm3(vy);
-        
-        return base*length*0.5;
+        Vector temp;
+        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        double area = 0.0;
+
+        for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
+            area += temp[i] * integration_points[i].Weight();
+        }
+
+        return area;
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
-     * @return double value contains length, area or volume.
+    /**
+     * @brief This method calculates and returns the volume of this geometry.
+     * @return Zero, the volume of a 2D geometry is 0
      * @see Length()
      * @see Area()
      * @see Volume()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
+    double Volume() const override
+    {
+        return 0.0;
+    }
+
+    /** 
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
+     * @return double value contains length, area or volume.
+     * @see Length()
+     * @see Area()
+     * @see Volume()
      */
     double DomainSize() const override
     {
