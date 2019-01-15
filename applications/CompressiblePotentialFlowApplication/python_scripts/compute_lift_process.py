@@ -25,7 +25,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         settings.ValidateAndAssignDefaults(default_parameters)
         self.problem_name=settings["problem_name"].GetString()
-        self.upper_surface_model_part =Model.GetModelPart(settings["upper_surface_model_part_name"].GetString()) 
+        self.upper_surface_model_part =Model.GetModelPart(settings["upper_surface_model_part_name"].GetString())
         self.lower_surface_model_part =Model.GetModelPart(settings["lower_surface_model_part_name"].GetString())
         self.fluid_model_part=self.upper_surface_model_part.GetRootModelPart()
         self.velocity_infinity = [0,0,0]
@@ -33,7 +33,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
-        
+
         NormalUpper=KratosMultiphysics.NormalCalculationUtils()
         NormalUpper.CalculateOnSimplex(self.upper_surface_model_part,2)
         NormalLower=KratosMultiphysics.NormalCalculationUtils()
@@ -41,8 +41,6 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
 
     def ExecuteFinalizeSolutionStep(self):
-        print('COMPUTE LIFT')
-
         rx = 0.0
         ry = 0.0
         rz = 0.0
@@ -53,7 +51,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
            rx += n[0]*cp
            ry += n[1]*cp
            rz += n[2]*cp
-        
+
         RZ = rz/self.reference_area
         RX = rx/self.reference_area
         RY = ry/self.reference_area
@@ -77,19 +75,16 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
             for node in cond.GetNodes():
                 x_average += 0.5*node.X
             x_lower.append(x_average)
-            cp_lower.append(cp)  
+            cp_lower.append(cp)
         max_x=max(max(x_upper),max(x_lower))
         min_x=min(min(x_upper),min(x_lower))
         for i in range(0,len(x_upper)):
             x_upper[i]=(x_upper[i]-min_x)/abs(max_x-min_x)
         for i in range(0,len(x_lower)):
-            x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x) 
-
-        print('RZ = ', RZ)
+            x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x)
 
         print('Cl = ', Cl)
         print('Cd = ', Cd)
-        print('Mach = ', self.velocity_infinity[0]/340)
 
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
         # plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
