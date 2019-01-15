@@ -5,11 +5,9 @@ import sys
 import KratosMultiphysics
 
 # Import applications
+import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
-import KratosMultiphysics.FSIApplication as KratosFSI
-# TODO: Use the mortar mapper in the core instead of the FSI application one
-import NonConformant_OneSideMap as ncosm
 import convergence_accelerator_factory
 
 # Importing the base class
@@ -69,8 +67,23 @@ class ConjugateHeatTransferSolver(PythonSolver):
             "coupling_settings":{
                 "max_iteration": 10,
                 "temperature_relative_tolerance": 1e-5,
-                "variable_redistribution_tolerance": 1.0e-9,
-                "variable_redistribution_max_iterations": 200,
+                "variable_redistribution_settings": {
+                    "absolute_tolerance": 1.0e-9,
+                    "max_iterations": 200
+                },
+                "mappers_settings": {
+                    "echo_level": 0,
+                    "distance_threshold": 1.0,
+                    "absolute_convergence_tolerance": 1.0e-9,
+                    "relative_convergence_tolerance": 1.0e-7,
+                    "max_number_iterations": 10,
+                    "integration_order": 2,
+                    "search_parameters": {
+                        "allocation_size": 1000,
+                        "bucket_size": 4,
+                        "search_factor": 1.0
+                    }
+                },
                 "fluid_interfaces_list": [],
                 "solid_interfaces_list": []
             }
@@ -110,8 +123,10 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
         #TODO: WHY ARE WE USING NODAL_PAUX?
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
+        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
+        self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
 
         # Temporary container for un-relaxed temperature
         KratosMultiphysics.MergeVariableListsUtility().Merge(self.fluid_solver.main_model_part,
@@ -119,6 +134,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
         self.solid_thermal_solver.AddVariables()
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
+        self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_PAUX)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
 
@@ -201,7 +217,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         (self.solid_thermal_solver).Initialize()
 
         # Create the fluid and solid interface mapper
-        self._set_up_mapper()
+        self._set_up_mappers()
 
         # Coupling utility initialization
         # The _get_convergence_accelerator is supposed to construct the convergence accelerator in here
@@ -263,8 +279,8 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
             max_iteration = self.settings["coupling_settings"]["max_iteration"].GetInt()
             temp_rel_tol = self.settings["coupling_settings"]["temperature_relative_tolerance"].GetDouble()
-            redistribution_tolerance = self.settings["coupling_settings"]["variable_redistribution_tolerance"].GetDouble()
-            redistribution_max_iterations = self.settings["coupling_settings"]["variable_redistribution_max_iterations"].GetInt()
+            redistribution_tolerance = self.settings["coupling_settings"]["variable_redistribution_settings"]["absolute_tolerance"].GetDouble()
+            redistribution_max_iterations = self.settings["coupling_settings"]["variable_redistribution_settings"]["max_iterations"].GetInt()
 
             # Couple the solid and fluid thermal problems
             iteration = 0
@@ -280,25 +296,19 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
                 # Map reactions to the fluid interface. Note that we first call the redistribution utility to convert the point values to distributed ones
                 KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
-                    self.mapper.str_interface,
+                    self._get_solid_thermal_interface(),
                     KratosMultiphysics.REACTION_FLUX,
                     KratosConvDiff.AUX_FLUX,
                     redistribution_tolerance,
                     redistribution_max_iterations)
 
-                self.mapper.StructureToFluid_ScalarMap(
-                    KratosConvDiff.AUX_FLUX,
-                    KratosMultiphysics.FACE_HEAT_FLUX,
-                    False) # Sign is not kept (inverted) when mapping
+                self.flux_mapper.Execute()
 
                 # Solve Neumann side to get temperature values from fluid domain
                 self.fluid_thermal_solver.SolveSolutionStep()
 
                 # Map back the Neumann domain obtained temperature
-                self.mapper.FluidToStructure_ScalarMap(
-                    KratosMultiphysics.TEMPERATURE,
-                    KratosConvDiff.AUX_TEMPERATURE,
-                    True) # Sign is kept when mapping
+                self.temp_mapper.Execute()
 
                 # Compute the interface residual
                 temp_residual = KratosMultiphysics.Vector(len(self._get_solid_thermal_interface().Nodes))
@@ -347,25 +357,46 @@ class ConjugateHeatTransferSolver(PythonSolver):
             for node in self.model.GetModelPart(solid_int_name).Nodes:
                 node.Fix(KratosMultiphysics.TEMPERATURE)
 
-    def _set_up_mapper(self):
-        for i_int in range(self.settings["coupling_settings"]["fluid_interfaces_list"].size()):
-            fluid_int_name = self.settings["coupling_settings"]["fluid_interfaces_list"][i_int].GetString()
-            for node in self.model.GetModelPart(fluid_int_name).Nodes:
-                node.Set(KratosMultiphysics.INTERFACE, True)
+    def _set_up_mappers(self):
+        # Set mappers settings
+        mappers_settings = self.settings["coupling_settings"]["mappers_settings"]
 
-        for i_int in range(self.settings["coupling_settings"]["solid_interfaces_list"].size()):
-            solid_int_name = self.settings["coupling_settings"]["solid_interfaces_list"][i_int].GetString()
-            for node in self.model.GetModelPart(solid_int_name).Nodes:
-                node.Set(KratosMultiphysics.INTERFACE, True)
+        flux_mapper_parameters = KratosMultiphysics.Parameters(r'''{
+            "mapping_coefficient": -1.0,
+            "origin_variable": "AUX_FLUX",
+            "destination_variable": "FACE_HEAT_FLUX"
+        }''')
+        flux_mapper_parameters.AddValue("echo_level", mappers_settings["echo_level"])
+        flux_mapper_parameters.AddValue("integration_order", mappers_settings["integration_order"])
+        flux_mapper_parameters.AddValue("distance_threshold", mappers_settings["distance_threshold"])
+        flux_mapper_parameters.AddValue("max_number_iterations", mappers_settings["max_number_iterations"])
+        flux_mapper_parameters.AddValue("absolute_convergence_tolerance", mappers_settings["absolute_convergence_tolerance"])
+        flux_mapper_parameters.AddValue("relative_convergence_tolerance", mappers_settings["relative_convergence_tolerance"])
+        flux_mapper_parameters.AddValue("search_parameters", mappers_settings["search_parameters"])
 
-        mapper_tolerance = 1e-5
-        mapper_max_iteration = 50
-        mapper_search_radius_factor = 1.0
-        self.mapper = ncosm.NonConformant_OneSideMap(self.fluid_solver.GetComputingModelPart(),
-                                                     self.solid_thermal_solver.GetComputingModelPart(),
-                                                     mapper_search_radius_factor,
-                                                     mapper_max_iteration,
-                                                     mapper_tolerance)
+        temp_mapper_parameters = KratosMultiphysics.Parameters(r'''{
+            "origin_variable": "TEMPERATURE",
+            "destination_variable": "AUX_TEMPERATURE"
+        }''')
+        temp_mapper_parameters.AddValue("echo_level", mappers_settings["echo_level"])
+        temp_mapper_parameters.AddValue("integration_order", mappers_settings["integration_order"])
+        temp_mapper_parameters.AddValue("distance_threshold", mappers_settings["distance_threshold"])
+        temp_mapper_parameters.AddValue("max_number_iterations", mappers_settings["max_number_iterations"])
+        temp_mapper_parameters.AddValue("absolute_convergence_tolerance", mappers_settings["absolute_convergence_tolerance"])
+        temp_mapper_parameters.AddValue("relative_convergence_tolerance", mappers_settings["relative_convergence_tolerance"])
+        temp_mapper_parameters.AddValue("search_parameters", mappers_settings["search_parameters"])
+
+        # Create flux mapper
+        self.flux_mapper = KratosMultiphysics.SimpleMortarMapperProcess(
+            self._get_solid_thermal_interface(),
+            self._get_fluid_thermal_interface(),
+            flux_mapper_parameters)
+
+        # Create temperature mapper
+        self.temp_mapper = KratosMultiphysics.SimpleMortarMapperProcess(
+            self._get_fluid_thermal_interface(),
+            self._get_solid_thermal_interface(),
+            temp_mapper_parameters)
 
     def _get_fluid_thermal_interface(self):
         if self.settings["coupling_settings"]["fluid_interfaces_list"].size() > 1:
