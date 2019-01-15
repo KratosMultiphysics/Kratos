@@ -530,63 +530,99 @@ public:
         return true;
     }
 
-    bool SynchronizeVariable(Variable<int> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<int> const& rThisVariable) override
     {
-        SynchronizeVariable<int,int>(ThisVariable);
+        SynchronizeVariable<int,int>(rThisVariable);
         return true;
     }
 
-    bool SynchronizeVariable(Variable<double> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<double> const& rThisVariable) override
     {
-        SynchronizeVariable<double,double>(ThisVariable);
+        SynchronizeVariable<double,double>(rThisVariable);
         return true;
     }
 
-    bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
+    bool SynchronizeVariable(Variable<array_1d<double, 3 > > const& rThisVariable) override
     {
-        SynchronizeVariable<array_1d<double, 3 >,double >(ThisVariable);
+        SynchronizeVariable<array_1d<double, 3 >,double >(rThisVariable);
         return true;
     }
 
-    bool SynchronizeVariable(Variable<Vector> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<array_1d<double, 4 > > const& rThisVariable) override
     {
-        SynchronizeVariable<Vector,double>(ThisVariable);
+        SynchronizeVariable<array_1d<double, 4 >,double >(rThisVariable);
         return true;
     }
 
-    bool SynchronizeVariable(Variable<Matrix> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<array_1d<double, 6 > > const& rThisVariable) override
     {
-        SynchronizeVariable<Matrix,double>(ThisVariable);
+        SynchronizeVariable<array_1d<double, 6 >,double >(rThisVariable);
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<int> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<array_1d<double, 9 > > const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<int,int>(ThisVariable);
+        SynchronizeVariable<array_1d<double, 9 >,double >(rThisVariable);
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<double> const& ThisVariable) override
+    bool SynchronizeVariable(Variable<Vector> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<double,double>(ThisVariable);
+        SynchronizeVariable<Vector,double>(rThisVariable);
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& ThisVariable) override
+    bool SynchronizeVariable(Variable<Matrix> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<array_1d<double, 3 >,double>(ThisVariable);
+        SynchronizeVariable<Matrix,double>(rThisVariable);
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<Vector> const& ThisVariable) override
+    bool SynchronizeNonHistoricalVariable(Variable<int> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<Vector,double>(ThisVariable);
+        SynchronizeNonHistoricalVariable<int,int>(rThisVariable);
         return true;
     }
 
-    bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& ThisVariable) override
+    bool SynchronizeNonHistoricalVariable(Variable<double> const& rThisVariable) override
     {
-        SynchronizeNonHistoricalVariable<Matrix,double>(ThisVariable);
+        SynchronizeNonHistoricalVariable<double,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 3 > > const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<array_1d<double, 3 >,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 4 > > const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<array_1d<double, 4 >,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 6 > > const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<array_1d<double, 6 >,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<array_1d<double, 9 > > const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<array_1d<double, 9 >,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Vector> const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<Vector,double>(rThisVariable);
+        return true;
+    }
+
+    bool SynchronizeNonHistoricalVariable(Variable<Matrix> const& rThisVariable) override
+    {
+        SynchronizeNonHistoricalVariable<Matrix,double>(rThisVariable);
         return true;
     }
 

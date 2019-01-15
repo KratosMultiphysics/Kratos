@@ -236,7 +236,7 @@ class PostUtils(object):
                     self.previous_time = self.spheres_model_part.ProcessInfo.GetValue(TIME)
                     self.previous_vector_of_inner_nodes = vector_of_inner_nodes
 
-                absolute_path_to_file = os.path.join(graphs_path, filename)
+                absolute_path_to_file = os.path.join(graphs_path, file_name)
                 f = open(absolute_path_to_file, 'a')
                 tmp = str(time_dem) + "   " + str(average_velocity[0]) + "   " + str(average_velocity[1]) + "   " + str(average_velocity[2])
                 if compute_flow:
@@ -958,7 +958,7 @@ class DEMFEMProcedures(object):
         self.domain_size = self.DEM_parameters["Dimension"].GetInt()
         evaluate_computation_of_fem_results()
 
-    def MoveAllMeshes(self, all_model_parts, time, dt):
+    def MoveAllMeshes(self, all_model_parts, time, dt): # TODO: deprecated
 
         spheres_model_part = all_model_parts.Get("SpheresPart")
         DEM_inlet_model_part = all_model_parts.Get("DEMInletPart")
@@ -1035,7 +1035,7 @@ class DEMFEMProcedures(object):
 
     def close_balls_graph_files(self, spheres_model_part):
 
-        for mesh_number in range(0, self.spheres_model_part.NumberOfSubModelParts()):
+        for smp in self.spheres_model_part.SubModelParts:
             if smp[FORCE_INTEGRATION_GROUP]:
                 identifier = smp[IDENTIFIER]
                 self.particle_graph_forces[identifier].close()
@@ -1089,12 +1089,12 @@ class DEMFEMProcedures(object):
 
     def FinalizeGraphs(self, RigidFace_model_part):
 
-        if not "TestType" in self.DEM_parameters.keys():
+        if self.TestType == "None":
             self.close_graph_files(RigidFace_model_part)
 
     def PrintBallsGraph(self, time):
 
-        if not "TestType" in self.DEM_parameters.keys():
+        if self.TestType == "None":
 
             if self.balls_graph_counter == self.graph_frequency:
                 self.balls_graph_counter = 0
@@ -1118,7 +1118,7 @@ class DEMFEMProcedures(object):
 
     def FinalizeBallsGraphs(self, spheres_model_part):
 
-        if not "TestType" in self.DEM_parameters.keys():
+        if self.TestType == "None":
             self.close_balls_graph_files(spheres_model_part)
 
     def ApplyNodalRotation(self, time):
@@ -1679,20 +1679,19 @@ class DEMIo(object):
         self.post_utility.AddSpheresNotBelongingToClustersToMixModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, self.spheres_model_part)
         self.post_utility.AddModelPartToModelPart(self.mixed_spheres_not_in_cluster_and_clusters_model_part, self.cluster_model_part)
 
-
     def InitializeMesh(self, all_model_parts):
         if self.filesystem == MultiFileFlag.SingleFile:
             self.AddModelPartsToMixedModelPart()
             self.gid_io.InitializeMesh(0.0)
-            self.gid_io.WriteMesh(rigid_face_model_part.GetCommunicator().LocalMesh())
-            self.gid_io.WriteClusterMesh(cluster_model_part.GetCommunicator().LocalMesh())
+            self.gid_io.WriteMesh(all_model_parts.Get("RigidFacePart").GetCommunicator().LocalMesh())
+            self.gid_io.WriteClusterMesh(all_model_parts.Get("ClusterPart").GetCommunicator().LocalMesh())
             if self.DEM_parameters["ElementType"].GetString() == "CylinderContPartDEMElement2D":
-                self.gid_io.WriteCircleMesh(spheres_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteCircleMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
             else:
-                self.gid_io.WriteSphereMesh(spheres_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteSphereMesh(all_model_parts.Get("SpheresPart").GetCommunicator().LocalMesh())
 
             if self.contact_mesh_option:
-                self.gid_io.WriteMesh(contact_model_part.GetCommunicator().LocalMesh())
+                self.gid_io.WriteMesh(all_model_parts.Get("ContactPart").GetCommunicator().LocalMesh())
 
             self.gid_io.FinalizeMesh()
             self.gid_io.InitializeResults(0.0, self.mixed_model_part.GetCommunicator().LocalMesh())

@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
+//  Main authors:    Riccardo Rossi
 //
 //
 
@@ -16,6 +15,17 @@
 
 namespace Kratos {
 
+void Flags::save(Serializer& rSerializer) const
+{
+    rSerializer.save("IsDefined",  mIsDefined);
+    rSerializer.save("Flags",  mFlags);
+}
+
+void Flags::load(Serializer& rSerializer)
+{
+    rSerializer.load("IsDefined",  mIsDefined);
+    rSerializer.load("Flags",  mFlags);
+}
 
 Flags operator|(const Flags& Left, const Flags& Right )
 {

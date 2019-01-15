@@ -7,6 +7,7 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 ## Kratos main source code
 set( KRATOS_CORE_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/containers/flags.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/exact_mortar_segmentation_utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/global_variables.cpp;
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/deprecated_variables.cpp;
@@ -55,6 +56,7 @@ set( KRATOS_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/reorder_and_optimize_modelpart_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/compute_nodal_gradient_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/find_nodal_h_process.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/processes/calculate_nodal_area_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/skin_detection_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/processes/replace_elements_and_condition_process.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/bounding_volume_tree.cpp;

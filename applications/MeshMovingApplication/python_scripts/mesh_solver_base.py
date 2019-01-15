@@ -3,15 +3,8 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Import applications
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-
 # Other imports
-from python_solver import PythonSolver
-
-
-def CreateSolver(mesh_model_part, custom_settings):
-    return MeshSolverBase(mesh_model_part, custom_settings)
+from KratosMultiphysics.python_solver import PythonSolver
 
 
 class MeshSolverBase(PythonSolver):

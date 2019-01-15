@@ -225,6 +225,20 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Function to visualize the divergence field
+
+    /**
+     * @brief Get the Value On Integration Points object (used to visualize the divergence field)
+     *
+     * @param rVariable Variable to be retrieved (implementation supports DIVERGENCE)
+     * @param rValues Vector for the values at the Gauss integration points
+     * @param rCurrentProcessInfo ProcessInfo object
+     */
+    void GetValueOnIntegrationPoints(   const Variable<double> &rVariable,
+                                        std::vector<double> &rValues,
+                                        const ProcessInfo &rCurrentProcessInfo ) override;
+
+
     ///@}
     ///@name Friends
     ///@{
@@ -248,9 +262,9 @@ protected:
 
     /**
      * @brief Computes time integrated LHS and RHS arrays
-     * This method computes both the Left Hand Side and 
-     * Right Hand Side time integrated contributions. 
-     * @param rData Reference to the element data container 
+     * This method computes both the Left Hand Side and
+     * Right Hand Side time integrated contributions.
+     * @param rData Reference to the element data container
      * @param rLHS Reference to the Left Hand Side matrix to be filled
      * @param rRHS Reference to the Right Hand Side vector to be filled
      */
@@ -278,15 +292,6 @@ protected:
     void AddTimeIntegratedRHS(
         TElementData& rData,
         VectorType& rRHS) override;
-    
-    /**
-     * @brief Computes the material response
-     * This method computes the material response taking into account if the 
-     * element is air or fluid. The material response is saved in the data container.
-     * @param rData Reference to the element data container
-     */
-    void CalculateMaterialResponse(
-        TElementData& rData) const override;
 
     /**
      * @brief Computes the LHS Gauss pt. contribution
@@ -310,7 +315,7 @@ protected:
 
     /**
      * @brief Computes the pressure enrichment contributions
-     * This method computes the pressure enrichment contributions for 
+     * This method computes the pressure enrichment contributions for
      * a Gauss pt. in both the left hand side and righ hand side of the equations.
      * @param rData Reference to the element data container
      * @param rV Contribution related to the pressure enrichment DOFs in the N-S standard equations
@@ -324,6 +329,36 @@ protected:
 		MatrixType& rH,
 		MatrixType& rKee,
 		VectorType& rRHS_ee);
+
+    /// Set up the element's data and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX) const override;
+
+    /// Set up the element's data for a cut element and constitutive law for the current integration point.
+    /** @param[in/out] rData Container for the current element's data.
+     *  @param[in] Weight Integration point weight.
+     *  @param[in] rN Values of nodal shape functions at the integration point.
+     *  @param[in] rDN_DX Values of nodal shape function gradients at the integration point.
+     *  @param[in] rNenr Values of nodal enriched shape functions at the integration point.
+     *  @param[in] rDN_DXenr Values of nodal enriched shape functions gradients at the integration point.
+     */
+    void UpdateIntegrationPointData(
+        TElementData& rData,
+        unsigned int IntegrationPointIndex,
+        double Weight,
+        const typename TElementData::MatrixRowType& rN,
+        const typename TElementData::ShapeDerivativesType& rDN_DX,
+        const typename TElementData::MatrixRowType& rNenr,
+        const typename TElementData::ShapeDerivativesType& rDN_DXenr) const;
 
     ///@}
     ///@name Protected  Access
