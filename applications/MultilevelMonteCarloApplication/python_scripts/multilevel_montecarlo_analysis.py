@@ -64,7 +64,7 @@ class MultilevelMonteCarloAnalysis(AnalysisStage):
 
     def _GetSimulationName(self):
         return "Multilevel Monte Carlo Analysis"
-    
+
     '''Introduce here the stochasticity in the right hand side defining the forcing function and apply the stochastic contribute'''
     def ModifyInitialProperties(self):
         for node in self.model.GetModelPart("MLMCLaplacianModelPart").Nodes:
@@ -270,7 +270,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/SquareCoarse/ProjectParameters.json"
+    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
@@ -314,7 +314,7 @@ if __name__ == '__main__':
 
     compss: between different tasks you don't need compss_wait_on/get_value_from_remote, it's pycompss who handles everything automatically
     if the output of a task is given directly to the input of an other, pycompss handles everything
-    
+
     compss: set absolute path when launching with compss
 
     MmgProcess: need to use conditions in the model part to preserve the boundary conditions in the refinement process
