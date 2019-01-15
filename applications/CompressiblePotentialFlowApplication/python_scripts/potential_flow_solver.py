@@ -82,8 +82,6 @@ class PotentialSolver(PythonSolver):
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
-        print("Construction of LaplacianSolver finished")
-
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.NEGATIVE_POTENTIAL)
@@ -213,12 +211,9 @@ class PotentialSolver(PythonSolver):
 
             else:
                 raise Exception("other input options are not yet implemented")
-            print("Solving",self.settings["problem_type"].GetString() ,"case")
             current_buffer_size = self.main_model_part.GetBufferSize()
             if(self.GetMinimumBufferSize() > current_buffer_size):
                 self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
-
-            print ("model reading finished")
 
     def GetMinimumBufferSize(self):
         return 2;
