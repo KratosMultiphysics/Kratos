@@ -433,7 +433,7 @@ public:
             //recover distance value
             GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value;
             for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++)
-                rOutput(i_node,i_dof) = (RHS(i_dof)-RHS_perturbated(i_dof))/delta;                
+                rOutput(i_node,i_dof) = -(RHS(i_dof)-RHS_perturbated(i_dof))/delta;                
             }
         KRATOS_CATCH("")
     }
@@ -684,139 +684,6 @@ protected:
             else
                 split_element_values[NumNodes+i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
         }
-    }
-
-    void ComputeVelocity(array_1d<double,Dim>& velocity)
-    {
-        velocity.clear();
-
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (this->IsNot(MARKER) && active == true)
-            ComputeVelocityNormalElement(velocity);
-        else if (active == true && this->Is(MARKER))
-            ComputeVelocityUpperWakeElement(velocity);
-    }
-
-    void ComputeVelocityNormalElement(array_1d<double,Dim>& velocity)
-    {
-        ElementalData<NumNodes, Dim> data;
-        for (unsigned int i = 0; i < NumNodes; i++)
-            data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
-
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);    
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-            
-    }
-
-    void ComputeVelocityUpperWakeElement(array_1d<double,Dim>& velocity)
-    {
-
-        array_1d<double, NumNodes> distances;
-        ElementalData<NumNodes, Dim> data;
-        GetWakeDistances(distances);
-
-        //taking only positive part
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            if (distances[i] > 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
-            else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
-        }            
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-    }
-
-    void ComputeVelocityLowerWakeElement(array_1d<double,Dim>& velocity)
-    {
-        ElementalData<NumNodes, Dim> data;
-
-        array_1d<double, NumNodes> distances;
-        GetWakeDistances(distances);
-
-        //taking only negative part
-        for (unsigned int i = 0; i < NumNodes; i++)
-        {
-            if (distances[i] < 0)
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
-            else
-                data.phis[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
-        }
-
-        GeometryUtils::CalculateGeometryData(GetGeometry(), data.DN_DX, data.N, data.vol);
-
-        noalias(velocity) = prod(trans(data.DN_DX), data.phis);
-
-    }
-
-    void CheckWakeCondition()
-    {
-        array_1d<double, Dim> upper_wake_velocity;
-        ComputeVelocityUpperWakeElement(upper_wake_velocity);
-        const double vupnorm = inner_prod(upper_wake_velocity, upper_wake_velocity);
-
-        array_1d<double, Dim> lower_wake_velocity;
-        ComputeVelocityLowerWakeElement(lower_wake_velocity);
-        const double vlownorm = inner_prod(lower_wake_velocity, lower_wake_velocity);
-
-        if (std::abs(vupnorm - vlownorm) > 0.1)
-            std::cout << "WAKE CONDITION NOT FULFILLED IN ELEMENT # " << this->Id()<<"    " <<std::abs(vupnorm - vlownorm)<< std::endl;
-    }
-
-    double ComputePressure(const ProcessInfo& rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-
-        bool active = true;
-        if ((this)->IsDefined(ACTIVE))
-            active = (this)->Is(ACTIVE);
-
-        if (active && !this->Is(MARKER))
-            pressure = ComputePressureNormalElement(rCurrentProcessInfo);
-        else if (active == true && this->Is(MARKER))
-            pressure = ComputePressureWakeElement(rCurrentProcessInfo);
-
-        return pressure;
-    }
-
-    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-        KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-            << "Error on element -> " << this->Id() << "\n"
-            << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-        array_1d<double, Dim> v;
-        ComputeVelocityNormalElement(v);
-
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-        return pressure;
-    }
-
-    double ComputePressureWakeElement(const ProcessInfo& rCurrentProcessInfo)
-    {
-        double pressure = 0.0;
-        const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
-        const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
-
-        KRATOS_ERROR_IF(vinfinity_norm2 < std::numeric_limits<double>::epsilon())
-            << "Error on element -> " << this->Id() << "\n"
-            << "vinfinity_norm2 must be larger than zero." << std::endl;
-
-        array_1d<double, Dim> v;
-        ComputeVelocityLowerWakeElement(v);
-
-        pressure = (vinfinity_norm2 - inner_prod(v, v)) / vinfinity_norm2; //0.5*(norm_2(vinfinity) - norm_2(v));
-
-        return pressure;
     }
 
     ///@}

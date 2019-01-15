@@ -90,7 +90,8 @@ class PotentialAdjointSolver(PotentialSolver):
         super(PotentialAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
         for node in self.main_model_part.Nodes:
-            print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
+            if not (node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)==0.0):
+                print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()

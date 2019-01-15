@@ -246,9 +246,6 @@ namespace Kratos
 
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
                 noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
-                KRATOS_WATCH(adjoint_vector[k])
-                KRATOS_WATCH(sensitivity_vector[k])
-                KRATOS_WATCH(sensitivity_matrix[k])
             }
 
             if(response_gradient[k].size() > 0)

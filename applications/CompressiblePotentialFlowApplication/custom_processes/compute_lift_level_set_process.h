@@ -96,7 +96,9 @@ public:
     void Execute() override
     {
         KRATOS_TRY;
-        double Cl,Cd,Rz;
+        double Cl=0;
+        double Cd=0;
+        double Rz=0;
 
         for(auto it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); ++it)
         {
