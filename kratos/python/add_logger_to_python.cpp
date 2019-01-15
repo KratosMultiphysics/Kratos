@@ -140,6 +140,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, return_value_policy::reference); //_internal )
+    logger_scope.def_static("AddOutput", &Logger::AddOutput);
     ;
 
     // Enums for Severity

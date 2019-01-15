@@ -171,9 +171,8 @@ public:
 
             if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
             {
-                std::cout << "CONVERGENCE CHECK:" << std::endl;
-                std::cout << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
-                std::cout << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
+                KRATOS_INFO("Convergence Criteria") << " VELOC.: ratio = " << VelRatio <<"; exp.ratio = " << mVelRatioTolerance << " abs = " << VelAbs << " exp.abs = " << mVelAbsTolerance << std::endl;
+                KRATOS_INFO("Convergence Criteria") << " PRESS.: ratio = " << PrRatio <<"; exp.ratio = " << mPrRatioTolerance << " abs = " << PrAbs << " exp.abs = " << mPrAbsTolerance << std::endl;
             }
 
             if (    (VelRatio <= mVelRatioTolerance || VelAbs <= mVelAbsTolerance) &&
@@ -181,7 +180,7 @@ public:
             {
                 if (rModelPart.GetCommunicator().MyPID() == 0 && this->GetEchoLevel() > 0)
                 {
-                    std::cout << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
+                    KRATOS_INFO("Convergence Criteria") << "*** CONVERGENCE IS ACHIEVED ***" << std::endl;
                 }
                 return true;
             }

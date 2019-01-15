@@ -121,6 +121,14 @@ namespace Kratos {
           Scheme<TSparseSpace, TDenseSpace>(),
           mRotationTool(DomainSize,DomainSize+1,rSlipVar,0.0) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
         {}
+        /* Constructor withou a Turbulence model and using a flag instead of a variable*/
+        ResidualBasedPredictorCorrectorBDFSchemeTurbulent(
+            unsigned int DomainSize,
+            Flags& rSlipFlag)
+            :
+            Scheme<TSparseSpace, TDenseSpace>(),
+            mRotationTool(DomainSize, DomainSize + 1, rSlipFlag) // Second argument is number of matrix rows per node: monolithic elements have velocity and pressure dofs.
+        {}
 
         /** Constructor with a turbulence model
          */
