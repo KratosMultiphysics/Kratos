@@ -152,8 +152,8 @@ protected:
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
@@ -162,7 +162,7 @@ protected:
         const Vector& N,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
@@ -170,7 +170,7 @@ protected:
         const array_1d<double, 3>& Normal,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

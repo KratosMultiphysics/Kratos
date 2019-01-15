@@ -154,36 +154,6 @@ public:
         ) const override;
 
     /**
-     * Called to initialize the element.
-     * Must be called before any calculation is done
-     */
-    void Initialize(const ProcessInfo rCurrentProcessInfo) override;
-
-    /**
-     * Called at the beginning of each solution step
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * This is called for non-linear analysis at the beginning of the iteration process
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
-     * Called at the end of eahc solution step
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation id
      * @param rCurrentProcessInfo The current process info instance
@@ -304,7 +274,10 @@ public:
     /**
      * Check if Rotational Dof existant
      */
-    virtual bool HasRotDof() const {return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);};
+    virtual bool HasRotDof() const
+    {
+        return (GetGeometry()[0].HasDofFor(ROTATION_X) && GetGeometry().size() == 2);
+    }
 
     unsigned int GetBlockSize() const
     {
@@ -401,7 +374,7 @@ protected:
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const SizeType PointNumber,
         const double detJ
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

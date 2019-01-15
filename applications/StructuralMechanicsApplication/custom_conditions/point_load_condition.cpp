@@ -69,8 +69,8 @@ namespace Kratos
     void PointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
@@ -130,7 +130,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double PointLoadCondition::GetPointLoadIntegrationWeight()
+    double PointLoadCondition::GetPointLoadIntegrationWeight() const
     {
         return 1.0;
     }

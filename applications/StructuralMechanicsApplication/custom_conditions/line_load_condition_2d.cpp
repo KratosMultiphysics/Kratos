@@ -79,8 +79,8 @@ namespace Kratos
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY;
@@ -239,7 +239,7 @@ namespace Kratos
         const Vector& N,
         const double Pressure,
         const double IntegrationWeight
-        )
+        ) const
     {
         KRATOS_TRY
 
@@ -282,7 +282,7 @@ namespace Kratos
         const array_1d<double, 3>& Normal,
         double Pressure,
         double IntegrationWeight
-        )
+        ) const
     {
         const unsigned int number_of_nodes = GetGeometry().size();
         const unsigned int block_size = this->GetBlockSize();

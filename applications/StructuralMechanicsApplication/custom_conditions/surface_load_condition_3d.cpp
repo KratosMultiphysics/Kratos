@@ -94,7 +94,7 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
     const Vector& rN,
     const double Pressure,
     const double Weight
-    )
+    ) const
 {
     KRATOS_TRY
 
@@ -132,7 +132,7 @@ void SurfaceLoadCondition3D::CalculateAndSubKp(
 void SurfaceLoadCondition3D::MakeCrossMatrix(
     BoundedMatrix<double, 3, 3>& rM,
     const array_1d<double, 3>& rU
-    )
+    ) const
 {
     rM(0, 0) = 0.0;
     rM(0, 1) = -rU[2];
@@ -155,7 +155,7 @@ void SurfaceLoadCondition3D::CalculateAndAddPressureForce(
     const double Pressure,
     const double Weight,
     const ProcessInfo& rCurrentProcessInfo
-    )
+    ) const
 {
     KRATOS_TRY;
 

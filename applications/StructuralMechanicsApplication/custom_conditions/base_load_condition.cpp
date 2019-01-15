@@ -86,46 +86,6 @@ Condition::Pointer BaseLoadCondition::Clone (
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseLoadCondition::Initialize( const ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void BaseLoadCondition::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
-{
-    // TODO: Add somethig if necessary
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseLoadCondition::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo
@@ -331,8 +291,8 @@ void BaseLoadCondition::CalculateDampingMatrix(
 void BaseLoadCondition::CalculateAll(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
-    bool CalculateStiffnessMatrixFlag,
-    bool CalculateResidualVectorFlag
+    const bool CalculateStiffnessMatrixFlag,
+    const bool CalculateResidualVectorFlag
     )
 {
     KRATOS_ERROR << "You are calling the CalculateAll from the base class for loads" << std::endl;
@@ -350,14 +310,12 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    for ( SizeType i = 0; i < number_of_nodes; ++i ) {
-        const NodeType &rnode = this->GetGeometry()[i];
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+    for (const auto& r_node : this->GetGeometry().Points()) {
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, rnode)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y, r_node)
+        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z, r_node)
     }
 
     return 0;
@@ -370,7 +328,7 @@ double BaseLoadCondition::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const SizeType PointNumber,
     const double detJ
-    )
+    ) const
 {
     return IntegrationPoints[PointNumber].Weight() * detJ;
 }

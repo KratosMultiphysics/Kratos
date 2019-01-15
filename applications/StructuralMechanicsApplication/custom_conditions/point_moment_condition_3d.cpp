@@ -153,8 +153,8 @@ namespace Kratos
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
@@ -208,7 +208,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double PointMomentCondition3D::GetPointMomentIntegrationWeight()
+    double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
     {
         return 1.0;
     }
@@ -220,7 +220,7 @@ namespace Kratos
     {
         KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 
-        const auto& r_node =this->GetGeometry()[0];
+        const auto& r_node = this->GetGeometry()[0];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);

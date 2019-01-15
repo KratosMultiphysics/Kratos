@@ -17,7 +17,9 @@
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "includes/convection_diffusion_settings.h"
-#include "convection_diffusion_application_variables.h"
+
+// Application includes
+#include "convection_diffusion_application.h"
 
 
 namespace Kratos

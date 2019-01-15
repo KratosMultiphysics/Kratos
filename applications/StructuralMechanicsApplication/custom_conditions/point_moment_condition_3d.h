@@ -208,7 +208,7 @@ protected:
     /**
      * It calcules the integration weight for the point moment
      */
-    virtual double GetPointMomentIntegrationWeight();
+    virtual double GetPointMomentIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access
