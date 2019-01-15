@@ -5,6 +5,7 @@ def GetDefaultInputParameters():
 
     default_settings = KratosMultiphysics.Parameters("""
         {
+            "do_print_results_option"          : true,
             "Dimension"                        : 3,
             "PeriodicDomainOption"             : false,
             "BoundingBoxOption"                : false,
@@ -49,6 +50,28 @@ def GetDefaultInputParameters():
                 "start_time"    : 0.0,
                 "end_time"      : 1
             },
+            "_json_output_process"  : [{
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "output_file_name"     : "candelier_results.json",
+                "model_part_name"      : "CandelierDEM",
+                "time_frequency"       : 1
+            }
+            }],
+            "print_output_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "FromJsonCheckResultProcess",
+            "Parameters"      : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "candelier_errors.json",
+                "model_part_name"      : "SpheresPart",
+                "time_frequency"       : 1
+            }
+            }],
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
             "CoordinationNumber"               : 10,
