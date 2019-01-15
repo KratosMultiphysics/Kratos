@@ -310,7 +310,6 @@ int BaseLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT)
 
     // Check that the condition's nodes contain all required SolutionStepData and Degrees of freedom
-    const SizeType number_of_nodes = this->GetGeometry().size();
     for (const auto& r_node : this->GetGeometry().Points()) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
