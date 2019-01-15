@@ -508,7 +508,7 @@ class Solution(object):
         message += '\nPlease call \'_BeforeSolveOperations\' instead.'
         message += '\nThe deprecated version will be removed after 02/28/2019.\n'
         Logger.PrintWarning("main_script.py", message)
-        self._BeforeSolveOperations(self, time)
+        self._BeforeSolveOperations(time)
 
     def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
