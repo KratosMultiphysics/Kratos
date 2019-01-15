@@ -704,7 +704,7 @@ protected:
     /**
      * @brief This method returns if the element provides the strain
      */
-    virtual bool UseElementProvidedStrain();
+    virtual bool UseElementProvidedStrain() const;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -773,7 +773,7 @@ protected:
      * @param DeltaDisplacement The matrix containing the increment of displacements
      * @return DeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
+    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -790,7 +790,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame
@@ -807,7 +807,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This function computes the body force
@@ -832,7 +832,7 @@ protected:
         const Matrix& B,
         const Matrix& D,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
@@ -846,7 +846,7 @@ protected:
         const Matrix& DN_DX,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the RHS
@@ -864,7 +864,7 @@ protected:
         const Vector& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This function add the external force contribution
@@ -880,7 +880,7 @@ protected:
         const Vector& rBodyForce,
         VectorType& rRightHandSideVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This functions computes the integration weight to consider
@@ -892,14 +892,14 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        );
+        ) const;
 
     /**
     * @brief This function computes the shape gradient of mass matrix
     * @param rMassMatrix The mass matrix
     * @param Deriv The shape parameter
     */
-    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
     ///@}
     ///@name Protected  Access
@@ -933,7 +933,7 @@ private:
      * @brief This method computes directly the lumped mass vector
      * @param rMassMatrix The lumped mass vector
      */
-    void CalculateLumpedMassVector(VectorType& rMassVector);
+    void CalculateLumpedMassVector(VectorType& rMassVector) const;
 
     /**
      * @brief This method computes directly the lumped mass matrix

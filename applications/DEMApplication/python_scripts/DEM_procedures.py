@@ -764,7 +764,7 @@ class Procedures(object):
 
 
     @classmethod
-    def CreateDirectories(self, main_path, problem_name, run_code=''):
+    def CreateDirectories(self, main_path, problem_name, run_code='', do_print_results=True):
 
         root = os.path.join(main_path, problem_name)
         post_path = root + '_Post_Files' + run_code
@@ -774,9 +774,10 @@ class Procedures(object):
 
         self.RemoveFoldersWithResults(main_path, problem_name, run_code)
 
-        for directory in [post_path, data_and_results, graphs_path, MPI_results]:
-            if not os.path.isdir(directory):
-                os.makedirs(str(directory))
+        if do_print_results:
+            for directory in [post_path, data_and_results, graphs_path, MPI_results]:
+                if not os.path.isdir(directory):
+                    os.makedirs(str(directory))
 
         return [post_path, data_and_results, graphs_path, MPI_results]
 

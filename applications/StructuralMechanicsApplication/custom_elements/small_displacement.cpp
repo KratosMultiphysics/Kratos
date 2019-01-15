@@ -65,7 +65,7 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SmallDisplacement::UseElementProvidedStrain()
+bool SmallDisplacement::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -235,7 +235,7 @@ void SmallDisplacement::CalculateB(
     const Matrix& rDN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -271,7 +271,7 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor)
+Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     Matrix F(dim,dim);

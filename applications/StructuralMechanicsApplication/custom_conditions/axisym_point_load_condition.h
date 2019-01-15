@@ -158,7 +158,7 @@ private:
      /**
      * It calcules the integration load for the point load
      */
-    double GetPointLoadIntegrationWeight() override;
+    double GetPointLoadIntegrationWeight() const override;
 
     ///@}
     ///@name Private  Access
