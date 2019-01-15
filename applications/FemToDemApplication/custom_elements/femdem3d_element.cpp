@@ -1252,6 +1252,9 @@ void FemDem3DElement::IntegrateStressDamageMechanics(
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(rThreshold, rDamage, 
 			rStressVector, Edge, Length, rIsDamaging);
+	} else if (yield_surface == "Elastic") {
+		this->ElasticLaw(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << "Yield Surface not defined "<< std::endl;
 	}
@@ -1532,6 +1535,21 @@ void FemDem3DElement::RankineFragileLaw(
 		rThreshold = uniaxial_stress;
 		rIsDamaging = true;
 	}
+}
+
+void FemDem3DElement::RankineFragileLaw(
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &rStressVector, 
+	const int Edge, 
+	const double Length,
+	bool& rIsDamaging
+	)
+{
+	rDamage = 0.0;
+	if (rThreshold < tolerance) {
+		rThreshold = c_max;
+	} // 1st iteration sets threshold as c_max
 }
 
 void FemDem3DElement::CalculateExponentialDamage(
