@@ -162,39 +162,6 @@ class DofUpdater
     }
   }
 
-  /// Adding solution to varibles scalar value pointer
-  virtual void AddSolution(std::vector<DataType*>& ValueArray, const std::vector<int>& IndexArray, const SystemVectorType& rDx)
-  {
-    const int index_size = static_cast<int>(IndexArray.size());
-
-    DataType* values = new DataType(index_size);
-    TSparseSpace::GatherValues(rDx, IndexArray, values);
-
-#pragma omp parallel for
-    for(int i = 0;  i < index_size; ++i)
-    {
-      *(ValueArray[i]) += values[i];
-    }
-
-    delete [] values;
-  }
-
-  /// Inserting solution to varibles scalar value pointer
-  virtual void SetSolution(std::vector<DataType*>& ValueArray, const std::vector<int>& IndexArray, const SystemVectorType& rDx)
-  {
-    const int index_size = static_cast<int>(IndexArray.size());
-
-    DataType* values = new DataType(index_size);
-    TSparseSpace::GatherValues(rDx, IndexArray, values);
-
-#pragma omp parallel for
-    for(int i = 0;  i < index_size; ++i)
-    {
-      *(ValueArray[i]) = values[i];
-    }
-
-    delete [] values;
-  }
 
   ///@}
   ///@name Input and output
