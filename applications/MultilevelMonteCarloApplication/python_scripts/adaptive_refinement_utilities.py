@@ -40,6 +40,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     metric_param = KratosMultiphysics.Parameters(
         """{
             "hessian_strategy_parameters"              :{
+                    "metric_variable"                  : ["TEMPERATURE"],
                     "estimate_interpolation_error"     : false,
                     "interpolation_error"              : 0.004
             },
@@ -59,7 +60,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
 
     local_gradient = MeshingApplication.ComputeHessianSolMetricProcess2D(simulation_coarse._GetSolver().main_model_part, KratosMultiphysics.TEMPERATURE, metric_param)
     local_gradient.Execute()
-    
+
     '''create the remeshing process: echo_level: 0 for no output at all, 3 for standard output'''
     remesh_param = KratosMultiphysics.Parameters(
         """{
@@ -67,7 +68,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
             )
     MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
     MmgProcess.Execute()
-    
+
     '''the refinement process empties the coarse model part object and fill it with the refined model part
     the solution on the refined grid is obtained from the interpolation of the coarse solution
     there are not other operations, so to build the new model we just need to take the updated coarse model'''
