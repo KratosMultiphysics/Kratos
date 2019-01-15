@@ -4229,20 +4229,11 @@ class Benchmark40: # multiple benchmarks for general code verification.
         pass
 
     def set_initial_data(self, modelpart, rigid_face_model_part, iteration, number_of_points_in_the_graphic, coeff_of_restitution_iteration):
+        pass
 
-        for i in range(self.number_of_FEM_benchmarks):
-            self.rigid_i  = open("benchmark" + str(sys.argv[1]) + "_rigid_graph%s.dat" % i, 'w')
-
-        for i in range(self.number_of_DEM_benchmarks):
-            self.i  = open("benchmark" + str(sys.argv[1]) + "_graph%s.dat" % i, 'w')
 
     def get_final_data(self, modelpart, rigid_face_model_part, cluster_model_part):
-
-        for i in range(self.number_of_DEM_benchmarks):
-            self.i.close()
-
-        for i in range(self.number_of_FEM_benchmarks):
-            self.rigid_i.close()
+        pass
 
 
     def generate_graph_points(self, modelpart, rigid_face_model_part, cluster_model_part, time, graph_print_interval, dt):
