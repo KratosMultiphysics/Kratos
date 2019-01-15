@@ -501,6 +501,15 @@ class Solution(object):
     def InitializeTimeStep(self):
         pass
 
+    #TODO: deprecated
+    def BeforeSolveOperations(self, time):
+        message = 'Warning!'
+        message += '\nFunction \'BeforeSolveOperations\' is deprecated.'
+        message += '\nPlease call \'_BeforeSolveOperations\' instead.'
+        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
+        Logger.PrintWarning("main_script.py", message)
+        self._BeforeSolveOperations(self, time)
+
     def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
@@ -610,7 +619,16 @@ class Solution(object):
         self.time = 0.0
         self.time_old_print = 0.0
 
+    #TODO: deprecated
     def UpdateTimeParameters(self):
+        message = 'Warning!'
+        message += '\nFunction \'UpdateTimeParameters\' is deprecated.'
+        message += '\nPlease call \'_UpdateTimeParameters\' instead.'
+        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
+        Logger.PrintWarning("main_script.py", message)
+        self._UpdateTimeParameters()
+
+    def _UpdateTimeParameters(self):
         self.InitializeTimeStep()
         self.time = self.time + self.solver.dt
         self.step += 1
