@@ -54,7 +54,6 @@ class MultValueNoAdd
   }
 
   // The function call for the element to be multiplied
-
   inline Type operator () (const Type& elem) const
   {
     return elem * Factor;
@@ -658,6 +657,38 @@ class UblasSpace
   inline static TDataType GetValue(const VectorType& x, std::size_t I)
   {
     return x[I];
+  }
+
+  static void AddGatheredValues(const VectorType& rDx, const std::vector<int>& IndexArray, std::vector<DataType*>& ValueArray)
+  {
+    const int index_size = static_cast<int>(IndexArray.size());
+
+    DataType* values = new DataType(index_size);
+    GatherValues(rDx, IndexArray, values);
+
+#pragma omp parallel for
+    for(int i = 0;  i < index_size; ++i)
+    {
+      *(ValueArray[i]) += values[i];
+    }
+
+    delete [] values;
+  }
+
+  static void SetGatheredValues(const VectorType& rDx, const std::vector<int>& IndexArray, std::vector<DataType*>& ValueArray)
+  {
+    const int index_size = static_cast<int>(IndexArray.size());
+
+    DataType* values = new DataType(index_size);
+    GatherValues(rDx, IndexArray, values);
+
+#pragma omp parallel for
+    for(int i = 0;  i < index_size; ++i)
+    {
+      *(ValueArray[i]) = values[i];
+    }
+
+    delete [] values;
   }
 
   static void GatherValues(const VectorType& x, const std::vector<int>& IndexArray, DataType* pValues)
