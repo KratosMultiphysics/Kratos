@@ -56,7 +56,7 @@ class MonteCarloAnalysis(AnalysisStage):
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
         return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-    
+
     def _GetSimulationName(self):
         return "Monte Carlo Analysis"
 
@@ -185,7 +185,7 @@ def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, m
     simulation_coarse.Run()
     QoI =  EvaluateQuantityOfInterest(simulation_coarse)
     '''refine'''
-    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)    
+    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)
     '''initialize'''
     simulation = MonteCarloAnalysis(model_refined,parameters_refinement,sample)
     simulation.Initialize()
@@ -260,14 +260,14 @@ if __name__ == '__main__':
     if len(argv) == 2: # ProjectParameters is being passed from outside
         parameter_file_name = argv[1]
     else: # using default name
-        parameter_file_name = "../tests/SquareCoarse/ProjectParameters.json"
+        parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     print("\n############## Serialization completed ##############\n")
 
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactMonteCarlo_Task(pickled_model,pickled_parameters) 
+    ExactExpectedValueQoI = ExecuteExactMonteCarlo_Task(pickled_model,pickled_parameters)
 
     number_samples = 10
 
