@@ -268,10 +268,11 @@ class Algorithm(object):
         Add("body_force_per_unit_mass_variable_name").SetString('BODY_FORCE')
 
     def SetDoSolveDEMVariable(self):
-        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
         if self.pp.CFD_DEM["flow_in_porous_DEM_medium_option"].GetBool():
-            self.do_solve_dem = False
+            self.pp.CFD_DEM["do_solve_dem"].SetBool(False)
+
+        self.do_solve_dem = self.pp.CFD_DEM["do_solve_dem"].GetBool()
 
     def SetCustomBetaParameters(self, custom_parameters):
         custom_parameters.ValidateAndAssignDefaults(self.pp.CFD_DEM)
@@ -323,8 +324,6 @@ class Algorithm(object):
         self.DispersePhaseInitialize()
 
         self.SetAllModelParts()
-
-        self.SetCutsOutput()
 
         self.swimming_DEM_gid_io = \
         swimming_DEM_gid_output.SwimmingDEMGiDOutput(
@@ -397,15 +396,19 @@ class Algorithm(object):
                 self.fluid_model_part,
                 self.spheres_model_part,
                 self.rigid_face_model_part,
-                self.pp,
-                flow_field=self.GetFieldUtility()
+                self.pp.CFD_DEM,
+                self.pp.coupling_dem_vars,
+                self.pp.coupling_fluid_vars,
+                self.pp.time_filtered_vars,
+                flow_field=self.GetFieldUtility(),
+                dimension=self.domain_size
                 )
 
             self.projection_module.UpdateDatabase(self.h_min)
 
         # creating a custom functions calculator for the implementation of
         # additional custom functions
-        self.custom_functions_tool = SDP.FunctionsCalculator(self.pp)
+        self.custom_functions_tool = SDP.FunctionsCalculator(self.domain_size)
 
         # creating a stationarity assessment tool
         self.stationarity_tool = SDP.StationarityAssessmentTool(
@@ -1003,11 +1006,6 @@ class Algorithm(object):
     def FinalizeDragOutput(self):
         for i in self.drag_file_output_list:
             i.close()
-
-    def SetCutsOutput(self):
-        if not self.pp.VolumeOutput:
-            cut_list = define_output.DefineCutPlanes()
-            self.swimming_DEM_gid_io.define_cuts(self.fluid_model_part, cut_list)
 
     def SetDragOutput(self):
         # define the drag computation list

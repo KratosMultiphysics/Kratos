@@ -437,7 +437,7 @@ class Solution(object):
 
             self.AfterSolveOperations()
 
-            self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+            self.solver.MoveAllMeshes(self.time, self.solver.dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -470,18 +470,18 @@ class Solution(object):
                     self.face_watcher_analysers[sp.Name].UpdateDataFiles(time)
                 self.FaceAnalyzerClass.RemoveOldFile()
 
-    def IsTimeToPrintPostProcess(self, time):
-        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (time - self.time_old_print) < 1e-2 * self.solver.dt
+    def IsTimeToPrintPostProcess(self):
+        return self.DEM_parameters["OutputTimeStep"].GetDouble() - (self.time - self.time_old_print) < 1e-2 * self.solver.dt
 
     def PrintResults(self):
         #### GiD IO ##########################################
-        if self.IsTimeToPrintPostProcess(self.time):
+        if self.IsTimeToPrintPostProcess():
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
 
     def UpdateTimeInModelParts(self):
-        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess(self.time))
+        self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
 
     def UpdateTimeInOneModelPart(self):
         pass
@@ -512,12 +512,12 @@ class Solution(object):
     def AfterSolveOperations(self):
         if self.post_normal_impact_velocity_option:
             self.particle_watcher.MakeMeasurements(self.analytic_model_part)
-            if self.IsTimeToPrintPostProcess(self.time):
+            if self.IsTimeToPrintPostProcess():
                 self.particle_watcher.SetNodalMaxImpactVelocities(self.analytic_model_part)
                 self.particle_watcher.SetNodalMaxFaceImpactVelocities(self.analytic_model_part)
 
         #Phantom Walls
-        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess(self.time))
+        self.RunAnalytics(self.time, self.IsTimeToPrintPostProcess())
 
     def FinalizeTimeStep(self, time):
         pass
@@ -625,7 +625,7 @@ class Solution(object):
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self.DEMFEMProcedures.MoveAllMeshes(self.all_model_parts, self.time, self.solver.dt)
+        self.solver.MoveAllMeshes(self.time, self.solver.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():

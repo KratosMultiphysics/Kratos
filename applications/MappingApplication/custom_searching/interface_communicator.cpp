@@ -32,16 +32,15 @@ typedef std::size_t SizeType;
 /***********************************************************************************/
 void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
                             const Kratos::Flags& rOptions,
-                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo,
-                            InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+                            const MapperInterfaceInfoUniquePointerType& rpInterfaceInfo)
 {
 
     mSearchRadius = mSearchSettings["search_radius"].GetDouble();
-    const IndexType max_search_iterations = mSearchSettings["search_iterations"].GetDouble();
+    const int max_search_iterations = mSearchSettings["search_iterations"].GetInt();
 
     const double increase_factor = 4.0;
-    IndexType num_iteration = 1;
-    InitializeSearch(rOptions, rpInterfaceInfo, InterfaceObjectTypeOrigin);
+    int num_iteration = 1;
+    InitializeSearch(rOptions, rpInterfaceInfo);
 
     // First Iteration is done outside the search loop bcs it has
     // to be done in any case
@@ -54,8 +53,8 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
     while (++num_iteration <= max_search_iterations && !AllNeighborsFound(rComm)) {
         mSearchRadius *= increase_factor;
 
-        KRATOS_WARNING_IF("Mapper", mEchoLevel >= 2 && rComm.MyPID() == 0)
-            << "search radius was increased, another search iteration is conducted | "
+        KRATOS_WARNING_IF("Mapper", mEchoLevel >= 1 && rComm.MyPID() == 0)
+            << "search radius was increased, another search iteration is conducted\n"
             << "search iteration " << num_iteration << " / "<< max_search_iterations << " | "
             << "search radius " << mSearchRadius << std::endl;
 
@@ -71,11 +70,10 @@ void InterfaceCommunicator::ExchangeInterfaceData(const Communicator& rComm,
 /* PROTECTED Methods */
 /***********************************************************************************/
 void InterfaceCommunicator::InitializeSearch(const Kratos::Flags& rOptions,
-                                    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+                                             const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     if (mpInterfaceObjectsOrigin == nullptr || rOptions.Is(MapperFlags::REMESHED)) {
-        CreateInterfaceObjectsOrigin(InterfaceObjectTypeOrigin);
+        CreateInterfaceObjectsOrigin(rpRefInterfaceInfo);
     }
     else {
         UpdateInterfaceObjectsOrigin();
@@ -94,7 +92,7 @@ void InterfaceCommunicator::FinalizeSearch()
 }
 
 void InterfaceCommunicator::InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+                                                      const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Creating the MapperInterfaceInfos
     mMapperInterfaceInfosContainer[0].clear();
@@ -151,11 +149,13 @@ void InterfaceCommunicator::AssignInterfaceInfos()
 /***********************************************************************************/
 /* PRIVATE Methods */
 /***********************************************************************************/
-void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+void InterfaceCommunicator::CreateInterfaceObjectsOrigin(const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     mpInterfaceObjectsOrigin = Kratos::make_unique<InterfaceObjectContainerType>();
 
-    if (InterfaceObjectTypeOrigin == InterfaceObject::ConstructionType::Node_Coords) {
+    const auto interface_obj_type = rpRefInterfaceInfo->GetInterfaceObjectType();
+
+    if (interface_obj_type == InterfaceObject::ConstructionType::Node_Coords) {
         const SizeType num_nodes = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfNodes();
         const auto nodes_begin = mrModelPartOrigin.GetCommunicator().LocalMesh().Nodes().ptr_begin();
 
@@ -168,7 +168,7 @@ void InterfaceCommunicator::CreateInterfaceObjectsOrigin(InterfaceObject::Constr
         }
     }
 
-    else if (InterfaceObjectTypeOrigin == InterfaceObject::ConstructionType::Geometry_Center) {
+    else if (interface_obj_type == InterfaceObject::ConstructionType::Geometry_Center) {
         const SizeType num_elements = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfElements();
         const SizeType num_conditions = mrModelPartOrigin.GetCommunicator().LocalMesh().NumberOfConditions();
 

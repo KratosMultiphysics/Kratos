@@ -119,7 +119,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         super(ALMContactProcess, self).__init__(Model, base_process_settings)
 
         # A check necessary for axisymmetric cases (the domain can not be 3D)
-        if (self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True) and (self.dimension == 3):
+        if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() and self.dimension == 3:
             raise NameError("3D and axisymmetric makes no sense")
 
         # Getting the normal variation flag
@@ -166,8 +166,8 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         super(ALMContactProcess, self).ExecuteInitializeSolutionStep()
 
         # Before computing we reset the flags of slip
-        if(self._get_if_is_interval() is True):
-            if (self.is_frictional is True):
+        if self._get_if_is_interval():
+            if self.is_frictional:
                 KM.VariableUtils().SetFlag(KM.SLIP, False, self._get_process_model_part().Nodes)
 
     def ExecuteFinalizeSolutionStep(self):
@@ -180,7 +180,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         super(ALMContactProcess, self).ExecuteFinalizeSolutionStep()
 
         # Debug we compute if the total load corresponds with the total contact force and the reactions
-        if self.settings["search_parameters"]["debug_mode"].GetBool() is True:
+        if self.settings["search_parameters"]["debug_mode"].GetBool():
             total_load = KM.Vector(3)
             total_load[0] = 0.0
             total_load[1] = 0.0
@@ -219,7 +219,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We call to the base process
         super(ALMContactProcess, self).ExecuteBeforeOutputStep()
 
-        if (self.contact_settings["clear_inactive_for_post"].GetBool()):
+        if self.contact_settings["clear_inactive_for_post"].GetBool():
             zero_vector = KM.Array3()
             zero_vector[0] = 0.0
             zero_vector[1] = 0.0
@@ -257,12 +257,12 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         # We define the condition name to be used
         if self.contact_settings["contact_type"].GetString() == "Frictionless":
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "ALMNVFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMNVFrictionlessMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "ALMFrictionlessAxisymMortarContact"
                 else:
                     condition_name = "ALMFrictionlessMortarContact"
@@ -271,14 +271,14 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
                 condition_name = "ALMNVFrictionlessComponentsMortarContact"
             else:
                 condition_name = "ALMFrictionlessComponentsMortarContact"
-        elif self.is_frictional is True:
+        elif self.is_frictional:
             if self.normal_variation == CSMA.NormalDerivativesComputation.NODAL_ELEMENTAL_DERIVATIVES:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "ALMNVFrictionalAxisymMortarContact"
                 else:
                     condition_name = "ALMNVFrictionalMortarContact"
             else:
-                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool() is True:
+                if self.contact_settings["alternative_formulations"]["axisymmetric"].GetBool():
                     condition_name = "ALMFrictionalAxisymMortarContact"
                 else:
                     condition_name = "ALMFrictionalMortarContact"
@@ -296,7 +296,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         super(ALMContactProcess, self)._get_final_string(key)
         # We compute the number of nodes of the conditions
         number_nodes, number_nodes_master = super(ALMContactProcess, self)._compute_number_nodes()
-        if (number_nodes != number_nodes_master):
+        if number_nodes != number_nodes_master:
             return str(number_nodes_master) + "N"
         else:
             return ""
@@ -344,7 +344,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         self.computing_model_part.Set(KM.CONTACT, True)
         self._get_process_model_part().Set(KM.CONTACT, True)
         # We consider frictional contact (We use the SLIP flag because was the easiest way)
-        if self.is_frictional is True:
+        if self.is_frictional:
             self.computing_model_part.Set(KM.SLIP, True)
             self._get_process_model_part().Set(KM.SLIP, True)
         else:
@@ -358,7 +358,7 @@ class ALMContactProcess(search_base_process.SearchBaseProcess):
         process_info[CSMA.CONSIDER_NORMAL_VARIATION] = self.normal_variation
 
         # We set the value that scales in the tangent direction the penalty and scale parameter
-        if self.is_frictional is True:
+        if self.is_frictional:
             process_info[KM.TANGENT_FACTOR] = self.contact_settings["tangent_factor"].GetDouble()
 
     def _initialize_problem_parameters(self):

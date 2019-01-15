@@ -12,7 +12,7 @@ class ExplicitStrategy(object):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
         # Initialization of member variables
-
+        self.all_model_parts = all_model_parts
         self.spheres_model_part = all_model_parts.Get("SpheresPart")
         self.inlet_model_part = all_model_parts.Get("DEMInletPart")
         self.fem_model_part = all_model_parts.Get("RigidFacePart")
@@ -20,6 +20,7 @@ class ExplicitStrategy(object):
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
+        self.mesh_motion = DEMFEMUtilities()
 
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
@@ -319,11 +320,40 @@ class ExplicitStrategy(object):
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
 
-    def AdvanceInTime(self, step, time):
+    def AdvanceInTime(self, step, time, is_time_to_print = False):
         step += 1
-        time = time + self.dt
-
+        time += self.dt
+        self.UpdateTimeInModelParts(time, step, is_time_to_print)
         return step, time
+
+    def MoveAllMeshes(self, time, dt):
+
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
+
+    def UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+
+        self.UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
+        self.UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
+
+    def UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
+        model_part.ProcessInfo[TIME] = time
+        model_part.ProcessInfo[DELTA_TIME] = self.dt
+        model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
 
     def FinalizeSolutionStep(self):
         pass
@@ -357,17 +387,20 @@ class ExplicitStrategy(object):
     def AddClusterVariables(self, spheres_model_part, DEM_parameters):
         pass
 
-    def AddDofs(self, spheres_model_part):
+    def AddDofs(self, spheres_model_part=None):
 
-        for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X)
-            node.AddDof(VELOCITY_Y)
-            node.AddDof(VELOCITY_Z)
-            node.AddDof(ANGULAR_VELOCITY_X)
-            node.AddDof(ANGULAR_VELOCITY_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z)
+        if spheres_model_part == None:
+            pass
+        else:
+            for node in spheres_model_part.Nodes:
+                node.AddDof(VELOCITY_X)
+                node.AddDof(VELOCITY_Y)
+                node.AddDof(VELOCITY_Z)
+                node.AddDof(ANGULAR_VELOCITY_X)
+                node.AddDof(ANGULAR_VELOCITY_Y)
+                node.AddDof(ANGULAR_VELOCITY_Z)
 
-        Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+            Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
@@ -585,3 +618,11 @@ class ExplicitStrategy(object):
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+    def ImportModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def PrepareModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def GetComputingModelPart(self):
+        return self.spheres_model_part

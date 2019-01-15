@@ -113,9 +113,6 @@ class DEMPFEMAnalysis(BaseAnalysis):
     def GetFirstStepForFluidComputation(self):
         return 1;
 
-    def SetCutsOutput(self):
-        pass
-
     def SetDragOutput(self):
         pass
 
