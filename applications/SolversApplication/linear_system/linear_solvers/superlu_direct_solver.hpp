@@ -7,7 +7,7 @@
 //
 //
 
-#if !defined(KRATOS_SUPERLU_DIRECT_SOLVER_H_INCLUDED )
+#if !defined(KRATOS_SUPERLU_DIRECT_SOLVER_H_INCLUDED)
 #define  KRATOS_SUPERLU_DIRECT_SOLVER_H_INCLUDED
 
 // System includes
@@ -310,6 +310,10 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
 
 }; // Class SuperLUDirectSolver
 
+///@}
+
+///@name Input and output
+///@{
 
 /// input stream function
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
@@ -331,7 +335,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
   return rOStream;
 }
-
+///@}
 
 }  // namespace Kratos.
 

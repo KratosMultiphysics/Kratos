@@ -62,7 +62,7 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
   SuperLUmtDirectSolver() {}
 
   /// Default constructor.
-  SuperLUmtDirectSolver(Parameters settings): BaseType(settings)
+  SuperLUmtDirectSolver(Parameters settings) : BaseType(settings)
   {
     KRATOS_TRY
 
@@ -291,6 +291,10 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
 
 }; // Class SuperLUmtDirectSolver
 
+///@}
+
+///@name Input and output
+///@{
 
 /// input stream function
 template<class TSparseSpaceType, class TDenseSpaceType,class TReordererType>
@@ -312,7 +316,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
   return rOStream;
 }
-
+///@}
 
 }  // namespace Kratos.
 
