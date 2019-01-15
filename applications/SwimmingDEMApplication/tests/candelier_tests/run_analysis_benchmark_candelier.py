@@ -11,9 +11,8 @@ import json
 import os
 
 import sys
-print(sys.path)
 
-from . import candelier_algorithm
+
 
 def PrintMessage(run_name, radial_error, tolerance):
         run_name += ': '
@@ -60,7 +59,7 @@ varying_parameters['FinalTime'] = 1
 def RunCase(varying_parameters, name):
     model = Model()
     parameters = Parameters(json.dumps(varying_parameters))
-    with script.Solution(model, candelier_algorithm, parameters) as test:
+    with candelier_analysis.CandelierBenchmarkAnalysis(model, parameters) as test:
         error_names.append(name)
         errors.append(test.Run())
 

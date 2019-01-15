@@ -3,8 +3,8 @@ import swimming_DEM_procedures as SDP
 import swimming_DEM_algorithm
 BaseAlgorithm = swimming_DEM_algorithm.Algorithm
 import math
-import chandelier as ch
-import chandelier_parameters as ch_pp
+import candelier_scripts.candelier as candelier
+import candelier.candelier_parameters as ch_pp
 
 def Cross(a, b):
     c0 = a[1]*b[2] - a[2]*b[1]
@@ -42,7 +42,7 @@ class Algorithm(BaseAlgorithm):
     def SetCustomBetaParameters(self, custom_parameters): # These are input parameters that have not yet been transferred to the interface
         BaseAlgorithm.SetCustomBetaParameters(self, custom_parameters)
         ch_pp.include_history_force = bool(self.pp.CFD_DEM["basset_force_type"].GetInt())
-        ch.sim = ch.AnalyticSimulator(ch_pp)
+        candelier.sim = candelier.AnalyticSimulator(ch_pp)
         self.frame_angular_vel = Vector([0, 0, self.pp.CFD_DEM["angular_velocity_of_frame_Z"].GetDouble()])
         self.is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
 
@@ -69,7 +69,7 @@ class Algorithm(BaseAlgorithm):
     def PerformZeroStepInitializations(self):
         # Impose initial velocity to be that of the fluid for the x/y-components
         # and the terminal velocity for the z-component
-        ch.sim.CalculateNonDimensionalVars()
+        candelier.sim.CalculateNonDimensionalVars()
         terminal_velocity_z = 2. / 9 * 9.81 * ch_pp.a ** 2 / (ch_pp.nu * ch_pp.rho_f) * (ch_pp.rho_f - ch_pp.rho_p)
 
         for node in self.spheres_model_part.Nodes:

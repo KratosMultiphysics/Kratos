@@ -399,23 +399,20 @@ void BaseShellElement::PrintData(std::ostream& rOStream) const {
   pGetGeometry()->PrintData(rOStream);
 }
 
-SizeType BaseShellElement::GetNumberOfDofs()
+SizeType BaseShellElement::GetNumberOfDofs() const
 {
     return ( 6 * GetGeometry().PointsNumber() ); // 6 dofs per node
 }
 
-SizeType BaseShellElement::GetNumberOfGPs()
+SizeType BaseShellElement::GetNumberOfGPs() const
 {
-    const auto& integrationPoints =
-    GetGeometry().IntegrationPoints(mIntegrationMethod);
-
-    return integrationPoints.size();
+    return GetGeometry().IntegrationPoints(mIntegrationMethod).size();
 }
 
 void BaseShellElement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -423,7 +420,7 @@ void BaseShellElement::CalculateAll(
     KRATOS_ERROR << "You have called to the CalculateAll from the base class for shell elements" << std::endl;
 }
 
-ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior()
+ShellCrossSection::SectionBehaviorType BaseShellElement::GetSectionBehavior() const
 {
     KRATOS_ERROR << "You have called to the GetSectionBehavior from the base class for shell elements" << std::endl;
 }
@@ -433,7 +430,7 @@ void BaseShellElement::SetupOrientationAngles()
     KRATOS_ERROR << "You have called to the SetupOrientationAngles from the base class for shell elements" << std::endl;
 }
 
-void BaseShellElement::CheckVariables()
+void BaseShellElement::CheckVariables() const
 {
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
     KRATOS_CHECK_VARIABLE_KEY(ROTATION);
@@ -449,13 +446,11 @@ void BaseShellElement::CheckVariables()
     KRATOS_CHECK_VARIABLE_KEY(SHELL_CROSS_SECTION);
 }
 
-void BaseShellElement::CheckDofs()
+void BaseShellElement::CheckDofs() const
 {
-    auto& r_geom = GetGeometry();
     // verify that the dofs exist
-    for (IndexType i = 0; i < r_geom.size(); ++i)
+    for (const auto& r_node : GetGeometry().Points())
     {
-        auto& r_node = r_geom[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 
@@ -472,7 +467,7 @@ void BaseShellElement::CheckDofs()
     }
 }
 
-void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
     // check properties
     if(pGetProperties() == nullptr)
@@ -540,7 +535,7 @@ void BaseShellElement::CheckProperties(const ProcessInfo& rCurrentProcessInfo)
     }
 }
 
-void BaseShellElement::CheckSpecificProperties()
+void BaseShellElement::CheckSpecificProperties() const
 {
     const auto& r_props = GetProperties();
 
