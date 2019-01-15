@@ -554,13 +554,13 @@ void PrestressMembraneElement::CalculateAndAddBodyForce(
 
     VectorType body_force = ZeroVector(3); 
     const SizeType number_of_nodes = this->GetGeometry().size();
-    const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints();
+    //const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints();
 
     VectorType N = ZeroVector(number_of_nodes);
     const IntegrationMethod this_integration_method = this->GetGeometry().GetDefaultIntegrationMethod();
     N = row(this->GetGeometry().ShapeFunctionsValues(this_integration_method), PointNumber);
 
-    const double integration_weight = integration_points[PointNumber].Weight();
+    //const double integration_weight = integration_points[PointNumber].Weight();
 
     for (IndexType i_node = 0; i_node < number_of_nodes; ++i_node)
     {
@@ -746,10 +746,22 @@ void PrestressMembraneElement::CalculateAll(
         // RIGHT HAND SIDE VECTOR
         if (rCalculateResidualVectorFlag == true)         // calculation of the matrix is required
         {
+            
+            if(this->Has(IS_FORMFINDING))
+                {
+                if(this->GetValue(IS_FORMFINDING))
+                    {
+                    // operation performed: rRighthandSideVector -= Weight* IntForce
+                    noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
+                    }
+                    else
+                    {
+                    CalculateAndAddBodyForce(rRightHandSideVector, point_number, int_reference_weight);
+                    // operation performed: rRighthandSideVector -= Weight* IntForce
+                    noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
+                    }  
 
-            CalculateAndAddBodyForce(rRightHandSideVector, point_number, int_reference_weight);
-            // operation performed: rRighthandSideVector -= Weight* IntForce
-            noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
+                }          
         }
     } // end loop over integration points
 

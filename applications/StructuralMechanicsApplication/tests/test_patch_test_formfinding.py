@@ -124,7 +124,7 @@ class TestPatchTestFormfinding(KratosUnittest.TestCase):
 
     def test_formfinding(self):
         element_name = "PreStressMembraneElement3D3N"
-        displacement_results = [-0.3853903940829765 , -0.2299393888361787 , -2.213110569935068]
+        displacement_results = [-0.3853904 , -0.2299394 , -2.21311]
 
         current_model = KratosMultiphysics.Model()
 
