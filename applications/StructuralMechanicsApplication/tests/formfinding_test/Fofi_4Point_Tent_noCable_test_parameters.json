@@ -32,7 +32,7 @@
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_membrane"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet", "Structure"],
         "rotation_dofs"                      : false,
         "print_formfinding_iterations": false
     },

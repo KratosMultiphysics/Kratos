@@ -61,6 +61,10 @@ void SimpleContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNode(
             case BaseType::TypeSolution::NormalContactStress :
                 ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = epsilon * nodal_area * normal_gap;
                 break;
+            case BaseType::TypeSolution::FrictionlessPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::FrictionalPenaltyMethod :
+                break;
         }
     }
 }
