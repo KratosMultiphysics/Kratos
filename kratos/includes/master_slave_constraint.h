@@ -367,7 +367,7 @@ public:
      * @param rCurrentProcessInfo
      * @note This method is: MANDATORY
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
