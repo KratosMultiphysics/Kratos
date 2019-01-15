@@ -176,7 +176,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         KratosMultiphysics.VariableUtils().CopyScalarVar(KratosMultiphysics.DISTANCE,CompressiblePotentialFlow.LEVEL_SET_DISTANCE, self.main_model_part.Nodes)
 
     def ApplyFlags(self):
-
+        max_x=-1e10
         for element in self.main_model_part.Elements:
             IsPositive=False
             IsNegative=False
@@ -193,6 +193,14 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             else:
                 element.Set(KratosMultiphysics.FLUID,False)
                 element.Set(KratosMultiphysics.ACTIVE,False)
+                for node in element.GetNodes():
+                    if node.X>max_x:
+                        max_x=node.X
+                        max_node=node
+
+        self.main_model_part.CreateSubModelPart('KuttaLS').AddNode(max_node,0)
+        for node in self.main_model_part.GetSubModelPart('KuttaLS').Nodes:
+            node.Set(KratosMultiphysics.STRUCTURE,True)
         # for node in self.main_model_part.Nodes:                    
         #     if node.IsNot(KratosMultiphysics.VISITED):
         #         node.Set(KratosMultiphysics.VISITED,True)

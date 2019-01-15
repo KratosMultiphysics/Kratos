@@ -3,6 +3,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
+import time
+
+
 
 def CreateSolver(model, custom_settings):
     return PotentialSolver(model, custom_settings["solver_settings"])
@@ -17,6 +20,7 @@ class PotentialSolver(PythonSolver):
             "model_part_name"        : "model",                   
             "domain_size"            : 2,
             "solver_type": "potential_flow_solver",
+            "penalty": 0.0,
             "problem_type"	         : "incompressible",
             "echo_level": 1,
             "relative_tolerance": 1e-5,
@@ -63,15 +67,17 @@ class PotentialSolver(PythonSolver):
 
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
+            self.first_simulation=False
         else:
             self.main_model_part = model.CreateModelPart(model_part_name)
+            self.first_simulation=True
         
         self.domain_size = custom_settings["domain_size"].GetInt()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, self.domain_size)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2)#n_parameter
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,0.0)# alpha penalty
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,self.settings["penalty"].GetDouble())# alpha penalty
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,100.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
@@ -145,7 +151,7 @@ class PotentialSolver(PythonSolver):
 
     def ImportModelPart(self):
 
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
+        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa" and self.first_simulation):
             #here it would be the place to import restart data if required
             print(self.settings["model_import_settings"]["input_filename"].GetString())
             self._ImportModelPart(self.main_model_part,self.settings["model_import_settings"])

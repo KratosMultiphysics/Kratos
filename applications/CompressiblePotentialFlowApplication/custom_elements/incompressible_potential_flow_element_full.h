@@ -640,7 +640,10 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        for (unsigned int i=0;i<NumNodes;i++){
+            distances[i]=GetGeometry()[i].GetSolutionStepValue(WAKE_DISTANCE);
+        }
+        // noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(

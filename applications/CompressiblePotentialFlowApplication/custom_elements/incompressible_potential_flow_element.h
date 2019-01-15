@@ -581,6 +581,39 @@ public:
             for(unsigned int k=0; k<Dim; k++) v[k] = vaux[k];
             rValues[0] = v;
         }
+        if (rVariable == NORMAL)
+        {   
+            if (this->Is(BOUNDARY)){
+                array_1d<double,3> elemental_distance;
+                Geometry< Node<3> >::Pointer pgeom = this-> pGetGeometry();
+    
+                for(unsigned int i_node = 0; i_node<NumNodes; i_node++)
+                    elemental_distance[i_node] = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);               
+                
+                const Vector& r_elemental_distances=elemental_distance;
+                
+                Triangle2D3ModifiedShapeFunctions triangle_shape_functions(pgeom, r_elemental_distances);
+
+                
+                Matrix positive_side_interface_sh_func;
+                ModifiedShapeFunctions::ShapeFunctionsGradientsType positive_side_sh_func_interface_gradients;
+                Vector positive_side_interface_weights;
+                triangle_shape_functions.ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                    positive_side_interface_sh_func,
+                    positive_side_sh_func_interface_gradients,
+                    positive_side_interface_weights,
+                    GeometryData::GI_GAUSS_1);
+
+
+                std::vector<Vector> cut_unit_normal;
+                triangle_shape_functions.ComputePositiveSideInterfaceAreaNormals(cut_unit_normal,GeometryData::GI_GAUSS_1);
+            
+                rValues[0] = cut_unit_normal[0];
+
+            }else{
+                rValues[0] = ZeroVector(3); 
+            }
+        }
     }
 
 
@@ -642,7 +675,10 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        for (unsigned int i=0;i<NumNodes;i++){
+            distances[i]=GetGeometry()[i].GetSolutionStepValue(WAKE_DISTANCE);
+        }
+        // noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(

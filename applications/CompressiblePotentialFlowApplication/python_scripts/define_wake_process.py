@@ -56,34 +56,14 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         self.upper_surface_model_part_name=settings["upper_surface_model_part_name"].GetString()
         self.lower_surface_model_part_name=settings["lower_surface_model_part_name"].GetString()
         self.wake_line_model_part=Model.CreateModelPart("wake")
-        self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
+        if (self.fluid_model_part.HasSubModelPart("trailing_edge_model_part")):
+            self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
+        else:
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         angle=math.radians(-self.geometry_parameter)
         for node in self.wake_line_model_part.Nodes:
             node.X = ox+math.cos(angle)*(node.X - ox)-math.sin(angle)*(node.Y - oy)
             node.Y = oy+math.sin(angle)*(node.X - ox)+math.cos(angle)*(node.Y - oy)
-          # We set to zero the metric
-        ZeroVector = KratosMultiphysics.Vector(3)
-        ZeroVector[0] = 0.0
-        ZeroVector[1] = 0.0
-        ZeroVector[2] = 0.0
-        for node in self.fluid_model_part.Nodes:
-            node.SetValue(MeshingApplication.METRIC_TENSOR_2D, ZeroVector)
-
-        self.MetricParameters = KratosMultiphysics.Parameters("""
-        {
-            "minimal_size"                         : 2e-3, 
-            "enforce_current"                      : true, 
-            "anisotropy_remeshing"                 : true, 
-            "anisotropy_parameters": 
-            {   
-                "reference_variable_name"          : "DISTANCE",
-                "hmin_over_hmax_anisotropic_ratio"      : 0.1, 
-                "boundary_layer_max_distance"           : 0.5, 
-                "interpolation"                         : "Linear"
-            }
-        }
-                       
-        """)
         
         self.stl_filename = settings["stl_filename"].GetString()
 
@@ -93,7 +73,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # self.FindWake()
     def DefineWakeFromLevelSet(self):
         KratosMultiphysics.ModelPartIO("wake").ReadModelPart(self.wake_line_model_part)   
-        origin=[0.25,0]  
+        origin=[0.25-1.0,0]  
         angle=math.radians(-self.geometry_parameter) 
         
         for node in self.wake_line_model_part.Nodes:
@@ -151,7 +131,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             nodal_neighbour_search = KratosMultiphysics.FindNodalNeighboursProcess(self.fluid_model_part,AvgElemNum, AvgNodeNum)
             # Find neighbours
             nodal_neighbour_search.Execute()
-
+            kutta_model_part_ls=self.fluid_model_part.GetSubModelPart('KuttaLS')
+            boundary_model_part=self.fluid_model_part.CreateSubModelPart('Boundary')
+            max_X_center = -1e10    
             for elem in self.fluid_model_part.Elements:    
                 distances=elem.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES)
                 npos = 0
@@ -184,10 +166,23 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                 if(nneg>0 and npos>0) and (nneg_ls>0 and npos_ls>0):
                     elem.Set(KratosMultiphysics.INTERFACE) 
+                    elem.Set(KratosMultiphysics.ACTIVE,True)
+                    boundary_model_part.AddElement(elem,0)
+
                     for elnode in elem.GetNodes():
                         elnode.Set(KratosMultiphysics.THERMAL,True)
-                    print('KUTTA ELEMENT:',elem.Id)
-                    elem.Set(KratosMultiphysics.ACTIVE,True)
+
+                    center_X=elem.GetGeometry().Center().X
+                    if center_X>max_X_center:
+                        max_id=elem.Id
+                        max_X_center=center_X
+                    #only the max element of the trailing edge is considered part of the wake. 
+            for element in boundary_model_part.Elements:
+                if not (element.Id==max_id):
+                    element.Set(KratosMultiphysics.MARKER,False)
+            print("KUTTA NODE: ", max_id)
+    
+                    
                     
             from gid_output_process import GiDOutputProcess
             gid_output = GiDOutputProcess(self.fluid_model_part,
@@ -219,9 +214,12 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             if self.model.HasModelPart(self.wake_model_part_name):
                 self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)     
             else:
-                kutta_node=self.FindKuttaNode()
-                self.kutta_model_part = self.model.CreateModelPart('Kutta')
-                self.kutta_model_part.AddNode(kutta_node,0)
+                if (self.model.HasModelPart("Kutta")):
+                    self.kutta_model_part = self.model.GetModelPart('Kutta')   
+                else:
+                    kutta_node=self.FindKuttaNode()
+                    self.kutta_model_part = self.model.CreateModelPart('Kutta')                
+                    self.kutta_model_part.AddNode(kutta_node,0)
 
             KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.fluid_model_part,self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
@@ -309,19 +307,19 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                         #elem.Set(KratosMultiphysics.ACTIVE,False)
                                         #elem.Set(KratosMultiphysics.MARKER,False)
 
-                #find element with the maximum X value
-                max_X_center = -1e10    
-                for element in self.trailing_edge_model_part.Elements:
-                    center_X=element.GetGeometry().Center().X
-                    if center_X>max_X_center:
-                        max_id=element.Id
-                        max_X_center=center_X
-                #only the max element of the trailing edge is considered part of the wake. 
-                for element in self.trailing_edge_model_part.Elements:
-                    if not (element.Id==max_id):
-                        element.Set(KratosMultiphysics.MARKER,False)
-                        if len(element.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))==0:
-                            element.Set(KratosMultiphysics.STRUCTURE,False)
+                # #find element with the maximum X value
+                # max_X_center = -1e10    
+                # for element in self.trailing_edge_model_part.Elements:
+                #     center_X=element.GetGeometry().Center().X
+                #     if center_X>max_X_center:
+                #         max_id=element.Id
+                #         max_X_center=center_X
+                # #only the max element of the trailing edge is considered part of the wake. 
+                # for element in self.trailing_edge_model_part.Elements:
+                #     if not (element.Id==max_id):
+                #         element.Set(KratosMultiphysics.MARKER,False)
+                #         if len(element.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))==0:
+                #             element.Set(KratosMultiphysics.STRUCTURE,False)
                     
                     
                             
@@ -536,28 +534,3 @@ class DefineWakeProcess(KratosMultiphysics.Process):
     def ExecuteInitialize(self):
         self.Execute()
 
-    def RefineMesh(self):
-        
-        local_gradient = KratosMultiphysics.ComputeNodalGradientProcess2D(self.fluid_model_part, CompressiblePotentialFlow.WAKE_DISTANCE, KratosMultiphysics.DISTANCE_GRADIENT, KratosMultiphysics.NODAL_AREA)
-        local_gradient.Execute()
-
-        find_nodal_h = KratosMultiphysics.FindNodalHProcess(self.fluid_model_part)
-        find_nodal_h.Execute()
-
-        metric_process = MeshingApplication.ComputeLevelSetSolMetricProcess2D(self.fluid_model_part,  KratosMultiphysics.DISTANCE_GRADIENT, self.MetricParameters)
-        metric_process.Execute()
-
-        mmg_parameters = KratosMultiphysics.Parameters("""
-        {
-            "save_external_files"              : true,
-            "initialize_entities"              : false,
-            "echo_level"                       : 0
-        }
-        """)
-
-        # We create the remeshing utility
-        # mmg_parameters["filename"].SetString(file_path + "/" + mmg_parameters["filename"].GetString())
-        mmg_process = MeshingApplication.MmgProcess2D(self.fluid_model_part, mmg_parameters)
-
-        # We remesh
-        mmg_process.Execute()
