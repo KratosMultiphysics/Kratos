@@ -310,7 +310,7 @@ double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
     Matrix& DN_DX,
     const IndexType PointNumber,
     IntegrationMethod ThisIntegrationMethod
-    )
+    ) const
 {
     J0.clear();
 

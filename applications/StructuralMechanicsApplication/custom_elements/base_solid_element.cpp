@@ -223,7 +223,7 @@ ConstitutiveLaw::StressMeasure BaseSolidElement::GetStressMeasure() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool BaseSolidElement::UseElementProvidedStrain()
+bool BaseSolidElement::UseElementProvidedStrain() const
 {
     return false;
 }
@@ -1431,7 +1431,7 @@ int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        NodeType &rnode = this->GetGeometry()[i];
+        const NodeType &rnode = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
 //         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
 //         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
@@ -1483,7 +1483,7 @@ double BaseSolidElement::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
     const IndexType PointNumber,
     const double detJ
-    )
+    ) const
 {
     return rThisIntegrationPoints[PointNumber].Weight() * detJ;
 }
@@ -1491,7 +1491,7 @@ double BaseSolidElement::GetIntegrationWeight(
 //***********************************************************************
 //***********************************************************************
 
-void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv)
+void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const
 {
     KRATOS_TRY;
 
@@ -1606,7 +1606,7 @@ void BaseSolidElement::SetConstitutiveVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement)
+Matrix& BaseSolidElement::CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const
 {
     KRATOS_TRY
 
@@ -1637,9 +1637,9 @@ double BaseSolidElement::CalculateDerivativesOnReferenceConfiguration(
     Matrix& rDN_DX,
     const IndexType PointNumber,
     IntegrationMethod ThisIntegrationMethod
-    )
+    ) const
 {
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
     GeometryUtils::JacobianOnInitialConfiguration(
         r_geom,
         r_geom.IntegrationPoints(ThisIntegrationMethod)[PointNumber], rJ0);
@@ -1660,7 +1660,7 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
     Matrix& rDN_DX,
     const IndexType PointNumber,
     IntegrationMethod ThisIntegrationMethod
-    )
+    ) const
 {
     double detJ;
     rJ = GetGeometry().Jacobian( rJ, PointNumber, ThisIntegrationMethod );
@@ -1705,7 +1705,7 @@ void BaseSolidElement::CalculateAndAddKm(
     const Matrix& B,
     const Matrix& D,
     const double IntegrationWeight
-    )
+    ) const
 {
     KRATOS_TRY
 
@@ -1722,7 +1722,7 @@ void BaseSolidElement::CalculateAndAddKg(
     const Matrix& DN_DX,
     const Vector& StressVector,
     const double IntegrationWeight
-    )
+    ) const
 {
     KRATOS_TRY
 
@@ -1744,7 +1744,7 @@ void BaseSolidElement::CalculateAndAddResidualVector(
     const Vector& rBodyForce,
     const Vector& rStressVector,
     const double IntegrationWeight
-    )
+    ) const
 {
     KRATOS_TRY
 
@@ -1766,7 +1766,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
     const Vector& rBodyForce,
     VectorType& rRightHandSideVector,
     const double Weight
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -1786,7 +1786,7 @@ void BaseSolidElement::CalculateAndAddExtForceContribution(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector)
+void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
 {
     KRATOS_TRY;
 

@@ -15,8 +15,13 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
-                "avoid_recomputing_normals": false
+                "avoid_recomputing_normals": false,
+                "uniform_navier_slip_length" : 0.01
             }  """ );
+
+        self.navier_slip_active = False
+        if settings.Has("uniform_navier_slip_length"):
+            self.navier_slip_active = True
 
         settings.ValidateAndAssignDefaults(default_parameters);
 
@@ -40,6 +45,17 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             node.SetSolutionStepValue(KratosMultiphysics.IS_STRUCTURE,0,1.0)
             node.SetValue(KratosMultiphysics.Y_WALL,0.0)
 
+        if self.navier_slip_active:
+            navier_slip_length = settings["uniform_navier_slip_length"].GetDouble()
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                navier_slip_length,
+                self.model_part.Nodes)
+        else:
+            KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
+                KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
+                1.0e8,
+                self.model_part.Nodes)
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed

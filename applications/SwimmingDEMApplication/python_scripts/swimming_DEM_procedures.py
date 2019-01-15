@@ -219,11 +219,11 @@ def FindMaxNodeId(fluid_model_part):
 def FindMaxElementId(fluid_model_part):
     return max((element.Id for element in fluid_model_part.Elements))
 
-def FunctionsCalculator(pp):
-    if pp.domain_size == 2:
+def FunctionsCalculator(domain_size=3):
+    if domain_size == 2:
         custom_functions_tool = CustomFunctionsCalculator2D()
 
-    elif pp.domain_size == 3:
+    elif domain_size == 3:
         custom_functions_tool = CustomFunctionsCalculator3D()
 
     return custom_functions_tool
