@@ -52,7 +52,7 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
     def testTrilinosRedistance(self):
         # Set the model part
         current_model = KratosMultiphysics.Model()
-        self.model_part = current_model.CreateModelPart("RedistanceCalculationPart")
+        self.model_part = current_model.CreateModelPart("Main")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PARTITION_INDEX)
@@ -83,7 +83,8 @@ class TestTrilinosRedistance(KratosUnittest.TestCase):
 
         max_iterations = 2
         TrilinosApplication.TrilinosVariationalDistanceCalculationProcess3D(
-            epetra_comm, self.model_part, trilinos_linear_solver, max_iterations).Execute()
+            epetra_comm, self.model_part, trilinos_linear_solver, max_iterations,
+            KratosMultiphysics.VariationalDistanceCalculationProcess3D.NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE).Execute()
 
         # Check the obtained values
         max_distance = -1.0

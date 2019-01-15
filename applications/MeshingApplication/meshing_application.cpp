@@ -56,7 +56,7 @@ KratosMeshingApplication::KratosMeshingApplication()
 void KratosMeshingApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing Kratos MeshingApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing Kratos MeshingApplication..." << std::endl;
 
     KRATOS_REGISTER_VARIABLE(AVERAGE_NODAL_ERROR);                                  // The average nodal error
     KRATOS_REGISTER_VARIABLE(ANISOTROPIC_RATIO);                                    // The anisotropic aspect ratio
@@ -71,7 +71,7 @@ void KratosMeshingApplication::Register() {
     KRATOS_REGISTER_VARIABLE(FATHER_ELEMENT)
     KRATOS_REGISTER_VARIABLE(FATHER_CONDITION)
     KRATOS_REGISTER_VARIABLE(FATHER_NODES_WEIGHTS)
-    
+
     //--------------- ULF Application (surface_tension) -------------------//
     KRATOS_REGISTER_VARIABLE(TRIPLE_POINT)
     KRATOS_REGISTER_VARIABLE(CONTACT_ANGLE)
