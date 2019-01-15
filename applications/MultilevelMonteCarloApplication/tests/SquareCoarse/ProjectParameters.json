@@ -14,7 +14,7 @@
 				"alpha"       : 2.0,
 				"beta"	      : 6.0
 			}
-	}	
+	}
     },
     "solver_settings"          : {
             "model_part_name" : "MLMCLaplacianModelPart",
@@ -70,7 +70,7 @@
             },
             "element_replace_settings" : {
                 "element_name" : "LaplacianElement",
-                "condition_name" : ""
+                "condition_name" : "ThermalFace"
             },
             "problem_domain_sub_model_part_list": ["Parts_Domain"],
             "processes_sub_model_part_list": ["Subpart_Boundary"],
