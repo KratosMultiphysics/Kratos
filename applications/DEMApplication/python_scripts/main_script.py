@@ -431,7 +431,7 @@ class Solution(object):
 
             self.UpdateTimeInModelParts()
 
-            self.BeforeSolveOperations(self.time)
+            self._BeforeSolveOperations(self.time)
 
             self.SolverSolve()
 
@@ -501,7 +501,7 @@ class Solution(object):
     def InitializeTimeStep(self):
         pass
 
-    def BeforeSolveOperations(self, time):
+    def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
