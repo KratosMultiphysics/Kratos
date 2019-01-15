@@ -70,11 +70,10 @@ class MonolithicSolver(object):
                 "max_iteration": 10
             },
             "linear_solver_settings":{
-                "solver_type": "SuperLU_MT_DirectSolver",
+                "solver_type": "SuperLUDirectSolver",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
-                "scaling": false,
-                "verbosity": 1
+                "scaling": false
             },
             "processes": []
         }

@@ -1,5 +1,9 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
+file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
+list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
+
 message("**** configuring KratosSolversApplication ****")
 
 ################### PYBIND11
@@ -8,14 +12,16 @@ include(pybind11Tools)
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
 # compile SuperLU
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1)
-#set(SUPER_LU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
-#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
+set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
+include_directories(${SUPERLU_DIR})
+#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_build.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
 
 # compile SuperLU_MT
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
-set(SUPER_LU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
+#set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
+#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+
 
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE
@@ -28,7 +34,6 @@ set( KRATOS_SOLVERS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/newmark_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/simo_step_rotation_method.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/time_integration_methods/emc_step_rotation_method.cpp
-
 )
 
 ## generate variables with the testing sources
@@ -47,8 +52,10 @@ set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosSolversCore SHARED ${KRATOS_SOLVERS_APPLICATION_CORE})
-#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu)
-target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu_mt)
+#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu_mt)
+#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu super_lu_mt)
+target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu)
+#target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARY})
 set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_APPLICATION=EXPORT,API")
 
 ###############################################################
@@ -56,7 +63,6 @@ set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_
 pybind11_add_module(KratosSolversApplication MODULE ${KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE})
 target_link_libraries(KratosSolversApplication PUBLIC KratosSolversCore)
 set_target_properties(KratosSolversApplication PROPERTIES PREFIX "")
-
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
