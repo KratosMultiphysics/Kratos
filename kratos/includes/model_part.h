@@ -272,9 +272,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Old style Modelpart constructor will be removed on nov 1 2018")
-        ModelPart(std::string const& NewName, Model& rOwnerModel);
-
 
     /// Destructor.
     ~ModelPart() override;
