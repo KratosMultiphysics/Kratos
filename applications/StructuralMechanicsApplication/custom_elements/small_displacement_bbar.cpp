@@ -72,7 +72,7 @@ SmallDisplacementBbar::~SmallDisplacementBbar()
 //************************************************************************************
 //************************************************************************************
 
-bool SmallDisplacementBbar::UseElementProvidedStrain()
+bool SmallDisplacementBbar::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -888,7 +888,7 @@ void SmallDisplacementBbar::CalculateAndAddResidualVector(
         const Vector& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
-    )
+    ) const
 {
     KRATOS_TRY
 
