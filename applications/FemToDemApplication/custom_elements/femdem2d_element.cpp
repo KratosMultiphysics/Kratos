@@ -1317,6 +1317,9 @@ void FemDem2DElement::ElasticLaw(
 	bool& rIsDamaging
 	)
 {
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double c_max = std::abs(sigma_t);
 	rDamage = 0.0;
 	if (rThreshold < tolerance) {
 		rThreshold = c_max;
