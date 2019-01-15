@@ -125,15 +125,6 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         # We call to the base process
         super(ExplicitPenaltyContactProcess, self).ExecuteInitializeSolutionStep()
 
-    def ExecuteFinalizeSolutionStep(self):
-        """ This method is executed in order to finalize the current step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        # We call to the base process
-        super(ExplicitPenaltyContactProcess, self).ExecuteFinalizeSolutionStep()
-
         if self._get_if_is_interval():
             # Updating value of weighted gap
             KM.VariableUtils().SetVariable(CSMA.WEIGHTED_GAP, 0.0, self.computing_model_part.Nodes);
@@ -150,6 +141,15 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
 
             # Update the dynamic factors
             self.dynamic_factor_process.Execute()
+
+    def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        # We call to the base process
+        super(ExplicitPenaltyContactProcess, self).ExecuteFinalizeSolutionStep()
 
     def ExecuteBeforeOutputStep(self):
         """ This method is executed right before the ouput process computation
