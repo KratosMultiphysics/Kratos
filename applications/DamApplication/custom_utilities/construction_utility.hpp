@@ -419,7 +419,7 @@ class ConstructionUtility
 
     //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    int CheckTemperature(Parameters &CheckTemperatureParameters)
+    void CheckTemperature(Parameters &CheckTemperatureParameters)
     {
         KRATOS_TRY;
 
@@ -432,9 +432,7 @@ class ConstructionUtility
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
-        int counter = 0;
-
-        // #pragma omp parallel for
+        #pragma omp parallel for
         for (int i = 0; i < nnodes; ++i)
         {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
@@ -448,12 +446,10 @@ class ConstructionUtility
                 if (current_temperature > maximum_temperature)
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
-                    counter++;
                 }
                 else if (current_temperature < minimum_temperature)
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
-                    counter++;
                 }
             }
             else if (it->Is(ACTIVE) && it->Is(SOLID))
@@ -465,17 +461,13 @@ class ConstructionUtility
                 if (current_temperature > maximum_temperature)
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = maximum_temperature;
-                    counter++;
                 }
                 else if (current_temperature < minimum_temperature)
                 {
                     it->FastGetSolutionStepValue(TEMPERATURE) = minimum_temperature;
-                    counter++;
                 }
             }
         }
-
-        return counter;
 
         KRATOS_CATCH("");
     }
