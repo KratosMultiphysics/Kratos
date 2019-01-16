@@ -559,7 +559,7 @@ protected:
         for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
-            Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+            const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
             if( current_dof.IsFixed() == false)
             {
                 index_i = (current_dof).EquationId();
@@ -573,8 +573,7 @@ protected:
                 for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
-
-                    Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                    const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
                     if(neighb_dof.IsFixed() == false )
                     {
                         int index_j = (neighb_dof).EquationId();
@@ -640,7 +639,7 @@ protected:
             for(WeakPointerVector< Node<3> >::iterator in = it_begin;
                     in!=it_end; in++)
             {
-                Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+                const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
                 if( current_dof.IsFixed() == false)
                 {
                     int index_i = (current_dof).EquationId();
@@ -655,7 +654,7 @@ protected:
                             i != neighb_nodes.end(); i++)
                     {
 
-                        Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                        const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
                         if(neighb_dof.IsFixed() == false )
                         {
                             int index_j = (neighb_dof).EquationId();

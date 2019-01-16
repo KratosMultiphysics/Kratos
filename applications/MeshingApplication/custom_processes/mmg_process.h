@@ -14,6 +14,7 @@
 #define KRATOS_MMG_PROCESS
 
 // System includes
+#include <unordered_set>
 #include <unordered_map>
 
 // External includes
@@ -25,6 +26,7 @@
 #include "includes/key_hash.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/variable_utils.h"
 #include "containers/variables_list.h"
 
 // NOTE: The following contains the license of the MMG library
@@ -705,6 +707,68 @@ private:
      * @brief This function assigns the flags and clears the auxiliar sub model part for flags
      */
     void AssignAndClearAuxiliarSubModelPartForFlags();
+
+    /**
+     * @brief It sets to zero the entity data, using the variables from the orginal model part
+     * @param rNewModelPart The new container
+     * @param rOldModelPart The old container
+     * @tparam TContainerType The container type
+     * @todo Interpolate values in the future
+     */
+    template<class TContainerType>
+    void SetToZeroEntityData(
+        TContainerType& rNewContainer,
+        const TContainerType& rOldContainer
+        )
+    {
+        // Firts we generate the variable list
+        std::unordered_set<std::string> list_variables;
+        const auto it_begin_old = rOldContainer.begin();
+        auto& data = it_begin_old->Data();
+        for(auto i = data.begin() ; i != data.end() ; ++i) {
+            list_variables.insert((i->first)->Name());
+        }
+
+        for (auto& var_name : list_variables) {
+            if (KratosComponents<Variable<bool>>::Has(var_name)) {
+                const Variable<bool>& r_var = KratosComponents<Variable<bool>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, false, rNewContainer);
+            } else if (KratosComponents<Variable<double>>::Has(var_name)) {
+                const Variable<double>& r_var = KratosComponents<Variable<double>>::Get(var_name);
+                VariableUtils().SetNonHistoricalVariable(r_var, 0.0, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(var_name)) {
+                const Variable<array_1d<double, 3>>& r_var = KratosComponents<Variable<array_1d<double, 3>>>::Get(var_name);
+                const array_1d<double, 3> aux_value = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(var_name)) {
+                const Variable<array_1d<double, 4>>& r_var = KratosComponents<Variable<array_1d<double, 4>>>::Get(var_name);
+                const array_1d<double, 4> aux_value = ZeroVector(4);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(var_name)) {
+                const Variable<array_1d<double, 6>>& r_var = KratosComponents<Variable<array_1d<double, 6>>>::Get(var_name);
+                const array_1d<double, 6> aux_value = ZeroVector(6);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(var_name)) {
+                const Variable<array_1d<double, 9>>& r_var = KratosComponents<Variable<array_1d<double, 9>>>::Get(var_name);
+                const array_1d<double, 9> aux_value = ZeroVector(9);
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Vector>>::Has(var_name)) {
+                const Variable<Vector>& r_var = KratosComponents<Variable<Vector>>::Get(var_name);
+                Vector aux_value = ZeroVector(it_begin_old->GetValue(r_var).size());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            } else if (KratosComponents<Variable<Matrix>>::Has(var_name)) {
+                const Variable<Matrix>& r_var = KratosComponents<Variable<Matrix>>::Get(var_name);
+                const Matrix& ref_matrix = it_begin_old->GetValue(r_var);
+                Matrix aux_value = ZeroMatrix(ref_matrix.size1(), ref_matrix.size2());
+                VariableUtils().SetNonHistoricalVariable(r_var, aux_value, rNewContainer);
+            }
+        }
+    }
+
+    /**
+     * @brief This function removes the conditions with duplicated geometries
+     */
+    void ClearConditionsDuplicatedGeometries();
 
     /**
      * @brief This function creates an before/after remesh output file

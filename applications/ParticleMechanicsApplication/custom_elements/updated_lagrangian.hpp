@@ -120,7 +120,7 @@ protected:
         // Variables including all integration points
         Matrix J;
         Matrix j;
-        Matrix  DeltaPosition;
+        Matrix DeltaPosition;
         Matrix CurrentDisp;
         Matrix PreviousDisp;
 

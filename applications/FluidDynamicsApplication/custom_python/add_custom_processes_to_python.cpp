@@ -123,13 +123,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<MassConservationCheckProcess, MassConservationCheckProcess::Pointer, Process>
     (m,"MassConservationCheckProcess")
-    .def(py::init < ModelPart&, const int, const bool, const bool >())
+    .def(py::init < ModelPart&, const bool, const int, const bool, const std::string >())
     .def(py::init< ModelPart&, Parameters& >())
-    .def("GetUpdateStatus", &MassConservationCheckProcess::GetUpdateStatus)
-    .def("GetPositiveVolume", &MassConservationCheckProcess::GetPositiveVolume)
-    .def("GetNegativeVolume", &MassConservationCheckProcess::GetNegativeVolume)
-    .def("GetInitialPositiveVolume", &MassConservationCheckProcess::GetInitialPositiveVolume)
-    .def("GetInitialNegativeVolume", &MassConservationCheckProcess::GetInitialNegativeVolume)
+    .def("Initialize", &MassConservationCheckProcess::Initialize)
+    .def("ExecuteInTimeStep", &MassConservationCheckProcess::ExecuteInTimeStep)
+    .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
+    .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
+    .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
+    .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
 }
 

@@ -8,9 +8,6 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import EstimateDt3D
 
-# Check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
-
 import pureconvection_solver
 import thermal_solver
 import monolithic_solver_eulerian
@@ -75,10 +72,10 @@ class LevelSetSolver:
         # construct the model part for the t solver
         if(self.domain_size == 2):
             conv_elem = "SUPGConvDiff2D"
-            conv_cond = "ThermalFace2D"
+            conv_cond = "ThermalFace2D2N"
         else:
             conv_elem = "SUPGConvDiff3D"
-            conv_cond = "ThermalFace3D"
+            conv_cond = "ThermalFace3D3N"
         self.thermal_model_part = model.CreateModelPart("thermal_model_part")
         self.conv_generator = ConnectivityPreserveModeler()
         (self.conv_generator).GenerateModelPart(self.model_part, self.thermal_model_part, conv_elem, conv_cond)

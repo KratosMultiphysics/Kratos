@@ -65,7 +65,7 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SmallDisplacement::UseElementProvidedStrain()
+bool SmallDisplacement::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -76,7 +76,7 @@ bool SmallDisplacement::UseElementProvidedStrain()
 void SmallDisplacement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -183,13 +183,12 @@ void SmallDisplacement::CalculateKinematicVariables(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SmallDisplacement::CalculateConstitutiveVariables(
+void SmallDisplacement::SetConstitutiveVariables(
     KinematicVariables& rThisKinematicVariables,
     ConstitutiveVariables& rThisConstitutiveVariables,
     ConstitutiveLaw::Parameters& rValues,
     const IndexType PointNumber,
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints
     )
 {
     // Displacements vector
@@ -207,6 +206,22 @@ void SmallDisplacement::CalculateConstitutiveVariables(
     // Here we set the space on which the results shall be written
     rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.D); //assuming the determinant is computed somewhere else
     rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //F computed somewhere else
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void SmallDisplacement::CalculateConstitutiveVariables(
+    KinematicVariables& rThisKinematicVariables,
+    ConstitutiveVariables& rThisConstitutiveVariables,
+    ConstitutiveLaw::Parameters& rValues,
+    const IndexType PointNumber,
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
+    const ConstitutiveLaw::StressMeasure ThisStressMeasure
+    )
+{
+    // Set the constitutive variables
+    SetConstitutiveVariables(rThisKinematicVariables, rThisConstitutiveVariables, rValues, PointNumber, IntegrationPoints);
 
     // Actually do the computations in the ConstitutiveLaw
     mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(rValues, ThisStressMeasure); //here the calculations are actually done
@@ -220,7 +235,7 @@ void SmallDisplacement::CalculateB(
     const Matrix& rDN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -256,7 +271,7 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor)
+Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     Matrix F(dim,dim);

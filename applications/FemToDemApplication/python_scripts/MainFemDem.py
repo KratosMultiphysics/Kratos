@@ -206,11 +206,6 @@ class FEM_Solution(MainSolidFEM.Solution):
 #============================================================================================================================
 	def InitializeSolutionStep(self):
 
-		neighbour_elemental_finder =  KratosMultiphysics.FindElementalNeighboursProcess(self.main_model_part, 2, 5)
-		neighbour_elemental_finder.ClearNeighbours()
-		neighbour_elemental_finder.Execute()
-
-		#print("")
 		print(" [STEP:",self.step," TIME:", self.time,"]")
 
 		# processes to be executed at the begining of the solution step

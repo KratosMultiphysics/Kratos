@@ -4,9 +4,6 @@ import KratosMultiphysics as kratoscore
 import KratosMultiphysics.FluidDynamicsApplication as cfd
 import KratosMultiphysics.IncompressibleFluidApplication
 
-# Check that KratosMultiphysics was imported in the main script
-kratoscore.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return StokesSolver(main_model_part, custom_settings)
 

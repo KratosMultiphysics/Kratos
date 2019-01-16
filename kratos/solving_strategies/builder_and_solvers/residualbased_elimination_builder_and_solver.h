@@ -16,17 +16,12 @@
 
 /* System includes */
 #include <set>
+#include <unordered_set>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 
 /* External includes */
-// #define USE_GOOGLE_HASH
-#ifdef USE_GOOGLE_HASH
-#include "sparsehash/dense_hash_set" //included in external libraries
-#else
-#include <unordered_set>
-#endif
 
 /* Project includes */
 #include "utilities/timer.h"
@@ -210,7 +205,7 @@ public:
                 if (element_is_active) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*(it_elem.base()), LHS_Contribution, RHS_Contribution, equation_id, r_current_process_info);
-
+                  
                     // Assemble the elemental contribution
 #ifdef USE_LOCKS_IN_ASSEMBLY
                     Assemble(rA, rb, LHS_Contribution, RHS_Contribution, equation_id, mLockArray);
@@ -246,9 +241,8 @@ public:
                 }
             }
         }
-
-        double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Build time: " << stop_build - start_build << std::endl;
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
@@ -477,7 +471,7 @@ public:
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
@@ -486,9 +480,9 @@ public:
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -622,11 +616,8 @@ public:
 
         SizeType nthreads = OpenMPUtils::GetNumThreads();
 
-#ifdef USE_GOOGLE_HASH
-        typedef google::dense_hash_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#else
         typedef std::unordered_set < NodeType::DofType::Pointer, DofPointerHasher>  set_type;
-#endif
+      
         std::vector<set_type> dofs_aux_list(nthreads);
 
         for (int i = 0; i < static_cast<int>(nthreads); ++i) {
@@ -990,9 +981,13 @@ protected:
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&rLockArray[i_global]);
 #endif
+                AssembleRowContributionFreeDofs(A, LHS_Contribution, i_global, i_local, EquationId);
 
+#ifdef USE_LOCKS_IN_ASSEMBLY
+                omp_unset_lock(&lock_array[i_global]);
+#endif
             }
-            //note that assembly on fixed rows is not performed here
+            //note that computation of reactions is not performed here!
         }
     }
 
@@ -1145,6 +1140,89 @@ protected:
                 }
             }
         }
+    }
+
+    /**
+    * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
+    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
+    */
+    inline void AssembleRowContributionFreeDofs(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
+    {
+        double* values_vector = A.value_data().begin();
+        std::size_t* index1_vector = A.index1_data().begin();
+        std::size_t* index2_vector = A.index2_data().begin();
+
+        const std::size_t left_limit = index1_vector[i];
+
+        // Find the first entry
+        // We iterate over the equation ids until we find the first equation id to be considered
+        // We count in which component we find an ID
+        std::size_t last_pos = 0;
+        std::size_t last_found = 0;
+        std::size_t counter = 0;
+        for(std::size_t j=0; j < EquationId.size(); ++j) {
+            ++counter;
+            const std::size_t j_global = EquationId[j];
+            if (j_global < BaseType::mEquationSystemSize) {
+                last_pos = ForwardFind(j_global,left_limit,index2_vector);
+                last_found = j_global;
+                break;
+            }
+        }
+
+        // If the counter is equal to the size of the EquationID vector that means that only one dof will be considered, if the number is greater means that all the dofs are fixed. If the number is below means that at we have several dofs free to be considered
+        if (counter <= EquationId.size()) {
+#ifndef USE_LOCKS_IN_ASSEMBLY
+            double& r_a = values_vector[last_pos];
+            const double& v_a = Alocal(i_local,counter - 1);
+            #pragma omp atomic
+            r_a +=  v_a;
+#else
+            values_vector[last_pos] += Alocal(i_local,counter - 1);
+#endif
+            // Now find all of the other entries
+            std::size_t pos = 0;
+            for(std::size_t j = counter; j < EquationId.size(); ++j) {
+                std::size_t id_to_find = EquationId[j];
+                if (id_to_find < BaseType::mEquationSystemSize) {
+                    if(id_to_find > last_found)
+                        pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+                    else if(id_to_find < last_found)
+                        pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+                    else
+                        pos = last_pos;
+
+#ifndef USE_LOCKS_IN_ASSEMBLY
+                    double& r = values_vector[pos];
+                    const double& v = Alocal(i_local,j);
+                    #pragma omp atomic
+                    r +=  v;
+#else
+                    values_vector[pos] += Alocal(i_local,j);
+#endif
+                    last_found = id_to_find;
+                    last_pos = pos;
+                }
+            }
+        }
+    }
+
+    inline std::size_t ForwardFind(const std::size_t id_to_find,
+                                   const std::size_t start,
+                                   const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos++;
+        return pos;
+    }
+
+    inline std::size_t BackwardFind(const std::size_t id_to_find,
+                                    const std::size_t start,
+                                    const std::size_t* index_vector)
+    {
+        std::size_t pos = start;
+        while(id_to_find != index_vector[pos]) pos--;
+        return pos;
     }
 
     ///@}

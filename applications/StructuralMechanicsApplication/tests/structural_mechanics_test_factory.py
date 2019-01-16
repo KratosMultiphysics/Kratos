@@ -144,6 +144,9 @@ class SprismMembranePatchTests(StructuralMechanicsTestFactory):
 class SprismBendingPatchTests(StructuralMechanicsTestFactory):
     file_name = "sprism_test/patch_bending_test"
 
+class ExplicitSolidBeam(StructuralMechanicsTestFactory):
+    file_name = "explicit_tests/explicit_solid_beam_test"
+
 class EigenQ4Thick2x2PlateTests(StructuralMechanicsTestFactory):
     file_name = "eigen_test/Eigen_Q4_Thick_2x2_Plate_test"
 
@@ -228,6 +231,9 @@ class BigCubeSmallDeformationPlasticityTTest(StructuralMechanicsTestFactory):
 class SmallDeformationPlasticityTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SmallDeformationPlasticity/small_deformation_plasticity_test"
 
+class SimpleJ2PlasticityTest(StructuralMechanicsTestFactory):
+    file_name = "cl_test/SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
+
 class ShellT3IsotropicLinearStaticStructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3_isotropic_linear_static_struct_scordelis_lo_roof"
 
@@ -257,6 +263,9 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMe
 
 class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
     file_name = "rigid_test/rigid_test"
+
+class RigidSphereFailing(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/sphere_failing"
 
 ### OLD Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
 class ShellQ4ThickBendingRollUpTests(StructuralMechanicsTestFactory):

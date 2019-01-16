@@ -60,6 +60,9 @@ public:
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
+  typedef std::vector<Node<3>*>             NodePointerVectorType;
+  typedef std::vector<Element*>          ElementPointerVectorType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -197,18 +200,18 @@ private:
     const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
     double maxSeparation=mrRemesh.Refine->CriticalRadius;
 
-    std::vector<Node<3>::Pointer > clonedNodes; 
-    clonedNodes.clear(); 
-    clonedNodes.resize(1); 
-    unsigned int numberClonedNodes=0; 
-    unsigned int sizeClonedNodes=0; 
+    std::vector<Node<3>::Pointer > clonedNodes;
+    clonedNodes.clear();
+    clonedNodes.resize(1);
+    unsigned int numberClonedNodes=0;
+    unsigned int sizeClonedNodes=0;
 
     for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; i_node++)
       {
     	if(i_node->Is(INLET) ){
 
-    	  WeakPointerVector<Element >& neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
-    	  WeakPointerVector<Node<3> >& rN = i_node->GetValue(NEIGHBOUR_NODES);
+    	  ElementPointerVectorType& neighb_elems = i_node->GetValue(NEIGHBOR_ELEMENTS);
+    	  NodePointerVectorType& rN = i_node->GetValue(NEIGHBOR_NODES);
 
     	  if((neighb_elems.size()==0 && rN.size()==0) || i_node->Is(RIGID)){
 
@@ -223,55 +226,55 @@ private:
 
     	    if(distanceFromOrigin> maxSeparation){
 
-	      if(i_node->Is(FLUID)){ 
-		Node<3>::Pointer pnode = i_node->Clone(); 
-		sizeClonedNodes=numberClonedNodes+1; 
-		clonedNodes.resize(sizeClonedNodes); 
-		clonedNodes[numberClonedNodes]=pnode; 
-		numberClonedNodes++; 
- 
-		i_node->Reset(INLET); 
-		i_node->Reset(RIGID); 
-		i_node->Reset(BOUNDARY); 
- 
-		double velocityX= i_node->FastGetSolutionStepValue(VELOCITY_X,0); 
-		double velocityY= i_node->FastGetSolutionStepValue(VELOCITY_Y,0); 
- 
-		i_node->Free(VELOCITY_X); 
-		i_node->Free(VELOCITY_Y); 
-		i_node->FastGetSolutionStepValue(VELOCITY_X,0)=velocityX; 
-		i_node->FastGetSolutionStepValue(VELOCITY_Y,0)=velocityY; 
-		i_node->FastGetSolutionStepValue(VELOCITY_X,1)=velocityX; 
-		i_node->FastGetSolutionStepValue(VELOCITY_Y,1)=velocityY; 
- 
-		i_node->FastGetSolutionStepValue(ACCELERATION_X,0)=0; 
-		i_node->FastGetSolutionStepValue(ACCELERATION_X,1)=0; 
-		i_node->FastGetSolutionStepValue(ACCELERATION_Y,0)=0; 
-		i_node->FastGetSolutionStepValue(ACCELERATION_Y,1)=0; 
- 
-		if(dimension==3){ 
-		  double velocityZ= i_node->FastGetSolutionStepValue(VELOCITY_Z,0); 
-		  i_node->Free(VELOCITY_Z); 
-		  i_node->FastGetSolutionStepValue(VELOCITY_Z,0)=velocityZ; 
-		  i_node->FastGetSolutionStepValue(VELOCITY_Z,1)=velocityZ; 
-		  i_node->FastGetSolutionStepValue(ACCELERATION_Z,0)=0; 
-		  i_node->FastGetSolutionStepValue(ACCELERATION_Z,1)=0; 
-		} 
-	      } 
-	      else{ //these are isolated nodes of the inlet, they will be replaced at their initial position 
-		i_node->X() = i_node->X0(); 
-		i_node->Y() = i_node->Y0(); 
+	      if(i_node->Is(FLUID)){
+		Node<3>::Pointer pnode = i_node->Clone();
+		sizeClonedNodes=numberClonedNodes+1;
+		clonedNodes.resize(sizeClonedNodes);
+		clonedNodes[numberClonedNodes]=pnode;
+		numberClonedNodes++;
+
+		i_node->Reset(INLET);
+		i_node->Reset(RIGID);
+		i_node->Reset(BOUNDARY);
+
+		double velocityX= i_node->FastGetSolutionStepValue(VELOCITY_X,0);
+		double velocityY= i_node->FastGetSolutionStepValue(VELOCITY_Y,0);
+
+		i_node->Free(VELOCITY_X);
+		i_node->Free(VELOCITY_Y);
+		i_node->FastGetSolutionStepValue(VELOCITY_X,0)=velocityX;
+		i_node->FastGetSolutionStepValue(VELOCITY_Y,0)=velocityY;
+		i_node->FastGetSolutionStepValue(VELOCITY_X,1)=velocityX;
+		i_node->FastGetSolutionStepValue(VELOCITY_Y,1)=velocityY;
+
+		i_node->FastGetSolutionStepValue(ACCELERATION_X,0)=0;
+		i_node->FastGetSolutionStepValue(ACCELERATION_X,1)=0;
+		i_node->FastGetSolutionStepValue(ACCELERATION_Y,0)=0;
+		i_node->FastGetSolutionStepValue(ACCELERATION_Y,1)=0;
+
+		if(dimension==3){
+		  double velocityZ= i_node->FastGetSolutionStepValue(VELOCITY_Z,0);
+		  i_node->Free(VELOCITY_Z);
+		  i_node->FastGetSolutionStepValue(VELOCITY_Z,0)=velocityZ;
+		  i_node->FastGetSolutionStepValue(VELOCITY_Z,1)=velocityZ;
+		  i_node->FastGetSolutionStepValue(ACCELERATION_Z,0)=0;
+		  i_node->FastGetSolutionStepValue(ACCELERATION_Z,1)=0;
+		}
+	      }
+	      else{ //these are isolated nodes of the inlet, they will be replaced at their initial position
+		i_node->X() = i_node->X0();
+		i_node->Y() = i_node->Y0();
 		i_node->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
 		i_node->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
 		i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
 		i_node->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
 		if(dimension==3){
-		  i_node->Z() = i_node->Z0(); 
+		  i_node->Z() = i_node->Z0();
 		  i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
 		  i_node->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
 		}
 	      }
-	          
+
     	    }/// if maxSeparation> limit
 
     	  }
@@ -282,38 +285,38 @@ private:
 
 
 
-    for(unsigned int i=0 ; i<sizeClonedNodes ; i++) 
-      { 
- 
-	Node<3>::Pointer pnode = clonedNodes[i]; 
- 	double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) ); 
-	double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart); 
-	unsigned int id =NodeIdParent + 1 ; //total model part node size 
- 
-	if(NodeId>NodeIdParent){ 
-	  id =NodeId + 1; 
-	} 
-	pnode->SetId(id); 
-	pnode->X() = pnode->X0(); 
-	pnode->Y() = pnode->Y0(); 
-	pnode->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0; 
-	pnode->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0; 
-	pnode->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0; 
-	pnode->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0; 
-   
-	if(dimension==3){ 
-	  pnode->Z() = pnode->Z0(); 
-	  pnode->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0; 
-	  pnode->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0; 
+    for(unsigned int i=0 ; i<sizeClonedNodes ; i++)
+      {
+
+	Node<3>::Pointer pnode = clonedNodes[i];
+ 	double NodeIdParent = MesherUtilities::GetMaxNodeId( *(mrModelPart.GetParentModelPart()) );
+	double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
+	unsigned int id =NodeIdParent + 1 ; //total model part node size
+
+	if(NodeId>NodeIdParent){
+	  id =NodeId + 1;
+	}
+	pnode->SetId(id);
+	pnode->X() = pnode->X0();
+	pnode->Y() = pnode->Y0();
+	pnode->FastGetSolutionStepValue(DISPLACEMENT_X,0)=0;
+	pnode->FastGetSolutionStepValue(DISPLACEMENT_Y,0)=0;
+	pnode->FastGetSolutionStepValue(DISPLACEMENT_X,1)=0;
+	pnode->FastGetSolutionStepValue(DISPLACEMENT_Y,1)=0;
+
+	if(dimension==3){
+	  pnode->Z() = pnode->Z0();
+	  pnode->FastGetSolutionStepValue(DISPLACEMENT_Z,0)=0;
+	  pnode->FastGetSolutionStepValue(DISPLACEMENT_Z,1)=0;
 	}
 
-	pnode->Set(INLET); //inlet node 
-	mrRemesh.NodalPreIds.push_back( pnode->Id() ); 
-	mrModelPart.AddNode(pnode); 
+	pnode->Set(INLET); //inlet node
+	mrRemesh.NodalPreIds.push_back( pnode->Id() );
+	mrModelPart.AddNode(pnode);
 
       }
 
-    
+
     // for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ic++)
     //   {
 
@@ -501,5 +504,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_INLET_MANAGEMENT_PROCESS_H_INCLUDED  defined
-
-

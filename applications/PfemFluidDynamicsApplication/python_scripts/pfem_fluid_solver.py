@@ -4,9 +4,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 def CreateSolver(main_model_part, custom_settings):
     return PfemFluidSolver(main_model_part, custom_settings)
 
