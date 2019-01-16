@@ -179,7 +179,7 @@ protected:
      /**
      * @brief This method returns if the element provides the strain
      */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -192,7 +192,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -207,8 +207,23 @@ protected:
         const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
+    /**
+     * @brief This functions updates the data structure passed to the CL
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param rThisConstitutiveVariables The constitutive variables
+     * @param rValues The CL parameters
+     * @param PointNumber The integration point considered
+     * @param IntegrationPoints The list of integration points
+     */
+    void SetConstitutiveVariables(
+        KinematicVariables& rThisKinematicVariables,
+        ConstitutiveVariables& rThisConstitutiveVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationPointsArrayType& IntegrationPoints
+        ) override;
 
-     /**
+    /**
      * @brief This functions updates the constitutive variables
      * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param rThisConstitutiveVariables The constitutive variables
@@ -238,14 +253,14 @@ protected:
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        );
+        ) const;
 
     /**
      * Calculation of the equivalent deformation gradient
      * @param StrainVector The strain tensor (Voigt notation)
      * @return The deformation gradient F
      */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
+    virtual Matrix ComputeEquivalentF(const Vector& StrainVector) const;
 
     ///@}
     ///@name Protected Operations

@@ -52,6 +52,7 @@
 #include "processes/calculate_distance_to_skin_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/simple_mortar_mapper_process.h"
+#include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
 #include "includes/node.h"
 
@@ -280,42 +281,26 @@ void  AddProcessesToPython(pybind11::module& m)
     ;
 
     /* Historical */
-    // DOUBLE
-    py::class_<ComputeNodalGradientProcess<2, Variable<double>, Historical>, ComputeNodalGradientProcess<2, Variable<double>, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcess2D")
-            .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    py::class_<ComputeNodalGradientProcess< ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsHistoricalVariable>::Pointer, Process>(m,"ComputeNodalGradientProcess")
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
-
-    py::class_<ComputeNodalGradientProcess<3, Variable<double>, Historical>, ComputeNodalGradientProcess<3, Variable<double>, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcess3D")
-            .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-
-    // COMPONENT
-    py::class_<ComputeNodalGradientProcess<2, component_type, Historical>, ComputeNodalGradientProcess<2, component_type, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcessComp2D")
-            .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-
-    py::class_<ComputeNodalGradientProcess<3, component_type, Historical>, ComputeNodalGradientProcess<3, component_type, Historical>::Pointer, Process>(m,"ComputeNodalGradientProcessComp3D")
-            .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
-
+    
+    m.attr("ComputeNodalGradientProcess2D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcess3D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcessComp2D") = m.attr("ComputeNodalGradientProcess");
+    m.attr("ComputeNodalGradientProcessComp3D") = m.attr("ComputeNodalGradientProcess");
+    
     /* Non-Historical */
-    // DOUBLE
-    py::class_<ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>, ComputeNodalGradientProcess<2, Variable<double>, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess2D")
-            .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
-            ;
-
-    py::class_<ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>, ComputeNodalGradientProcess<3, Variable<double>, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess3D")
-            .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
-            ;
-
-    // COMPONENT
-    py::class_<ComputeNodalGradientProcess<2, component_type, NonHistorical>, ComputeNodalGradientProcess<2, component_type, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcessComp2D")
-            .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    py::class_<ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>, ComputeNodalGradientProcess<ComputeNodalGradientProcessSettings::SaveAsNonHistoricalVariable>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcess")
+    .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
+    .def(py::init<ModelPart&, Variable<double>&, Variable<array_1d<double,3> >& , Variable<double>& >())
     ;
 
-    py::class_<ComputeNodalGradientProcess<3, component_type, NonHistorical>, ComputeNodalGradientProcess<3, component_type, NonHistorical>::Pointer, Process>(m,"ComputeNonHistoricalNodalGradientProcessComp3D")
-            .def(py::init<ModelPart&, component_type&, Variable<array_1d<double,3> >& , Variable<double>& >())
-    ;
+    m.attr("ComputeNonHistoricalNodalGradientProcess2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcess3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcessComp2D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
+    m.attr("ComputeNonHistoricalNodalGradientProcessComp3D") = m.attr("ComputeNonHistoricalNodalGradientProcess");
 
     // Discontinuous distance computation methods
     py::class_<CalculateDiscontinuousDistanceToSkinProcess<2>, CalculateDiscontinuousDistanceToSkinProcess<2>::Pointer, Process>(m,"CalculateDiscontinuousDistanceToSkinProcess2D")
@@ -367,99 +352,125 @@ void  AddProcessesToPython(pybind11::module& m)
     // ;
 
     /* Simple Mortar mapper */
+    // Wrapper
+    py::class_<SimpleMortarMapperProcessWrapper, SimpleMortarMapperProcessWrapper::Pointer, Process>(m, "SimpleMortarMapperProcess")
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters, LinearSolverType::Pointer>())
+    ;
+
     // 2D
     py::class_<SimpleMortarMapperProcess<2, 2, Variable<double>>, SimpleMortarMapperProcess<2, 2, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NDouble")
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess2D2NVector")
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<2, 2, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Triangle
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<double>>, SimpleMortarMapperProcess<3, 3, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NDouble")
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3NVector")
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Quadrilateral
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<double>>, SimpleMortarMapperProcess<3, 4, Variable<double>>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NDouble")
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4NVector")
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >>::Map)
     ;
 
     // 3D - Triangle - Quadrilateral
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<double>, 4>, SimpleMortarMapperProcess<3, 3, Variable<double>, 4>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3N4NDouble")
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<double>, 4>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>, SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Pointer, Process>(m, "SimpleMortarMapperProcess3D3N4NVector")
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 3, Variable<array_1d<double,3> >, 4>::Map)
     ;
 
     // 3D - Quadrilateral - Triangle
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<double>, 3>, SimpleMortarMapperProcess<3, 4, Variable<double>, 3>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4N3NDouble")
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<double>&, Variable<double>&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<double>, 3>::Map)
     ;
 
     py::class_<SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>, SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Pointer, Process>(m, "SimpleMortarMapperProcess3D4N3NVector")
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&>())
+    .def(py::init<ModelPart&, ModelPart&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters>())
     .def(py::init<ModelPart&, ModelPart&, Variable<array_1d<double,3> >&, Variable<array_1d<double,3> >&, Parameters, LinearSolverType::Pointer>())
+    .def("Map", &SimpleMortarMapperProcess<3, 4, Variable<array_1d<double,3> >, 3>::Map)
     ;
 
     // Transfer between model parts

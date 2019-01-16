@@ -59,6 +59,8 @@ public:
   ///Type for size
   typedef GeometryData::SizeType SizeType;
 
+  typedef std::vector<Element*> ElementPointerVectorType;
+
   /// Counted pointer of UpdatedLagrangianSegregatedFluidElement
   KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedFluidElement );
   ///@}
@@ -280,6 +282,18 @@ protected:
   void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                           ElementDataType& rVariables) override;
 
+
+  /**
+   * Calculation and addition of the matrices of the LHS
+   */
+  void CalculateAndAddDynamicLHS(MatrixType& rLeftHandSideMatrix,
+                                 ElementDataType& rVariables) override;
+
+  /**
+   * Calculation and addition of the vectors of the RHS
+   */
+  void CalculateAndAddDynamicRHS(VectorType& rRightHandSideVector,
+                                 ElementDataType& rVariables) override;
 
   /**
    * Get element size from the dofs

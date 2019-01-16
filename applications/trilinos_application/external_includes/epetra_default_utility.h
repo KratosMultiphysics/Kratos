@@ -6,25 +6,17 @@
 //
 //
 
-
 #if !defined(KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED )
 #define  KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
-#include "AztecOO.h"
-#include "ml_include.h"
 #include "ml_MultiLevelPreconditioner.h"
+#include "Teuchos_ParameterList.hpp"
 
 
 namespace Kratos
@@ -248,6 +240,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED  defined 
+#endif // KRATOS_EPETRA_DEFAULT_UTILITY_H_INCLUDED  defined
 
 

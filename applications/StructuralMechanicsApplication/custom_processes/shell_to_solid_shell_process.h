@@ -13,6 +13,7 @@
 #define KRATOS_SHELL_TO_SOLID_SHELL_PROCESS_PROCESS
 
 // System includes
+#include <unordered_set>
 
 // External includes
 
@@ -226,10 +227,49 @@ private:
     void ReorderAllIds(const bool ReorderAccordingShellConnectivity = false);
 
     /**
+     * @brief This is the execution to convert a 2D element into 3D
+     */
+    void ExecuteExtrusion();
+
+    /**
+     * @brief This is the execution to convert a 3D element into 2D
+     */
+    void ExecuteCollapse();
+
+    /**
+     * @brief This replaces the previous geometry
+     * @param rGeometryModelPart The previous model part
+     * @param rAuxiliarModelPart The new created model part
+     */
+    void ReplacePreviousGeometry(
+        ModelPart& rGeometryModelPart,
+        ModelPart& rAuxiliarModelPart
+        );
+
+    /**
+     * @brief If we reassign the constitutive laws
+     * @param rGeometryModelPart The previous model part
+     * @param rSetIdProperties The set containing the properties ids
+     */
+    void ReassignConstitutiveLaw(
+        ModelPart& rGeometryModelPart,
+        std::unordered_set<IndexType>& rSetIdProperties
+        );
+
+    /**
      * @brief After we have transfer the information from the previous modelpart we initilize the elements
      */
-
     void InitializeElements();
+
+    /**
+     * @brief After we have created the new elements we export to a *.mdpa file
+     */
+    void ExportToMDPA();
+
+    /**
+     * @brief After we have created the new elements we delete the auxiliar model parts
+     */
+    void CleanModel();
 
     /**
      * @brief It computes the mean of the normal on the elements in all the nodes (non historical version)
