@@ -14,14 +14,11 @@
 #define  KRATOS_SHALLOW_WATER_VARIABLES_UTILITY_H_INCLUDED
 
 // System includes
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "utilities/openmp_utils.h"
-#include "processes/find_nodal_neighbours_process.h"
 
 // External includes 
 
 // Project includes
+#include "includes/model_part.h"
 #include "shallow_water_application.h"
 
 namespace Kratos
@@ -215,17 +212,33 @@ public:
             }
 
             if (wet_node)
-            {
                 elem->Set(FLUID, true);
-                elem->Set(ACTIVE, true);
-            }
             else
-            {
                 elem->Set(FLUID, false);
-                elem->Set(ACTIVE, false);
-            }
         }
         
+        KRATOS_CATCH("")
+    }
+
+    void DeactivateDryElements()
+    {
+        KRATOS_TRY
+
+        // Getting the elements from the model
+        const int nelem = static_cast<int>(mrModelPart.Elements().size());
+        ModelPart::ElementsContainerType::iterator elem_begin = mrModelPart.ElementsBegin();
+
+        #pragma omp parallel for
+        for (int k = 0; k < nelem; k++)
+        {
+            auto elem = elem_begin + k;
+
+            if (elem->Is(FLUID))
+                elem->Set(ACTIVE, true);
+            else
+                elem->Set(ACTIVE, false);
+        }
+
         KRATOS_CATCH("")
     }
 

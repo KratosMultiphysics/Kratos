@@ -92,7 +92,7 @@ class Pfem2PrimitiveVarSolver(ShallowWaterBaseSolver):
             # Compute free surface
             self.ShallowVariableUtils.ComputeFreeSurfaceElevation()
             # If water height is negative or close to zero, reset values
-            self.ShallowVariableUtils.CheckDryPrimitiveVariables()
+            # self.ShallowVariableUtils.CheckDryPrimitiveVariables()
 
             return is_converged
 
