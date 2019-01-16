@@ -431,13 +431,13 @@ class Solution(object):
 
             self.UpdateTimeInModelParts()
 
-            self.BeforeSolveOperations(self.time)
+            self._BeforeSolveOperations(self.time)
 
             self.SolverSolve()
 
             self.AfterSolveOperations()
 
-            self.solver.MoveAllMeshes(self.time, self.solver.dt)
+            self.solver._MoveAllMeshes(self.time, self.solver.dt)
 
             ##### adding DEM elements by the inlet ######
             if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -501,7 +501,16 @@ class Solution(object):
     def InitializeTimeStep(self):
         pass
 
+    #TODO: deprecated
     def BeforeSolveOperations(self, time):
+        message = 'Warning!'
+        message += '\nFunction \'BeforeSolveOperations\' is deprecated.'
+        message += '\nPlease call \'_BeforeSolveOperations\' instead.'
+        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
+        Logger.PrintWarning("main_script.py", message)
+        self._BeforeSolveOperations(time)
+
+    def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -618,14 +627,23 @@ class Solution(object):
         self.time = 0.0
         self.time_old_print = 0.0
 
+    #TODO: deprecated
     def UpdateTimeParameters(self):
+        message = 'Warning!'
+        message += '\nFunction \'UpdateTimeParameters\' is deprecated.'
+        message += '\nPlease call \'_UpdateTimeParameters\' instead.'
+        message += '\nThe deprecated version will be removed after 02/28/2019.\n'
+        Logger.PrintWarning("main_script.py", message)
+        self._UpdateTimeParameters()
+
+    def _UpdateTimeParameters(self):
         self.InitializeTimeStep()
         self.time = self.time + self.solver.dt
         self.step += 1
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self.solver.MoveAllMeshes(self.time, self.solver.dt)
+        self.solver._MoveAllMeshes(self.time, self.solver.dt)
         #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():

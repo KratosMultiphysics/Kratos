@@ -156,8 +156,8 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def BeforeSolveOperations(self, time):
-        super(DEMBenchamarksAnalysisStage, self).BeforeSolveOperations(time)
+    def _BeforeSolveOperations(self, time):
+        super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
         benchmark.ApplyNodalRotation(time, self.solver.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):
