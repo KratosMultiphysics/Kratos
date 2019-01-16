@@ -54,6 +54,7 @@
 #include "processes/simple_mortar_mapper_process.h"
 #include "processes/simple_mortar_mapper_wrapper_process.h"
 #include "processes/skin_detection_process.h"
+#include "processes/apply_periodic_boundary_condition_process.h"
 #include "includes/node.h"
 
 #include "spaces/ublas_space.h"
@@ -502,6 +503,10 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         ;
+
+    py::class_<ApplyPeriodicConditionProcess, ApplyPeriodicConditionProcess::Pointer, Process>(m,"ApplyPeriodicConditionProcess")
+            .def(py::init<ModelPart&,ModelPart&, Parameters>())
+    ;
 }
 
 }  // namespace Python.
