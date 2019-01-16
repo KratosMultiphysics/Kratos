@@ -1,5 +1,5 @@
 import warnings
-import co_simulation_data_structure
+import co_simulation_data_structure # @Aditya I thought this would work since its in the same folder, but it didn't work for me. I guess some path-manipulation is necessary for CoSim to also work in Python-only, we can discuss it
 cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import math
 ## Class contains definition of colors. This is to be used as a struct
