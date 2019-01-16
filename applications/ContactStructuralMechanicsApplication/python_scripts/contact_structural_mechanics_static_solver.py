@@ -159,9 +159,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
-        else:
-            builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
+                builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 

@@ -672,7 +672,7 @@ class SearchBaseProcess(KM.Process):
         key -- The key to identify the current pair.
         """
         detect_skin_parameters = KM.Parameters("""{"name_auxiliar_model_part": "Contact"}""")
-        sub_search_model_part_name = "ContactSub"+key
+        sub_search_model_part_name = "ContactSub" + key
         self._get_process_model_part().CreateSubModelPart(sub_search_model_part_name)
         detect_skin_parameters["name_auxiliar_model_part"].SetString(sub_search_model_part_name)
         if self.dimension == 2:
