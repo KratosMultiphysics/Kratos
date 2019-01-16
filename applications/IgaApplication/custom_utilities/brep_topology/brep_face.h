@@ -141,7 +141,8 @@ namespace Kratos
         /*Returns the member NodeSurfaceGeometry3D object of the brep face.
         This object gives a NURBS representation of the surface of the face.*/
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
-
+        
+        const std::vector<BrepBoundaryLoop> GetBoundaryLoop() const;
         /// Constructor.
         BrepFace(
             int rBrepId,

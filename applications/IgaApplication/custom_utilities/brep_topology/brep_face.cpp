@@ -529,6 +529,10 @@ namespace Kratos
         return mNodeSurfaceGeometry3D;
     }
 
+    const std::vector<BrepBoundaryLoop> BrepFace::GetBoundaryLoop() const
+    { 
+        return mTrimmingLoops;      
+    }
 
 
     ///Constructor

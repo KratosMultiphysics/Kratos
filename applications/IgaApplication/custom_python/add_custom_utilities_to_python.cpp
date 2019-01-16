@@ -842,7 +842,9 @@ void AddCustomUtilitiesToPython(
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
-        .def("CreateElements", &EmbeddedIgaModeler::CreateElements)
+        .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
+        // .def("PrintNodesY", &EmbeddedIgaModeler::PrintNodesY)
+        // .def("PrintNodesX", &EmbeddedIgaModeler::PrintNodesX)
         ;
 
 }

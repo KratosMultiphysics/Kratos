@@ -6,6 +6,7 @@
 // External includes
 #include "anurbs.h"
 #include "containers/model.h"
+// #include "triangle.h"
 
 // Project includes
 #include "iga_application_variables.h"
@@ -27,8 +28,10 @@ namespace Kratos
         ///@name functions
         ///@{
         
-        void CreateTessellation(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation); 
-        void CreateElements(); 
+        void CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation); 
+        void CreateElements2D(ModelPart& rSkinModelPart); 
+        // std::vector<double> PrintNodesX();
+        // std::vector<double> PrintNodesY();
 
         ///@}
         ///@name Life Cycle
