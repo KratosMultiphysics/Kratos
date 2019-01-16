@@ -131,9 +131,9 @@ namespace Kratos
 
       mImplex = false;
       if ( rCurrentProcessInfo.Has(IMPLEX)  == true ) {
-         if ( rCurrentProcessInfo[IMPLEX] > 0.0 ) {
+         if ( rCurrentProcessInfo[IMPLEX] ) {
             if ( GetProperties().Has(IMPLEX_CONTACT) == true) {
-               if ( GetProperties()[IMPLEX_CONTACT] > 0.0 ) {
+               if ( GetProperties()[IMPLEX_CONTACT] ) {
                   mImplex = true;
                }
             } else {
