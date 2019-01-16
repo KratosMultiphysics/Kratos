@@ -168,7 +168,7 @@ class FEMDEM_Solution:
                                                                    self.DEM_Solution.solver.dt,
                                                                    self.DEM_Solution.step,
                                                                    self.DEM_Solution.IsTimeToPrintPostProcess())
-        self.DEM_Solution.BeforeSolveOperations(self.DEM_Solution.time)
+        self.DEM_Solution._BeforeSolveOperations(self.DEM_Solution.time)
 
         #### SOLVE DEM #########################################
         self.DEM_Solution.solver.Solve()

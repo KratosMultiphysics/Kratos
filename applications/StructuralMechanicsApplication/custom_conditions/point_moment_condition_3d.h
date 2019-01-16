@@ -200,7 +200,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -208,7 +208,7 @@ protected:
     /**
      * It calcules the integration weight for the point moment
      */
-    virtual double GetPointMomentIntegrationWeight();
+    virtual double GetPointMomentIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access

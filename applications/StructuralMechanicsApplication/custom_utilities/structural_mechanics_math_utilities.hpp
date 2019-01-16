@@ -315,7 +315,7 @@ public:
 
     static inline double CalculateRadius(
         const Vector N,
-        GeometryType& Geom,
+        const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
     {
@@ -348,7 +348,7 @@ public:
      */
 
     static inline double CalculateRadiusPoint(
-        GeometryType& Geom,
+        const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
     {
