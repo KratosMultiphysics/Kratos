@@ -196,16 +196,16 @@ void PrestressMembraneElement::CalculateDampingMatrix(
 
     // 1.-Calculate StiffnessMatrix:
 
-    MatrixType StiffnessMatrix  = Matrix();
+    MatrixType stiffness_matrix  = Matrix();
     VectorType ResidualVector  = Vector();
 
-    CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
+    CalculateAll(stiffness_matrix, ResidualVector, rCurrentProcessInfo, true, false);
 
     // 2.-Calculate MassMatrix:
 
-    MatrixType MassMatrix  = Matrix();
+    MatrixType mass_matrix  = Matrix();
 
-    CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
+    CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
 
     // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
     double alpha = 0.0;
@@ -223,8 +223,8 @@ void PrestressMembraneElement::CalculateDampingMatrix(
     // 4.-Compose the Damping Matrix:
 
     // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * MassMatrix;
-    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
+    noalias( rDampingMatrix ) += alpha * mass_matrix;
+    noalias( rDampingMatrix ) += beta  * stiffness_matrix;
 
     KRATOS_CATCH( "" )
 }

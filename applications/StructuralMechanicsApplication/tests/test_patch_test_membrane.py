@@ -247,7 +247,6 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y)
         self.assertAlmostEqual(displacement, displacement_results[step], 4)
 
-    
     def _set_and_fill_buffer(self,mp,buffer_size,delta_time):
         # Set buffer size
         mp.SetBufferSize(buffer_size)
