@@ -78,8 +78,8 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                     model_part_name = materials["properties"][i]["model_part_name"].GetString()
                     if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
                         model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                    if model_part_name not in list_domain_mp_names:
-                        warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
+                    if model_part_name not in list_domain_mp_names and model_part_name != main_model_part_name:
+                        warn_msg  = 'The ModelPart with name "'+ model_part_name + '"\n'
                         warn_msg += 'is used for assigning materials but is not added to the ComputingModelPart!\n'
                         warn_msg += 'This can be done by adding it to "problem_domain_sub_model_part_list" '
                         warn_msg += 'in "solver_settings"\n'
@@ -105,7 +105,7 @@ class StructuralMechanicsAnalysis(AnalysisStage):
                         model_part_name = process_params["model_part_name"].GetString()
                         if model_part_name.startswith(main_model_part_name): # removing the MainModelPart-Name
                             model_part_name = model_part_name.replace(main_model_part_name+".", "")
-                        if model_part_name not in list_proc_mp_names:
+                        if model_part_name not in list_proc_mp_names and model_part_name != main_model_part_name:
                             proc_name = processes_block[i_proc]["python_module"].GetString()
                             warn_msg  = 'The ModelPart with name "' + model_part_name + '"\n'
                             warn_msg += 'is used for a process ("{}") \nbut is not added to the '.format(proc_name)
