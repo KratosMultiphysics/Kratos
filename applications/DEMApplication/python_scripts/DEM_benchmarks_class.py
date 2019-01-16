@@ -1,11 +1,9 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *                                  # importing the Kratos Library
 from KratosMultiphysics.DEMApplication import *
-CheckForPreviousImport()                                          # check that KratosMultiphysics was imported in the main script
 import shutil
 from glob import glob
 from math import pi, sin, cos, tan, atan, fabs
-
 from os import system
 
 def initialize_time_parameters(benchmark_number):

@@ -65,6 +65,30 @@ bool& LinearPlaneStrain::GetValue(const Variable<bool>& rThisVariable, bool& rVa
     return rValue;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+Matrix& LinearPlaneStrain::GetValue(const Variable<Matrix>& rThisVariable, Matrix& rValue)
+{
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+Vector& LinearPlaneStrain::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
+{
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& LinearPlaneStrain::GetValue(const Variable<double>& rThisVariable, double& rValue)
+{
+    return rValue;
+}
+
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 /***********************************************************************************/
 

@@ -108,7 +108,7 @@ public:
         Parameters ThisParameters =  Parameters(R"({})") 
         ); 
     
-    virtual ~SimpleContactSearch()= default;;
+    virtual ~SimpleContactSearch()= default;
 
     ///@}
     ///@name Operators
