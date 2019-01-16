@@ -342,7 +342,7 @@ protected:
         Matrix& DN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Protected Operations

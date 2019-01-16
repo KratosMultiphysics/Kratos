@@ -11,9 +11,8 @@ import json
 import os
 
 import sys
-print(sys.path)
 
-import candelier_scripts.candelier_analysis as candelier_analysis
+
 
 def PrintMessage(run_name, radial_error, tolerance):
         run_name += ': '
