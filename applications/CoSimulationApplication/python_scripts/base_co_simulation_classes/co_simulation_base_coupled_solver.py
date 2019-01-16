@@ -6,8 +6,6 @@ import co_simulation_data_structure
 cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import collections
 
-#Comment protected global: maybe it would be better to write the comments in python-doc-style
-
 ##
 #  IMPORTANT : This is a BASE CLASS
 #               Please do not change any thing in this class.
@@ -27,7 +25,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings) #Comment why commented?
         default_setting = cs_data_structure.Parameters("""
         {
-            "name" : "", #Comment why is this needed?
+            "name" : "",
             "solver_type" : "gauss_seidel_strong_coupling", #Comment I think this should always be specified by the user
             "echo_level" : 0,
             "num_coupling_iterations" : 10, #Comment this cannot be here if it is the base for all (also weakly-couples) solvers

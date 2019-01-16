@@ -8,8 +8,6 @@ import math
 def Create(settings, solver):
     return CoSimulationConvergenceCriteria(settings, solver)
 
-#Comment this is not a baseclass (aka interface) but already an actual implementation => should be separated
-
 class CoSimulationConvergenceCriteria(object):
     ## __init__ : Initializer
     #
