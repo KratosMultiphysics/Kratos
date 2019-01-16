@@ -123,7 +123,7 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
 {
 
     KRATOS_TRY
-    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}>(NewId, GetGeometry().Create(ThisNodes), pProperties);
     KRATOS_CATCH("");
 }
 
@@ -141,7 +141,7 @@ Condition::Pointer @{KRATOS_NAME_CAMEL}::Create(
 {
 
     KRATOS_TRY
-    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}(NewId, pGeom, pProperties);
+    return Kratos::make_shared<@{KRATOS_NAME_CAMEL}>(NewId, pGeom, pProperties);
     KRATOS_CATCH("");
 }
 

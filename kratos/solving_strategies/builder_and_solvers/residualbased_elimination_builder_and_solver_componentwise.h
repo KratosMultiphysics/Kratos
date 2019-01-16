@@ -254,7 +254,7 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
 
                 //assemble the elemental contribution
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -297,7 +297,7 @@ public:
                     EquationId[i] = geom[i].GetDof(rVar,pos).EquationId();
                 }
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId,lock_array);
 #else
                 this->Assemble(A,b,LHS_Contribution,RHS_Contribution,EquationId);
@@ -559,7 +559,7 @@ protected:
         for(WeakPointerVector< Node<3> >::iterator in = mActiveNodes.begin();
                 in!=mActiveNodes.end(); in++)
         {
-            Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
+            const Node<3>::DofType& current_dof = in->GetDof(rVar,pos);
             if( current_dof.IsFixed() == false)
             {
                 index_i = (current_dof).EquationId();
@@ -573,8 +573,7 @@ protected:
                 for( WeakPointerVector< Node<3> >::iterator i =	neighb_nodes.begin();
                         i != neighb_nodes.end(); i++)
                 {
-
-                    Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
+                    const Node<3>::DofType& neighb_dof = i->GetDof(rVar,pos);
                     if(neighb_dof.IsFixed() == false )
                     {
                         int index_j = (neighb_dof).EquationId();

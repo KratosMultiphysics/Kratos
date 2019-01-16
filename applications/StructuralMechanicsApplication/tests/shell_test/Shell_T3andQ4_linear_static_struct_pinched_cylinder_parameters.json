@@ -35,7 +35,7 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Surface_Q4_thick","Parts_Surface_T3_thick","Parts_Surface_Q4_thin","Parts_Surface_T3_thin"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","DISPLACEMENT_Dirichlet","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_Neumann"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","DISPLACEMENT_Dirichlet","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","PointLoad3D_Neumann"],
         "rotation_dofs"                      : true
     },
     "processes" : {

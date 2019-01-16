@@ -34,7 +34,7 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Surface_Q4_thin","Parts_Surface_T3_thin","Parts_Surface_T3_thick","Parts_Surface_Q4_thick"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_ends","DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_ends","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","SurfacePressure3D_Surface_Q4_thick","SurfacePressure3D_Surface_Q4_thin","SurfacePressure3D_Surface_T3_thick","SurfacePressure3D_Surface_T3_thin"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_ends","DISPLACEMENT_sym_XY","DISPLACEMENT_sym_XZ","DISPLACEMENT_sym_YZ","ROTATION_ends","ROTATION_sym_XY","ROTATION_sym_XZ","ROTATION_sym_YZ","SurfacePressure3D_Surface_Q4_thick","SurfacePressure3D_Surface_Q4_thin","SurfacePressure3D_Surface_T3_thick","SurfacePressure3D_Surface_T3_thin"],
         "rotation_dofs"                      : true
     },
     "processes" : {

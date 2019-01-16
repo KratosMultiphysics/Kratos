@@ -34,7 +34,7 @@
             "scaling"     : false
         },
         "problem_domain_sub_model_part_list" : ["Parts_Surface"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface"],
+        "processes_sub_model_part_list"      : ["GENERIC_ref_node","DISPLACEMENT_Dirichlet","DISPLACEMENT_XZ_sym","DISPLACEMENT_YZ_sym","ROTATION_XZ_sym","ROTATION_YZ_sym","SurfaceLoad3D_Surface"],
         "rotation_dofs"                      : true
     },
     "processes" : {
