@@ -119,8 +119,8 @@ typedef LinearSolverFactory<TrilinosSparseSpaceType,  TrilinosLocalSpaceType> Tr
     KratosComponents<TrilinosLinearSolverFactoryType>::Add(name, reference);
 
 
-template<class TComponentType>
-typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
+// template<class TComponentType>
+// typename KratosComponents<TComponentType>::ComponentsContainerType KratosComponents<TComponentType>::msComponents;
 
 extern template class KratosComponents<TrilinosLinearSolverFactoryType>;
 
