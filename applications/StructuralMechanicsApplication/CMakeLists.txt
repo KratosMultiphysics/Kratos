@@ -79,7 +79,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_d_plus_d_minus_damage.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/generic_small_strain_kinematic_plasticity.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/plasticity_isotropic_kinematic_j2.cpp
-  
+
   ## ELEMENTS
 
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/rocco_ring_element.cpp
@@ -88,6 +88,7 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/truss_element_linear_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cable_element_3D2N.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sliding_cable_element_3D.cpp
 
   # Adding the beam element
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/cr_beam_element_3D2N.cpp
