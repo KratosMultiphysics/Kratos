@@ -11,11 +11,10 @@ class KratosProcessFactory(object):
             item = process_list[i]
             # The kratos_module is the application where the script must be loaded. ex. KratosMultiphysics.StructuralMechanicsApplication
             if(item.Has("kratos_module")):
-                module = item["kratos_module"].GetString()
-                if "KratosMultiphysics" in module:
-                    kratos_module = __import__(module)
-                else:
-                    kratos_module = __import__("KratosMultiphysics." + module)
+                kratos_module_name = item["kratos_module"].GetString()
+                if not kratos_module_name.startswith("KratosMultiphysics."):
+                    kratos_module_name = "KratosMultiphysics." + kratos_module_name
+                __import__(kratos_module_name)
 
             # The python_module is the actual script that must be launch
             if(item.Has("python_module")):
