@@ -79,6 +79,8 @@ namespace Kratos {
         Condition* mCondition;
         Vector mShapeFunctionsValues;
         double mDistanceSignedWithNormal = 0.0;
+        array_1d<double, 3> mInitialNormalToWall;
+        array_1d<double, 3> mCurrentNormalToWall;
 
         /// Assignment operator.
         GluedToWallScheme& operator=(GluedToWallScheme const& rOther) {
