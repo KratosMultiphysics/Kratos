@@ -79,14 +79,14 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         BoundedMatrix<double,msLocalSize,msLocalSize>
-         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
+         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
 
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo) override;
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function updates the internal normal force w.r.t. the current deformations

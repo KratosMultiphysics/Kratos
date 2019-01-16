@@ -73,11 +73,11 @@ public:
     ///@name Operations
     ///@{
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const  override;
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override;
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable,
                                             Matrix& rOutput,
@@ -87,7 +87,7 @@ public:
                                             Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
 
     ///@}
     ///@name Access

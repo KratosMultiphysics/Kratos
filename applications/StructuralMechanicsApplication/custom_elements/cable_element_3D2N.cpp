@@ -76,7 +76,7 @@ CableElement3D2N::CreateElementStiffnessMatrix(
 
 void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                             VectorType &rRightHandSideVector,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   // calculate internal forces
@@ -105,7 +105,7 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 }
 
 void CableElement3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   rRightHandSideVector = ZeroVector(msLocalSize);

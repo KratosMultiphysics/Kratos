@@ -48,7 +48,7 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
-                                         ProcessInfo &rCurrentProcessInfo) {
+                                         const ProcessInfo &rCurrentProcessInfo) {
   if (rResult.size() != msElementSize)
     rResult.resize(msElementSize);
 
@@ -67,7 +67,7 @@ void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
 }
 
 void CrBeamElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
-                                   ProcessInfo &rCurrentProcessInfo) {
+                                   const ProcessInfo &rCurrentProcessInfo) {
 
   if (rElementalDofList.size() != msElementSize) {
     rElementalDofList.resize(msElementSize);
@@ -87,13 +87,13 @@ void CrBeamElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
   }
 }
 
-void CrBeamElement3D2N::Initialize() {
+void CrBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo) {
 
   KRATOS_TRY;
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetSecondDerivativesVector(Vector &rValues, int Step) {
+void CrBeamElement3D2N::GetSecondDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY
   if (rValues.size() != msElementSize)
@@ -117,7 +117,7 @@ void CrBeamElement3D2N::GetSecondDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetFirstDerivativesVector(Vector &rValues, int Step) {
+void CrBeamElement3D2N::GetFirstDerivativesVector(Vector &rValues, int Step) const {
 
   KRATOS_TRY
   if (rValues.size() != msElementSize)
@@ -141,7 +141,7 @@ void CrBeamElement3D2N::GetFirstDerivativesVector(Vector &rValues, int Step) {
   KRATOS_CATCH("")
 }
 
-void CrBeamElement3D2N::GetValuesVector(Vector &rValues, int Step) {
+void CrBeamElement3D2N::GetValuesVector(Vector &rValues, int Step) const {
   KRATOS_TRY
   if (rValues.size() != msElementSize)
     rValues.resize(msElementSize, false);
@@ -282,7 +282,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 }
 
 void CrBeamElement3D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   if (rDampingMatrix.size1() != msElementSize) {
@@ -960,7 +960,7 @@ CrBeamElement3D2N::CalculateTransformationS() const {
 }
 
 void CrBeamElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   if (rMassMatrix.size1() != msElementSize) {
     rMassMatrix.resize(msElementSize, msElementSize, false);
@@ -995,7 +995,7 @@ void CrBeamElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 
 void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
                                              VectorType &rRightHandSideVector,
-                                             ProcessInfo &rCurrentProcessInfo) {
+                                             const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -1026,7 +1026,7 @@ void CrBeamElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
 }
 
 void CrBeamElement3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   rRightHandSideVector = ZeroVector(msElementSize);
   // this is why mNodalForces is saved -> correct reaction forces
@@ -1038,7 +1038,7 @@ void CrBeamElement3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElement3D2N::CalculateLeftHandSide(
-    MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
   // Initialize Bisectrix and Vectordifferences
@@ -1590,7 +1590,7 @@ double CrBeamElement3D2N::CalculateShearModulus() const {
   KRATOS_CATCH("")
 }
 
-int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
+int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) const {
   KRATOS_TRY
   const double numerical_limit = std::numeric_limits<double>::epsilon();
   if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size() != 2) {

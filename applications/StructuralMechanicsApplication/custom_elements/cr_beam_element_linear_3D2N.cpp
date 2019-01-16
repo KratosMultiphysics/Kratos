@@ -52,7 +52,7 @@ CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
 
 void CrBeamElementLinear3D2N::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -69,7 +69,7 @@ void CrBeamElementLinear3D2N::CalculateLocalSystem(
 }
 
 void CrBeamElementLinear3D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   rRightHandSideVector = ZeroVector(msElementSize);
 
@@ -87,7 +87,7 @@ void CrBeamElementLinear3D2N::CalculateRightHandSide(
 }
 
 void CrBeamElementLinear3D2N::CalculateLeftHandSide(
-    MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY;
   BoundedMatrix<double, msElementSize, msElementSize> transformation_matrix =
@@ -116,7 +116,7 @@ void CrBeamElementLinear3D2N::CalculateLeftHandSide(
 }
 
 void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
-                                            ProcessInfo &rCurrentProcessInfo) {
+                                            const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   if (rMassMatrix.size1() != msElementSize) {
     rMassMatrix.resize(msElementSize, msElementSize, false);

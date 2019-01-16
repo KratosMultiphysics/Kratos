@@ -91,29 +91,29 @@ public:
     ///@name Operations
     ///@{
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo ) override
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "EquationIdVector of the base class called!" << std::endl;
     }
 
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo ) override
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) override
     {
         KRATOS_ERROR << "GetDofList of the base class called!" << std::endl;
     }
 
-    IntegrationMethod GetIntegrationMethod() override
+    IntegrationMethod GetIntegrationMethod() const override
     {
         return mpPrimalCondition->GetIntegrationMethod();
     }
 
-    void GetValuesVector(Vector& rValues, int Step = 0 ) override
+    void GetValuesVector(Vector& rValues, int Step = 0 ) const override
     {
         KRATOS_ERROR << "GetValuesVector of the base class called!" << std::endl;
     }
 
-    void Initialize() override
+    void Initialize(const ProcessInfo& rCurrentProcessInfo ) override
     {
-        mpPrimalCondition->Initialize();
+        mpPrimalCondition->Initialize(rCurrentProcessInfo);
     }
 
     void ResetConstitutiveLaw() override

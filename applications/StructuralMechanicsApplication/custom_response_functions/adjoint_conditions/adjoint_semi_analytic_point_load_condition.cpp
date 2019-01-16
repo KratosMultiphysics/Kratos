@@ -31,7 +31,7 @@ namespace Kratos
     {
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+    void AdjointSemiAnalyticPointLoadCondition::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const 
     {
         KRATOS_TRY
 
@@ -64,7 +64,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo)
+    void AdjointSemiAnalyticPointLoadCondition::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -98,7 +98,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step)
+    void AdjointSemiAnalyticPointLoadCondition::GetValuesVector(Vector& rValues, int Step) const
     {
         const SizeType number_of_nodes = GetGeometry().size();
         const SizeType dimension =  GetGeometry().WorkingSpaceDimension();
@@ -153,7 +153,7 @@ namespace Kratos
         KRATOS_CATCH( "" )
     }
 
-    int AdjointSemiAnalyticPointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+    int AdjointSemiAnalyticPointLoadCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
     {
         KRATOS_TRY
 
