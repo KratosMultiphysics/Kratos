@@ -1,0 +1,13 @@
+s       ! s: symmetric, h: hermitian, g: general 
+g       ! e=standard or g=generalized eigenvalue problem 
+d       ! (s,d,c,z) precision i.e (single real,double real,complex,double complex)  
+L       ! UPLO (L: lower, U: upper, F: full) for the coordinate format of matrices 
+-300d0  ! Emin
+-0.45d0 ! Emax 
+50      ! M0 search subspace (M0>=M)
+3       !!!!!!!!!! How many changes from default fpm[1,64] (used 1-64 indexing for Fortran and C) 
+1 1     !fpm(1)[0]=1 !example comments on/off  (0,1)
+16 2    !fpm(16) - quadrature rule (0: Gauss/default,1- trapezoidal ,2- Zolotarev) 
+10 1    !fpm(10) - factorizations saving- on/off (0,1)
+
+

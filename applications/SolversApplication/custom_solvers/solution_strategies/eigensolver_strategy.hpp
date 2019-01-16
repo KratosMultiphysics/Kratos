@@ -6,6 +6,7 @@
 //   Revision:            $Revision:           0.0 $
 //
 //
+//   (based on the work of michael.andre@tum.de)
 
 #if !defined(KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED)
 #define  KRATOS_EIGENSOLVER_STRATEGY_H_INCLUDED

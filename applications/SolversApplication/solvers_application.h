@@ -31,9 +31,15 @@
 #include "includes/standard_linear_solver_factory.h"
 
 //linear solvers
-#include "linear_system/linear_solvers/superlu_direct_solver.hpp"
-//#include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
+#ifdef INCLUDE_SUPERLU_MT
+  #include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
+#else
+  #include "linear_system/linear_solvers/superlu_direct_solver.hpp"
+#endif
 
+#ifdef INCLUDE_FEAST
+  #include "linear_system/linear_solvers/feast_solver.hpp"
+#endif
 
 namespace Kratos {
 
@@ -66,9 +72,6 @@ class KratosSolversApplication : public KratosApplication {
   typedef UblasSpace<double, CompressedMatrix, Vector>                       SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                  LocalSpaceType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType>                     LinearSolverType;
-  typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
-  //typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
-  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
 
   ///@}
   ///@name Life Cycle
@@ -161,9 +164,20 @@ class KratosSolversApplication : public KratosApplication {
   ///@name Static Member Variables
   ///@{
 
+#ifdef INCLUDE_SUPERLU_MT
+  typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
+  const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
+#else
+  typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
+  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
-  //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
   //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUIterativeSolverType> mSuperLUIterativeSolverFactory;
+#endif
+
+#ifdef INCLUDE_FEAST
+  typedef FEASTSolver<SparseSpaceType, LocalSpaceType> FEASTEigenValueSolverType;
+  const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, FEASTEigenValueSolverType> mFEASTEigenValueSolverFactory;
+#endif
 
   ///@}
   ///@name Member Variables
@@ -194,6 +208,44 @@ class KratosSolversApplication : public KratosApplication {
   ///@}
 
 }; // Class KratosSolversApplication
+
+
+// /// Registers the linear solvers to kratos
+// class SolversApplicationRegisterLinearSolvers
+// {
+// public:
+//     ///@name Type Definitions
+//     ///@{
+
+//     /// Pointer definition of SolversApplicationRegisterLinearSolvers
+//     KRATOS_CLASS_POINTER_DEFINITION(SolversApplicationRegisterLinearSolvers);
+
+//     ///@}
+//     ///@name Life Cycle
+//     ///@{
+
+//     /// Default constructor.
+//     SolversApplicationRegisterLinearSolvers();
+
+//     /// Destructor.
+//     virtual ~SolversApplicationRegisterLinearSolvers(){};
+
+
+//     ///@}
+
+// private:
+//     ///@name Un accessible methods
+//     ///@{
+
+//     /// Assignment operator.
+//     SolversApplicationRegisterLinearSolvers& operator=(SolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+//     /// Copy constructor.
+//     SolversApplicationRegisterLinearSolvers(SolversApplicationRegisterLinearSolvers const& rOther) = delete;
+
+//     ///@}
+
+// }; // Class SolversApplicationRegisterLinearSolvers
 
 ///@}
 

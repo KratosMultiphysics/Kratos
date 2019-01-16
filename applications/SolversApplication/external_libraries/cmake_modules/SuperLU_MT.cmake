@@ -262,3 +262,5 @@ message(STATUS "****compiling super_lu_mt*****")
 add_library(super_lu_mt STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
 #target_link_libraries(super_lu_mt ${BLAS_LIBRARIES})
 target_link_libraries(super_lu_mt libblas_mt)
+
+set(SUPERLU_LIBRARIES super_lu_mt)

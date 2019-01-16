@@ -241,3 +241,4 @@ add_definitions( -w )
 
 add_library(super_lu STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
 target_link_libraries(super_lu ${BLAS_LIBRARIES} )
+set(SUPERLU_LIBRARIES super_lu)

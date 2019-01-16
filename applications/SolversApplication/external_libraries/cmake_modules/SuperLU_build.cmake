@@ -27,11 +27,11 @@ execute_process(COMMAND ${superlu_cmd} ${superlu_omp}
   WORKING_DIRECTORY ${SUPERLU_DIR}
   RESULT_VARIABLE superlu_result
   OUTPUT_VARIABLE superlu_output)
-#message(STATUS "superlu output[${superlu_result}]:\n${superlu_output}")
+message(STATUS "superlu output[${superlu_result}]:\n${superlu_output}")
 
 
-find_library(SUPERLU_LIBRARY
-  superlu_5.1
+find_library(SUPERLU_LIBRARIES
+  superlu_5.2.1
   "${SUPERLU_DIR}/lib"
   )
 find_path(SUPERLU_INCLUDES
@@ -40,8 +40,8 @@ find_path(SUPERLU_INCLUDES
   )
 
 include_directories(${SUPERLU_INCLUDES})
-message(STATUS "SuperLU lib found: ${SUPERLU_LIBRARY}")
-#add_library(${SUPERLU_LIBRARY} STATIC IMPORTED)
-#set_target_properties(${SUPERLU_LIBRARY} PROPERTIES IMPORTED_LOCATION ${SUPERLU_DIR}/lib)
+message(STATUS "SuperLU lib found: ${SUPERLU_LIBRARIES}")
+#add_library(${SUPERLU_LIBRARIES} STATIC IMPORTED)
+#set_target_properties(${SUPERLU_LIBRARIES} PROPERTIES IMPORTED_LOCATION ${SUPERLU_DIR}/lib)
 
-install(FILES ${SUPERLU_LIBRARY} DESTINATION libs)
+install(FILES ${SUPERLU_LIBRARIES} DESTINATION libs)

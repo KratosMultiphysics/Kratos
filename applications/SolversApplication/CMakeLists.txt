@@ -1,8 +1,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
-file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
-list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
+#set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
+#file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
+#list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
 
 message("**** configuring KratosSolversApplication ****")
 
@@ -11,16 +11,24 @@ include(pybind11Tools)
 
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
-# compile SuperLU
-set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
-include_directories(${SUPERLU_DIR})
-#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_build.cmake")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
+if(${INCLUDE_SUPERLU_MT} MATCHES ON)
+  # compile SuperLU_MT
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
+  set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+else(${INCLUDE_SUPERLU_MT} MATCHES ON)
+  # compile SuperLU
+  set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
+  include_directories(${SUPERLU_DIR})
+  #INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_build.cmake")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
+endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
 
-# compile SuperLU_MT
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
-#set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
-#INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+# compile FEAST
+if(${INCLUDE_FEAST} MATCHES ON)
+  set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/FEAST.cmake")
+endif(${INCLUDE_FEAST} MATCHES ON)
 
 
 # generate variables with the sources
@@ -52,16 +60,21 @@ set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosSolversCore SHARED ${KRATOS_SOLVERS_APPLICATION_CORE})
-#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu_mt)
-#target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu super_lu_mt)
-target_link_libraries(KratosSolversCore PUBLIC KratosCore super_lu)
-#target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARY})
+
+message(STATUS "SuperLU lib2 found: ${SUPERLU_LIBRARIES}")
+
+if(${INCLUDE_FEAST} MATCHES ON)
+  target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARIES} ${FEAST_LIBRARIES})
+else(${INCLUDE_FEAST} MATCHES ON)
+  target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARIES})
+endif(${INCLUDE_FEAST} MATCHES ON)
+
 set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
-pybind11_add_module(KratosSolversApplication MODULE ${KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosSolversApplication PUBLIC KratosSolversCore)
+pybind11_add_module(KratosSolversApplication MODULE THIN_LTO ${KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE})
+target_link_libraries(KratosSolversApplication PRIVATE KratosSolversCore)
 set_target_properties(KratosSolversApplication PROPERTIES PREFIX "")
 
 # changing the .dll suffix to .pyd (Windows)
@@ -87,8 +100,8 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 if(USE_COTIRE MATCHES ON)
-    cotire(KratosSolversCore)
-    cotire(KratosSolversApplication)
+  cotire(KratosSolversCore)
+  cotire(KratosSolversApplication)
 endif(USE_COTIRE MATCHES ON)
 
 install(TARGETS KratosSolversCore DESTINATION libs )

@@ -6,6 +6,7 @@
 //   Revision:            $Revision:           0.0 $
 //
 //
+//   (based on the work of michael.andre@tum.de)
 
 #if !defined(KRATOS_FEAST_SOLVER_H_INCLUDED)
 #define  KRATOS_FEAST_SOLVER_H_INCLUDED
@@ -73,7 +74,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   ///@{
 
   /// Default constructor.
-  FEASTSolver(Parameters settings) : mParam(settings)
+  FEASTSolver(Parameters settings) : mParameters(settings)
   {
     Parameters default_params(R"(
         {
@@ -90,12 +91,14 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
             }
         })");
 
-    mParam.RecursivelyValidateAndAssignDefaults(default_params);
+    mParameters.RecursivelyValidateAndAssignDefaults(default_params);
 
-    if (mParam.GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
+    if (mParameters.GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
       KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
 
     mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
+
+    mEchoLevel=0;
   }
 
   /// Constructor for externally provided linear solver.
@@ -107,7 +110,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
    *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
    */
   FEASTSolver(Parameters settings, ComplexLinearSolverType::Pointer pLinearSolver)
-      : mParam(settings), mpLinearSolver(pLinearSolver)
+      : mParameters(settings), mpLinearSolver(pLinearSolver)
   {
     Parameters default_params(R"(
         {
@@ -123,7 +126,9 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
         })");
 
     // don't validate linear_solver_settings here
-    mParam.ValidateAndAssignDefaults(default_params);
+    mParameters.ValidateAndAssignDefaults(default_params);
+
+    mEchoLevel=0;
   }
 
   /// Deleted copy constructor.
@@ -155,17 +160,16 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   {
     const auto SystemSize = K.size1();
 
-    Parameters FEAST_Settings = mParam;
-    const double EigenvalueRangeMin = FEAST_Settings["lambda_min"].GetDouble();
-    const double EigenvalueRangeMax = FEAST_Settings["lambda_max"].GetDouble();
+    const double EigenvalueRangeMin = mParameters["lambda_min"].GetDouble();
+    const double EigenvalueRangeMax = mParameters["lambda_max"].GetDouble();
 
-    int SearchDimension = FEAST_Settings["search_dimension"].GetInt();
-    int NumEigenvalues = FEAST_Settings["number_of_eigenvalues"].GetInt();
+    int SearchDimension = mParameters["search_dimension"].GetInt();
+    int NumEigenvalues = mParameters["number_of_eigenvalues"].GetInt();
 
     Eigenvalues.resize(SearchDimension,false);
     Eigenvectors.resize(SearchDimension,SystemSize,false);
 
-    if (FEAST_Settings["perform_stochastic_estimate"].GetBool())
+    if (mParameters["perform_stochastic_estimate"].GetBool())
     {
       // this estimates the number of eigenvalues in the interval [lambda_min, lambda_max]
       Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
@@ -175,9 +179,9 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
 
       // recommended estimate of search dimension from FEAST documentation
       SearchDimension = NumEigenvalues + NumEigenvalues/2 + 1;
-      FEAST_Settings["search_dimension"].SetInt(SearchDimension);
+      mParameters["search_dimension"].SetInt(SearchDimension);
     }
-    if (FEAST_Settings["solve_eigenvalue_problem"].GetBool())
+    if (mParameters["solve_eigenvalue_problem"].GetBool())
     {
       // this attempts to solve the generalized eigenvalue problem
       Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
@@ -187,17 +191,29 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
       Eigenvectors.resize(NumEigenvalues,SystemSize,true);
 
     }
-    FEAST_Settings["number_of_eigenvalues"].SetInt(NumEigenvalues);
+    mParameters["number_of_eigenvalues"].SetInt(NumEigenvalues);
   }
 
+  ///@}
+  ///@name Access
+  ///@{
+  ///@}
+  ///@name Inquiry
+  ///@{
   ///@}
   ///@name Input and output
   ///@{
 
+  /// Turn back information as a string.
+  std::string Info() const override
+  {
+    return "FEAST solver";
+  }
+
   /// Print information about this object.
   void PrintInfo(std::ostream& rOStream) const override
   {
-    rOStream << "FEAST solver.";
+    rOStream << "FEAST solver";
   }
 
   /// Print object's data.
@@ -206,34 +222,68 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   }
 
   ///@}
+  ///@name Friends
+  ///@{
+  ///@}
+
+ protected:
+
+  ///@name Protected static Member Variables
+  ///@{
+  ///@}
+  ///@name Protected member Variables
+  ///@{
+  ///@}
+  ///@name Protected Operators
+  ///@{
+  ///@}
+  ///@name Protected Operations
+  ///@{
+  ///@}
+  ///@name Protected  Access
+  ///@{
+  ///@}
+  ///@name Protected Inquiry
+  ///@{
+  ///@}
+  ///@name Protected LifeCycle
+  ///@{
+  ///@}
 
  private:
+  ///@name Static Member Variables
+  ///@{
+  ///@}
   ///@name Member Variables
   ///@{
 
-  Parameters mParam;
+  Parameters mParameters;
+
+  int mEchoLevel;
 
   ComplexLinearSolverType::Pointer mpLinearSolver;
 
+  ///@}
+  ///@name Private Operators
+  ///@{
   ///@}
   ///@name Private Operations
   ///@{
 
   /// Wrapper for FEAST library.
-  void Calculate(
-      SparseMatrixType& rMassMatrix,
-      SparseMatrixType& rStiffnessMatrix,
-      double EigenvalueRangeMin,
-      double EigenvalueRangeMax,
-      int SearchDimension,
-      int& rNumEigenvalues,
-      DenseVectorType& rEigenvalues,
-      DenseMatrixType& rEigenvectors,
-      bool PerformStochasticEstimate)
+  void Calculate(SparseMatrixType& rMassMatrix,
+                 SparseMatrixType& rStiffnessMatrix,
+                 double EigenvalueRangeMin,
+                 double EigenvalueRangeMax,
+                 int SearchDimension,
+                 int& rNumEigenvalues,
+                 DenseVectorType& rEigenvalues,
+                 DenseMatrixType& rEigenvectors,
+                 bool PerformStochasticEstimate)
   {
     KRATOS_TRY
 
-        int FEAST_Params[64] = {};
+    int FEAST_Params[64] = {};
     int NumIter, Info, SystemSize;
     double Epsout;
     DenseVectorType Residual(SearchDimension);
@@ -250,11 +300,9 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
 
     this->InitializeFEASTSystemMatrix(rMassMatrix, rStiffnessMatrix, Az);
 
-    Parameters FEAST_Settings = mParam;
-
     // initialize FEAST eigenvalue solver (see FEAST documentation for details)
     feastinit(FEAST_Params);
-    if (FEAST_Settings["print_feast_output"].GetBool())
+    if (mParameters["print_feast_output"].GetBool())
       FEAST_Params[0] = 1;
     FEAST_Params[2] = 8; // stopping convergence criteria 10^-FEAST_Params[2]
     FEAST_Params[28] = 1;// not sure if this is needed
@@ -276,7 +324,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
                    (double *)IntegrationNodes.data(),
                    (double *)IntegrationWeights.data());
 
-    int ijob = -1;
+    char ijob = -1;
     // solve the eigenvalue problem
     while (ijob != 0)
     {
@@ -341,7 +389,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
     } // while
 
     KRATOS_CATCH("")
-        }
+  }
 
   /**
    * Initialize CSR matrix structure for FEAST system matrix: C = z * B - A.
@@ -437,7 +485,12 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
       }
     }
   }
-
+  ///@}
+  ///@name Private  Access
+  ///@{
+  ///@}
+  ///@name Private Inquiry
+  ///@{
   ///@}
   ///@name Un accessible methods
   ///@{
