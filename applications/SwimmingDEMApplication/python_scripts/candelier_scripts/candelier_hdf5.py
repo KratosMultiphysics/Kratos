@@ -2,12 +2,12 @@ import h5py
 import numpy as np
 import math
 from KratosMultiphysics import *
-import chandelier_parameters as ch_pp
-import chandelier as ch
+import candelier_scripts.candelier as candelier
+import candelier_scripts.candelier_parameters as ch_pp
 
 class ResultsCandelier:
     def __init__(self, pp, path):
-        self.sim = ch.AnalyticSimulator(ch_pp)
+        self.sim = candelier.AnalyticSimulator(ch_pp)
         self.sim.CalculateNonDimensionalVars()
         self.path = path + '/candelier_results.h5py'
         self.dt = pp.CFD_DEM["MaxTimeStep"].GetDouble()

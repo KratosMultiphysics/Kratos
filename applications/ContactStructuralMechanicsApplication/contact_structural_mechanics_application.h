@@ -13,15 +13,12 @@
 #define  KRATOS_CONTACT_STRUCTURAL_MECHANICS_APPLICATION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
 #include "includes/variables.h"
 
 /* CONDITIONS */
@@ -57,17 +54,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
 /**
- * This application features Elements, Conditions, Constitutive laws and Utilities
- * for structural analysis problems
+ * @class KratosContactStructuralMechanicsApplication
+ * @ingroup ContactStructuralMechanicsApplication
+ * @brief This application features Elements, Conditions, Constitutive laws and Utilities for structural analysis problems with contact constraints
+ * @details It implements different types of conditions (penalty, ALM with mortar integration) and utilities (search, active set, convergence...)
+ * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) KratosContactStructuralMechanicsApplication : public KratosApplication
+class KRATOS_API(CONTACT_STRUCTURAL_MECHANICS_APPLICATION) KratosContactStructuralMechanicsApplication
+    : public KratosApplication
 {
 public:
     ///@name Type Definitions
     ///@{
-
 
     /// Pointer definition of KratosContactStructuralMechanicsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosContactStructuralMechanicsApplication);
@@ -82,7 +81,6 @@ public:
     /// Destructor.
     ~KratosContactStructuralMechanicsApplication() override = default;
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -93,8 +91,6 @@ public:
     ///@{
 
     void Register() override;
-
-
 
     ///@}
     ///@name Access

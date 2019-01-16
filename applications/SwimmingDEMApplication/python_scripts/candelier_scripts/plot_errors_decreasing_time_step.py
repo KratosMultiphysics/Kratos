@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import math
-import chandelier_parameters as ch_pp
-import chandelier as ch
+import candelier.candelier_parameters as ch_pp
+import candelier as ch
 import DEM_explicit_solver_var as DEM_parameters
 import os
 
