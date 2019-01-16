@@ -44,10 +44,12 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
             self.output_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
-        '''
-        This is the place to set the initial conditions given by the benchmark
-        '''
-        pass
+        current_time = 0.0
+        for node in self.model_part.Nodes:
+            value = self.benchmark.Velocity(node.X, node.Y, node.Z, current_time)
+            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, value)
+            exact_value = self.benchmark.Velocity(node.X, node.Y, node.Z, current_time)
+            node.SetValue(KratosMultiphysics.Y, exact_value)
 
     def ExecuteInitializeSolutionStep(self):
         self._SetBodyForce()
@@ -55,11 +57,14 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
     def ExecuteBeforeOutputStep(self):
         self._ComputeVelocityBenchmark()
 
-    def ExecuteFinalize(self):
+    def ExecuteAfterOutputStep(self):
         if self.print_output:
             self._ComputeVelocityError()
             self._CopyVelocityAsNonHistorical()
             self.output_process.ExecuteFinalizeSolutionStep()
+
+    def ExecuteFinalize(self):
+        if self.print_output:
             self.output_process.ExecuteFinalize
 
     def _SetBodyForce(self):
@@ -73,7 +78,10 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             fem_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
             exact_vel = self.benchmark.Velocity(node.X, node.Y, node.Z, current_time)
-            error = abs((fem_vel[0]**2 + fem_vel[1]**2 + fem_vel[2]**2)**0.5 - (exact_vel[0]**2 + exact_vel[1]**2 + exact_vel[2]**2)**0.5)
+            fem_vel_modulus = (fem_vel[0]**2 + fem_vel[1]**2 + fem_vel[2]**2)**0.5
+            exact_vel_modulus = (exact_vel[0]**2 + exact_vel[1]**2 + exact_vel[2]**2)**0.5
+            error = abs(fem_vel_modulus - exact_vel_modulus)
+            rel_error = error / exact_vel_modulus
             node.SetValue(KratosMultiphysics.NODAL_ERROR, error)
 
     def _CopyVelocityAsNonHistorical(self):

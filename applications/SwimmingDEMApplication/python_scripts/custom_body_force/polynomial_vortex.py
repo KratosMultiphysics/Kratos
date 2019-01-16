@@ -25,8 +25,8 @@ class PolynomialVortex(ManufacturedSolution):
 
         self.U = settings["velocity"].GetDouble()
         self.L = settings["length"].GetDouble()
-        self.nu = settings["viscosity"].GetDouble()
         self.rho = settings["density"].GetDouble()
+        self.nu = settings["viscosity"].GetDouble() / self.rho
         self.T = self.L / self.U
         self.omega = settings["time_factor"].GetDouble() * 4 * np.pi / self.T
         self.k = np.pi / self.L

@@ -6,14 +6,14 @@ class PlotManufacturedFieldUtility(object):
     def __init__(self, settings = KratosMultiphysics.Parameters("""{}""")):
 
         default_settings = KratosMultiphysics.Parameters("""{
-            "benchmark_name"  : "polynomial_vortex",
+            "benchmark_name"  : "custom_body_force.polynomial_vortex",
             "Parameters"      : {}
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
 
         # from polynomial_vortex import ManufacturedSolution
-        benchmark_module = __import__(settings["benchmark_name"].GetString())
+        benchmark_module = __import__(settings["benchmark_name"].GetString(), fromlist=[None])
         self.benchmark = benchmark_module.CreateManufacturedSolution(settings["Parameters"])
 
         L = 1

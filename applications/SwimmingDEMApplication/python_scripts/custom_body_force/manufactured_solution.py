@@ -8,6 +8,7 @@ class ManufacturedSolution(object):
         '''
         This is a base class to build manufactured fluid solutions.
         At least, it should return the body force and the velocity.
+        The input viscosity is the DYNAMIC viscosity
         NOTE: the operators are implemented for the 2D case. It could be extended to the 3D case.
         '''
 
@@ -21,8 +22,8 @@ class ManufacturedSolution(object):
 
         settings.ValidateAndAssignDefaults(default_settings)
 
-        self.nu = settings["viscosity"].GetDouble()
         self.rho = settings["density"].GetDouble()
+        self.nu = settings["viscosity"].GetDouble() / self.rho
 
     # Public methods
 
