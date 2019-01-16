@@ -197,9 +197,9 @@ void PrestressMembraneElement::CalculateDampingMatrix(
     // 1.-Calculate StiffnessMatrix:
 
     MatrixType stiffness_matrix  = Matrix();
-    VectorType ResidualVector  = Vector();
+    VectorType residual_vector  = Vector();
 
-    CalculateAll(stiffness_matrix, ResidualVector, rCurrentProcessInfo, true, false);
+    CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
 
     // 2.-Calculate MassMatrix:
 
@@ -271,8 +271,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
     unsigned int number_of_nodes = GetGeometry().size();
     unsigned int mat_size = number_of_nodes * 3;
 
-    if (rMassMatrix.size1() != mat_size)
-    {
+    if (rMassMatrix.size1() != mat_size) {
         rMassMatrix.resize(mat_size, mat_size);
     }
 
@@ -284,13 +283,12 @@ void PrestressMembraneElement::CalculateMassMatrix(
 
     lump_fact = GetGeometry().LumpingFactors(lump_fact);
 
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        double temp = lump_fact[i] * total_mass;
+    for (unsigned int i = 0; i < number_of_nodes; ++i) {
+        const double temp = lump_fact[i] * total_mass;
 
-        for (unsigned int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; ++j)
         {
-            unsigned int index = i * 3 + j;
+            const unsigned int index = i * 3 + j;
             rMassMatrix(index, index) = temp;
         }
     }
@@ -334,7 +332,7 @@ void PrestressMembraneElement::GetValuesVector(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        unsigned int index = i * 3;
+        const unsigned int index = i * 3;
         rValues[index] = disp[0];
         rValues[index + 1] = disp[1];
         rValues[index + 2] = disp[2];
@@ -358,7 +356,7 @@ void PrestressMembraneElement::GetFirstDerivativesVector(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-        unsigned int index = i * 3;
+        const unsigned int index = i * 3;
         rValues[index] = vel[0];
         rValues[index + 1] = vel[1];
         rValues[index + 2] = vel[2];
@@ -383,7 +381,7 @@ void PrestressMembraneElement::GetSecondDerivativesVector(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         const array_1d<double, 3>& acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        unsigned int index = i * 3;
+        const unsigned int index = i * 3;
         rValues[index] = acc[0];
         rValues[index + 1] = acc[1];
         rValues[index + 2] = acc[2];
@@ -407,7 +405,7 @@ void PrestressMembraneElement::CalculateAndAddKm(
 {
     KRATOS_TRY
 
-    unsigned int dim = rB.size2();
+    const unsigned int dim = rB.size2();
     Matrix temp(3, dim);
     noalias(temp) = prod(rD, rB);
     temp *= rWeight;
@@ -593,7 +591,7 @@ void PrestressMembraneElement::CalculateAndAddPressureForce(
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         int index = 3 * i;
-        double coeff = rPressure * rN[i] * rWeight;
+        const double coeff = rPressure * rN[i] * rWeight;
         rResidualVector[index] += coeff * rv3[0];
         rResidualVector[index + 1] += coeff * rv3[1];
         rResidualVector[index + 2] += coeff * rv3[2];
