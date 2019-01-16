@@ -24,6 +24,7 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_perfect_plasticity_implementation_verification import TestPerfectPlasticityImplementationVerification as TTestPerfectPlasticityImplementationVerification
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -171,6 +172,7 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
+from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -238,6 +240,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -346,6 +349,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution')) 
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
+    nightSuite.addTest(TRigidSphereFailing('test_execution'))
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):

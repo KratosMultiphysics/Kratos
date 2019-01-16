@@ -2,8 +2,13 @@
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-import os, sys, h5py, xdmf
-
+import os, sys, xdmf
+import warnings
+with warnings.catch_warnings():
+    # suppressing an import-related warningfrom h5py
+    # problem appears when using it in a test with python >=3.6
+    warnings.simplefilter('ignore', category=ImportWarning)
+    import h5py
 
 def GenerateXdmfConnectivities(file_name):
     with h5py.File(file_name, "r") as h5py_file:

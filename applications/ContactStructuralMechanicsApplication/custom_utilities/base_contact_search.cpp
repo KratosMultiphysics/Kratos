@@ -91,11 +91,20 @@ BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::BaseContactSearch(
 
     // We identify the type of solution
     mTypeSolution =  TypeSolution::VectorLagrangeMultiplier;
-    if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VECTOR_LAGRANGE_MULTIPLIER) == false) {
-        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+    if (mrMainModelPart.HasNodalSolutionStepVariable(VECTOR_LAGRANGE_MULTIPLIER) == false) {
+        if (mrMainModelPart.HasNodalSolutionStepVariable(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE)) {
             mTypeSolution = TypeSolution::NormalContactStress;
-        else
-            mTypeSolution = TypeSolution::ScalarLagrangeMultiplier;
+        } else {
+            if (mrMainModelPart.HasNodalSolutionStepVariable(WEIGHTED_GAP)) {
+                if (mrMainModelPart.Is(SLIP)) {
+                    mTypeSolution = TypeSolution::FrictionalPenaltyMethod;
+                } else {
+                    mTypeSolution = TypeSolution::FrictionlessPenaltyMethod;
+                }
+            } else {
+                mTypeSolution = TypeSolution::ScalarLagrangeMultiplier;
+            }
+        }
     }
 }
 
@@ -227,6 +236,10 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ClearMortarConditions(
         case TypeSolution::NormalContactStress :
             ClearALMFrictionlessMortarConditions(r_nodes_array);
             break;
+        case TypeSolution::FrictionlessPenaltyMethod :
+            break;
+        case TypeSolution::FrictionalPenaltyMethod :
+            break;
     }
 }
 
@@ -316,7 +329,7 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdatePointListMortar()
 {
     // We check if we are in a dynamic or static case
-    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) : false;
+    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
     const double delta_time = (dynamic) ? mrMainModelPart.GetProcessInfo()[DELTA_TIME] : 0.0;
 
     // The contact model parts
@@ -371,7 +384,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
         ClearMortarConditions();
 
     // We check if we are in a dynamic or static case
-    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X) : false;
+    const bool dynamic = mThisParameters["dynamic_search"].GetBool() ? mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY) : false;
 
     // Some auxiliar values
     const IndexType allocation_size = mThisParameters["allocation_size"].GetInt();              // Allocation size for the vectors and max number of potential results
@@ -483,7 +496,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::UpdateMortarConditions
     } else {
         // We revert the nodes to the original position
         if (mThisParameters["dynamic_search"].GetBool()) {
-            if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X)) {
+            if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
                 NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
                 #pragma omp parallel for
                 for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
@@ -866,7 +879,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::CheckPairing(
     // We revert the nodes to the original position
     NodesArrayType& r_nodes_array = r_sub_contact_model_part.Nodes();
     if (mThisParameters["dynamic_search"].GetBool()) {
-        if (mrMainModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X)) {
+        if (mrMainModelPart.HasNodalSolutionStepVariable(VELOCITY)) {
             #pragma omp parallel for
             for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
                 auto it_node = r_nodes_array.begin() + i;
@@ -1045,6 +1058,10 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetInactiveNode(NodesA
                 case TypeSolution::NormalContactStress :
                     ItNode->FastGetSolutionStepValue(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) = 0.0;
                     break;
+                case TypeSolution::FrictionlessPenaltyMethod :
+                    break;
+                case TypeSolution::FrictionalPenaltyMethod :
+                    break;
             }
         }
 
@@ -1082,18 +1099,20 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
         case TypeSolution::NormalContactStress :
             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
             break;
+        case TypeSolution::FrictionlessPenaltyMethod :
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            break;
+        case TypeSolution::FrictionalPenaltyMethod :
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
+            VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
+            break;
     }
+
+    // Compute explicit contibution of the conditions
     const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
     ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
-    ConditionsArrayType& r_computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
-    const auto it_cond_begin = r_computing_conditions_array.begin();
-    auto process_info = mrMainModelPart.GetProcessInfo();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_computing_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->AddExplicitContribution(process_info);
-    }
+    ContactUtilities::ComputeExplicitContributionConditions(r_sub_computing_contact_model_part);
 }
 
 /***********************************************************************************/
@@ -1225,7 +1244,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
                         }
                     }
                     for (auto& i_to_remove : inactive_conditions_ids) {
-                        p_indexes_pairs->RemoveId(inactive_conditions_ids[i_to_remove]);
+                        p_indexes_pairs->RemoveId(i_to_remove);
                     }
                 }
             }

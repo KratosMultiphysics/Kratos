@@ -104,6 +104,12 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
         return is_converged
 
+    def ExecuteFinalizeSolutionStep(self):
+        super(ContactStaticMechanicalSolver, self).ExecuteFinalizeSolutionStep()
+        if self.contact_settings["ensure_contact"].GetBool():
+            computing_model_part = self.GetComputingModelPart()
+            CSMA.ContactUtilities.CheckActivity(computing_model_part)
+
     def ComputeDeltaTime(self):
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         if self.contact_settings["inner_loop_adaptive"].GetBool():
@@ -153,9 +159,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
-        else:
-            builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
+                builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
