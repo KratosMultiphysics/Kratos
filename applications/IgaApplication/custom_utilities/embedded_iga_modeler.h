@@ -29,9 +29,10 @@ namespace Kratos
         ///@{
         
         void CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation); 
+        void CreateTessellation3D(); 
         void CreateElements2D(ModelPart& rSkinModelPart); 
-        // std::vector<double> PrintNodesX();
-        // std::vector<double> PrintNodesY();
+        std::vector<double> PrintNodesX();
+        std::vector<double> PrintNodesY();
 
         ///@}
         ///@name Life Cycle
