@@ -1244,7 +1244,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
                         }
                     }
                     for (auto& i_to_remove : inactive_conditions_ids) {
-                        p_indexes_pairs->RemoveId(inactive_conditions_ids[i_to_remove]);
+                        p_indexes_pairs->RemoveId(i_to_remove);
                     }
                 }
             }
