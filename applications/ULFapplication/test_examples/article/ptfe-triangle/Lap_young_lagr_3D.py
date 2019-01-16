@@ -107,7 +107,7 @@ else:
 #input_file_name = "sessile-cube"
 
 #1e-5, 1.35e-5
-input_file_name = "triangle-droplet"
+input_file_name = "triangle-droplet-2"
 ###input_file_name = "GDL-5-2"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
@@ -139,7 +139,7 @@ FSI=problem_settings.FSI
 
 eul_model_part = 0
 gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 110.0 #contact angle [deg]
+contact_angle = 108.0 #contact angle [deg]
 #85 degrees works fine
 
 #dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.

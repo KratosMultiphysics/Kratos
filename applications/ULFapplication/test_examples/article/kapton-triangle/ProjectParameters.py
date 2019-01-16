@@ -37,7 +37,7 @@ Monolithic_Preconditioner_type = "ILU0"#"Diagonal"
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.00001
+Dt = 0.000015
 Start_time = 0.0
 max_time = 10000000000000000000000000.0
 nsteps = 10000000000000000000000000
@@ -50,7 +50,7 @@ groups_dictionary = {
         "Fluid" : 1,
                    }
 
-output_time = 0.00001
+output_time = 0.000015
 output_step = 10
 VolumeOutput = True
 

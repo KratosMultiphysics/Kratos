@@ -2,7 +2,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #
 #
 # import the configuration data as read from the GiD
-import math
 import ProjectParameters
 import problem_settings
 
@@ -24,12 +23,8 @@ domain_size = ProjectParameters.domain_size
 import sys
 sys.path.append(ProjectParameters.kratos_path)
 from KratosMultiphysics import *
-from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ULFApplication import *
-#from KratosMultiphysics.StructuralApplication import *
-#from KratosMultiphysics.ALEApplication import *
 
 ## defining variables to be used
 
@@ -37,7 +32,7 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "VELOCITY" : VELOCITY,
                         "REACTION" : REACTION,
                         "DISTANCE" : DISTANCE,
-			 "AUX_VEL" : AUX_VEL,                        
+			 "AUX_VEL" : AUX_VEL,
                         "DISPLACEMENT" : DISPLACEMENT,
                         "IS_INTERFACE" : IS_INTERFACE,
                         "IS_STRUCTURE" : IS_STRUCTURE,
@@ -47,13 +42,12 @@ variables_dictionary = {"PRESSURE" : PRESSURE,
                         "DENSITY": DENSITY,
                         "VISCOSITY": VISCOSITY}
 
-#defining a model part for the fluid 
+#defining a model part for the fluid
 lagrangian_model_part = ModelPart("LagrangianPart");
 
 SolverType=problem_settings.SolverType
 if (SolverType=="Incompressible_Modified_FracStep"):
     fluid_only_model_part = ModelPart("FluidOnlyPart");
-
 
 #############################################
 ##importing the solvers needed
@@ -61,7 +55,8 @@ SolverType = ProjectParameters.SolverType
 
 ## Choosing element type for lagrangian_model_part
 element_type = problem_settings.lagrangian_element
-import SurfaceTension_Monolithic_Solver_3D as solver_lagr
+#import SurfaceTension_monolithic_solver as solver_lagr
+import SurfaceTension_Temp_monolithic_solver as solver_lagr
 SolverSettings = ProjectParameters.FluidSolverConfiguration
 solver_lagr = import_solver(SolverSettings)
 solver_lagr.AddVariables(lagrangian_model_part, SolverSettings)
@@ -101,14 +96,7 @@ else:
     print("Unknown GiD multiple file mode, assuming Single")
     multifile = MultiFileFlag.SingleFile
 
-
-#input_file_name = "GDL-5" # "sessile_1mm" | "sessile_5mm" | "90deg_1mm_2" | "90deg_3mm" | "<90_1_2" | "<90_4_2" | "1mm-square-fixed-is_structured"
-#input_file_name = "sessile-cube_5"
-#input_file_name = "sessile-cube"
-
-#1e-5, 1.35e-5
-input_file_name = "triangle-droplet-2"
-###input_file_name = "GDL-5-2"
+input_file_name = "lagrangian_droplet_test"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -124,9 +112,9 @@ elif(element_type == "SurfaceTension"):
     solver_lagr.AddDofs(lagrangian_model_part, SolverSettings)
 
 #setting the limits of the bounding box
-box_corner1 = Vector(3); 
+box_corner1 = Vector(3);
 box_corner1[0]=problem_settings.bounding_box_corner1_x; box_corner1[1]=problem_settings.bounding_box_corner1_y; box_corner1[2]=problem_settings.bounding_box_corner1_z;
-box_corner2 = Vector(3); 
+box_corner2 = Vector(3);
 box_corner2[0]=problem_settings.bounding_box_corner2_x; box_corner2[1]=problem_settings.bounding_box_corner2_y; box_corner2[2]=problem_settings.bounding_box_corner2_z;
 #here we write the convergence data..,
 outstring2 = "convergence_info.txt"
@@ -138,30 +126,19 @@ density=problem_settings.density
 FSI=problem_settings.FSI
 
 eul_model_part = 0
-gamma = 0.072 		#surface tension coefficient [N m-1]
-contact_angle = 75.0 #contact angle [deg]
-#85 degrees works fine
 
-#dissipative force variables: for example, the first one is the JM model in the x direction, and so on... here we are using the value of zero or one to enable which model and in which direction we are going to use our model.
-zeta_dissapative_JM_x = 0.0
-zeta_dissapative_JM_y = 0.0
-zeta_dissapative_JM_z = 0.0
 
-zeta_dissapative_BM_x = 0.0
-zeta_dissapative_BM_y = 0.0
-zeta_dissapative_BM_z = 0.0
+surface_temp = 291.2
 
-zeta_dissapative_SM_x = 0.0
-zeta_dissapative_SM_y = 0.0
-zeta_dissapative_SM_z = 0.0
+#gamma = 0.072 		#surface tension coefficient [N m-1]
+gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15))
+contact_angle = 360.0 	#contact angle [deg]
 
-#these variable are for testing purposes: For example, (testfacta) is either zero or one, this is mainly to see where I am adding the dissipative forces in the surface_tension.h file, and which one will be working fine. 
-testfacta = 1.0
-testfactb = 1.0
-testfactc = 1.0
-testfactd = 1.0
-testfacte = 1.0
 
+##### this is for sessile droplets####
+zeta_dissapative_JM = 0.0
+zeta_dissapative_BM = 0.0
+zeta_dissapative_SM = 0.0
 ################################################################
 
 ### the dissipative force is added utilizing the power law model, utilizing the capillary number when the velocity is the tangential component at the contact line,
@@ -185,71 +162,48 @@ testfacte = 1.0
 
 #Manservisi S, Scardovelli R. A variational approach to the contact angle dynamics of spreading droplets. Computers & Fluids. 2009 Feb 1;38(2):406-24.
 #Buscaglia GC, Ausas RF. Variational formulations for surface tension, capillarity and wetting. Computer Methods in Applied Mechanics and Engineering. 2011 Oct 15;200(45-46):3011-25.
-
-
 ################################################################
 
 
 #lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
+#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, box_corner1, box_corner2, add_nodes, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM)
 
-lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, zeta_dissapative_JM_z, zeta_dissapative_BM_z, zeta_dissapative_SM_z, testfacta, testfactb, testfactc, testfactd, testfacte)
+lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle, zeta_dissapative_JM, zeta_dissapative_BM, zeta_dissapative_SM, surface_temp)
 
 
-#lag_solver = solver_lagr.CreateSolver(lagrangian_model_part, SolverSettings, eul_model_part, gamma, contact_angle)
-# Mesh solver:
-reform_dofs_at_each_step = True
 
+
+reform_dofs_at_each_step = False
 pDiagPrecond = DiagonalPreconditioner()
 
-print("mesh solver created")
-
 lag_solver.alpha_shape = problem_settings.alpha_shape;
-lag_solver.echo_level = 1;
+lag_solver.echo_level = 0;
 lag_solver.Initialize()
 print("lagrangian solver created")
 
 lagrangian_model_part.SetBufferSize(3)
-    
+
 for node in lagrangian_model_part.Nodes:
-  node.SetSolutionStepValue(DENSITY,0, 1000.0) 
-  node.SetSolutionStepValue(VISCOSITY, 0, 8.90 * 1e-4)
+  node.SetSolutionStepValue(DENSITY,0, 1.0)
+  node.SetSolutionStepValue(VISCOSITY,0, 1.0)
   node.SetSolutionStepValue(BODY_FORCE_X, 0, 0.0)
   node.SetSolutionStepValue(BODY_FORCE_Y, 0, 0.0)
-  node.SetSolutionStepValue(BODY_FORCE_Z, 0, -9.81)
   node.SetSolutionStepValue(PRESSURE,0, 0.0)
-  node.SetSolutionStepValue(IS_WATER,0, 1.0) 
-  node.SetSolutionStepValue(IS_FLUID,0, 1.0) 
-  #z_min = min(node.Z for node in lagrangian_model_part.Nodes)
-  #if (node.Z <= z_min ):
-      #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-  #if (node.Z <= 1e-5 ):
-      #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-  if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) != 1.0):
-      node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
-      node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
-      node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-  #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
-    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
-    #node.SetSolutionStepValue(VELOCITY_Z,0, 0.0)
-    #node.Fix(VELOCITY_Z)
-    #node.Fix(VELOCITY_X)
-    #node.Fix(VELOCITY_Y)
+  node.SetSolutionStepValue(IS_FLUID,0, 1.0)
+  if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0):
+    node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
+    node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
+    node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
 
-add_nodes=problem_settings.adaptive_refinement
-bulk_modulus=problem_settings.bulk_modulus
-density=problem_settings.density
-FSI=problem_settings.FSI
 ##########################################################################################################
 Multifile = True
 # Initialize .post.list file (GiD postprocess list)
-f = open(ProjectParameters.problem_name+'.post.lst','w')
-f.write('Multiple\n')   
-
+#f = open(ProjectParameters.problem_name+'.post.lst','w')
+#f.write('Multiple\n')
 ################################################################
 
 # Stepping and time settings
-Dt = ProjectParameters.Dt 
+Dt = ProjectParameters.Dt
 Nsteps  = ProjectParameters.nsteps
 final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
@@ -258,16 +212,8 @@ time = ProjectParameters.Start_time
 out = 0
 step = 0
 
-## Obtain the initial mesh size for the droplet base. This size will be used in tetgen_pfem_refine in order to mantain the element size in the base
-##CalculateNodalLength().CalculateNodalLength3D(lagrangian_model_part)
-##for node in lagrangian_model_part.Nodes:
-  ##if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0):
-    ##mesh_size = node.GetSolutionStepValue(NODAL_LENGTH)
-    ##node.SetSolutionStepValue(INITIAL_MESH_SIZE,0,mesh_size)
-    ##node.Fix(INITIAL_MESH_SIZE)
-
 while(time <= final_time):
-    
+
     time = time + Dt
     step = step + 1
     lagrangian_model_part.CloneTimeStep(time)
@@ -277,50 +223,18 @@ while(time <= final_time):
     print("TIME = ", time)
 
     if(step >= 3):
-      
-      for node in lagrangian_model_part.Nodes:
-        #if (node.Z <= 1e-5 ):
-            #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(TRIPLE_POINT)!= 0.0):
-            node.Set(TO_ERASE,True)
-        #x_min = min(node.X for node in lagrangian_model_part.Nodes)
-        #x_max = max(node.X for node in lagrangian_model_part.Nodes)
-        #if (node.X >= x_min and node.X <= x_max):
-            ##for node in lagrangian_model_part.Nodes:
-                #y_min = min(node.Y for node in lagrangian_model_part.Nodes)
-                #y_max = max(node.Y for node in lagrangian_model_part.Nodes)
-                #if (node.Y >= y_min and node.Y <= y_max):
-                    ##for node in lagrangian_model_part.Nodes:
-                        #z_min = min(node.Z for node in lagrangian_model_part.Nodes)
-                        #if (node.Z <= (z_min + 1e-6) ):
-                            #z_min = node.Z
-                            #if (node.Z <= (z_min + 1e-6) ):
-                                #node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-                                #node.SetSolutionStepValue(IS_STRUCTURE,1,1.0)
-                                #print(node.Id, node.X, node.Y, node.Z, z_min)
+        lag_solver.Solve()
 
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) != 1.0):
-            node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
-            node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
-            node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(TRIPLE_POINT)!= 0.0):
-            node.Set(TO_ERASE,True)
-        if (node.GetSolutionStepValue(IS_BOUNDARY) != 1.0 and node.GetSolutionStepValue(IS_STRUCTURE)!= 0.0):
-            node.Set(TO_ERASE,True)
-      
-      lag_solver.Solve();
-  
 
 ##################################################
 ##################################################
 
     if(output_time <= out):
-      
-        out = 0
-        
-        gid_io.FinalizeResults()
-        f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
 
+        out = 0
+        gid_io.FinalizeResults()
+
+        #f.write(ProjectParameters.problem_name+'_'+str(time)+'.post.bin\n')
         res_name1 = str("water")
         gid_io.ChangeOutputName(res_name1)
         gid_io.InitializeMesh( time );
@@ -329,30 +243,22 @@ while(time <= final_time):
         gid_io.FinalizeMesh();
         gid_io.InitializeResults(time, (lagrangian_model_part).GetMesh());
 
-        gid_io.WriteNodalResults(CONTACT_ANGLE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(MEAN_CURVATURE_2D,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(DISPLACEMENT,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
-        #gid_io.WriteNodalResults(INITIAL_MESH_SIZE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_BOUNDARY,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_FREE_SURFACE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(IS_INTERFACE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_STRUCTURE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(MEAN_CURVATURE_3D,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(NODAL_LENGTH,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FLAG_VARIABLE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(FORCE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(NORMAL,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(PRESSURE,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(TRIPLE_POINT,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(IS_FLUID,lagrangian_model_part.Nodes,time,0)
-        
+        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
+
         gid_io.Flush()
         gid_io.FinalizeResults();
 
     out = out + Dt
 
-if Multifile:
-    f.close()
-else:
-    gid_io.FinalizeResults()
+
+gid_io.FinalizeResults()
