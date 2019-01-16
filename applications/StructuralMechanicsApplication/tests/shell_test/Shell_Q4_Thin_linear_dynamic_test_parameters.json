@@ -36,9 +36,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 500,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false,
-            "verbosity"   : 0
+            "solver_type" : "SuperLUSolver"
         },
         "problem_domain_sub_model_part_list" : ["Parts_surface"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SurfaceLoad3D_surface"],
