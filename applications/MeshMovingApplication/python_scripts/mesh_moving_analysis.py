@@ -2,22 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
+import KratosMultiphysics.MeshMovingApplication.python_solvers_wrapper_mesh_motion as mesh_mothion_solvers
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class MeshMovingAnalysis(AnalysisStage):
     """
@@ -29,31 +17,25 @@ class MeshMovingAnalysis(AnalysisStage):
         # Making sure that older cases still work by properly initalizing the parameters
         solver_settings = project_parameters["solver_settings"]
         if not solver_settings.Has("time_stepping"):
-            KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to pass the time_step, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to pass the time_step, this will be removed!")
             time_stepping_params = KratosMultiphysics.Parameters("{}")
             time_stepping_params.AddValue("time_step", project_parameters["problem_data"]["time_step"])
             solver_settings.AddValue("time_stepping", time_stepping_params)
 
         if not solver_settings.Has("domain_size"):
-            KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to pass the domain_size, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(project_parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name"):
-            KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
+            KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(project_parameters["problem_data"]["model_part_name"].GetString())
 
         if not solver_settings.Has("echo_level"): # this is done to remain backwards-compatible
-            KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", '"solver_settings" does not have "echo_level", please add it!')
+            KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", '"solver_settings" does not have "echo_level", please add it!')
             solver_settings.AddEmptyValue("echo_level")
             solver_settings["echo_level"].SetInt(0)
-
-        # Import parallel modules if needed
-        # has to be done before the base-class constuctor is called (in which the solver is constructed)
-        if (project_parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
         super(MeshMovingAnalysis, self).__init__(model, project_parameters)
 
@@ -61,8 +43,7 @@ class MeshMovingAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_mesh_motion
-        return python_solvers_wrapper_mesh_motion.CreateSolver(self.model, self.project_parameters)
+        return mesh_mothion_solvers.CreateSolver(self.model, self.project_parameters)
 
     def _CreateProcesses(self, parameter_name, initialization_order):
         """Create a list of Processes
@@ -75,7 +56,7 @@ class MeshMovingAnalysis(AnalysisStage):
             processes_block_names = ["boundary_conditions_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
+                KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -87,7 +68,7 @@ class MeshMovingAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("MeshMovingAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                KratosMultiphysics.Logger.PrintWarning("MeshMovingAnalysis", "Using the old way to create the gid-output, this will be removed!")
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

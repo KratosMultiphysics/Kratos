@@ -2,11 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.ParticleMechanicsApplication
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import particle_mechanics_analysis
+from KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis import ParticleMechanicsAnalysis
 
 # Other imports
 import os
@@ -43,7 +42,7 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = particle_mechanics_analysis.ParticleMechanicsAnalysis(model, ProjectParameters)
+            self.test = ParticleMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -61,6 +60,10 @@ class ParticleMechanicsTestFactory(KratosUnittest.TestCase):
         # Within this location context:
         with controlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
             self.test.Finalize()
+
+### Axis-Symmetric Tests
+class AxisSymmetricCircularPlate2DTriTest(ParticleMechanicsTestFactory):
+    file_name = "axisym_tests/circular_plate_axisym_test"
 
 ### Beam Tests
 class BeamCantileverStaticLinearElasticPointLoad2DTriTest(ParticleMechanicsTestFactory):
@@ -88,3 +91,11 @@ class CooksMembraneUPIncompressibleTest(ParticleMechanicsTestFactory):
 ### Constitutive Law Tests
 class CLLinearElastic3DQuadTest(ParticleMechanicsTestFactory):
     file_name = "cl_tests/solid_cl/linear_elastic_3D_hexa_test"
+
+### Gravity Application Tests
+class GravityApplicationTest(ParticleMechanicsTestFactory):
+    file_name = "gravity_tests/dynamic_gravity_application_test"
+
+### Slip Boundary Tests
+class SlipBoundaryTest(ParticleMechanicsTestFactory):
+    file_name = "slip_tests/slip_boundary_test"

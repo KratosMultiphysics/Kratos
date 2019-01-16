@@ -1218,31 +1218,29 @@ public:
     }
 
     /**
-     * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension"
-     * @param Destination The matric destination
-     * @param ReducedMatrix The reduced matrix to be computed
-     * @param dimension The dimension where we work
+     * @brief Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension"
+     * @param rDestination The matric destination
+     * @param rReducedMatrix The reduced matrix to be computed
+     * @param Dimension The dimension where we work
      */
-
-    static inline void  ExpandReducedMatrix(
-        MatrixType& Destination,
-        MatrixType& ReducedMatrix,
-        unsigned int dimension
+    static inline void ExpandReducedMatrix(
+        MatrixType& rDestination,
+        const MatrixType& rReducedMatrix,
+        const SizeType Dimension
         )
     {
         KRATOS_TRY;
 
-        const unsigned int size = ReducedMatrix.size2();
+        const SizeType size = rReducedMatrix.size2();
+        IndexType rowindex = 0;
+        IndexType colindex = 0;
 
-        for (unsigned int i = 0; i < size; i++)
-        {
-            unsigned int rowindex = i*dimension;
-            for (unsigned int j = 0; j < size; j++)
-            {
-                unsigned int colindex = j*dimension;
-                for(unsigned int ii=0; ii<dimension; ii++)
-                {
-                    Destination(rowindex+ii,colindex+ii) = ReducedMatrix(i,j);
+        for (IndexType i = 0; i < size; ++i) {
+            rowindex = i * Dimension;
+            for (IndexType j = 0; j < size; ++j) {
+                colindex = j * Dimension;
+                for(IndexType ii = 0; ii < Dimension; ii++) {
+                    rDestination(rowindex+ii, colindex+ii) = rReducedMatrix(i, j);
                 }
             }
         }
@@ -1251,33 +1249,29 @@ public:
     }
 
     /**
-     * Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension" ADDING to the destination matrix
-     * @param Destination The matric destination
-     * @param ReducedMatrix The reduced matrix to be added
-     * @param dimension The dimension where we work
+     * @brief Performs the Kroneker product of the Reduced Matrix with the identity matrix of size "dimension" ADDING to the destination matrix
+     * @param rDestination The matric destination
+     * @param rReducedMatrix The reduced matrix to be added
+     * @param Dimension The dimension where we work
      */
-
     static inline void  ExpandAndAddReducedMatrix(
-        MatrixType& Destination,
-        MatrixType& ReducedMatrix,
-        const unsigned int dimension
+        MatrixType& rDestination,
+        const MatrixType& rReducedMatrix,
+        const SizeType Dimension
         )
     {
         KRATOS_TRY;
 
-        const unsigned int size = ReducedMatrix.size2();
-        unsigned int rowindex = 0;
-    unsigned int colindex = 0;
+        const SizeType size = rReducedMatrix.size2();
+        IndexType rowindex = 0;
+        IndexType colindex = 0;
 
-        for (unsigned int i = 0; i < size; i++)
-        {
-            rowindex = i * dimension;
-            for (unsigned int j = 0; j < size; j++)
-            {
-                colindex = j * dimension;
-                for(unsigned int ii = 0; ii < dimension; ii++)
-                {
-                    Destination(rowindex+ii,colindex+ii) += ReducedMatrix(i,j);
+        for (IndexType i = 0; i < size; ++i) {
+            rowindex = i * Dimension;
+            for (IndexType j = 0; j < size; ++j) {
+                colindex = j * Dimension;
+                for(IndexType ii = 0; ii < Dimension; ii++) {
+                    rDestination(rowindex+ii, colindex+ii) += rReducedMatrix(i, j);
                 }
             }
         }

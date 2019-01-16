@@ -132,6 +132,13 @@ public:
     bool Has(const Variable<bool>& rThisVariable) override;
 
     /**
+     * @brief Returns whether this constitutive Law has specified variable (double)
+     * @param rThisVariable the variable to be checked for
+     * @return true if the variable is defined in the constitutive law
+     */
+    bool Has(const Variable<double>& rThisVariable) override;
+
+    /**
      * @brief Returns the value of a specified variable (bool)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -152,18 +159,6 @@ public:
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
                             const Vector& rShapeFunctionsValues) override;
-
-    /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues,
-                            const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
@@ -192,6 +187,34 @@ public:
      * @see Parameters
      */
     void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
@@ -223,20 +246,12 @@ public:
 
     /**
      * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-
-    /**
-     * @brief calculates the value of a specified variable
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(Parameters& rParameterValues,
+    double& CalculateValue(Parameters& rValues,
                            const Variable<double>& rThisVariable,
                            double& rValue) override;
 
@@ -276,7 +291,6 @@ protected:
     ///@{
     bool mInelasticFlag; /// Flags when in inelastic regime
     double mStrainVariable;
-    double mStrainVariableOld;
     ///@}
 
     ///@name Protected Operators
@@ -285,8 +299,24 @@ protected:
 
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rStrainVariable
+     */
+    virtual void CalculateStressResponse(
+            ConstitutiveLaw::Parameters& rValues,
+            double& rStrainVariable);
+
     double EvaluateHardeningLaw(double StrainVariable, const Properties &rMaterialProperties);
-    virtual void CalculateConstitutiveMatrix(Matrix &rConstitTensor, const Properties &rMaterialProperties);
+
+    /**
+     * @brief This method computes the constitutive tensor
+     * @param rMaterialProperties The properties of the material
+     * @param rElasticMatrix The elastic tensor/matrix to be computed
+     */
+    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
     ///@}
 
 private:

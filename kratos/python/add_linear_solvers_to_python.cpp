@@ -167,6 +167,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     ;
 
     py::class_<ScalingSolverType, ScalingSolverType::Pointer, LinearSolverType>(m,"ScalingSolver")
+    .def(py::init<LinearSolverType::Pointer>())
     .def(py::init<LinearSolverType::Pointer, bool >())
     .def(py::init<Parameters >())
     ;

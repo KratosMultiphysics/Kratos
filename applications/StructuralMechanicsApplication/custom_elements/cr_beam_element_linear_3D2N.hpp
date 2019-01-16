@@ -94,7 +94,7 @@ namespace Kratos
             /**
              * @brief This function calculates the element stiffness w.r.t. deformation modes
              */
-            BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() override;
+            BoundedMatrix<double,msLocalSize,msLocalSize> CalculateDeformationStiffness() const override;
 
             void CalculateOnIntegrationPoints(
                 const Variable<array_1d<double, 3 > >& rVariable,

@@ -209,9 +209,19 @@ void ModelPartAddProperties2(ModelPart& rModelPart, Properties::Pointer pNewProp
     rModelPart.AddProperties(pNewProperties, ThisIndex);
 }
 
-Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int property_id, unsigned int mesh_id)
+bool ModelPartHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
 {
-    return rModelPart.pGetProperties(property_id, mesh_id);
+    return rModelPart.HasProperties(PropertiesId, MeshId);
+}
+
+bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+{
+    return rModelPart.HasProperties(PropertiesId, 0);
+}
+
+Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+{
+    return rModelPart.pGetProperties(PropertiesId, MeshId);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -624,6 +634,18 @@ const ModelPart::SubModelPartIterator GetSubModelPartEnd(ModelPart& rModelPart)
 }
 
 template<class TDataType>
+bool CommunicatorSynchronizeVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeVariable(ThisVariable);
+}
+
+template<class TDataType>
+bool CommunicatorSynchronizeNonHistoricalVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
+{
+    return rCommunicator.SynchronizeNonHistoricalVariable(ThisVariable);
+}
+
+template<class TDataType>
 bool CommunicatorAssembleCurrentData(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
 {
     return rCommunicator.AssembleCurrentData(ThisVariable);
@@ -708,6 +730,16 @@ void AddModelPartToPython(pybind11::module& m)
         .def("MaxAll", CommunicatorMaxAll<double> )
         .def("ScanSum", CommunicatorScanSum<int> )
         .def("ScanSum", CommunicatorScanSum<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<int> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<double> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<array_1d<double,3> > )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Vector> )
+        .def("SynchronizeVariable", CommunicatorSynchronizeVariable<Matrix> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<int> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<double> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<array_1d<double,3> > )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Vector> )
+        .def("SynchronizeNonHistoricalVariable", CommunicatorSynchronizeNonHistoricalVariable<Matrix> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<int> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<double> )
         .def("AssembleCurrentData", CommunicatorAssembleCurrentData<array_1d<double,3> > )
@@ -718,6 +750,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<array_1d<double,3> > )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Vector> )
         .def("AssembleNonHistoricalData", CommunicatorAssembleNonHistoricalData<Matrix> )
+        .def("__str__", PrintObject<Communicator>);
         ;
 
         py::class_<typename ModelPart::SubModelPartsContainerType >(m, "SubModelPartsContainerType")
@@ -784,6 +817,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("NumberOfTables", &ModelPart::NumberOfTables)
         .def("AddTable", &ModelPart::AddTable)
         .def("GetTable", &ModelPart::pGetTable)
+        .def("HasProperties", ModelPartHasPropertiesById1)
+        .def("HasProperties", ModelPartHasPropertiesById2)
         .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)

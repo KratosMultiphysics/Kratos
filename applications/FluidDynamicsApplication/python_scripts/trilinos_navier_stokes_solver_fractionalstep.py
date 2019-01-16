@@ -4,9 +4,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
@@ -192,7 +189,6 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         (self.solver).Initialize()
-        (self.solver).Check()
 
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED

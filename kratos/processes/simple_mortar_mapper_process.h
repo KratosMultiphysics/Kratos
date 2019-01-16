@@ -279,6 +279,20 @@ public:
      * @brief Default constructor
      * @param rOriginModelPart The origin model part to compute
      * @param rDestinationModelPart The destination model part to compute
+     * @param ThisParameters The configuration parameters
+     * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
+     */
+    SimpleMortarMapperProcess(
+        ModelPart& rOriginModelPart,
+        ModelPart& rDestinationModelPart,
+        Parameters ThisParameters = Parameters(R"({})" ),
+        LinearSolverType::Pointer pThisLinearSolver = nullptr
+        );
+
+    /**
+     * @brief Default constructor
+     * @param rOriginModelPart The origin model part to compute
+     * @param rDestinationModelPart The destination model part to compute
      * @param rThisVariable The variable to transfer and be transfered
      * @param ThisParameters The configuration parameters
      * @param pThisLinearSolver The pointer to the linear to be used (in case of implicit resolution)
@@ -342,6 +356,26 @@ public:
     ///@{
 
     void Execute() override;
+
+    /**
+     * @brief This method is a direct map between the origin and destination modelpart with custom variables
+     * @param rOriginVariable The origin model part
+     * @param rDestinationVariable The destination model part
+     * @param Flag The flags to special settings. Right now does nothing
+     */
+    void Map(
+        TVarType& rOriginVariable,
+        TVarType& rDestinationVariable,
+        const Flags Flag = Flags()
+        )
+    {
+        // Reassign the variables
+        mOriginVariable = rOriginVariable;
+        mDestinationVariable = rDestinationVariable;
+
+        // Execute the process
+        Execute();
+    }
 
     ///@}
     ///@name Access
@@ -420,6 +454,8 @@ private:
     ModelPart& mDestinationModelPart;             /// The destination model part to compute
     TVarType mOriginVariable;                     /// The origin variable to map
     TVarType mDestinationVariable;                /// The destiny variable to map
+
+    double mMappingCoefficient = 1.0;             /// The mapping coefficient
 
     bool mOriginHistorical;                       /// A bool that defines if the origin variables is historical
     bool mDestinationHistorical;                  /// A bool that defines if the destination variables is historical
@@ -671,7 +707,9 @@ private:
                 Matrix residual_matrix(TNumNodes, size_to_compute);
                 ComputeResidualMatrix(residual_matrix, slave_geometry, master_geometry, rThisMortarOperators);
 
-                MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                if (!TImplicit) {
+                    MortarUtilities::AddValue<TVarType, NonHistorical>(slave_geometry, aux_variable, residual_matrix);
+                }
 
                 // We check if DOperator is diagonal
                 if (mEchoLevel > 1) {
@@ -694,7 +732,9 @@ private:
                         AssembleRHSAndLHS(rA, rb, variable_size, residual_matrix, slave_geometry, rInverseConectivityDatabase, rThisMortarOperators);
                     } else {
                         for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-                            slave_geometry[i_node].GetValue(NODAL_AREA) += rThisMortarOperators.DOperator(i_node, i_node);
+                            double& r_nodal_area = slave_geometry[i_node].GetValue(NODAL_AREA);
+                            #pragma omp atomic
+                            r_nodal_area += rThisMortarOperators.DOperator(i_node, i_node);
                         }
                     }
                 } else if (TImplicit) {

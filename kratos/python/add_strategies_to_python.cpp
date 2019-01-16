@@ -43,6 +43,9 @@
 #include "solving_strategies/schemes/residual_based_pseudo_static_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_displacement_scheme.h"
 #include "solving_strategies/schemes/residual_based_bdf_custom_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_static_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_steady_scheme.h"
+#include "solving_strategies/schemes/residual_based_adjoint_bossak_scheme.h"
 
 // Convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -54,6 +57,7 @@
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 
@@ -282,6 +286,27 @@ namespace Kratos
                 .def(py::init <const std::size_t, Parameters>())
                 ;
 
+            // Residual Based Adjoint Static Scheme Type
+            typedef ResidualBasedAdjointStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointStaticSchemeType;
+            py::class_<ResidualBasedAdjointStaticSchemeType, typename ResidualBasedAdjointStaticSchemeType::Pointer, BaseSchemeType>
+            (m, "ResidualBasedAdjointStaticScheme")
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            ;
+
+            // Residual Based Adjoint Steady Scheme Type
+            typedef ResidualBasedAdjointSteadyScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointSteadySchemeType;
+            py::class_<ResidualBasedAdjointSteadySchemeType, typename ResidualBasedAdjointSteadySchemeType::Pointer, ResidualBasedAdjointStaticSchemeType>
+            (m, "ResidualBasedAdjointSteadyScheme")
+            .def(py::init<AdjointResponseFunction::Pointer>())
+            ;
+
+            // Residual Based Adjoint Bossak Scheme Type
+            typedef ResidualBasedAdjointBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedAdjointBossakSchemeType;
+            py::class_<ResidualBasedAdjointBossakSchemeType, typename ResidualBasedAdjointBossakSchemeType::Pointer, BaseSchemeType>
+            (m, "ResidualBasedAdjointBossakScheme")
+            .def(py::init<Kratos::Parameters, AdjointResponseFunction::Pointer>())
+            ;
+
             //********************************************************************
             //********************************************************************
             //********************************************************************
@@ -380,15 +405,26 @@ namespace Kratos
 
             typedef ResidualBasedEliminationBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverType;
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
+
+            typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+            py::class_< ResidualBasedEliminationBuilderAndSolverWithConstraintsType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolverWithConstraints")
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, bool > ())
+            .def(py::init< LinearSolverType::Pointer, bool, bool > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
 
             typedef ResidualBasedBlockBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverWithConstraintsType;
             py::class_< ResidualBasedBlockBuilderAndSolverWithConstraintsType, ResidualBasedBlockBuilderAndSolverWithConstraintsType::Pointer,ResidualBasedBlockBuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolverWithConstraints")
-                .def(py::init< LinearSolverType::Pointer > ());
+            .def(py::init< LinearSolverType::Pointer > ())
+            ;
 
             //********************************************************************
             //********************************************************************

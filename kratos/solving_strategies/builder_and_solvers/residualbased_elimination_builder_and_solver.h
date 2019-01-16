@@ -107,11 +107,28 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
      */
-    ResidualBasedEliminationBuilderAndSolver(
+    explicit ResidualBasedEliminationBuilderAndSolver(
+        typename TLinearSolver::Pointer pNewLinearSystemSolver,
+        Parameters ThisParameters
+        ) : BaseType(pNewLinearSystemSolver)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+    }
+
+    /**
+     * @brief Constructor.
+     */
+    explicit ResidualBasedEliminationBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-        : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
 //         KRATOS_INFO("ResidualBasedEliminationBuilderAndSolver") << "Using the standard builder and solver " << std::endl;
     }
@@ -165,10 +182,9 @@ public:
         //vector containing the localization in the system of the different
         //terms
         Element::EquationIdVectorType EquationId;
+        const double start_build = OpenMPUtils::GetCurrentTime();
 
         // assemble all elements
-        double start_build = OpenMPUtils::GetCurrentTime();
-
         #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, EquationId )
         {
             #pragma omp  for schedule(guided, 512) nowait
@@ -227,9 +243,8 @@ public:
                 }
             }
         }
-
-        double stop_build = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 1 && rModelPart.GetCommunicator().MyPID() == 0) << "Build time: " << stop_build - start_build << std::endl;
+        const double stop_build = OpenMPUtils::GetCurrentTime();
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System build time: " << stop_build - start_build << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished building" << std::endl;
 
@@ -471,7 +486,7 @@ public:
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
@@ -480,9 +495,9 @@ public:
 
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -833,9 +848,9 @@ public:
         //if needed resize the vector for the calculation of reactions
         if (BaseType::mCalculateReactionsFlag == true)
         {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size();
-            if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
-                BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
+            const std::size_t reactions_vector_size = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
+            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
+                BaseType::mpReactionsVector->resize(reactions_vector_size, false);
         }
 
         KRATOS_CATCH("")
@@ -855,18 +870,15 @@ public:
         //refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, b);
 
-        int i;
-        int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
-
-        typename DofsArrayType::ptr_iterator it2;
-
-        //updating variables
-        TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-        for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
-        {
+        // Updating variables
+        std::size_t i;
+        TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+        for (auto it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2) {
             i = (*it2)->EquationId();
-            i -= systemsize;
-            (*it2)->GetSolutionStepReactionValue() = -ReactionsVector[i];
+            if (i >= BaseType::mEquationSystemSize) {
+                i -= BaseType::mEquationSystemSize;
+                (*it2)->GetSolutionStepReactionValue() = -r_reactions_vector[i];
+            }
 
         }
     }
@@ -1095,7 +1107,7 @@ protected:
                     }
                 }
             }
-
+          
             // Merging all the temporal indexes
             #pragma omp critical
             {

@@ -181,13 +181,6 @@ public:
     /// Destructor.
     ~MeshTyingMortarCondition() override;
 
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-
     ///@}
     ///@name Operators
     ///@{
@@ -382,6 +375,28 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "MeshTyingMortarCondition #" << this->Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MeshTyingMortarCondition #" << this->Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        PrintInfo(rOStream);
+        this->GetGeometry().PrintData(rOStream);
+        this->GetPairedGeometry().PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -456,8 +471,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Flags  mCalculationFlags;                                      /// Calculation flags
-
     MortarConditionMatrices mrThisMortarConditionMatrices;         /// The mortar operators
 
     IndexType mIntegrationOrder;                                   /// The integration order to consider
@@ -520,7 +533,9 @@ protected:
     void CalculateConditionSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLHS = true,
+        const bool ComputeRHS = true
         );
 
     /**
@@ -687,14 +702,12 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.save("CalculationFlags", mCalculationFlags);
         rSerializer.save("IntegrationOrder", mIntegrationOrder);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PairedCondition );
-        rSerializer.load("CalculationFlags", mCalculationFlags);
         rSerializer.load("IntegrationOrder", mIntegrationOrder);
     }
 

@@ -24,6 +24,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+#include "custom_python/add_custom_response_functions_to_python.h"
 
 
 namespace Kratos
@@ -48,6 +49,7 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomProcessesToPython(m);
+    AddCustomResponseFunctionsToPython(m);
 
     //registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PATCH_INDEX);
@@ -59,6 +61,7 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,C_DES);
 //        KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,C_SMAGORINSKY);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CHARACTERISTIC_VELOCITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,DIVERGENCE);
 
     // For Non-Newtonian constitutive relations
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,REGULARIZATION_COEFFICIENT);
@@ -69,6 +72,13 @@ PYBIND11_MODULE(KratosFluidDynamicsApplication,m)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,COARSE_VELOCITY);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,FIC_BETA);
+
+    // Adjoint variables
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_FLUID_VECTOR_1 )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_FLUID_VECTOR_2 )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, ADJOINT_FLUID_VECTOR_3 )
+    KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m, AUX_ADJOINT_FLUID_VECTOR_1 )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, ADJOINT_FLUID_SCALAR_1 )
 
     // Embedded fluid variables
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,EMBEDDED_IS_ACTIVE);

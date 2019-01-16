@@ -63,7 +63,6 @@ class CustomAnalyzer(AnalyzerBaseClass):
                 local_gradient[0] = 2*(constrained_node.X0 - self.target_x)
                 local_gradient[1] = 2*(constrained_node.Y0 - self.target_y)
                 local_gradient[2] = 2*(constrained_node.Z0 - self.target_z)
-                print(local_gradient)
             else:
                 local_gradient[0] = 0.0
                 local_gradient[1] = 0.0
@@ -102,12 +101,14 @@ with open(response_log_filename, 'r') as csvfile:
         else:
             last_line = line
 
+    resulting_iteration = float(last_line[0].strip())
     resulting_improvement = float(last_line[2].strip())
     resulting_constraint_value = float(last_line[4].strip())
 
     # # Check against specifications
-    TestCase().assertAlmostEqual(resulting_improvement, -19.201365, 2)
-    TestCase().assertAlmostEqual(resulting_constraint_value, 0.015641, 4)
+    TestCase().assertEqual(resulting_iteration, 8)
+    TestCase().assertAlmostEqual(resulting_improvement, -1.09262E+01, 4)
+    TestCase().assertAlmostEqual(resulting_constraint_value, 2.76773E-02, 4)
 
 os.chdir(original_directory)
 
