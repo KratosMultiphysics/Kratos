@@ -175,7 +175,7 @@ class FEMDEM_Solution:
         ########################################################
 
         self.DEM_Solution.AfterSolveOperations()
-        self.DEM_Solution.solver.MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
+        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
         
         # to print DEM with the FEM coordinates
         self.UpdateDEMVariables()
