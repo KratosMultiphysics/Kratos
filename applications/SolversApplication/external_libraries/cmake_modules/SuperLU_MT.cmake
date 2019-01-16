@@ -259,8 +259,8 @@ message(STATUS "****compiling super_lu_mt*****")
 #add_definitions( -DUSE_VENDOR_BLAS )
 #add_definitions( -D_LONGINT )
 
-add_library(super_lu_mt STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
-#target_link_libraries(super_lu_mt ${BLAS_LIBRARIES})
-target_link_libraries(super_lu_mt libblas_mt)
+add_library(external_superlu_mt STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
+#target_link_libraries(external_superlu_mt ${BLAS_LIBRARIES})
+target_link_libraries(external_superlu_mt external_libblas_mt)
 
-set(SUPERLU_LIBRARIES super_lu_mt)
+set(SUPERLU_LIBRARIES external_superlu_mt)

@@ -40,17 +40,17 @@ set( CODE90_sparse ${FEAST_DIR}/src/sparse/dzfeast_sparse.f90
 
 add_definitions(-DINCLUDE_FEAST)
 
-add_library( feast3 STATIC ${CODE90_functions_wrapper} ${CODE90} )
-target_link_libraries(feast3 ${BLAS_LIBRARIES} )
+add_library( external_feast STATIC ${CODE90_functions_wrapper} ${CODE90} )
+target_link_libraries(external_feast ${BLAS_LIBRARIES} )
 
-# add_library( feast_dense STATIC ${CODE90_dense} )
-# target_link_libraries(feast_dense ${BLAS_LIBRARIES} )
+# add_library( external_feast_dense STATIC ${CODE90_dense} )
+# target_link_libraries(external_feast_dense ${BLAS_LIBRARIES} )
 #
-# add_library( feast_banded STATIC ${CODE90_banded} )
-# target_link_libraries(feast_banded ${BLAS_LIBRARIES} )
+# add_library( external_feast_banded STATIC ${CODE90_banded} )
+# target_link_libraries(external_feast_banded ${BLAS_LIBRARIES} )
 
-# add_library( feast3_sparse STATIC ${CODE90_sparse} )
-# target_link_libraries(feast3_sparse ${BLAS_LIBRARIES} )
+# add_library( external_feast_sparse STATIC ${CODE90_sparse} )
+# target_link_libraries(external_feast_sparse ${BLAS_LIBRARIES} )
 
-#set(FEAST_LIBRARIES feast3 ${LAPACK_LIBRARIES} gfortran m)
-set(FEAST_LIBRARIES feast3 ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
+#set(FEAST_LIBRARIES external_feast ${LAPACK_LIBRARIES} gfortran m)
+set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)

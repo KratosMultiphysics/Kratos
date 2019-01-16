@@ -77,4 +77,4 @@ if(enable_complex16)
     )
 endif(enable_complex16)
 
-add_library(libblas_mt STATIC ${CBLAS_SOURCES} ${CBLAS_HEADERS})
+add_library(external_libblas_mt STATIC ${CBLAS_SOURCES} ${CBLAS_HEADERS})
