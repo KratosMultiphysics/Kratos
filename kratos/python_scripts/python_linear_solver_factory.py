@@ -70,7 +70,7 @@ def ConstructSolver(configuration):
     if solver_type.startswith("KratosMultiphysics."):
         solver_type = solver_type[19:]
 
-    if "." in solver_type: # the module in which the solver is implemented was specified
+    if "Application." in solver_type: # the module in which the solver is implemented was specified
         splitted_name = solver_type.split(".")
         if len(splitted_name) != 2:
             raise NameError('The "solver_type" has to consist in "ApplicationName.SolverType"')
