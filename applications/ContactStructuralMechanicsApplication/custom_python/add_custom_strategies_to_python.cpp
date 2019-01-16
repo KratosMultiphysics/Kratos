@@ -177,6 +177,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
+        .def(py::init<bool, bool, bool>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless penalty case)
@@ -186,6 +187,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
+        .def(py::init<bool, bool, bool>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictionless components case)
@@ -195,6 +197,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
+        .def(py::init<bool, bool, bool>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictional case)
@@ -204,6 +207,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
+        .def(py::init<bool, bool, bool>())
         ;
 
     // Dual set strategy for SSNM Convergence Criterion (frictional penalty case)
@@ -213,6 +217,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< >())
         .def(py::init<bool>())
         .def(py::init<bool, bool>())
+        .def(py::init<bool, bool, bool>())
         ;
 
     // Displacement and lagrange multiplier Convergence Criterion

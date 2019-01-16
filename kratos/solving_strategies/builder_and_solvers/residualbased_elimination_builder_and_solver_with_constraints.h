@@ -1118,9 +1118,9 @@ protected:
         SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
-        VectorType rb_copy(rb);
+        TSystemVectorType rb_copy = rb;
         if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
-            VectorType aux_constant_vector(rConstantVector);
+            TSystemVectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
         }
@@ -1518,7 +1518,7 @@ private:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // We reconstruct the complete vector of Unknowns
-        VectorType Dx_copy(rDx);
+        TSystemVectorType Dx_copy = rDx;
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
         // Add the constant vector
@@ -1552,7 +1552,7 @@ private:
         }
 
         // Reconstruct the RHS
-        VectorType rb_copy(rb);
+        TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
 

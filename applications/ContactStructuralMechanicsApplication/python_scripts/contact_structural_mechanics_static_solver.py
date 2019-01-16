@@ -104,6 +104,12 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
         is_converged = self.get_mechanical_solution_strategy().SolveSolutionStep()
         return is_converged
 
+    def ExecuteFinalizeSolutionStep(self):
+        super(ContactStaticMechanicalSolver, self).ExecuteFinalizeSolutionStep()
+        if self.contact_settings["ensure_contact"].GetBool():
+            computing_model_part = self.GetComputingModelPart()
+            CSMA.ContactUtilities.CheckActivity(computing_model_part)
+
     def ComputeDeltaTime(self):
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
         if self.contact_settings["inner_loop_adaptive"].GetBool():
@@ -153,13 +159,15 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                # We use the elimination builder and solver
-                if self.settings["multi_point_constraints_used"].GetBool():
-                    if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-                        self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
-                    builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
-                else:
-                    builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
+                    # We use the elimination builder and solver
+                    if self.settings["multi_point_constraints_used"].GetBool():
+                        if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
+                            self.GetComputingModelPart().Set(KM.TO_SPLIT) # We set the flag for some operations
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+                    else:
+                        builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
+        else:
+            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 

@@ -150,7 +150,7 @@ namespace Kratos
         /**
          * @brief This function calculates shear modulus from user input values
          */
-        double CalculateShearModulus();
+        double CalculateShearModulus() const;
 
 
         /**
@@ -158,12 +158,12 @@ namespace Kratos
          * @param I The second moment of area
          * @param A_eff The shear-effective area
          */
-        double CalculatePsi(const double I, const double A_eff);
+        double CalculatePsi(const double I, const double A_eff) const;
 
         /**
          * @brief This function calculates the initial angle
          */
-        double CalculateInitialElementAngle();
+        double CalculateInitialElementAngle() const;
 
         /**
          * @brief This function calculates the current angle
@@ -173,7 +173,7 @@ namespace Kratos
         /**
          * @brief This function calculates self-weight forces
          */
-        BoundedVector<double,msElementSize> CalculateBodyForces();
+        BoundedVector<double,msElementSize> CalculateBodyForces() const;
 
         /**
          * @brief This function calculates nodal moments due to self-weight
@@ -184,45 +184,45 @@ namespace Kratos
         void CalculateAndAddWorkEquivalentNodalForcesLineLoad(
             const BoundedVector<double,3> ForceInput,
             BoundedVector<double,msElementSize>& rRightHandSideVector,
-            const double GeometryLength);
+            const double GeometryLength)const ;
 
         IntegrationMethod GetIntegrationMethod() const override;
 
         /**
          * @brief This function calculates a transformation matrix from deformation modes to real deformations
          */
-        BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS();
+        BoundedMatrix<double,msElementSize,msLocalSize> CalculateTransformationS() const;
 
         /**
          * @brief This function calculates the current length
          */
-        virtual double CalculateLength();
+        virtual double CalculateLength() const;
 
         /**
          * @brief This function calculates the reference length
          */
-        double CalculateReferenceLength();
+        double CalculateReferenceLength() const;
 
 
         /**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
-        BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat();
+        BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat() const;
 
         /**
          * @brief This function calculates the geometric part of the total stiffness matrix
          */
-        BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo();
+        BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_geo() const;
 
         /**
          * @brief This function calculates the co-rotating part of the total stiffness matrix
          */
-        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr();
+        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Kr() const;
 
         /**
          * @brief This function assembles the total stiffness matrix
          */
-        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total();
+        BoundedMatrix<double,msElementSize,msElementSize> CreateElementStiffnessMatrix_Total() const;
 
 
         /**
@@ -241,7 +241,7 @@ namespace Kratos
          * @brief This function calculates the modulus to 2 PI to keep the rotation angle between 0 and 2PI
          * @param A The current angle
          */
-        double Modulus2Pi(double A);
+        double Modulus2Pi(double A) const;
 
         /**
          * @brief This function calculates the transformation matrix to globalize/localize vectors and/or matrices

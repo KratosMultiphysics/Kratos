@@ -50,14 +50,12 @@ class ApplySlipProcess(KratosMultiphysics.Process):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
                 KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
                 navier_slip_length,
-                self.model_part )
+                self.model_part.Nodes)
         else:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(
                 KratosMultiphysics.FluidDynamicsApplication.SLIP_LENGTH,
                 1.0e8,
-                self.model_part )
-
-
+                self.model_part.Nodes)
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
