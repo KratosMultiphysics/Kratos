@@ -182,6 +182,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     set PutStrings \[
     set iGroup 0
     AppendOutputVariables PutStrings iGroup Write_Peclet PECLET
+    AppendOutputVariables PutStrings iGroup Write_Courant COURANT
     AppendOutputVariables PutStrings iGroup Write_FIC_Beta FIC_BETA
     AppendOutputVariables PutStrings iGroup Write_Phi_Gradient PHI_GRADIENT
 

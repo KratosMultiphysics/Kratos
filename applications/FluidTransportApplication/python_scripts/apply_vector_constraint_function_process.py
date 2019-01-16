@@ -19,14 +19,14 @@ class ApplyVectorConstraintFunctionProcess(KratosMultiphysics.Process):
 
         if settings["active"][0].GetBool() == True:
             for node in model_part.Nodes:
-                # velocity = 10000*node.Y*(1-node.X*node.X)
-                velocity =  2.0 * (node.Y - 0.5)
+                velocity = 10000*node.Y*(1-node.X*node.X)
+                #velocity =  0.8 * (node.Y - 0.5)
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,velocity)
 
         if settings["active"][1].GetBool() == True:
             for node in model_part.Nodes:
-                # velocity = -10000*node.X*(1-node.Y*node.Y)
-                velocity =  - 2.0 * (node.X - 0.5)
+                velocity = -10000*node.X*(1-node.Y*node.Y)
+                #velocity =  - 0.8 * (node.X - 0.5)
                 node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,velocity)
 
         if settings["active"][2].GetBool() == True:

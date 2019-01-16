@@ -87,6 +87,9 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
 
     Variables.IterationNumber = rCurrentProcessInfo[NL_ITERATION_NUMBER];
 
+    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAux1 = ZeroMatrix( TNumNodes, TNumNodes );
+    BoundedMatrix<double,TNumNodes,TNumNodes> MMatrixAuxRight = ZeroMatrix( TNumNodes, TNumNodes );
+
     //Loop over integration points
     for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
     {
@@ -116,8 +119,20 @@ void TransientConvectionDiffusionFICElement<TDim, TNumNodes>::CalculateFirstDeri
         array_1d <double, TNumNodes> AuxMVector;
         noalias(AuxMVector) = Variables.rho_dot_c * (Variables.N + 0.5 * prod(Variables.GradNT,Variables.HVector));
 
+        MMatrixAux1 += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
+
+        // for (unsigned int i = 0 ; i < TNumNodes ; i++ )
+        // {
+        //     for (unsigned int j = 0 ; j < TNumNodes ; j ++ )
+        //     {
+        //         MMatrixAuxRight (i,i) += MMatrixAux1(i,j) / 3.0;
+        //     }
+        // }
+
         noalias(rLeftHandSideMatrix) += outer_prod(AuxMVector,Variables.N) * Variables.IntegrationCoefficient;
     }
+
+    //rLeftHandSideMatrix = MMatrixAuxRight;
 
     //RightHandSideVector
 
@@ -547,7 +562,6 @@ void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateDiffusivit
     }
     noalias(rVariables.DifMatrixSC) = rVariables.DifSC * rVariables.IdentityMatrix;
 
-
     //Calculate Dv and new lsc term for Dv
     this->CalculateNormalsAngle(rVariables);
 
@@ -686,6 +700,233 @@ KRATOS_TRY
     rVariables.HVector = rVariables.HvVector + rVariables.HrVector + rVariables.HscVector;
 
     KRATOS_CATCH("")
+}
+
+//----------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::GetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,
+                                                                const ProcessInfo& rCurrentProcessInfo )
+{
+    const GeometryType& Geom = this->GetGeometry();
+    GeometryData::IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+    const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+    const unsigned int NumGPoints = integration_points.size();
+
+    if ( rVariable == FIC_BETA || rVariable == PECLET || rVariable == COURANT)
+    {
+        if ( rValues.size() != NumGPoints )
+            rValues.resize(NumGPoints);
+
+        this->CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    }
+    else
+    {
+        if ( rValues.size() != NumGPoints )
+            rValues.resize(NumGPoints);
+
+        for ( unsigned int i = 0;  i < NumGPoints; i++ )
+        {
+            rValues[i] = 0.0;
+        }
+    }
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+template< unsigned int TDim, unsigned int TNumNodes >
+void TransientConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rOutput,
+                                                                            const ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    if(rVariable == PECLET)
+    {
+        //Previous definitions
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        GeometryData::IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+        const unsigned int NumGPoints = integration_points.size();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Vector detJContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
+
+        //Loop over integration points
+        for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+        {
+            //Compute GradNT
+            noalias(Variables.GradNT) = DN_DXContainer[GPoint];
+            noalias(Variables.VelInter) = ZeroVector(TDim);
+
+            ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+            double NormVel = norm_2(Variables.VelInter);
+
+            noalias(Variables.GradPhi) = ZeroVector(TDim);
+
+            Variables.GradPhi = prod(trans(Variables.GradNT), Variables.NodalPhi);
+
+            Variables.NormGradPhi = norm_2(Variables.GradPhi);
+
+            // Unitary velocity vector
+            if (NormVel < Variables.LowTolerance)
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = 0.0;
+                }
+            }
+            else
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = Variables.VelInter[i]/NormVel;
+                }
+            }
+
+            this->CalculatePeclet(Variables, Geom, NormVel, rCurrentProcessInfo, Prop);
+            rOutput[GPoint] = Variables.Peclet;
+        }
+    }
+    else if(rVariable == FIC_BETA)
+    {
+        //Previous definitions
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        GeometryData::IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+        const unsigned int NumGPoints = integration_points.size();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Vector detJContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
+
+        //Loop over integration points
+        for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+        {
+            //Compute GradNT
+            noalias(Variables.GradNT) = DN_DXContainer[GPoint];
+
+            noalias(Variables.VelInter) = ZeroVector(TDim);
+            ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+            double NormVel = norm_2(Variables.VelInter);
+
+            noalias(Variables.GradPhi) = ZeroVector(TDim);
+
+            Variables.GradPhi = prod(trans(Variables.GradNT), Variables.NodalPhi);
+
+            Variables.NormGradPhi = norm_2(Variables.GradPhi);
+
+            // Unitary velocity vector
+            if (NormVel < Variables.LowTolerance)
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = 0.0;
+                }
+            }
+            else
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = Variables.VelInter[i]/NormVel;
+                }
+            }
+
+            this->CalculateFICBeta(Variables);
+            rOutput[GPoint] = Variables.Beta;
+        }
+    }
+    else if(rVariable == COURANT)
+    {
+        //Previous definitions
+        const PropertiesType& Prop = this->GetProperties();
+        const GeometryType& Geom = this->GetGeometry();
+        GeometryData::IntegrationMethod ThisIntegrationMethod = this->GetIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
+        const unsigned int NumGPoints = integration_points.size();
+
+        //Containers of variables at all integration points
+        const Matrix& NContainer = Geom.ShapeFunctionsValues( ThisIntegrationMethod );
+        GeometryType::ShapeFunctionsGradientsType DN_DXContainer(NumGPoints);
+        Vector detJContainer(NumGPoints);
+        Geom.ShapeFunctionsIntegrationPointsGradients(DN_DXContainer,detJContainer,ThisIntegrationMethod);
+
+        //Element variables
+        ElementVariables Variables;
+        this->InitializeElementVariables(Variables,Geom,Prop,rCurrentProcessInfo);
+        double delta_time = rCurrentProcessInfo.GetValue(DELTA_TIME);
+
+
+        //Loop over integration points
+        for( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
+        {
+            //Compute GradNT
+            noalias(Variables.GradNT) = DN_DXContainer[GPoint];
+
+            noalias(Variables.VelInter) = ZeroVector(TDim);
+            ElementUtilities::InterpolateVariableWithComponents(Variables.VelInter,NContainer,Variables.NodalVel,GPoint);
+
+            double NormVel = norm_2(Variables.VelInter);
+
+            if (NormVel < Variables.HighTolerance)
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = 0.0;
+                }
+            }
+            else
+            {
+                for (unsigned int i = 0; i < TDim; i++)
+                {
+                    Variables.VelInterHat[i] = Variables.VelInter[i]/NormVel;
+                }
+            }
+
+            double Domain = Geom.DomainSize();
+
+            if (TDim == 2)
+            {
+                Variables.lv = std::sqrt(2.0*Domain);
+            }
+            else
+            {
+                Variables.lv = pow( (6.0*Domain/Globals::Pi) , (1.0/3.0) );
+            }
+
+            if (NormVel > Variables.HighTolerance)
+            {
+                array_1d <double, 3> Velocity3;
+                ElementUtilities::FillArray1dOutput (Velocity3, Variables.VelInterHat);
+
+//                Variables.lv = ElementSizeCalculator<TDim,TNumNodes>::ProjectedElementSize(Geom,Velocity3);
+            }
+
+            this->CalculateBoundaryLv(Variables);
+
+            Variables.Courant = NormVel * delta_time / Variables.lv;
+
+            rOutput[GPoint] = Variables.Courant;
+        }
+    }
+
+    KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------

@@ -22,9 +22,13 @@ class ApplyScalarConstraintFunctionProcess(KratosMultiphysics.Process):
         #     node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,temperature)
 
         for node in model_part.Nodes:
-            radius = math.sqrt((node.X - 0.5) ** 2.0 + (node.Y - 0.75) ** 2.0)
+            #radius = math.sqrt((node.X - 0.5) ** 2.0 + (node.Y - 0.75) ** 2.0)
 
-            if(radius <= 0.2):
+            #if(radius <= 0.17):
+
+            #if((node.X >= 0.1 and node.X <= 0.2 and node.Y >= 0.4 and node.Y <= 0.6) or (node.X >= 0.3 and node.X <= 0.4 and node.Y >= 0.4 and node.Y <= 0.6)):
+
+            if((node.X >= 0.1 and node.X <= 0.2) or (node.X >= 0.3 and node.X <= 0.4)):
                 node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1.0)
                 node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,1.0)
                 node.SetSolutionStepValue(KratosFluidTransport.PHI_THETA,1,1.0)

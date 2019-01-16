@@ -120,6 +120,7 @@ protected:
         double CosinusGradPhi;
         double LowTolerance;
         double HighTolerance;
+        double Courant;
 
         //Transient variables
         double TransientAbsorption;

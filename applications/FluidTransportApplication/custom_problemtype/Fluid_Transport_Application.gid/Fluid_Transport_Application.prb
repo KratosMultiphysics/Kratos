@@ -75,6 +75,8 @@ QUESTION: Write_Q_Source#CB#(true,false)
 VALUE: false
 QUESTION: Write_Peclet#CB#(true,false)
 VALUE: true
+QUESTION: Write_Courant#CB#(true,false)
+VALUE: true
 QUESTION: Write_FIC_Beta#CB#(true,false)
 VALUE: true
 QUESTION: Write_Phi_Gradient#CB#(true,false)

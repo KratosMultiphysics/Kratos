@@ -127,8 +127,8 @@ int SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::Check( const ProcessInf
 template< unsigned int TDim, unsigned int TNumNodes >
 GeometryData::IntegrationMethod SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetIntegrationMethod() const
 {
-    //return GeometryData::GI_GAUSS_2;
-    return this->GetGeometry().GetDefaultIntegrationMethod();
+    return GeometryData::GI_GAUSS_2;
+    //return this->GetGeometry().GetDefaultIntegrationMethod();
 }
 
 //----------------------------------------------------------------------------------------
@@ -301,6 +301,11 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAll( MatrixTy
 
     }
 
+        // KRATOS_WATCH(this->Id())
+        // KRATOS_WATCH("contr velocidad")
+        // KRATOS_WATCH(Variables.Aux1)
+        // KRATOS_WATCH("contr diff")
+        // KRATOS_WATCH(Variables.Aux2)
 
     KRATOS_CATCH( "" )
 }
@@ -1089,7 +1094,7 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::GetValueOnIntegrationP
     const GeometryType::IntegrationPointsArrayType& integration_points = Geom.IntegrationPoints( ThisIntegrationMethod );
     const unsigned int NumGPoints = integration_points.size();
 
-    if ( rVariable == FIC_BETA || rVariable == PECLET)
+    if ( rVariable == FIC_BETA || rVariable == PECLET )
     {
         if ( rValues.size() != NumGPoints )
             rValues.resize(NumGPoints);
@@ -1398,6 +1403,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSAdve
 
     noalias(rRightHandSideVector) -= prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
 
+    // rVariables.Aux1 += prod(rVariables.AdvMatrixAuxTwo, rVariables.NodalPhi);
+
 }
 //----------------------------------------------------------------------------------------
 
@@ -1409,6 +1416,8 @@ void SteadyConvectionDiffusionFICElement<TDim,TNumNodes>::CalculateAndAddRHSDiff
     noalias(rVariables.DifMatrixAuxTwo) = prod(rVariables.DifMatrixAux,trans(rVariables.GradNT))*rVariables.IntegrationCoefficient;
 
     noalias(rRightHandSideVector) -= prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
+
+    // rVariables.Aux2 += prod(rVariables.DifMatrixAuxTwo, rVariables.NodalPhi);
 
 }
 
