@@ -175,7 +175,7 @@ void UpdatedLagrangian::UpdateHistoricalDatabase(
 void UpdatedLagrangian::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag
     )
@@ -310,7 +310,7 @@ double UpdatedLagrangian::CalculateDerivativesOnReferenceConfiguration(
     Matrix& DN_DX,
     const IndexType PointNumber,
     IntegrationMethod ThisIntegrationMethod
-    )
+    ) const
 {
     J0.clear();
 

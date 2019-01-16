@@ -116,9 +116,6 @@ class Algorithm(BaseAlgorithm):
     def GetFirstStepForFluidComputation(self):
         return 1;
 
-    def SetCutsOutput(self):
-        pass
-
     def SetDragOutput(self):
         pass
 

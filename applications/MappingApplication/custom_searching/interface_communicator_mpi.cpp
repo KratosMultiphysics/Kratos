@@ -57,17 +57,16 @@ InterfaceCommunicatorMPI::InterfaceCommunicatorMPI(ModelPart& rModelPartOrigin,
 /* PROTECTED Methods */
 /***********************************************************************************/
 void InterfaceCommunicatorMPI::InitializeSearch(const Kratos::Flags& rOptions,
-                                    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo,
-                                    InterfaceObject::ConstructionType InterfaceObjectTypeOrigin)
+                                                const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
-    InterfaceCommunicator::InitializeSearch(rOptions, rpRefInterfaceInfo, InterfaceObjectTypeOrigin);
+    InterfaceCommunicator::InitializeSearch(rOptions, rpRefInterfaceInfo);
 
     // Exchange Bounding Boxes => has to be done every time
     ComputeGlobalBoundingBoxes();
 }
 
 void InterfaceCommunicatorMPI::InitializeSearchIteration(const Kratos::Flags& rOptions,
-                                                    const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
+                                                         const MapperInterfaceInfoUniquePointerType& rpRefInterfaceInfo)
 {
     // Reset to zero
     std::fill(mSendSizes.begin(), mSendSizes.end(), 0);

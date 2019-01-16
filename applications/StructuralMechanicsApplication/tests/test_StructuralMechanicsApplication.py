@@ -24,6 +24,7 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_perfect_plasticity_implementation_verification import TestPerfectPlasticityImplementationVerification as TTestPerfectPlasticityImplementationVerification
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -103,6 +104,8 @@ from structural_mechanics_test_factory import ULThreeDTensionTetraPatchTest as T
 # SPRISM tests
 from structural_mechanics_test_factory import SprismMembranePatchTests as TSprismMembranePatchTests
 from structural_mechanics_test_factory import SprismBendingPatchTests as TSprismBendingPatchTests
+# Explicit tests
+from structural_mechanics_test_factory import ExplicitSolidBeam as TExplicitSolidBeam
 # Eigenvalues tests
 from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
@@ -169,6 +172,7 @@ from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
+from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -236,6 +240,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -344,6 +349,7 @@ def AssembleTestSuites():
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
     nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution')) 
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
+    nightSuite.addTest(TRigidSphereFailing('test_execution'))
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
@@ -401,6 +407,8 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    # Explicit solid beam
+    validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed
