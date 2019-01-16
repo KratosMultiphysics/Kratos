@@ -259,6 +259,10 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithR
             case BaseType::TypeSolution::NormalContactStress :
                 CorrectALMFrictionlessMortarLM(ItNode, a, b);
                 break;
+            case BaseType::TypeSolution::FrictionlessPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::FrictionalPenaltyMethod :
+                break;
         }
     } else {
         ItNode->Set(ACTIVE, true);
@@ -276,6 +280,10 @@ void AdvancedContactSearch<TDim, TNumNodes, TNumNodesMaster>::SetActiveNodeWithR
                 break;
             case BaseType::TypeSolution::NormalContactStress :
                 PredictALMFrictionlessMortarLM(ItNode, a, b);
+                break;
+            case BaseType::TypeSolution::FrictionlessPenaltyMethod :
+                break;
+            case BaseType::TypeSolution::FrictionalPenaltyMethod :
                 break;
         }
     }

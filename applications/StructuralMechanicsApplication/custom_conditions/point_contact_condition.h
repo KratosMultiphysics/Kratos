@@ -159,15 +159,15 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     /**
      * It calcules the integration load for the point load
      */
-    virtual double GetPointLoadIntegrationWeight();
+    virtual double GetPointLoadIntegrationWeight() const;
 
     ///@}
     ///@name Protected  Access
@@ -196,7 +196,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
 
 
     ///@}

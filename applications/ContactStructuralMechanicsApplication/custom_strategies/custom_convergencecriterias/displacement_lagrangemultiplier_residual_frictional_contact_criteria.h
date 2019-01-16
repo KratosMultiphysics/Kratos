@@ -188,6 +188,7 @@ public:
       ,mLMTangentAbsTolerance(rOther.mLMTangentAbsTolerance)
       ,mLMTangentInitialResidualNorm(rOther.mLMTangentInitialResidualNorm)
       ,mLMTangentCurrentResidualNorm(rOther.mLMTangentCurrentResidualNorm)
+      ,mEnsureContact(rOther.mEnsureContact)
       ,mPrintingOutput(rOther.mPrintingOutput)
       ,mTableIsInitialized(rOther.mTableIsInitialized)
     {
