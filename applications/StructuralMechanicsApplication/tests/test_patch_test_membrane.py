@@ -5,8 +5,6 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestPatchTestMembrane(KratosUnittest.TestCase):
-    def setUp(self):
-        pass
 
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
@@ -14,8 +12,6 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
-
-
 
     def _add_dofs(self,mp):
         # Adding the dofs AND their corresponding reaction!
@@ -77,7 +73,6 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewNode(24, 0.7500504508, -0.0075002115,  0.0000000000)
         mp.CreateNewNode(25, 1.0000000000,  0.0000000000,  0.0000000000)
 
-
     def _create_elements_3d3n(self,mp):
         element_name = "PreStressMembraneElement3D3N"
         mp.CreateNewElement(element_name, 1, [21, 13, 18], mp.GetProperties()[1])
@@ -136,19 +131,16 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         mp.CreateNewElement(element_name, 15 , [13, 11,  6,  8], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 16 , [18, 17, 11, 13], mp.GetProperties()[1])
 
-
     def _apply_dirichlet_BCs(self,mp):
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_X, True, mp.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Y, True, mp.Nodes)
         KratosMultiphysics.VariableUtils().ApplyFixity(KratosMultiphysics.DISPLACEMENT_Z, True, mp.Nodes)
-
 
     def _apply_self_weight(self, mp):
         for node in mp.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Y, -9.81)
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_X, 0.0)
             node.SetSolutionStepValue(KratosMultiphysics.VOLUME_ACCELERATION_Z, 0.0)
-
 
     def _apply_material_properties(self,mp):
         #define properties
@@ -158,7 +150,6 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         mp.GetProperties()[1].SetValue(KratosMultiphysics.DENSITY,700.0)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_ALPHA,0.03)
         mp.GetProperties()[1].SetValue(StructuralMechanicsApplication.RAYLEIGH_BETA,0.02)
-
 
         constitutive_law = StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw()
 
@@ -358,7 +349,7 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
-    def test_membrane_3d4n_dynamic(self):
+    def _test_membrane_3d4n_dynamic(self):
 
         displacement_results = [-0.004416597413161373, -0.017672715828946108, -0.0383282878649957,
         -0.060720299929014065, -0.07850778062395564, -0.08727738281567025,
