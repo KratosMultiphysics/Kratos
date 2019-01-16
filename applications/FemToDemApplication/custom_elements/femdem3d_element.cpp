@@ -1588,8 +1588,18 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
-		this->SetValue(rVariable, rValues[point_number]);
+	if (rVariable == DAMAGE_ELEMENT) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mDamage = rValues[PointNumber];
+		}
+	} else if (rVariable == STRESS_THRESHOLD) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mThreshold = rValues[PointNumber];
+		}
+	} else {
+		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
+			this->SetValue(rVariable, rValues[point_number]);
+		}
 	}
 }
 
