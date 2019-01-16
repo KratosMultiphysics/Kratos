@@ -371,10 +371,10 @@ def AssembleTestSuites():
     #nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
     #nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     #nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
-    #nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
-    #nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
-    #nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
-    #nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
+    nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStrainEnergyResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointDisplacementResponseFunction('test_execution'))
+    nightSuite.addTest(TTestAdjointStressResponseFunction('test_execution'))
 
     # Dynamic basic tests
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TDynamicSchemesTests]))
