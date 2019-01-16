@@ -92,7 +92,7 @@ namespace Kratos
       ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix, 
+        MatrixType& rDampingMatrix,
         ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -110,11 +110,6 @@ namespace Kratos
       MatrixType& rMassMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
 
-/*
-    void CalculateDampingMatrix(
-      MatrixType& rDampingMatrix,
-      ProcessInfo& rCurrentProcessInfo) override;
-*/
     void FinalizeSolutionStep(
       ProcessInfo& rCurrentProcessInfo) override;
 

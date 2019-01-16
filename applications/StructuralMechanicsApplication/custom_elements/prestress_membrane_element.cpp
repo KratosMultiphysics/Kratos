@@ -293,7 +293,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
         }
     }
 
-  
+
 
     KRATOS_CATCH("")
 }
@@ -550,7 +550,7 @@ void PrestressMembraneElement::CalculateAndAddBodyForce(
 
     const double density = GetProperties()[DENSITY];
 
-    VectorType body_force = ZeroVector(3); 
+    VectorType body_force = ZeroVector(3);
     const SizeType number_of_nodes = this->GetGeometry().size();
     //const GeometryType::IntegrationPointsArrayType& integration_points = this->GetGeometry().IntegrationPoints();
 
@@ -742,24 +742,18 @@ void PrestressMembraneElement::CalculateAll(
         }
 
         // RIGHT HAND SIDE VECTOR
-        if (rCalculateResidualVectorFlag == true)         // calculation of the matrix is required
-        {
-            
-            if(this->Has(IS_FORMFINDING))
-                {
-                if(this->GetValue(IS_FORMFINDING))
-                    {
+        if (rCalculateResidualVectorFlag == true) { // calculation of the matrix is required
+            if(this->Has(IS_FORMFINDING)) {
+                if(this->GetValue(IS_FORMFINDING)) {
                     // operation performed: rRighthandSideVector -= Weight* IntForce
                     noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
-                    }
-                    else
-                    {
+                }
+                else {
                     CalculateAndAddBodyForce(rRightHandSideVector, point_number, int_reference_weight);
                     // operation performed: rRighthandSideVector -= Weight* IntForce
                     noalias(rRightHandSideVector) -= int_reference_weight* prod(trans(B), strain_deformation);
-                    }  
-
-                }          
+                }
+            }
         }
     } // end loop over integration points
 

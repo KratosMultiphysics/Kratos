@@ -7,7 +7,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestMembrane(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -80,60 +80,60 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
     def _create_elements_3d3n(self,mp):
         element_name = "PreStressMembraneElement3D3N"
-        mp.CreateNewElement(element_name, 1, [21, 13, 18], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 2, [11, 13, 21], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 3, [8, 13, 11], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 4, [18, 13,  8], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 5, [24, 16, 21], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 6, [15, 16, 24], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 7, [11, 16, 15], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 8, [21, 16, 11], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 9, [25, 22, 24], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 10, [23, 22, 25], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 11, [15, 22, 23], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 12, [24, 22, 15], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 13, [11, 6, 8], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 14, [5, 6, 11], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 15, [3, 6, 5], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 16, [8, 6, 3], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 17, [15, 10, 11], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 18, [12, 10, 15], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 19, [5, 10, 12], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 20, [11,10, 5], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 21, [23, 17, 15], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 22, [20, 17, 23], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 23, [12, 17, 20], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 24, [15, 17, 12], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 25, [5, 2, 3], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 26, [4, 2, 5], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 27, [1, 2, 4], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 28, [3, 2, 1], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 29, [12, 7, 5], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 30, [9, 7, 12], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 31, [4, 7, 9], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 32, [5, 7, 4], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 33, [20, 14, 12], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 34, [19, 14, 20], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 35, [9, 14, 19], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 36, [12, 14, 9], mp.GetProperties()[1]) 
+        mp.CreateNewElement(element_name, 1, [21, 13, 18], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 2, [11, 13, 21], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 3, [8, 13, 11], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 4, [18, 13,  8], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 5, [24, 16, 21], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 6, [15, 16, 24], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 7, [11, 16, 15], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 8, [21, 16, 11], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 9, [25, 22, 24], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 10, [23, 22, 25], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 11, [15, 22, 23], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 12, [24, 22, 15], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 13, [11, 6, 8], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 14, [5, 6, 11], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 15, [3, 6, 5], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 16, [8, 6, 3], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 17, [15, 10, 11], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 18, [12, 10, 15], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 19, [5, 10, 12], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 20, [11,10, 5], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 21, [23, 17, 15], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 22, [20, 17, 23], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 23, [12, 17, 20], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 24, [15, 17, 12], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 25, [5, 2, 3], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 26, [4, 2, 5], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 27, [1, 2, 4], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 28, [3, 2, 1], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 29, [12, 7, 5], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 30, [9, 7, 12], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 31, [4, 7, 9], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 32, [5, 7, 4], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 33, [20, 14, 12], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 34, [19, 14, 20], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 35, [9, 14, 19], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 36, [12, 14, 9], mp.GetProperties()[1])
 
     def _create_elements_3d4n(self,mp):
         element_name = "PreStressMembraneElement3D4N"
-        mp.CreateNewElement(element_name,  1 , [19, 12, 10, 16], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  2 , [22, 14, 12, 19], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  3 , [24, 20, 14, 22], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  4 , [25, 23, 20, 24], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  5 , [12,  7,  5, 10], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  6 , [14,  9,  7, 12], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  7 , [20, 15,  9, 14], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  8 , [23, 21, 15, 20], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name,  9 , [ 7,  4,  2,  5], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 10 , [ 9,  8,  4,  7], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 11 , [15, 13,  8,  9], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 12 , [21, 18, 13, 15], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 13 , [ 4,  3,  1,  2], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 14 , [ 8,  6,  3,  4], mp.GetProperties()[1]) 
-        mp.CreateNewElement(element_name, 15 , [13, 11,  6,  8], mp.GetProperties()[1]) 
+        mp.CreateNewElement(element_name,  1 , [19, 12, 10, 16], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  2 , [22, 14, 12, 19], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  3 , [24, 20, 14, 22], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  4 , [25, 23, 20, 24], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  5 , [12,  7,  5, 10], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  6 , [14,  9,  7, 12], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  7 , [20, 15,  9, 14], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  8 , [23, 21, 15, 20], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name,  9 , [ 7,  4,  2,  5], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 10 , [ 9,  8,  4,  7], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 11 , [15, 13,  8,  9], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 12 , [21, 18, 13, 15], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 13 , [ 4,  3,  1,  2], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 14 , [ 8,  6,  3,  4], mp.GetProperties()[1])
+        mp.CreateNewElement(element_name, 15 , [13, 11,  6,  8], mp.GetProperties()[1])
         mp.CreateNewElement(element_name, 16 , [18, 17, 11, 13], mp.GetProperties()[1])
 
 
@@ -301,7 +301,7 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
         return mp
 
-    
+
     def test_membrane_3d3n_static(self):
         displacement_results = [-4.628753e-12 , -0.04937043 , -6.483677e-12]
 
@@ -327,19 +327,19 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
         self._check_static_results(mp.Nodes[9],displacement_results)
 
         #self.__post_process(mp)
-    
+
 
     def test_membrane_3d3n_dynamic(self):
-        
-        displacement_results = [-0.004145456940147508, -0.016577305470262357, -0.036009405854487204, 
-        -0.05724634378436276, -0.07431594485756908, -0.08286293670959116, 
-        -0.08158307966494918, -0.07223491977349739, -0.058530143571647514, 
+
+        displacement_results = [-0.004145456940147508, -0.016577305470262357, -0.036009405854487204,
+        -0.05724634378436276, -0.07431594485756908, -0.08286293670959116,
+        -0.08158307966494918, -0.07223491977349739, -0.058530143571647514,
         -0.044671016341598674, -0.03417034853894327]
 
 
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system_3d3n(current_model)
-        
+
         #time integration parameters
         dt = 0.05
         time = 0.0
@@ -352,23 +352,23 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-                
+
             self._solve_dynamic(mp)
             self._check_dynamic_results(mp.Nodes[10],step-1,displacement_results)
-            
+
         #self.__post_process(mp)
 
     def test_membrane_3d4n_dynamic(self):
-        
-        displacement_results = [-0.004416597413161373, -0.017672715828946108, -0.0383282878649957, 
-        -0.060720299929014065, -0.07850778062395564, -0.08727738281567025, 
-        -0.08586880143129107, -0.07618411850603453, -0.06201094423792496, 
+
+        displacement_results = [-0.004416597413161373, -0.017672715828946108, -0.0383282878649957,
+        -0.060720299929014065, -0.07850778062395564, -0.08727738281567025,
+        -0.08586880143129107, -0.07618411850603453, -0.06201094423792496,
         -0.04762424029880159, -0.03666158466786426]
 
 
         current_model = KratosMultiphysics.Model()
         mp = self._set_up_system_3d4n(current_model)
-        
+
         #time integration parameters
         dt = 0.05
         time = 0.0
@@ -381,10 +381,10 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
             time = time + dt
             step = step + 1
             mp.CloneTimeStep(time)
-                
+
             self._solve_dynamic(mp)
             self._check_dynamic_results(mp.Nodes[9],step-1,displacement_results)
-            
+
         #self.__post_process(mp)
 
 

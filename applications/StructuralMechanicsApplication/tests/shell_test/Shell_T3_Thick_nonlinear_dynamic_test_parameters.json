@@ -31,10 +31,6 @@
         "residual_relative_tolerance"        : 1e-9,
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
-        "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
-            "scaling"     : false
-        },
         "problem_domain_sub_model_part_list" : ["Parts_surface"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_edge","DISPLACEMENT_sample","ROTATION_edge","SelfWeight3D_surface"],
         "rotation_dofs"                      : true

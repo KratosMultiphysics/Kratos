@@ -430,7 +430,7 @@ class MechanicalSolver(PythonSolver):
                 "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
                 "SparseLUSolver",  # EigenSolversApplication
                 "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
-                "SuperLUSolver"   # ExternalSolversApplication
+                "SuperLUSolver",   # ExternalSolversApplication
                 "SkylineLUFactorizationSolver" # in Core, always available, but slow
             ]
 
