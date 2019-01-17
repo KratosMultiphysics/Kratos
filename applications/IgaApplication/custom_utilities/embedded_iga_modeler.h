@@ -28,8 +28,8 @@ namespace Kratos
         ///@name functions
         ///@{
         
-        void CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation); 
-        void CreateTessellation3D(); 
+        void CreateTessellationCurve(ANurbs::Pointer<ANurbs::CurveTessellation3D>& rTessellation); 
+        void CreateTessellationParameterCurve(); 
         void CreateElements2D(ModelPart& rSkinModelPart); 
         std::vector<double> PrintNodesX();
         std::vector<double> PrintNodesY();

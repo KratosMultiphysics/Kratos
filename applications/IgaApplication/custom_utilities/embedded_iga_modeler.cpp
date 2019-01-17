@@ -20,7 +20,7 @@
 namespace Kratos
 {
 
-void EmbeddedIgaModeler::CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTessellation3D>& tessellation)
+void EmbeddedIgaModeler::CreateTessellationCurve(ANurbs::Pointer<ANurbs::CurveTessellation3D>& rTessellation)
 {
     for (unsigned int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
@@ -28,9 +28,9 @@ void EmbeddedIgaModeler::CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTesse
         {
             const int degree = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Degree();
             const int number_cps = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->NbPoles();
-            const bool isRational = false;
+            const bool is_rational = true;
 
-            ANurbs::Pointer<ANurbs::CurveGeometry3D> geometry = ANurbs::New<ANurbs::CurveGeometry3D>(degree, number_cps, isRational);
+            ANurbs::Pointer<ANurbs::CurveGeometry3D> geometry = ANurbs::New<ANurbs::CurveGeometry3D>(degree, number_cps, is_rational);
 
             const std::vector<double> knot_vector = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Knots();
             const int number_knots = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->NbKnots();
@@ -43,21 +43,24 @@ void EmbeddedIgaModeler::CreateTessellation2D(ANurbs::Pointer<ANurbs::CurveTesse
             for (unsigned int cp_i = 0; cp_i < number_cps; ++cp_i)
             {
                 const auto node = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(cp_i);
+                const double weight = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(cp_i)->GetValue(NURBS_CONTROL_POINT_WEIGHT); 
+ 
                 geometry->SetPole(cp_i, {node->X(), node->Y(), node->Z()});
+                geometry->SetWeight(cp_i, weight);  
             }
-
+ 
             // Create the three dimensional curve which is to be tessellated
             ANurbs::Curve3D curve(geometry);
             // Perform the tessellation of the curve with flatness factor 1e-2
-            tessellation->Compute(curve, 1e-3);
+            rTessellation->Compute(curve, 1e-2);
         }
     }
 }
 
-void EmbeddedIgaModeler::CreateElements2D(ModelPart &rSkinModelPart)
+void EmbeddedIgaModeler::CreateElements2D(ModelPart& rSkinModelPart)
 {
     ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
-    CreateTessellation2D(tessellation);
+    CreateTessellationCurve(tessellation);
 
     // Create Nodes in Skin Modelpart from the Points generated in the tessellation of the curve
     for (unsigned int point_i = 0; point_i < tessellation->NbPoints(); ++point_i)
@@ -77,7 +80,7 @@ void EmbeddedIgaModeler::CreateElements2D(ModelPart &rSkinModelPart)
     }
 }
 
-void EmbeddedIgaModeler::CreateTessellation3D()
+void EmbeddedIgaModeler::CreateTessellationParameterCurve()
 {
     for (unsigned int brep_i; brep_i < m_brep_model_vector.size(); ++brep_i)
     {
@@ -86,12 +89,16 @@ void EmbeddedIgaModeler::CreateTessellation3D()
             auto boundary_loop = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop();
             for (unsigned int b_loop_i = 0; b_loop_i < boundary_loop.size(); ++b_loop_i)
             {
-                for (unsigned int t_curve_i = 0; t_curve_i < boundary_loop[b_loop_i].GetTrimmingCurves().size(); ++t_curve_i)
+                // for (unsigned int t_curve_i = 0; t_curve_i < boundary_loop[b_loop_i].GetTrimmingCurves().size(); ++t_curve_i)
+                for (unsigned int t_curve_i = 0; t_curve_i < 1; ++t_curve_i)
                 {
                     const unsigned int degree = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->Degree();
                     const unsigned int number_cps = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->NbPoles();
                     const bool isRational = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->IsRational();
-                    
+                    // const bool isRational = false; 
+                    KRATOS_WATCH(degree)
+                    KRATOS_WATCH(number_cps)
+                    KRATOS_WATCH(isRational)
                     ANurbs::Pointer<ANurbs::CurveGeometry3D> geometry = ANurbs::New<ANurbs::CurveGeometry3D>(degree, number_cps, isRational);
 
                     const std::vector<double> knot_vector = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Knots();
@@ -102,6 +109,11 @@ void EmbeddedIgaModeler::CreateTessellation3D()
                     {
                         geometry->SetKnot(knot_i, knot_vector[knot_i]);
                     }
+                    KRATOS_WATCH(geometry->NbKnots())
+                    for (unsigned int i = 0; i < geometry->NbKnots(); ++i)
+                    {
+                        KRATOS_WATCH(geometry->Knot(i))
+                    }
                     
                     for (unsigned int cp_i = 0; cp_i < number_cps; ++cp_i)
                     {
@@ -109,13 +121,22 @@ void EmbeddedIgaModeler::CreateTessellation3D()
                         const auto node_y = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Poles()[cp_i][1];
                     
                         geometry->SetPole(cp_i, {node_x, node_y, 0});
+                        geometry->SetWeight(cp_i,1.0); 
                     }
-
+                    KRATOS_WATCH(geometry->NbPoles())
+                    for (unsigned int i = 0; i < geometry->NbPoles(); ++i)
+                    {
+                        KRATOS_WATCH(geometry->Pole(i).X())
+                        KRATOS_WATCH(geometry->Pole(i).Y())
+                        KRATOS_WATCH(geometry->Pole(i).Z())
+                    }
                     // Create the three dimensional curve which is to be tessellated
                     ANurbs::Curve3D curve(geometry);
                     // Perform the tessellation of the curve with flatness factor 1e-2
                     ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
                     tessellation->Compute(curve, 1e-3);
+
+
                     // Matrix points = ZeroMatrix(tessellation->NbPoints(),2); 
 
 
@@ -125,7 +146,7 @@ void EmbeddedIgaModeler::CreateTessellation3D()
                         KRATOS_WATCH(tessellation->Point(point_i).X());
                         KRATOS_WATCH(tessellation->Point(point_i).Y());
                     }
-                    // // KRATOS_WATCH(tessellation->NbPoints())
+                    KRATOS_WATCH(tessellation->NbPoints())
                     // KRATOS_WATCH(points)
                 }
             }
@@ -135,24 +156,20 @@ void EmbeddedIgaModeler::CreateTessellation3D()
 
 std::vector<double> EmbeddedIgaModeler::PrintNodesX()
 {
-    // ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
-    // CreateTessellation3D(tessellation);
-
-    // std::vector<double> x(tessellation->NbPoints());
-    // for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)     x[i] = tessellation->Point(i).X();
-
-    // return x;
+    ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
+    CreateTessellationCurve(tessellation);
+    std::vector<double> x(tessellation->NbPoints());
+    for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)     x[i] = tessellation->Point(i).X();
+    return x;
 }
 
 std::vector<double> EmbeddedIgaModeler::PrintNodesY()
 {
-    // ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
-    // // CreateTessellation3D(tessellation);
-
-    // std::vector<double> y(tessellation->NbPoints());
-    // for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)    y[i] = tessellation->Point(i).Y();
-
-    // return y;
+    ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
+    CreateTessellationCurve(tessellation);
+    std::vector<double> y(tessellation->NbPoints());
+    for (unsigned int i = 0; i < tessellation->NbPoints(); ++i)    y[i] = tessellation->Point(i).Y();
+    return y;
 }
 
 EmbeddedIgaModeler::EmbeddedIgaModeler(ModelPart &rModelPart)
