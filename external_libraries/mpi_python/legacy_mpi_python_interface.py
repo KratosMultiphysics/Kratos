@@ -1,7 +1,6 @@
 from __future__ import print_function, absolute_import, division
 
 import KratosMultiphysics
-import KratosMultiphysics.mpi as mpi
 
 class LegacyMPICommInterface(object):
 

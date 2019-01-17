@@ -12,6 +12,12 @@
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES)
 #define KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
