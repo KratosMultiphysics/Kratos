@@ -247,6 +247,20 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     ~ResidualBasedNewtonRaphsonStrategy() override
     {
+        // Deallocating system vectors to avoid errors in MPI Clear calls
+        // TrilinosSpace::Clear for the vectors, which preserves the Map of
+        // current vectors, performing MPI calls in the process. Due to the
+        // way Python garbage collection works, this may happen after
+        // MPI_Finalize has already been called and is an error. Resetting
+        // the pointers here prevents Clear from operating with the
+        // (now deallocated) vectors.
+        if (mpA != nullptr)
+            mpA.reset();
+        if (mpDx != nullptr)
+            mpDx.reset();
+        if (mpb != nullptr)
+            mpb.reset();
+
         Clear();
     }
 
