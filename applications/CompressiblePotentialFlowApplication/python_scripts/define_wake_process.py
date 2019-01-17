@@ -114,6 +114,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 y0 = node.Y
                 for elem in self.fluid_model_part.Elements:
                     #check in the potentially active portion
+                    elem.Set(KratosMultiphysics.MARKER,False)
                     potentially_active_portion = False
                     for elnode in elem.GetNodes():
                         xn[0] = elnode.X - x0
