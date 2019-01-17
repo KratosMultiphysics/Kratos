@@ -74,6 +74,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             "variable_names"                : ["DISPLACEMENT_Y","DISPLACEMENT_Z"],
             "reform_every_step"             : true,
             "debug_info"                    : true,
+            "must_find_neighbor"            : true,
             "neighbor_search_radius"        : 0.40,
             "bucket_size"                   : 10
         })" );
@@ -126,14 +127,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
       for(NodeType& node_i : r_nodes_slave)
       {
-          double neighbor_search_radius = mParameters["neighbor_search_radius"].GetDouble();
-          SizeType number_of_neighbors = 0;
-          NodeVector neighbor_nodes( max_number_of_neighbors );
-          DoubleVector resulting_squared_distances( max_number_of_neighbors );
+        double neighbor_search_radius = mParameters["neighbor_search_radius"].GetDouble();
+        SizeType number_of_neighbors = 0;
+        NodeVector neighbor_nodes( max_number_of_neighbors );
+        DoubleVector resulting_squared_distances( max_number_of_neighbors );
 
-          node_i.Set(SLAVE);
-
-          int nr_searches(0);
+        int nr_searches(0);
 /*           while (number_of_neighbors<1)
           {
               nr_searches++;
@@ -150,24 +149,32 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
                 << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
           } */
 
-            neighbor_nodes.clear();
-            resulting_squared_distances.clear();
-            //1.) find nodal neighbors
-            number_of_neighbors = search_tree->SearchInRadius( node_i,
-                                                                    neighbor_search_radius,
-                                                                    neighbor_nodes.begin(),
-                                                                    resulting_squared_distances.begin(),
-                                                                    max_number_of_neighbors );
+        neighbor_nodes.clear();
+        resulting_squared_distances.clear();
+        //1.) find nodal neighbors
+        number_of_neighbors = search_tree->SearchInRadius( node_i,
+                                                                neighbor_search_radius,
+                                                                neighbor_nodes.begin(),
+                                                                resulting_squared_distances.begin(),
+                                                                            max_number_of_neighbors );
+
+        if (mParameters["must_find_neighbor"].GetBool())
+        {
             if (number_of_neighbors<1)
-            {
-                KRATOS_ERROR << "found no neighbor for slave node " << node_i.Id() << " " << node_i.Coordinates() << std::endl;
-            }
+                {
+                    KRATOS_ERROR << "found no neighbor for slave node " << node_i.Id() << " " << node_i.Coordinates() << std::endl;
+                }
+        }
 
-          if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
-          DoubleVector list_of_weights( number_of_neighbors, 0.0 );
+        if (number_of_neighbors>0)
+        {
+            if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
+            DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
-          this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
-          this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
+            this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
+            this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
+        }
+
       }
       this->SetmIsInitialized(true);
       KRATOS_CATCH("");

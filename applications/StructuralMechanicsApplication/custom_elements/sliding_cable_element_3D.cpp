@@ -396,6 +396,7 @@ void SlidingCableElement3D::CalculateLeftHandSide(
   rLeftHandSideMatrix = ZeroMatrix(local_size, local_size);
   // creating LHS
   noalias(rLeftHandSideMatrix) = this->TotalStiffnessMatrix();
+
   KRATOS_CATCH("")
 }
 
@@ -604,6 +605,22 @@ void SlidingCableElement3D::AddExplicitContribution(
         }
     }
     KRATOS_CATCH("")
+}
+
+SlidingCableElement3D::NodesArrayType SlidingCableElement3D::ReturnCorrectNodeOrder()
+{
+    KRATOS_TRY;
+    const int points_number = GetGeometry().PointsNumber();
+    const int dimension = 3;
+    const SizeType local_size = dimension*points_number;
+
+    KRATOS_ERROR_IF_NOT(points_number==3) << "node ordering only implemented for 3 nodes" << std::endl;
+
+    auto& node_1 = GetGeometry()[0];
+    auto& node_2 = GetGeometry()[2];
+    auto& node_3 = GetGeometry()[1];
+
+    KRATOS_CATCH("");
 }
 
 void SlidingCableElement3D::save(Serializer &rSerializer) const {
