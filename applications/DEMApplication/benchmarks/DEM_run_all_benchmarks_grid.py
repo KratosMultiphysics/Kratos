@@ -84,20 +84,6 @@ def worker(queue):
         except Exception as e:# catch exceptions to avoid exiting the thread prematurely
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
-            # if benchmark == 10:
-            #     g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW =====\n\n")
-            # if benchmark == 11:
-            #     g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ===\n\n")
-            # if benchmark == 12:
-            #     g.write("\n===== WENSRICH PAPER TEST. ROLLING FRICTION =============\n\n")
-            # if benchmark == 13:
-            #     g.write("\n===== DE/FE CONTACT BENCHMARKS ==========================\n\n")
-            # if benchmark == 20:
-            #     g.write("\n===== BASIC CONTINUUM TESTS  ============================\n\n")
-            # if benchmark == 30:
-            #     g.write("\n===== DISCONTINUUM CLUSTERS TESTS  ======================\n\n")
-            # if benchmark == 40:
-            #     g.write("\n===== GENERIC CAPABILITIES TEST  ======================\n\n")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
 
@@ -106,16 +92,12 @@ def main():
         print("\nAdding processes to DEM parallel Benchmarking..............\n")
         g = open("errors.err", "w")
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
-        #g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
-        #g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
-        #g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
         g.close()
         Text = ""
-        failure = False
 
         q = queue.Queue()
 
-        #### Discontinuum Tests. From 1 to 17
+        #### Discontinuum Tests.
         D_DEM_Benchmarks_list = list(range(1,18))
 
         #### Continuum Tests
@@ -179,13 +161,6 @@ def main():
 
         g.write("\nGENERIC TEST:\n")
         g.write("Benchmark 40. Generic test for code functionalities verification\n")
-
-        g.close()
-
-        if 'FAILED' in open('errors.err').read():
-            failure = True
-
-        g = open("errors.err")
         file_contents = g.read()
         g.close()
         os.remove("errors.err")

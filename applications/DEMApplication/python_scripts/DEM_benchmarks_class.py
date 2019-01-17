@@ -6,7 +6,7 @@ from glob import glob
 from math import pi, sin, cos, tan, atan, fabs, sqrt
 
 from os import system
-import os
+import os, sys
 
 def initialize_time_parameters(benchmark_number):
 
