@@ -882,21 +882,20 @@ public:
         const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
         const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
 
-//         // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
-//         array_1d<double, 3> normal;
-//         MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        array_1d<double, 3> normal;
+        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
 
         // The center of the geometry
         const auto& r_center = this->Center();
 
-//         // We compute the distance, if it is not in the pane we discard
-//         const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
-//         const double distance = inner_prod(vector_points, normal);
-//         if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane
-//             rResult(0) = 2.0;
-//             rResult(1) = 2.0;
-//             return rResult;
-//         }
+        // We compute the distance, if it is not in the pane we
+        CoordinatesArrayType point_projected = rPoint;
+        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
+        const double distance = inner_prod(vector_points, normal);
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane, projecting
+            noalias(point_projected) = rPoint - normal * distance;
+        }
 
         // Computation of the rotation matrix
         BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
@@ -907,7 +906,7 @@ public:
 
         // Destination point rotated
         CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
-        noalias(aux_point_to_rotate) = rPoint - r_center.Coordinates();
+        noalias(aux_point_to_rotate) = point_projected - r_center.Coordinates();
         noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
 
         // Points of the geometry
