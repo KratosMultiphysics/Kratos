@@ -13,7 +13,7 @@ add_definitions( -DDEBUGlevel=0 )
 add_definitions( -w )
 
 message(STATUS "****compiling cblas*****")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/Cblas_MT.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/CBlas_MT.cmake")
 
 set(SUPERLU_HEADERS
   ${SUPERLU_MT_DIR}/SRC/supermatrix.h

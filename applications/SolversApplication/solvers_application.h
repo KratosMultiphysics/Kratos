@@ -209,46 +209,7 @@ class KratosSolversApplication : public KratosApplication {
 
 }; // Class KratosSolversApplication
 
-
-// /// Registers the linear solvers to kratos
-// class SolversApplicationRegisterLinearSolvers
-// {
-// public:
-//     ///@name Type Definitions
-//     ///@{
-
-//     /// Pointer definition of SolversApplicationRegisterLinearSolvers
-//     KRATOS_CLASS_POINTER_DEFINITION(SolversApplicationRegisterLinearSolvers);
-
-//     ///@}
-//     ///@name Life Cycle
-//     ///@{
-
-//     /// Default constructor.
-//     SolversApplicationRegisterLinearSolvers();
-
-//     /// Destructor.
-//     virtual ~SolversApplicationRegisterLinearSolvers(){};
-
-
-//     ///@}
-
-// private:
-//     ///@name Un accessible methods
-//     ///@{
-
-//     /// Assignment operator.
-//     SolversApplicationRegisterLinearSolvers& operator=(SolversApplicationRegisterLinearSolvers const& rOther) = delete;
-
-//     /// Copy constructor.
-//     SolversApplicationRegisterLinearSolvers(SolversApplicationRegisterLinearSolvers const& rOther) = delete;
-
-//     ///@}
-
-// }; // Class SolversApplicationRegisterLinearSolvers
-
 ///@}
-
 
 ///@name Type Definitions
 ///@{

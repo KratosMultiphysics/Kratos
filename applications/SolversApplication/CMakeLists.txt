@@ -12,20 +12,21 @@ include(pybind11Tools)
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
 if(${INCLUDE_SUPERLU_MT} MATCHES ON)
+  add_definitions(-DINCLUDE_SUPERLU_MT)
   # compile SuperLU_MT
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1)
   set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
+  include_directories(${SUPERLU_MT_DIR})
   INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
 else(${INCLUDE_SUPERLU_MT} MATCHES ON)
-  # compile SuperLU
-  set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2.1")
+  # compile SuperLU 5.2
+  set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2")
   include_directories(${SUPERLU_DIR})
-  #INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_build.cmake")
   INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
 endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
 
 # compile FEAST
 if(${INCLUDE_FEAST} MATCHES ON)
+  add_definitions(-DINCLUDE_FEAST)
   set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
   INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/FEAST.cmake")
 endif(${INCLUDE_FEAST} MATCHES ON)

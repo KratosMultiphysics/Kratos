@@ -81,6 +81,7 @@ if(enable_single)
     ${SUPERLU_DIR}/SRC/ilu_scopy_to_ucol.c
     ${SUPERLU_DIR}/SRC/ilu_spivotL.c
     ${SUPERLU_DIR}/SRC/sdiagonal.c
+    ${SUPERLU_DIR}/SRC/sreadMM.c
     )
   set_source_files_properties(smach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_single)
@@ -130,6 +131,8 @@ if(enable_double)
     ${SUPERLU_DIR}/SRC/ilu_dcopy_to_ucol.c
     ${SUPERLU_DIR}/SRC/ilu_dpivotL.c
     ${SUPERLU_DIR}/SRC/ddiagonal.c
+    ${SUPERLU_DIR}/SRC/dreadMM.c
+    ${SUPERLU_DIR}/SRC/dGetDiagU.c
   )
   set_source_files_properties(dmach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_double)
@@ -181,6 +184,7 @@ if(enable_complex)
     ${SUPERLU_DIR}/SRC/ilu_ccopy_to_ucol.c
     ${SUPERLU_DIR}/SRC/ilu_cpivotL.c
     ${SUPERLU_DIR}/SRC/cdiagonal.c
+    ${SUPERLU_DIR}/SRC/creadMM.c
   )
 endif(enable_complex)
 
@@ -231,6 +235,7 @@ if(enable_complex16)
     ${SUPERLU_DIR}/SRC/ilu_zcopy_to_ucol.c
     ${SUPERLU_DIR}/SRC/ilu_zpivotL.c
     ${SUPERLU_DIR}/SRC/zdiagonal.c
+    ${SUPERLU_DIR}/SRC/zreadMM.c
   )
 endif(enable_complex16)
 

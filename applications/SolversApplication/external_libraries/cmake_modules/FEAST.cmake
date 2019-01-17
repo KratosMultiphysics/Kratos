@@ -38,8 +38,6 @@ set( CODE90_sparse ${FEAST_DIR}/src/sparse/dzfeast_sparse.f90
 
 ###############################################################
 
-add_definitions(-DINCLUDE_FEAST)
-
 add_library( external_feast STATIC ${CODE90_functions_wrapper} ${CODE90} )
 target_link_libraries(external_feast ${BLAS_LIBRARIES} )
 
