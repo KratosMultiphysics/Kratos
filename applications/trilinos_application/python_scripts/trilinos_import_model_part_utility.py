@@ -14,9 +14,6 @@ class TrilinosImportModelPartUtility():
         self.main_model_part = main_model_part
         self.settings = settings
 
-        if KratosMPI.mpi.size < 2:
-            raise NameError("MPI number of processors is 1.")
-
     def ExecutePartitioningAndReading(self):
         warning_msg  = 'Calling "ExecutePartitioningAndReading" which is DEPRECATED\n'
         warning_msg += 'Please use "ImportModelPart" instead'
@@ -55,7 +52,7 @@ class TrilinosImportModelPartUtility():
             if model_part_import_settings.Has("partition_in_memory"):
                 partition_in_memory = model_part_import_settings["partition_in_memory"].GetBool()
 
-            if perform_partitioning == True:
+            if perform_partitioning == True and KratosMPI.mpi.size > 1:
                 import KratosMultiphysics.MetisApplication as KratosMetis
 
                 # Partition of the original .mdpa file
@@ -94,7 +91,10 @@ class TrilinosImportModelPartUtility():
             KratosMPI.mpi.world.barrier()
 
             ## Reset as input file name the obtained Metis partition one
-            mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+            if KratosMPI.mpi.size > 1:
+                mpi_input_filename = input_filename + "_" + str(KratosMPI.mpi.rank)
+            else:
+                mpi_input_filename = input_filename
             model_part_import_settings["input_filename"].SetString(mpi_input_filename)
 
             ## Read the new generated *.mdpa files
