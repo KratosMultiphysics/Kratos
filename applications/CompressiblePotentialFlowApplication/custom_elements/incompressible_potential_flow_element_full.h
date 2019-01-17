@@ -504,6 +504,13 @@ public:
         Matrix tmp;
         CalculateLocalSystem(tmp, rRightHandSideVector, rCurrentProcessInfo);
     }
+    
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override
+    {
+        //TODO: improve speed
+        Vector tmp;
+        CalculateLocalSystem(rLeftHandSideMatrix, tmp, rCurrentProcessInfo);
+    }
 
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
     {
@@ -640,10 +647,7 @@ protected:
     ///@{
     void GetWakeDistances(array_1d<double,NumNodes>& distances)
     {
-        for (unsigned int i=0;i<NumNodes;i++){
-            distances[i]=GetGeometry()[i].GetSolutionStepValue(WAKE_DISTANCE);
-        }
-        // noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
+        noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
     }
 
     void ComputeLHSGaussPointContribution(
