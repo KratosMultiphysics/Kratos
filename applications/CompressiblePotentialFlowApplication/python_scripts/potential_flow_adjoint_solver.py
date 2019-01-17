@@ -40,6 +40,7 @@ class PotentialAdjointSolver(PotentialSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_POSITIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.ADJOINT_NEGATIVE_POTENTIAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
 
         self.print_on_rank_zero("::[PotentialAdjointSolver]:: ", "Variables ADDED")
         
@@ -52,6 +53,8 @@ class PotentialAdjointSolver(PotentialSolver):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         if self.response_function_settings["response_type"].GetString() == "adjoint_lift":
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
@@ -92,6 +95,9 @@ class PotentialAdjointSolver(PotentialSolver):
         for node in self.main_model_part.Nodes:
             if not (node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)==0.0):
                 print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
+            gradient=node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
+            if not ((gradient[0]==0.0) and (gradient[1]==0.0)) :
+                print(node.Id,gradient)
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()
