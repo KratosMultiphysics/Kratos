@@ -470,6 +470,14 @@ public:
             this->SetValue(PRESSURE,rValues[0]);
         }
 
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo) override
+        {
+            ElementPointerType pElem = pGetElement();
+            pElem->GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+        }
+
 
         void GetWakeDistances(array_1d<double,TNumNodes>& distances, bool& is_not_cut)
         {   

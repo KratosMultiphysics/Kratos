@@ -109,6 +109,13 @@ public:
     {
     }
 
+    IncompressibleAdjointPotentialWallCondition(Condition::Pointer pPrimalCondition)
+                    : Condition(pPrimalCondition->Id(), pPrimalCondition->pGetGeometry(), pPrimalCondition->pGetProperties())
+                    , mpPrimalCondition(pPrimalCondition)
+    {
+    };
+
+
     /// Constructor using an array of nodes
     /**
      @param NewId Index of the new condition
@@ -204,6 +211,27 @@ public:
         return pNewCondition;
     }
 
+    void Initialize() override
+    {   
+        mpPrimalCondition->Initialize();
+    }
+
+    void ResetConstitutiveLaw() override
+    {
+        mpPrimalCondition->ResetConstitutiveLaw();
+    }
+
+    void CleanMemory() override
+    {
+        mpPrimalCondition->CleanMemory();
+    }
+
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
+    {
+        mpPrimalCondition->Data() = this->Data();
+        mpPrimalCondition->Set(Flags(*this));
+        mpPrimalCondition->InitializeSolutionStep(rCurrentProcessInfo);
+    }
     //Find the condition's parent element.
     void GetValuesVector(Vector& rValues, int Step=0) override
     {
@@ -216,12 +244,6 @@ public:
             rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
         KRATOS_CATCH("");
    
-    }
-    void Initialize() override
-    {
-        KRATOS_TRY;
-     
-        KRATOS_CATCH("");
     }
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
@@ -295,39 +317,11 @@ public:
         void EquationIdVector(EquationIdVectorType& rResult,
                                       ProcessInfo& rCurrentProcessInfo) override
         {   
-        
-            if (true){
-                if (rResult.size() != TNumNodes)
-                    rResult.resize(TNumNodes, false);
+            if (rResult.size() != TNumNodes)
+                rResult.resize(TNumNodes, false);
 
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
-            }
-            else {
-                if (rResult.size() != 2*TNumNodes)
-                    rResult.resize(2*TNumNodes, false);
-
-                array_1d<double,TNumNodes> distances;
-                bool is_not_cut;
-                GetWakeDistances(distances,is_not_cut);
-                //positive part
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                {
-                    if(distances[i] > 0)
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
-                    else
-                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
-                }
-
-                //negative part - sign is opposite to the previous case
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                {
-                    if(distances[i] < 0)
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
-                    else
-                        rResult[TNumNodes+i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
-                }  
-            }
+            for (unsigned int i = 0; i < TNumNodes; i++)
+                rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
         }
 
 
@@ -339,64 +333,24 @@ public:
         void GetDofList(DofsVectorType& ConditionDofList,
                                 ProcessInfo& CurrentProcessInfo) override
         {
-           if (true){
-                if (ConditionDofList.size() != TNumNodes)
-                ConditionDofList.resize(TNumNodes);
+            if (ConditionDofList.size() != TNumNodes)
+            ConditionDofList.resize(TNumNodes);
 
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
-            }
-            else {
-                 if (ConditionDofList.size() != 2*TNumNodes)
-                ConditionDofList.resize(2*TNumNodes);
-
-                array_1d<double,TNumNodes> distances;
-                bool is_not_cut;
-                GetWakeDistances(distances,is_not_cut);
-                //positive part
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                {
-                    if(distances[i] > 0)
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
-                    else
-                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
-                }
-
-                //negative part - sign is opposite to the previous case
-                for (unsigned int i = 0; i < TNumNodes; i++)
-                {
-                    if(distances[i] < 0)
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
-                    else
-                        ConditionDofList[TNumNodes+i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
-                }
-            }
+            for (unsigned int i = 0; i < TNumNodes; i++)
+                ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
         }
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
         {
-
+            mpPrimalCondition -> FinalizeSolutionStep(rCurrentProcessInfo);
         }
 
-
-        void GetWakeDistances(array_1d<double,TNumNodes>& distances, bool& is_not_cut)
-        {   
-            int npos=0,nneg=0;
-            for(unsigned int i = 0; i<TNumNodes; i++){
-                distances[i] = GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE);
-                if (distances[i] > 0)
-                    npos+=1;
-                else
-                    nneg+=1;
-            }
-            if ((npos>0) && (nneg>0))
-                is_not_cut=false;
-            else	
-                is_not_cut=true;
+        void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo) override
+        {
+            mpPrimalCondition ->GetValueOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
         }
-
-
-
         ///@}
         ///@name Access
         ///@{
@@ -442,8 +396,7 @@ public:
 protected:
         ///@name Protected static Member Variables
         ///@{
-
-
+        Condition::Pointer mpPrimalCondition;
         ///@}
         ///@name Protected member Variables
         ///@{
@@ -458,12 +411,6 @@ protected:
         ///@name Protected Operations
         ///@{
 
-        inline ElementPointerType pGetElement()
-        {
-            KRATOS_ERROR_IF_NOT(mpElement.lock() != 0)
-                << "No element found for condition #" << this->Id() << std::endl;
-            return mpElement.lock();
-        }
 
         ///@}
         ///@name Protected  Access
@@ -490,70 +437,6 @@ private:
         ///@}
         ///@name Member Variables
         ///@{
-
-        bool mInitializeWasPerformed = false;
-        double mMinEdgeLength;
-        ElementWeakPointerType mpElement;
-
-        void ComputeShapeFunction2DCut(array_1d<double, 2> &N_0, array_1d<double, 2> &N_1, array_1d<double,TNumNodes>& distances)
-        {
-            Geometry<Node<3>> &pGeometry = this->GetGeometry();
-            double length = sqrt(pow(pGeometry[1].X() - pGeometry[0].X(),2)+pow(pGeometry[1].Y() - pGeometry[0].Y(),2));
-            double x_p,y_p;
-            x_p = pGeometry[0].X() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].X()-pGeometry[0].X());
-            y_p = pGeometry[0].Y() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].Y()-pGeometry[0].Y());
-            double length_0 = sqrt(pow(x_p - pGeometry[0].X(),2)+pow(y_p - pGeometry[0].Y(),2));
-            double length_1 = sqrt(pow(x_p - pGeometry[1].X(),2)+pow(y_p - pGeometry[1].Y(),2));
-            N_0[0] = 1-(0.5*length_0)/length;
-            N_0[1] = (0.5*length_0)/length;
-            N_1[0] = 1-(length_0+0.5*length_1)/length;
-            N_1[1] = (length_0+0.5*length_1)/length;
-
-        }
-
-        void CalculateNormal2D(array_1d<double, 3> &An)
-        {
-            Geometry<Node<3>> &pGeometry = this->GetGeometry();
-
-            An[0] = pGeometry[1].Y() - pGeometry[0].Y();
-            An[1] = -(pGeometry[1].X() - pGeometry[0].X());
-            An[2] = 0.00;
-        }
-        void CalculateNormal2DCut(array_1d<double, 3> &An_0,array_1d<double, 3> &An_1,array_1d<double,TNumNodes>& distances)
-        {
-             
-            Geometry<Node<3>> &pGeometry = this->GetGeometry();
-            double x_p,y_p;
-
-            x_p = pGeometry[0].X() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].X()-pGeometry[0].X());
-            y_p = pGeometry[0].Y() + ((-distances[0])/(distances[1]-distances[0]))*(pGeometry[1].Y()-pGeometry[0].Y());
-            
-            An_0[0] = y_p - pGeometry[0].Y();
-            An_0[1] = -(x_p - pGeometry[0].X());
-            An_0[2] = 0.00;
-
-            An_1[0] = pGeometry[1].Y()-y_p;
-            An_1[1] = -(pGeometry[1].X()-x_p);
-            An_1[2] = 0.00;
-       
-        }
-
-        void CalculateNormal3D(array_1d<double, 3> &An)
-        {
-            Geometry<Node<3>> &pGeometry = this->GetGeometry();
-
-            array_1d<double, 3> v1, v2;
-            v1[0] = pGeometry[1].X() - pGeometry[0].X();
-            v1[1] = pGeometry[1].Y() - pGeometry[0].Y();
-            v1[2] = pGeometry[1].Z() - pGeometry[0].Z();
-
-            v2[0] = pGeometry[2].X() - pGeometry[0].X();
-            v2[1] = pGeometry[2].Y() - pGeometry[0].Y();
-            v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
-
-            MathUtils<double>::CrossProduct(An, v1, v2);
-            An *= 0.5;
-        }
 
         ///@}
         ///@name Serialization
