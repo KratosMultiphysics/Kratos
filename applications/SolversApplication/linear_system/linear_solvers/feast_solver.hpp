@@ -12,11 +12,12 @@
 #define  KRATOS_FEAST_SOLVER_H_INCLUDED
 
 // System includes
-#include <iostream>
-#include <complex>
-#include <vector>
+// #include <iostream>
+// #include <complex>
+// #include <vector>
+// #include <algorithm>
 #include <unordered_set>
-#include <algorithm>
+
 
 // External includes
 extern "C" {
@@ -38,7 +39,7 @@ namespace Kratos {
 
 /// Adapter to FEAST eigenvalue problem solver.
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
-class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
+class FEASTEigenValueSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
  public:
   ///@name Kratos Globals
@@ -47,7 +48,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   ///@name Type Definitions
   ///@{
 
-  KRATOS_CLASS_POINTER_DEFINITION( FEASTSolver );
+  KRATOS_CLASS_POINTER_DEFINITION( FEASTEigenValueSolver );
 
   typedef LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType> BaseType;
 
@@ -74,7 +75,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   ///@{
 
   /// Default constructor.
-  FEASTSolver(Parameters settings) : mParameters(settings)
+  FEASTEigenValueSolver(Parameters settings) : mParameters(settings)
   {
     Parameters default_params(R"(
         {
@@ -109,7 +110,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
    *          solvers normally don't perform efficiently with FEAST
    *          (M. Galgon et al., Parallel Computing (49) 2015 153-163).
    */
-  FEASTSolver(Parameters settings, ComplexLinearSolverType::Pointer pLinearSolver)
+  FEASTEigenValueSolver(Parameters settings, ComplexLinearSolverType::Pointer pLinearSolver)
       : mParameters(settings), mpLinearSolver(pLinearSolver)
   {
     Parameters default_params(R"(
@@ -132,17 +133,17 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
   }
 
   /// Deleted copy constructor.
-  FEASTSolver(const FEASTSolver& Other) = delete;
+  FEASTEigenValueSolver(const FEASTEigenValueSolver& Other) = delete;
 
   /// Destructor.
-  ~FEASTSolver() override {}
+  ~FEASTEigenValueSolver() override {}
 
   ///@}
   ///@name Operators
   ///@{
 
   /// Deleted assignment operator.
-  FEASTSolver& operator=(const FEASTSolver& Other) = delete;
+  FEASTEigenValueSolver& operator=(const FEASTEigenValueSolver& Other) = delete;
 
   ///@}
   ///@name Operations
@@ -497,7 +498,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
 
   ///@}
 
-}; // Class FEASTSolver
+}; // Class FEASTEigenValueSolver
 
 ///@}
 
@@ -507,7 +508,7 @@ class FEASTSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType, TReor
 /// input stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::istream& operator >>(std::istream& rIStream,
-                                 FEASTSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
+                                 FEASTEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
 {
   return rIStream;
 }
@@ -515,7 +516,7 @@ inline std::istream& operator >>(std::istream& rIStream,
 /// output stream function
 template<class TSparseSpaceType, class TDenseSpaceType, class TReordererType>
 inline std::ostream& operator <<(std::ostream& rOStream,
-                                 const FEASTSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
+                                 const FEASTEigenValueSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>& rThis)
 {
   rThis.PrintInfo(rOStream);
   rOStream << std::endl;

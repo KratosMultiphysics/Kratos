@@ -175,7 +175,7 @@ class KratosSolversApplication : public KratosApplication {
 #endif
 
 #ifdef INCLUDE_FEAST
-  typedef FEASTSolver<SparseSpaceType, LocalSpaceType> FEASTEigenValueSolverType;
+  typedef FEASTEigenValueSolver<SparseSpaceType, LocalSpaceType> FEASTEigenValueSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, FEASTEigenValueSolverType> mFEASTEigenValueSolverFactory;
 #endif
 

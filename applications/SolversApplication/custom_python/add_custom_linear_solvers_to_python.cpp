@@ -65,7 +65,7 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
 #endif
 
 #ifdef INCLUDE_FEAST
-  typedef FEASTSolver<SparseSpaceType, LocalSpaceType>                          FEASTEigenValueSolverType;
+  typedef FEASTEigenValueSolver<SparseSpaceType, LocalSpaceType>                FEASTEigenValueSolverType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                  LinearSolverType;
 
   typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;

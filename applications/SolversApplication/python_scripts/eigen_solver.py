@@ -25,7 +25,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         eigensolver_settings = KratosMultiphysics.Parameters("""
         {
             "eigensolver_settings" : {
-                "solver_type": "FEAST",
+                "solver_type": "FEAST_EigenValueSolver",
                 "print_feast_output": true,
                 "perform_stochastic_estimate": true,
                 "solve_eigenvalue_problem": true,
