@@ -51,4 +51,5 @@ target_link_libraries(external_feast ${BLAS_LIBRARIES} )
 # target_link_libraries(external_feast_sparse ${BLAS_LIBRARIES} )
 
 #set(FEAST_LIBRARIES external_feast ${LAPACK_LIBRARIES} gfortran m)
-set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
+#set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
+set(FEAST_LIBRARIES external_feast ${LAPACK_LIBRARIES} m)

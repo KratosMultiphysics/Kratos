@@ -79,10 +79,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
             linear_solver = new_linear_solver_factory.ConstructSolver(feast_system_solver_settings)
             if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
                 # default built-in feast system solver
-                #linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings,linear_solver)
-                import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
-                feast_system_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,linear_solver)
-
+                linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings,linear_solver)
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":
                 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
                 feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
@@ -100,13 +97,7 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         options = KratosMultiphysics.Flags()
         options.Set(KratosSolver.SolverLocalFlags.REFORM_DOFS, self.settings["solving_strategy_settings"]["reform_dofs_at_each_step"].GetBool())
 
-
         mechanical_solver = KratosSolver.EigensolverStrategy(self.model_part, eigen_scheme, builder_and_solver, options, self.compute_modal_contribution)
-
-        # mechanical_solver = KratosSolver.EigensolverStrategy(self.model_part,
-        #                                                      eigen_scheme,
-        #                                                      builder_and_solver,
-        #                                                      self.compute_modal_contribution)
 
         mechanical_solver.Set(KratosSolver.SolverLocalFlags.ADAPTIVE_SOLUTION,self.settings["solving_strategy_settings"]["adaptive_solution"].GetBool())
         return mechanical_solver
