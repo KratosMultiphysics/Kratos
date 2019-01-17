@@ -34,12 +34,12 @@ namespace Kratos {
     std::cout << "Initializing KratosConstitutiveModelsApplication... " << std::endl;
     std::cout << "Initializing KratosUmatApplication... " << std::endl;
 
+    
 
-
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "VonMisesUmatSmallStrainModel", mVonMisesSmallStrainUmatModel );
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel );
-    KRATOS_REGISTER_CONSTITUTIVE_LAW( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel );
-
+    Serializer::Register( "VonMisesUmatSmallStrainModel", mVonMisesSmallStrainUmatModel);
+    Serializer::Register( "HypoplasticUmatSmallStrainModel", mHypoplasticSmallStrainUmatModel);
+    Serializer::Register( "VonMisesUmatLargeStrainModel", mVonMisesLargeStrainUmatModel);
+    
 
   }
 }  // namespace Kratos.
