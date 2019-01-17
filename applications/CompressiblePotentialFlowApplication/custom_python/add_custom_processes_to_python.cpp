@@ -20,6 +20,7 @@
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
 #include "custom_processes/compute_lift_level_set_process.h"
+#include "custom_processes/compute_lift_process.h"
 #include "custom_processes/compute_gradient_adjoint_process.h"
 #include "custom_processes/get_equation_id.h"
 #include "custom_processes/replace_elements_and_conditions_for_adjoint_problem_process.cpp"
@@ -40,6 +41,11 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "ComputeLiftLevelSetProcess")
         .def(init<ModelPart&,Vector&>())
         .def("Execute",&ComputeLiftLevelSetProcess::Execute);
+
+        class_<ComputeLiftProcess, ComputeLiftProcess::Pointer, Process >
+        (m, "ComputeLiftProcess")
+        .def(init<ModelPart&,Vector&>())
+        .def("Execute",&ComputeLiftProcess::Execute);
 
         class_<ComputeGradientAdjointProcess, ComputeGradientAdjointProcess::Pointer, Process >
         (m, "ComputeGradientAdjointProcess")
