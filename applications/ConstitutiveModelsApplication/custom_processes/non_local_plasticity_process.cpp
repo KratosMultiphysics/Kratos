@@ -117,9 +117,13 @@ namespace Kratos
 
             double numerator = 0;
             double denominator = 0;
-            for (unsigned int nei = 0; nei < rGP.NeighbourWeight.size(); nei++) {
-               numerator +=  LocalVariableVector[ rGP.NeighbourGP[nei] ] * rGP.NeighbourWeight[nei]; 
-               denominator += rGP.NeighbourWeight[nei];
+
+
+            if ( rGP.NeighbourWeight.size() > 1) {
+               for (unsigned int nei = 0; nei < rGP.NeighbourWeight.size(); nei++) {
+                  numerator +=  LocalVariableVector[ rGP.NeighbourGP[nei] ] * rGP.NeighbourWeight[nei]; 
+                  denominator += rGP.NeighbourWeight[nei];
+               }
             }
 
             if ( denominator > 0) {

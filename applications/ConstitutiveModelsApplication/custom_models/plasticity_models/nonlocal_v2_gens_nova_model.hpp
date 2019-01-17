@@ -257,9 +257,16 @@ namespace Kratos
                StructuredSoilModel::CalculateStressAndConstitutiveTensors( rValues, rStressMatrix, rConstitutiveMatrix);
 
                if ( rValues.State.Is(ConstitutiveModelData::UPDATE_INTERNAL_VARIABLES) ) {
+
+                  mInternal.Variables[7] = mInternal.Variables[1];
+                  mInternal.Variables[8] = mInternal.Variables[2];
+                  mInternal.Variables[9] = mInternal.Variables[6];
+
                   mInternal.Variables[1] = LocalPlasticVolStrain + ( mInternal.Variables[1] -  NonLocalPlasticVolStrain);
                   mInternal.Variables[2] = LocalPlasticDevStrain + ( mInternal.Variables[2] -  NonLocalPlasticDevStrain);
                   mInternal.Variables[6] = LocalPlasticVolStrainAbs + ( mInternal.Variables[6] -  NonLocalPlasticVolStrainAbs);
+            
+
                } else {
                   mInternal.Variables[1] = LocalPlasticVolStrain;
                   mInternal.Variables[2] = LocalPlasticDevStrain;
