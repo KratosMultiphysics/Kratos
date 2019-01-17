@@ -121,6 +121,15 @@ namespace Kratos
         //}
     }
 
+    // void BrepEdge::PrintNodes()
+    // {
+    //     int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+    //     for (int i = 0; i < number_of_cps; ++i)
+    //     {
+    //         KRATOS_WATCH(mNodeCurveGeometry3D->GetNode(i)->Coordinates());
+    //     } 
+    // }
+
     void BrepEdge::GetIntegrationBrep(
         ModelPart& rModelPart,
         const int& trim_index,
@@ -141,6 +150,16 @@ namespace Kratos
                 shape.Compute(mNodeCurveGeometry3D->Knots(), mEmbeddedPoints[ep].local_parameter);
             }
         }
+    }
+
+    const Kratos::shared_ptr<NodeCurveGeometry3D> BrepEdge::GetCurve3d() const
+    {
+        return mNodeCurveGeometry3D;
+    }
+
+    const std::vector<BrepEdge::EdgeTopology>& BrepEdge::GetBrepEdgeTopologyVector() const
+    {
+        return mBrepEdgeTopologyVector; 
     }
 
     ///Constructor

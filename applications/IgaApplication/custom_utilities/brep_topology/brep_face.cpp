@@ -528,6 +528,17 @@ namespace Kratos
     {
         return mNodeSurfaceGeometry3D;
     }
+    
+
+    const bool BrepFace::GetIsTrimmed() const 
+    {
+        return m_is_trimmed; 
+    }
+
+    const bool BrepFace::GetIsRational() const
+    {
+        return m_is_rational; 
+    }
 
     const std::vector<BrepBoundaryLoop> BrepFace::GetBoundaryLoop() const
     { 

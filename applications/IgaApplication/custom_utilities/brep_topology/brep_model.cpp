@@ -314,6 +314,11 @@ namespace Kratos
         }
     }
 
+    const double BrepModel::GetModelTolerance() const
+    {
+        return mModelTolerance; 
+    }
+
     const BrepFace& BrepModel::GetFace(const int& brep_id) const
     {
         for (int i = 0; i < mBrepFaces.size(); ++i)

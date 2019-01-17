@@ -32,6 +32,11 @@ namespace Kratos
         return m_curve;
     }
 
+    const bool BrepTrimmingCurve::GetCurveDirection() const
+    {
+        return m_curve_direction; 
+    }
+
     ///Constructor
     BrepTrimmingCurve::BrepTrimmingCurve(
         int& rTrimIndex,

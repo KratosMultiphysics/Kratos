@@ -838,6 +838,11 @@ void AddCustomUtilitiesToPython(
         .def(pybind11::init<ModelPart&>())
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
+        .def("ExportGeometry", &NurbsBrepModeler::ExportGeometry)
+        // .def("PrintBrepNodes", &NurbsBrepModeler::PrintBrepNodes)
+        // .def("PrintEdgePolygon", &NurbsBrepModeler::PrintEdgePolygon)
+        // .def("PrintTrimmingPolygon", &NurbsBrepModeler::PrintTrimmingPolygon)
+        // .def("getTolerance", &NurbsBrepModeler::getTolerance)
         ;
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 

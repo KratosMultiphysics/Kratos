@@ -39,6 +39,320 @@ namespace Kratos
         file.close();
     }
 
+    void BrepJsonIO::ExportNurbsGeometry(std::vector<BrepModel> m_brep_model_vector)
+    {
+        std::cout << "\n> Start writing CAD geometry" << std::endl;
+        Parameters model_para; 
+        
+        // Model Tolerance
+        Parameters model_tolerance_para; 
+        const double model_tolerance =  m_brep_model_vector[0].GetModelTolerance();
+
+        model_tolerance_para.AddEmptyValue("model_tolerance"); 
+        model_tolerance_para["model_tolerance"].SetDouble(model_tolerance); 
+        model_para.AddValue("tolerances", model_tolerance_para); 
+
+        // Version Number
+        model_para.AddEmptyValue("version_number");
+        model_para["version_number"].SetInt(1); 
+
+        // Loop over Breps
+        for (int brep_i = 0; brep_i < m_brep_model_vector.size(); ++brep_i)
+        {
+            Parameters brep_para; 
+            const int brep_id = m_brep_model_vector[brep_i].GetId();
+            
+            brep_para.AddEmptyValue("brep_id");
+            brep_para["brep_id"].SetInt(brep_id); 
+
+            // Loop over Faces
+            for (int face_i = 0; face_i < m_brep_model_vector[brep_i].GetFaceVector().size(); ++face_i)
+            {
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // 1. Step: faces
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+                Parameters faces_para; 
+                const int face_id = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetId(); 
+                const bool swapped_surface_normal = false; 
+
+                faces_para.AddEmptyValue("brep_id");
+                faces_para.AddEmptyValue("swapped_surface_normal"); 
+                faces_para["brep_id"].SetInt(face_id);
+                faces_para["swapped_surface_normal"].SetBool(swapped_surface_normal);  
+                
+                Parameters surface_para; 
+                const bool is_trimmed = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetIsTrimmed(); 
+                const bool is_rational = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetIsRational();     
+
+                Vector degrees = ZeroVector(2);
+                degrees[0] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeU();
+                degrees[1] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->DegreeV();
+                
+                const std::vector<double> knots_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsU(); 
+                const std::vector<double> knots_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->KnotsV();
+
+                const int number_knots_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsU();
+                const int number_knots_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsV();
+
+                Vector knot_vector_u = ZeroVector(number_knots_u + 2); 
+                Vector knot_vector_v = ZeroVector(number_knots_v + 2); 
+
+                knot_vector_u[0] = knots_u[0];
+                knot_vector_v[0] = knots_v[0];
+                for(int i = 0; i < number_knots_u; ++i)    knot_vector_u[i+1] = knots_u[i]; 
+                for(int i = 0; i < number_knots_v; ++i)    knot_vector_v[i+1] = knots_v[i]; 
+                knot_vector_u[number_knots_u + 1] = knots_u[number_knots_u - 1];
+                knot_vector_v[number_knots_v + 1] = knots_v[number_knots_v - 1]; 
+
+                const int number_cps_u = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsU();
+                const int number_cps_v = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->NbKnotsV();
+
+                surface_para.AddEmptyValue("is_trimmed"); 
+                surface_para.AddEmptyValue("is_rational"); 
+                surface_para.AddEmptyArray("degrees");
+                surface_para.AddEmptyArray("knot_vectors");
+                surface_para.AddEmptyArray("control_points");
+                surface_para["is_trimmed"].SetBool(is_trimmed); 
+                surface_para["is_rational"].SetBool(is_rational); 
+                surface_para["degrees"].SetVector(degrees); 
+                surface_para["knot_vectors"].Append(knot_vector_u); 
+                surface_para["knot_vectors"].Append(knot_vector_v); 
+                
+                Vector control_points = ZeroVector(4); 
+                for (int i = 0; i < number_cps_u; ++i)
+                {
+                    for (int j = 0; j < number_cps_v; ++j)
+                    {
+                        const int control_points_ids = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(i, j)->GetId(); 
+                        control_points[0] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j,i)->X(); 
+                        control_points[1] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j,i)->Y(); 
+                        control_points[2] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j,i)->Z(); 
+                        control_points[3] = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetSurface()->GetNode(j,i)->GetValue(NURBS_CONTROL_POINT_WEIGHT); 
+                        
+                        Parameters control_points_para; 
+                        control_points_para.AddEmptyArray("cp"); 
+                        control_points_para["cp"].Append(control_points_ids); 
+                        control_points_para["cp"].Append(control_points); 
+                        surface_para["control_points"].Append(control_points_para["cp"]); 
+                    }
+                }
+
+                faces_para.AddValue("surface", surface_para); 
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // 2. step: boundary loops
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+                auto boundary_loop = m_brep_model_vector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop(); 
+                
+                // loop over boundaries
+                for (int b_loop_i = 0; b_loop_i < boundary_loop.size(); ++b_loop_i)
+                {
+                    Parameters boundary_loop_para; 
+                    boundary_loop_para.AddEmptyValue("loop_type"); 
+
+                    if (boundary_loop[b_loop_i].IsOuterLoop() == true)
+                    {
+                        boundary_loop_para["loop_type"].SetString("outer"); 
+                    }   
+                    else
+                    {
+                        boundary_loop_para["loop_type"].SetString("inner"); 
+                    }   
+
+                    auto trimming_curves = boundary_loop[b_loop_i].GetTrimmingCurves();
+                    
+                    for (int tcurves_i = 0; tcurves_i < trimming_curves.size(); ++tcurves_i)
+                    {
+                        Parameters trimming_curves_para;
+                        trimming_curves_para.AddEmptyValue("trim_index");
+                        trimming_curves_para.AddEmptyValue("curve_direction");
+                        trimming_curves_para["trim_index"].SetInt(trimming_curves[tcurves_i].GetTrimIndex());
+                        trimming_curves_para["curve_direction"].SetBool(trimming_curves[tcurves_i].GetCurveDirection());
+
+                        Parameters parameter_curve_para;
+
+                        const int parameter_curve_degree = trimming_curves[tcurves_i].GetCurve2D()->Degree();
+                        const bool parameter_curve_isrational = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->IsRational(); 
+                        const std::vector<double> parameter_curve_knots = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->Knots(); 
+                        const int parameter_curve_nb_knots = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->NbKnots(); 
+
+                        Vector parameter_curve_knot_vector = ZeroVector(parameter_curve_nb_knots + 2); 
+
+                        parameter_curve_knot_vector[0] = parameter_curve_knots[0];
+                        for(int i = 0; i < parameter_curve_nb_knots; ++i)    parameter_curve_knot_vector[i+1] = parameter_curve_knots[i];
+                        parameter_curve_knot_vector[parameter_curve_nb_knots + 1] = parameter_curve_knots[parameter_curve_nb_knots - 1];
+
+                        Vector boundary_active_range = ZeroVector(2); 
+                        boundary_active_range[0] = parameter_curve_knots.front(); 
+                        boundary_active_range[1] = parameter_curve_knots.back();  
+
+                        parameter_curve_para.AddEmptyValue("is_rational"); 
+                        parameter_curve_para.AddEmptyValue("degree"); 
+                        parameter_curve_para.AddEmptyArray("knot_vector"); 
+                        parameter_curve_para.AddEmptyArray("active_range");
+                        parameter_curve_para.AddEmptyArray("control_points");
+                        
+                        parameter_curve_para["is_rational"].SetBool(parameter_curve_isrational);
+                        parameter_curve_para["degree"].SetInt(parameter_curve_degree); 
+                        parameter_curve_para["knot_vector"].SetVector(parameter_curve_knot_vector);
+                        parameter_curve_para["active_range"].SetVector(boundary_active_range);
+                        
+
+                        const int number_cps = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->NbPoles(); 
+
+                        Vector control_points = ZeroVector(4); 
+
+                        for(int i = 0; i < number_cps; ++i)
+                        {
+                            control_points[0] = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->Poles()[i][0];
+                            control_points[1] = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->Poles()[i][1];
+                            control_points[2] = 0; 
+                            control_points[3] = trimming_curves[tcurves_i].GetCurve2D()->CurveGeometry()->Weight(i); 
+                            
+                            Parameters control_points_para; 
+                            control_points_para.AddEmptyArray("cp"); 
+                            control_points_para["cp"].Append(0); 
+                            control_points_para["cp"].Append(control_points); 
+                            parameter_curve_para["control_points"].Append(control_points_para["cp"]); 
+                        }
+                        
+                        trimming_curves_para.AddValue("parameter_curve", parameter_curve_para); 
+                        boundary_loop_para.AddEmptyArray("trimming_curves"); 
+                        boundary_loop_para["trimming_curves"].Append(trimming_curves_para);                         
+                    }
+
+                    faces_para.AddEmptyArray("boundary_loops"); 
+                    faces_para["boundary_loops"].Append(boundary_loop_para);
+
+                    Vector embedded_loops = ZeroVector(0);
+                    Vector embedded_points = ZeroVector(0); 
+
+                    faces_para.AddEmptyValue("embedded_loops"); 
+                    faces_para.AddEmptyValue("embedded_points"); 
+                    
+                    faces_para["embedded_loops"].SetVector(embedded_loops);
+                    faces_para["embedded_points"].SetVector(embedded_points);
+                } 
+
+                brep_para.AddEmptyArray("faces"); 
+                brep_para["faces"].Append(faces_para); 
+            }
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Edges
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            
+            //loop over edges
+            for (int edge_i = 0; edge_i < m_brep_model_vector[brep_i].GetEdgeVector().size(); ++edge_i)
+            {
+                Parameters edges_para; 
+                const int edge_id = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetId(); 
+
+                edges_para.AddEmptyValue("brep_id"); 
+                edges_para["brep_id"].SetInt(edge_id); 
+                
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // 3d curve
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                
+                Parameters curve_3d_para;
+
+                const int degree = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Degree(); 
+                const std::vector<double> knots = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Knots(); 
+                const int number_knots = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->NbKnots();
+                
+                Vector knot_vector = ZeroVector(number_knots + 2); 
+
+                knot_vector[0] = knots[0];
+                for(int i = 0; i < number_knots; ++i)    knot_vector[i+1] = knots[i];
+                knot_vector[number_knots + 1] = knots[number_knots - 1];
+
+                Vector curve_3d_active_range = ZeroVector(2);
+                curve_3d_active_range[0] = knots.front(); 
+                curve_3d_active_range[1] = knots.back(); 
+
+                const int number_cps = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->NbPoles(); 
+                
+                curve_3d_para.AddEmptyValue("degree");
+                curve_3d_para.AddEmptyArray("knot_vector");
+                curve_3d_para.AddEmptyArray("active_range");
+                curve_3d_para.AddEmptyArray("control_points");
+                curve_3d_para["degree"].SetInt(degree);
+                curve_3d_para["knot_vector"].SetVector(knot_vector);
+                curve_3d_para["active_range"].SetVector(curve_3d_active_range);
+            
+                Vector control_points = ZeroVector(4); 
+            
+                for (int i = 0; i < number_cps; ++i)
+                {
+                    const int control_points_ids = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(i)->GetId(); 
+                    control_points[0] = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(i)->X(); 
+                    control_points[1] = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(i)->Y(); 
+                    control_points[2] = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(i)->Z(); 
+                    control_points[3] = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->GetNode(i)->GetValue(NURBS_CONTROL_POINT_WEIGHT); 
+                
+                    Parameters control_points_para;     
+                    control_points_para.AddEmptyArray("cp"); 
+                    control_points_para["cp"].Append(control_points_ids); 
+                    control_points_para["cp"].Append(control_points); 
+                    curve_3d_para["control_points"].Append(control_points_para["cp"]); 
+                }
+                edges_para.AddValue("3d_curve", curve_3d_para);
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // edge topology
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                Parameters topology_para;
+                
+                for (int i = 0; i < m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetBrepEdgeTopologyVector().size(); ++i)
+                {
+                    topology_para.AddEmptyValue("face_id"); 
+                    topology_para.AddEmptyValue("trim_index");
+                    topology_para.AddEmptyValue("relative_direction");
+                    const int topology_face_id = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetBrepEdgeTopologyVector()[i].brep_id;
+                    const int topology_trim_index = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetBrepEdgeTopologyVector()[i].trim_index;
+                    const bool topology_relative_direction = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetBrepEdgeTopologyVector()[i].relative_direction;
+                    
+                    topology_para["face_id"].SetInt(topology_face_id); 
+                    topology_para["trim_index"].SetInt(topology_trim_index); 
+                    topology_para["relative_direction"].SetBool(topology_relative_direction); 
+                }
+
+                edges_para.AddEmptyArray("topology"); 
+                edges_para["topology"].Append(topology_para);
+
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                // embedded points
+                /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                edges_para.AddEmptyArray("embedded_points"); 
+                brep_para.AddEmptyArray("edges"); 
+                brep_para["edges"].Append(edges_para); 
+            }
+            
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Vertices
+            /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            brep_para.AddEmptyArray("vertices"); 
+            model_para.AddEmptyArray("breps");
+            model_para["breps"].Append(brep_para); 
+        }
+
+        std::cout << model_para << std::endl;
+
+    }
+            
+            
+            
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ENDE
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
     std::vector<BrepModel> BrepJsonIO::ImportNurbsBrepGeometry(
         ModelPart& rModelPart,
         Parameters rNurbsBrepGeometryJson)
@@ -163,8 +477,10 @@ namespace Kratos
                             boundary_knot_vector(u_idx) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["knot_vector"][u_idx].GetDouble();
                         }
 
-                        // read and store polynamial degree p and q
+                        // read and store polynomial degree p and q
                         int boundary_p = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["degree"].GetInt();
+
+                        bool boundary_is_rational = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["is_rational"].GetBool();
 
                         std::cout << "> Reading control points " << face_id << " finishing" << std::endl;
                         // read and store control_points
@@ -185,7 +501,7 @@ namespace Kratos
                         active_range(1) = boundary_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["active_range"][1].GetDouble();
 
                         // Create and store edge
-                        BrepTrimmingCurve new_boundary_curve(curve_index, boundary_knot_vector, boundary_p, boundary_control_points, curve_direction, true, active_range);
+                        BrepTrimmingCurve new_boundary_curve(curve_index, boundary_knot_vector, boundary_p, boundary_control_points, curve_direction, boundary_is_rational, active_range);
 
                         loop_curves.push_back(new_boundary_curve);
                     }

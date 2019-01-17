@@ -121,10 +121,13 @@ namespace Kratos
             const int& rShapeFunctionDerivativesOrder,
             std::vector<std::string> rVariables);
 
+        
         const EdgeTopology GetEdgeTopology(
             const int rTopologyIndex) const;
 
         const Kratos::shared_ptr<NodeCurveGeometry3D> GetCurve3d() const;
+
+        const std::vector<EdgeTopology>& GetBrepEdgeTopologyVector() const; 
 
         ///Constructor
         BrepEdge(
