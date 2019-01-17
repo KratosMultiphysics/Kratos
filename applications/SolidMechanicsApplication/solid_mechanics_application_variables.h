@@ -210,6 +210,6 @@ namespace Kratos
 
   ///@}
 
-}
+} // Namespace Kratos
 
 #endif	// KRATOS_SOLID_MECHANICS_APPLICATION_VARIABLES_H_INCLUDED

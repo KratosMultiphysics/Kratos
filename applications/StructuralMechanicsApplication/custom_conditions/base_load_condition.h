@@ -16,8 +16,8 @@
 // System includes
 
 // External includes
+
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
 
