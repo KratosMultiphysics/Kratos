@@ -1,0 +1,16 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/josep_maria/Kratos/applications/SolversApplication/external_libraries/pastix-lib/pastix/spm/wrappers/fortran90/examples/spm_driver.f90"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"spm"
+		],
+		"name" : "spm_driver"
+	}
+}

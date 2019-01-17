@@ -1,0 +1,31 @@
+/*
+ * This file is part of the PaStiX Handbook.
+ * Copyright 1998-2017 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+ *                      Univ. Bordeaux. All rights reserved.
+ */
+
+/*! \page Eztrace Using Eztrace in PaStiX
+
+To be able to compile PaStiX with Eztrace, the install directory has
+to be included in the user environment with:
+
+\verbatim
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:eztrace_install_dir/lib/pkgconfig
+\endverbatim
+
+In addition, the conversion library built by PaStiX has te be included
+in the environment with:
+
+\verbatim
+export EZTRACE_TRACE=kernels
+export EZTRACE_LIBRARY_PATH=pastix_install_dir/kernels
+\endverbatim
+
+Finally eztrace commands to generate trace and statistics are:
+
+\verbatim
+eztrace_install_dir/bin/eztrace_stats -o output trace
+eztrace_install_dir/bin/eztrace_convert -o output trace
+\endverbatim
+
+*/

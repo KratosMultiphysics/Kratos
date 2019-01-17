@@ -31,6 +31,13 @@ if(${INCLUDE_FEAST} MATCHES ON)
   INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/FEAST.cmake")
 endif(${INCLUDE_FEAST} MATCHES ON)
 
+# compile PASTIX
+if(${INCLUDE_PASTIX} MATCHES ON)
+  set(PASTIX_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/PaStiX_6.0")
+  add_subdirectory(${PASTIX_DIR})
+  set(PASTIX_LIBRARIES pastix)
+endif(${INCLUDE_PASTIX} MATCHES ON)
+
 
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE
@@ -62,14 +69,17 @@ set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosSolversCore SHARED ${KRATOS_SOLVERS_APPLICATION_CORE})
 
-message(STATUS "SuperLU lib2 found: ${SUPERLU_LIBRARIES}")
+set(SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
 
 if(${INCLUDE_FEAST} MATCHES ON)
-  target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARIES} ${FEAST_LIBRARIES})
-else(${INCLUDE_FEAST} MATCHES ON)
-  target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SUPERLU_LIBRARIES})
+  list(APPEND SOLVERS_LIBRARIES ${FEAST_LIBRARIES})
 endif(${INCLUDE_FEAST} MATCHES ON)
 
+if(${INCLUDE_PASTIX} MATCHES ON)
+  list(APPEND SOLVERS_LIBRARIES ${PASTIX_LIBRARIES})
+endif(${INCLUDE_PASTIX} MATCHES ON)
+
+target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SOLVERS_LIBRARIES})
 set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_APPLICATION=EXPORT,API")
 
 ###############################################################

@@ -1,0 +1,11 @@
+{
+	"sources" : [],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"spm"
+		],
+		"name" : "install"
+	}
+}

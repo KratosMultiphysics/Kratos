@@ -1,0 +1,50 @@
+extern "C" %{
+  /**
+   * PLASMA include for defined and constants.
+   *
+   * @precisions normal z -> s d c
+   *
+   */
+#include "dplasma/lib/dplasmajdf.h"
+#include "data_dist/sparse-matrix/pastix_internal/pastix_internal.h"
+#include "data_dist/sparse-matrix/sparse-matrix.h"
+
+void sparse_matrix_zcsc2cblk(const SolverMatrix *solvmatr,
+                             const CscMatrix    *cscmtx,
+                             parsec_complex64_t  *transcsc,
+                             parsec_int_t         itercblk);
+
+%}
+
+/* Globals
+ */
+descA        [type = "parsec_data_collection_t *" ]
+sopalin_data [type = "sopalin_data_t *" ]
+
+descA    [type = "sparse_matrix_desc_t*" hidden = on default = "((sparse_matrix_desc_t*)descA)"]
+datacode [type = "SolverMatrix*"         hidden = on default = "(sopalin_data->solvmtx)"       ]
+cblknbr  [type = "pastix_int_t"          hidden = on default = "(datacode->cblknbr - 1)"       ]
+
+/**************************************************
+ *                CSC2CBLK                        *
+ **************************************************/
+CSC2CBLK(k)[profile = off]
+
+// Execution space
+k = 0 .. cblknbr
+
+// Parallel partitioning
+: A(0, k, 0) // Should match SOLV_COEFTAB(k)
+
+// Parameters
+RW A <- A(0, k, 0)
+     -> A(0, k, 0)
+
+BODY
+{
+    sparse_matrix_zcsc2cblk( datacode,
+        &(descA->pastix_data->cscmtx),
+        (parsec_complex64_t*)(descA->pastix_data->sopar.transcsc), k);
+}
+END
+

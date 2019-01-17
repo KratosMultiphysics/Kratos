@@ -1,0 +1,13 @@
+Data file to test sequential solves in parallel with a single instance of PaStiX for the factorization
+1                      Enable/disable the verbose mode (also check results)
+0                      Enable/disable the check and correct call on the entry spm matrices
+0                      Enable/disable the multi-threaded solves
+5                      Total number of threads
+1                      Number of PaStiX instances (= Number of OpenMP threads for factorization >= 1 and <= nb_thrd)
+2                      Number of outermost iterations
+2                      Number of distinct matrices per iteration
+10                     Number of righ-hand-side per matrix
+2                      Number of solve step per problem
+10                     First dimension of each laplacian matrix
+10                     Second dimension of each laplacian matrix
+10                     Third dimension of each laplacian matrix
