@@ -19,7 +19,7 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 
