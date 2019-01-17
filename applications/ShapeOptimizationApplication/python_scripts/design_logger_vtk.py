@@ -15,12 +15,9 @@ from __future__ import print_function, absolute_import, division
 # Kratos Core and Apps
 import KratosMultiphysics
 
-# Import logger base classes
+# Additional imports
 from design_logger_base import DesignLogger
-
-# For VTK output
-import KratosMultiphysics.vtk_output_process as vtk_output_process
-
+from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 
 # ==============================================================================
 class DesignLoggerVTK( DesignLogger ):
@@ -30,26 +27,24 @@ class DesignLoggerVTK( DesignLogger ):
         self.output_settings = optimization_settings["output"]
         minimal_vtk_settings = KratosMultiphysics.Parameters("""
         {
-            "name"              : "vtk",
-            "Parameters" : {
-                "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "output_sub_model_parts"             : false,
-                "folder_name"                        : "Optimization_Results"
+            "name"       : "vtk",
+            "vtk_parameters" : {
+                "model_part_name"        : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "output_sub_model_parts" : false,
+                "folder_name"            : "Optimization_Results"
             }
         }""")
 
         output_format = self.output_settings["output_format"]
-        if not output_format.Has("Parameters"):
-            output_format.AddValue("Parameters", minimal_vtk_settings["Parameters"])
+        if not output_format.Has("vtk_parameters"):
+            output_format.AddValue("vtk_parameters", minimal_vtk_settings["vtk_parameters"])
         else:
-            if output_format["Parameters"].Has("model_part_name"):
+            if output_format["vtk_parameters"].Has("model_part_name"):
                 print("WARNING:: vtk output parameter `model_part_name` will be overwritten!")
-            if output_format["Parameters"].Has("output_sub_model_parts"):
-                print("WARNING:: vtk output parameter `output_sub_model_parts` will be overwritten!")
-            if output_format["Parameters"].Has("folder_name"):
+            if output_format["vtk_parameters"].Has("folder_name"):
                 print("WARNING:: vtk output parameter `folder_name` will be overwritten!")
 
-        output_format["Parameters"].ValidateAndAssignDefaults(minimal_vtk_settings["Parameters"])
+        output_format["vtk_parameters"].ValidateAndAssignDefaults(minimal_vtk_settings["vtk_parameters"])
 
         self.model = model_part_controller.GetModel()
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
@@ -60,12 +55,12 @@ class DesignLoggerVTK( DesignLogger ):
     # --------------------------------------------------------------------------
     def __CreateVTKIO( self ):
 
-        vtk_parameters = self.output_settings["output_format"]["Parameters"]
+        vtk_parameters = self.output_settings["output_format"]["vtk_parameters"]
+        output_mode = self.output_settings["design_output_mode"].GetString()
 
         nodal_results = self.output_settings["nodal_results"]
         vtk_parameters.AddValue("nodal_solution_step_data_variables", nodal_results)
 
-        output_mode = self.output_settings["design_output_mode"].GetString()
         if output_mode == "WriteDesignSurface":
             vtk_parameters["model_part_name"].SetString(self.design_surface.Name)
         elif output_mode == "WriteOptimizationModelPart":
@@ -75,7 +70,7 @@ class DesignLoggerVTK( DesignLogger ):
 
         vtk_parameters["folder_name"].SetString(self.output_settings["output_directory"].GetString())
 
-        return vtk_output_process.Factory(self.output_settings["output_format"], self.model)
+        return VtkOutputProcess(self.model, vtk_parameters)
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):
