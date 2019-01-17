@@ -20,6 +20,8 @@ def Create(settings, solver):
     accelerator = AitkenAccelerator(settings, solver)
     return accelerator
 
+#Comment global: should we prepend all the file-names with "convergence_accelerator"? Seems a bit superfluous
+#Comment also for the predictors "_predictor" is appended => requires unification
 
 ## Class AitkenAccelerator.
 # This class contains the implementation of Aitken relaxation.

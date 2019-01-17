@@ -3,6 +3,13 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from co_simulation_base_solver import CoSimulationBaseSolver
 import co_simulation_tools as tools
 
+# Importing the Kratos Library
+try:
+    import KratosMultiphysics
+except ModuleNotFoundError:
+    print(tools.bcolors.FAIL + 'KRATOS is not available ! Please ensure that Kratos is available for usage !'+ tools.bcolors.ENDC)
+    exit()
+
 def Create(settings):
     return KratosDummyCoSimulationSolver(settings)
 

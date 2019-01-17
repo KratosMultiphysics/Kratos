@@ -1,5 +1,5 @@
 import warnings
-import co_simulation_data_structure
+import co_simulation_data_structure # @Aditya I thought this would work since its in the same folder, but it didn't work for me. I guess some path-manipulation is necessary for CoSim to also work in Python-only, we can discuss it
 cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
 import math
 ## Class contains definition of colors. This is to be used as a struct
@@ -78,7 +78,7 @@ def GetDataAsList(solver, data_name):
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     for node in data_mesh.Nodes:
-        data_value = node.GetSolutionStepValue(data_variable,0)
+        data_value = node.GetSolutionStepValue(data_variable,0) #TODO what if non-historical?
         for value in data_value:
             data.append(value)
 
@@ -94,9 +94,10 @@ def ApplyUpdateToData(solver, data_name, updated_data):
     data_mesh = solver.model[data_def["geometry_name"].GetString()]
     data_variable = cs_data_structure.KratosGlobals.GetVariable(data_name)
     index = 0
-    for node in data_mesh.Nodes:
+    for node in data_mesh.Nodes: # #TODO local nodes to also work in MPI?
         updated_value = []
         value = node.GetSolutionStepValue(data_variable,0)
+        # TODO @aditya the data might also be non-historical => GetValue
         for i, value_i in enumerate(value):
             #updated_value.append(0.0)
             updated_value.append(updated_data[index])

@@ -19,7 +19,6 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -69,9 +68,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ProcessInfo      ProcessInfoType;
-    typedef ConstitutiveLaw         BaseType;
-    typedef std::size_t             SizeType;
+    typedef ProcessInfo ProcessInfoType;
+    typedef ConstitutiveLaw BaseType;
+    typedef std::size_t SizeType;
 
     // Counted pointer of LinearJ2Plasticity3D
     KRATOS_CLASS_POINTER_DEFINITION(LinearJ2Plasticity3D);
@@ -116,7 +115,7 @@ public:
     void GetLawFeatures(Features& rFeatures) override;
 
     /**
-     * @brief Dimension of the law:
+     * @brief dimension of the constitutive law
      */
     SizeType WorkingSpaceDimension() override
     {
@@ -191,18 +190,6 @@ public:
                             const Vector& rShapeFunctionsValues) override;
 
     /**
-     * @brief To be called at the end of each solution step  (e.g. from Element::FinalizeSolutionStep)
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     * @param rCurrentProcessInfo the current ProcessInfo instance
-     */
-    void FinalizeSolutionStep(const Properties& rMaterialProperties,
-                            const GeometryType& rElementGeometry,
-                            const Vector& rShapeFunctionsValues,
-                            const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * @brief Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -231,6 +218,34 @@ public:
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
 
     /**
+     * @brief Initialize the material response in terms of 1st Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of 2nd Piola-Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Kirchhoff stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
+     * @brief Initialize the material response in terms of Cauchy stresses
+     * @param rValues The specific parameters of the current constitutive law
+     * @see Parameters
+     */
+    void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+    /**
      * @brief Finalize the material response in terms of 1st Piola-Kirchhoff stresses
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
@@ -249,7 +264,7 @@ public:
      * @param rValues The specific parameters of the current constitutive law
      * @see Parameters
      */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+    void FinalizeMaterialResponseKirchhoff(Parameters& rValues) override;
 
     /**
      * @brief Finalize the material response in terms of Cauchy stresses
@@ -316,10 +331,8 @@ protected:
     ///@{
 
     bool mInelasticFlag; /// This flags tells if we are in a elastic or ineslastic regime
-    Vector mPlasticStrain; /// The current plastic strain (one for each of the strain components)
-    Vector mPlasticStrainOld; /// The previous plastic strain (one for each of the strain components)
-    double mAccumulatedPlasticStrain; /// The current accumulated plastic strain
-    double mAccumulatedPlasticStrainOld; /// The previous accumulated plastic strain
+    Vector mPlasticStrain; /// The previous plastic strain (one for each of the strain components)
+    double mAccumulatedPlasticStrain; /// The previous accumulated plastic strain
 
     ///@}
     ///@name Protected Operators
@@ -330,6 +343,16 @@ protected:
     ///@{
 
     /**
+     * @brief This method computes the stress and constitutive tensor
+     * @param rValues The norm of the deviation stress
+     * @param rPlasticStrain
+     * @param rAccumulatedPlasticStrain
+     */
+    virtual void CalculateStressResponse(ConstitutiveLaw::Parameters& rValues,
+                                 Vector& rPlasticStrain,
+                                 double& rAccumulatedPlasticStrain );
+
+    /**
      * @brief This method computes the yield function
      * @param NormDeviationStress The norm of the deviation stress
      * @param rMaterialProperties The properties of the current material considered
@@ -337,7 +360,8 @@ protected:
      */
     double YieldFunction(
         const double NormDeviationStress,
-        const Properties& rMaterialProperties
+        const Properties& rMaterialProperties,
+        const double AccumulatedPlasticStrain
         );
 
     /**
@@ -346,50 +370,42 @@ protected:
      * @param rMaterialProperties The properties of the material
      * @return The increment of Gamma computed
      */
-    double GetDeltaGamma(
-        const double NormStressTrial,
-        const Properties& rMaterialProperties
-        );
+    double GetDeltaGamma(const double NormStressTrial, const Properties &rMaterialProperties, const double);
 
     /**
      * @brief This method gets the saturation hardening parameter
      * @param rMaterialProperties The properties of the material
      * @return The saturation hardening parameter
      */
-    double GetSaturationHardening(const Properties& rMaterialProperties);
+    double GetSaturationHardening(const Properties& rMaterialProperties, const double);
 
     /**
      * @brief This method computes the plastic potential
      * @param rMaterialProperties The properties of the material
      * @return The plastic potential
      */
-    double GetPlasticPotential(const Properties& rMaterialProperties);
+    double GetPlasticPotential(const Properties& rMaterialProperties,
+            const double accumulated_plastic_strain);
 
     /**
-     * @brief This method computes the plastic potential
+     * @brief This method computes the constitutive tensor
      * @param DeltaGamma The increment on the Gamma parameter
      * @param NormStressTrial The norm of the stress trial
-     * @param YieldFunctionNormalVector The yield function normal vector
+     * @param rYFNormalVector The yield function normal vector
      * @param rMaterialProperties The properties of the material
-     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     * @param rTMatrix The elastic tensor/matrix to be computed
      */
-    virtual void CalculateTangentTensor(
-        const double DeltaGamma,
-        const double NormStressTrial,
-        const Vector& YieldFunctionNormalVector,
-        const Properties& rMaterialProperties,
-        Matrix& rElasticityTensor
-        );
+    virtual void CalculateTangentMatrix(const double DeltaGamma, const double NormStressTrial,
+                                        const Vector &rYFNormalVector,
+                                        const Properties &rMaterialProperties,
+                                        const double AccumulatedPlasticStrain, Matrix &rTMatrix);
 
     /**
      * @brief This method computes the elastic tensor
-     * @param rElasticityTensor The elastic tensor/matrix to be computed
+     * @param rElasticMatrix The elastic tensor/matrix to be computed
      * @param rMaterialProperties The properties of the material
      */
-    virtual void CalculateElasticMatrix(
-        Matrix &rElasticityTensor,
-        const Properties &rMaterialProperties
-        );
+    virtual void CalculateElasticMatrix(const Properties &rMaterialProperties, Matrix &rElasticMatrix);
 
     ///@}
     ///@name Protected  Access

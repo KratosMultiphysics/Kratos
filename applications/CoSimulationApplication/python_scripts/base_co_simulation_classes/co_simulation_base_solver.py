@@ -234,7 +234,7 @@ class CoSimulationBaseSolver(object):
 
         return custom_config
 
-    def _GetGeoNames(self):
+    def _GetGeoNames(self): #Comment full name would be better
         geo_name_list = []
         for name, data in self.data_list.items():
             mesh_name = data["geometry_name"].GetString()

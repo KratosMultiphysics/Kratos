@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti.
@@ -533,7 +533,7 @@ public:
                 //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
                 if (n_str==2.0)
                 {
-                    boost::numeric::ublas::bounded_matrix<double,3,2> sort_coord = ZeroMatrix(3,2);
+                    BoundedMatrix<double,3,2> sort_coord = ZeroMatrix(3,2);
                     int cnt=1;
                     for (int i=0; i<3; ++i)
                         if(geom[i].FastGetSolutionStepValue(IS_BOUNDARY)==0.0)
@@ -605,7 +605,7 @@ public:
                     //if two walls are at the wall, we check if the third node is close to it or not by passing the alpha-shape
                     if (n_str==3.0 && n_int==3.0)
                     {
-                        boost::numeric::ublas::bounded_matrix<double,4,3> sort_coord = ZeroMatrix(4,3);
+                        BoundedMatrix<double,4,3> sort_coord = ZeroMatrix(4,3);
                         int cnt=1;
                         for (int i=0; i<4; ++i)
                         {
@@ -822,8 +822,8 @@ public:
     //bool AlphaShape(double alpha_param, Triangle2D<Node<3> >& pgeom)
     {
         KRATOS_TRY
-        boost::numeric::ublas::bounded_matrix<double,2,2> J; //local jacobian
-        boost::numeric::ublas::bounded_matrix<double,2,2> Jinv; //local jacobian
+        BoundedMatrix<double,2,2> J; //local jacobian
+        BoundedMatrix<double,2,2> Jinv; //local jacobian
         static array_1d<double,2> c; //center pos
         static array_1d<double,2> rhs; //center pos
 
@@ -903,8 +903,8 @@ public:
     {
         KRATOS_TRY
 
-        boost::numeric::ublas::bounded_matrix<double,3,3> J; //local jacobian
-        boost::numeric::ublas::bounded_matrix<double,3,3> Jinv; //local jacobian
+        BoundedMatrix<double,3,3> J; //local jacobian
+        BoundedMatrix<double,3,3> Jinv; //local jacobian
         array_1d<double,3> Rhs; //rhs
         array_1d<double,3> xc;
         double radius=0.0;
@@ -1211,27 +1211,27 @@ public:
 
         KRATOS_CATCH("");
     }
-   
+
     //**********************************************************************************************
     //**********************************************************************************************
 
-       void SaveReducedPart(ModelPart& full_model_part, ModelPart& reduced_model_part)
+    void SaveReducedPart(ModelPart& full_model_part, ModelPart& reduced_model_part)
     {
-        KRATOS_TRY        
-       
-	/////////////////////////////////////////////////////////////////////////
-	//clear reduced_model_part
-        reduced_model_part.Conditions().clear();
-        reduced_model_part.Elements().clear();
-        reduced_model_part.Nodes().clear();
-        unsigned int NumberOfProperties = full_model_part.NumberOfProperties();
-      
-	//change the name of the var to another one  - otherwise confusing
-	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
-	{	  	
-	in->FastGetSolutionStepValue(ACTIVATION_LEVEL)=false;
-	in->FastGetSolutionStepValue(MATERIAL_VARIABLE)=false;
-	}
+    KRATOS_TRY
+
+    /////////////////////////////////////////////////////////////////////////
+    //clear reduced_model_part
+    reduced_model_part.Conditions().clear();
+    reduced_model_part.Elements().clear();
+    reduced_model_part.Nodes().clear();
+    // unsigned int NumberOfProperties = full_model_part.NumberOfProperties();
+
+    //change the name of the var to another one  - otherwise confusing
+    for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+    {
+    in->FastGetSolutionStepValue(ACTIVATION_LEVEL)=false;
+    in->FastGetSolutionStepValue(MATERIAL_VARIABLE)=false;
+    }
 
 	int n_nodes=0;
 
@@ -1242,12 +1242,12 @@ public:
 
 	    for (int i=0; i<n_nodes; i++)
         {
-	
-            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);   
+
+            if(im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1) n_int+=1.0;//im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
 		}
         if (n_int==n_nodes)
         {
-            
+
             if(n_nodes==4)
             {
                 im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
@@ -1260,12 +1260,12 @@ public:
                 im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
                 im->GetGeometry()[1].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
                 im->GetGeometry()[2].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
-                //im->GetGeometry()[3].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true; 
-                
+                //im->GetGeometry()[3].FastGetSolutionStepValue(MATERIAL_VARIABLE)=true;
+
             }
 
 	    }
-   
+
  	if (n_int<n_nodes)
             {
 		reduced_model_part.Elements().push_back(*(im.base()));
@@ -1273,7 +1273,7 @@ public:
 		for (int i=0;i<n_nodes;i++)
 			{
 			im->GetGeometry()[i].FastGetSolutionStepValue(ACTIVATION_LEVEL)=true;
-			}               
+			}
             }
 
             if (n_int>n_nodes)
@@ -1283,7 +1283,7 @@ public:
 
 
 
-	for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
+    for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ; in != full_model_part.NodesEnd() ; ++in)
         {
             int n_disabled=in->FastGetSolutionStepValue(ACTIVATION_LEVEL);
             if (n_disabled==1)
@@ -1299,11 +1299,11 @@ public:
             reduced_model_part.AddProperties(*(i_properties.base()));
 
         }
-	
 
 
 
- 	
+
+
 	//find neighbors within reduced model part
 	if (n_nodes==3)
 		{
@@ -1322,13 +1322,13 @@ public:
     }
 
 
-	
+
 
 private:
 
     //aux vars
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJ; //local jacobian
-    static boost::numeric::ublas::bounded_matrix<double,3,3> msJinv; //inverse jacobian
+    static BoundedMatrix<double,3,3> msJ; //local jacobian
+    static BoundedMatrix<double,3,3> msJinv; //inverse jacobian
     static array_1d<double,3> msc; //center pos
     static array_1d<double,3> ms_rhs; //center pos
 
@@ -1337,6 +1337,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ULF_UTILITIES_INCLUDED  defined 
-
-
+#endif // KRATOS_ULF_UTILITIES_INCLUDED  defined

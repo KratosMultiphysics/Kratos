@@ -1,7 +1,5 @@
-try: 
+try:
     import KratosMultiphysics
-    # Check that applications were imported in the main script
-    KratosMultiphysics.CheckRegisteredApplications("CoSimulationApplication")
     import KratosMultiphysics.CoSimulationApplication as CoSimApp
     import KratosMultiphysics.MappingApplication as MappingApp
 except ModuleNotFoundError:

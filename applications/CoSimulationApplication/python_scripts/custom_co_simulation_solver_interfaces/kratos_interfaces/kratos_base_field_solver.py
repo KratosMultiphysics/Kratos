@@ -1,17 +1,18 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
+import co_simulation_tools as tools
+
 # Importing the Kratos Library
 try:
     import KratosMultiphysics
 except ModuleNotFoundError:
-        print(tools.bcolors.FAIL + 'KRATOS is not available ! Please ensure that Kratos is available for usage !'+ tools.bcolors.ENDC)
-        exit()
+    print(tools.bcolors.FAIL + 'KRATOS is not available ! Please ensure that Kratos is available for usage !'+ tools.bcolors.ENDC)
+    exit()
 
 # Importing the base class
 from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
-import co_simulation_tools as tools
 import os
 
 class KratosBaseFieldSolver(CoSimulationBaseSolver):
@@ -31,7 +32,6 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
     def Initialize(self):
         self._GetAnalysisStage().Initialize()
         self.InitializeIO()
-
 
     def Finalize(self):
         self._GetAnalysisStage().Finalize()
@@ -76,7 +76,6 @@ class KratosBaseFieldSolver(CoSimulationBaseSolver):
 
     def _GetParallelType(self):
         raise Exception("Returning the type of parallelism must be implemented in the derived class!")
-
 
     def PrintInfo(self):
         solverprint(self.lvl, "KratosSolver", bold(self._Name()))

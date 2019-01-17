@@ -272,8 +272,8 @@ namespace Kratos {
     //strain rate laws
     const StrainRate3DLaw                          mStrainRate3DLaw;
     const StrainRatePlaneStrain2DLaw               mStrainRatePlaneStrain2DLaw;
-    const Newtonian3DLaw                           mNewtonian3DLaw;
-    const NewtonianPlaneStrain2DLaw                mNewtonianPlaneStrain2DLaw;
+    const NewtonianFluid3DLaw                      mNewtonianFluid3DLaw;
+    const NewtonianFluidPlaneStrain2DLaw           mNewtonianFluidPlaneStrain2DLaw;
 
     //general constitutive models
 

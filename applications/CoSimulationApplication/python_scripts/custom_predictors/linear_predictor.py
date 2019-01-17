@@ -8,18 +8,18 @@ try :
 except ModuleNotFoundError:
     print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
-from base_co_simulation_classes.co_simulation_base_extrapolator import CoSimulationBasePredictor
+from base_co_simulation_classes.co_simulation_base_predictor import CoSimulationBasePredictor
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
 
 def Create(settings, solver):
-    extrapolator = LinearPredictor(settings, solver)
-    return extrapolator
+    predictor = LinearPredictor(settings, solver)
+    return predictor
 
 
 ## Class LinearPredictor.
-# This class contains the implementation for a linear extrapolator
+# This class contains the implementation for a linear predictor
 
 class LinearPredictor(CoSimulationBasePredictor):
 
@@ -70,7 +70,7 @@ class LinearPredictor(CoSimulationBasePredictor):
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
     def PrintInfo(self):
-        print(cs_tools.bcolors.HEADER + "This is an object of linear extrapolator." +cs_tools.bcolors.ENDC )
+        print(cs_tools.bcolors.HEADER + "This is an object of linear predictor." +cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #
@@ -80,4 +80,4 @@ class LinearPredictor(CoSimulationBasePredictor):
     ## _Name : Function to get the name of the convergence accelerator
     #
     def _Name(self):
-        return "linear_extrapolator"
+        return "linear_predictor"

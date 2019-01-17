@@ -12,7 +12,7 @@ class ExplicitStrategy(object):
     def __init__(self, all_model_parts, creator_destructor, dem_fem_search, DEM_parameters, procedures):
 
         # Initialization of member variables
-
+        self.all_model_parts = all_model_parts
         self.spheres_model_part = all_model_parts.Get("SpheresPart")
         self.inlet_model_part = all_model_parts.Get("DEMInletPart")
         self.fem_model_part = all_model_parts.Get("RigidFacePart")
@@ -20,6 +20,7 @@ class ExplicitStrategy(object):
         self.contact_model_part = all_model_parts.Get("ContactPart")
 
         self.DEM_parameters = DEM_parameters
+        self.mesh_motion = DEMFEMUtilities()
 
         if not "ComputeStressTensorOption" in DEM_parameters.keys():
             self.compute_stress_tensor_option = 0
@@ -83,7 +84,7 @@ class ExplicitStrategy(object):
         # TIME RELATED PARAMETERS
         self.delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
         self.max_delta_time = DEM_parameters["MaxTimeStep"].GetDouble()
-        self.final_time = DEM_parameters["FinalTime"].GetDouble()
+        self.end_time = DEM_parameters["FinalTime"].GetDouble()
 
         # BOUNDING_BOX
         self.enlargement_factor = DEM_parameters["BoundingBoxEnlargementFactor"].GetDouble()
@@ -102,7 +103,7 @@ class ExplicitStrategy(object):
             self.bounding_box_start_time  = DEM_parameters["BoundingBoxStartTime"].GetDouble()
 
         if not "BoundingBoxStopTime" in DEM_parameters.keys():
-            self.bounding_box_stop_time  = self.final_time
+            self.bounding_box_stop_time  = self.end_time
         else:
             self.bounding_box_stop_time  = DEM_parameters["BoundingBoxStopTime"].GetDouble()
 
@@ -287,6 +288,9 @@ class ExplicitStrategy(object):
                                                              self.delta_option, self.creator_destructor, self.dem_fem_search,
                                                              self.search_strategy, strategy_parameters, self.do_search_neighbours)
 
+    def AddVariables(self):
+        pass
+
     def BeforeInitialize(self):
         self.CreateCPlusPlusStrategy()
         self.RebuildListOfDiscontinuumSphericParticles()
@@ -297,12 +301,62 @@ class ExplicitStrategy(object):
         self.CheckMomentumConservation()
         self.cplusplus_strategy.Initialize()  # Calls the cplusplus_strategy (C++) Initialize function (initializes all elements and performs other necessary tasks before starting the time loop in Python)
 
-    def Solve(self):
+    def SetDt(self, dt):
+        self.dt = dt
+
+    def Predict(self):
+        pass
+
+    def Check(self):
+        pass
+
+    def Solve(self): # deprecated
+        self.SolveSolutionStep()
+
+    def SolveSolutionStep(self):
         time = self.spheres_model_part.ProcessInfo[TIME]
         self.FixDOFsManually(time)
         (self.cplusplus_strategy).ResetPrescribedMotionFlagsRespectingImposedDofs()
         self.FixExternalForcesManually(time)
         (self.cplusplus_strategy).Solve()
+
+    def AdvanceInTime(self, step, time, is_time_to_print = False):
+        step += 1
+        time += self.dt
+        self._UpdateTimeInModelParts(time, step, is_time_to_print)
+        return step, time
+
+    def _MoveAllMeshes(self, time, dt):
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+
+        self.mesh_motion.MoveAllMeshes(rigid_face_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(spheres_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(DEM_inlet_model_part, time, dt)
+        self.mesh_motion.MoveAllMeshes(cluster_model_part, time, dt)
+
+    def _UpdateTimeInModelParts(self, time, step, is_time_to_print = False):
+        spheres_model_part = self.all_model_parts.Get("SpheresPart")
+        cluster_model_part = self.all_model_parts.Get("ClusterPart")
+        DEM_inlet_model_part = self.all_model_parts.Get("DEMInletPart")
+        rigid_face_model_part = self.all_model_parts.Get("RigidFacePart")
+
+        self._UpdateTimeInOneModelPart(spheres_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(cluster_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(DEM_inlet_model_part, time, step, is_time_to_print)
+        self._UpdateTimeInOneModelPart(rigid_face_model_part, time, step, is_time_to_print)
+
+    def _UpdateTimeInOneModelPart(self, model_part, time, step, is_time_to_print = False):
+        model_part.ProcessInfo[TIME] = time
+        model_part.ProcessInfo[DELTA_TIME] = self.dt
+        model_part.ProcessInfo[TIME_STEPS] = step
+        model_part.ProcessInfo[IS_TIME_TO_PRINT] = is_time_to_print
+
+    def FinalizeSolutionStep(self):
+        time = self.spheres_model_part.ProcessInfo[TIME]
+        self._MoveAllMeshes(time, self.dt)
 
     def SetNormalRadiiOnAllParticles(self):
         (self.cplusplus_strategy).SetNormalRadiiOnAllParticles(self.spheres_model_part)
@@ -317,7 +371,7 @@ class ExplicitStrategy(object):
         (self.cplusplus_strategy).Compute_RigidFace_Movement()
 
 
-    def FixDOFsManually(self,time):
+    def FixDOFsManually(self, time):
     #if time>1.0:
         #for node in self.spheres_model_part.Nodes:
             #node.Fix(VELOCITY_X)
@@ -333,17 +387,20 @@ class ExplicitStrategy(object):
     def AddClusterVariables(self, spheres_model_part, DEM_parameters):
         pass
 
-    def AddDofs(self, spheres_model_part):
+    def AddDofs(self, spheres_model_part=None):
 
-        for node in spheres_model_part.Nodes:
-            node.AddDof(VELOCITY_X)
-            node.AddDof(VELOCITY_Y)
-            node.AddDof(VELOCITY_Z)
-            node.AddDof(ANGULAR_VELOCITY_X)
-            node.AddDof(ANGULAR_VELOCITY_Y)
-            node.AddDof(ANGULAR_VELOCITY_Z)
+        if spheres_model_part == None:
+            pass
+        else:
+            for node in spheres_model_part.Nodes:
+                node.AddDof(VELOCITY_X)
+                node.AddDof(VELOCITY_Y)
+                node.AddDof(VELOCITY_Z)
+                node.AddDof(ANGULAR_VELOCITY_X)
+                node.AddDof(ANGULAR_VELOCITY_Y)
+                node.AddDof(ANGULAR_VELOCITY_Z)
 
-        Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
+            Logger.Print("DOFs for the DEM solution added correctly", label="DEM")
 
     def PrepareElementsForPrinting(self):
         (self.cplusplus_strategy).PrepareElementsForPrinting()
@@ -561,3 +618,11 @@ class ExplicitStrategy(object):
         if not properties.Has(ROLLING_FRICTION_WITH_WALLS):
             properties[ROLLING_FRICTION_WITH_WALLS] = properties[ROLLING_FRICTION]
 
+    def ImportModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def PrepareModelPart(self): #TODO: for the moment, provided for compatibility
+        pass
+
+    def GetComputingModelPart(self):
+        return self.spheres_model_part

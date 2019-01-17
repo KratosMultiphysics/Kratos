@@ -246,17 +246,21 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::SaveGPDtStress(Matrix& rDtStressC
 template< >
 void UPwSmallStrainFICElement<2,3>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix,2>& ConstitutiveTensorContainer)
 {
-    // Triangle_2d_3 with GI_GAUSS_1
+    // Triangle_2d_3 with GI_GAUSS_2
+    
+    BoundedMatrix<double,3,3> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+    
+    BoundedMatrix<double,3,3> AuxNodalConstitutiveTensor;
     
     for(unsigned int i = 0; i < 2; i++) //TDim
     {
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
+        
         for(unsigned int j = 0; j < 3; j++) // VoigtSize
-        {
-            for(unsigned int k = 0; k < 3; k++) // TNumNodes
-                mNodalConstitutiveTensor[i][j][k] = ConstitutiveTensorContainer[i](0,j);
-        }
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor,j);
     }
-    
+
     /* INFO:
      * 
      *                            [ ( |D00-0|   |D01-0|   |D02-0| )   ( |D10-0|   |D11-0|   |D12-0| ) ]
@@ -275,7 +279,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPConstitutiveTensor(const array_
     // Quadrilateral_2d_4 with GI_GAUSS_2
     
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,3> AuxNodalConstitutiveTensor;
     
@@ -293,15 +297,19 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPConstitutiveTensor(const array_
 template< >
 void UPwSmallStrainFICElement<3,4>::ExtrapolateGPConstitutiveTensor(const array_1d<Matrix,3>& ConstitutiveTensorContainer)
 {
-    // Tetrahedra_3d_4 with GI_GAUSS_1
+    // Tetrahedra_3d_4 with GI_GAUSS_2
+    
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    
+    BoundedMatrix<double,4,6> AuxNodalConstitutiveTensor;
     
     for(unsigned int i = 0; i < 3; i++) //TDim
     {
+        noalias(AuxNodalConstitutiveTensor) = prod(ExtrapolationMatrix,ConstitutiveTensorContainer[i]);
+        
         for(unsigned int j = 0; j < 6; j++) // VoigtSize
-        {
-            for(unsigned int k = 0; k < 4; k++) // TNumNodes
-                mNodalConstitutiveTensor[i][j][k] = ConstitutiveTensorContainer[i](0,j);
-        }
+            noalias(mNodalConstitutiveTensor[i][j]) = column(AuxNodalConstitutiveTensor,j);
     }
 }
 
@@ -313,7 +321,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPConstitutiveTensor(const array_
     // Hexahedra_3d_8 with GI_GAUSS_2
     
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,8,6> AuxNodalConstitutiveTensor;
     
@@ -331,14 +339,17 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPConstitutiveTensor(const array_
 template< >
 void UPwSmallStrainFICElement<2,3>::ExtrapolateGPDtStress(const Matrix& DtStressContainer)
 {
-    // Triangle_2d_3 with GI_GAUSS_1
-        
-    for(unsigned int i = 0; i < 2; i++) //TDim
-    {
-        for(unsigned int j = 0; j < 3; j++) // TNumNodes
-            mNodalDtStress[i][j] = DtStressContainer(0,i);
-    }
+    // Triangle_2d_3 with GI_GAUSS_2
+
+    BoundedMatrix<double,3,3> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
     
+    BoundedMatrix<double,3,2> AuxNodalDtStress;
+    noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
+    
+    for(unsigned int i = 0; i < 2; i++) // TDim
+        noalias(mNodalDtStress[i]) = column(AuxNodalDtStress,i);
+
     /* INFO:
      * 
      *                  ( |S0-0|   |S1-0| )
@@ -357,7 +368,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Quadrilateral_2d_4 with GI_GAUSS_2
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,2> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -371,13 +382,16 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateGPDtStress(const Matrix& DtStress
 template< >
 void UPwSmallStrainFICElement<3,4>::ExtrapolateGPDtStress(const Matrix& DtStressContainer)
 {
-    // Tetrahedra_3d_4 with GI_GAUSS_1
+    // Tetrahedra_3d_4 with GI_GAUSS_2
     
-    for(unsigned int i = 0; i < 3; i++) //TDim
-    {
-        for(unsigned int j = 0; j < 4; j++) // TNumNodes
-            mNodalDtStress[i][j] = DtStressContainer(0,i);
-    }
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+    
+    BoundedMatrix<double,4,3> AuxNodalDtStress;
+    noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
+    
+    for(unsigned int i = 0; i < 3; i++) // TDim
+        noalias(mNodalDtStress[i]) = column(AuxNodalDtStress,i);
 }
 
 //----------------------------------------------------------------------------------------
@@ -388,7 +402,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateGPDtStress(const Matrix& DtStress
     // Hexahedra_3d_8 with GI_GAUSS_2
     
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,8,3> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix,DtStressContainer);
@@ -554,7 +568,7 @@ template<>
 void UPwSmallStrainFICElement<2,3>::ExtrapolateShapeFunctionsGradients(array_1d< array_1d<double,6> , 3 >& rNodalShapeFunctionsGradients,  
                                                                         const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
-    // Triangle_2d_3 with GI_GAUSS_1
+    // Triangle_2d_3 with GI_GAUSS_2
     // No necessary
 }
 
@@ -581,7 +595,7 @@ void UPwSmallStrainFICElement<2,4>::ExtrapolateShapeFunctionsGradients(array_1d<
     }
     
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,4,8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);
@@ -621,7 +635,7 @@ template<>
 void UPwSmallStrainFICElement<3,4>::ExtrapolateShapeFunctionsGradients(array_1d< array_1d<double,12> , 4 >& rNodalShapeFunctionsGradients, 
                                                                         const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer)
 {
-    // Tetrahedra_3d_4 with GI_GAUSS_1
+    // Tetrahedra_3d_4 with GI_GAUSS_2
     // No necessary
 }
 
@@ -649,7 +663,7 @@ void UPwSmallStrainFICElement<3,8>::ExtrapolateShapeFunctionsGradients(array_1d<
     }
     
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
     
     BoundedMatrix<double,8,24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix,ShapeFunctionsGradientsContainer);

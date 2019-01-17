@@ -1,10 +1,12 @@
+from __future__ import absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
 def Factory(settings, Model):
     if( not isinstance(settings, KratosMultiphysics.Parameters) ):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyMassConservationCheckProcess(Model, settings["Parameters"])
+    return ApplyMassConservationCheckProcess( Model, settings["Parameters"] )
 
 class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
@@ -15,46 +17,36 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
         {
             "model_part_name"                        : "default_model_part_name",
-            "mass_computation_frequency"             : 20,
-            "compare_to_initial_values"              : true,
-            "write_to_log_file"                      : true
+            "perform_corrections"                    : true,
+            "correction_frequency_in_time_steps"     : 20,
+            "write_to_log_file"                      : true,
+            "log_file_name"                          : "mass_conservation.log"
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
 
-        self.fluid_model_part = Model[settings["model_part_name"].GetString()]
-        self.write_to_log = settings["write_to_log_file"].GetBool()
-        self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self.fluid_model_part, settings)
+        self._fluid_model_part = Model[settings["model_part_name"].GetString()]
+        self._write_to_log = settings["write_to_log_file"].GetBool()
+        self._my_log_file = settings["log_file_name"].GetString()
 
-        # writing first line in file
-        if ( self.write_to_log ):
-            with open("ApplyMassConservationCheckProcess.log", "w") as logFile:
-                logFile.write( "positiveVolume" + "\t" + "negativeVolume" + "\n" )
+        self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
+        self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
-    def Execute(self):
-
-        # retrieve information if the values were updated
-        updated = self.mass_conservation_check_process.GetUpdateStatus()
-
-        if ( updated ):
-            posVol = self.mass_conservation_check_process.GetPositiveVolume()
-            negVol = self.mass_conservation_check_process.GetNegativeVolume()
-            initPosVol = self.mass_conservation_check_process.GetInitialPositiveVolume()
-            initNegVol = self.mass_conservation_check_process.GetInitialNegativeVolume()
-
-            # managing the output to the console
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Positive Volume = " + str(posVol) + "  ( initially " + str(initPosVol) + ")" )
-            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess", "Negative Volume = " + str(negVol) + "  ( initially " + str(initNegVol) + ")" )
-            KratosMultiphysics.Logger.Flush()
-
-            # adds additional lines to the log file
-            if ( self.write_to_log ):
-                with open("ApplyMassConservationCheckProcess.log", "a+") as logFile:
-                    logFile.write( str(posVol) + "\t" + str(negVol) + "\n" )
+        if self._is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Construction finished.")
 
 
     def ExecuteInitialize(self):
-        self.mass_conservation_check_process.ExecuteInitialize()
+
+        first_lines_string = self.mass_conservation_check_process.Initialize()
+
+        # writing first line in file
+        if ( self._write_to_log and self._is_printing_rank ):
+            with open(self._my_log_file, "w") as logFile:
+                logFile.write( first_lines_string )
+
+        if self._is_printing_rank:
+            KratosMultiphysics.Logger.PrintInfo("ApplyMassConservationCheckProcess","Initialization finished (initial volumes calculated).")
 
 
     def ExecuteBeforeSolutionLoop(self):
@@ -67,4 +59,9 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
-        self.Execute()
+        log_line_string = self.mass_conservation_check_process.ExecuteInTimeStep()
+
+        # writing first line in file
+        if ( self._write_to_log and self._is_printing_rank ):
+            with open(self._my_log_file, "a+") as logFile:
+                logFile.write( log_line_string )

@@ -8,7 +8,7 @@ import co_simulation_tools as tools
 #  IMPORTANT : This is a BASE CLASS
 #               Please do not change any thing in this class.
 #
-# This Class servers as a base class for all the Convergence  extrapolator techniques
+# This Class servers as a base class for all the Convergence predictor techniques
 # used in co simulation.
 class CoSimulationBasePredictor(object):
     def __init__(self, settings, solver):
@@ -16,13 +16,13 @@ class CoSimulationBasePredictor(object):
         self.settings = settings
         self.echo_level = 0
 
-    ## Initialize : Initialize function for the  extrapolator class. Necessary
+    ## Initialize : Initialize function for the  predictor class. Necessary
     #               initialization of the variables and objects to be done here.
     #  @param self                      The object pointer.
     def Initialize(self):
         pass
 
-    ## Finalize :  Initialize function for the  extrapolator class.
+    ## Finalize :  Initialize function for the  predictor class.
     #               finalization of the variables and objects to be done here.
     #  @param self                      The object pointer.
     def Finalize(self):
@@ -60,26 +60,26 @@ class CoSimulationBasePredictor(object):
     def ComputeUpdate(self):
         raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBasePredictor : Calling ComputeUpdate function !" + tools.bcolors.ENDC)
 
-    ## PrintInfo : Function to print the information of the   extrapolator
+    ## PrintInfo : Function to print the information of the   predictor
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
         raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBasePredictor : Calling PrintInfo function !" + tools.bcolors.ENDC)
 
-    ## SetEchoLevel : Function to set the echo_level of the   extrapolator
+    ## SetEchoLevel : Function to set the echo_level of the   predictor
     #
     #  @param self            The object pointer.
     #  @param level           int : echo level to be set
     def SetEchoLevel(self, level):
         self.echo_level = level
 
-    ## Check : Function to Check the setup of the   extrapolator
+    ## Check : Function to Check the setup of the   predictor
     #
     #  @param self            The object pointer.
     def Check(self):
         raise NotImplementedError(tools.bcolors.FAIL + "CoSimulationBasePredictor : Calling Check function !" + tools.bcolors.ENDC)
 
-    ## _Name : Function to get the name of the   extrapolator
+    ## _Name : Function to get the name of the   predictor
     #
     #  @param self            The object pointer.
     def _Name(self):
