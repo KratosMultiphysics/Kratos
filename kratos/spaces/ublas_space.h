@@ -663,7 +663,7 @@ class UblasSpace
   {
     const int index_size = static_cast<int>(IndexArray.size());
 
-    DataType* values = new DataType(index_size);
+    DataType* values = new DataType[index_size];
     GatherValues(rDx, IndexArray, values);
 
 #pragma omp parallel for
@@ -679,7 +679,7 @@ class UblasSpace
   {
     const int index_size = static_cast<int>(IndexArray.size());
 
-    DataType* values = new DataType(index_size);
+    DataType* values = new DataType[index_size];
     GatherValues(rDx, IndexArray, values);
 
 #pragma omp parallel for
