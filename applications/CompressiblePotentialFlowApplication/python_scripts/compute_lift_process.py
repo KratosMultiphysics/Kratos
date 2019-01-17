@@ -27,22 +27,25 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.problem_name=settings["problem_name"].GetString()
         self.upper_surface_model_part =Model.GetModelPart(settings["upper_surface_model_part_name"].GetString()) 
         self.lower_surface_model_part =Model.GetModelPart(settings["lower_surface_model_part_name"].GetString())
+        for cond in itertools.chain(self.upper_surface_model_part.Conditions, self.lower_surface_model_part.Conditions):
+            cond.Set(KratosMultiphysics.SOLID)
         self.fluid_model_part=self.upper_surface_model_part.GetRootModelPart()
         self.velocity_infinity = [0,0,0]
         self.velocity_infinity[0] = settings["velocity_infinity"][0].GetDouble()
         self.velocity_infinity[1] = settings["velocity_infinity"][1].GetDouble()
         self.velocity_infinity[2] = settings["velocity_infinity"][2].GetDouble()
         self.reference_area =  settings["reference_area"].GetDouble()
-        
+        self.result_force=KratosMultiphysics.Vector(3)  
         NormalUpper=KratosMultiphysics.NormalCalculationUtils()
         NormalUpper.CalculateOnSimplex(self.upper_surface_model_part,2)
         NormalLower=KratosMultiphysics.NormalCalculationUtils()
         NormalLower.CalculateOnSimplex(self.lower_surface_model_part,2)
+        # self.process=KratosMultiphysics.CompressiblePotentialFlowApplication.ComputeLiftProcess(self.fluid_model_part,self.result_force)
 
 
     def ExecuteFinalizeSolutionStep(self):
         print('COMPUTE LIFT')
-
+        # self.process.Execute()
         rx = 0.0
         ry = 0.0
         rz = 0.0
@@ -90,11 +93,10 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         print('Cl = ', Cl)
         print('Cd = ', Cd)
         print('Mach = ', self.velocity_infinity[0]/340)
-        error=(0.6033-Cl)/0.6033*100
-        print(error)
-        self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,error)
+
+        self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
         plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
-        title="Cl: %.5f, Cd: %.5f, Error: %.5f" % (Cl,Cd,error)
+        title="Cl: %.5f, Cd: %.5f" % (Cl,Cd)
         plt.title(title)
         plt.gca().invert_yaxis()
         plt.savefig(self.problem_name+'.png', bbox_inches='tight')

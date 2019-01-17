@@ -48,16 +48,21 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         
         self.fluid_model_part = Model.GetModelPart(settings["fluid_part_name"].GetString()).GetRootModelPart()
         for element in self.fluid_model_part.Elements:
-            element.SetValue(KratosMultiphysics.Y1,0)
-            element.SetValue(KratosMultiphysics.Y2,0)
-
+            element.Set(KratosMultiphysics.STRUCTURE,False)
+            element.Set(KratosMultiphysics.MARKER,False)
+        for node in self.fluid_model_part.Nodes:
+            node.Set(KratosMultiphysics.STRUCTURE,False)
         self.model=Model
         self.wake_model_part_name=settings["model_part_name"].GetString()
         self.upper_surface_model_part_name=settings["upper_surface_model_part_name"].GetString()
         self.lower_surface_model_part_name=settings["lower_surface_model_part_name"].GetString()
-        self.wake_line_model_part=Model.CreateModelPart("wake")
+        if (self.fluid_model_part.HasSubModelPart("wake")):
+            self.wake_line_model_part=self.fluid_model_part.GetSubModelPart("wake")
+        else:
+            self.wake_line_model_part=self.fluid_model_part.CreateSubModelPart("wake")
         if (self.fluid_model_part.HasSubModelPart("trailing_edge_model_part")):
-            self.trailing_edge_model_part = self.fluid_model_part.GetSubModelPart("trailing_edge_model_part")
+            self.fluid_model_part.RemoveSubModelPart("trailing_edge_model_part")
+            self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         else:
             self.trailing_edge_model_part = self.fluid_model_part.CreateSubModelPart("trailing_edge_model_part")
         angle=math.radians(-self.geometry_parameter)
@@ -211,7 +216,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             gid_output.ExecuteFinalize()
                                         
         else:
-            if self.model.HasModelPart(self.wake_model_part_name):
+            # print(self.model)
+            # print(self.wake_model_part_name)
+            if self.fluid_model_part.HasSubModelPart(self.wake_model_part_name):
                 self.kutta_model_part = self.model.GetModelPart(self.wake_model_part_name)     
             else:
                 if (self.model.HasModelPart("Kutta")):
@@ -233,7 +240,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
             #mark as STRUCTURE and deactivate the elements that touch the kutta node
             for node in self.kutta_model_part.Nodes:
                 print("Wake Node:",node.Id,": (", node.X,",",node.Y,")")            
-                node.Set(KratosMultiphysics.STRUCTURE) 
+                node.Set(KratosMultiphysics.STRUCTURE,True) 
             
             
             #compute the distances of the elements of the wake, and decide which ones are wak    
@@ -251,7 +258,8 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     x0 = node.X
                     y0 = node.Y
                     for elem in self.fluid_model_part.Elements:
-                        self.MarkTrailingEdgeElements(elem)                           
+                        self.MarkTrailingEdgeElements(elem)      
+                        elem.Set(KratosMultiphysics.MARKER,False)                     
                         #check in the potentially active portion
                         potentially_active_portion = False
                         for elnode in elem.GetNodes():
@@ -298,7 +306,6 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                 counter = 0
                                 for elnode in elem.GetNodes():
                                     elnode.SetSolutionStepValue(CompressiblePotentialFlow.WAKE_DISTANCE,0,distances[counter])
-                                    elnode.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE,-1)
                                     counter+=1
                                 elem.SetValue(KratosMultiphysics.ELEMENTAL_DISTANCES,distances)
                                 
@@ -307,19 +314,22 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                                         #elem.Set(KratosMultiphysics.ACTIVE,False)
                                         #elem.Set(KratosMultiphysics.MARKER,False)
 
-                # #find element with the maximum X value
-                # max_X_center = -1e10    
-                # for element in self.trailing_edge_model_part.Elements:
-                #     center_X=element.GetGeometry().Center().X
-                #     if center_X>max_X_center:
-                #         max_id=element.Id
-                #         max_X_center=center_X
-                # #only the max element of the trailing edge is considered part of the wake. 
-                # for element in self.trailing_edge_model_part.Elements:
-                #     if not (element.Id==max_id):
-                #         element.Set(KratosMultiphysics.MARKER,False)
-                #         if len(element.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))==0:
-                #             element.Set(KratosMultiphysics.STRUCTURE,False)
+                #find element with the maximum X value
+                max_X_center = -1e10    
+                for element in self.trailing_edge_model_part.Elements:
+                    # print(element.Id)
+                    element.Set(KratosMultiphysics.INTERFACE,True)
+                    center_X=element.GetGeometry().Center().X
+                    if center_X>max_X_center:
+                        max_id=element.Id
+                        max_X_center=center_X
+                # print(max_id)
+                #only the max element of the trailing edge is considered part of the wake. 
+                for element in self.trailing_edge_model_part.Elements:
+                    if not (element.Id==max_id):
+                        element.Set(KratosMultiphysics.MARKER,False)
+                        if len(element.GetValue(KratosMultiphysics.ELEMENTAL_DISTANCES))==0:
+                            element.Set(KratosMultiphysics.STRUCTURE,False)
                     
                     
                             
