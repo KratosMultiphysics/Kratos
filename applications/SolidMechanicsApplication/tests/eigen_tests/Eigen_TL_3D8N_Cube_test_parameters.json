@@ -16,7 +16,7 @@
 		"analysis_type"      : "Linear"
             },
 	    "eigensolver_settings":{
-		"solver_type": "FEAST",
+		"solver_type": "FEAST_EigenValueSolver",
 		"print_feast_output": false,
 		"perform_stochastic_estimate": false,
 		"solve_eigenvalue_problem": true,
