@@ -8,14 +8,14 @@
 ########### Option 2- Intel Fortran + (any) C Compiler to remove the Fortran runtime library dependencies 
 #######################################################################
 
-#OPTION = 1
-OPTION = 2
+OPTION = 1
+#OPTION = 2
 
 ################################################################
 ########## Select C compiler and flags (mandatory for option #2)
 ################################################################
 CC     = gcc
-CFLAGS = -O3 -fopenmp
+CFLAGS = -O3 -fopenmp -fPIC
 
 
 ##########################################################
@@ -25,12 +25,12 @@ CFLAGS = -O3 -fopenmp
 #>>>>> Remark: three examples F1-F2-F3 (choose one or create your own)
 
 #F1- Intel Fortran Compiler (work with option 1 above; Mandatory for Option #2 above)
-F90 = ifort 
-F90FLAGS = -O3 -openmp -fpp   
+#F90 = ifort 
+#F90FLAGS = -O3 -openmp -fpp   
 
 ##F2- Gnu Fortran Compiler (work with option 1 above)
-#F90 = gfortran 
-#F90FLAGS = -O3 -m64 -openmp -ffree-line-length-none -ffixed-line-length-none -cpp 
+F90 = gfortran 
+F90FLAGS = -O3 -m64 -openmp -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC
 
 ##F3-Portland Group Fortran Compiler (work with option 1 above)
 #F90 = pgf90

@@ -325,7 +325,7 @@ class FEASTEigenValueSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceT
                    (double *)IntegrationNodes.data(),
                    (double *)IntegrationWeights.data());
 
-    char ijob = -1;
+    int ijob = -1;
     // solve the eigenvalue problem
     while (ijob != 0)
     {

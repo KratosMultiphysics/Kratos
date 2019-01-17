@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
 import KratosMultiphysics.SolversApplication as KratosSolver
 
 import monolithic_solver as BaseSolver
@@ -74,16 +73,20 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         This overrides the base class method and replaces the usual linear solver
         with an eigenvalue problem solver.
         """
-        if self.eigensolver_settings["solver_type"].GetString() == "FEAST":
+        if self.eigensolver_settings["solver_type"].GetString() == "FEAST_EigenValueSolver":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
             import new_linear_solver_factory
             linear_solver = new_linear_solver_factory.ConstructSolver(feast_system_solver_settings)
             if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
                 # default built-in feast system solver
-                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,linear_solver)
+                #linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings,linear_solver)
+                import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+                feast_system_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings,linear_solver)
+
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":
+                import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
                 feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)
-                linear_solver = ExternalSolversApplication.FEASTSolver(self.eigensolver_settings, feast_system_solver)
+                linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings,feast_system_solver)
             else:
                 raise Exception("Unsupported FEAST system solver_type: " + feast_system_solver_settings["solver_type"].GetString())
         else:
