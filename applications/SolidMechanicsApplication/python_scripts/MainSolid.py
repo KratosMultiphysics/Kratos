@@ -8,7 +8,6 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 

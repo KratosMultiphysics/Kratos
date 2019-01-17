@@ -9,7 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Check external dependencies
 try:
   import KratosMultiphysics
-  import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
+  import KratosMultiphysics.SolversApplication as SolversApplication
   missing_external_dependencies = False
   missing_application = ''
 except ImportError as e:
@@ -229,7 +229,7 @@ def SetTestSuite(suites):
     )
 
     if (missing_external_dependencies == False):
-        if( hasattr(KratosMultiphysics.ExternalSolversApplication,  "FEASTSolver") ):
+        if( hasattr(KratosMultiphysics.SolversApplication,  "FEAST_EigenValueSolver") ):
             small_suite.addTests(
                 KratosUnittest.TestLoader().loadTestsFromTestCases([
                     EigenQ4Thick2x2PlateTests,

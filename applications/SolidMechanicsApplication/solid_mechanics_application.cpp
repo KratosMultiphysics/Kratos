@@ -530,28 +530,6 @@ void KratosSolidMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
     KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
-#ifdef KRATOS_MPI
-
-    MPI_Initialized(&mpi_is_initialized);
-
-    if (mpi_is_initialized)
-    {
-      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-    }
-
-#endif
-
-    if (mpi_is_initialized)
-    {
-      if (rank == 0) KRATOS_INFO("") << banner.str();
-    }
-    else
-    {
-      KRATOS_INFO("") << banner.str();
-    }
-
-    // Register Variables (variables created in solid_mechanics_application_variables.cpp)
-
     //variables
     KRATOS_REGISTER_VARIABLE(PRESSURE_VELOCITY)
     KRATOS_REGISTER_VARIABLE(PRESSURE_ACCELERATION)
