@@ -8,31 +8,33 @@ def Factory(settings, model):
 
 
 class VtkOutputProcess(KratosMultiphysics.Process):
+
+    # IMPORTANT: when "output_control_type" is "time",
+    # then paraview will not be able to group them
+    default_parameters = KratosMultiphysics.Parameters("""{
+        "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                        : "ascii",
+        "output_precision"                   : 7,
+        "output_control_type"                : "step",
+        "output_frequency"                   : 1.0,
+        "output_sub_model_parts"             : true,
+        "folder_name"                        : "VTK_Output",
+        "save_output_files_in_folder"        : true,
+        "nodal_solution_step_data_variables" : [],
+        "nodal_data_value_variables"         : [],
+        "element_data_value_variables"       : [],
+        "condition_data_value_variables"     : []
+    }""")
+
     def __init__(self, model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
-        # IMPORTANT: when "output_control_type" is "time",
-        # then paraview will not be able to group them
-        default_parameters = KratosMultiphysics.Parameters("""{
-            "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
-            "file_format"                        : "ascii",
-            "output_precision"                   : 7,
-            "output_control_type"                : "step",
-            "output_frequency"                   : 1.0,
-            "output_sub_model_parts"             : true,
-            "folder_name"                        : "VTK_Output",
-            "save_output_files_in_folder"        : true,
-            "nodal_solution_step_data_variables" : [],
-            "nodal_data_value_variables"         : [],
-            "element_data_value_variables"       : [],
-            "condition_data_value_variables"     : []
-        }""")
 
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
 
         self.settings = settings
-        self.settings.ValidateAndAssignDefaults(default_parameters)
+        self.settings.ValidateAndAssignDefaults(self.default_parameters)
 
         if self.settings["save_output_files_in_folder"].GetBool():
             if self.model_part.GetCommunicator().MyPID() == 0:
