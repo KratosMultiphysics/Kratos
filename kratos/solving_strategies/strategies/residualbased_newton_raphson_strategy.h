@@ -247,7 +247,13 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     ~ResidualBasedNewtonRaphsonStrategy() override
     {
-        // Deallocating system vectors to avoid errors in MPI Clear calls
+        // If the linear solver has not been deallocated, clean it before
+        // deallocating mpA. This prevents a memory error with the the ML
+        // solver (which holds a reference to it).
+        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+
+        // Deallocating system vectors to avoid errors in MPI. Clear calls
         // TrilinosSpace::Clear for the vectors, which preserves the Map of
         // current vectors, performing MPI calls in the process. Due to the
         // way Python garbage collection works, this may happen after
