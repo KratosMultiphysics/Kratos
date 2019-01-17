@@ -44,7 +44,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "problem_domain_sub_model_part_list" : ["Parts_AREAS"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_DIR_BC"],
+        "processes_sub_model_part_list"      : ["rectangular_plate_structure","DISPLACEMENT_DIR_BC"],
         "linear_solver_settings"       : {
             "solver_type"         : "Super_LU"
         },
