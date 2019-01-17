@@ -114,10 +114,10 @@ class ExplicitBuilderAndSolver : public SystemBuilderAndSolver< TSparseSpace, TD
     int number_of_threads = 1;
 #endif
 
-    vector<unsigned int> node_partition;
+    DenseVector<unsigned int> node_partition;
     OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-    vector<unsigned int> element_partition;
+    DenseVector<unsigned int> element_partition;
     OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
 #pragma omp parallel
@@ -227,7 +227,7 @@ class ExplicitBuilderAndSolver : public SystemBuilderAndSolver< TSparseSpace, TD
     int number_of_threads = 1;
 #endif
 
-    vector<unsigned int> condition_partition;
+    DenseVector<unsigned int> condition_partition;
     OpenMPUtils::CreatePartition(number_of_threads, rConditions.size(), condition_partition);
 
 
@@ -268,7 +268,7 @@ class ExplicitBuilderAndSolver : public SystemBuilderAndSolver< TSparseSpace, TD
     int number_of_threads = 1;
 #endif
 
-    vector<unsigned int> element_partition;
+    DenseVector<unsigned int> element_partition;
     OpenMPUtils::CreatePartition(number_of_threads, pElements.size(), element_partition);
 
 #pragma omp parallel for
