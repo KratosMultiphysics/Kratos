@@ -839,18 +839,17 @@ void AddCustomUtilitiesToPython(
         .def("ImportGeometry", &NurbsBrepModeler::ImportGeometry)
         .def("ImportModelPart", &NurbsBrepModeler::ImportModelPart)
         .def("ExportGeometry", &NurbsBrepModeler::ExportGeometry)
-        // .def("PrintBrepNodes", &NurbsBrepModeler::PrintBrepNodes)
-        // .def("PrintEdgePolygon", &NurbsBrepModeler::PrintEdgePolygon)
-        // .def("PrintTrimmingPolygon", &NurbsBrepModeler::PrintTrimmingPolygon)
-        // .def("getTolerance", &NurbsBrepModeler::getTolerance)
         ;
     
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
         .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
+        .def("CreateElements3D", &EmbeddedIgaModeler::CreateElements3D)
         .def("CreateTessellationParameterCurve", &EmbeddedIgaModeler::CreateTessellationParameterCurve)
         .def("PrintNodesY", &EmbeddedIgaModeler::PrintNodesY)
         .def("PrintNodesX", &EmbeddedIgaModeler::PrintNodesX)
+        .def("PrintNodesY3D", &EmbeddedIgaModeler::PrintNodesY3D)
+        .def("PrintNodesX3D", &EmbeddedIgaModeler::PrintNodesX3D)
         ;
 
 }

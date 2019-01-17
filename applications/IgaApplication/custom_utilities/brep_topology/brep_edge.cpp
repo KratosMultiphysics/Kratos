@@ -33,12 +33,6 @@ namespace Kratos
         return mBrepEdgeTopologyVector[rTopologyIndex];
     }
 
-
-    const Kratos::shared_ptr<NodeCurveGeometry3D> BrepEdge::GetCurve3d() const
-    {
-        return mNodeCurveGeometry3D;
-    }
-
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
@@ -121,14 +115,7 @@ namespace Kratos
         //}
     }
 
-    // void BrepEdge::PrintNodes()
-    // {
-    //     int number_of_cps = mNodeCurveGeometry3D->NbPoles();
-    //     for (int i = 0; i < number_of_cps; ++i)
-    //     {
-    //         KRATOS_WATCH(mNodeCurveGeometry3D->GetNode(i)->Coordinates());
-    //     } 
-    // }
+
 
     void BrepEdge::GetIntegrationBrep(
         ModelPart& rModelPart,
