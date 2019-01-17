@@ -417,9 +417,8 @@ public:
         ProcessInfo process_info = rCurrentProcessInfo;
 
         Vector RHS;
-        Vector RHS_perturbated;
+        Vector RHS_perturbed;
         pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
-
 
         if (rOutput.size1() != NumNodes || rOutput.size2() != RHS.size())
             rOutput.resize(NumNodes, RHS.size(), false);
@@ -427,14 +426,55 @@ public:
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             double distance_value = GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE);
             //perturbate distance
-            GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value+delta;
+            pGetPrimalElement()->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value+delta;
             //compute perturbated RHS
-            pGetPrimalElement()->CalculateRightHandSide(RHS_perturbated, process_info);
+            pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
             //recover distance value
-            GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value;
+            pGetPrimalElement()->GetGeometry()[i_node].GetSolutionStepValue(LEVEL_SET_DISTANCE) = distance_value;
             for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++)
-                rOutput(i_node,i_dof) = -(RHS(i_dof)-RHS_perturbated(i_dof))/delta;                
+                rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;                
+        }
+        KRATOS_CATCH("")
+    }
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY;
+        const double delta = 1e-6;//this->GetPerturbationSize(rDesignVariable);
+        ProcessInfo process_info = rCurrentProcessInfo;
+
+        Vector RHS;
+        Vector RHS_perturbed;
+
+        pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
+
+        if (rOutput.size1() != NumNodes)
+            rOutput.resize(Dim*NumNodes, RHS.size(), false);
+
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            for(unsigned int coord_dir = 0; coord_dir<Dim; coord_dir++){
+                if (GetGeometry()[i_node].Is(SOLID)){
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[coord_dir] += delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[coord_dir] += delta;
+
+                    // compute LHS after perturbation
+                    pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
+
+                    //compute derivative of RHS w.r.t. design variable with finite differences
+                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                        rOutput( (coord_dir + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
+
+                    // unperturb the design variable
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[coord_dir] -= delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[coord_dir] -= delta;
+                }else{
+                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                        rOutput( (coord_dir + i_node*Dim), i) = 0.0;
+                }
             }
+        }
         KRATOS_CATCH("")
     }
     /**
