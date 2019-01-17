@@ -83,8 +83,8 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         for i in range(0,len(x_lower)):
             x_lower[i]=(x_lower[i]-min_x)/abs(max_x-min_x)
 
-        print('Cl = ', Cl)
-        print('Cd = ', Cd)
+        # print('Cl = ', Cl)
+        # print('Cd = ', Cd)
 
         self.fluid_model_part.SetValue(KratosMultiphysics.FRICTION_COEFFICIENT,Cl)
         # plt.plot(x_upper,cp_upper,'o',x_lower,cp_lower,'ro')
