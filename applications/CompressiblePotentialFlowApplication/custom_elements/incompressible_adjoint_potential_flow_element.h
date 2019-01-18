@@ -454,24 +454,24 @@ public:
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
 
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            for(unsigned int coord_dir = 0; coord_dir<Dim; coord_dir++){
-                if (GetGeometry()[i_node].Is(SOLID)){
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[coord_dir] += delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[coord_dir] += delta;
+            for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
+                if (GetGeometry()[i_node].Is(SOLID) && GetGeometry()[i_node].IsNot(STRUCTURE)){
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
                     // compute LHS after perturbation
                     pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
                     for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (coord_dir + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
+                        rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
 
                     // unperturb the design variable
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[coord_dir] -= delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[coord_dir] -= delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
                 }else{
                     for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (coord_dir + i_node*Dim), i) = 0.0;
+                        rOutput( (i_dim + i_node*Dim), i) = 0.0;
                 }
             }
         }
