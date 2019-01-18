@@ -141,9 +141,11 @@ class AleFluidSolver(PythonSolver):
             for i_name in range(mesh_motion_parts_params.size()):
                 sub_model_part_name = mesh_motion_parts_params[i_name].GetString()
                 full_model_part_name = main_model_part_name + "." + sub_model_part_name
+                sub_mesh_solver_settings = self.settings["mesh_motion_solver_settings"].Clone()
+                sub_mesh_solver_settings["model_part_name"].SetString(full_model_part_name)
 
                 self.mesh_motion_solvers.append(mesh_mothion_solvers_wrapper.CreateSolverByParameters(
-                    self.model, self.settings["mesh_motion_solver_settings"], self.parallelism))
+                    self.model, sub_mesh_solver_settings, self.parallelism))
 
         for solver in self.mesh_motion_solvers:
             solver.Initialize()
@@ -211,6 +213,12 @@ class AleFluidSolver(PythonSolver):
 
     def GetFluidSolver(self):
         return self.fluid_solver
+
+    def GetMeshMotionSolver(self):
+        if len(self.mesh_motion_solvers > 1):
+            raise Exception('More than one mesh-motion-solver \
+                exists, please use "GetMeshMotionSolvers"')
+        return self.mesh_motion_solvers[0]
 
     def GetMeshMotionSolvers(self):
         return self.mesh_motion_solvers
