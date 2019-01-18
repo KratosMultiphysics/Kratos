@@ -129,8 +129,8 @@ public:
                 IndexType elem_id = pElem.lock()->Id();
                 mrModelPart.pGetElement(elem_id,0)->GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
                 double cpressure=cp[0];
-                normal=it->GetValue(NORMAL);
-                                
+                normal=ComputeNormal(it->GetGeometry());
+
                 Cl += cpressure*normal(1);
                 Cd += cpressure*normal(0);
                 Rz += cpressure*normal(2);
@@ -242,6 +242,15 @@ private:
         Element::WeakPointer void_ptr;
         return void_ptr;
     }
+    Vector ComputeNormal(GeometryType &rGeom)
+    {
+        Vector An(3);
+        An[0] = rGeom[1].Y() - rGeom[0].Y();
+        An[1] = -(rGeom[1].X() - rGeom[0].X());
+        An[2] = 0.00;
+        return An;
+    }
+
 
 
     ///@}
