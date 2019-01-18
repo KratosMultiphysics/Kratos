@@ -60,10 +60,10 @@ laplacian_form = 2
 
 AutomaticDeltaTime = "Fixed"
 divergence_cleareance_step = 10
-Dt = 0.001
+Dt = 0.0001
 Start_time = 0.0
-max_time = 1.00
-nsteps = 100 
+max_time = 100000000.00
+nsteps = 100000000
 
 use_dt_in_stabilization = 0.10
 use_orthogonal_subscales = 0
@@ -73,8 +73,8 @@ groups_dictionary = {
         "Fluid" : 1,
                    }
 
-output_time = 0.01
-output_step = 100
+output_time = 0.001
+output_step = 100000000
 VolumeOutput = True
 
 nodal_results=["VELOCITY","PRESSURE"]

@@ -1,0 +1,372 @@
+
+ 
+initial contact angle values (in degrees):
+average_contact_angle = 75.0
+advancing_angle (maximum advancing angle in the x-direction) = 81.11663323465429
+receding_angle ( receding angle in the x-direction) =  81.11663367410577
+advancing_vel (maximum advancing vel in the x-direction) = 0.0
+receding_vel ( receding vel in the x-direction) =  0.0
+advancing_displ (maximum advancing displacement in the x-direction) = 0.0
+receding_disp ( receding displacement in the x-direction) =  0.0
+============================================================
+
+TIME 0.00030000000000000003
+ 
+ 
+max_x_angle_advanced_x = 81.116638630365
+ 
+ 
+min_x_angle_receding_x = 81.11663910017572
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0004
+ 
+ 
+max_x_angle_advanced_x = 81.11665124374322
+ 
+ 
+min_x_angle_receding_x = 81.11665184542325
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0005
+ 
+ 
+max_x_angle_advanced_x = 81.11666698173178
+ 
+ 
+min_x_angle_receding_x = 81.11666780494134
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0006000000000000001
+ 
+ 
+max_x_angle_advanced_x = 81.11668304919151
+ 
+ 
+min_x_angle_receding_x = 81.11668410611735
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0007000000000000001
+ 
+ 
+max_x_angle_advanced_x = 81.11669888569261
+ 
+ 
+min_x_angle_receding_x = 81.11670015412993
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0008000000000000001
+ 
+ 
+max_x_angle_advanced_x = 81.11671447042015
+ 
+ 
+min_x_angle_receding_x = 81.11671593330622
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0009000000000000002
+ 
+ 
+max_x_angle_advanced_x = 81.11672981320459
+ 
+ 
+min_x_angle_receding_x = 81.11673146015825
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0010000000000000002
+ 
+ 
+max_x_angle_advanced_x = 81.11674490670022
+ 
+ 
+min_x_angle_receding_x = 81.11674672891519
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0011000000000000003
+ 
+ 
+max_x_angle_advanced_x = 81.11675974136394
+ 
+ 
+min_x_angle_receding_x = 81.11676173028327
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0012000000000000003
+ 
+ 
+max_x_angle_advanced_x = 81.11677431114472
+ 
+ 
+min_x_angle_receding_x = 81.11677645864356
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0013000000000000004
+ 
+ 
+max_x_angle_advanced_x = 81.11678861318047
+ 
+ 
+min_x_angle_receding_x = 81.11679091168935
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0014000000000000004
+ 
+ 
+max_x_angle_advanced_x = 81.11680264675427
+ 
+ 
+min_x_angle_receding_x = 81.11680508919885
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0015000000000000005
+ 
+ 
+max_x_angle_advanced_x = 81.11681641262624
+ 
+ 
+min_x_angle_receding_x = 81.11681899233494
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0016000000000000005
+ 
+ 
+max_x_angle_advanced_x = 81.11682991263636
+ 
+ 
+min_x_angle_receding_x = 81.11683262326983
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0017000000000000006
+ 
+ 
+max_x_angle_advanced_x = 81.11684314943028
+ 
+ 
+min_x_angle_receding_x = 81.11684598493231
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0018000000000000006
+ 
+ 
+max_x_angle_advanced_x = 81.1168561262525
+ 
+ 
+min_x_angle_receding_x = 81.11685908081297
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0019000000000000006
+ 
+ 
+max_x_angle_advanced_x = 81.11686884678747
+ 
+ 
+min_x_angle_receding_x = 81.11687191481465
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0020000000000000005
+ 
+ 
+max_x_angle_advanced_x = 81.1168813150398
+ 
+ 
+min_x_angle_receding_x = 81.11688449113792
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0021000000000000003
+ 
+ 
+max_x_angle_advanced_x = 81.11689353524274
+ 
+ 
+min_x_angle_receding_x = 81.11689681419455
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================
+TIME 0.0022
+ 
+ 
+max_x_angle_advanced_x = 81.1169055117896
+ 
+ 
+min_x_angle_receding_x = 81.11690888854244
+ 
+ 
+max_x_vel_advanced_x = 0.0
+ 
+ 
+receding_vel = 0.0
+ 
+ 
+advancing_disp = 0.0
+receding_disp =  0.0
+===========================================

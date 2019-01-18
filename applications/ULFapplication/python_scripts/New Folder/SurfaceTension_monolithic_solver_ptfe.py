@@ -383,8 +383,8 @@ class STMonolithicSolver:
                 CalculateNodalLength().CalculateNodalLength2D(self.model_part)
 
     def cont_angle_cond(self):
-        theta_adv = 76.0
-        theta_rec = 64.0
+        theta_adv = 95.0
+        theta_rec = 75.0
         time = self.model_part.ProcessInfo.GetValue(TIME)
         dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
         ################### For sessile drop examples
@@ -397,18 +397,19 @@ class STMonolithicSolver:
             v[1] = node.GetSolutionStepValue(VELOCITY_Y)
             
             if (node.GetSolutionStepValue(IS_STRUCTURE) == 1.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
-                d[0] = 0.0
-                d[1] = 0.0
+                #d[0] = 0.0
+                #d[1] = 0.0
                 v[0] = 0.0
                 v[1] = 0.0
                 node.SetSolutionStepValue(VELOCITY_X,0, v[0])
                 node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
             if (time < 100*dt):
                 if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
-                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 75.5 or node.GetSolutionStepValue(CONTACT_ANGLE) < 74.0):
+                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108 or node.GetSolutionStepValue(CONTACT_ANGLE) < 106):
                         node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
-                        d[1] = 0.0
-                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
+                        node.Fix(DISPLACEMENT_Y)
+                        #d[1] = 0.0
+                        #node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
                         node.SetSolutionStepValue(VELOCITY_X,0, v[0])
                         v[1]=0.0
                         node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
@@ -421,13 +422,18 @@ class STMonolithicSolver:
                         node.Set(TO_ERASE,True)
             if (time >= 100*dt):
                     if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
-                        if (node.GetSolutionStepValue(CONTACT_ANGLE) > 76.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 64.0):
+                        if (node.GetSolutionStepValue(CONTACT_ANGLE) > 95 or node.GetSolutionStepValue(CONTACT_ANGLE) < 75):
                             node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
-                            d[1] = 0.0
-                            node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
+                            #d[1] = 0.0
+                            #node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
                             node.SetSolutionStepValue(VELOCITY_X,0, v[0])
                             v[1]=0.0
                             node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                            #node.Fix(VELOCITY_Y)
+                            node.Fix(DISPLACEMENT_Y)
+                            #node.Free(VELOCITY_X)
+                            #node.Free(DISPLACEMENT_X)
+                            
                         else:
                             v[0] = 0.0
                             v[1] = 0.0
@@ -435,7 +441,6 @@ class STMonolithicSolver:
                             node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
                         if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
                             node.Set(TO_ERASE,True)
-
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp): #FOR 3D!
     fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle,  zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp)

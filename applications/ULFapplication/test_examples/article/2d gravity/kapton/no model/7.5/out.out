@@ -1,0 +1,1680 @@
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-436fe8b9d7
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication... 
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication... 
+Importing    KratosMeshingApplication 
+Initializing Kratos MeshingApplication... 
+Importing    KratosULFApplication 
+Initializing Kratos ULFApplication... 
+Importing    KratosConvectionDiffusionApplication 
+ KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+       / __/ _ || || | | / /__|   |_ _| __| __|
+      | (_| (_) | .` || V /___| |) | || _|| _| 
+       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION
+ModelPartIO:   [Reading Nodes    : 213 nodes read]
+ModelPartIO:   [Reading Elements : 370 elements read] [Type: SurfaceTension2D]
+ModelPartIO:   [Total Lines Read : 1862]
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 388
+  Mesh edges: 600
+  Mesh exterior boundary edges: 36
+
+mesh generation time = 0.00075"ln367" : ln367
+el_number : 388
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.00100942
+Setup System Time: 4.263e-06
+System Matrix Resize Time: 0.00150683
+System Construction Time: 0.00255874
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0016682
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00368912
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 1; exp.ratio = 0.0001 abs = 1.1482e-05 exp.abs = 1e-06
+ PRESS.: ratio = 1; exp.ratio = 0.0001 abs = 0.613164 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169321
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00349841
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.00123698; exp.ratio = 0.0001 abs = 1.41854e-08 exp.abs = 1e-06
+ PRESS.: ratio = 6.5204e-05; exp.ratio = 0.0001 abs = 3.99797e-05 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000867"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000706649
+Setup System Time: 4.085e-06
+System Matrix Resize Time: 0.00123881
+System Construction Time: 0.00198314
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167049
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00357343
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.708038; exp.ratio = 0.0001 abs = 1.35791e-05 exp.abs = 1e-06
+ PRESS.: ratio = 0.261314; exp.ratio = 0.0001 abs = 0.140423 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167387
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351424
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.00100407; exp.ratio = 0.0001 abs = 1.92384e-08 exp.abs = 1e-06
+ PRESS.: ratio = 0.000114666; exp.ratio = 0.0001 abs = 6.16159e-05 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0016652
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351342
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 1.28135e-06; exp.ratio = 0.0001 abs = 2.4551e-11 exp.abs = 1e-06
+ PRESS.: ratio = 1.57573e-07; exp.ratio = 0.0001 abs = 8.4672e-08 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000883"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.0152203
+Setup System Time: 0.00429503
+System Matrix Resize Time: 0.00542366
+System Construction Time: 0.0249845
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00168881
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00569964
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.451052; exp.ratio = 0.0001 abs = 1.12307e-05 exp.abs = 1e-06
+ PRESS.: ratio = 0.117923; exp.ratio = 0.0001 abs = 0.0674149 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00176557
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0057695
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.000651351; exp.ratio = 0.0001 abs = 1.62091e-08 exp.abs = 1e-06
+ PRESS.: ratio = 8.26534e-05; exp.ratio = 0.0001 abs = 4.72507e-05 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000737"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.0130981
+Setup System Time: 0.00418775
+System Matrix Resize Time: 0.0188486
+System Construction Time: 0.0361925
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00647527
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0111676
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.2857; exp.ratio = 0.0001 abs = 8.47666e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.0480359; exp.ratio = 0.0001 abs = 0.0276653 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00648911
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00586719
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.000380029; exp.ratio = 0.0001 abs = 1.12722e-08 exp.abs = 1e-06
+ PRESS.: ratio = 4.25263e-05; exp.ratio = 0.0001 abs = 2.4492e-05 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.00092"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.00232111
+Setup System Time: 4.11e-06
+System Matrix Resize Time: 0.00113931
+System Construction Time: 0.00350027
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00166896
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00352887
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.18297; exp.ratio = 0.0001 abs = 6.0999e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.0239713; exp.ratio = 0.0001 abs = 0.0138875 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00170116
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00347269
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.000208952; exp.ratio = 0.0001 abs = 6.96508e-09 exp.abs = 1e-06
+ PRESS.: ratio = 1.59112e-05; exp.ratio = 0.0001 abs = 9.21802e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000906"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.00073238
+Setup System Time: 3.96e-06
+System Matrix Resize Time: 0.00113146
+System Construction Time: 0.00190231
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169475
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00356247
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.118765; exp.ratio = 0.0001 abs = 4.27254e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.0123051; exp.ratio = 0.0001 abs = 0.00715443 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00168079
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351899
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.000105461; exp.ratio = 0.0001 abs = 3.79364e-09 exp.abs = 1e-06
+ PRESS.: ratio = 9.23036e-06; exp.ratio = 0.0001 abs = 5.36673e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000897"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000725832
+Setup System Time: 4.146e-06
+System Matrix Resize Time: 0.00116
+System Construction Time: 0.00192353
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00166261
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00354027
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0789624; exp.ratio = 0.0001 abs = 2.98204e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00799517; exp.ratio = 0.0001 abs = 0.00465551 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169316
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035134
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 4.34194e-05; exp.ratio = 0.0001 abs = 1.6397e-09 exp.abs = 1e-06
+ PRESS.: ratio = 1.18543e-05; exp.ratio = 0.0001 abs = 6.90267e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000893"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000713877
+Setup System Time: 4.093e-06
+System Matrix Resize Time: 0.0011641
+System Construction Time: 0.00191462
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167085
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00355963
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0551479; exp.ratio = 0.0001 abs = 2.14608e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00753858; exp.ratio = 0.0001 abs = 0.00439141 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169345
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00354834
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 8.63196e-06; exp.ratio = 0.0001 abs = 3.35911e-10 exp.abs = 1e-06
+ PRESS.: ratio = 1.26248e-05; exp.ratio = 0.0001 abs = 7.35433e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000887"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000715484
+Setup System Time: 4.027e-06
+System Matrix Resize Time: 0.00117656
+System Construction Time: 0.00192832
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169384
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00353747
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0418317; exp.ratio = 0.0001 abs = 1.65663e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00768565; exp.ratio = 0.0001 abs = 0.00447649 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.0016913
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351576
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 1.70513e-05; exp.ratio = 0.0001 abs = 6.75277e-10 exp.abs = 1e-06
+ PRESS.: ratio = 1.1814e-05; exp.ratio = 0.0001 abs = 6.88109e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 387
+  Mesh edges: 599
+  Mesh exterior boundary edges: 37
+
+mesh generation time = 0.000889"ln367" : ln367
+el_number : 387
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000733003
+Setup System Time: 3.983e-06
+System Matrix Resize Time: 0.00116933
+System Construction Time: 0.00193869
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169174
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00354801
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0349616; exp.ratio = 0.0001 abs = 1.39736e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00753529; exp.ratio = 0.0001 abs = 0.00438733 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167836
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00352164
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 2.86067e-05; exp.ratio = 0.0001 abs = 1.14338e-09 exp.abs = 1e-06
+ PRESS.: ratio = 1.03965e-05; exp.ratio = 0.0001 abs = 6.05326e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000882"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000727406
+Setup System Time: 4.131e-06
+System Matrix Resize Time: 0.00118487
+System Construction Time: 0.00194973
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167317
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351393
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0315087; exp.ratio = 0.0001 abs = 1.26405e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00709505; exp.ratio = 0.0001 abs = 0.00412925 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00178513
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00349167
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.46927e-05; exp.ratio = 0.0001 abs = 1.39181e-09 exp.abs = 1e-06
+ PRESS.: ratio = 8.91411e-06; exp.ratio = 0.0001 abs = 5.18793e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000885"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000713647
+Setup System Time: 4.059e-06
+System Matrix Resize Time: 0.00119242
+System Construction Time: 0.00194559
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167353
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035403
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0295688; exp.ratio = 0.0001 abs = 1.18644e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00650554; exp.ratio = 0.0001 abs = 0.0037846 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167982
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00351804
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.73278e-05; exp.ratio = 0.0001 abs = 1.4978e-09 exp.abs = 1e-06
+ PRESS.: ratio = 7.5999e-06; exp.ratio = 0.0001 abs = 4.42125e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000884"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000715579
+Setup System Time: 4.158e-06
+System Matrix Resize Time: 0.00115675
+System Construction Time: 0.00190946
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00166317
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035172
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0281936; exp.ratio = 0.0001 abs = 1.12893e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00587722; exp.ratio = 0.0001 abs = 0.00341785 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00170147
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00349529
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.79189e-05; exp.ratio = 0.0001 abs = 1.51839e-09 exp.abs = 1e-06
+ PRESS.: ratio = 6.52144e-06; exp.ratio = 0.0001 abs = 3.7925e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.00088"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000716238
+Setup System Time: 3.953e-06
+System Matrix Resize Time: 0.00118778
+System Construction Time: 0.00194055
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167568
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00354472
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0270004; exp.ratio = 0.0001 abs = 1.07746e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00527595; exp.ratio = 0.0001 abs = 0.00306728 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167493
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00356074
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.73627e-05; exp.ratio = 0.0001 abs = 1.49099e-09 exp.abs = 1e-06
+ PRESS.: ratio = 5.66993e-06; exp.ratio = 0.0001 abs = 3.29633e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000881"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000714963
+Setup System Time: 4.002e-06
+System Matrix Resize Time: 0.00117332
+System Construction Time: 0.00192423
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167318
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035328
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0258678; exp.ratio = 0.0001 abs = 1.02791e-06 exp.abs = 1e-06
+ PRESS.: ratio = 0.00473435; exp.ratio = 0.0001 abs = 0.00275176 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169413
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035406
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.62163e-05; exp.ratio = 0.0001 abs = 1.43915e-09 exp.abs = 1e-06
+ PRESS.: ratio = 5.00855e-06; exp.ratio = 0.0001 abs = 2.91114e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.007143"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000715876
+Setup System Time: 4.197e-06
+System Matrix Resize Time: 0.00117633
+System Construction Time: 0.00192978
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00166117
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00369456
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.024775; exp.ratio = 0.0001 abs = 9.79928e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.00426404; exp.ratio = 0.0001 abs = 0.00247797 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00430971
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0115172
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.48169e-05; exp.ratio = 0.0001 abs = 1.37714e-09 exp.abs = 1e-06
+ PRESS.: ratio = 4.49607e-06; exp.ratio = 0.0001 abs = 2.61281e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.00073"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.0130725
+Setup System Time: 0.00417913
+System Matrix Resize Time: 0.0188833
+System Construction Time: 0.0362056
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00645366
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.010961
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0237321; exp.ratio = 0.0001 abs = 9.34163e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.00386478; exp.ratio = 0.0001 abs = 0.00224565 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00645214
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00971873
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.33608e-05; exp.ratio = 0.0001 abs = 1.3132e-09 exp.abs = 1e-06
+ PRESS.: ratio = 4.09645e-06; exp.ratio = 0.0001 abs = 2.38025e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000868"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000745671
+Setup System Time: 4.379e-06
+System Matrix Resize Time: 0.00139127
+System Construction Time: 0.00217938
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00168017
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00356116
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.022753; exp.ratio = 0.0001 abs = 8.91285e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.0035303; exp.ratio = 0.0001 abs = 0.0020511 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00170477
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00366245
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.19552e-05; exp.ratio = 0.0001 abs = 1.25177e-09 exp.abs = 1e-06
+ PRESS.: ratio = 3.78129e-06; exp.ratio = 0.0001 abs = 2.19692e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000884"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000750352
+Setup System Time: 4.068e-06
+System Matrix Resize Time: 0.00106301
+System Construction Time: 0.00185277
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00167268
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00356386
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0218471; exp.ratio = 0.0001 abs = 8.51692e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.0032519; exp.ratio = 0.0001 abs = 0.00188923 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00170037
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.0035502
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 3.06527e-05; exp.ratio = 0.0001 abs = 1.19499e-09 exp.abs = 1e-06
+ PRESS.: ratio = 3.52934e-06; exp.ratio = 0.0001 abs = 2.05041e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.002769"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000732851
+Setup System Time: 4.133e-06
+System Matrix Resize Time: 0.0013722
+System Construction Time: 0.00214742
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00169719
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00361758
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0210175; exp.ratio = 0.0001 abs = 8.15502e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.00302049; exp.ratio = 0.0001 abs = 0.00175471 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00168986
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00360454
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 2.9473e-05; exp.ratio = 0.0001 abs = 1.1436e-09 exp.abs = 1e-06
+ PRESS.: ratio = 3.325e-06; exp.ratio = 0.0001 abs = 1.93162e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.000881"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine
+Setup Dofs Time: 0.000741104
+Setup System Time: 4.048e-06
+System Matrix Resize Time: 0.00104055
+System Construction Time: 0.00182072
+ MESH MOVED 
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00173506
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00361001
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 0.0202628; exp.ratio = 0.0001 abs = 7.8262e-07 exp.abs = 1e-06
+ PRESS.: ratio = 0.0028276; exp.ratio = 0.0001 abs = 0.00164262 exp.abs = 1e-06
+ResidualBasedBlockBuilderAndSolver: Build time: 0.00251728
+ResidualBasedBlockBuilderAndSolver: System solve time: 0.00356123
+ MESH MOVED 
+CONVERGENCE CHECK:
+ VELOC.: ratio = 2.84174e-05; exp.ratio = 0.0001 abs = 1.09759e-09 exp.abs = 1e-06
+ PRESS.: ratio = 3.15686e-06; exp.ratio = 0.0001 abs = 1.8339e-06 exp.abs = 1e-06
+*** CONVERGENCE IS ACHIEVED ***
+BuilderAndSolver: Clear Function called
+"Trigen Droplet Refining Mesher" : Trigen Droplet Refining Mesher
+"Number of nodes after erasing" : Number of nodes after erasing
+ThisModelPart.Nodes().size() : 213
+Constructing Delaunay triangulation by divide-and-conquer method.
+Delaunay milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing edges.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+
+  Mesh vertices: 213
+  Mesh triangles: 391
+  Mesh edges: 603
+  Mesh exterior boundary edges: 33
+
+mesh generation time = 0.006217"ln367" : ln367
+el_number : 391
+"ln420" : ln420
+Reconstructing mesh.
+Mesh reconstruction milliseconds:  0
+Adding Steiner points to enforce quality.
+Quality milliseconds:  0
+
+Writing vertices.
+Writing triangles.
+Writing neighbors.
+
+Output milliseconds:  0
+Total running milliseconds:  0
+
+Statistics:
+
+  Input vertices: 213
+  Input triangles: 370
+
+  Mesh vertices: 213
+  Mesh triangles: 370
+  Mesh edges: 582
+  Mesh exterior boundary edges: 54
+  Mesh interior boundary edges: 0
+  Mesh subsegments (constrained edges): 54
+
+"Adaptive remeshing executed" : Adaptive remeshing executed
+"ln449" : ln449
+During refinement we added 0 nodes 
+"ln749" : ln749
+"ln752" : ln752
+"ln754" : ln754
+"Finished remeshing with Trigen_Droplet_Refine" : Finished remeshing with Trigen_Droplet_Refine

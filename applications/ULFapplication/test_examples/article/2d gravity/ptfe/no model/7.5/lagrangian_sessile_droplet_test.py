@@ -203,7 +203,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 
-input_file_name = "ptfe-2d1X1-7.5-6e-5"
+input_file_name = "ptfe-2d-75mm-00075"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -241,7 +241,7 @@ surface_temp = 291.2
 gamma = 0.07275*(1.0-0.00212*(surface_temp-293.15))
 #contact_angle = 360.0 	#contact angle [deg]
 
-contact_angle = 75.0	#contact angle [deg]
+contact_angle = 108.0	#contact angle [deg]
 
 zeta_dissapative_JM_x = 0.0
 zeta_dissapative_BM_x = 0.0
@@ -347,7 +347,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
         lag_solver.Solve()
-        OutputResults(lagrangian_model_part,False)
+        #OutputResults(lagrangian_model_part,False)
       
     if(step >= 100):
         for node in lagrangian_model_part.Nodes:
@@ -356,7 +356,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
         const = 0.5
-        wight_force = (1.0/const)*time + 1.0
+        wight_force = (3.0)*time + 1.0
         if (wight_force > 9.8):
             wight_force =9.8
         for node in lagrangian_model_part.Nodes:

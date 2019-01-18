@@ -263,6 +263,44 @@ public:
 			}
 		      
 		    }
+		    
+		    
+                    if (n_struct==ic->GetGeometry().size())
+		    {
+			double x0=ic->GetGeometry()[0].X();
+			double y0=ic->GetGeometry()[0].Y();
+			double x1=ic->GetGeometry()[1].X();
+			double y1=ic->GetGeometry()[1].Y();
+			double edge02=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////
+			double nodal_h=ic->GetGeometry()[0].FastGetSolutionStepValue(NODAL_H);
+			nodal_h+=ic->GetGeometry()[1].FastGetSolutionStepValue(NODAL_H);
+			nodal_h*=0.5;
+			//if the edge of the segment (condition) is too long, we split it into two by adding a node in the middle
+				
+			Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+			
+			
+			double factor2=0.85;			
+			if (edge02<nodal_h*factor2 && ( ic->GetGeometry()[0].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
+			{
+                            ic->GetGeometry()[0].Set(TO_ERASE,true);
+			}
+                        if (edge02<nodal_h*factor2 && ( ic->GetGeometry()[1].FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
+			{
+                            ic->GetGeometry()[1].Set(TO_ERASE,true);
+			}
+		      
+		    }
+		    
+		    
+		    
+		    
+		    
+		    
+		    
+		    
 		}
 	    }
 	

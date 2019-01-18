@@ -387,60 +387,163 @@ class STMonolithicSolver:
         theta_rec = 75.0
         time = self.model_part.ProcessInfo.GetValue(TIME)
         dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-        ################### For sessile drop examples
         for node in self.model_part.Nodes:
-            d = Vector(2)
-            d[0] = node.GetSolutionStepValue(DISPLACEMENT_X)
-            d[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
-            v = Vector(2)
-            v[0] = node.GetSolutionStepValue(VELOCITY_X)
-            v[1] = node.GetSolutionStepValue(VELOCITY_Y)
-            
-            if (node.GetSolutionStepValue(IS_STRUCTURE) == 1.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
-                #d[0] = 0.0
-                #d[1] = 0.0
-                v[0] = 0.0
-                v[1] = 0.0
-                node.SetSolutionStepValue(VELOCITY_X,0, v[0])
-                node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+            if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) != 1.0):
+                vc = Vector(2)
+                vc[0] = node.GetSolutionStepValue(VELOCITY_X)
+                vc[1] = node.GetSolutionStepValue(VELOCITY_Y)
+                vc[0] = 0.0
+                vc[1] = 0.0
+                node.SetSolutionStepValue(VELOCITY_X,0, vc[0])
+                node.SetSolutionStepValue(VELOCITY_Y,0, vc[1])
+                node.Fix(VELOCITY_X)
+                node.Fix(VELOCITY_Y)
+                a = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                a = 0.0
+                node.SetSolutionStepValue(DISPLACEMENT_Y,0,a)
             if (time < 100*dt):
                 if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
-                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108 or node.GetSolutionStepValue(CONTACT_ANGLE) < 106):
-                        node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
-                        node.Fix(DISPLACEMENT_Y)
-                        #d[1] = 0.0
-                        #node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
-                        node.SetSolutionStepValue(VELOCITY_X,0, v[0])
-                        v[1]=0.0
-                        node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                    dtp = Vector(2)
+                    dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                    vtp = Vector(2)
+                    vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
+                    vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
+                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 106.0):
+                        dtp[1] = 0.0
+                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
+                        vtp[1]=0.0
+                        node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
                     else:
-                        v[0] = 0.0
-                        v[1] = 0.0
-                        node.SetSolutionStepValue(VELOCITY_X,0, v[0])
-                        node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                        vtp[0] = 0.0
+                        vtp[1] = 0.0
+                        node.SetSolutionStepValue(VELOCITY_X,0, vtp[0])
+                        node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
+                        dtp[1] = 0.0
+                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
                     if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
                         node.Set(TO_ERASE,True)
             if (time >= 100*dt):
-                    if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
-                        if (node.GetSolutionStepValue(CONTACT_ANGLE) > 95 or node.GetSolutionStepValue(CONTACT_ANGLE) < 75):
-                            node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
+                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) < 95.0 and node.GetSolutionStepValue(CONTACT_ANGLE) > 75.0)):
+                        dtp = Vector(2)
+                        dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                        vtp = Vector(2)
+                        vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
+                        vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
+                        vtp[0] = 0.0
+                        vtp[1] = 0.0
+                        node.SetSolutionStepValue(VELOCITY_X,0, vtp[0])
+                        node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
+                        dtp[1]=0.0
+                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
+                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) > 95.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 75.0)):
+                        dtp = Vector(2)
+                        dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                        vtp = Vector(2)
+                        vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
+                        vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
+                        dtp[1] = 0.0
+                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
+                        vtp[1]=0.0
+                        node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
+        #time = self.model_part.ProcessInfo.GetValue(TIME)
+        #dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
+        #################### For sessile drop examples
+        #for node in self.model_part.Nodes:
+            #d = Vector(2)
+            #d[0] = node.GetSolutionStepValue(DISPLACEMENT_X)
+            #d[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
+            #v = Vector(2)
+            #v[0] = node.GetSolutionStepValue(VELOCITY_X)
+            #v[1] = node.GetSolutionStepValue(VELOCITY_Y)
+            #if (node.GetSolutionStepValue(IS_STRUCTURE) == 1.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
+                #v[0] = 0.0
+                #v[1] = 0.0
+                #node.SetSolutionStepValue(VELOCITY_X,0, v[0])
+                #node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                #node.Fix(VELOCITY_X)
+                #node.Fix(VELOCITY_Y)
+            #if (time < 100*dt):
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
+                    #if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108 or node.GetSolutionStepValue(CONTACT_ANGLE) < 106):
+                        #node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
+                        #d[1] = 0.0
+                        #node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
+                        #node.SetSolutionStepValue(VELOCITY_X,0, v[0])
+                        #v[1]=0.0
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                    #else:
+                        #v[0] = 0.0
+                        #v[1] = 0.0
+                        #node.SetSolutionStepValue(VELOCITY_X,0, v[0])
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                    #if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
+                        #node.Set(TO_ERASE,True)
+            #if (time >= 100*dt):
+                    #if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
+                        #if (node.GetSolutionStepValue(CONTACT_ANGLE) > 95 or node.GetSolutionStepValue(CONTACT_ANGLE) < 75):
+                            #node.SetSolutionStepValue(DISPLACEMENT_X,0,d[0])
                             #d[1] = 0.0
                             #node.SetSolutionStepValue(DISPLACEMENT_Y,0,d[1])
-                            node.SetSolutionStepValue(VELOCITY_X,0, v[0])
-                            v[1]=0.0
-                            node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
-                            #node.Fix(VELOCITY_Y)
-                            node.Fix(DISPLACEMENT_Y)
+                            #node.SetSolutionStepValue(VELOCITY_X,0, v[0])
+                            #v[1]=0.0
+                            #node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
                             #node.Free(VELOCITY_X)
-                            #node.Free(DISPLACEMENT_X)
-                            
-                        else:
-                            v[0] = 0.0
-                            v[1] = 0.0
-                            node.SetSolutionStepValue(VELOCITY_X,0, v[0])
-                            node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
-                        if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
-                            node.Set(TO_ERASE,True)
+                            #node.Free(VELOCITY_Y)
+                        #else:
+                            #v[0] = 0.0
+                            #v[1] = 0.0
+                            #node.SetSolutionStepValue(VELOCITY_X,0, v[0])
+                            #node.SetSolutionStepValue(VELOCITY_Y,0, v[1])
+                            #node.Fix(VELOCITY_X)
+                            #node.Fix(VELOCITY_Y)
+                        #if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
+                            #node.Set(TO_ERASE,True)
+
+                #x_min = min(node.X for node in self.model_part.Nodes)
+                #x_max = max(node.X for node in self.model_part.Nodes)
+            #if(time<0.05):
+                #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)	
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
+                    #dty = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
+                    #dty = 0.0
+                    #node.SetSolutionStepValue(DISPLACEMENT_Y,0,dty)
+                    #vty = node.GetSolutionStepValue(VELOCITY_Y,0)
+                    #vty = 0.0
+                    #node.SetSolutionStepValue(VELOCITY_Y,0,vty)
+                    #if (node.GetSolutionStepValue(CONTACT_ANGLE,0) > 74.5 and node.GetSolutionStepValue(CONTACT_ANGLE,0) < 76.0):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0)
+            #else:
+                #if (node.GetSolutionStepValue(IS_STRUCTURE) != 0.0 and node.GetSolutionStepValue(TRIPLE_POINT) == 0.0):
+                    #node.SetSolutionStepValue(VELOCITY_X,0, 0.0)
+                    #node.SetSolutionStepValue(VELOCITY_Y,0, 0.0)
+                    #node.Fix(VELOCITY_X)
+                    #node.Fix(VELOCITY_Y)	
+                #if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
+                    #dty = node.GetSolutionStepValue(DISPLACEMENT_Y,0)
+                    #dty = 0.0
+                    #node.SetSolutionStepValue(DISPLACEMENT_Y,0,dty)
+                    #vty = node.GetSolutionStepValue(VELOCITY_Y,0)
+                    #vty = 0.0
+                    #node.SetSolutionStepValue(VELOCITY_Y,0,vty)
+                    #if (node.X > (x_min) and node.GetSolutionStepValue(CONTACT_ANGLE,0) < 76.0):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0)
+                    #if (node.X < (x_max) and node.GetSolutionStepValue(CONTACT_ANGLE,0) > 76.0):
+                        #node.Free(VELOCITY_X)
+                        #node.Free(VELOCITY_Y)
+                    #if (node.X < (x_max) and node.GetSolutionStepValue(CONTACT_ANGLE,0) > 64.0):
+                        #node.SetSolutionStepValue(VELOCITY_X,0, 0)
+                        #node.SetSolutionStepValue(VELOCITY_Y,0, 0)
+                    #if (node.X < (x_max) and node.GetSolutionStepValue(CONTACT_ANGLE,0) < 64.0):
+                        #node.Free(VELOCITY_X)
+                        #node.Free(VELOCITY_Y)
+                    #if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
+                        #node.Set(TO_ERASE,True)
 
 def CreateSolver(model_part, config, eul_model_part, gamma, contact_angle, zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp): #FOR 3D!
     fluid_solver = STMonolithicSolver(model_part, config.domain_size, eul_model_part, gamma, contact_angle,  zeta_dissapative_JM_x, zeta_dissapative_BM_x, zeta_dissapative_SM_x, zeta_dissapative_JM_y, zeta_dissapative_BM_y, zeta_dissapative_SM_y, surface_temp)

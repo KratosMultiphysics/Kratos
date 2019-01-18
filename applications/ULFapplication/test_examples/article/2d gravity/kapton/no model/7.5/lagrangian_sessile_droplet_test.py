@@ -203,7 +203,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 
-input_file_name = "kapton-2D-1X1-75-6e-5"
+input_file_name = "kapton-2D-75mm-00075"
 
 gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 
@@ -347,7 +347,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
         lag_solver.Solve()
-        OutputResults(lagrangian_model_part,False)
+        OutputResults(lagrangian_model_part,True)
       
     if(step >= 100):
         for node in lagrangian_model_part.Nodes:
@@ -355,8 +355,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-        const = 0.5
-        wight_force = (1.0/const)*time + 1.0
+        wight_force = (3.0)*time + 1.0
         if (wight_force > 9.8):
             wight_force =9.8
         for node in lagrangian_model_part.Nodes:
@@ -398,6 +397,8 @@ while(time <= final_time):
         gid_io.WriteNodalResults(VELOCITY,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(BODY_FORCE,lagrangian_model_part.Nodes,time,0)
         gid_io.WriteNodalResults(TEMPERATURE,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NODAL_H,lagrangian_model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(NODAL_LENGTH,lagrangian_model_part.Nodes,time,0)
         
         gid_io.Flush()
         gid_io.FinalizeResults();
