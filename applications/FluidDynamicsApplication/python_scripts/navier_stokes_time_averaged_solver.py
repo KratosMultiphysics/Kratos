@@ -62,10 +62,10 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             "minimum_CFL"               : 1.0,
             "maximum_CFL"               : 20.0,
             "start_acceleration_time"   : 100,
-            "end_time"                  : 5000.0
+            "end_acceleration_time"     : 5000.0
             },
-            "periodic": "periodic",
-            "move_mesh_flag": false
+            "move_mesh_flag": false,
+            "use_slip_conditions": true
         }""")
 
         settings.ValidateAndAssignDefaults(default_settings)
@@ -77,7 +77,9 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.element_name = "TimeAveragedNavierStokes"
         self.condition_name = "TimeAveragedNavierStokesWallCondition"
         self.min_buffer_size = 5
-        self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
+        
+        # Get domain size
+        self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
         # There is only a single rank in OpenMP, we always print
         self._is_printing_rank = True
@@ -109,10 +111,10 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def AddDofs(self):
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_X, KratosMultiphysics.REACTION_X,              self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Y, KratosMultiphysics.REACTION_Y,              self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Z, KratosMultiphysics.REACTION_Z,              self.main_model_part)
-        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_PRESSURE,   KratosMultiphysics.REACTION_WATER_PRESSURE, self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_X,  self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Y,  self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_VELOCITY_Z,  self.main_model_part)
+        KratosMultiphysics.VariableUtils().AddDof(KratosCFD.TIME_AVERAGED_PRESSURE,    self.main_model_part)
 
         if self._IsPrintingRank():
             KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Fluid solver DOFs added correctly.")
@@ -151,8 +153,8 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
                                                                             self.settings["time_order"].GetInt())
 
-        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE],   # Domain size (2,3)
-                                                                                        self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]+1) # DOFs (3,4)
+        time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # Domain size (2,3)
+                                                                                        self.domain_size+1) # DOFs (3,4)
 
         builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
@@ -172,12 +174,15 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         (self.solver).Check()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
+        # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
+        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, 
+                                                     self.domain_size).Execute()
+        
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
 
 
     def AdvanceInTime(self, current_time):
         # dt = self._ComputeDeltaTime()
-        current_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         dt = self._compute_increased_delta_time(current_time)
         new_time = current_time + dt
 
@@ -186,7 +191,11 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
         if new_time > averaging_time_length:
+            if averaging_time_length < 10.0 * dt:
+                averaging_time_length = 10.0 * dt
+                self._set_averaging_time_length(averaging_time_length)
             print("Averaging time length set to ", averaging_time_length, ", droping previous time infomation")
+        self._check_steady_state()
 
         return new_time
 
@@ -234,25 +243,41 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
         CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
         start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
+        end_acceleration_time = self.settings["time_averaging_acceleration"]["end_acceleration_time"].GetDouble()
 
-        if ( current_time > start_acceleration_time): CFL = CFL_min + current_time / self.end_time * (CFL_max - CFL_min)
+        if ( current_time > start_acceleration_time): CFL = CFL_min + current_time / end_acceleration_time * (CFL_max - CFL_min)
         else: CFL = CFL_min
         
-        EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, CFL, dt_min, dt_max, True)
+        if(self.domain_size == 3):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, CFL, dt_min, dt_max, True)
+        elif(self.domain_size == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, CFL, dt_min, dt_max, True)
+        
         new_dt = EstimateDeltaTimeUtility.EstimateDt()
 
         print("New dt is: ", new_dt)
         return new_dt
 
 
-    def _set_averaging_time_length(self):
-        averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+    def _set_averaging_time_length(self, new_averaging_time_length=0.0):
+        if new_averaging_time_length==0.0:
+            averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+        else:
+            averaging_time_length = new_averaging_time_length
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.AVERAGING_TIME_LENGTH, averaging_time_length)
+
+
+    def _check_steady_state(self):
+        SteadyStateIndicatorUtility = KratosCFD.SteadyStateIndicatorUtility(self.computing_model_part)
+        SteadyStateIndicatorUtility.EstimateQuantityChangesInTime()
+        change_in_velocity = SteadyStateIndicatorUtility.GetVelocityChange()
+        change_in_pressure = SteadyStateIndicatorUtility.GetPressureChange()
+        print("change in velocity: " + str(change_in_velocity) + ", change in pressure", str(change_in_pressure))
 
 
     def _set_constitutive_law(self):
         ## Construct the constitutive law needed for the embedded element
-        if(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
+        if(self.domain_size == 3):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian3DLaw()
-        elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
+        elif(self.domain_size == 2):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
