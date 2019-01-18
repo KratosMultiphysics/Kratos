@@ -68,6 +68,21 @@ void RecursivelyValidateAndAssignDefaults(Parameters &rParameters, Parameters &r
     rParameters.RecursivelyValidateAndAssignDefaults(rDefaultParameters);
 }
 
+void AssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.AssignDefaults(rDefaultParameters);
+}
+
+void RecursivelyAssignDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.RecursivelyAssignDefaults(rDefaultParameters);
+}
+void ValidateDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.ValidateDefaults(rDefaultParameters);
+}
+
+void RecursivelyValidateDefaults(Parameters &rParameters, Parameters &rDefaultParameters) {
+    rParameters.RecursivelyValidateDefaults(rDefaultParameters);
+}
+
 void  AddKratosParametersToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -85,6 +100,10 @@ void  AddKratosParametersToPython(pybind11::module& m)
     .def("RemoveValue", &Parameters::RemoveValue)
     .def("ValidateAndAssignDefaults",ValidateAndAssignDefaults)
     .def("RecursivelyValidateAndAssignDefaults",RecursivelyValidateAndAssignDefaults)
+    .def("AssignDefaults",AssignDefaults)
+    .def("RecursivelyAssignDefaults",RecursivelyAssignDefaults)
+    .def("ValidateDefaults",ValidateDefaults)
+    .def("RecursivelyValidateDefaults",RecursivelyValidateDefaults)
     .def("IsEquivalentTo",&Parameters::IsEquivalentTo)
     .def("HasSameKeysAndTypeOfValuesAs",&Parameters::HasSameKeysAndTypeOfValuesAs)
     //.def("GetValue", GetValue) //Do not export this method. users shall adopt the operator [] syntax
