@@ -55,6 +55,8 @@ class PotentialAdjointSolver(PotentialSolver):
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates":
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_coordinates_global":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftGlobalCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
@@ -96,7 +98,7 @@ class PotentialAdjointSolver(PotentialSolver):
             if not (node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)==0.0):
                 print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
             gradient=node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
-            if not ((gradient[0]==0.0) and (gradient[1]==0.0)) :
+            if not ((abs(gradient[0])<1e-12) and (abs(gradient[1])<1e-12)) :
                 print(node.Id,gradient)
 
     def SolveSolutionStep(self):
