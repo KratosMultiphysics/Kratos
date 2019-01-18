@@ -9,8 +9,8 @@
 //  Main authors:    Martin Fusseder, https://github.com/MFusseder
 //
 
-#ifndef ADJOINT_LIFT_COORDINATES_RESPONSE_FUNCTION_H
-#define ADJOINT_LIFT_COORDINATES_RESPONSE_FUNCTION_H
+#ifndef ADJOINT_LIFT_GLOBAL_COORDINATES_RESPONSE_FUNCTION_H
+#define ADJOINT_LIFT_GLOBAL_COORDINATES_RESPONSE_FUNCTION_H
 
 
 // System includes
@@ -43,12 +43,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointLiftCoordinatesResponseFunction
+/** \brief AdjointLiftGlobalCoordinatesResponseFunction
 *
 * This is a response function which traces a chosen displacement or rotation of a single
 * node as response. It is designed to be used in adjoint sensitivity analysis.
 */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLiftCoordinatesResponseFunction : public AdjointStructuralResponseFunction
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointLiftGlobalCoordinatesResponseFunction : public AdjointStructuralResponseFunction
 {
 public:
     ///@name Type Definitions
@@ -57,35 +57,21 @@ public:
     typedef Element::DofsVectorType DofsVectorType;
     typedef Node<3>::Pointer PointTypePointer;
     typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
-    typedef ModelPart::ElementType ElementType;
-    typedef ModelPart::ConditionType ConditionType;
-    typedef Node < 3 > NodeType;
-    typedef Properties PropertiesType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-    typedef std::vector<std::size_t> EquationIdVectorType;
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-    typedef Element::WeakPointer ElementWeakPointerType;    
-    typedef Element::Pointer ElementPointerType;
 
     ///@}
     ///@name Pointer Definitions
-    /// Pointer definition of AdjointLiftCoordinatesResponseFunction
-    KRATOS_CLASS_POINTER_DEFINITION(AdjointLiftCoordinatesResponseFunction);
+    /// Pointer definition of AdjointLiftGlobalCoordinatesResponseFunction
+    KRATOS_CLASS_POINTER_DEFINITION(AdjointLiftGlobalCoordinatesResponseFunction);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    AdjointLiftCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
+    AdjointLiftGlobalCoordinatesResponseFunction(ModelPart& rModelPart, Parameters ResponseSettings);
 
     /// Destructor.
-    ~AdjointLiftCoordinatesResponseFunction() override;
+    ~AdjointLiftGlobalCoordinatesResponseFunction() override;
 
     ///@}
     ///@name Operators
@@ -129,25 +115,12 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
+    void ComputeInitialLift();
 
     void FinalizeSolutionStep() override;
 
     double CalculateValue(ModelPart& rModelPart) override;
 
-    void ComputeInitialLift();
-
-    Vector ComputeNormal(Geometry<Node<3>>& rGeom);
-
-    Vector ComputeNormalCondition(Geometry<Node<3>>& rGeom);
-
-    void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom);
-
-    void GetSortedIds(std::vector<IndexType> &Ids, const GeometryType &rGeom);
-
-    Element::WeakPointer FindParentElement(std::vector<IndexType> &NodeIds,
-                            std::vector<IndexType> &ElementNodeIds,
-                            WeakPointerVector<Element> ElementCandidates);
-                            
     ///@}
     ///@name Access
     ///@{
@@ -232,7 +205,7 @@ private:
 
     ///@}
 
-}; // Class AdjointLiftCoordinatesResponseFunction
+}; // Class AdjointLiftGlobalCoordinatesResponseFunction
 
 ///@}
 

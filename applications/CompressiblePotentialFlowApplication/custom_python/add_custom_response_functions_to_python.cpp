@@ -24,6 +24,7 @@
 // #include "custom_response_functions/adjoint_structural_response_function.h"
 #include "custom_response_functions/adjoint_lift_response_function.h"
 #include "custom_response_functions/adjoint_lift_response_function_coordinates.h"
+#include "custom_response_functions/adjoint_lift_response_function_coordinates_global.h"
 #include "custom_response_functions/adjoint_potential_static_scheme.h"
 #include "custom_response_functions/adjoint_postprocess.h"
 
@@ -49,6 +50,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointLiftCoordinatesResponseFunction, AdjointLiftCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLiftCoordinatesResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<AdjointLiftGlobalCoordinatesResponseFunction, AdjointLiftGlobalCoordinatesResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointLiftGlobalCoordinatesResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     py::class_<AdjointPotentialStaticSchemeType, AdjointPotentialStaticSchemeType::Pointer, BaseSchemeType>
