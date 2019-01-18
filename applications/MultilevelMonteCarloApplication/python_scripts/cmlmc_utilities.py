@@ -3,6 +3,7 @@ import numpy as np
 import KratosMultiphysics
 import time
 import copy
+from random import *
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
@@ -13,12 +14,12 @@ get_value_from_remote is the equivalent of compss_wait_on: a synchronization poi
 in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 '''
 
-
 '''
-This utility contains all the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm
+This utility contains the functions to perform the Continuation Multilevel Monte Carlo (CMLMC) algorithm
 
 References:
 [PNL17] M. Pisaroni; F. Nobile; P. Leyland : A Continuation Multi Level Monte Carlo (C-MLMC) method for uncertainty quantification in compressible inviscid aerodynamics; Computer Methods in Applied Mechanics and Engineering, vol 326, pp 20-50, 2017. DOI : 10.1016/j.cma.2017.07.030.
+[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation ;  available as MATHICSE technical report no. 23.2017
 '''
 
 
@@ -133,6 +134,47 @@ class StatisticalVariable(object):
         self.type = None
         '''number of samples of the variable'''
         self.number_samples = [0 for _ in range(number_levels+1)]
+        '''power sums S_p = \sum_{i=1}^{n} Q(sample_i)**p, organized per level'''
+        self.power_sum_1 = []
+        self.power_sum_2 = []
+        self.power_sum_3 = []
+        self.power_sum_3_absolute = [] # S_p = \sum_{i=1}^{n} abs(Q(sample_i)**p)
+        self.power_sum_4 = []
+        '''sample central moments \mu_p = \sum_{i=1}^{n} (Q(sample_i)-mean_n)**p / n, organized per level'''
+        self.sample_central_moment_1 = []
+        self.sample_central_moment_2 = []
+        self.sample_central_moment_3 = []
+        self.sample_central_moment_3_absolute = [] # \mu_p = \sum_{i=1}^{n} abs((Q(sample_i)-mean_n)**p) / n
+        self.sample_central_moment_4 = []
+        self.sample_first_central_moment_to_compute = False
+        self.sample_second_central_moment_to_compute = False
+        self.sample_third_central_moment_to_compute = False
+        self.sample_third_absolute_central_moment_to_compute = False
+        self.sample_fourth_central_moment_to_compute = False
+        '''h-statistics h_p, the unbiased central moment estimator with minimal variance, organized per level'''
+        self.h_statistics_1 = []
+        self.h_statistics_2 = []
+        self.h_statistics_3 = []
+        self.h_statistics_4 = []
+        self.h_statistics_computed = False
+        '''skewness of the variable per each level'''
+        self.skewness = []
+        '''kurtosis of the variable per each level'''
+        self.kurtosis = []
+        '''convergence criteria of the algorithm'''
+        self.convergence_criteria = None
+
+        #################################
+        # Temporarily added             #
+        self.target_tol = 1e-1          #
+        self.target_delta = 1e-4        #
+        self.batch_size = 150           #
+        self.seeds = []                 #
+        for i in range(10000000):       #
+            self.seeds.append(random()) #
+        #################################
+
+
 
 
     '''
@@ -151,6 +193,102 @@ class StatisticalVariable(object):
         self.second_moment[level] = new_M2
         self.sample_variance[level] = new_sample_variance
         self.number_samples[level] = number_samples_level
+
+    '''
+    function updating the power sums S_p
+    '''
+    def UpdatePowerSums(self,level,i_sample):
+        sample = self.values[level][i_sample]
+        old_S1 = self.power_sum_1[level]
+        old_S2 = self.power_sum_2[level]
+        old_S3 = self.power_sum_3[level]
+        old_S3_absolute = self.power_sum_3_absolute[level]
+        old_S4 = self.power_sum_4[level]
+        if i_sample == 0:
+            new_S1 = sample
+            new_S2 = sample**2
+            new_S3 = sample**3
+            new_S3_absolute = np.abs(sample**3)
+            new_S4 = sample**4
+        else:
+            new_S1 = old_S1 + sample
+            new_S2 = old_S2 + sample**2
+            new_S3 = old_S3 + sample**3
+            new_S3_absolute = old_S3_absolute + np.abs(sample**3)
+            new_S4 = old_S4 + sample**4
+        self.power_sum_1[level] = new_S1
+        self.power_sum_2[level] = new_S2
+        self.power_sum_3[level] = new_S3
+        self.power_sum_3_absolute[level] = new_S3_absolute
+        self.power_sum_4[level] = new_S4
+
+    '''
+    function updating the h statistics h_p
+    '''
+    def UpdateHStatistics(self,level):
+        number_samples_level = self.number_samples[level]
+        S1_level = self.power_sum_1[level]
+        S2_level = self.power_sum_2[level]
+        S3_level = self.power_sum_3[level]
+        S4_level = self.power_sum_4[level]
+        # if number_samples_level > self.batch_size:
+        if number_samples_level > 100:
+            self.h_statistics_computed = True
+            self.h_statistics_1[level] = 0
+            self.h_statistics_2[level] = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
+            self.h_statistics_3[level] = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
+                ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+            self.h_statistics_4[level] = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
+                (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
+                6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
+                ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+        else:
+            self.h_statistics_computed = False
+
+    '''
+    function computing the central moments (and the absolute third central moment)
+    '''
+    def UpdateSampleCentralMoments(self,level):
+        '''evaluate locally the mean and the number of samples'''
+        curr_mean = self.mean[level]
+        number_samples_level = self.number_samples[level]
+        '''initialize central moements'''
+        first_central_moment = 0.0
+        second_central_moment = 0.0
+        third_central_moment = 0.0
+        third_central_moment_absolute = 0.0
+        fourth_central_moment = 0.0
+        '''compute only the central moements we need, since it is expensive their computation at large number_samples_level'''
+        if (self.sample_first_central_moment_to_compute):
+            for i in range (0,number_samples_level):
+                first_central_moment = first_central_moment + ((self.values[level][i] - curr_mean)**1) / number_samples_level
+        if (self.sample_second_central_moment_to_compute):
+            for i in range (0,number_samples_level):
+                second_central_moment = second_central_moment + ((self.values[level][i] - curr_mean)**2) / number_samples_level
+        if (self.sample_third_central_moment_to_compute):
+            for i in range (0,number_samples_level):
+                third_central_moment = third_central_moment + ((self.values[level][i] - curr_mean)**3) / number_samples_level
+        if (self.sample_third_absolute_central_moment_to_compute):
+            for i in range (0,number_samples_level):
+                third_central_moment_absolute = third_central_moment_absolute + (np.abs(self.values[level][i] - curr_mean)**3) / number_samples_level
+        if (self.sample_fourth_central_moment_to_compute):
+            for i in range (0,number_samples_level):
+                fourth_central_moment = fourth_central_moment + ((self.values[level][i] - curr_mean)**4) / number_samples_level
+        self.sample_central_moment_1[level] = first_central_moment
+        self.sample_central_moment_2[level] = second_central_moment
+        self.sample_central_moment_3[level] = third_central_moment
+        self.sample_central_moment_3_absolute[level] = third_central_moment_absolute
+        self.sample_central_moment_4[level] = fourth_central_moment
+
+    '''
+    function computing the skewness and the kurtosis from the central moments (i.e. from the h statistics)
+    skewness = \mu_3 / \sqrt(\mu_2^3)
+    kurtosis = \mu_4 / \mu_2^2
+    '''
+    def UpdateSkewnessKurtosis(self,level):
+        if (self.h_statistics_computed):
+            self.skewness[level] = self.h_statistics_3[level] / (np.sqrt(self.h_statistics_2[level]**3))
+            self.kurtosis[level] = self.h_statistics_4[level] / (self.h_statistics_2[level]**2)
 
 
 class MultilevelMonteCarlo(object):
@@ -202,12 +340,12 @@ class MultilevelMonteCarlo(object):
         if not (self.settings.Has("initial_mesh_size")):
             print("\n ######## WARNING : initial_mesh_size parameter not set ---> using defalut value 0.5 ########\n")
         '''validate and assign default parameters'''
-        self.settings.ValidateAndAssignDefaults(default_settings)        
+        self.settings.ValidateAndAssignDefaults(default_settings)
         '''current_number_levels : number of levels of current iteration'''
         self.current_number_levels = self.settings["Lscreening"].GetInt()
         '''previous_number_levels : number of levels of previous iteration'''
         self.previous_number_levels = None
-        '''number_samples : total number of samples of current iteration'''        
+        '''number_samples : total number of samples of current iteration'''
         self.number_samples = [self.settings["number_samples_screening"].GetInt() for i in range (self.settings["Lscreening"].GetInt()+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''
         self.difference_number_samples = None
@@ -222,7 +360,7 @@ class MultilevelMonteCarlo(object):
         gamma  : exponent of the function maximizing cost
         '''
         self.rates_error = {"calpha":None, "alpha":None, "cbeta":None, "beta":None, "cgamma":None, "gamma":None}
-        '''mesh_parameters : reciprocal of minimal mesh size'''        
+        '''mesh_parameters : reciprocal of minimal mesh size'''
         self.mesh_parameters = []
         '''size_mesh : minimal mesh size'''
         self.sizes_mesh = []
