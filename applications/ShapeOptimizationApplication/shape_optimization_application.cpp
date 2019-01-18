@@ -113,10 +113,11 @@ namespace Kratos
  	{
  		// calling base class register to register Kratos components
  		KratosApplication::Register();
-        std::cout << std::endl << "     KRATOS  __| |  |   \\   _ \\ __|              " << std::endl;
-        std::cout              << "           \\__ \\ __ |  _ \\  __/ _|              " << std::endl;
-        std::cout              << "           ____/_| _|_/  _\\_|  ___| OPTIMIZATION  " << std::endl;
-        std::cout              << "Initializing KratosShapeOptimizationApplication... " << std::endl << std::endl;
+
+        KRATOS_INFO("") << "    KRATOS   __| |  |   \\   _ \\ __|\n"
+                        << "           \\__ \\ __ |  _ \\  __/ _|\n"
+                        << "           ____/_| _|_/  _\\_|  ___| OPTIMIZATION\n"
+                        << "Initializing KratosShapeOptimizationApplication..." << std::endl;
 
         // Register variables
 

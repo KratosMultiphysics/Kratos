@@ -624,6 +624,9 @@ void AddUtilitiesToPython(pybind11::module& m)
         .def("TestHexahedra3D8N", &GeometryTesterUtility::TestHexahedra3D8N)
         .def("TestHexahedra3D27N", &GeometryTesterUtility::TestHexahedra3D27N)
         .def("TestHexahedra3D20N", &GeometryTesterUtility::TestHexahedra3D20N)
+        .def("TestQuadrilateralInterface2D4N", &GeometryTesterUtility::TestQuadrilateralInterface2D4N)
+        .def("TestPrismInterface3D6N", &GeometryTesterUtility::TestPrismInterface3D6N)
+        .def("TestHexahedraInterface3D8N", &GeometryTesterUtility::TestHexahedraInterface3D8N)
         ;
 
     py::class_<CuttingUtility >(m,"CuttingUtility")

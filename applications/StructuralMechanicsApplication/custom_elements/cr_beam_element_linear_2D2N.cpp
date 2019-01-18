@@ -209,7 +209,7 @@ void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-double CrBeamElementLinear2D2N::CalculateLength() {
+double CrBeamElementLinear2D2N::CalculateLength() const {
   KRATOS_TRY;
   return this->CalculateReferenceLength();
   KRATOS_CATCH("")

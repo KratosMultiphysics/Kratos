@@ -19,16 +19,18 @@ namespace Kratos {
 KratosMetisApplication::KratosMetisApplication()
     : KratosApplication("MetisApplication") {}
 
-void KratosMetisApplication::Register() {
+void KratosMetisApplication::Register()
+{
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
     std::stringstream banner; // TODO: use Logger once mpi-logger is implemented
-    banner << "    KRATOS  __  __      _   _ \n"
-           << "           |  \\/  | ___| |_(_)___ \n"
-           << "           | |\\/| |/ _ \\ __| / __| \n"
-           << "           | |  | |  __/ |_| \\__ \\ \n"
-           << "           |_|  |_|\\___|\\__|_|___/ APPLICATION\n" << std::endl;
+    banner << "    KRATOS  __  __      _   _\n"
+           << "           |  \\/  | ___| |_(_)___\n"
+           << "           | |\\/| |/ _ \\ __| / __|\n"
+           << "           | |  | |  __/ |_| \\__ \\\n"
+           << "           |_|  |_|\\___|\\__|_|___/\n"
+           << "Initializing KratosMetisApplication..." << std::endl;
 
     int mpi_is_initialized = 0;
     int rank = -1;
@@ -39,10 +41,10 @@ void KratosMetisApplication::Register() {
     }
 
     if (mpi_is_initialized) {
-        if (rank == 0) std::cout << banner.str();
+        if (rank == 0) KRATOS_INFO("") << banner.str();
     }
     else {
-        std::cout << banner.str();
+        KRATOS_INFO("") << banner.str();
     }
 }
 
