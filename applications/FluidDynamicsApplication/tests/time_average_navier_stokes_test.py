@@ -1,7 +1,6 @@
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
-from KratosMultiphysics.FluidDynamicsApplication import TimeAveragingProcess
 
 try:
     import KratosMultiphysics.ExternalSolversApplication
