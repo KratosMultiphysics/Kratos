@@ -1252,6 +1252,9 @@ void FemDem3DElement::IntegrateStressDamageMechanics(
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(rThreshold, rDamage, 
 			rStressVector, Edge, Length, rIsDamaging);
+	} else if (yield_surface == "Elastic") {
+		this->ElasticLaw(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << "Yield Surface not defined "<< std::endl;
 	}
@@ -1534,6 +1537,24 @@ void FemDem3DElement::RankineFragileLaw(
 	}
 }
 
+void FemDem3DElement::ElasticLaw(
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &rStressVector, 
+	const int Edge, 
+	const double Length,
+	bool& rIsDamaging
+	)
+{
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double c_max = std::abs(sigma_t);
+	rDamage = 0.0;
+	if (rThreshold < tolerance) {
+		rThreshold = c_max;
+	} // 1st iteration sets threshold as c_max
+}
+
 void FemDem3DElement::CalculateExponentialDamage(
 	double& rDamage,
 	const double DamageParameter,
@@ -1567,8 +1588,18 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
-		this->SetValue(rVariable, rValues[point_number]);
+	if (rVariable == DAMAGE_ELEMENT) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mDamage = rValues[PointNumber];
+		}
+	} else if (rVariable == STRESS_THRESHOLD) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mThreshold = rValues[PointNumber];
+		}
+	} else {
+		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
+			this->SetValue(rVariable, rValues[point_number]);
+		}
 	}
 }
 

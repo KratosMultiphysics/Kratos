@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_contact_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -67,10 +66,11 @@ namespace Kratos
     //************************************************************************************
 
     void PointContactCondition::CalculateAll(
-        MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
@@ -192,7 +192,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double PointContactCondition::GetPointLoadIntegrationWeight()
+    double PointContactCondition::GetPointLoadIntegrationWeight() const
     {
         return 1.0;
     }

@@ -16,8 +16,8 @@
 
 
 // Project includes
-#include "includes/checks.h"
 #include "custom_conditions/point_moment_condition_3d.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {
@@ -152,9 +152,9 @@ namespace Kratos
     void PointMomentCondition3D::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
@@ -208,7 +208,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double PointMomentCondition3D::GetPointMomentIntegrationWeight()
+    double PointMomentCondition3D::GetPointMomentIntegrationWeight() const
     {
         return 1.0;
     }
@@ -220,7 +220,7 @@ namespace Kratos
     {
         KRATOS_CHECK_VARIABLE_KEY(ROTATION);
 
-        const auto& r_node =this->GetGeometry()[0];
+        const auto& r_node = this->GetGeometry()[0];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
 
         KRATOS_CHECK_DOF_IN_NODE(ROTATION_X, r_node);

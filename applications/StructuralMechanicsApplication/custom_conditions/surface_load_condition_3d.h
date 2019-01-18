@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
 
 namespace Kratos
@@ -152,7 +151,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -175,7 +174,7 @@ protected:
         const Vector& rN,
         const double Pressure,
         const double Weight
-        );
+        ) const;
 
     /**
      * @brief This method computes the cross product matrix
@@ -185,7 +184,7 @@ protected:
     void MakeCrossMatrix(
         BoundedMatrix<double, 3, 3>& rM,
         const array_1d<double, 3>& rU
-        );
+        ) const;
 
     /**
      * @brief This method adds the pressure contribution to the RHS
@@ -203,7 +202,7 @@ protected:
         const double Pressure,
         const double Weight,
         const ProcessInfo& rCurrentProcessInfo
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

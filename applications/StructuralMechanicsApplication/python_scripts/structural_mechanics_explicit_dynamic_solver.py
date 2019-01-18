@@ -39,9 +39,10 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
 
-
         # Construct the base solver.
         super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
+        # Lumped mass-matrix is necessary for explicit analysis
+        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):

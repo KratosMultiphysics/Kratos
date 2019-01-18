@@ -772,11 +772,11 @@ public:
     }
 
     template<class TVariableType>
-    inline DofType& GetDof(TVariableType const& rDofVariable, int pos)
+    inline const DofType& GetDof(TVariableType const& rDofVariable, int pos) const
     {
-        typename DofsContainerType::iterator it_begin = mDofs.begin();
-        typename DofsContainerType::iterator it_end = mDofs.end();
-        typename DofsContainerType::iterator it;
+        typename DofsContainerType::const_iterator it_begin = mDofs.begin();
+        typename DofsContainerType::const_iterator it_end = mDofs.end();
+        typename DofsContainerType::const_iterator it;
         //if the guess is exact return the guess
         if(pos < it_end-it_begin)
         {
@@ -801,9 +801,9 @@ public:
 
     /** returns the Dof asociated with variable  */
     template<class TVariableType>
-    inline DofType& GetDof(TVariableType const& rDofVariable)
+    inline const DofType& GetDof(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
         {
             return *it;
@@ -823,9 +823,9 @@ public:
 
     /** returns a counted pointer to the Dof asociated with variable  */
     template<class TVariableType>
-    inline typename DofType::Pointer pGetDof(TVariableType const& rDofVariable)
+    inline const typename DofType::Pointer pGetDof(TVariableType const& rDofVariable) const
     {
-        typename DofsContainerType::iterator it=mDofs.find(rDofVariable.Key());
+        typename DofsContainerType::const_iterator it=mDofs.find(rDofVariable.Key());
         if ( it!= mDofs.end() )
         {
             return *(it.base());
