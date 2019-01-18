@@ -15,6 +15,18 @@
 
 namespace Kratos
 {
+    struct DPState 
+    {
+        bool visible;
+        double weight;
+        long bestvertex;
+    };
+    
+    struct Diagonal {
+        long index1;
+        long index2;
+    };
+
     class EmbeddedIgaModeler : public NurbsBrepModeler
     {
     public:
@@ -31,11 +43,32 @@ namespace Kratos
         void CreateTessellationCurve(ANurbs::Pointer<ANurbs::CurveTessellation3D>& rTessellation); 
         void CreateTessellationParameterCurve(std::vector<array_1d<double, 3> >& rPolygon); 
         void CreateElements2D(ModelPart& rSkinModelPart);
-        void CreateElements3D(); 
+        bool CreateElements3D(const std::vector<array_1d<double,3> >& rpolygon, std::vector<Matrix>& rtriangles); 
+
+        std::vector<Matrix> Triangulate(); 
+        
+        bool IsConvex(
+            const array_1d<double, 3>& p1, const array_1d<double, 3>& p2, 
+            const array_1d<double, 3>& p3); 
+        
+        bool InCone(
+            array_1d<double, 3> &p1, array_1d<double, 3> &p2,
+            array_1d<double, 3> &p3, array_1d<double, 3> &p) ; 
+        
+        bool Intersects(
+            array_1d<double, 3>& p11, array_1d<double, 3>& p12,
+            array_1d<double, 3>& p21, array_1d<double, 3>& p22); 
+
+        double Distance(array_1d<double, 3> p1, array_1d<double, 3> p2); 
+        double GetAreaOfTriangle(const Matrix& triangle);
+
+
         std::vector<double> PrintNodesX();
         std::vector<double> PrintNodesY();
         std::vector<double> PrintNodesX3D();
         std::vector<double> PrintNodesY3D();
+        std::vector<double> TessellationX(); 
+        std::vector<double> TessellationY(); 
 
         ///@}
         ///@name Life Cycle

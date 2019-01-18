@@ -845,11 +845,14 @@ void AddCustomUtilitiesToPython(
         .def(pybind11::init<ModelPart&>())
         .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
         .def("CreateElements3D", &EmbeddedIgaModeler::CreateElements3D)
+        .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
         .def("CreateTessellationParameterCurve", &EmbeddedIgaModeler::CreateTessellationParameterCurve)
         .def("PrintNodesY", &EmbeddedIgaModeler::PrintNodesY)
         .def("PrintNodesX", &EmbeddedIgaModeler::PrintNodesX)
         .def("PrintNodesY3D", &EmbeddedIgaModeler::PrintNodesY3D)
         .def("PrintNodesX3D", &EmbeddedIgaModeler::PrintNodesX3D)
+        .def("TessellationY", &EmbeddedIgaModeler::TessellationY)
+        .def("Tessellationx", &EmbeddedIgaModeler::TessellationX)
         ;
 
 }
