@@ -160,7 +160,7 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+    Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) :
         mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
     }
@@ -180,7 +180,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    ///This function returns the "trace type" used in initializing the serializer. 
+    ///This function returns the "trace type" used in initializing the serializer.
     ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
     TraceType GetTraceType() const {return mTrace;}
 
@@ -188,7 +188,7 @@ public:
     {
         mpBuffer = pBuffer;
     }
-    
+
     template<class TDataType>
     static void* Create()
     {
@@ -822,7 +822,7 @@ public:
     }
 
     /**
-     * This function let's one introduce "pValue"  between the objects 
+     * This function let's one introduce "pValue"  between the objects
      * which are considered to be already serialized
      * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
      */
@@ -830,7 +830,7 @@ public:
     void AddToSavedPointers(const TDataType& pValue) {
         mSavedPointers.insert(pValue);
     }
-    
+
     /**
      * This function is to be used to inform the serializer that the object
      * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
@@ -1348,6 +1348,10 @@ private:
     /// Copy constructor.
     Serializer(Serializer const& rOther);
 
+    /// Making base class methods private to silence a warning
+    // (Serializer::save and ::load technically hide these two)
+    using Flags::load;
+    using Flags::save;
 
     ///@}
 
