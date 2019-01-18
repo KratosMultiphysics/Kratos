@@ -239,11 +239,27 @@ if(enable_complex16)
   )
 endif(enable_complex16)
 
-add_definitions( -DUSE_VENDOR_BLAS )
 #add_definitions( -D_LONGINT )
 add_definitions( -DAdd_ )
+add_definitions( -fPIC )
 add_definitions( -w )
 
+if(NOT BLAS_FOUND)
+  find_package(BLAS)
+endif(NOT BLAS_FOUND)
+
+if(BLAS_FOUND)
+  set(CBLAS_LIBRARIES ${BLAS_LIBRARIES})
+  add_definitions( -DUSE_VENDOR_BLAS )
+else(BLAS_FOUND)
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/CBlas.cmake")
+  set(CBLAS_LIBRARIES external_libblas)
+endif(BLAS_FOUND)
+
+message(STATUS "cblas: ${CBLAS_LIBRARIES}")
+
 add_library(external_superlu STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
-target_link_libraries(external_superlu ${BLAS_LIBRARIES} )
+
+message(STATUS "BLAS_LIBRARIES : ${CBLAS_LIBRARIES}" )
+target_link_libraries(external_superlu ${CBLAS_LIBRARIES} )
 set(SUPERLU_LIBRARIES external_superlu)

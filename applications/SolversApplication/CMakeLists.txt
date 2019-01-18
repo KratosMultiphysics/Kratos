@@ -1,8 +1,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-#set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
-#file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
-#list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
+# set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
+# file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
+# list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
 
 message("**** configuring KratosSolversApplication ****")
 
@@ -16,19 +16,19 @@ if(${INCLUDE_SUPERLU_MT} MATCHES ON)
   # compile SuperLU_MT
   set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
   include_directories(${SUPERLU_MT_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU_MT.cmake")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU_MT.cmake")
 else(${INCLUDE_SUPERLU_MT} MATCHES ON)
   # compile SuperLU 5.2
   set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2")
   include_directories(${SUPERLU_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/SuperLU.cmake")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU.cmake")
 endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
 
 # compile FEAST
 if(${INCLUDE_FEAST} MATCHES ON)
   add_definitions(-DINCLUDE_FEAST)
   set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/FEAST.cmake")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/FEAST.cmake")
 endif(${INCLUDE_FEAST} MATCHES ON)
 
 # compile PASTIX

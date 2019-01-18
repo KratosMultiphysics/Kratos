@@ -6,15 +6,6 @@ option(enable_double    "Enable double precision library" ON)
 option(enable_complex   "Enable complex precision library" ON)
 option(enable_complex16 "Enable complex16 precision library" ON)
 
-add_definitions( -DNoChange )
-add_definitions( -D__OPENMP )
-add_definitions( -DPRNTlevel=0 )
-add_definitions( -DDEBUGlevel=0 )
-add_definitions( -w )
-
-message(STATUS "****compiling cblas*****")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules/CBlas_MT.cmake")
-
 set(SUPERLU_HEADERS
   ${SUPERLU_MT_DIR}/SRC/supermatrix.h
   ${SUPERLU_MT_DIR}/SRC/slu_dcomplex.h
@@ -254,13 +245,27 @@ if(enable_double OR enable_complex16)
   set_source_files_properties(dmach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_double OR enable_complex16)
 
-message(STATUS "****compiling super_lu_mt*****")
-
-#add_definitions( -DUSE_VENDOR_BLAS )
 #add_definitions( -D_LONGINT )
+add_definitions( -DNoChange )
+add_definitions( -D__OPENMP )
+add_definitions( -DPRNTlevel=0 )
+add_definitions( -DDEBUGlevel=0 )
+add_definitions( -w )
+
+if(NOT BLAS_FOUND)
+  find_package(BLAS)
+endif(NOT BLAS_FOUND)
+
+if(BLAS_FOUND)
+  set(CBLAS_LIBRARIES ${BLAS_LIBRARIES})
+  add_definitions( -DUSE_VENDOR_BLAS )
+else(BLAS_FOUND)
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/CBlas_MT.cmake")
+  set(CBLAS_LIBRARIES external_libblas)
+endif(BLAS_FOUND)
+
+message(STATUS "cblas: ${CBLAS_LIBRARIES}")
 
 add_library(external_superlu_mt STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
-#target_link_libraries(external_superlu_mt ${BLAS_LIBRARIES})
-target_link_libraries(external_superlu_mt external_libblas_mt)
-
+target_link_libraries(external_superlu_mt ${CBLAS_LIBRARIES})
 set(SUPERLU_LIBRARIES external_superlu_mt)

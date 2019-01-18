@@ -9,12 +9,14 @@ if (OPENMP_FOUND)
 endif (OPENMP_FOUND)
 
 # disable warnings
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w")
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -fPIC")
+message(STATUS "CMAKE_Fortran_COMPILER : ${CMAKE_Fortran_COMPILER}")
+message(STATUS "CMAKE_COMPILER_IS_GNUG77 : ${CMAKE_COMPILER_IS_GNUG77}")
 
 # options for gfortran
 if(${CMAKE_COMPILER_IS_GNUG77})
-  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -w -O3 -ffree-line-length-none -ffixed-line-length-none -cpp -fPIC")
-  message(STATUS "gfortran : CMAKE_Fortran_FLAGS = ${CMAKE_Fortran_FLAGS}")
+  set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -O3 -m64 -ffree-line-length-none -ffixed-line-length-none -cpp")
+  message(STATUS "CMAKE_Fortran_FLAGS = ${CMAKE_Fortran_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUG77})
 
 # enable_language (Fortran)
@@ -27,16 +29,20 @@ set( CODE90 ${FEAST_DIR}/src/kernel/feast_tools.f90
 
 
 # set( CODE90_banded ${FEAST_DIR}/src/banded/dzfeast_banded.f90
-#                     ${FEAST_DIR}/src/banded/scfeast_banded.f90  )
-#
+#                     ${FEAST_DIR}/src/banded/scfeast_banded.f90 )
 # set( CODE90_dense ${FEAST_DIR}/src/dense/dzfeast_dense.f90
-#                     ${FEAST_DIR}/src/dense/scfeast_dense.f90  )
-
-set( CODE90_sparse ${FEAST_DIR}/src/sparse/dzfeast_sparse.f90
-                    ${FEAST_DIR}/src/sparse/scfeast_sparse.f90  )
+#                     ${FEAST_DIR}/src/dense/scfeast_dense.f90 )
+#set( CODE90_sparse ${FEAST_DIR}/src/sparse/dzfeast_sparse.f90
+#                    ${FEAST_DIR}/src/sparse/scfeast_sparse.f90 )
 
 
 ###############################################################
+
+if(NOT BLAS_FOUND)
+  find_package(BLAS)
+endif(NOT BLAS_FOUND)
+
+message(STATUS "blas: ${BLAS_LIBRARIES}")
 
 add_library( external_feast STATIC ${CODE90_functions_wrapper} ${CODE90} )
 target_link_libraries(external_feast ${BLAS_LIBRARIES} )
@@ -50,6 +56,4 @@ target_link_libraries(external_feast ${BLAS_LIBRARIES} )
 # add_library( external_feast_sparse STATIC ${CODE90_sparse} )
 # target_link_libraries(external_feast_sparse ${BLAS_LIBRARIES} )
 
-#set(FEAST_LIBRARIES external_feast ${LAPACK_LIBRARIES} gfortran m)
-#set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
-set(FEAST_LIBRARIES external_feast ${LAPACK_LIBRARIES} m)
+set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
