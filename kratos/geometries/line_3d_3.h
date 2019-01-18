@@ -954,10 +954,12 @@ private:
 
         for ( unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++ )
         {
-            double e = IntegrationPoints[it_gp].X();
-            DN_De[it_gp]( 0, 0 ) = e - 0.5;
-            DN_De[it_gp]( 2, 0 ) = -2.0 * e;
-            DN_De[it_gp]( 1, 0 ) = e + 0.5;
+            Matrix aux_mat = ZeroMatrix(3,1);
+            const double e = IntegrationPoints[it_gp].X();
+            aux_mat(0,0) = e - 0.5;
+            aux_mat(2,0) = -2.0 * e;
+            aux_mat(1,0) = e + 0.5;
+            DN_De[it_gp] = aux_mat;
         }
 
         return DN_De;

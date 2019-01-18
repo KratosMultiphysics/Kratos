@@ -15,11 +15,12 @@
 // External includes
 
 // Project includes
+#include "containers/model.h"
+#include "utilities/geometrical_projection_utilities.h"
+#include "utilities/variable_utils.h"
 #include "custom_processes/nodal_values_interpolation_process.h"
 #include "processes/find_nodal_h_process.h"
 #include "processes/skin_detection_process.h"
-#include "utilities/geometrical_projection_utilities.h"
-#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -65,7 +66,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     // Iterate in the nodes
     NodesArrayType& nodes_array = mrDestinationMainModelPart.Nodes();
-    const SizeType num_nodes = nodes_array.end() - nodes_array.begin();
+    const SizeType num_nodes = nodes_array.size();
 
     if (mThisParameters["interpolate_non_historical"].GetBool())
         GetListNonHistoricalVariables();
@@ -75,13 +76,10 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 
     std::vector<NodeType::Pointer> to_extrapolate_nodes; // In this vector we will store the nodes to be extrapolated
 
-    // Creating a buffer for parallel vector fill
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    std::vector<std::vector<NodeType::Pointer>> to_extrapolate_nodes_buffer(num_threads);
-
     #pragma omp parallel
     {
-        const int thread_id = OpenMPUtils::ThisThread();
+        // Creating a buffer for parallel vector fill
+        std::vector<NodeType::Pointer> to_extrapolate_nodes_buffer;
 
         /* Nodes */
         #pragma omp for firstprivate(point_locator)
@@ -95,7 +93,7 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
             const bool is_found = point_locator.FindPointOnMeshSimplified(coordinates, shape_functions, p_element, mThisParameters["max_number_of_searchs"].GetInt(), 5.0e-2);
 
             if (!is_found) {
-                if (extrapolate_values) to_extrapolate_nodes_buffer[thread_id].push_back(*(it_node.base()));
+                if (extrapolate_values) to_extrapolate_nodes_buffer.push_back(*(it_node.base()));
                 if (mThisParameters["echo_level"].GetInt() > 0 || ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN) { // NOTE: In the case we are in a Lagrangian framework this is serious and should print a message
                     KRATOS_WARNING_IF("NodalValuesInterpolationProcess", !extrapolate_values) << "WARNING: Node "<< it_node->Id() << " not found (interpolation not posible)" << "\n\t X:"<< it_node->X() << "\t Y:"<< it_node->Y() << "\t Z:"<< it_node->Z() << std::endl;
                     KRATOS_WARNING_IF("NodalValuesInterpolationProcess", ConvertFramework(mThisParameters["framework"].GetString()) == FrameworkEulerLagrange::LAGRANGIAN && !extrapolate_values ) << "WARNING: YOU ARE IN A LAGRANGIAN FRAMEWORK THIS IS DANGEROUS" << std::endl;
@@ -109,10 +107,9 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
         }
 
         // Combine buffers together
-        #pragma omp single
+        #pragma omp critical
         {
-            for( auto& buffer : to_extrapolate_nodes_buffer)
-                std::move(buffer.begin(),buffer.end(),back_inserter(to_extrapolate_nodes));
+            std::move(to_extrapolate_nodes_buffer.begin(),to_extrapolate_nodes_buffer.end(),back_inserter(to_extrapolate_nodes));
         }
     }
 
@@ -130,37 +127,22 @@ void NodalValuesInterpolationProcess<TDim>::Execute()
 template<SizeType TDim>
 void NodalValuesInterpolationProcess<TDim>::GetListNonHistoricalVariables()
 {
+    // Getting the Model
+    Model& r_model = mrOriginMainModelPart.GetModel();
+
+    // Getting the list of model parts
+    std::vector<std::string> model_part_names = mrOriginMainModelPart.GetSubModelPartNames();
+    model_part_names.push_back(mrOriginMainModelPart.Name());
+
     // We iterate over the model parts (in order to have the most extended possible list of variables)
-    for (auto& submodel : mrOriginMainModelPart.SubModelParts()) {
-        auto it_node = submodel.Nodes().begin();
+    for (auto& model_part_name : model_part_names) {
+        ModelPart& r_sub_model_part = r_model.GetModelPart(model_part_name);
+        if (r_sub_model_part.Nodes().size() > 0) {
+            auto it_node = r_sub_model_part.Nodes().begin();
 
-        const auto& double_components = KratosComponents<Variable<double>>::GetComponents();
-
-        for (auto& comp : double_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListDoublesVariables.insert(*(comp.second));
-            }
-        }
-        const auto& array_components = KratosComponents<Variable<array_1d<double, 3>>>::GetComponents();
-
-        for (auto& comp : array_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListArraysVariables.insert(*(comp.second));
-            }
-        }
-        const auto& vector_components = KratosComponents<Variable<Vector>>::GetComponents();
-
-        for (auto& comp : vector_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListVectorVariables.insert(*(comp.second));
-            }
-        }
-        const auto& matrix_components = KratosComponents<Variable<Matrix>>::GetComponents();
-
-        for (auto& comp : matrix_components) {
-            if (it_node->Has(*(comp.second))) {
-                mListMatrixVariables.insert(*(comp.second));
-            }
+            auto& data = it_node->Data();
+            for(auto i = data.begin() ; i != data.end() ; ++i)
+                mListVariables.insert((i->first)->Name());
         }
     }
 }

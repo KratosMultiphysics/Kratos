@@ -52,14 +52,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_MORTON_PARTITIONING_PROCESS_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <list>
+
 
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
 
 namespace Kratos

@@ -94,10 +94,10 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
 {
     KRATOS_TRY
     // std::cout<<" MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
-    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& MasterElement = *GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
     int  slave=-1;
@@ -216,9 +216,9 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
     //from the previous configuration
 
-    // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
+    // Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
 
-    Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
+    Condition* MasterCondition = GetValue(MASTER_CONDITION);
 
 
     //Get previous mechanics stored in the master node/condition
@@ -381,7 +381,7 @@ void ContactDomainLM2DCondition::CalculateContactFactor( ProcessInfo& rCurrentPr
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.back();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOR_ELEMENTS)[0]->GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){
@@ -458,7 +458,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(ConditionVariables& rV
     // std::cout<<" ************ CONTACT ELEMENT "<<this->Id()<<" ************* "<<std::endl;
     // std::cout<<std::endl;
 
-    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
+    // Element::ElementType& MasterElement = *GetValue(MASTER_ELEMENTS).back();
 
     // std::cout<<" master element "<<MasterElement.Id()<<std::endl;
     // std::cout<<" Elastic Modulus "<<MasterElement.GetProperties()[YOUNG_MODULUS]<<std::endl;
@@ -1192,9 +1192,9 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
   //Check slave node inside the contacting domain:
 
   //node1:
-  WeakPointerVector<Element >& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+  ElementPointerVectorType& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOR_ELEMENTS);
   //node2:
-  WeakPointerVector<Element >& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
+  ElementPointerVectorType& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOR_ELEMENTS);
 
   unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
   unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
@@ -1203,7 +1203,7 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
   //following slave normal projection of the slave Sx1 and Sy1
   for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
     {
-      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
 
       is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							       vertices[1].X(), vertices[1].Y(),
@@ -1218,7 +1218,7 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
 
     for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
 
 	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 								 vertices[1].X(), vertices[1].Y(),
@@ -1236,7 +1236,7 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
   //following master normal projection of the slave Mx1 and My1
   for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
     {
-      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
+      GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
 
       is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 							       vertices[1].X(), vertices[1].Y(),
@@ -1252,7 +1252,7 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(ConditionVariables
 
     for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
       {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
+	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
 
 	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
 								 vertices[1].X(), vertices[1].Y(),

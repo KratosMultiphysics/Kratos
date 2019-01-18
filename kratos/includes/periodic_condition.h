@@ -1,24 +1,14 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
-
-
-
-
-
-
-
-
-
-
 
 #ifndef KRATOS_PERIODIC_CONDITION_H
 #define	KRATOS_PERIODIC_CONDITION_H
@@ -368,8 +358,6 @@ private:
 }; // Class PeriodicCondition
 
 ///@}
-
-template class KRATOS_API(KRATOS_CORE) KratosComponents<PeriodicCondition >;
 
 ///@name Type Definitions
 ///@{

@@ -310,7 +310,7 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
@@ -342,7 +342,7 @@ protected:
         Matrix& DN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        ) override;
+        ) const override;
 
     ///@}
     ///@name Protected Operations

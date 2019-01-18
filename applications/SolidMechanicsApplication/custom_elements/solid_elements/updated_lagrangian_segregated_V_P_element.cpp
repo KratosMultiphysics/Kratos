@@ -270,7 +270,7 @@ void UpdatedLagrangianSegregatedVPElement::InitializeElementData (ElementDataTyp
   }
 
   //Calculate Delta Position
-  rVariables.DeltaPosition = this->CalculateDeltaPosition(rVariables.DeltaPosition);
+  ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
   //set variables including all integration points values
 
@@ -748,11 +748,11 @@ void UpdatedLagrangianSegregatedVPElement::GetFreeSurfaceFaces(std::vector<std::
   rGeometry.NodesInFaces(NodesInFaces);
 
   //based in existance of neighbour elements (proper detection for triangles and tetrahedra)
-  WeakPointerVector<Element>& neighb_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+  ElementPointerVectorType& neighb_elems = this->GetValue(NEIGHBOR_ELEMENTS);
   unsigned int counter=0;
-  for(WeakPointerVector< Element >::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+  for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
   {
-    if (ne->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
+    if ((*ne)->Id() == this->Id())  // If there is no shared element in face nf (the Id coincides)
     {
       std::vector<SizeType> Nodes;
       unsigned int FixedNodes  = 0;
