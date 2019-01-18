@@ -11,8 +11,11 @@
         "model_part_name"               : "MainModelPart",
         "domain_size"                   : 2,
         "maximum_iterations"            : 10,
-        "dynamic_tau"                   : 0.001,
-        "oss_switch"                    : 0,
+        "formulation" : {
+            "element_type"                 : "vms",
+            "dynamic_tau"                  : 0.001,
+            "use_orthogonal_subscales"     : false
+        },
         "echo_level"                    : 0,
         "consider_periodic_conditions"  : false,
         "compute_reactions"             : false,
@@ -121,7 +124,7 @@
             "model_part_output_settings" : {
                 "prefix" : "/ModelData"
             },
-            "nodal_results_settings" : {
+            "nodal_solution_step_data_settings" : {
                 "list_of_variables": ["VELOCITY", "ACCELERATION", "PRESSURE"]
             },
             "output_time_settings" : {

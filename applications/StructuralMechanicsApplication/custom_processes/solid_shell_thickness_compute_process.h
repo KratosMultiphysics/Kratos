@@ -28,16 +28,16 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-    
+
 ///@}
 ///@name  Enum's
 ///@{
-    
+
 ///@}
 ///@name  Functions
 ///@{
-    
-/** 
+
+/**
  * @class SolidShellThickComputeProcess
  * @ingroup StructuralMechanicsApplication
  * @brief This method computes the current thickness in a node of a solid-shell
@@ -53,7 +53,7 @@ public:
 
     /// Pointer definition of SolidShellThickComputeProcess
     KRATOS_CLASS_POINTER_DEFINITION(SolidShellThickComputeProcess);
-    
+
     // General type definitions
     typedef Node<3>                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
@@ -75,7 +75,7 @@ public:
         ):mrThisModelPart(rThisModelPart)
     {
         KRATOS_TRY
-        
+
         KRATOS_CATCH("")
     }
 
@@ -98,7 +98,7 @@ public:
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
     ///@name Operators
     ///@{
@@ -107,13 +107,13 @@ public:
     {
         Execute();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
-    
+
     void Execute() override;
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -170,7 +170,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -196,7 +196,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     ModelPart& mrThisModelPart; /// The model part containing the solid-shells
 
     ///@}
@@ -246,7 +246,7 @@ private:
 /// input stream function
 // inline std::istream& operator >> (std::istream& rIStream,
 //                                   SolidShellThickComputeProcess& rThis);
-// 
+//
 // /// output stream function
 // inline std::ostream& operator << (std::ostream& rOStream,
 //                                   const SolidShellThickComputeProcess& rThis)
@@ -254,7 +254,7 @@ private:
 //     rThis.PrintInfo(rOStream);
 //     rOStream << std::endl;
 //     rThis.PrintData(rOStream);
-// 
+//
 //     return rOStream;
 // }
 

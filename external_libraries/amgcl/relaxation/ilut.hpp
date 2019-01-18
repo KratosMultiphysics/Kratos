@@ -79,7 +79,7 @@ struct ilut {
 
         params() : p(2), tau(1e-2f), damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, p)
             , AMGCL_PARAMS_IMPORT_VALUE(p, tau)
@@ -205,6 +205,10 @@ struct ilut {
     {
         backend::copy(rhs, x);
         ilu->solve(x);
+    }
+
+    size_t bytes() const {
+        return ilu->bytes();
     }
 
     private:

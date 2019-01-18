@@ -10,16 +10,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "MetisApplication",
-    "TrilinosApplication",
-    "MappingApplication",
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos
@@ -43,15 +33,6 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
     def Initialize(self):
         # Set the Trilinos space
         self.trilinos_space = KratosTrilinos.TrilinosSparseSpace()
-
-        # Set the Epetra communicator
-        self.epetra_communicator = KratosTrilinos.CreateCommunicator()
-
-        # Construct the coupling partitioned strategy
-        coupling_utility_parameters = self.settings["coupling_solver_settings"]["solver_settings"]["coupling_strategy"]
-        self.coupling_utility = convergence_accelerator_factory.CreateTrilinosConvergenceAccelerator(self._GetFluidInterfaceSubmodelPart(),
-                                                                                                     self.epetra_communicator,
-                                                                                                     coupling_utility_parameters)
 
         # Get the domain size
         self.domain_size = self._GetDomainSize()
@@ -92,9 +73,13 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the fluid domain NODAL_AREA values (required as weight in the residual norm computation)
         KratosMultiphysics.CalculateNodalAreaProcess(self.fluid_solver.GetComputingModelPart(), self.domain_size).Execute()
 
+        # Coupling utility initialization
+        # The _GetConvergenceAccelerator is supposed to construct the convergence accelerator in here
+        self._GetConvergenceAccelerator().Initialize()
+
     def _InitializeDirichletNeumannInterface(self):
         # Initialize Dirichlet fluid interface
-        fluid_interfaces_list = self.settings["coupling_solver_settings"]["solver_settings"]["fluid_interfaces_list"]
+        fluid_interfaces_list = self.settings["coupling_settings"]["fluid_interfaces_list"]
         for fl_interface_id in range(fluid_interfaces_list.size()):
             fl_interface_name = fluid_interfaces_list[fl_interface_id].GetString()
             fl_interface_submodelpart = self.fluid_solver.main_model_part.GetSubModelPart(fl_interface_name)
@@ -115,7 +100,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.INTERFACE, True, fl_interface_submodelpart.Nodes)
 
         # Initialize Neumann structure interface
-        structure_interfaces_list = self.settings["coupling_solver_settings"]["solver_settings"]["structure_interfaces_list"]
+        structure_interfaces_list = self.settings["coupling_settings"]["structure_interfaces_list"]
         for str_interface_id in range(structure_interfaces_list.size()):
             str_interface_name = structure_interfaces_list[str_interface_id].GetString()
             str_interface_submodelpart = self.structure_solver.main_model_part.GetSubModelPart(str_interface_name)
@@ -125,7 +110,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
     def _SolveMeshAndFluid(self):
         # Set the iteration_value displacement as MESH_DISPLACEMENT
-        coupling_solver_settings = self.settings["coupling_solver_settings"]["solver_settings"]
+        coupling_solver_settings = self.settings["coupling_settings"]
         num_fl_interfaces = coupling_solver_settings["fluid_interfaces_list"].size()
         for fl_interface_id in range(num_fl_interfaces):
             fl_interface_name = coupling_solver_settings["fluid_interfaces_list"][fl_interface_id].GetString()
@@ -136,13 +121,16 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         # Solve the mesh problem (or moves the interface nodes)
         if self.solve_mesh_at_each_iteration:
-            self.mesh_solver.Solve()
+            self.mesh_solver.InitializeSolutionStep()
+            self.mesh_solver.Predict()
+            self.mesh_solver.SolveSolutionStep()
+            self.mesh_solver.FinalizeSolutionStep()
         else:
             self.mesh_solver.MoveMesh()
 
         # Update MESH_VELOCITY and MESH_ACCELERATION with Newmark formulas
         self.nodal_update_utilities.UpdateMeshTimeDerivatives(self.fluid_solver.GetComputingModelPart(),
-                                                              self.time_step)
+                                                              self._ComputeDeltaTime())
 
         # Impose the structure MESH_VELOCITY and MESH_ACCELERATION in the fluid interface VELOCITY and ACCELERATION
         self.nodal_update_utilities.SetMeshTimeDerivativesOnInterface(self._GetFluidInterfaceSubmodelPart())
@@ -153,10 +141,10 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
     def _SolveStructureSingleFaced(self):
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
-        redistribution_max_iters = 50
+        redistribution_max_iters = 200
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -169,7 +157,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                                   KratosMapping.Mapper.SWAP_SIGN)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -182,17 +170,17 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
     def _SolveStructureDoubleFaced(self):
         # Set the redistribution settings
         redistribution_tolerance = 1e-8
-        redistribution_max_iters = 50
+        redistribution_max_iters = 200
 
         # Convert the nodal reaction to traction loads before transfering
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidPositiveInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
             redistribution_tolerance,
             redistribution_max_iters)
 
-        KratosFSI.VariableRedistributionUtility.DistributePointValues(
+        KratosMultiphysics.VariableRedistributionUtility.DistributePointValues(
             self._GetFluidNegativeInterfaceSubmodelPart(),
             KratosMultiphysics.REACTION,
             KratosMultiphysics.VAUX_EQ_TRACTION,
@@ -212,7 +200,7 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
                                       KratosMapping.Mapper.SWAP_SIGN | KratosMapping.Mapper.ADD_VALUES)
 
         # Convert the transferred traction loads to point loads
-        KratosFSI.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
+        KratosMultiphysics.VariableRedistributionUtility.ConvertDistributedValuesToPoint(
             self._GetStructureInterfaceSubmodelPart(),
             KratosMultiphysics.VAUX_EQ_TRACTION,
             KratosStructural.POINT_LOAD)
@@ -230,10 +218,14 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosMultiphysics.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual
 
@@ -244,14 +236,18 @@ class TrilinosPartitionedFSIDirichletNeumannSolver(trilinos_partitioned_fsi_base
 
         self.neg_interface_mapper.InverseMap(KratosMultiphysics.VECTOR_PROJECTED,
                                              KratosMultiphysics.DISPLACEMENT)
-        
+
         #TODO: One of these mappings is not needed. At the moment both are performed to ensure that
         # the _GetFluidInterfaceSubmodelPart(), which is the one used to compute the interface residual,
         # gets the structure DISPLACEMENT. Think a way to properly identify the reference fluid interface.
         disp_residual = self.partitioned_fsi_utilities.SetUpInterfaceVector(self._GetFluidInterfaceSubmodelPart())
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosMultiphysics.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual

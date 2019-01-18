@@ -63,7 +63,7 @@ public:
 
     typedef IntegrationPoint<3>                                                                     IntegrationPointType;
     typedef std::vector<IntegrationPointType>                                                       IntegrationPointsArrayType;
-    typedef boost::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, GeometryData::NumberOfIntegrationMethods>      IntegrationPointsContainerType;
 
     ///@}
     ///@name Life Cycle

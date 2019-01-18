@@ -1,13 +1,11 @@
 /*
-//  KRATOS .___  ________    _____
-//         |   |/  _____/   /  _  \
-//         |   /   \  ___  /  /_\  \
-//         |   \    \_\  \/    |    \
-//         |___|\______  /\____|__  /
-//                     \/         \/  Application
+//  KRATOS  _____________
+//         /  _/ ____/   |
+//         / // / __/ /| |
+//       _/ // /_/ / ___ |
+//      /___/\____/_/  |_| Application
 //
-//  License: BSD License
-//           Kratos default license: kratos/license.txt
+//  Main authors:   Thomas Oberbichler
 */
 
 #if !defined(KRATOS_IGA_APPLICATION_H_INCLUDED)
@@ -22,7 +20,9 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
+
+#include "custom_elements/iga_truss_element.h"
+#include "custom_elements/shell_kl_discrete_element.h"
 
 namespace Kratos {
 
@@ -65,7 +65,7 @@ public:
     KratosIgaApplication();
 
     /// Destructor.
-    virtual ~KratosIgaApplication(){}
+    ~KratosIgaApplication() override {}
 
     ///@}
     ///@name Operators
@@ -75,7 +75,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
     ///@}
     ///@name Access
@@ -90,18 +90,21 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const {
+    std::string Info() const override
+    {
         return "KratosIgaApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {
+    void PrintInfo(std::ostream& rOStream) const override
+    {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {
+    void PrintData(std::ostream& rOStream) const override
+    {
         KRATOS_WATCH("in my application");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size());
 
@@ -158,6 +161,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const IgaTrussElement mIgaTrussElement;
+    const ShellKLDiscreteElement mShellKLDiscreteElement;
 
     ///@}
     ///@name Private Operators

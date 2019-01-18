@@ -83,7 +83,7 @@ public:
     GeometricallyExactRodElement(GeometricallyExactRodElement const& rOther);
 
     /// Destructor.
-    virtual ~GeometricallyExactRodElement();
+    ~GeometricallyExactRodElement() override;
 
 
     ///@}
@@ -137,7 +137,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "Large Displacement Beam Element #" << Id();
@@ -145,13 +145,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "Large Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -229,25 +229,25 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber) override;
 
     /**
      * Calculate Element Constitutive Matrix
      */
-    virtual void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
+    void CalculateConstitutiveMatrix(ElementDataType& rVariables) override;
 
     /**
      * Calculate Element Frame
      */
-    virtual void CalculateFrameMapping(ElementDataType& rVariables,
+    void CalculateFrameMapping(ElementDataType& rVariables,
 				       const unsigned int& rPointNumber) override;
 
 
@@ -269,14 +269,14 @@ protected:
     /**
      * Calculate current strain resultants vector
      */
-    virtual void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables,
+    void CalculateCurrentStrainResultantsVector(ElementDataType& rVariables,
 							Vector& rCurrentStrainResultantsVector,
 							double Alpha) override;
 
     /**
      * Calculate current curvature vector
      */
-    virtual void CalculateCurrentCurvatureVector(ElementDataType& rVariables,
+    void CalculateCurrentCurvatureVector(ElementDataType& rVariables,
 						 Vector& rCurrentCurvatureVector,
 						 double Alpha) override;
 
@@ -454,9 +454,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

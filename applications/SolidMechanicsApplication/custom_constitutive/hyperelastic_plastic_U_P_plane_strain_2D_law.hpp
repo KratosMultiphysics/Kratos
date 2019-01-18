@@ -82,7 +82,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticUPPlaneStrain2DLaw();
+    ~HyperElasticPlasticUPPlaneStrain2DLaw() override;
 
     /**
      * Operators

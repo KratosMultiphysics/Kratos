@@ -89,8 +89,8 @@ class BuoyancyTest(UnitTest.TestCase):
                 self.printOutput()
 
     def setUpModel(self):
-
-        self.fluid_model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.fluid_model_part = self.model.CreateModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -140,8 +140,10 @@ class BuoyancyTest(UnitTest.TestCase):
         alpha = -0.3
         move_mesh = 0
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+        import linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "AMGCL"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False
@@ -169,9 +171,12 @@ class BuoyancyTest(UnitTest.TestCase):
 
         if self.convection_diffusion_solver == 'eulerian':
             # Duplicate model part
-            thermal_model_part = ModelPart("Thermal")
+
+            thermal_model_part = self.model.CreateModelPart("Thermal")
             conv_diff_element = "EulerianConvDiff2D"
             conv_diff_condition = "Condition2D2N"
+
+            MergeVariableListsUtility().Merge(self.fluid_model_part, thermal_model_part)
 
             modeler = ConnectivityPreserveModeler()
             modeler.GenerateModelPart(self.fluid_model_part,thermal_model_part,conv_diff_element,conv_diff_condition)

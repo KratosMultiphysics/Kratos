@@ -98,7 +98,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AssignRotationAboutAnAxisToNodesProcess() {}
+    ~AssignRotationAboutAnAxisToNodesProcess() override {}
 
 
     ///@}

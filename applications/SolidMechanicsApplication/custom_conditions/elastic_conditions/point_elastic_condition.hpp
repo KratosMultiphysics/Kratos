@@ -60,7 +60,7 @@ public:
     PointElasticCondition( PointElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~PointElasticCondition();
+    ~PointElasticCondition() override;
 
     ///@}
     ///@name Operators
@@ -103,7 +103,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -117,7 +117,7 @@ public:
 
     /// Turn back information as a string.
 
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Point Elastic Condition #" << Id();
@@ -126,14 +126,14 @@ public:
 
     /// Print information about this object.
 
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Point Elastic Condition #" << Id();
     }
 
     /// Print object's data.
 
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         pGetGeometry()->PrintData(rOStream);
     }
@@ -160,26 +160,26 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
+    void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables,
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
      * Calculate the External Stiffness of the Condition
      */
-    virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
+    void CalculateExternalStiffness(ConditionVariables& rVariables) override;
 
 
     /**
      * Calculates the condition contributions
      */
-    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+    void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
 					  const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -234,9 +234,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class PointElasticCondition.

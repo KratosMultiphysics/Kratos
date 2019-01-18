@@ -36,7 +36,7 @@ The code is ported from PETSC BCGSL [1] and is based on [2].
 [2] Fokkema, Diederik R. Enhanced implementation of BiCGstab (l) for solving
     linear systems of equations. Universiteit Utrecht. Mathematisch Instituut,
     1996.
- 
+
 The original code came with the following license:
 
 \verbatim
@@ -131,7 +131,7 @@ class bicgstabl {
             {
             }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, L),
                   AMGCL_PARAMS_IMPORT_VALUE(p, delta),
@@ -415,9 +415,34 @@ done:
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += backend::bytes(*Rt);
+            b += backend::bytes(*X);
+            b += backend::bytes(*B);
+            b += backend::bytes(*T);
+
+            for(const auto &v : R) b += backend::bytes(*v);
+            for(const auto &v : U) b += backend::bytes(*v);
+
+            b += MZa.size() * sizeof(coef_type);
+            b += MZb.size() * sizeof(coef_type);
+
+            b += backend::bytes(Y0);
+            b += backend::bytes(YL);
+
+            b += qr.bytes();
+
+            return b;
+        }
 
         friend std::ostream& operator<<(std::ostream &os, const bicgstabl &s) {
-            return os << "bicgstab(" << s.prm.L << "): " << s.n << " unknowns";
+            return os
+                << "Type:             BiCGStab(" << s.prm.L << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
     public:
         params prm;

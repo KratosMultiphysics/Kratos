@@ -19,14 +19,14 @@ class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorC
     def __init__(self, Model, custom_settings ):
 
         assign_vector_components_to_nodes_process.AssignVectorComponentsToNodesProcess.__init__(self, Model, custom_settings)
-        
+
 
         ##add inlet to fluid domain:
         #transfer_flags = KratosSolid.FlagsContainer()
         #transfer_flags.PushBack(KratosMultiphysics.NOT_FLUID)
         #assign_flags = KratosSolid.FlagsContainer()
         #assign_flags.PushBack(KratosMultiphysics.FLUID)
-        #entity_type = "Nodes"            
+        #entity_type = "Nodes"
         #for part in self.model:
             #print(" A: Part ",part)
             #for sub_part in self.model[part].SubModelParts:
@@ -37,9 +37,10 @@ class AssignInletProcess(assign_vector_components_to_nodes_process.AssignVectorC
                         #transfer_process = KratosSolid.TransferEntitiesProcess(sub_part,self.model_part,entity_type,transfer_flags,assign_flags)
                         #transfer_process.Execute()
 
+        self.model_part = Model[custom_settings["model_part_name"].GetString()]
 
         self.echo_level=0
-        self.model_inlet =  KratosPfemFluid.SetInlet(self.model_part,self.echo_level)    
+        self.model_inlet =  KratosPfemFluid.SetInlet(self.model_part,self.echo_level)
         self.model_inlet.Execute()
 
- 
+

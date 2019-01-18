@@ -43,10 +43,10 @@ public:
     ///@name Life Cycle
     ///@{
 
-    TransferEntitiesBetweenModelPartsProcess(ModelPart& rHostModelPart,
-					     ModelPart& rGuestModelPart,
+    TransferEntitiesBetweenModelPartsProcess(ModelPart& rDestinationModelPart,
+					     ModelPart& rOriginModelPart,
 					     const std::string EntityType
-					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(std::vector<Flags>()), mrAssignFlags(std::vector<Flags>())
+					     ) : Process(Flags()) , mrDestinationModelPart(rDestinationModelPart), mrOriginModelPart(rOriginModelPart), mEntityType(EntityType), mrTransferFlags(std::vector<Flags>()), mrAssignFlags(std::vector<Flags>())
     {
         KRATOS_TRY
 
@@ -54,11 +54,11 @@ public:
     }
 
 
-    TransferEntitiesBetweenModelPartsProcess(ModelPart& rHostModelPart,
-					     ModelPart& rGuestModelPart,
+    TransferEntitiesBetweenModelPartsProcess(ModelPart& rDestinationModelPart,
+					     ModelPart& rOriginModelPart,
 					     const std::string EntityType,
 					     const std::vector<Flags>& rTransferFlags
-					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(std::vector<Flags>() )
+					     ) : Process(Flags()) , mrDestinationModelPart(rDestinationModelPart), mrOriginModelPart(rOriginModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(std::vector<Flags>() )
     {
         KRATOS_TRY
 
@@ -67,12 +67,12 @@ public:
     }
 
 
-    TransferEntitiesBetweenModelPartsProcess(ModelPart& rHostModelPart,
-					     ModelPart& rGuestModelPart,
+    TransferEntitiesBetweenModelPartsProcess(ModelPart& rDestinationModelPart,
+					     ModelPart& rOriginModelPart,
 					     const std::string EntityType,
 					     const std::vector<Flags>& rTransferFlags,
 					     const std::vector<Flags>& rAssignFlags
-					     ) : Process(Flags()) , mrHostModelPart(rHostModelPart), mrGuestModelPart(rGuestModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(rAssignFlags)
+					     ) : Process(Flags()) , mrDestinationModelPart(rDestinationModelPart), mrOriginModelPart(rOriginModelPart), mEntityType(EntityType), mrTransferFlags(rTransferFlags), mrAssignFlags(rAssignFlags)
     {
         KRATOS_TRY
 
@@ -81,7 +81,7 @@ public:
 
 
     /// Destructor.
-    virtual ~TransferEntitiesBetweenModelPartsProcess() {}
+    ~TransferEntitiesBetweenModelPartsProcess() override {}
 
 
     ///@}
@@ -107,12 +107,12 @@ public:
 
         if (mEntityType == "Nodes")
         {
-            const int nnodes = mrGuestModelPart.Nodes().size();
+            const int nnodes = mrOriginModelPart.Nodes().size();
 
             if (nnodes != 0)
             {
                 ModelPart::NodesContainerType::iterator it_begin =
-                    mrGuestModelPart.NodesBegin();
+                    mrOriginModelPart.NodesBegin();
                 //#pragma omp parallel for  //some nodes are not added in
                 //parallel
                 for (int i = 0; i < nnodes; i++)
@@ -121,23 +121,23 @@ public:
 
                     if (this->MatchTransferFlags(*(it.base())))
                     {
-                        // mrHostModelPart.AddNode(*(it.base()));
+                        // mrDestinationModelPart.AddNode(*(it.base()));
                         this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Nodes().push_back(*(it.base()));
+                        mrDestinationModelPart.Nodes().push_back(*(it.base()));
                         // std::cout<<" Node Inserted "<<it->Id()<<std::endl;
                     }
                 }
-                mrHostModelPart.Nodes().Unique();
+                mrDestinationModelPart.Nodes().Unique();
             }
         }
         else if (mEntityType == "Elements")
         {
-            const int nelements = mrGuestModelPart.Elements().size();
+            const int nelements = mrOriginModelPart.Elements().size();
 
             if (nelements != 0)
             {
                 ModelPart::ElementsContainerType::iterator it_begin =
-                    mrGuestModelPart.ElementsBegin();
+                    mrOriginModelPart.ElementsBegin();
                 //#pragma omp parallel for  //some elements are not added in
                 // parallel
                 for (int i = 0; i < nelements; i++)
@@ -146,23 +146,23 @@ public:
 
                     if (this->MatchTransferFlags(*(it.base())))
                     {
-                        // mrHostModelPart.AddNode(*(it.base()));
+                        // mrDestinationModelPart.AddNode(*(it.base()));
                         this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Elements().push_back(*(it.base()));
+                        mrDestinationModelPart.Elements().push_back(*(it.base()));
                         // std::cout<<" Element Inserted "<<it->Id()<<std::endl;
                     }
                 }
-                mrHostModelPart.Elements().Unique();
+                mrDestinationModelPart.Elements().Unique();
             }
         }
         else if (mEntityType == "Conditions")
         {
-            const int nconditions = mrGuestModelPart.Conditions().size();
+            const int nconditions = mrOriginModelPart.Conditions().size();
 
             if (nconditions != 0)
             {
                 ModelPart::ConditionsContainerType::iterator it_begin =
-                    mrGuestModelPart.ConditionsBegin();
+                    mrOriginModelPart.ConditionsBegin();
                 //#pragma omp parallel for  //some elements are not added in
                 // parallel
                 for (int i = 0; i < nconditions; i++)
@@ -171,14 +171,14 @@ public:
 
                     if (this->MatchTransferFlags(*(it.base())))
                     {
-                        // mrHostModelPart.AddNode(*(it.base()));
+                        // mrDestinationModelPart.AddNode(*(it.base()));
                         this->AssignFlags(*(it.base()));
-                        mrHostModelPart.Conditions().push_back(*(it.base()));
+                        mrDestinationModelPart.Conditions().push_back(*(it.base()));
                         // std::cout<<" Condition Inserted
                         // "<<it->Id()<<std::endl;
                     }
                 }
-                mrHostModelPart.Conditions().Unique();
+                mrDestinationModelPart.Conditions().Unique();
             }
         }
 
@@ -301,8 +301,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrHostModelPart;
-    ModelPart& mrGuestModelPart;
+    ModelPart& mrDestinationModelPart;
+    ModelPart& mrOriginModelPart;
 
     const std::string mEntityType;
 

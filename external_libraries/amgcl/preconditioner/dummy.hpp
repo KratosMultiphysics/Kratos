@@ -82,6 +82,10 @@ class dummy {
         const matrix& system_matrix() const {
             return *A;
         }
+
+        size_t bytes() const {
+            return 0;
+        }
     private:
         std::shared_ptr<matrix>   A;
 

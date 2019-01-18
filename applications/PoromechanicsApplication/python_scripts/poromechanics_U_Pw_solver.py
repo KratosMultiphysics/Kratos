@@ -4,9 +4,6 @@ from __future__ import print_function, absolute_import, division # makes KratosM
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","PoromechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
@@ -36,7 +33,7 @@ class UPwSolver(PythonSolver):
         if self.model.HasModelPart(model_part_name):
             self.main_model_part = self.model.GetModelPart(model_part_name)
         else:
-            self.main_model_part = KratosMultiphysics.ModelPart(model_part_name)
+            self.main_model_part = self.model.CreateModelPart(model_part_name,self.min_buffer_size)
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE,
                                                   self.settings["domain_size"].GetInt())
@@ -104,9 +101,6 @@ class UPwSolver(PythonSolver):
             self._ExecuteCheckAndPrepare()
             ## Set buffer size
             self._SetBufferSize()
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
 
         if self._is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo("UPwSolver", "Model reading finished.")
@@ -237,7 +231,7 @@ class UPwSolver(PythonSolver):
         default_settings = KratosMultiphysics.Parameters("""
         {
             "solver_type": "poromechanics_U_Pw_solver",
-            "model_part_name": "PorousDomain",
+            "model_part_name": "PorousModelPart",
             "domain_size": 2,
             "start_time": 0.0,
             "time_step": 0.1,

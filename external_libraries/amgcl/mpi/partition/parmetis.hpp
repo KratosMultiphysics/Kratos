@@ -59,7 +59,7 @@ struct parmetis {
             enable(false), min_per_proc(10000), shrink_ratio(8)
         {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, enable),
               AMGCL_PARAMS_IMPORT_VALUE(p, min_per_proc),

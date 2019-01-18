@@ -21,10 +21,11 @@
 // External includes
 
 // Project includes
+#include "utilities/python_function_callback_utility.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include "utilities/python_function_callback_utility.h"
+
 
 namespace Kratos
 {
@@ -65,8 +66,8 @@ public:
     typedef std::size_t SizeType;
 
     /// The defition of a component of an array
-    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;   
-    
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+
     /// Pointer definition of AssignScalarFieldToConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToConditionsProcess);
 
@@ -205,11 +206,11 @@ private:
      * @param rValue The value to set
      */
     void CallFunction(
-        const Condition::Pointer& pCondition, 
+        const Condition::Pointer& pCondition,
         const double Time,
         Vector& rValue
         );
-    
+
     /**
      * @brief It calls the function for components
      * @param pCondition The pointer to the condition where set the function
@@ -217,7 +218,7 @@ private:
      * @param rValue The value to set
      */
     void CallFunctionComponents(
-        const Condition::Pointer& pCondition, 
+        const Condition::Pointer& pCondition,
         const double Time,
         double& rValue
         );
@@ -241,7 +242,7 @@ private:
      * @param rValue The value to set
      */
     void CallFunctionLocalSystemComponents(
-        const Condition::Pointer& pCondition, 
+        const Condition::Pointer& pCondition,
         const double Time,
         double& rValue
         );
@@ -254,9 +255,9 @@ private:
      * @param Value The dependency value
      */
     void AssignTimeDependentValue(
-        const Condition::Pointer& pCondition, 
+        const Condition::Pointer& pCondition,
         const double Time,
-        Vector& rValue, 
+        Vector& rValue,
         const double Value
         );
 
@@ -267,7 +268,7 @@ private:
      */
     template< class TVarType >
     void InternalAssignValueVector(
-        TVarType& rVar, 
+        TVarType& rVar,
         const double Time
         )
     {
@@ -313,18 +314,18 @@ private:
      */
     template< class TVarType >
     void InternalAssignValueScalar(
-        TVarType& rVar, 
+        TVarType& rVar,
         const double Time
         )
     {
         const SizeType nconditions = mrModelPart.GetMesh(mMeshId).Conditions().size();
-        
+
         if(nconditions != 0) {
             auto it_begin = mrModelPart.GetMesh(mMeshId).ConditionsBegin();
 
             if(mpFunction->DependsOnSpace()) {
                 double Value;
-                        
+
                 if(mpFunction->UseLocalSystem()) {
                     // WARNING: do not parallelize with openmp. python GIL prevents it
                     for(IndexType i = 0; i<nconditions; ++i) {

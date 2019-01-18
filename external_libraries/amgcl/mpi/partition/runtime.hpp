@@ -32,14 +32,18 @@ THE SOFTWARE.
  */
 
 #include <memory>
+
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
+#include <amgcl/util.hpp>
 #include <amgcl/mpi/partition/merge.hpp>
-
 #ifdef AMGCL_HAVE_SCOTCH
 #  include <amgcl/mpi/partition/ptscotch.hpp>
 #endif
-
 #ifdef AMGCL_HAVE_PARMETIS
 #  include <amgcl/mpi/partition/parmetis.hpp>
 #endif
@@ -59,7 +63,7 @@ enum type {
 #endif
 };
 
-std::ostream& operator<<(std::ostream &os, type s)
+inline std::ostream& operator<<(std::ostream &os, type s)
 {
     switch (s) {
         case merge:
@@ -77,7 +81,7 @@ std::ostream& operator<<(std::ostream &os, type s)
     }
 }
 
-std::istream& operator>>(std::istream &in, type &s)
+inline std::istream& operator>>(std::istream &in, type &s)
 {
     std::string val;
     in >> val;

@@ -27,9 +27,6 @@
 #include "integration/triangle_gauss_legendre_integration_points.h"
 #include "integration/triangle_collocation_integration_points.h"
 
-//#include  "utilities/triangle_triangle_intersection.h"
-
-
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -52,11 +49,25 @@ namespace Kratos
 ///@{
 
 /**
- * A three node element geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle2D3
+ * @ingroup KratosCore
+ * @brief A three node 2D triangle geometry with linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *      v                                                              
+ *      ^                                                               
+ *      |                                                              
+ *      2                                   
+ *      |`\                   
+ *      |  `\                   
+ *      |    `\                 
+ *      |      `\                
+ *      |        `\                 
+ *      0----------1 --> u  
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle2D3
     : public Geometry<TPointType>
 {
@@ -479,10 +490,6 @@ public:
      * @return double value with the minimum edge length
      */
     virtual double Semiperimeter() const {
-      auto a = this->GetPoint(0) - this->GetPoint(1);
-      auto b = this->GetPoint(1) - this->GetPoint(2);
-      auto c = this->GetPoint(2) - this->GetPoint(0);
-
       return CalculateSemiperimeter(
         MathUtils<double>::Norm3(this->GetPoint(0)-this->GetPoint(1)),
         MathUtils<double>::Norm3(this->GetPoint(1)-this->GetPoint(2)),
@@ -717,7 +724,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override {
+        ) const override {
 
         rResult = ZeroVector(3);
 

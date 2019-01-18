@@ -161,7 +161,7 @@ public:
 
 
     /// Destructor.
-    virtual ~FreeScalarDofProcess() {}
+    ~FreeScalarDofProcess() override {}
 
 
     ///@}

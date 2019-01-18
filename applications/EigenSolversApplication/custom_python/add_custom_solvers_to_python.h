@@ -19,16 +19,12 @@
 
 // Project includes
 
-namespace Kratos
-{
-
-namespace Python
-{
+namespace Kratos {
+namespace Python {
 
 void AddCustomSolversToPython(pybind11::module& m);
 
 } // namespace Python
-
 } // namespace Kratos
 
 #endif // defined(KRATOS_ADD_SOLVERS_TO_PYTHON_H_INCLUDED)

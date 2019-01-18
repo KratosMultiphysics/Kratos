@@ -79,10 +79,10 @@ namespace Kratos
     ExponentialDamageHardeningRule& operator=(ExponentialDamageHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
+    HardeningRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~ExponentialDamageHardeningRule();
+    ~ExponentialDamageHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -121,7 +121,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "ExponentialDamageHardeningRule" ;
@@ -129,13 +129,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "ExponentialDamageHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "ExponentialDamageHardeningRule Data";
     }
@@ -214,12 +214,12 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-     virtual void save(Serializer& rSerializer) const override
+     void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningRule )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningRule )
     }

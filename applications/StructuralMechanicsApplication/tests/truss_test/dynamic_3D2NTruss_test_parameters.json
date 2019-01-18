@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "dyn",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 0.00003,
         "start_time"      : 0.0,
         "end_time"        : 0.004,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Dynamic",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 0.00003
+        },
         "analysis_type"                      : "non_linear",
         "time_integration_method"            : "implicit",
         "scheme_type"                        : "bossak",
@@ -30,7 +32,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 100,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
@@ -38,6 +40,7 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichletXYZ","DISPLACEMENT_dirichletXZ","PointLoad3D_neumann"],
         "rotation_dofs"                      : false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -75,16 +78,6 @@
             "direction"       : [1.0,0.0,0.0]
         }
     }],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
     "list_other_processes": [
     {
         "python_module"   : "from_json_check_result_process",
@@ -98,7 +91,7 @@
             "time_frequency"   : 0.00002
         }
     }
-    ],
+    ]},
     "_print_output_process" : [
     {
         "python_module"   : "json_output_process",

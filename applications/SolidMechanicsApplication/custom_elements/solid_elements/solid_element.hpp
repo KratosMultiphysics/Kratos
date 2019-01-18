@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -198,9 +199,9 @@ protected:
 	  DeltaPosition.resize(number_of_nodes, dimension,false);
 
 	  noalias(B)  = ZeroMatrix(voigt_size, dimension*number_of_nodes);
-	  noalias(H)  = IdentityMatrix(dimension,dimension);
-	  noalias(F)  = IdentityMatrix(dimension,dimension);
-	  noalias(F0) = IdentityMatrix(dimension,dimension);
+	  noalias(H)  = IdentityMatrix(dimension);
+	  noalias(F)  = IdentityMatrix(dimension);
+	  noalias(F0) = IdentityMatrix(dimension);
 	  noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 	  noalias(ConstitutiveMatrix) = ZeroMatrix(voigt_size, voigt_size);
 	  noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
@@ -282,7 +283,7 @@ public:
     SolidElement(SolidElement const& rOther);
 
     /// Destructor.
-    virtual ~SolidElement();
+    ~SolidElement() override;
 
     ///@}
     ///@name Operators
@@ -365,7 +366,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Set a Vector Value on the Element Constitutive Law
@@ -389,17 +390,17 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get on rVariable a Matrix Value from the Element Constitutive Law
      */
-    virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Get a Constitutive Law Value
@@ -416,7 +417,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    virtual void Initialize() override;
+    void Initialize() override;
 
     /**
      * Called at the beginning of each solution step
@@ -544,7 +545,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector,
+    void AddExplicitContribution(const VectorType& rRHSVector,
 					 const Variable<VectorType>& rRHSVariable,
 					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
@@ -588,7 +589,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Element #" << Id();
@@ -596,13 +597,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -757,8 +758,19 @@ protected:
     /**
      * Get element size from the dofs
      */
-    virtual unsigned int GetDofsSize();
+    virtual SizeType GetDofsSize();
 
+
+    /**
+     * Get element calculation flag
+     */
+    bool IsSliver()
+    {
+      if( this->IsDefined(SELECTED) )
+        return this->Is(SELECTED);
+      else
+        return false;
+    }
 
     /**
      * Initialize System Matrices
@@ -893,9 +905,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

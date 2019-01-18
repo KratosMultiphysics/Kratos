@@ -45,7 +45,7 @@ namespace Kratos
 
 namespace Python
 {
-using namespace pybind11;
+namespace py = pybind11;
 
 void  AddDeprecatedVariablesToPython(pybind11::module& m)
 {

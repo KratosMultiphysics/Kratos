@@ -74,7 +74,7 @@ public:
 
 
     /// Destructor.
-    virtual ~AxisymmetricThermalElement();
+    ~AxisymmetricThermalElement() override;
 
     ///@}
     ///@name Operators
@@ -95,7 +95,7 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -178,7 +178,7 @@ private:
 
    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
 			   GeneralVariables& rVariables,
-			   double& rIntegrationWeight);
+			   double& rIntegrationWeight) override;
 
     /**
      * Calculation and addition of the vectors of the RHS
@@ -187,13 +187,13 @@ private:
     void CalculateAndAddRHS(VectorType& rRightHandSideVector,
 			    GeneralVariables& rVariables,
 			    double& rHeatSource,
-			    double& rIntegrationWeight);
+			    double& rIntegrationWeight) override;
 
    /**
      * Calculate Element Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-			   const double& rPointNumber);
+			   const double& rPointNumber) override;
 
     /**
      * Calculate Radius in the current and deformed geometry
@@ -226,9 +226,9 @@ private:
     {
     }
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

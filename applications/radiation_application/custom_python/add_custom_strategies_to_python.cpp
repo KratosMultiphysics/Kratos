@@ -2,20 +2,20 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti
 //
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 //#include <boost/python.hpp>
 //#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-//#include <boost/timer.hpp> 
+//#include <boost/timer.hpp>
 #include <pybind11/pybind11.h>
 
 // Project includes
@@ -43,8 +43,8 @@ namespace Kratos
 {
 
 	namespace Python
-	{		
-		using namespace pybind11;
+	{
+		namespace py = pybind11;
 
 		void  AddCustomStrategiesToPython(pybind11::module& m)
 		{
@@ -60,8 +60,8 @@ namespace Kratos
 			//
 
 
-		class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType> (m,"ResidualBasedConvectionDiffusionrStrategyNonLinear").def(init<ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() );
-		
+		py::class_< ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >,ResidualBasedConvectionDiffusionrStrategyNonLinear< SparseSpaceType, LocalSpaceType, LinearSolverType >::Pointer,BaseSolvingStrategyType> (m,"ResidualBasedConvectionDiffusionrStrategyNonLinear").def(init<ModelPart&, LinearSolverType::Pointer,	bool, int, int ,double	>() );
+
 
 		}
 

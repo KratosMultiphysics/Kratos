@@ -12,6 +12,12 @@
 #if !defined(KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES)
 #define KRATOS_STRUCTURAL_MECHANICS_MATH_UTILITIES
 
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
@@ -315,7 +321,7 @@ public:
 
     static inline double CalculateRadius(
         const Vector N,
-        GeometryType& Geom,
+        const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
     {
@@ -348,7 +354,7 @@ public:
      */
 
     static inline double CalculateRadiusPoint(
-        GeometryType& Geom,
+        const GeometryType& Geom,
         const Configuration ThisConfiguration = Current
         )
     {
@@ -386,7 +392,7 @@ public:
     {
         // metric computation (of the target systems)
         BoundedMatrix<double,TDim,TDim> metric_left = ZeroMatrix(TDim,TDim);
-        BoundedMatrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim); 
+        BoundedMatrix<double,TDim,TDim> metric_right = ZeroMatrix(TDim,TDim);
         for(int i=0;i<TDim;i++){
             for(int j=0;j<TDim;j++){
                 metric_left(i,j) += inner_prod(column(rTargetLeft,i),column(rTargetLeft,j));

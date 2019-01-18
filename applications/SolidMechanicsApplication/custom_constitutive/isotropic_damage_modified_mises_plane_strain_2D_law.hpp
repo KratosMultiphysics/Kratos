@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageModifiedMisesPlaneStrain2DLaw();
+    ~IsotropicDamageModifiedMisesPlaneStrain2DLaw() override;
 
     /**
      * Operators

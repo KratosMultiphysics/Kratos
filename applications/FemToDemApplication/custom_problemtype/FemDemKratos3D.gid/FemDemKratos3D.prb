@@ -1,0 +1,171 @@
+PROBLEM DATA
+
+TITLE:Problem_Data
+QUESTION: Domain_Size#CB#(2,3)
+VALUE: 3
+QUESTION: Start_Time
+VALUE: 0.0
+HELP: Units in IS: s
+QUESTION: End_Time
+VALUE: 1.0
+HELP: Units in IS: s
+QUESTION: Delta_Time
+VALUE: 0.25
+HELP: Units in IS: s
+QUESTION: Echo_Level
+VALUE: 1
+QUESTION: Activate_MMG_Remeshing#CB#(true,false)
+VALUE: false
+HELP: Enables the adaptative meshing technique
+QUESTION: Use_Hexahedrons#CB#(true,false)
+VALUE: false
+HELP: Are you using hexahedron elements?
+
+TITLE:Solver_Settings
+QUESTION: Solution_Type#CB#(Static,Dynamic)
+VALUE: Dynamic
+QUESTION: Scheme_Type#CB#(Newmark)
+VALUE: Newmark
+QUESTION: Newmark_Beta
+VALUE: 0.25
+QUESTION: Newmark_Gamma
+VALUE: 0.5
+QUESTION: Newmark_Theta
+VALUE: 0.5
+HELP: 0: Forward Euler, 1: Backward Euler, 0.5: Crank-Nicolson
+QUESTION: Rayleigh_Mass
+VALUE: 0.0
+QUESTION: Rayleigh_Stiffness
+VALUE: 0.0
+QUESTION: Strategy_Type#CB#(Newton-Raphson,Arc-Length)
+VALUE: Newton-Raphson
+DEPENDENCIES: (Newton-Raphson,HIDE,Desired_Iterations,#CURRENT#,HIDE,Max_Radius_Factor,#CURRENT#,HIDE,Min_Radius_Factor,#CURRENT#)(Arc-Length,RESTORE,Desired_Iterations,#CURRENT#,RESTORE,Max_Radius_Factor,#CURRENT#,RESTORE,Min_Radius_Factor,#CURRENT#)
+QUESTION: Convergence_Criterion#CB#(Displacement_criterion,Residual_criterion,And_criterion,Or_criterion)
+VALUE: Residual_criterion
+DEPENDENCIES: (Displacement_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,HIDE,Residual_Relative_Tolerance,#CURRENT#,HIDE,Residual_Absolute_Tolerance,#CURRENT#)(Residual_criterion,HIDE,Displacement_Relative_Tolerance,#CURRENT#,HIDE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(And_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)(Or_criterion,RESTORE,Displacement_Relative_Tolerance,#CURRENT#,RESTORE,Displacement_Absolute_Tolerance,#CURRENT#,RESTORE,Residual_Relative_Tolerance,#CURRENT#,RESTORE,Residual_Absolute_Tolerance,#CURRENT#)
+QUESTION: Line_search#CB#(true,false)
+VALUE: false
+QUESTION: Displacement_Relative_Tolerance
+VALUE: 1.0E-4
+QUESTION: Displacement_Absolute_Tolerance
+VALUE: 1.0E-9
+QUESTION: Residual_Relative_Tolerance
+VALUE: 1.0E-4
+QUESTION: Residual_Absolute_Tolerance
+VALUE: 1.0E-9
+QUESTION: Max_Iterations
+VALUE: 15
+QUESTION: Desired_Iterations
+VALUE: 4
+HELP: The larger this number, the larger the radius
+QUESTION: Max_Radius_Factor
+VALUE: 10.0
+HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
+QUESTION: Min_Radius_Factor
+VALUE: 0.1
+HELP: Times the initial radius. In order to use a constant radius, choose the same value for Min Radius Factor and Max Radius Factor
+QUESTION: Reform_Dofs_At_Each_Step#CB#(true,false)
+VALUE: true
+QUESTION: Move_Mesh#CB#(true,false)
+VALUE: false
+QUESTION: Block_Builder#CB#(true,false)
+VALUE: true
+QUESTION: Solver_Type#CB#(SkylineLUFactorizationSolver,SuperLUSolver,BICGSTABSolver,AMGCL,Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver)
+VALUE: SuperLUSolver
+HELP: OpenMP solvers: SkylineLUFactorizationSolver (Direct), SuperLUSolver (Direct), BICGSTABSolver (Iter.) and AMGCL (Iter.). MPI solvers: Klu,AztecSolver,AmgclMPISolver,MultiLevelSolver.
+QUESTION: Scaling#CB#(true,false)
+VALUE: false
+QUESTION: Verbosity
+VALUE: 0
+
+TITLE:Output_Configuration
+QUESTION: Write_Solid_Displacement#CB#(true,false)
+VALUE: true
+QUESTION: Write_Reactions#CB#(true,false)
+VALUE: false
+QUESTION: Write_Strain#CB#(true,false)
+VALUE: true
+QUESTION: Write_Predictive_Stress#CB#(true,false)
+VALUE: true
+QUESTION: Write_Integrated_Stress#CB#(true,false)
+VALUE: true
+QUESTION: Write_Damage#CB#(true,false)
+VALUE: true
+QUESTION: Write_Is_Damaged#CB#(true,false)
+VALUE: true
+QUESTION: Stress_Threshold#CB#(true,false)
+VALUE: true
+
+QUESTION: GiD_post_mode#CB#(GiD_PostAscii,GiD_PostAsciiZipped,GiD_PostBinary,GiD_PostHDF5)
+VALUE: GiD_PostAscii
+QUESTION: Write_deformed_mesh#CB#(WriteUndeformed,WriteDeformed)
+VALUE: WriteDeformed
+HELP: Write the coordinates of the mesh in its deformed position. Note: With the DISPLACEMENT variable GiD allows obtaining the deformed mesh regardless of this flag.
+QUESTION: Write_conditions#CB#(WriteConditions,WriteElementsOnly,WriteConditionsOnly)
+VALUE: WriteElementsOnly
+HELP: Write Gauss points results also on the conditions.
+QUESTION: Multi_file_flag#CB#(SingleFile,MultipleFiles)
+VALUE: MultipleFiles
+QUESTION: File_label#CB#(step,time)
+VALUE: time
+QUESTION: Output_control_type#CB#(step,time)
+VALUE: time
+QUESTION: Output_frequency
+VALUE: 1
+QUESTION: Body_output#CB#(true,false)
+VALUE: true
+QUESTION: Node_output#CB#(true,false)
+VALUE: false
+QUESTION: Skin_output#CB#(true,false)
+VALUE: false
+
+TITLE:DEM_Materials_Properties
+QUESTION: Coupled_Calculation#CB#(true,false)
+VALUE: true
+QUESTION: Density
+VALUE: 2500.00
+QUESTION: Young_Modulus
+VALUE: 1.00e9
+QUESTION: Poisson_Ratio
+VALUE: 0.2
+QUESTION: Particle_Friction
+VALUE: 0.5773502691896257
+QUESTION: Cohesion
+VALUE: 0.0
+QUESTION: Friction_Angle
+VALUE: 30.0
+QUESTION: Coefficion_of_Restitution
+VALUE: 0.1
+QUESTION: Color
+VALUE: 1
+QUESTION: Rolling_Friction
+VALUE: 0.1
+QUESTION: Discontinous_Contact_Law#CB#(Linear,Hertz)
+VALUE: Linear
+QUESTION: Cohesion_Law#CB#(None,JKR,DMT)
+VALUE: None
+
+
+TITLE:DEM_Parameters
+QUESTION: Dimension#CB#(2,3)
+VALUE: 2
+QUESTION: GravityX
+VALUE: 0.0
+QUESTION: GravityY
+VALUE: 0.0
+QUESTION: GravityZ
+VALUE: 0.0
+QUESTION: MaxTimeStep
+VALUE: 5e-5
+
+END PROBLEM DATA
+
+
+
+
+
+
+
+
+
+

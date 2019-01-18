@@ -237,6 +237,26 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasti
     ///@name Protected Operators
     ///@{
 
+    ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
+    {
+        return mpPlasticityConstitutiveLaw;
+    }
+
+    void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw)
+    {
+        mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
+    }
+
+    ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
+    {
+        return mpViscousConstitutiveLaw;
+    }
+
+    void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
+    {
+        mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
+    }
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -272,26 +292,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) GenericSmallStrainViscoplasti
     ///@}
     ///@name Private Operations
     ///@{
-
-    ConstitutiveLaw::Pointer GetPlasticityConstitutiveLaw()
-    {
-        return mpPlasticityConstitutiveLaw;
-    }
-
-    void SetPlasticityConstitutiveLaw(ConstitutiveLaw::Pointer pPlasticityConstitutiveLaw)
-    {
-        mpPlasticityConstitutiveLaw = pPlasticityConstitutiveLaw;
-    }
-
-    ConstitutiveLaw::Pointer GetViscousConstitutiveLaw()
-    {
-        return mpViscousConstitutiveLaw;
-    }
-
-    void SetViscousConstitutiveLaw(ConstitutiveLaw::Pointer pViscousConstitutiveLaw)
-    {
-        mpViscousConstitutiveLaw = pViscousConstitutiveLaw;
-    }
 
     /**
      * @brief This method computes the elastic tensor

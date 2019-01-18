@@ -19,6 +19,7 @@
 #include "includes/condition.h"
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -233,7 +234,7 @@ public:
     BoundaryCondition( BoundaryCondition const& rOther);
 
     /// Destructor
-    virtual ~BoundaryCondition();
+    ~BoundaryCondition() override;
 
     ///@}
     ///@name Operators
@@ -379,7 +380,7 @@ public:
      * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled
       * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHS,
+    void AddExplicitContribution(const VectorType& rRHS,
 					 const Variable<VectorType>& rRHSVariable,
 					 Variable<array_1d<double,3> >& rDestinationVariable,
 					 const ProcessInfo& rCurrentProcessInfo) override;
@@ -410,7 +411,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -538,16 +539,6 @@ protected:
     void GetNodalDeltaMovements(Vector& rValues, const int& rNode);
 
     /**
-     * Calculation of the Position Increment
-     */
-    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the Total Position Increment
-     */
-    virtual Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
      * Get Current Value, buffer 0 with FastGetSolutionStepValue
      */
     Vector& GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode);
@@ -609,9 +600,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class BoundaryCondition.

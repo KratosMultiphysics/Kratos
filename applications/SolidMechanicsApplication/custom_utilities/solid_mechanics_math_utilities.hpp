@@ -53,7 +53,7 @@ public:
 
     typedef DenseVector<DenseVector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor;
+    typedef DenseMatrix<Second_Order_Tensor> Matrix_Second_Tensor;
 
 
     /**
@@ -1162,15 +1162,21 @@ public:
     */
     static int InvertMatrix( const MatrixType& input, MatrixType& inverse )
     {
-        int singular = 0;
-        using namespace boost::numeric::ublas;
-        typedef permutation_matrix<std::size_t> pmatrix;
-        Matrix A(input);
-        pmatrix pm(A.size1());
-        singular = lu_factorize(A,pm);
-        inverse.assign( IdentityMatrix(A.size1()));
-        lu_substitute(A, pm, inverse);
-        return singular;
+#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+      Matrix A(input);
+      AMatrix::LUFactorization<MatrixType, DenseVector<std::size_t> > lu_factorization(A);
+      int singular = lu_factorization.determinant();
+      inverse = lu_factorization.inverse();
+      return singular;
+#else
+      typedef permutation_matrix<std::size_t> pmatrix;
+      Matrix A(input);
+      pmatrix pm(A.size1());
+      int singular = lu_factorize(A,pm);
+      inverse.assign( IdentityMatrix(A.size1()));
+      lu_substitute(A, pm, inverse);
+      return singular;
+ #endif // ifdef KRATOS_USE_AMATRIX
     }
 
     /**
@@ -1199,7 +1205,7 @@ public:
     {
         if(Stress.size()==6)
         {
-            Tensor.resize(3,3);
+           Tensor.resize(3,3,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(3);
             Tensor(0,2)= Stress(5);
@@ -1212,7 +1218,7 @@ public:
         }
         if(Stress.size()==3)
         {
-            Tensor.resize(2,2);
+            Tensor.resize(2,2,false);
             Tensor(0,0)= Stress(0);
             Tensor(0,1)= Stress(2);
             Tensor(1,0)= Stress(2);
@@ -1705,6 +1711,59 @@ public:
         else
             return true;
     }
+
+
+  inline static VectorType range(const unsigned int start,  const unsigned int end)
+  {
+    int size = end-start;
+    if(size<0)
+      KRATOS_ERROR<<" range out of bounds start:"<<start<<" end:"<<end<<std::endl;
+
+    VectorType b(size);
+
+    for(int i = 0; i<size; ++i)
+      b[i] = start + i;
+
+    return b;
+  }
+
+
+  inline static MatrixType project(const MatrixType& rMatrix, VectorType irange, VectorType jrange)
+  {
+
+    MatrixType A(irange.size(), jrange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        A(i,j) = rMatrix(irange[i],jrange[j]);
+
+    return A;
+  }
+
+
+  inline static MatrixType& project(MatrixType& rMatrixA, VectorType irange, VectorType jrange, const MatrixType& rMatrixB)
+  {
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      for(unsigned int j = 0; j<jrange.size(); ++j)
+        rMatrixA(irange[i],jrange[j]) = rMatrixB(i,j);
+
+    return rMatrixA;
+  }
+
+
+  inline static VectorType project(const VectorType& rVector, VectorType irange)
+  {
+
+    VectorType b(irange.size());
+
+    for(unsigned int i = 0; i<irange.size(); ++i)
+      b[i] = rVector[irange[i]];
+
+    return b;
+  }
+
+
 
 private:
 };// class SolidMechanicsMathUtilities

@@ -24,36 +24,28 @@
 #include "custom_python/add_custom_processes_to_python.h"
 
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication,m)
 {
+	namespace py = pybind11;
 
-namespace Python
-{
+	py::class_<KratosCompressiblePotentialFlowApplication,
+		KratosCompressiblePotentialFlowApplication::Pointer,
+		KratosApplication >(m,"KratosCompressiblePotentialFlowApplication")
+		.def(py::init<>())
+		;
 
-  using namespace pybind11;
+	AddCustomProcessesToPython(m);
 
-
-
-  PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication,m)
-  {
-
-	  class_<KratosCompressiblePotentialFlowApplication,
-			  KratosCompressiblePotentialFlowApplication::Pointer,
-			  KratosApplication >(m,"KratosCompressiblePotentialFlowApplication")
-			  .def(init<>())
-			;
-
-    AddCustomProcessesToPython(m);
 	//registering variables in python
+	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,VELOCITY_INFINITY);
 
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
-
-  }
-
+}
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

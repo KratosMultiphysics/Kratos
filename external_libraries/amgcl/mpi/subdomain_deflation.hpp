@@ -129,7 +129,7 @@ class subdomain_deflation {
 
             params() {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_CHILD(p, local),
                   AMGCL_PARAMS_IMPORT_CHILD(p, isolver),

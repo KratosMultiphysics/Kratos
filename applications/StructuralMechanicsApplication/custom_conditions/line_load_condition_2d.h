@@ -18,9 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -77,17 +75,17 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-        
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& ThisNodes, 
-        PropertiesType::Pointer pProperties 
+
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
         ) const override;
 
     ///@}
@@ -148,12 +146,12 @@ protected:
      * @param CalculateStiffnessMatrixFlag: The flag to set if compute the LHS
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
-    void CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, 
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
@@ -162,15 +160,15 @@ protected:
         const Vector& N,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
         const Vector& N,
         const array_1d<double, 3>& Normal,
         const double Pressure,
-        const double IntegrationWeight 
-        );
+        const double IntegrationWeight
+        ) const;
 
     ///@}
     ///@name Protected  Access
@@ -202,7 +200,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -277,6 +275,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined 
+#endif // KRATOS_LINE_LOAD_CONDITION_2D_H_INCLUDED  defined
 
 

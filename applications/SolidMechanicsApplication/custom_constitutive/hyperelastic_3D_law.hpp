@@ -15,9 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/properties.h"
 #include "includes/constitutive_law.h"
-
 
 namespace Kratos
 {
@@ -112,7 +110,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElastic3DLaw();
+    ~HyperElastic3DLaw() override;
 
     /**
      * Operators
@@ -165,17 +163,6 @@ public:
     void InitializeMaterial( const Properties& rMaterialProperties,
                              const GeometryType& rElementGeometry,
                              const Vector& rShapeFunctionsValues ) override;
-
-
-    void InitializeSolutionStep( const Properties& rMaterialProperties,
-                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                                 const Vector& rShapeFunctionsValues ,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    void FinalizeSolutionStep( const Properties& rMaterialProperties,
-                               const GeometryType& rElementGeometry, //this is just to give the array of nodes
-                               const Vector& rShapeFunctionsValues ,
-                               const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Computes the material response:

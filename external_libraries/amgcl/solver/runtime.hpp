@@ -33,10 +33,15 @@ THE SOFTWARE.
 
 #include <iostream>
 #include <stdexcept>
-
 #include <type_traits>
+
+#ifdef AMGCL_NO_BOOST
+#  error Runtime interface relies on Boost.PropertyTree!
+#endif
+
 #include <boost/property_tree/ptree.hpp>
 
+#include <amgcl/util.hpp>
 #include <amgcl/solver/cg.hpp>
 #include <amgcl/solver/bicgstab.hpp>
 #include <amgcl/solver/bicgstabl.hpp>
@@ -210,6 +215,28 @@ struct wrapper {
 #define AMGCL_RUNTIME_SOLVER(type) \
             case type: \
                 return os << *static_cast<amgcl::solver::type<Backend, InnerProduct>*>(w.handle)
+
+            AMGCL_RUNTIME_SOLVER(cg);
+            AMGCL_RUNTIME_SOLVER(bicgstab);
+            AMGCL_RUNTIME_SOLVER(bicgstabl);
+            AMGCL_RUNTIME_SOLVER(gmres);
+            AMGCL_RUNTIME_SOLVER(lgmres);
+            AMGCL_RUNTIME_SOLVER(fgmres);
+            AMGCL_RUNTIME_SOLVER(idrs);
+
+#undef AMGCL_RUNTIME_SOLVER
+
+            default:
+                throw std::invalid_argument("Unsupported solver type");
+        }
+    }
+
+    size_t bytes() const {
+        switch(s) {
+
+#define AMGCL_RUNTIME_SOLVER(type) \
+            case type: \
+                return backend::bytes(*static_cast<amgcl::solver::type<Backend, InnerProduct>*>(handle))
 
             AMGCL_RUNTIME_SOLVER(cg);
             AMGCL_RUNTIME_SOLVER(bicgstab);

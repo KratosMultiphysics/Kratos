@@ -3,9 +3,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # Import applications
 import KratosMultiphysics.FluidDynamicsApplication as KratosCFD
 
@@ -130,7 +127,8 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         if self.settings["consider_periodic_conditions"].GetBool() == True:
             self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.PATCH_INDEX)
 
-        KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
+        if self._IsPrintingRank():
+            KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Fluid solver variables added correctly.")
 
     def PrepareModelPart(self):
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -142,7 +140,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
 
         # If needed, create the estimate time step utility
         if (self.settings["time_stepping"]["automatic_time_step"].GetBool()):
-            self.EstimateDeltaTimeUtility = self._get_automatic_time_stepping_utility()
+            self.EstimateDeltaTimeUtility = self._GetAutomaticTimeSteppingUtility()
 
         #TODO: next part would be much cleaner if we passed directly the parameters to the c++
         if self.settings["consider_periodic_conditions"] == True:
@@ -189,8 +187,6 @@ class NavierStokesSolverFractionalStep(FluidSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.OSS_SWITCH, self.settings["oss_switch"].GetInt())
 
         (self.solver).Initialize()
-
-        self.solver.Check()
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesSolverFractionalStep", "Solver initialization finished.")
 

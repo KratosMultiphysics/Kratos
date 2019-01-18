@@ -28,7 +28,7 @@ THE SOFTWARE.
 /**
  * \file   amgcl/relaxation/as_preconditioner.hpp
  * \author Denis Demidov <dennis.demidov@gmail.com>
- * \brief  Use an amgcl smoother as standalone preconditioner.
+ * \brief  Use an amgcl smoother as a standalone preconditioner.
  */
 
 #include <vector>
@@ -87,23 +87,31 @@ class as_preconditioner {
         std::shared_ptr<matrix> system_matrix_ptr() const {
             return A;
         }
+
+        size_t bytes() const {
+            size_t b = 0;
+
+            if (A) b += backend::bytes(*A);
+            if (S) b += backend::bytes(*S);
+
+            return b;
+        }
     private:
         params prm;
 
         std::shared_ptr<matrix>   A;
         std::shared_ptr<smoother> S;
-        std::shared_ptr<vector> tmp;
 
         void init(std::shared_ptr<build_matrix> M, const backend_params &bprm) {
             A = Backend::copy_matrix(M, bprm);
             S = std::make_shared<smoother>(*M, prm, bprm);
-            tmp = Backend::create_vector(backend::rows(*M), bprm);
         }
 
         friend std::ostream& operator<<(std::ostream &os, const as_preconditioner &p) {
             os << "Relaxation as preconditioner" << std::endl;
             os << "  unknowns: " << backend::rows(p.system_matrix()) << std::endl;
             os << "  nonzeros: " << backend::nonzeros(p.system_matrix()) << std::endl;
+            os << "  memory:   " << human_readable_memory(p.bytes()) << std::endl;
 
             return os;
         }

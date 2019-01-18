@@ -160,7 +160,7 @@ namespace Kratos
     this is the place to initialize the Scheme.
     This is intended to be called just once when the strategy is initialized
      */
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
@@ -382,7 +382,7 @@ namespace Kratos
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
       KRATOS_TRY;
 
@@ -412,7 +412,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DynamicScheme";
@@ -420,13 +420,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DynamicScheme";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "DynamicScheme Data";
     }

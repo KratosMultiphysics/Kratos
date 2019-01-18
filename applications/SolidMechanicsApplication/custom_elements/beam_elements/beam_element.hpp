@@ -18,6 +18,7 @@
 #include "includes/checks.h"
 #include "includes/element.h"
 #include "utilities/beam_math_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
@@ -330,7 +331,7 @@ public:
     BeamElement(BeamElement const& rOther);
 
     /// Destructor.
-    virtual ~BeamElement();
+    ~BeamElement() override;
 
 
     ///@}
@@ -563,7 +564,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam Element #" << Id();
@@ -571,13 +572,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -714,18 +715,6 @@ protected:
      */
     virtual void CalculateKinematics(ElementDataType& rVariables,
                                      const unsigned int& rPointNumber);
-
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
-
-    /**
-     * Calculation of the increment of position (step displacement)
-     */
-    Matrix& CalculateTotalDeltaPosition(Matrix & rDeltaPosition);
-
 
     /**
      * Calculate Element Constitutive Matrix
@@ -868,9 +857,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{
@@ -884,4 +873,3 @@ private:
 
 } // namespace Kratos.
 #endif //  KRATOS_BEAM_ELEMENT_H_INCLUDED defined
-

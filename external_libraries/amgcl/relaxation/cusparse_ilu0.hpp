@@ -54,7 +54,7 @@ struct ilu0< backend::cuda<real> > {
 
         params() : damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
         {
@@ -251,6 +251,16 @@ struct ilu0< backend::cuda<real> > {
     {
         backend::copy(rhs, x);
         solve(x);
+    }
+
+    size_t bytes() const {
+        // This is incomplete, as cusparse structs are opaque.
+        return
+            backend::bytes(ptr) +
+            backend::bytes(col) +
+            backend::bytes(val) +
+            backend::bytes(y) +
+            backend::bytes(buf);
     }
 
     private:

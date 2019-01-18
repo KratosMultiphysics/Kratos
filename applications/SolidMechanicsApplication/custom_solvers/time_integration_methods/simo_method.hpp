@@ -99,7 +99,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~SimoMethod(){}
+    ~SimoMethod() override{}
 
     ///@}
     ///@name Operators
@@ -251,7 +251,7 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      KRATOS_ERROR << " Calling UpdateFromSecondDerivative for Simo time integration method : NOT IMPLEMENTED " <<std::endl;
+      KRATOS_ERROR << " Calling UpdateFromFirstDerivative for Simo time integration method : NOT IMPLEMENTED " <<std::endl;
 
       KRATOS_CATCH( "" )
     }

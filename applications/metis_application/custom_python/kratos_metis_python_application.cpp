@@ -23,35 +23,22 @@
 #include "custom_python/add_processes_to_python.h"
 
 
-namespace Kratos
-{
-
-namespace Python
-{
-
-using namespace pybind11;
-
-
+namespace Kratos {
+namespace Python {
 
 PYBIND11_MODULE(KratosMetisApplication,m)
 {
+    namespace py = pybind11;
 
-    class_<KratosMetisApplication,
-           KratosMetisApplication::Pointer,
-           KratosApplication >(m,"KratosMetisApplication")
-           .def(init<>())
-           ;
+    py::class_<KratosMetisApplication,
+        KratosMetisApplication::Pointer,
+        KratosApplication >(m,"KratosMetisApplication")
+        .def(py::init<>())
+        ;
     AddProcessesToPython(m);
-
-    //registering variables in python
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA)
-    //KRATOS_REGISTER_IN_PYTHON_VARIABLE(VAUX)
-
 }
 
-
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

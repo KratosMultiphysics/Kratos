@@ -106,7 +106,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BossakMethod(){}
+    ~BossakMethod() override{}
 
     ///@}
     ///@name Operators

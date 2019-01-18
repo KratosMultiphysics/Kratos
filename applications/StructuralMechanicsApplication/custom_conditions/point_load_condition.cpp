@@ -6,7 +6,7 @@
 //  License:		 BSD License
 //					 license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Vicente Mataix Ferrándiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -25,7 +24,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : BaseLoadCondition( NewId, pGeometry )
     {
@@ -34,7 +33,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     PointLoadCondition::PointLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -42,7 +41,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointLoadCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
         return Kratos::make_shared<PointLoadCondition>(NewId, pGeom, pProperties);
@@ -50,7 +49,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointLoadCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
         return Kratos::make_shared<PointLoadCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -58,7 +57,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     PointLoadCondition::~PointLoadCondition()
     {
     }
@@ -66,15 +65,15 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void PointLoadCondition::CalculateAll( 
+    void PointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -112,12 +111,12 @@ namespace Kratos
         for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
         {
             const unsigned int base = ii*Dimension;
-            
+
             if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
             {
                 noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
             }
-            
+
             for(unsigned int k = 0; k < Dimension; ++k)
             {
                 rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
@@ -126,15 +125,15 @@ namespace Kratos
 
         KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
-    double PointLoadCondition::GetPointLoadIntegrationWeight()
+
+    double PointLoadCondition::GetPointLoadIntegrationWeight() const
     {
         return 1.0;
     }
-    
+
 } // Namespace Kratos
 
 

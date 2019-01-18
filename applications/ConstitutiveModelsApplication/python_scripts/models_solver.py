@@ -3,9 +3,6 @@ import sys
 #import kratos core and applications
 import KratosMultiphysics
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 from math import *
 
 class compiled_space_time_function:
@@ -210,7 +207,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponsePK2( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
         if( self.Kirchhoff ):
             self.initialize_calculation_variables()
@@ -222,7 +218,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponseKirchhoff( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
 
         if( self.Cauchy ):
             self.initialize_calculation_variables()
@@ -234,8 +229,6 @@ class MaterialsSolver(object):
                 print( "C      = ", self.parameters.GetConstitutiveMatrix() )
 
             self.material_law.FinalizeMaterialResponseCauchy( self.parameters )
-            self.material_law.FinalizeSolutionStep( self.properties, geometry, shape_N, self.process_info )
-
     #
     def _set_basic_parameters(self):
 
@@ -284,6 +277,11 @@ class MaterialsSolver(object):
     #
     def _build_dummy_geometry(self):
 
+        #tables depent on this nodal variables (TODO: get them from assign_materials_process.py)
+        nodal_variables = {"TEMPERATURE":293.15 , "PRESSURE":0.0}
+        for variable in nodal_variables:
+            self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
+
         #build a dummy geometry
         self.dimension = self.material_law.WorkingSpaceDimension()
         self.nodes = []
@@ -301,6 +299,10 @@ class MaterialsSolver(object):
             self.nodes.append(self.model_part.CreateNewNode(2,0.0,1.0,0.0))
             self.geometry = KratosMultiphysics.Triangle2D3(self.nodes[0],self.nodes[1],self.nodes[2])
 
+
+        for node in self.nodes:
+            for variable, value in nodal_variables.items():
+                node.SetSolutionStepValue(KratosMultiphysics.KratosGlobals.GetVariable(variable), value)
 
     #
     def _set_strain_parameters(self):

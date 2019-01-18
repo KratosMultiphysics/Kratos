@@ -59,6 +59,8 @@ public:
   ///Type for size
   typedef GeometryData::SizeType SizeType;
 
+  typedef std::vector<Element*> ElementPointerVectorType;
+
   /// Counted pointer of UpdatedLagrangianSegregatedVPElement
   KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedVPElement );
   ///@}
@@ -79,7 +81,7 @@ public:
 
 
   /// Destructor.
-  virtual ~UpdatedLagrangianSegregatedVPElement();
+  ~UpdatedLagrangianSegregatedVPElement() override;
 
   ///@}
   ///@name Operators

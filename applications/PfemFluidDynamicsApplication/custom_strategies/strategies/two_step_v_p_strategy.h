@@ -207,11 +207,11 @@ public:
             if (ierr != 0) break;
         }
 
-        for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
-        {
-            ierr = itCond->Check(rCurrentProcessInfo);
-            if (ierr != 0) break;
-        }
+        /* for ( ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond) */
+        /* { */
+        /*     ierr = itCond->Check(rCurrentProcessInfo); */
+        /*     if (ierr != 0) break; */
+        /* } */
 
         return ierr;
 
@@ -320,10 +320,10 @@ public:
     {
       KRATOS_TRY;
 
-      this->CalculateDisplacements();
+      this->CalculateDisplacementsAndPorosity();
       BaseType::MoveMesh();
-      BoundaryNormalsCalculationUtilities BoundaryComputation;
-      BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel);
+      /* BoundaryNormalsCalculationUtilities BoundaryComputation; */
+      /* BoundaryComputation.CalculateWeightedBoundaryNormals(rModelPart, echoLevel); */
 
       KRATOS_CATCH("");
 
@@ -370,8 +370,72 @@ public:
 	    double & PreviousPressureVelocity     = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1);
 	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
 	    CurrentPressureAcceleration = (CurrentPressureVelocity-PreviousPressureVelocity)/timeInterval;
-
 	  }
+	  
+        }
+    }
+
+    void CalculateTemporalVariables()
+    {
+      ModelPart& rModelPart = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+      Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+      for (ModelPart::NodeIterator i = rModelPart.NodesBegin();
+	   i != rModelPart.NodesEnd(); ++i)
+        {
+
+	  array_1d<double, 3 > & CurrentVelocity      = (i)->FastGetSolutionStepValue(VELOCITY, 0);
+	  array_1d<double, 3 > & PreviousVelocity     = (i)->FastGetSolutionStepValue(VELOCITY, 1);
+
+	  array_1d<double, 3 > & CurrentAcceleration  = (i)->FastGetSolutionStepValue(ACCELERATION, 0);
+	  array_1d<double, 3 > & PreviousAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
+
+	  /* if((i)->IsNot(ISOLATED) || (i)->Is(SOLID)){ */
+	  if((i)->IsNot(ISOLATED) && (i)->IsNot(RIGID)){
+	    UpdateAccelerations (CurrentAcceleration, CurrentVelocity, PreviousAcceleration, PreviousVelocity,BDFcoeffs);
+	  }else if((i)->Is(RIGID)){
+	    array_1d<double, 3>  Zeros(3,0.0);
+	    (i)->FastGetSolutionStepValue(ACCELERATION,0) = Zeros;
+	    (i)->FastGetSolutionStepValue(ACCELERATION,1) = Zeros;
+	  }else {
+	    (i)->FastGetSolutionStepValue(PRESSURE,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,0) = 0.0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION,1) = 0.0;
+	    if((i)->SolutionStepsDataHas(VOLUME_ACCELERATION)){
+	      array_1d<double, 3 >& VolumeAcceleration = (i)->FastGetSolutionStepValue(VOLUME_ACCELERATION);
+	      (i)->FastGetSolutionStepValue(ACCELERATION,0) = VolumeAcceleration;
+	      (i)->FastGetSolutionStepValue(VELOCITY,0) += VolumeAcceleration*rCurrentProcessInfo[DELTA_TIME];
+	    }
+	  }
+
+	  const double timeInterval = rCurrentProcessInfo[DELTA_TIME];
+	  unsigned int timeStep = rCurrentProcessInfo[STEP];
+	  if(timeStep==1){
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 1)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0)=0;
+	    (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 1)=0;
+	  }else{
+	    double  & CurrentPressure      = (i)->FastGetSolutionStepValue(PRESSURE, 0);
+	    double  & PreviousPressure     = (i)->FastGetSolutionStepValue(PRESSURE, 1);
+	    double  & CurrentPressureVelocity  = (i)->FastGetSolutionStepValue(PRESSURE_VELOCITY, 0);
+	    double & CurrentPressureAcceleration  = (i)->FastGetSolutionStepValue(PRESSURE_ACCELERATION, 0);
+	    
+	    CurrentPressureAcceleration = CurrentPressureVelocity/timeInterval;
+	    
+	    CurrentPressureVelocity = (CurrentPressure-PreviousPressure)/timeInterval;
+	    
+	    CurrentPressureAcceleration += -CurrentPressureVelocity/timeInterval;
+
+	    double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+	    previousFluidFraction=(i)->FastGetSolutionStepValue(FLUID_FRACTION);
+	  }
+
+
         }
     }
 
@@ -429,7 +493,7 @@ public:
       // std::cout<<"rBDFCoeffs[2] is "<<rBDFCoeffs[2]<<std::endl;//1/(2*delta_t)
     }
 
-    void CalculateDisplacements()
+    void CalculateDisplacementsAndPorosity()
     {
       ModelPart& rModelPart = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -445,15 +509,20 @@ public:
 	  array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT, 0);
 	  array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
 
+	  const double& currentFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION);
+	  const double& previousFluidFraction = (i)->FastGetSolutionStepValue(FLUID_FRACTION_OLD);
+	  double& currentFluidFractionRate = (i)->FastGetSolutionStepValue(FLUID_FRACTION_RATE);
+
 	  /* if( i->IsFixed(DISPLACEMENT_X) == false ) */
-	    CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
+	  CurrentDisplacement[0] = 0.5* TimeStep *(CurrentVelocity[0]+PreviousVelocity[0]) + PreviousDisplacement[0];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Y) == false ) */
-	    CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
+	  CurrentDisplacement[1] = 0.5* TimeStep *(CurrentVelocity[1]+PreviousVelocity[1]) + PreviousDisplacement[1];
 
 	  /* if( i->IsFixed(DISPLACEMENT_Z) == false ) */
-	    CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
+	  CurrentDisplacement[2] = 0.5* TimeStep *(CurrentVelocity[2]+PreviousVelocity[2]) + PreviousDisplacement[2];
 
+	  currentFluidFractionRate = (currentFluidFraction - previousFluidFraction)/TimeStep;
         }
     }
 
@@ -478,9 +547,11 @@ public:
 
      }
 
-     this->CalculateAccelerations();
-     this->CalculatePressureVelocity();
-     this->CalculatePressureAcceleration();
+     /* this->CalculateAccelerations(); */
+     /* this->CalculatePressureVelocity(); */
+     /* this->CalculatePressureAcceleration(); */
+
+     this->CalculateTemporalVariables();
 
    }
 

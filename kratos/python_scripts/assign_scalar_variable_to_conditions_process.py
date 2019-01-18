@@ -40,7 +40,7 @@ class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
         self.value_is_numeric = False
 
         # set processes
-        params = KratosMultiphysics.Parameters("{}")           
+        params = KratosMultiphysics.Parameters("{}")
         params.AddValue("model_part_name", settings["model_part_name"])
         params.AddValue("mesh_id", settings["mesh_id"])
         params.AddValue("value", settings["value"])
@@ -53,7 +53,7 @@ class AssignScalarVariableToConditionsProcess(KratosMultiphysics.Process):
         else:
             params.AddValue("local_axes", settings["local_axes"])
             self.AssignValueProcess = KratosMultiphysics.AssignScalarFieldToConditionsProcess(self.model_part, params)
-                
+
         # construct a variable_utils object to speedup fixing
         self.step_is_active = False
 

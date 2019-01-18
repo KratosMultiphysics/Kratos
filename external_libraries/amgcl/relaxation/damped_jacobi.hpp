@@ -62,7 +62,7 @@ struct damped_jacobi {
 
         params(scalar_type damping = 0.72) : damping(damping) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
         {
@@ -130,6 +130,10 @@ struct damped_jacobi {
     void apply(const Matrix&, const VectorRHS &rhs, VectorX &x) const
     {
         backend::vmul(math::identity<scalar_type>(), *dia, rhs, math::zero<scalar_type>(), x);
+    }
+
+    size_t bytes() const {
+        return backend::bytes(*dia);
     }
 };
 

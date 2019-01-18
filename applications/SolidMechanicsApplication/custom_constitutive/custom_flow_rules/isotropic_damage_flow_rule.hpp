@@ -73,7 +73,7 @@ namespace Kratos
     IsotropicDamageFlowRule& operator=(IsotropicDamageFlowRule const& rOther);
 
     /// Destructor.
-    virtual ~IsotropicDamageFlowRule();
+    ~IsotropicDamageFlowRule() override;
 
 
     ///@}

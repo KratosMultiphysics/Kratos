@@ -63,7 +63,7 @@ struct gauss_seidel {
 
         params() : serial(false) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, serial)
         {
@@ -124,6 +124,13 @@ struct gauss_seidel {
             forward->sweep(rhs, x);
             backward->sweep(rhs, x);
         }
+    }
+
+    size_t bytes() const {
+        size_t b = 0;
+        if (forward)  b += forward->bytes();
+        if (backward) b += backward->bytes();
+        return b;
     }
 
     private:
@@ -343,6 +350,20 @@ struct gauss_seidel {
 #pragma omp barrier
                     }
                 }
+            }
+
+            size_t bytes() const {
+                size_t b = 0;
+
+                for(int i = 0; i < nthreads; ++i) {
+                    b += sizeof(task) * tasks[i].size();
+                    b += backend::bytes(ptr[i]);
+                    b += backend::bytes(col[i]);
+                    b += backend::bytes(val[i]);
+                    b += backend::bytes(ord[i]);
+                }
+
+                return b;
             }
         };
 

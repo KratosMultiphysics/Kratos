@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_contact_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -25,7 +24,7 @@ namespace Kratos
 {
     //******************************* CONSTRUCTOR ****************************************
     //************************************************************************************
-    
+
     PointContactCondition::PointContactCondition( IndexType NewId, GeometryType::Pointer pGeometry )
         : BaseLoadCondition( NewId, pGeometry )
     {
@@ -34,7 +33,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     PointContactCondition::PointContactCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
         : BaseLoadCondition( NewId, pGeometry, pProperties )
     {
@@ -42,7 +41,7 @@ namespace Kratos
 
     //********************************* CREATE *******************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointContactCondition::Create(IndexType NewId,GeometryType::Pointer pGeom,PropertiesType::Pointer pProperties) const
     {
         return Kratos::make_shared<PointContactCondition>(NewId, pGeom, pProperties);
@@ -50,7 +49,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-    
+
     Condition::Pointer PointContactCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
     {
         return Kratos::make_shared<PointContactCondition>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
@@ -58,7 +57,7 @@ namespace Kratos
 
     //******************************* DESTRUCTOR *****************************************
     //************************************************************************************
-    
+
     PointContactCondition::~PointContactCondition()
     {
     }
@@ -66,15 +65,16 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    void PointContactCondition::CalculateAll( 
-        MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag 
+    void PointContactCondition::CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
-        
+
         const unsigned int NumberOfNodes = GetGeometry().size();
         const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -101,7 +101,7 @@ namespace Kratos
 
             noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
         }
-        
+
         //obtain distance, gradient of distance and nodal normal and displacement at which the distance was measured
         const double d_reference = GetGeometry()[0].GetValue(DISTANCE);
         const array_1d<double,3>& grad_d = GetGeometry()[0].GetValue(DISTANCE_GRADIENT);
@@ -113,13 +113,13 @@ namespace Kratos
         const array_1d<double,3> ddisp = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT) - reference_disp;
         const double d_current = d_reference + inner_prod(grad_d,ddisp);
 //    KRATOS_WATCH(ddisp)
-//    KRATOS_WATCH(d_current)        
+//    KRATOS_WATCH(d_current)
 //        if(d_reference > 0) //
             const double E = GetProperties()[YOUNG_MODULUS]/10000.0;
             const double characteristic_lenght = 1.0e-2; //should get this from a variable
             const double spring_stiffness = E/characteristic_lenght;
             const double contact_pressure = d_current*spring_stiffness;
-            
+
         if(d_current > 0)
         {
 
@@ -131,20 +131,20 @@ namespace Kratos
             for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
             {
                 const unsigned int base = ii*Dimension;
-                
+
                 for(unsigned int k = 0; k < Dimension; ++k)
                     rRightHandSideVector[base + k] = -PointLoad[k];
-                
+
                 noalias(GetGeometry()[0].FastGetSolutionStepValue(FORCE)) = -PointLoad; //TODO: remove
                 GetGeometry()[0].FastGetSolutionStepValue(TEMPERATURE) = d_current;
                 GetGeometry()[0].FastGetSolutionStepValue(NODAL_PAUX) = d_reference;
-                
-                    
+
+
 //                 if ( CalculateStiffnessMatrixFlag == true )
 //                 {
 //                     for(unsigned int k = 0; k < Dimension; ++k)
 //                     {
-// //                 KRATOS_WATCH(rRightHandSideVector)     
+// //                 KRATOS_WATCH(rRightHandSideVector)
 // //                 KRATOS_WATCH(rLeftHandSideMatrix)
 //                         for(unsigned int l = 0; l < Dimension; ++l)
 //                         {
@@ -164,18 +164,18 @@ namespace Kratos
 //             KRATOS_WATCH(n)
 //             KRATOS_WATCH(grad_d)
 //             KRATOS_WATCH(rLeftHandSideMatrix)
-        
+
         if(d_current > 0 )//d_reference > 0)
         {
             for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
             {
                 const unsigned int base = ii*Dimension;
-                    
+
                 if ( CalculateStiffnessMatrixFlag == true )
                 {
                     for(unsigned int k = 0; k < Dimension; ++k)
                     {
-//                 KRATOS_WATCH(rRightHandSideVector)     
+//                 KRATOS_WATCH(rRightHandSideVector)
 //                 KRATOS_WATCH(rLeftHandSideMatrix)
                         for(unsigned int l = 0; l < Dimension; ++l)
                         {
@@ -185,18 +185,18 @@ namespace Kratos
                     }
                 }
             }
-        }   
+        }
         KRATOS_CATCH( "" )
     }
-    
+
     //************************************************************************************
     //************************************************************************************
-    
-    double PointContactCondition::GetPointLoadIntegrationWeight()
+
+    double PointContactCondition::GetPointLoadIntegrationWeight() const
     {
         return 1.0;
     }
-    
+
 } // Namespace Kratos
 
 

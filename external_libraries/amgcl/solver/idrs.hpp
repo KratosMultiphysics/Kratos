@@ -103,7 +103,7 @@ class idrs {
              * Determines the residual replacement strategy.
              *    If |r| > 1E3 |b| TOL/EPS) (EPS is the machine precision)
              *    the recursively computed residual is replaced by the true residual
-             *    once |r| < |b| (to reduce the effect of large intermediate residuals 
+             *    once |r| < |b| (to reduce the effect of large intermediate residuals
              *    on the final accuracy).
              * Default: No residual replacement.
              */
@@ -124,7 +124,7 @@ class idrs {
                   abstol(std::numeric_limits<scalar_type>::min())
             { }
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, s),
                   AMGCL_PARAMS_IMPORT_VALUE(p, omega),
@@ -418,8 +418,34 @@ class idrs {
             return (*this)(P.system_matrix(), P, rhs, x);
         }
 
+        size_t bytes() const {
+            size_t b = 0;
+
+            b += M.size() * sizeof(coef_type);
+
+            b += backend::bytes(f);
+            b += backend::bytes(c);
+
+            b += backend::bytes(*r);
+            b += backend::bytes(*v);
+            b += backend::bytes(*t);
+
+            if (x_s) b += backend::bytes(*x_s);
+            if (r_s) b += backend::bytes(*r_s);
+
+            for(const auto &v : P) b += backend::bytes(*v);
+            for(const auto &v : G) b += backend::bytes(*v);
+            for(const auto &v : U) b += backend::bytes(*v);
+
+            return b;
+        }
+
         friend std::ostream& operator<<(std::ostream &os, const idrs &s) {
-            return os << "IDR(" << s.prm.s << "): " << s.n << " unknowns";
+            return os
+                << "Type:             IDR(" << s.prm.s << ")"
+                << "\nUnknowns:         " << s.n
+                << "\nMemory footprint: " << human_readable_memory(s.bytes())
+                << std::endl;
         }
 
     private:

@@ -17,9 +17,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
-#include "includes/kratos_parameters.h"
-#include "processes/process.h"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
 
 namespace Kratos
 {
@@ -30,7 +28,7 @@ namespace Kratos
 /// The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
 /** This function assigns a value to a variable belonging to all of the nodes in a given mesh
 */
-class AssignScalarFieldToEntitiesProcess : public Process
+class AssignScalarFieldToEntitiesProcess : public AssignScalarVariableToEntitiesProcess
 {
 public:
     ///@name Type Definitions
@@ -39,7 +37,7 @@ public:
     /// Pointer definition of AssignScalarFieldToEntitiesProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignScalarFieldToEntitiesProcess);
 
-    enum EntityType { NODES, CONDITIONS, ELEMENTS};
+    typedef AssignScalarVariableToEntitiesProcess  BaseType;
 
     ///@}
     ///@name Life Cycle
@@ -49,7 +47,7 @@ public:
                                        const std::string& pPyMethodName,
                                        const bool SpatialFieldFunction,
                                        Parameters rParameters
-                                       ) : Process(Flags()), mrModelPart(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction)
+                                       ) : BaseType(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction)
     {
         KRATOS_TRY
 
@@ -58,14 +56,15 @@ public:
                 "model_part_name":"MODEL_PART_NAME",
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
-                "local_axes" : {}
+                "local_axes" : {},
+                "compound_assignment": "direct"
             }  )" );
 
 
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mvariable_name = rParameters["variable_name"].GetString();
+        this->mvariable_name = rParameters["variable_name"].GetString();
 
 	// Admissible values for local axes, are "empty" or
         //"local_axes" :{
@@ -93,57 +92,58 @@ public:
 	}
 
         if( rParameters["entity_type"].GetString() == "NODES" ){
-          mEntity = NODES;
+          this->mEntity = EntityType::NODES;
         }
         else if(  rParameters["entity_type"].GetString() == "CONDITIONS" ){
-          mEntity = CONDITIONS;
+          this->mEntity = EntityType::CONDITIONS;
         }
         else if(  rParameters["entity_type"].GetString() == "ELEMENTS" ){
-          mEntity = ELEMENTS;
+          this->mEntity = EntityType::ELEMENTS;
         }
         else{
           KRATOS_ERROR <<" Entity type "<< rParameters["entity_type"].GetString() <<" is not supported "<<std::endl;
         }
 
 
-        if( mEntity == NODES ){
+        if( this->mEntity == EntityType::NODES ){
 
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
+          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
           {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+            component_type var_component = KratosComponents< component_type >::Get(this->mvariable_name);
 
             if( rModelPart.GetNodalSolutionStepVariablesList().Has( var_component.GetSourceVariable() ) == false )
             {
-              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << this->mvariable_name << std::endl;
             }
 
           }
-          else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          else if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
           {
-            if( rModelPart.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
+            if( rModelPart.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( this->mvariable_name ) ) == false )
             {
-              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+              KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << this->mvariable_name << std::endl;
             }
 
           }
           else
           {
-            KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << mvariable_name << std::endl;
+            KRATOS_ERROR << "Not able to set the variable type/name. Attempting to set variable:" << this->mvariable_name << std::endl;
           }
         }
-        else if( mEntity == CONDITIONS || mEntity == ELEMENTS ){
+        else if( this->mEntity == EntityType::CONDITIONS || this->mEntity == EntityType::ELEMENTS ){
 
-          if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) == false ) //case of double variable
+          if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) == false ) //case of double variable
           {
-            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << mvariable_name << std::endl;
+            KRATOS_ERROR << "trying to set a variable that is not in the model_part - variable name is " << this->mvariable_name << std::endl;
           }
 
         }
         else{
-          KRATOS_ERROR << " Assignment to " << mEntity << " not implemented "<< std::endl;
+          KRATOS_ERROR << " Assignment to " << rParameters["entity_type"].GetString() << " not implemented "<< std::endl;
         }
 
+        this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
 
         KRATOS_CATCH("")
     }
@@ -153,14 +153,14 @@ public:
                                        pybind11::object& pPyObject,
                                        const std::string& pPyMethodName,
                                        const bool SpatialFieldFunction
-                                       ) : Process(Flags()), mrModelPart(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction)
+                                       ) : BaseType(rModelPart), mPyObject(pPyObject), mPyMethodName(pPyMethodName), mIsSpatialField(SpatialFieldFunction)
     {
         KRATOS_TRY
         KRATOS_CATCH("")
     }
 
     /// Destructor.
-    virtual ~AssignScalarFieldToEntitiesProcess() {}
+    ~AssignScalarFieldToEntitiesProcess() override {}
 
 
     ///@}
@@ -185,41 +185,41 @@ public:
 
         KRATOS_TRY
 
-        ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
+        ProcessInfo& rCurrentProcessInfo = this->mrModelPart.GetProcessInfo();
 
 	const double& rCurrentTime = rCurrentProcessInfo[TIME];
 
-        if( mEntity == NODES || mEntity == CONDITIONS ){
+        if( this->mEntity == EntityType::NODES || this->mEntity == EntityType::CONDITIONS ){
 
-          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(mvariable_name) ) //case of component variable
+          if( KratosComponents< VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > >::Has(this->mvariable_name) ) //case of component variable
           {
             typedef VariableComponent< VectorComponentAdaptor<array_1d<double, 3> > > component_type;
-            component_type var_component = KratosComponents< component_type >::Get(mvariable_name);
+            component_type var_component = KratosComponents< component_type >::Get(this->mvariable_name);
             AssignValueToNodes<component_type>(var_component, rCurrentTime);
           }
-          else if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
+          else if( KratosComponents< Variable<double> >::Has( this->mvariable_name ) ) //case of double variable
           {
-            AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(mvariable_name), rCurrentTime);
+            AssignValueToNodes<>(KratosComponents< Variable<double> >::Get(this->mvariable_name), rCurrentTime);
           }
-          else if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+          else if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
-            AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), rCurrentTime);
+            AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), rCurrentTime);
           }
           else
           {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
           }
 
         }
-        else if( mEntity == ELEMENTS ){
+        else if( this->mEntity == EntityType::ELEMENTS ){
 
-          if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+          if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
           {
-            AssignValueToElements<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), rCurrentTime);
+            AssignValueToElements<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), rCurrentTime);
           }
           else
           {
-            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+            KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
           }
 
         }
@@ -271,17 +271,18 @@ public:
 
       KRATOS_TRY
 
-      if( mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
-      	if( KratosComponents< Variable<Vector> >::Has( mvariable_name ) ) //case of vector variable
+      	if( KratosComponents< Variable<Vector> >::Has( this->mvariable_name ) ) //case of vector variable
         {
+          mAssignment = AssignmentType::DIRECT;
 	  Vector Value(3);
 	  noalias(Value) = ZeroVector(3);
-	  AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(mvariable_name), Value);
+	  AssignValueToConditions<>(KratosComponents< Variable<Vector> >::Get(this->mvariable_name), Value);
         }
         else
         {
-          KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << mvariable_name << std::endl;
+          KRATOS_ERROR << "Not able to set the variable. Attempting to set variable:" << this->mvariable_name << std::endl;
         }
       }
 
@@ -335,9 +336,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    std::string mvariable_name;
-
     pybind11::object mPyObject;
     std::string mPyMethodName;
 
@@ -348,9 +346,6 @@ protected:
 
     bool mHasLocalOrigin;
     bool mHasLocalAxes;
-
-    EntityType mEntity;
-
 
     ///@}
     ///@name Protected Operators
@@ -479,15 +474,19 @@ protected:
     template< class TVarType >
     void AssignValueToNodes(TVarType& rVariable, const double& rTime)
     {
-      if( mEntity == NODES ){
+      if( this->mEntity == EntityType::NODES ){
 
-        const int nnodes = mrModelPart.GetMesh().Nodes().size();
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::NodeType&, const TVarType&, const double&);
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
+
+        const int nnodes = this->mrModelPart.GetMesh().Nodes().size();
 
 	double Value = 0;
 
         if(nnodes != 0)
         {
-            ModelPart::NodesContainerType::iterator it_begin = mrModelPart.GetMesh().NodesBegin();
+            ModelPart::NodesContainerType::iterator it_begin = this->mrModelPart.GetMesh().NodesBegin();
 
             //#pragma omp parallel for  //it does not work in parallel
             for(int i = 0; i<nnodes; i++)
@@ -496,7 +495,7 @@ protected:
 
 		this->CallFunction(*(it.base()), rTime, Value);
 
-		it->FastGetSolutionStepValue(rVariable) = Value;
+		(this->*AssignmentMethod)(*it, rVariable, Value);
             }
         }
 
@@ -506,15 +505,19 @@ protected:
     template< class TVarType >
     void AssignValueToConditions(TVarType& rVariable, const double& rTime)
     {
-      if( mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
-        const int nconditions = mrModelPart.GetMesh().Conditions().size();
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const Variable<Vector>&, const Vector&);
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
+
+        const int nconditions = this->mrModelPart.GetMesh().Conditions().size();
 
 	Vector Value;
 
         if(nconditions != 0)
         {
-          ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
+          ModelPart::ConditionsContainerType::iterator it_begin = this->mrModelPart.GetMesh().ConditionsBegin();
 
           //#pragma omp parallel for //it does not work in parallel
           for(int i = 0; i<nconditions; i++)
@@ -523,7 +526,7 @@ protected:
 
             this->CallFunction(*(it.base()), rTime, Value);
 
-            it->SetValue(rVariable, Value);
+            (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 
@@ -534,20 +537,23 @@ protected:
     void AssignValueToConditions(TVarType& rVariable, const TDataType Value)
     {
 
-      if( mEntity == CONDITIONS ){
+      if( this->mEntity == EntityType::CONDITIONS ){
 
-        const int nconditions = mrModelPart.GetMesh().Conditions().size();
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ConditionType&, const TVarType&, const TDataType&);
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
+
+        const int nconditions = this->mrModelPart.GetMesh().Conditions().size();
 
         if(nconditions != 0)
         {
-          ModelPart::ConditionsContainerType::iterator it_begin = mrModelPart.GetMesh().ConditionsBegin();
+          ModelPart::ConditionsContainerType::iterator it_begin = this->mrModelPart.GetMesh().ConditionsBegin();
 
           #pragma omp parallel for
           for(int i = 0; i<nconditions; i++)
           {
             ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-            it->SetValue(rVariable, Value);
+            (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 
@@ -559,15 +565,19 @@ protected:
     template< class TVarType >
     void AssignValueToElements(TVarType& rVariable, const double& rTime)
     {
-      if( mEntity == ELEMENTS ){
+      if( this->mEntity == EntityType::ELEMENTS ){
 
-        const int nelements = mrModelPart.GetMesh().Elements().size();
+        typedef void (BaseType::*AssignmentMethodPointer) (ModelPart::ElementType&, const Variable<Vector>&, const Vector&);
+
+        AssignmentMethodPointer AssignmentMethod = this->GetAssignmentMethod<AssignmentMethodPointer>();
+
+        const int nelements = this->mrModelPart.GetMesh().Elements().size();
 
 	Vector Value;
 
         if(nelements != 0)
         {
-          ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+          ModelPart::ElementsContainerType::iterator it_begin = this->mrModelPart.GetMesh().ElementsBegin();
 
           //#pragma omp parallel for //it does not work in parallel
           for(int i = 0; i<nelements; i++)
@@ -576,7 +586,7 @@ protected:
 
             this->CallFunction(*(it.base()), rTime, Value);
 
-            it->SetValue(rVariable, Value);
+            (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 
@@ -587,13 +597,13 @@ protected:
     // void AssignValueToElements(TVarType& rVariable, const TDataType Value)
     // {
 
-    //   if( mEntity == ELEMENTS ){
+    //   if( this->mEntity == ELEMENTS ){
 
-    //     const int nelements = mrModelPart.GetMesh().Elements().size();
+    //     const int nelements = this->mrModelPart.GetMesh().Elements().size();
 
     //     if(nelements != 0)
     //     {
-    //       ModelPart::ElementsContainerType::iterator it_begin = mrModelPart.GetMesh().ElementsBegin();
+    //       ModelPart::ElementsContainerType::iterator it_begin = this->mrModelPart.GetMesh().ElementsBegin();
 
     //       #pragma omp parallel for
     //       for(int i = 0; i<nelements; i++)

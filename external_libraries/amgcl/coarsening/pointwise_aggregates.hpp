@@ -61,7 +61,7 @@ class pointwise_aggregates {
 
             params() : block_size(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : plain_aggregates::params(p),
                   AMGCL_PARAMS_IMPORT_VALUE(p, block_size)

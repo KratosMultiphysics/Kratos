@@ -18,9 +18,7 @@
 
 /* Project includes */
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "includes/process_info.h"
+#include "custom_utilities/contact_utilities.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/variable_utils.h"
 #include "custom_processes/aalm_adapt_penalty_value_process.h"
@@ -34,7 +32,7 @@ namespace Kratos
 {
 ///@addtogroup ContactStructuralMechanicsApplication
 ///@{
-    
+
 ///@name Kratos Globals
 ///@{
 
@@ -54,48 +52,50 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
- * @class DisplacementLagrangeMultiplierContactCriteria 
- * @ingroup ContactStructuralMechanicsApplication 
+/**
+ * @class DisplacementLagrangeMultiplierContactCriteria
+ * @ingroup ContactStructuralMechanicsApplication
  * @brief Custom convergence criteria for the mortar condition
- * @author Vicente Mataix Ferrandiz 
+ * @author Vicente Mataix Ferrandiz
  */
 template<class TSparseSpace, class TDenseSpace>
-class BaseMortarConvergenceCriteria 
+class BaseMortarConvergenceCriteria
     : public  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Creating the corresponding pointer
+    /// Pointer definition of BaseMortarConvergenceCriteria
     KRATOS_CLASS_POINTER_DEFINITION( BaseMortarConvergenceCriteria );
 
+    /// The base class definition (and it subclasses)
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    typedef typename BaseType::TDataType                    TDataType;
+    typedef typename BaseType::DofsArrayType            DofsArrayType;
+    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
 
+    /// The sparse space used
     typedef TSparseSpace                              SparseSpaceType;
 
-    typedef typename BaseType::TDataType                    TDataType;
-
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
-
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
-
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
-    
+    /// The components containers
     typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    
     typedef ModelPart::NodesContainerType              NodesArrayType;
-    
+
     typedef GidIO<> GidIOBaseType;
 
     ///@}
     ///@name Life Cycle
     ///@{
-    
+
     /// Default constructors
-    BaseMortarConvergenceCriteria(const bool IODebug = false)
+    explicit BaseMortarConvergenceCriteria(
+        const bool ComputeDynamicFactor = false,
+        const bool IODebug = false
+        )
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >(),
+          mComputeDynamicFactor(ComputeDynamicFactor),
           mIODebug(IODebug),
           mpGidIO(nullptr)
     {
@@ -103,7 +103,7 @@ public:
             mpGidIO = Kratos::make_shared<GidIOBaseType>("POST_LINEAR_ITER", GiD_PostBinary, SingleFile, WriteUndeformed,  WriteElementsOnly);
     }
 
-    ///Copy constructor 
+    ///Copy constructor
     BaseMortarConvergenceCriteria( BaseMortarConvergenceCriteria const& rOther )
       :BaseType(rOther)
     {
@@ -115,23 +115,22 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    
+
     /**
      * @brief Criterias that need to be called before getting the solution
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-    
     bool PreCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
         // The current process info
@@ -144,90 +143,80 @@ public:
         const auto normal_variation = process_info.Has(CONSIDER_NORMAL_VARIATION) ? static_cast<NormalDerivativesComputation>(process_info.GetValue(CONSIDER_NORMAL_VARIATION)) : NO_DERIVATIVES_COMPUTATION;
         if (normal_variation != NO_DERIVATIVES_COMPUTATION)
             ComputeNodesMeanNormalModelPartWithPairedNormal(rModelPart); // Update normal of the conditions
-        
+
         const bool adapt_penalty = process_info.Has(ADAPT_PENALTY) ? process_info.GetValue(ADAPT_PENALTY) : false;
-        const bool dynamic_case = rModelPart.NodesBegin()->SolutionStepsDataHas(VELOCITY_X);
-        
+        const bool dynamic_case = rModelPart.HasNodalSolutionStepVariable(VELOCITY);
+
         /* Compute weighthed gap */
         if (adapt_penalty || dynamic_case) {
             // Set to zero the weighted gap
             ResetWeightedGap(rModelPart);
-            
-            ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-        
-            KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-            
-            #pragma omp parallel for
-            for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-                (conditions_array.begin() + i)->AddExplicitContribution(process_info);
+
+            // Compute the contribution
+            ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
         }
-         
-//         // In dynamic case
-//         if ( dynamic_case ) {
-//             ComputeDynamicFactorProcess compute_dynamic_factor_process = ComputeDynamicFactorProcess( r_contact_model_part );
-//             compute_dynamic_factor_process.Execute();
-//         }
-        
+
+        // In dynamic case
+        if ( dynamic_case && mComputeDynamicFactor) {
+            ComputeDynamicFactorProcess compute_dynamic_factor_process( r_contact_model_part );
+            compute_dynamic_factor_process.Execute();
+        }
+
         // We recalculate the penalty parameter
         if ( adapt_penalty ) {
-            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty = AALMAdaptPenaltyValueProcess( r_contact_model_part );
+            AALMAdaptPenaltyValueProcess aalm_adaptation_of_penalty( r_contact_model_part );
             aalm_adaptation_of_penalty.Execute();
         }
-        
+
         return true;
     }
-    
+
     /**
      * @brief Compute relative and absolute error.
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      * @return true if convergence is achieved, false otherwise
      */
-
     bool PostCriteria(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
     {
-        // We save the current WEIGHTED_GAP in the buffer 
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        
+        // We save the current WEIGHTED_GAP in the buffer
+        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
+
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = it_node_begin + i;
             it_node->FastGetSolutionStepValue(WEIGHTED_GAP, 1) = it_node->FastGetSolutionStepValue(WEIGHTED_GAP);
         }
-        
+
         // Set to zero the weighted gap
         ResetWeightedGap(rModelPart);
-        
-        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
-        
-        KRATOS_TRACE_IF("Empty model part", conditions_array.size() == 0) << "WARNING:: YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-        
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-            (conditions_array.begin() + i)->AddExplicitContribution(rModelPart.GetProcessInfo());
-        
+
+        // Compute the contribution
+        ContactUtilities::ComputeExplicitContributionConditions(rModelPart.GetSubModelPart("ComputingContact"));
+
         // GiD IO for debugging
-        if (mIODebug == true) {
+        if (mIODebug) {
             const bool frictional_problem = rModelPart.IsDefined(SLIP) ? rModelPart.Is(SLIP) : false;
             const int nl_iter = rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
             const double label = static_cast<double>(nl_iter);
-            
+
             if (nl_iter == 1) {
                 mpGidIO->InitializeMesh(label);
                 mpGidIO->WriteMesh(rModelPart.GetMesh());
                 mpGidIO->FinalizeMesh();
                 mpGidIO->InitializeResults(label, rModelPart.GetMesh());
             }
-            
+
             mpGidIO->WriteNodalFlags(INTERFACE, "INTERFACE", rModelPart.Nodes(), label);
             mpGidIO->WriteNodalFlags(ACTIVE, "ACTIVE", rModelPart.Nodes(), label);
             mpGidIO->WriteNodalFlags(SLAVE, "SLAVE", rModelPart.Nodes(), label);
@@ -236,11 +225,11 @@ public:
             mpGidIO->WriteNodalResultsNonHistorical(DYNAMIC_FACTOR, rModelPart.Nodes(), label);
             mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_NORMAL_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             mpGidIO->WriteNodalResults(DISPLACEMENT, rModelPart.Nodes(), label, 0);
-            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X) == true) {
+            if (rModelPart.Nodes().begin()->SolutionStepsDataHas(VELOCITY_X)) {
                 mpGidIO->WriteNodalResults(VELOCITY, rModelPart.Nodes(), label, 0);
                 mpGidIO->WriteNodalResults(ACCELERATION, rModelPart.Nodes(), label, 0);
             }
-            if (nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
+            if (r_nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE))
                 mpGidIO->WriteNodalResults(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE, rModelPart.Nodes(), label, 0);
             else
                 mpGidIO->WriteNodalResults(VECTOR_LAGRANGE_MULTIPLIER, rModelPart.Nodes(), label, 0);
@@ -251,71 +240,68 @@ public:
                 mpGidIO->WriteNodalResultsNonHistorical(AUGMENTED_TANGENT_CONTACT_PRESSURE, rModelPart.Nodes(), label);
             }
         }
-        
+
         return true;
     }
-    
+
     /**
      * @brief This function initialize the convergence criteria
      * @param rModelPart The model part of interest
-     */ 
-    
+     */
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_ERROR << "YOUR ARE CALLING THE BASE MORTAR CRITERIA" << std::endl;
     }
-    
+
     /**
      * @brief This function initializes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      */
-    
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
-    { 
+    {
         // Update normal of the conditions
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
-        
+
         // GiD IO for debugging
-        if (mIODebug == true) {
+        if (mIODebug) {
             mpGidIO->CloseResultFile();
             std::ostringstream new_name ;
             new_name << "POST_LINEAR_ITER_STEP=""POST_LINEAR_ITER_STEP=" << rModelPart.GetProcessInfo()[STEP];
             mpGidIO->ChangeOutputName(new_name.str());
         }
     }
-    
+
     /**
      * @brief This function finalizes the solution step
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      * @param rDofSet Reference to the container of the problem's degrees of freedom (stored by the BuilderAndSolver)
-     * @param A System matrix (unused)
-     * @param Dx Vector of results (variations on nodal variables)
-     * @param b RHS vector (residual)
+     * @param rA System matrix (unused)
+     * @param rDx Vector of results (variations on nodal variables)
+     * @param rb RHS vector (residual)
      */
-    
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        const TSystemMatrixType& A,
-        const TSystemVectorType& Dx,
-        const TSystemVectorType& b
+        const TSystemMatrixType& rA,
+        const TSystemVectorType& rDx,
+        const TSystemVectorType& rb
         ) override
-    { 
+    {
         // GiD IO for debugging
-        if (mIODebug == true)
+        if (mIODebug)
             mpGidIO->FinalizeResults();
     }
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -333,7 +319,7 @@ public:
     ///@{
 
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -348,18 +334,17 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * @brief This method resets the weighted gap in the nodes of the problem
      * @param rModelPart Reference to the ModelPart containing the contact problem.
      */
-    
     virtual void ResetWeightedGap(ModelPart& rModelPart)
-    {       
-        NodesArrayType& nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
-        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+    {
+        NodesArrayType& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
+        VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, r_nodes_array);
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -376,14 +361,15 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    
+
     ///@}
     ///@name Member Variables
     ///@{
-    
-    bool mIODebug;                  /// If we generate an output gid file in order to debug         
-    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO    
-    
+
+    bool mComputeDynamicFactor;     /// If we compute the dynamic factor
+    bool mIODebug;                  /// If we generate an output gid file in order to debug
+    GidIOBaseType::Pointer mpGidIO; /// The pointer to the debugging GidIO
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -391,7 +377,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-    
+
     /**
      * @brief It computes the mean of the normal in the condition in all the nodes
      * @param rModelPart The model part to compute
@@ -400,11 +386,12 @@ private:
         MortarUtilities::ComputeNodesMeanNormalModelPart(rModelPart.GetSubModelPart("Contact"));
 
         // Iterate over the computing conditions
-        ConditionsArrayType& conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        ConditionsArrayType& r_conditions_array = rModelPart.GetSubModelPart("ComputingContact").Conditions();
+        const auto it_cond_begin = r_conditions_array.begin();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = it_cond_begin + i;
 
             // Aux coordinates
             Point::CoordinatesArrayType aux_coords;
@@ -437,12 +424,12 @@ private:
     ///@{
     ///@}
 
-}; // Class BaseMortarConvergenceCriteria 
+}; // Class BaseMortarConvergenceCriteria
 
 ///@name Explicit Specializations
 ///@{
 
-}  // namespace Kratos 
+}  // namespace Kratos
 
 #endif /* KRATOS_BASE_MORTAR_CRITERIA_H  defined */
 

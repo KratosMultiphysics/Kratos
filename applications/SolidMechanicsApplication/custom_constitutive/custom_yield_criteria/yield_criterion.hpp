@@ -253,7 +253,23 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) YieldCriterion
 		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
         };
 
+        virtual void CalculateYieldFunctionDerivative(const Vector& rPrincipalStress, Vector& rFirstDerivative, const double& rAlpha, const double& rBeta)
+	{
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+        };
+
+        virtual void CalculateYieldFunctionSecondDerivative(const Vector& rPrincipalStress, Vector& rSecondDerivative)
+	{
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+        };
+
 	virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha)
+	{
+		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
+
+        };
+
+        virtual double& CalculateYieldCondition(double& rStateFunction, const Vector& rPrincipalStress, const double& rAlpha, const double& rBeta)
 	{
 		KRATOS_THROW_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
 

@@ -68,7 +68,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
   {
   }
 
-  virtual ~ShellQ4_CorotationalCoordinateTransformation()
+  ~ShellQ4_CorotationalCoordinateTransformation() override
   {
   }
 
@@ -146,7 +146,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     }
   }
 
-  virtual ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem() const override
+  ShellQ4_LocalCoordinateSystem CreateLocalCoordinateSystem() const override
   {
     const GeometryType & geom = GetGeometry();
 
@@ -236,7 +236,7 @@ class ShellQ4_CorotationalCoordinateTransformation : public ShellQ4_CoordinateTr
     return localDisplacements;
   }
 
-  virtual void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
+  void FinalizeCalculations(const ShellQ4_LocalCoordinateSystem & LCS,
                                     const VectorType & globalDisplacements,
                                     const VectorType & localDisplacements,
                                     MatrixType & rLeftHandSideMatrix,

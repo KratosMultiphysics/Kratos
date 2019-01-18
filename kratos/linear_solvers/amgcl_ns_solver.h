@@ -14,30 +14,23 @@
 #if !defined(KRATOS_AMGCL_NAVIERSTOKES_SOLVER )
 #define  KRATOS_AMGCL_NAVIERSTOKES_SOLVER
 
-// #ifndef AMGCL_PARAM_MISSING
-// #define AMGCL_PARAM_MISSING(name) std::cout << "unset AMGCL parameter with name " << name <<std::endl;
-// #endif
-// KRATOS_THROW_ERROR(std::logic_error, , #name)
-// Unknown parameter action
 #ifndef AMGCL_PARAM_UNKNOWN
+#include "input_output/logger.h"
 #  define AMGCL_PARAM_UNKNOWN(name)                                            \
-      std::cerr << "AMGCL WARNING: unknown parameter " << name << std::endl
+    Kratos::Logger("AMGCL") << KRATOS_CODE_LOCATION << Kratos::Logger::Severity::WARNING << "Unknown parameter " << name << std::endl
 #endif
 
 // External includes
-#include "boost/smart_ptr.hpp"
 #include <iostream>
+#include <utility>
 
 #include "includes/ublas_interface.h"
 
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
-#include <utility>
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_arithmetic.hpp>
-#include <boost/property_tree/ptree.hpp>
+#include <boost/range/iterator_range.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
 #include <amgcl/adapter/crs_tuple.hpp>

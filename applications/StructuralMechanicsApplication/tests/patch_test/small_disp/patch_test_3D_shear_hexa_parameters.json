@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "patch_test_3D_shear_hexa",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "analysis_type"                      : "non_linear",
         "model_import_settings"              : {
             "input_type"       : "mdpa",
@@ -33,6 +35,7 @@
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
         "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto6","DISPLACEMENT_Displacement_Auto7","DISPLACEMENT_Displacement_Auto8","SurfaceLoad3D_Load_on_surfaces_Auto2","SurfaceLoad3D_Load_on_surfaces_Auto3","SurfaceLoad3D_Load_on_surfaces_Auto4","SurfaceLoad3D_Load_on_surfaces_Auto5"]
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -140,7 +143,7 @@
                 "tolerance_rank"  : 3
         }
     }
-    ],
+    ]},
     "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {

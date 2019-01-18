@@ -163,6 +163,8 @@ if(${MSVC})
   message("Detected compiler as MSVC")
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
+  string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
 endif(${MSVC})
 
 # Specific flags for different versions of MSVC
@@ -194,10 +196,10 @@ endif(USE_COTIRE MATCHES ON)
 include(pybind11Tools)
 
 # Reset pybind11 config and remove -LTO on FullDebug to speedup linking time,
-if(CMAKE_CONFIGURATION_TYPES MATCHES FullDebug)
+if(CMAKE_BUILD_TYPE MATCHES FullDebug)
     set(PYBIND11_LTO_CXX_FLAGS "" CACHE INTERNAL "")
     set(PYBIND11_LTO_LINKER_FLAGS "" CACHE INTERNAL "")
-endif(CMAKE_CONFIGURATION_TYPES MATCHES FullDebug)
+endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
 
 ######################################################################################
 ######################################################################################
@@ -233,6 +235,11 @@ find_package(Boost)
 set(Boost_USE_STATIC_LIBS   OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_REALPATH ON)
+
+# If CUDA
+if(${USE_CUDA} MATCHES ON)
+  find_package(CUDA QUIET REQUIRED)
+endif(${USE_CUDA} MATCHES ON)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
@@ -358,6 +365,7 @@ endif( ZLIB_FOUND )
 if( AMATRIX_DIR )
     message("AMATRIX_DIR : ${AMATRIX_DIR}")
     include_directories ( "${AMATRIX_DIR}/include" )
+    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
     message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
@@ -383,7 +391,21 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 # include subdirectories
 add_subdirectory(external_libraries/gidpost)
 add_subdirectory(kratos)
+
+# Applications
+# Internal applicatons work as usual.
 add_subdirectory(applications)
+
+# External applications
+# if -DKRATOS_EXTERNAL_APPLICATION_DIR is defined iterate over all the directories and look for applications
+# in them
+if(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
+    foreach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+        get_filename_component(APPLICATION_EXTERNAL_FOLDER ${APPLICATION_EXTERNAL_DIR} NAME)
+        message("Trying to add external application directory '${APPLICATION_EXTERNAL_FOLDER}' located in '${APPLICATION_EXTERNAL_DIR}'")
+        add_subdirectory(${APPLICATION_EXTERNAL_DIR} ${CMAKE_CURRENT_BINARY_DIR}/${APPLICATION_EXTERNAL_FOLDER})
+    endforeach(APPLICATION_EXTERNAL_DIR ${KRATOS_EXTERNAL_APPLICATION_DIR})
+endif(DEFINED KRATOS_EXTERNAL_APPLICATION_DIR)
 
 #compiling the triangle library
 add_subdirectory(${CMAKE_SOURCE_DIR}/external_libraries/triangle)
@@ -413,10 +435,8 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # install core files for the KratosMultiphysics python module
 # note that this does not install KratosLoader.py, as it is different for installation and packaging runs (see next code block)
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
-install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 
 # Remove the tags in the event of multiple versions of boost being found
 # in the same directory
@@ -434,17 +454,6 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 	install(FILES ${LAPACK_LIBRARIES} DESTINATION libs)
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
-# Kratos Testing. Install everything except sources
-if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/kratos/tests/ DESTINATION ${CMAKE_INSTALL_PREFIX}/kratos/tests
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
-  )
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
-
 ################################################################################
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
     #take care: do not indent the lines below
@@ -455,7 +464,6 @@ kratos_applications=os.path.abspath(os.path.join(os.path.dirname(__file__),'../a
 kratos_scripts=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/python_scripts'))
 kratos_tests=os.path.abspath(os.path.join(os.path.dirname(__file__),'../kratos/tests'))
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests)
 ")
@@ -484,7 +492,6 @@ kratos_applications=\"${CMAKE_SOURCE_DIR}/applications\"
 kratos_scripts=\"${CMAKE_INSTALL_PREFIX}/kratos/python_scripts\"
 kratos_tests=\"${CMAKE_INSTALL_PREFIX}/kratos/tests\"
 sys.path.append(kratos_libs)
-sys.path.append(kratos_applications)
 sys.path.append(kratos_scripts)
 sys.path.append(kratos_tests) ")
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)

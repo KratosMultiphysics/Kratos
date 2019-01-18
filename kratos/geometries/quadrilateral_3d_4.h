@@ -50,11 +50,25 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Quadrilateral3D4
+ * @ingroup KratosCore
+ * @brief A four node 3D quadrilateral geometry with bi-linear shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with: 
+ *            v
+ *            ^
+ *            |
+ *      3-----------2 
+ *      |     |     |         
+ *      |     |     |          
+ *      |     +---- | --> u    
+ *      |           |          
+ *      |           |          
+ *      0-----------1      
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Quadrilateral3D4
     : public Geometry<TPointType>
 {
@@ -511,7 +525,7 @@ public:
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside(
+    bool IsInside(
         const CoordinatesArrayType& rPoint,
         CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -519,10 +533,8 @@ public:
     {
         PointLocalCoordinatesImplementation( rResult, rPoint, true );
 
-        if ( std::abs(rResult[0]) <= (1.0+Tolerance) )
-        {
-            if ( std::abs(rResult[1]) <= (1.0+Tolerance) )
-            {
+        if ( std::abs(rResult[0]) <= (1.0+Tolerance) ) {
+            if ( std::abs(rResult[1]) <= (1.0+Tolerance) ) {
                 return true;
             }
         }
@@ -531,7 +543,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -539,7 +551,7 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         return PointLocalCoordinatesImplementation(rResult, rPoint);
     }
@@ -1221,7 +1233,7 @@ public:
      */
     std::string Info() const override
     {
-        return "3 dimensional quadrilateral with four nodes in 3D space";
+        return "2 dimensional quadrilateral with four nodes in 3D space";
     }
 
     /**
@@ -1232,7 +1244,7 @@ public:
      */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "3 dimensional quadrilateral with four nodes in 3D space";
+        rOStream << Info();
     }
 
     /**
@@ -1506,7 +1518,7 @@ private:
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint,
         const bool IsInside = false
-        )
+        ) const
     {
         BoundedMatrix<double,3,4> X;
         BoundedMatrix<double,3,2> DN;
@@ -1525,8 +1537,8 @@ private:
 
         // Starting with xi = 0
         rResult = ZeroVector( 3 );
-        array_1d<double, 2> DeltaXi( 2, 0.0 );
-	const array_1d<double, 3> zero_array(3, 0.0);
+        array_1d<double, 2> DeltaXi = ZeroVector( 2 );
+        const array_1d<double, 3> zero_array = ZeroVector(3);
         array_1d<double, 3> CurrentGlobalCoords;
 
         //Newton iteration:

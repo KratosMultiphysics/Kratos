@@ -72,13 +72,13 @@ namespace Kratos
     }
 
     /// Clone.
-    virtual ConstitutiveModel::Pointer Clone() const override
+    ConstitutiveModel::Pointer Clone() const override
     {
       return Kratos::make_shared<IsochoricMooneyRivlinModel>(*this);
     }
 
     /// Destructor.
-    virtual ~IsochoricMooneyRivlinModel() {}
+    ~IsochoricMooneyRivlinModel() override {}
 
 
     ///@}
@@ -91,7 +91,7 @@ namespace Kratos
     ///@{
 
 
-    virtual void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override
+    void CalculateStrainEnergy(ModelDataType& rValues, double& rDensityFunction) override
     {
       KRATOS_TRY
 
@@ -107,7 +107,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
+    void CalculateStressTensor(ModelDataType& rValues, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -126,7 +126,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
+    void CalculateStressAndConstitutiveTensors(ModelDataType& rValues, MatrixType& rStressMatrix, Matrix& rConstitutiveMatrix) override
     {
       KRATOS_TRY
 
@@ -161,7 +161,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "IsochoricMooneyRivlinModel";
@@ -169,13 +169,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "IsochoricMooneyRivlinModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "IsochoricMooneyRivlinModel Data";
     }
@@ -208,7 +208,7 @@ namespace Kratos
     ///@{
 
 
-    virtual void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
+    void CalculateAndAddIsochoricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -218,7 +218,7 @@ namespace Kratos
       MatrixType StressPartMatrix;
       MatrixType StressMatrix;
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	StressPartMatrix = GetI1RightCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
 	noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -253,7 +253,7 @@ namespace Kratos
 	rStressMatrix += StressMatrix;
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
          StressPartMatrix = GetI1LeftCauchyGreenDerivative(rVariables.Strain,StressPartMatrix);
          noalias(StressMatrix)  = rVariables.Factors.Alpha1 * StressPartMatrix;
@@ -293,7 +293,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateAndAddVolumetricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
+    void CalculateAndAddVolumetricStressTensor(HyperElasticDataType& rVariables, MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
 
@@ -302,7 +302,7 @@ namespace Kratos
 
       MatrixType StressMatrix;
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	StressMatrix  = GetJRightCauchyGreenDerivative(rVariables.Strain,StressMatrix);
 	StressMatrix *= rVariables.Factors.Alpha4;
@@ -311,7 +311,7 @@ namespace Kratos
 
 	noalias(rStressMatrix) += StressMatrix;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
 	StressMatrix  = GetJLeftCauchyGreenDerivative(rVariables.Strain,StressMatrix);
 	StressMatrix *= rVariables.Factors.Alpha4;
@@ -327,7 +327,7 @@ namespace Kratos
 
 
 
-    virtual double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    double& AddConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 					     const unsigned int& a, const unsigned int& b,
 					     const unsigned int& c, const unsigned int& d) override
     {
@@ -347,7 +347,7 @@ namespace Kratos
 
 
 
-    virtual double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    double& AddIsochoricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						      const unsigned int& a, const unsigned int& b,
 						      const unsigned int& c, const unsigned int& d) override
     {
@@ -367,7 +367,7 @@ namespace Kratos
       MatrixType StressPartMatrix;
 
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.CauchyGreenMatrix = RightCauchyGreen (C)
 
 	//constitutive tensor for PK2 still not giving the correct numbers in the 4 and 5 row, something is wrong
 
@@ -435,7 +435,7 @@ namespace Kratos
 	//rCabcd += Cefmn * 4;
 
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 
 	//constitutive tensor for kirchhoff still not giving the correct numbers, something is wrong
 
@@ -511,7 +511,7 @@ namespace Kratos
     }
 
 
-    virtual double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
+    double& AddVolumetricConstitutiveComponent(HyperElasticDataType& rVariables, double &rCabcd,
 						       const unsigned int& a, const unsigned int& b,
 						       const unsigned int& c, const unsigned int& d) override
     {
@@ -523,7 +523,7 @@ namespace Kratos
       double Cabcd = 0;
       double nCabcd = 0;
 
-      if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
+      if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //Variables.Strain.Matrix = RightCauchyGreen (C)
 
 	//2nd derivatives
 	Cabcd = GetJRightCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,a,b,c,d);
@@ -537,7 +537,7 @@ namespace Kratos
 
 	rCabcd += nCabcd;
       }
-      else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
+      else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //Variables.Strain.Matrix = LeftCauchyGreen (b)
 	//2nd derivatives
 	Cabcd = GetJLeftCauchyGreen2ndDerivative(rVariables.Strain,Cabcd,a,b,c,d);
 	nCabcd += rVariables.Factors.Alpha4 * Cabcd;
@@ -558,7 +558,7 @@ namespace Kratos
 
     // set the default volumetric function for the incompressible case
 
-    virtual void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
+    void CalculateAndAddVolumetricStrainEnergy(HyperElasticDataType& rVariables, double& rVolumetricDensityFunction) override
     {
       KRATOS_TRY
 
@@ -570,7 +570,7 @@ namespace Kratos
     }
 
 
-    virtual void CalculateScalingFactors(HyperElasticDataType& rVariables) override
+    void CalculateScalingFactors(HyperElasticDataType& rVariables) override
     {
       KRATOS_TRY
 
@@ -584,7 +584,7 @@ namespace Kratos
 
     // set the default volumetric function for the incompressible case
 
-    virtual double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
+    double& GetVolumetricFunction1stJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //dU/dJ
     {
       KRATOS_TRY
 
@@ -598,7 +598,7 @@ namespace Kratos
     };
 
 
-    virtual double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
+    double& GetVolumetricFunction2ndJDerivative(HyperElasticDataType& rVariables, double& rDerivative) override //ddU/dJdJ
     {
       KRATOS_TRY
 
@@ -658,12 +658,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MooneyRivlinModel )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MooneyRivlinModel )
     }

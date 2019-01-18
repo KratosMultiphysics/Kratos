@@ -62,14 +62,16 @@ public:
     typedef Node<3> NodeType;
 
     // General containers type definitions
-    typedef ModelPart::NodesContainerType              NodesArrayType;
-    typedef ModelPart::ConditionsContainerType    ConditionsArrayType;
-    typedef ModelPart::ElementsContainerType        ElementsArrayType;
+    typedef ModelPart::NodesContainerType                                 NodesArrayType;
+    typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
+    typedef ModelPart::ElementsContainerType                           ElementsArrayType;
+    typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
 
     // General containers iterators type definitions
-    typedef NodesArrayType::iterator            IteratorNodesArrayType;
-    typedef ConditionsArrayType::iterator  IteratorConditionsArrayType;
-    typedef ElementsArrayType::iterator      IteratorElementsArrayType;
+    typedef NodesArrayType::iterator                                  IteratorNodesArrayType;
+    typedef ConditionsArrayType::iterator                        IteratorConditionsArrayType;
+    typedef ElementsArrayType::iterator                            IteratorElementsArrayType;
+    typedef MasterSlaveConstraintArrayType::iterator IteratorMasterSlaveConstraintsArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
@@ -83,6 +85,7 @@ public:
 
     /**
      * @brief This enum helps us to identify the elements to transfer between the modelparts
+     * @todo Add intermediate combinations of constraints, conditions and elements
      */
     enum class EntityTransfered {
         NODES = 0,
@@ -90,7 +93,9 @@ public:
         NODESANDELEMENTS = 2,
         CONDITIONS = 3,
         NODESANDCONDITIONS = 4,
-        ALL = 5
+        CONSTRAINTS = 5,
+        NODESANDCONSTRAINTS = 6,
+        ALL = 7
     };
 
     ///@}

@@ -11,7 +11,7 @@ import numpy as np
 def SetNodalValues(counter): # Somehow Modify the Nodal Values
     for node in model_part.Nodes:
         value = node.GetSolutionStepValue(TEMPERATURE) - counter**2
-        node.SetSolutionStepValue(DISPLACEMENT, (value, value+counter, value+counter*2))
+        node.SetSolutionStepValue(DISPLACEMENT, Vector([value, value+counter, value+counter*2]))
 
 print("This is kratos_client_1")
 
@@ -35,7 +35,7 @@ model_part.AddProperties(Properties(1))
 print("Mesh 1 ::::: Finished adding Properties to model part !!")
 prp = model_part.GetProperties()[1]
 print("Mesh 1 ::::: Finished extracting properties from the model part !!")
-    
+
 for i in range(0,int(len(elements)/4)):
     sys.stdout.flush()
     model_part.CreateNewElement("Element2D4N", i+1,[int(elements[4*i+0]),int(elements[4*i+1]),int(elements[4*i+2]),int(elements[4*i+3])], prp)
@@ -44,7 +44,7 @@ print("Mesh 1 ::::: Finished Adding Elements to model part !!")
 print("Starting to initialize Empire")
 import empire_wrapper
 print("Import Successfull")
-empire = empire_wrapper.EmpireWrapper()
+empire = empire_wrapper.EmpireWrapper(echo_level=2)
 print("Wrapper Created")
 empire.Connect("kratos_client_1.xml")
 

@@ -78,7 +78,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~IsochoricHypoElasticModel() {}
+    ~IsochoricHypoElasticModel() override {}
 
 
     ///@}

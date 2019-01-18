@@ -68,10 +68,10 @@ namespace Kratos
     SimoExponentialThermalHardeningRule& operator=(SimoExponentialThermalHardeningRule const& rOther);
 
     /// Clone.
-    virtual HardeningRule::Pointer Clone() const override;
+    HardeningRule::Pointer Clone() const override;
 
     /// Destructor.
-    ~SimoExponentialThermalHardeningRule();
+    ~SimoExponentialThermalHardeningRule() override;
 
     ///@}
     ///@name Operators
@@ -87,7 +87,7 @@ namespace Kratos
      * Calculate Hardening function derivatives
      */
 
-    virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
+    double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening) override;
 
 
     ///@}
@@ -105,7 +105,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "SimoExponentialThermalHardeningRule" ;
@@ -113,13 +113,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialThermalHardeningRule";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoExponentialThermalHardeningRule Data";
     }
@@ -148,9 +148,9 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
+    double& CalculateThermalReferenceEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
 
-    virtual double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
+    double& CalculateThermalCurrentEffect(const PlasticDataType& rVariables, double& rThermalFactor) override;
 
     ///@}
     ///@name Protected  Access
@@ -198,12 +198,12 @@ namespace Kratos
     friend class Serializer;
 
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }
 
-    virtual void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SimoExponentialHardeningRule )
     }

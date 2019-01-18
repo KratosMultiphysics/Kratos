@@ -72,7 +72,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) ModifiedMisesYieldCriterion
 
 
         /// Destructor.
-        virtual ~ModifiedMisesYieldCriterion();
+        ~ModifiedMisesYieldCriterion() override;
 
 
         ///@}

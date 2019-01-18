@@ -1,10 +1,7 @@
 {
     "problem_data"             : {
         "problem_name"    : "4PunktSegel_noCable",
-        "model_part_name" : "Structure",
-        "domain_size"     : 3,
         "parallel_type"   : "OpenMP",
-        "time_step"       : 1.1,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "echo_level"      : 0
@@ -12,6 +9,11 @@
     "solver_settings"          : {
         "solver_type"                        : "formfinding",
         "echo_level"                         : 0,
+        "model_part_name" : "Structure",
+        "domain_size"     : 3,
+        "time_stepping"                      : {
+            "time_step" : 1.1
+        },
         "model_import_settings"              : {
             "input_type"     : "mdpa",
             "input_filename" : "formfinding_test/Fofi_4Point_Tent_noCable"
@@ -25,15 +27,16 @@
         "max_iteration"                      : 10,
 		"move_mesh_flag"					 : true,
         "linear_solver_settings"             : {
-            "solver_type" : "Super_LU",
+            "solver_type" : "SuperLUSolver",
             "scaling"     : false,
             "verbosity"   : 0
         },
         "problem_domain_sub_model_part_list" : ["Parts_membrane"],
-        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_dirichlet", "Structure"],
         "rotation_dofs"                      : false,
         "print_formfinding_iterations": false
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -48,16 +51,6 @@
         }
     }],
     "loads_process_list"       : [],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
     "list_other_processes": [
     {
         "python_module" : "from_json_check_result_process",
@@ -71,7 +64,7 @@
             "time_frequency"   : 0.90
         }
     }
-    ],
+    ]},
     "_json_output_process" : [
     {
         "python_module" : "json_output_process",
@@ -89,7 +82,7 @@
     "_formfinding_IO_process" :[
         {
             "python_module"   : "formfinding_IO_process",
-            "kratos_module"   : "KratosMultiphysics.StructuralMechanicsApplication",
+            "kratos_module"   : "StructuralMechanicsApplication",
             "help"                  : "This process writes the mesh resulting from the formfinding in a .mdpa-file",
             "process_name"          : "FormfindingIOProcess",
             "Parameters"            : {

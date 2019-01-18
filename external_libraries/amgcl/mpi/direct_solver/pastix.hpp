@@ -74,7 +74,7 @@ class pastix : public solver_base< value_type, pastix<value_type, Distrib> > {
                 : max_rows_per_process(50000)
             {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
             params(const boost::property_tree::ptree &p)
                 : AMGCL_PARAMS_IMPORT_VALUE(p, max_rows_per_process)
             {

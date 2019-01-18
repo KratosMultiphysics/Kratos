@@ -201,6 +201,16 @@ class comm_pattern {
             return idx.at(col);
         }
 
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_begin() const {
+            return idx.cbegin();
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_end() const {
+            return idx.cend();
+        }
+
         size_t renumber(size_t n, ptrdiff_t *col) const {
             for(size_t i = 0; i < n; ++i)
                 col[i] = std::get<1>(idx.at(col[i]));
@@ -437,6 +447,7 @@ class distributed_matrix {
         }
 
         void move_to_backend(const backend_params &bprm = backend_params()) {
+            AMGCL_TIC("move to backend");
             if (!A_loc) {
                 A_loc = Backend::copy_matrix(a_loc, bprm);
             }
@@ -450,6 +461,7 @@ class distributed_matrix {
 
             a_loc.reset();
             a_rem.reset();
+            AMGCL_TOC("move to backend");
         }
 
         template <class A, class VecX, class B, class VecY>
@@ -1102,7 +1114,7 @@ spectral_radius(const mpi::distributed_matrix<Backend> &A, int power_iters = 0)
                 for(ptrdiff_t j = A_rem.ptr[i], e = A_rem.ptr[i+1]; j < e; ++j)
                     s += math::norm(A_rem.val[j]);
 
-                if (scale) s *= math::norm(math::inverse(dia)); 
+                if (scale) s *= math::norm(math::inverse(dia));
 
                 emax = std::max(emax, s);
             }

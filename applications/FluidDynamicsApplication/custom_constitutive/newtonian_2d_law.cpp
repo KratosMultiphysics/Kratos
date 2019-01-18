@@ -57,15 +57,13 @@ ConstitutiveLaw::SizeType Newtonian2DLaw::GetStrainSize() {
     return 3;
 }
 
-void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
+void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
+{    
     const Flags& options = rValues.GetOptions();
-    
-    const Properties& material_properties = rValues.GetMaterialProperties(); 
-
     const Vector& r_strain_rate = rValues.GetStrainVector();
     Vector& r_viscous_stress = rValues.GetStressVector();
 
-    const double mu = material_properties[DYNAMIC_VISCOSITY];
+    const double mu = this->GetEffectiveViscosity(rValues);
 
     const double trace = r_strain_rate[0] + r_strain_rate[1];
     const double volumetric_part = trace/3.0; // Note: this should be small for an incompressible fluid (it is basically the incompressibility error)
@@ -84,11 +82,15 @@ void  Newtonian2DLaw::CalculateMaterialResponseCauchy(Parameters& rValues) {
 int Newtonian2DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo) {
+    const ProcessInfo& rCurrentProcessInfo)
+{
     KRATOS_CHECK_VARIABLE_KEY(DYNAMIC_VISCOSITY);
 
-    if( rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.00 ) {
-        KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian2DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+    // If the viscosity is not table provided, check its value
+    if (!rMaterialProperties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
+        if (rMaterialProperties[DYNAMIC_VISCOSITY] <= 0.0) {
+            KRATOS_ERROR << "Incorrect or missing DYNAMIC_VISCOSITY provided in process info for Newtonian2DLaw: " << rMaterialProperties[DYNAMIC_VISCOSITY] << std::endl;
+        }
     }
 
     return 0;
@@ -98,9 +100,20 @@ std::string Newtonian2DLaw::Info() const {
     return "Newtonian2DLaw";
 }
 
-double Newtonian2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const {
-    // We are abusing the fact that C(2,2) = mu
-    return rParameters.GetConstitutiveMatrix()(2,2);
+double Newtonian2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
+{
+    double effective_viscosity;
+    const Properties &r_prop = rParameters.GetMaterialProperties();
+
+    if (r_prop.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
+        // Temperature dependent viscosity
+        effective_viscosity = this->GetValueFromTable(TEMPERATURE, DYNAMIC_VISCOSITY, rParameters);
+    } else {
+        // Constant viscosity value
+        effective_viscosity = r_prop[DYNAMIC_VISCOSITY];
+    }
+
+    return effective_viscosity;
 }
 
 void Newtonian2DLaw::save(Serializer& rSerializer) const {

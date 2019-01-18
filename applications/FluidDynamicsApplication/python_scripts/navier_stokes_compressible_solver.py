@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 ## Import base class file
 from fluid_solver import FluidSolver
 
@@ -165,9 +162,6 @@ class NavierStokesCompressibleSolver(FluidSolver):
 
 
         (self.solver).Initialize()
-
-
-        (self.solver).Check()
 
 
         # self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble()) # REMEMBER TO CHECK MY STAB CONSTANTS

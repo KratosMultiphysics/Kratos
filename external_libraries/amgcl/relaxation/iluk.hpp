@@ -69,7 +69,7 @@ struct iluk {
 
         params() : k(1), damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, k)
             , AMGCL_PARAMS_IMPORT_VALUE(p, damping)
@@ -180,6 +180,10 @@ struct iluk {
     {
         backend::copy(rhs, x);
         ilu->solve(x);
+    }
+
+    size_t bytes() const {
+        return ilu->bytes();
     }
 
     private:

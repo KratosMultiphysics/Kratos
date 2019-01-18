@@ -82,7 +82,7 @@ public:
 
 
     /// Destructor.
-    virtual ~LargeDisplacementVElement();
+    ~LargeDisplacementVElement() override;
 
     ///@}
     ///@name Operators
@@ -181,7 +181,7 @@ protected:
     /**
      * Get element size from the dofs
      */
-    unsigned int GetDofsSize() override;
+    SizeType GetDofsSize() override;
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
@@ -226,9 +226,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

@@ -197,6 +197,15 @@ class skyline_lu {
 
             for(int i = 0; i < n; ++i) x[perm[i]] = y[i];
         }
+
+        size_t bytes() const {
+            return
+                backend::bytes(perm) +
+                backend::bytes(ptr) +
+                backend::bytes(L) +
+                backend::bytes(U) +
+                backend::bytes(D);
+        }
     private:
         int n;
         std::vector<int> perm;

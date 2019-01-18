@@ -26,6 +26,7 @@
 // Project includes
 #include "includes/define.h"
 #include "linear_solvers/iterative_solver.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos
@@ -49,8 +50,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/**
+ * @class RayleighQuotientIterationEigenvalueSolver
+ * @ingroup KratosCore
+ * @brief This is a eigen solver based on the Rayleigh quotient iteration algorithm
+ * @details Rayleigh quotient iteration is an iterative method, that is, it delivers a sequence of approximate solutions that converges to a true solution in the limit (this is true for all algorithms that compute eigenvalues: since eigenvalues can be irrational numbers, there can be no general method for computing them in a finite number of steps). Very rapid convergence is guaranteed and no more than a few iterations are needed in practice to obtain a reasonable approximation. The Rayleigh quotient iteration algorithm converges cubically for Hermitian or symmetric matrices, given an initial vector that is sufficiently close to an eigenvector of the matrix that is being analyzed.
+ * @see https://en.wikipedia.org/wiki/Rayleigh_quotient_iteration
+ * @author Pooyan Dadvand
 */
 template<class TSparseSpaceType, class TDenseSpaceType, class TLinearSolverType,
          class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
@@ -64,18 +70,25 @@ public:
     /// Pointer definition of RayleighQuotientIterationEigenvalueSolver
     KRATOS_CLASS_POINTER_DEFINITION(RayleighQuotientIterationEigenvalueSolver);
 
+    /// The base class definition
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
 
+    /// The sparse matrix defintion
     typedef typename TSparseSpaceType::MatrixType SparseMatrixType;
 
+    /// The vector definition ("sparse")
     typedef typename TSparseSpaceType::VectorType VectorType;
 
+    /// The dense matrix definition
     typedef typename TDenseSpaceType::MatrixType DenseMatrixType;
 
+    /// The "dense" vector definition
     typedef typename TDenseSpaceType::VectorType DenseVectorType;
 
+    /// The size type definiton
     typedef std::size_t SizeType;
 
+    /// The index type definition
     typedef std::size_t IndexType;
 
     ///@}
@@ -88,6 +101,13 @@ public:
 
     }
 
+    /**
+     * @brief The "manual" settings constructor
+     * @param NewMaxTolerance The tolerance considered
+     * @param NewMaxIterationsNumber The maximum number of iterations considered
+     * @param NewRequiredEigenvalueNumber The number of eigen values to compute
+     * @param ShiftingConvergence The convergence parameter of shifting
+     */
     RayleighQuotientIterationEigenvalueSolver(
         double NewMaxTolerance,
         unsigned int NewMaxIterationsNumber,
@@ -102,10 +122,15 @@ public:
 
     }
 
+    /**
+     * @brief The parameters constructor
+     * @param ThisParameters The input parameters
+     * @param pLinearSolver The linear solver considered
+     */
     RayleighQuotientIterationEigenvalueSolver(
         Parameters ThisParameters,
         typename TLinearSolverType::Pointer pLinearSolver
-    ): mpLinearSolver(pLinearSolver)
+        ): mpLinearSolver(pLinearSolver)
     {
         Parameters DefaultParameters = Parameters(R"(
             {
@@ -155,24 +180,37 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method initializes the system
+     * @details It computes the vector R, which contains the components of the diagonal of the M matrix
+     * @param rR The vector containing the normalized components of the diagonal
+     * @param rM The "mass" matrix
+     */
     static void Initialize(
-        DenseVectorType& R,
-        SparseMatrixType& M
-    )
+        VectorType& rR,
+        const SparseMatrixType& rM
+        )
     {
-        for(SizeType i = 0 ; i < R.size() ; i++)
-        {
-            R[i] = M(i,i);
+        const SizeType size_m = rM.size1();
+
+        // Resize in case of not same size
+        if (rR.size() != size_m)
+            rR.resize(size_m);
+
+        #pragma omp parallel for
+        for(int i = 0; i < static_cast<int>(size_m); ++i) {
+            rR[i] = rM(i,i);
         }
 
-        if(norm_2(R) == 0.0)
-        {
-            KRATOS_ERROR << "Invalid M matrix. The norm2 of its diagonal is Zero" << std::endl;
-        }
+        KRATOS_ERROR_IF(norm_2(rR) == 0.0) << "Invalid M matrix. The norm2 of its diagonal is Zero" << std::endl;
 
-        R /= norm_2(R);
+        rR /= norm_2(rR);
     }
 
+    /**
+     * @brief This method performs a Sturm Sequence Check
+     * @param ShiftedK The modified K matrix after apply the M matrix
+     */
     SizeType SturmSequenceCheck(SparseMatrixType& ShiftedK)
     {
         // define an object to store skyline matrix and factorization
@@ -184,10 +222,8 @@ public:
         // factorize it
         myFactorization.factorize();
         SizeType counter = 0; // number of eigenvalues less than the shift
-        for(SizeType i = 0 ; i < ShiftedK.size1() ; i++)
-        {
-            if(myFactorization.entriesD[i] < 0.00)
-            {
+        for(SizeType i = 0 ; i < ShiftedK.size1() ; i++){
+            if(myFactorization.entriesD[i] < 0.0) {
                 counter++;
             }
         }
@@ -195,7 +231,8 @@ public:
         return counter;
     }
 
-    /** The Rayleigh quotient iteration method
+    /**
+     * @brief The Rayleigh quotient iteration method
      * @param K: The stiffness matrix
      * @param M: The mass matrix
      * @param Eigenvalues: The vector containing the eigen values
@@ -212,13 +249,12 @@ public:
         SizeType max_iteration = BaseType::GetMaxIterationsNumber();
         double tolerance = BaseType::GetTolerance();
 
-        VectorType x = ZeroVector(size);
-        VectorType y = ZeroVector(size);
+        VectorType x = boost::numeric::ublas::zero_vector<double>(size);
+        VectorType y = boost::numeric::ublas::zero_vector<double>(size);
 
         Initialize(y,M);
 
-        if(Eigenvalues.size() < 1)
-        {
+        if(Eigenvalues.size() < 1) {
             Eigenvalues.resize(1,0.0);
         }
 
@@ -229,10 +265,7 @@ public:
         double shift_value = 0.0;
         double old_ro = 0.0;//Eigenvalues[0];
 
-        if (mEchoLevel > 1)
-        {
-            std::cout << "Iteration    beta \t ro \t\t convergence norm \t min \t\t max" << std::endl;
-        }
+        KRATOS_INFO_IF("RayleighQuotientIterationEigenvalueSolver", mEchoLevel > 1) << "Iteration    beta \t ro \t\t convergence norm \t min \t\t max" << std::endl;
 
         SparseMatrixType shifted_k(K);
         // define an object to store skyline matrix and factorization
@@ -249,8 +282,7 @@ public:
 
         SizeType smaller_eigenvalue_numbers = 0;
 
-        for(SizeType i = 0 ; i < max_iteration ; i++)
-        {
+        for(SizeType i = 0 ; i < max_iteration ; ++i) {
             //K*x = y
             //mpLinearSolver->Solve(shifted_k,x,y);
             my_factorization.backForwardSolve(size, y, x);
@@ -261,40 +293,29 @@ public:
             TSparseSpaceType::Mult(M, x, y);
 
             beta = inner_prod(x, y);
-            if(beta == 0.0)
-            {
-                KRATOS_ERROR << "Zero beta norm!" << std::endl;
-            }
+            KRATOS_ERROR_IF(beta == 0.0) << "Zero beta norm!" << std::endl;
 
             const double delta_ro = (ro / beta);
 
             ro = delta_ro + shift_value;
 
-            if(ro == 0.0)
-            {
-                KRATOS_ERROR << "Perpendicular eigenvector to M" << std::endl;
-            }
+            KRATOS_ERROR_IF(ro == 0.0) << "Perpendicular eigenvector to M" << std::endl;
 
             double convergence_norm = std::abs((ro - old_ro) / ro);
 
-            if(convergence_norm < mShiftingConvergence) // Start shifting after certain convergence
-            {
+            if(convergence_norm < mShiftingConvergence) { // Start shifting after certain convergence
                 // If there are no smaller eigenvalues yet we need to extend the range
-                if(smaller_eigenvalue_numbers == 0)
-                {
+                if(smaller_eigenvalue_numbers == 0) {
                     max_shift_value = ro;
                 }
 
-                if((ro > max_shift_value)||(ro < min_shift_value))
-                {
-                    shift_value = (max_shift_value + min_shift_value) / 2.00;
-                }
-                else
-                {
+                if((ro > max_shift_value)||(ro < min_shift_value)) {
+                    shift_value = (max_shift_value + min_shift_value) / 2.0;
+                } else {
                     shift_value = ro;
                 }
 
-                noalias(shifted_k) = K - shift_value*M;
+                SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
 
                 // Copy myMatrix into skyline format
                 my_factorization.copyFromCSRMatrix(shifted_k);
@@ -304,12 +325,9 @@ public:
 
                 SizeType new_smaller_eigenvalue_numbers = SturmSequenceCheck(shifted_k);
 
-                if(new_smaller_eigenvalue_numbers == 0)
-                {
+                if(new_smaller_eigenvalue_numbers == 0) {
                     min_shift_value = shift_value;
-                }
-                else
-                {
+                } else {
                     max_shift_value = shift_value;
                     smaller_eigenvalue_numbers = new_smaller_eigenvalue_numbers;
                 }
@@ -317,10 +335,10 @@ public:
                 unsigned int iteration_number = 0;
                 unsigned int max_shift_number = 4;
 
-                while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number))
-                {
-                    shift_value = (max_shift_value + min_shift_value) / 2.00;
-                    noalias(shifted_k) = K - shift_value*M;
+                while((smaller_eigenvalue_numbers > 1) && (max_shift_value-min_shift_value > epsilon) && (iteration_number++ < max_shift_number)) {
+                    shift_value = (max_shift_value + min_shift_value) / 2.0;
+                    shifted_k = K;
+                    SparseMatrixMultiplicationUtility::MatrixAdd<SparseMatrixType, SparseMatrixType>(shifted_k, M, - shift_value);
 
                     // Copy myMatrix into skyline format
                     my_factorization.copyFromCSRMatrix(shifted_k);
@@ -330,66 +348,44 @@ public:
 
                     new_smaller_eigenvalue_numbers = SturmSequenceCheck(shifted_k);
 
-                    if(new_smaller_eigenvalue_numbers == 0)
-                    {
+                    if(new_smaller_eigenvalue_numbers == 0) {
                         min_shift_value = shift_value;
-                        if (mEchoLevel > 1)
-                        {
-                            std::cout << "            Finding " << smaller_eigenvalue_numbers << " eigenvalues in [" << min_shift_value << "," << max_shift_value  << "]" << std::endl;
-                        }
-                    }
-                    else
-                    {
+                        KRATOS_INFO_IF("RayleighQuotientIterationEigenvalueSolver", mEchoLevel > 1) << "            Finding " << smaller_eigenvalue_numbers << " eigenvalues in [" << min_shift_value << "," << max_shift_value  << "]" << std::endl;
+                    } else {
                         max_shift_value = shift_value;
                         smaller_eigenvalue_numbers = new_smaller_eigenvalue_numbers;
-                        if (mEchoLevel > 1)
-                        {
-                            std::cout << "            Finding " << smaller_eigenvalue_numbers << " eigenvalues in [" << min_shift_value << "," << max_shift_value  << "]" << std::endl;
-                        }
+                        KRATOS_INFO_IF("RayleighQuotientIterationEigenvalueSolver", mEchoLevel > 1) <<  "            Finding " << smaller_eigenvalue_numbers << " eigenvalues in [" << min_shift_value << "," << max_shift_value  << "]" << std::endl;
                     }
                 }
 
             }
 
-            if(beta < 0.0)
-            {
+            if(beta < 0.0) {
                 beta = -std::sqrt(-beta);
-            }
-            else
-            {
+            } else {
                 beta = std::sqrt(beta);
             }
 
             TSparseSpaceType::InplaceMult(y, 1.0/beta);
 
-            if (mEchoLevel > 1)
-            {
-                std::cout << i << " \t " << beta << " \t " << ro << " \t " << convergence_norm  << " \t\t " <<  min_shift_value << " \t " << max_shift_value << std::endl;
-            }
+            KRATOS_INFO_IF("RayleighQuotientIterationEigenvalueSolver", mEchoLevel > 1) << i << " \t " << beta << " \t " << ro << " \t " << convergence_norm  << " \t\t " <<  min_shift_value << " \t " << max_shift_value << std::endl;
 
-            if(convergence_norm < tolerance)
-            {
+            if(convergence_norm < tolerance) {
                 break;
             }
 
             old_ro = ro;
         }
 
-        if (mEchoLevel > 0)
-        {
-            KRATOS_WATCH(ro);
-            KRATOS_WATCH(y);
-        }
+        KRATOS_INFO_IF("RayleighQuotientIterationEigenvalueSolver", mEchoLevel > 0) << "ro:\n" << ro << std::endl << std::endl << "y:\n" << y << std::endl;
 
         Eigenvalues[0] = ro;
 
-        if((Eigenvectors.size1() < 1) || (Eigenvectors.size2() < size))
-        {
+        if((Eigenvectors.size1() < 1) || (Eigenvectors.size2() < size)) {
             Eigenvectors.resize(1,size);
         }
 
-        for(SizeType i = 0 ; i < size ; i++)
-        {
+        for(SizeType i = 0 ; i < size ; i++) {
             Eigenvectors(0,i) = x[i] / beta;
         }
     }

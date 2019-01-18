@@ -5,13 +5,13 @@
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElasticPlaneStress2DLaw"
+                            "name": "LinearElasticPlaneStress2DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.YOUNG_MODULUS": 1e6,
-                            "KratosMultiphysics.POISSON_RATIO": 0.0,
-                            "KratosMultiphysics.THICKNESS": 0.1,
-                            "KratosMultiphysics.DENSITY": 7.85e3
+                            "YOUNG_MODULUS": 1e6,
+                            "POISSON_RATIO": 0.0,
+                            "THICKNESS": 0.1,
+                            "DENSITY": 7.85e3
                     },
                     "Tables": {}
             }

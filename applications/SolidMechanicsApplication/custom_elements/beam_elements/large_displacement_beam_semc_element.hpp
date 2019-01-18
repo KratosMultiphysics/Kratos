@@ -84,7 +84,7 @@ public:
     LargeDisplacementBeamSEMCElement(LargeDisplacementBeamSEMCElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementBeamSEMCElement();
+    ~LargeDisplacementBeamSEMCElement() override;
 
 
     ///@}
@@ -151,7 +151,7 @@ public:
     ///@name Input and output
     ///@{
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "Large Displacement Beam SEMC Element #" << Id();
@@ -159,13 +159,13 @@ public:
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Large Displacement Beam SEMC Element #" << Id();
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       GetGeometry().PrintData(rOStream);
     }
@@ -204,18 +204,18 @@ protected:
     /**
      * Calculate Element Stress Resultants and Couples
      */
-    virtual void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
+    void CalculateStressResultants(ElementDataType& rVariables, const unsigned int& rPointNumber) override;
 
     /**
      * Calculate current curvature
      */
-    virtual void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
+    void CalculateCurrentCurvature(ElementDataType& rVariables, const Variable<array_1d<double, 3 > >& rVariable) override;
 
 
     /**
       * Calculation of the Tangent Intertia Matrix
       */
-    virtual void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -224,7 +224,7 @@ protected:
     /**
       * Calculation of the Inertial Forces Vector
       */
-    virtual void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
 					   ElementDataType& rVariables,
 					   ProcessInfo& rCurrentProcessInfo,
 					   double& rIntegrationWeight) override;
@@ -234,7 +234,7 @@ protected:
     /**
      * Get Element Strain/Stress for energy computation
      */
-    virtual void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
+    void CalculateStrainEnergy(double& rEnergy, ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo, double& rIntegrationWeight) override;
 
     ///@}
     ///@name Protected  Access
@@ -273,9 +273,9 @@ private:
     // A private default constructor necessary for serialization
 
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
     ///@name Private Inquiry
     ///@{

@@ -73,7 +73,7 @@ public:
     LoadCondition( LoadCondition const& rOther);
 
     /// Destructor
-    virtual ~LoadCondition();
+    ~LoadCondition() override;
 
     ///@}
     ///@name Operators
@@ -115,7 +115,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -158,7 +158,7 @@ protected:
     /**
      * Initialize General Variables
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables,
+    void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -170,7 +170,7 @@ protected:
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
+    void CalculateAndAddExternalForces(Vector& rRightHandSideVector,
 					       ConditionVariables& rVariables,
 					       double& rIntegrationWeight) override;
 
@@ -178,7 +178,7 @@ protected:
     /**
      * Calculation of the External Forces Vector for a force or pressure vector
      */
-    virtual double& CalculateAndAddExternalEnergy(double& rEnergy,
+    double& CalculateAndAddExternalEnergy(double& rEnergy,
 						  ConditionVariables& rVariables,
 						  double& rIntegrationWeight,
 						  const ProcessInfo& rCurrentProcessInfo) override;
@@ -218,9 +218,9 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class LoadCondition.

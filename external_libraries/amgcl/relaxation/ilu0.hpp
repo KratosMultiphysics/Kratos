@@ -67,7 +67,7 @@ struct ilu0 {
 
         params() : damping(1) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, damping)
             , AMGCL_PARAMS_IMPORT_CHILD(p, solve)
@@ -206,6 +206,10 @@ struct ilu0 {
         ilu->solve(x);
     }
 
+    size_t bytes() const {
+        return ilu->bytes();
+    }
+
     private:
         std::shared_ptr<ilu_solve> ilu;
 
@@ -213,7 +217,5 @@ struct ilu0 {
 
 } // namespace relaxation
 } // namespace amgcl
-
-
 
 #endif

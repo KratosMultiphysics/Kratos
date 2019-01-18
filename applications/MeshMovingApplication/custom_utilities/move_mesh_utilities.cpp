@@ -17,6 +17,8 @@
 
 // Project includes
 #include "move_mesh_utilities.h"
+#include "containers/model.h"
+#include "includes/mesh_moving_variables.h" // TODO remove after mesh-vel-comp-functions are removed
 
 namespace Kratos {
 namespace MoveMeshUtilities {
@@ -24,18 +26,18 @@ namespace MoveMeshUtilities {
 //******************************************************************************
 //******************************************************************************
 void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
-                            VectorType &rDetJ0, GeometryType &rGeometry) {
+                            VectorType &rDetJ0, const GeometryType &rGeometry) {
   KRATOS_TRY;
 
-  const IntegrationMethod this_integration_method =
-      rGeometry.GetDefaultIntegrationMethod();
-  const GeometryType::IntegrationPointsArrayType &integration_points =
-      rGeometry.IntegrationPoints(this_integration_method);
+  const auto this_integration_method = rGeometry.GetDefaultIntegrationMethod();
+  const auto& r_integration_points = rGeometry.IntegrationPoints(this_integration_method);
 
-  if (rInvJ0.size() != integration_points.size())
-    rInvJ0.resize(integration_points.size());
-  if (rDetJ0.size() != integration_points.size())
-    rDetJ0.resize(integration_points.size());
+  if (rInvJ0.size() != r_integration_points.size()) {
+    rInvJ0.resize(r_integration_points.size());
+  }
+  if (rDetJ0.size() != r_integration_points.size()) {
+    rDetJ0.resize(r_integration_points.size());
+  }
 
   KRATOS_CATCH("");
 }
@@ -98,15 +100,20 @@ void CalculateMeshVelocities(ModelPart &rMeshModelPart,
 
 //******************************************************************************
 //******************************************************************************
-void MoveMesh(const ModelPart::NodesContainerType &rNodes) {
-  KRATOS_TRY;
+void MoveMesh(const ModelPart::NodesContainerType& rNodes) {
+    KRATOS_TRY;
 
-  for (auto &rnode : rNodes) {
-    noalias(rnode.Coordinates()) = rnode.GetInitialPosition()
-                     + rnode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
-  }
+    const int num_nodes = rNodes.size();
+    const auto nodes_begin = rNodes.begin();
 
-  KRATOS_CATCH("");
+    #pragma omp parallel for
+    for (int i=0; i<num_nodes; i++) {
+        const auto it_node  = nodes_begin + i;
+        noalias(it_node->Coordinates()) = it_node->GetInitialPosition()
+            + it_node->FastGetSolutionStepValue(MESH_DISPLACEMENT);
+    }
+
+    KRATOS_CATCH("");
 }
 
 //******************************************************************************
@@ -124,11 +131,11 @@ void SetMeshToInitialConfiguration(
 
 //******************************************************************************
 //******************************************************************************
-std::unique_ptr<ModelPart> GenerateMeshPart(ModelPart &rModelPart,
+ModelPart* GenerateMeshPart(ModelPart &rModelPart,
                                     const std::string &rElementName) {
   KRATOS_TRY;
 
-  std::unique_ptr<ModelPart> pmesh_model_part = Kratos::make_unique<ModelPart>("MeshPart", 1);
+  ModelPart* pmesh_model_part = &(rModelPart.GetModel().CreateModelPart("MeshPart", 1));
 
   // initializing mesh nodes and variables
   pmesh_model_part->Nodes() = rModelPart.Nodes();

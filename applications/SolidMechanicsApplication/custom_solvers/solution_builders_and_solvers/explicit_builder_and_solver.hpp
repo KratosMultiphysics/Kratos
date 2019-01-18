@@ -86,7 +86,7 @@ class ExplicitBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace, 
   }
 
   /// Destructor.
-  virtual ~ExplicitBuilderAndSolver() override
+  ~ExplicitBuilderAndSolver() override
   {
   }
   ///@}

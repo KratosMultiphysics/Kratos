@@ -72,6 +72,13 @@ struct cuda_skyline_lu : solver::skyline_lu<T> {
         static_cast<const Base*>(this)->operator()(_rhs, _x);
         thrust::copy(_x.begin(), _x.end(), x.begin());
     }
+
+    size_t bytes() const {
+        return
+            backend::bytes(*static_cast<const Base*>(this)) +
+            backend::bytes(_rhs) +
+            backend::bytes(_x);
+    }
 };
 
 }
@@ -176,6 +183,12 @@ class cuda_hyb_matrix {
         size_t rows()     const { return nrows; }
         size_t cols()     const { return ncols; }
         size_t nonzeros() const { return nnz;   }
+        size_t bytes()    const {
+            return
+                sizeof(int)  * (nrows + 1) +
+                sizeof(int)  * nnz +
+                sizeof(real) * nnz;
+        }
     private:
         size_t nrows, ncols, nnz;
 
@@ -265,7 +278,7 @@ struct cuda {
 
         params(cusparseHandle_t handle = 0) : cusparse_handle(handle) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, cusparse_handle)
         {
@@ -369,6 +382,13 @@ template < typename V >
 struct nonzeros_impl< cuda_hyb_matrix<V> > {
     static size_t get(const cuda_hyb_matrix<V> &A) {
         return A.nonzeros();
+    }
+};
+
+template < typename V >
+struct bytes_impl< thrust::device_vector<V> > {
+    static size_t get(const thrust::device_vector<V> &v) {
+        return v.size() * sizeof(V);
     }
 };
 

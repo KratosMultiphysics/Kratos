@@ -128,7 +128,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemSolidMechanicsApplication : public KratosApplication
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) KratosPfemSolidMechanicsApplication : public KratosApplication
   {
   public:
 

@@ -2,16 +2,13 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 #import kratos core and applications
 import KratosMultiphysics
 
-KratosMultiphysics.CheckForPreviousImport()
-
-
 class ProcessHandler(KratosMultiphysics.Process):
     #
     def __init__(self, Model, custom_settings ):
 
         KratosMultiphysics.Process.__init__(self)
 
-        self.Model = Model
+        self.model = Model
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -46,7 +43,6 @@ class ProcessHandler(KratosMultiphysics.Process):
             except AttributeError:
                 # the process does not have GetVariables()
                 pass
-
         return nodal_variables
 
     #
@@ -164,7 +160,7 @@ class ProcessHandler(KratosMultiphysics.Process):
 
         kratos_module = __import__(process["kratos_module"].GetString())
         python_module = __import__(process["python_module"].GetString())
-        return(python_module.Factory(process, self.Model))
+        return(python_module.Factory(process, self.model))
 
 
     #
@@ -249,11 +245,12 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "value"           : [0.0,0.0,0.0],
-           "constrained"     : true,
-           "interval"        : [0.0,"End"]
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "value"               : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "constrained"         : true,
+           "interval"            : [0.0,"End"]
         }
         """)
 
@@ -278,6 +275,7 @@ class ProcessHandler(KratosMultiphysics.Process):
         factory_settings["Parameters"].AddValue("value", settings["value"])
         factory_settings["Parameters"].AddValue("constrained", settings["constrained"])
         factory_settings["Parameters"].AddValue("interval", settings["interval"])
+        factory_settings["Parameters"].AddValue("compound_assignment", settings["compound_assignment"])
 
         return factory_settings
 
@@ -287,12 +285,13 @@ class ProcessHandler(KratosMultiphysics.Process):
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
         {
-           "python_module"   : "assign_modulus_and_direction_to_conditions_process",
-           "model_part_name" : "MODEL_PART",
-           "variable_name"   : "DISPLACEMENT",
-           "modulus"         : 0.0,
-           "direction"       : [0.0,0.0,0.0],
-           "interval"        : [0.0,"End"]
+           "python_module"       : "assign_modulus_and_direction_to_conditions_process",
+           "model_part_name"     : "MODEL_PART",
+           "variable_name"       : "DISPLACEMENT",
+           "modulus"             : 0.0,
+           "direction"           : [0.0,0.0,0.0],
+           "compound_assignment" : "direct",
+           "interval"            : [0.0,"End"]
         }
         """)
 
@@ -323,5 +322,6 @@ class ProcessHandler(KratosMultiphysics.Process):
         factory_settings["Parameters"].AddValue("modulus", settings["modulus"])
         factory_settings["Parameters"].AddValue("direction", settings["direction"])
         factory_settings["Parameters"].AddValue("interval", settings["interval"])
+        factory_settings["Parameters"].AddValue("compound_assignment", settings["compound_assignment"])
 
         return factory_settings

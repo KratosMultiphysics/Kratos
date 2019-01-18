@@ -74,7 +74,7 @@ struct plain_aggregates {
 
         params() : eps_strong(0.08f) {}
 
-#ifdef BOOST_VERSION
+#ifndef AMGCL_NO_BOOST
         params(const boost::property_tree::ptree &p)
             : AMGCL_PARAMS_IMPORT_VALUE(p, eps_strong)
         {

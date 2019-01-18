@@ -72,7 +72,7 @@ namespace Kratos
     NonLinearRateDependentPlasticFlowRule& operator=(NonLinearRateDependentPlasticFlowRule const& rOther);
 
     /// Destructor.
-    virtual ~NonLinearRateDependentPlasticFlowRule();
+    ~NonLinearRateDependentPlasticFlowRule() override;
 
 
     ///@}
@@ -83,7 +83,7 @@ namespace Kratos
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this flow rule
      */
-    virtual FlowRule::Pointer Clone() const;
+    FlowRule::Pointer Clone() const override;
 
 
     ///@}
@@ -142,7 +142,7 @@ namespace Kratos
     ///@{
 
 
-    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters) override;
 
     bool CalculateRateDependentConsistency( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
 
@@ -152,7 +152,7 @@ namespace Kratos
 
     //implex protected methods
 
-    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
+    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix ) override;
 
 
     ///@}
@@ -204,9 +204,9 @@ namespace Kratos
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer);
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry

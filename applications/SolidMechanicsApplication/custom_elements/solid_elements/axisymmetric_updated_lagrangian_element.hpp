@@ -78,7 +78,7 @@ public:
     AxisymmetricUpdatedLagrangianElement(AxisymmetricUpdatedLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymmetricUpdatedLagrangianElement();
+    ~AxisymmetricUpdatedLagrangianElement() override;
 
     ///@}
     ///@name Operators
@@ -193,7 +193,7 @@ protected:
      * Calculation and addition of the matrices of the LHS
      */
 
-    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                                     ElementDataType& rVariables,
                                     double& rIntegrationWeight) override;
 
@@ -201,7 +201,7 @@ protected:
      * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                                     ElementDataType& rVariables,
                                     Vector& rVolumeForce,
                                     double& rIntegrationWeight) override;
@@ -215,7 +215,7 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
+    void CalculateAndAddKuug(MatrixType& rK,
                                      ElementDataType & rVariables,
                                      double& rIntegrationWeight
                                     ) override;
@@ -225,19 +225,19 @@ protected:
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeElementData(ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     /**
      * Finalize Element Internal Variables
      */
-    virtual void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber ) override;
+    void FinalizeStepVariables(ElementDataType & rVariables, const double& rPointNumber ) override;
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(ElementDataType& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                                      const double& rPointNumber) override;
 
 
@@ -288,7 +288,7 @@ protected:
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
+    double& CalculateVolumeChange(double& rVolumeChange, ElementDataType& rVariables) override;
 
     ///@}
     ///@name Protected  Access
@@ -332,9 +332,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry

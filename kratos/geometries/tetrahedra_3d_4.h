@@ -30,7 +30,31 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D4
+ * @ingroup KratosCore
+ * @brief A four node tetrahedra geometry with linear shape functions
+ * @details The node ordering corresponds with:       
+ *                             v
+ *                            .
+ *                          ,/
+ *                         /
+ *                      2                                                            
+ *                    ,/|`\                                                       
+ *                  ,/  |  `\                         
+ *                ,/    '.   `\                      
+ *              ,/       |     `\                 
+ *            ,/         |       `\                
+ *           0-----------'.--------1 --> u        
+ *            `\.         |      ,/               
+ *               `\.      |    ,/                     
+ *                  `\.   '. ,/                      
+ *                     `\. |/                                
+ *                        `3                                   
+ *                           `\.
+ *                              ` w       
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
 template<class TPointType> class Tetrahedra3D4 : public Geometry<TPointType>
 {
@@ -331,8 +355,8 @@ public:
      */
     double Length() const override
     {
-        constexpr double factor = 2.0396489026555;                              // (12/sqrt(2)) ^ 1/3);
-        return  factor * std::pow(std::fabs(Volume()), 0.33333333333333);            // sqrt(fabs( DeterminantOfJacobian(PointType())));
+        constexpr double factor = 2.0396489026555;       // (12/sqrt(2)) ^ 1/3);
+        return  factor * std::cbrt(std::fabs(Volume())); // sqrt(fabs( DeterminantOfJacobian(PointType())));
     }
 
     /**
@@ -768,9 +792,9 @@ public:
      * @return The vector containing the local coordinates of the point
      */
     CoordinatesArrayType& PointLocalCoordinates(
-            CoordinatesArrayType& rResult,
-            const CoordinatesArrayType& rPoint
-            ) override
+        CoordinatesArrayType& rResult,
+        const CoordinatesArrayType& rPoint
+        ) const override
     {
         // Compute RHS
         array_1d<double,4> X;

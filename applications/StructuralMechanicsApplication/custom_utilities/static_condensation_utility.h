@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Klauss B Sautter
@@ -18,7 +18,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -29,12 +29,12 @@
 namespace Kratos
 {
 
-    /** 
+    /**
      * @namespace StaticCondensationUtility
-     * 
+     *
      * @brief This utilitiy condenses given degrees of freedom from any element stiffness matrix to model e.g. hinges
-     * 
-     * @author Klaus B Sautter, Philipp Bucher 
+     *
+     * @author Klaus B Sautter, Philipp Bucher
      */
 
 
@@ -58,7 +58,7 @@ namespace Kratos
 			const std::vector<int> & rDofList);
 
         /**
-         * @brief This function calculates the 4 schur-complements linking the dofs to be condensed to the dofs to remain by using the following inputs: 
+         * @brief This function calculates the 4 schur-complements linking the dofs to be condensed to the dofs to remain by using the following inputs:
          * @param rTheElement The current element
          * @param rLeftHandSideMatrix The matrix which will be condensed
          * @param rDofList The list containing the dofs to be condensed
@@ -70,7 +70,7 @@ namespace Kratos
 			const std::vector<int> & rDofList);
 
         /**
-         * @brief This function creates a list containing all dofs to remain by using the following inputs: 
+         * @brief This function creates a list containing all dofs to remain by using the following inputs:
          * @param rTheElement The current element
          * @param rDofList The list containing the dofs to be condensed
          */
@@ -80,7 +80,7 @@ namespace Kratos
 			const std::vector<int> & rDofList);
 
         /**
-         * @brief This function creates the single schur-complements, called by CalculateSchurComplements, by using the following inputs: 
+         * @brief This function creates the single schur-complements, called by CalculateSchurComplements, by using the following inputs:
          * @param Submatrix The current submatrix to be filled (schur-complement i)
          * @param rLeftHandSideMatrix The matrix which will be condensed
          * @param rVecA RemainingDofs or CondensedDof (according to schur-complement i)
@@ -114,16 +114,16 @@ namespace Kratos
 			const MatrixType& rLeftHandSideMatrix);
 
         /**
-         * @brief This function returns the number of dofs of the respective element by using the following input: 
+         * @brief This function returns the number of dofs of the respective element by using the following input:
          * @param rTheElement The current element
          */
 
 		SizeType GetNumDofsElement(ElementType& rTheElement);
 
 	}  // namespace StaticCondensationUtility
-  
+
 }  // namespace Kratos.
 
-#endif // KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED  defined 
+#endif // KRATOS_STATIC_CONDENSATION_UTILITY_H_INCLUDED  defined
 
 

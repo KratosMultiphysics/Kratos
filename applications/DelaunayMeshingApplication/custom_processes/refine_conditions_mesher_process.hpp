@@ -25,7 +25,7 @@
 //Flags:    (checked) BOUNDARY,
 //          (set)     BOUNDARY(nodes), TO_ERASE(conditions), NEW_ENTITY(conditions,nodes)(set),
 //          (modified)
-//          (reset)   TO_SPLIT
+//          (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -35,7 +35,7 @@ namespace Kratos
 ///@{
 
 /// Refine Mesh Boundary Process
-/** The process labels the boundary conditions (TO_SPLIT)
+/** The process labels the boundary conditions
     Dependencies: RemoveMeshNodesProcess.Execute()  is needed as a previous step
 
     Determines if new conditions must be inserted in boundary.
@@ -231,7 +231,7 @@ public:
 
       if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 ){
 
-	Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
+	Element::ElementType& MasterElement = *pCondition->GetValue(MASTER_ELEMENTS).back();
 
 	std::vector<double> Value;
 
@@ -837,6 +837,9 @@ public:
 	      pNode->Set(NEW_ENTITY);
 	      pNode->Set(BOUNDARY);
 
+              //set boundary model part names from one of the condition nodes
+              pNode->SetValue(MODEL_PART_NAMES, rGeometry[0].GetValue(MODEL_PART_NAMES));
+
 	      //set variables
 	      this->SetNewNodeVariables(rModelPart, *(i_cond.base()), pNode);
 
@@ -884,8 +887,10 @@ public:
       unsigned int count = 0;
       for( unsigned int i = 0; i<rGeometry.size(); i++ )
 	{
+      if ( rGeometry[i].SolutionStepsDataHas(CONTACT_FORCE) ) {
 	  if( norm_2(rGeometry[i].FastGetSolutionStepValue(CONTACT_FORCE)) == 0 )
 	    count++;
+      }
 	}
 
       if( count )

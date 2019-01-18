@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti.
@@ -113,12 +113,12 @@ public:
         surface_model_part.Nodes().clear();
 
 	KRATOS_WATCH("SaveSurfaceConditions");
-	
+
         //ModelPart::IndexType default_index = 0;
 
 	for(ModelPart::NodesContainerType::iterator in = lagrangian_model_part.NodesBegin() ;
                 in != lagrangian_model_part.NodesEnd() ; ++in)
-        {          
+        {
 	    if (in->FastGetSolutionStepValue(IS_BOUNDARY)==1.0 && in->GetValue(NEIGHBOUR_CONDITIONS).size()!=0)
 		    surface_model_part.Nodes().push_back(*(in.base()));
 
@@ -126,16 +126,16 @@ public:
 	int id = 1;
 	Properties::Pointer properties = lagrangian_model_part.GetMesh().pGetProperties(1);
         for(ModelPart::ConditionsContainerType::iterator ic = lagrangian_model_part.ConditionsBegin() ; ic != lagrangian_model_part.ConditionsEnd() ; ++ic)
-        {          
+        {
 	    //surface_model_part.Conditions().push_back(*(ic.base()));
 	    Geometry< Node<3> >& geom = ic->GetGeometry();
-      
+
             std::vector<std::size_t> NodeIds(3);
 
 	    for(int i=0; i<3; i++) NodeIds[i]= geom[i].Id();
-		
-	    surface_model_part.CreateNewElement("Element3D3N",id, NodeIds,0);//,default_index);	
-	
+
+	    surface_model_part.CreateNewElement("Element3D3N",id, NodeIds,0);//,default_index);
+
 	    id = id + 1;
         }
 
@@ -163,19 +163,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    virtual std::string Info() const override
     {
         return "SaveLagrangianSurfaceProcess_p";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "SaveLagrangianSurfaceProcess_p";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -300,6 +300,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SAVE_LAGRANGIAN_SURFACE_PROCESS_INCLUDED  defined 
-
-
+#endif // KRATOS_SAVE_LAGRANGIAN_SURFACE_PROCESS_INCLUDED  defined

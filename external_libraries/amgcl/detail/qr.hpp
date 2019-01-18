@@ -319,6 +319,10 @@ class QR {
             solve(rows, cols, row_stride, col_stride, A, b, x, computed);
         }
 
+        size_t bytes() {
+            return sizeof(value_type) * (tau.size() + f.size() + q.size());
+        }
+
     private:
         typedef typename math::scalar_of<value_type>::type scalar_type;
 
@@ -383,7 +387,8 @@ class QR {
 
             if (math::is_zero(xnorm2)) return tau;
 
-            scalar_type beta = -std::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
+            scalar_type beta = -std::abs(sqrt(sqr(math::norm(alpha)) + xnorm2));
+            if (amgcl::detail::real(alpha) < 0) beta = -beta;
 
             tau = math::identity<value_type>() - math::inverse(beta) * alpha;
             alpha = math::inverse(alpha - beta * math::identity<value_type>());
@@ -559,6 +564,10 @@ class QR<value_type, typename std::enable_if<math::is_static_matrix<value_type>:
             int row_stride = (order == row_major ? cols : 1);
             int col_stride = (order == row_major ? 1 : rows);
             solve(rows, cols, row_stride, col_stride, A, f, x, computed);
+        }
+
+        size_t bytes() const {
+            return base.bytes() + sizeof(scalar_type) * buf.size();
         }
 
     private:

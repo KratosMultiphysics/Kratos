@@ -91,6 +91,11 @@ namespace Kratos
       VectorType& rRightHandSideVector,
       ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        ProcessInfo& rCurrentProcessInfo
+        ) override;
+
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
@@ -103,10 +108,6 @@ namespace Kratos
 
     void CalculateMassMatrix(
       MatrixType& rMassMatrix,
-      ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateDampingMatrix(
-      MatrixType& rDampingMatrix,
       ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(
@@ -149,8 +150,8 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
       const ProcessInfo& rCurrentProcessInfo,
-      const bool& rCalculateStiffnessMatrixFlag,
-      const bool& rCalculateResidualVectorFlag);
+      const bool CalculateStiffnessMatrixFlag,
+      const bool CalculateResidualVectorFlag);
 
     void CalculateAndAddKm(
       Matrix& rK,
@@ -171,7 +172,7 @@ namespace Kratos
 
     void CalculateQ(
       BoundedMatrix<double, 3, 3>& rQ,
-      const unsigned int& rPointNumber);
+      const unsigned int PointNumber);
 
     void CalculateB(
         Matrix& B,
@@ -185,14 +186,12 @@ namespace Kratos
         array_1d<double, 3>& rgab,
         array_1d<double, 3>& rGab);
 
-    void CalculateAndAdd_BodyForce(
-      const Vector& rN,
-      const ProcessInfo& rCurrentProcessInfo,
-      array_1d<double, 3>& BodyForce,
-      VectorType& rRightHandSideVector,
-      const double& rWeight);
+    void CalculateAndAddBodyForce(
+        VectorType& rRightHandSideVector,
+        const IndexType PointNumber,
+        const double& rWeight) const;
 
-    void CalculateAndAdd_PressureForce(
+    void CalculateAndAddPressureForce(
       VectorType& rResidualVector,
       const Vector& N,
       const array_1d<double, 3>& rv3,
@@ -200,7 +199,7 @@ namespace Kratos
       const double& rWeight,
       const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateMetricDeformed(const unsigned int& rPointNumber,
+    void CalculateMetricDeformed(const unsigned int PointNumber,
         Matrix DN_De,
         array_1d<double, 3>& rgab,
         array_1d<double, 3>& rg1,
@@ -213,51 +212,51 @@ namespace Kratos
         Matrix& Strain_locCartesian12,
         BoundedMatrix<double, 3, 3>& Q);
 
-    void InitializeFormfinding(const unsigned int& rIntegrationPointSize);
+    void InitializeFormfinding(const unsigned int rIntegrationPointSize);
 
-    void ProjectPrestress(const unsigned int& rPointNumber);
+    void ProjectPrestress(const unsigned int PointNumber);
 
-    void UpdatePrestress(const unsigned int& rPointNumber);
+    void UpdatePrestress(const unsigned int PointNumber);
 
-    void ComputePrestress(const unsigned int& rIntegrationPointSize);
+    void ComputePrestress(const unsigned int rIntegrationPointSize);
 
     void ComputeBaseVectors(const GeometryType::IntegrationPointsArrayType& rIntegrationPoints);
 
-    void InitializeMaterial(const unsigned int& NumberIntegrationPoints);
+    void InitializeMaterial(const unsigned int NumberIntegrationPoints);
 
     void ComputeContravariantBaseVectors(
                         array_1d<double, 3>& rG1Contra,
                         array_1d<double, 3>& rG2Contra,
-                        const unsigned int& rPointNumber);
+                        const unsigned int PointNumber);
 
-    void ComputeRelevantCoSys(const unsigned int& rPointNumber,
+    void ComputeRelevantCoSys(const unsigned int PointNumber,
              array_1d<double, 3>& rg1,array_1d<double, 3>& rg2,array_1d<double, 3>& rg3, array_1d<double, 3>& rgab,
              array_1d<double, 3>& rG3,
              array_1d<double, 3>& rE1Tot, array_1d<double, 3>& rE2Tot,array_1d<double, 3>& rE3Tot,
              array_1d<double, 3>& rE1,array_1d<double, 3>& rE2,array_1d<double, 3>& rE3,
              array_1d<double, 3>& rBaseRefContraTot1,array_1d<double, 3>& rBaseRefContraTot2);
 
-    void ComputeEigenvaluesDeformationGradient(const unsigned int& rPointNumber,
+    void ComputeEigenvaluesDeformationGradient(const unsigned int PointNumber,
                     BoundedMatrix<double,3,3>& rOrigin, BoundedMatrix<double,3,3>& rTarget, BoundedMatrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rBaseRefContraTot1, const array_1d<double, 3>& rBaseRefContraTot2,
                     const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot, const array_1d<double, 3>& rE3Tot,
                     const array_1d<double, 3>& rgab,
                     double& rLambda1, double& rLambda2);
 
-    void ComputeEigenvectorsDeformationGradient(const unsigned int& rPointNumber,
+    void ComputeEigenvectorsDeformationGradient(const unsigned int PointNumber,
                                 BoundedMatrix<double,3,3>& rTensor, BoundedMatrix<double,3,3>& rOrigin,
                                 const BoundedMatrix<double,3,3>& rDeformationGradientTotal,
                                 const array_1d<double, 3>& rE1Tot, const array_1d<double, 3>& rE2Tot,
                                 const double Lambda1, const double Lambda2,
                                 BoundedMatrix<double,3,3>& rNAct);
 
-    void ModifyPrestress(const unsigned int& rPointNumber,
+    void ModifyPrestress(const unsigned int PointNumber,
                     BoundedMatrix<double,3,3>& rOrigin, BoundedMatrix<double,3,3>& rTarget,BoundedMatrix<double,3,3>& rTensor,
                     const array_1d<double, 3>& rE1, const array_1d<double, 3>& rE2, const array_1d<double, 3>& rE3, const array_1d<double, 3>& rG3,
                     const array_1d<double, 3>& rg1, const array_1d<double, 3>& rg2, const array_1d<double, 3>& rg3, const BoundedMatrix<double,3,3>& rNAct,
                     const double Lambda1, const double Lambda2);
 
-    const Matrix CalculateDeformationGradient(const unsigned int& rPointNumber);
+    const Matrix CalculateDeformationGradient(const unsigned int PointNumber);
 
     int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 

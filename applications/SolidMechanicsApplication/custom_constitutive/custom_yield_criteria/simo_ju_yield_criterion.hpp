@@ -73,7 +73,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 
 
         /// Destructor.
-        virtual ~SimoJuYieldCriterion();
+        ~SimoJuYieldCriterion() override;
 
 
         ///@}

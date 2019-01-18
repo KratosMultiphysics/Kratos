@@ -100,7 +100,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~StaticStepRotationMethod(){}
+    ~StaticStepRotationMethod() override{}
 
     ///@}
     ///@name Operators
@@ -170,22 +170,6 @@ namespace Kratos
     ///@}
     ///@name Protected Operations
     ///@{
-
-    void PredictStepVariable(NodeType& rNode) override
-    {
-      KRATOS_TRY
-
-      // predict step variable from previous and current values
-      TValueType& CurrentStepVariable            = rNode.FastGetSolutionStepValue(*this->mpStepVariable,     0);
-
-      const TValueType& CurrentVariable          = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
-      const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-
-      CurrentStepVariable = CurrentVariable-PreviousVariable;
-
-      KRATOS_CATCH( "" )
-    }
-
 
     ///@}
     ///@name Protected  Access

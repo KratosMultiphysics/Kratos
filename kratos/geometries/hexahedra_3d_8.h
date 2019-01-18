@@ -29,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Hexahedra3D8
+ * @ingroup KratosCore
+ * @brief An eight node hexahedra geometry with linear shape functions
+ * @details The node ordering corresponds with: 
+ *             v
+ *      3----------2            
+ *      |\     ^   |\          
+ *      | \    |   | \        
+ *      |  \   |   |  \       
+ *      |   7------+---6        
+ *      |   |  +-- |-- | -> u   
+ *      0---+---\--1   |        
+ *       \  |    \  \  |        
+ *        \ |     \  \ |         
+ *         \|      w  \|         
+ *          4----------5   
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Hexahedra3D8 : public Geometry<TPointType>
 {
 public:
@@ -454,14 +471,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon()
@@ -592,17 +609,17 @@ public:
     {
         using Quadrilateral3D4Type = Quadrilateral3D4<TPointType>;
         // Check if faces have intersection
-        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
-            return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(1), this->pGetPoint(0)).HasIntersection(rLowPoint, rHighPoint))
             return true;
         if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(1), this->pGetPoint(5), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(3),this->pGetPoint(2), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(2),this->pGetPoint(6), this->pGetPoint(5), this->pGetPoint(1)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(0),this->pGetPoint(4), this->pGetPoint(7), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(6), this->pGetPoint(2), this->pGetPoint(3)).HasIntersection(rLowPoint, rHighPoint))
             return true;
-        if(Quadrilateral3D4Type(this->pGetPoint(1),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(2)).HasIntersection(rLowPoint, rHighPoint))
+        if(Quadrilateral3D4Type(this->pGetPoint(7),this->pGetPoint(3), this->pGetPoint(0), this->pGetPoint(4)).HasIntersection(rLowPoint, rHighPoint))
+            return true;
+        if(Quadrilateral3D4Type(this->pGetPoint(4),this->pGetPoint(5), this->pGetPoint(6), this->pGetPoint(7)).HasIntersection(rLowPoint, rHighPoint))
             return true;
         
         CoordinatesArrayType local_coordinates;

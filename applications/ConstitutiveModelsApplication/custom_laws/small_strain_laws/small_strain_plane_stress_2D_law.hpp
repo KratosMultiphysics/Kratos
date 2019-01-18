@@ -80,7 +80,7 @@ namespace Kratos
       }
 
       /// Destructor.
-      virtual ~SmallStrainPlaneStress2DLaw(){}
+      ~SmallStrainPlaneStress2DLaw() override{}
 
 
       ///@}
@@ -132,7 +132,7 @@ namespace Kratos
 
         const Flags& rOptions = rValues.GetOptions();
 
-	const Properties& rMaterialProperties  = rValues.GetMaterialProperties();
+	const Properties& rProperties  = rValues.GetMaterialProperties();
 
 	Vector& rStrainVector                  = rValues.GetStrainVector();
 	Vector& rStressVector                  = rValues.GetStressVector();
@@ -143,7 +143,7 @@ namespace Kratos
 
 	  Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 
-	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
+	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rProperties);
 
 	  this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
 
@@ -151,7 +151,7 @@ namespace Kratos
 	else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
 	  Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
+	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rProperties);
 
 	}
 
@@ -178,7 +178,7 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "SmallStrainPlaneStress2DLaw" ;
@@ -186,10 +186,10 @@ namespace Kratos
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainPlaneStress2DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainPlaneStress2DLaw";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override {}
+      void PrintData(std::ostream& rOStream) const override {}
 
 
       ///@}
@@ -222,13 +222,13 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix(Matrix& rConstitutiveMatrix,
-				       const Properties& rMaterialProperties) override
+				       const Properties& rProperties) override
       {
 	KRATOS_TRY
 
 	// Lame constants
-	const double& rYoungModulus          = rMaterialProperties[YOUNG_MODULUS];
-	const double& rPoissonCoefficient    = rMaterialProperties[POISSON_RATIO];
+	const double& rYoungModulus          = rProperties[YOUNG_MODULUS];
+	const double& rPoissonCoefficient    = rProperties[POISSON_RATIO];
 
 	// Plane stress constitutive matrix
 	rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus)/(1.0-rPoissonCoefficient*rPoissonCoefficient);
@@ -305,12 +305,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }

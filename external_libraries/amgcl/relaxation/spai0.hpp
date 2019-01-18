@@ -109,8 +109,11 @@ struct spai0 {
         backend::vmul(math::identity<scalar_type>(), *M, rhs, math::zero<scalar_type>(), x);
     }
 
-    private:
-        std::shared_ptr<matrix_diagonal> M;
+    size_t bytes() const {
+        return backend::bytes(*M);
+    }
+
+    std::shared_ptr<matrix_diagonal> M;
 };
 
 } // namespace relaxation

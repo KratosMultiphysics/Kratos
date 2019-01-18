@@ -1,9 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication")
-
 # other imports
 from time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
@@ -26,14 +23,14 @@ class ComputeDragProcess(KratosMultiphysics.Process):
         Auxiliary class to output total flow forces over obstacles
         in fluid dynamics problems for a body fitted model part.
         """
-        super(ComputeDragProcess,self).__init__()
+        KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
             {
                 "model_part_name"           : "",
                 "interval"                  : [0.0, 1e30],
                 "print_drag_to_screen"      : false,
-                "print_format"              : "",
+                "print_format"              : ".8f",
                 "write_drag_output_file"    : true,
                 "output_file_settings": {}
             }
@@ -82,7 +79,6 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                 else:
                     file_handler_params.AddEmptyValue("file_name")
                     file_handler_params["file_name"].SetString(output_file_name)
-
                 file_header = self._GetFileHeader()
                 self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part,
                     file_handler_params, file_header).file
@@ -101,6 +97,8 @@ class ComputeDragProcess(KratosMultiphysics.Process):
                     result_msg = str(current_time) + " x-drag: " + format(drag_force[0],self.format) + " y-drag: " + format(drag_force[1],self.format) + " z-drag: " + format(drag_force[2],self.format)
                     self._PrintToScreen(result_msg)
 
+                # not formatting time in order to not lead to problems with time recognition
+                # in the file writer when restarting
                 if (self.write_drag_output_file):
                     self.output_file.write(str(current_time)+" "+format(drag_force[0],self.format)+" "+format(drag_force[1],self.format)+" "+format(drag_force[2],self.format)+"\n")
 

@@ -13,6 +13,7 @@
 
 // System includes
 #include <vector>
+#include <algorithm>
 // External includes
 
 // Project includes
@@ -42,8 +43,8 @@ namespace Kratos
             KRATOS_TRY
 
 
-            //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
-            #pragma omp parallel for
+        //reorder nodes,#include "spaces/ublas_space.h"elements and conditions so that their Id start in 1 and is consecutive
+#pragma omp parallel for
             for(int i=0; i<static_cast<int>(mrModelPart.Nodes().size()); ++i)
                 (mrModelPart.NodesBegin() + i)->SetId(i+1);
             mrModelPart.Nodes().Sort();
@@ -168,6 +169,7 @@ namespace Kratos
                 pelem = mrModelPart.Elements()(pelem->Id());
 
             }
+            subpart.Elements().Sort();
 
             #pragma omp parallel for
             for(int i=0; i<static_cast<int>(subpart.Conditions().size()); ++i)
@@ -231,25 +233,47 @@ namespace Kratos
             
             //reorder
             mrModelPart.Nodes().Sort();
+
+            ReorderElements();
         }
-        
 
-        
-        
-	std::string ReorderAndOptimizeModelPartProcess::Info() const {
-		return "ReorderAndOptimizeModelPartProcess";
-	}
+        void ReorderAndOptimizeModelPartProcess::ReorderElements()
+        {
+            // Expects element ids are ordered 1 ... Elements().size().
+            std::vector<std::size_t> element_ids(mrModelPart.NumberOfElements());
+            std::vector<std::size_t> node_ids(mrModelPart.NumberOfElements());
+            #pragma omp parallel for
+            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
+            {
+                auto it = mrModelPart.ElementsBegin() + i;
+                element_ids.at(it->Id() - 1) = it->Id();
+                std::size_t node_id = it->GetGeometry()[0].Id();
+                for (const auto& r_node : it->GetGeometry().Points())
+                    node_id = std::min(node_id, r_node.Id());
+                node_ids.at(it->Id() - 1) = node_id;
+            }
+            std::sort(element_ids.begin(), element_ids.end(),
+                      [&node_ids](const std::size_t& i, const std::size_t& j) {
+                          return node_ids[i - 1] < node_ids[j - 1];
+                      });
+            #pragma omp parallel for
+            for(int i=0; i < static_cast<int>(element_ids.size()); ++i)
+                (mrModelPart.ElementsBegin() + element_ids[i] - 1)->SetId(i + 1);
+            mrModelPart.Elements().Sort();
+        }
 
-	void ReorderAndOptimizeModelPartProcess::PrintInfo(std::ostream& rOStream) const {
-		rOStream << Info();
-	}
+        std::string ReorderAndOptimizeModelPartProcess::Info() const
+        {
+            return "ReorderAndOptimizeModelPartProcess";
+        }
 
-	void ReorderAndOptimizeModelPartProcess::PrintData(std::ostream& rOStream) const {
+        void ReorderAndOptimizeModelPartProcess::PrintInfo(std::ostream& rOStream) const
+        {
+            rOStream << Info();
+        }
 
-	}
-
-        
-
-
+        void ReorderAndOptimizeModelPartProcess::PrintData(std::ostream& rOStream) const
+        {
+        }
 
 }  // namespace Kratos.
