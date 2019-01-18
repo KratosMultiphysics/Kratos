@@ -1,0 +1,9 @@
+{
+    "C_Cpp.intelliSenseEngineFallback": "Enabled",
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/Kratos",
+        "${workspaceFolder}/external_libraries",
+        "${workspaceFolder}/kratos",
+        "/home/mengjie/Programs/boost_1_69_0"   
+    ],
+}

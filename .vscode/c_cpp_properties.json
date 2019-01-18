@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/external_libraries",
+                "${workspaceFolder}/kratos",
+                "${workspaceFolder}/kratos/includes",
+                "${workspaceFolder}",
+                "/home/mengjie/Programs/boost_1_69_0",
+                "${workspaceFolder}/applications/FluidDynamicsApplication",
+                "/usr/include/python3.6m"
+            ]
+        }
+    ],
+    "version": 4
+}

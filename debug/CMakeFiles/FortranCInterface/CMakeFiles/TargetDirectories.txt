@@ -1,0 +1,5 @@
+/home/mengjie/Kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/edit_cache.dir
+/home/mengjie/Kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/FortranCInterface.dir
+/home/mengjie/Kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/myfort.dir
+/home/mengjie/Kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/rebuild_cache.dir
+/home/mengjie/Kratos/cmake_build/CMakeFiles/FortranCInterface/CMakeFiles/symbols.dir
