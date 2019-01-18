@@ -29,6 +29,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
             },
+            "material_import_settings": {
+                "materials_filename": "unknown_materials.json"
+            },
             "formulation": {
                 "element_type": "vms"
             },
