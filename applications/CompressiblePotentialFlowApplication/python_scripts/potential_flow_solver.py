@@ -32,6 +32,9 @@ class PotentialSolver(PythonSolver):
             "volume_model_part_name" : "volume_model_part",
             "skin_parts":[],
             "no_skin_parts"                : [],
+            "dimension"             : 0,
+            "node_id"               : 0,
+            "epsilon"               : 1e-6,
             "model_import_settings": {
                     "input_type": "mdpa",
                     "input_filename": "unknown_name"
@@ -86,6 +89,7 @@ class PotentialSolver(PythonSolver):
         #construct the linear solvers
         import linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
+        self.perturbate_model_part=False
 
         print("Construction of LaplacianSolver finished")
 
@@ -249,14 +253,28 @@ class PotentialSolver(PythonSolver):
             
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
-        else:
-            raise Exception("other input options are not yet implemented")
+        # else:
+            # raise Exception("other input options are not yet implemented")
+        self.PerturbateModelPart()
         print("Solving",self.settings["problem_type"].GetString() ,"case")
         current_buffer_size = self.main_model_part.GetBufferSize()
         if(self.GetMinimumBufferSize() > current_buffer_size):
             self.main_model_part.SetBufferSize( self.GetMinimumBufferSize() )
 
         print ("model reading finished")
+    def PerturbateModelPart(self):
+        if self.perturbate_model_part:
+            epsilon=self.settings["epsilon"].GetDouble()
+            node_id=self.settings["node_id"].GetInt()
+            idim=self.settings["dimension"].GetInt()
+            if idim==0:
+                self.main_model_part.GetNode(node_id,0).X += epsilon
+            elif idim==1:
+                self.main_model_part.GetNode(node_id,0).Y += epsilon
+            else :
+                raise("dimension error")
+
+
 
     def GetMinimumBufferSize(self):
         return 2;
