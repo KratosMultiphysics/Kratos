@@ -63,7 +63,6 @@ class MonteCarloAnalysis(PotentialFlowAnalysis):
         # self.project_parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString(problem_name+'_M'+str(Mach)+'_A'+str(alpha))
 
 
-
 ##################################################
 ######## END OF CLASS MONTECARLOANALYSIS #########
 ##################################################
@@ -71,7 +70,6 @@ class MonteCarloAnalysis(PotentialFlowAnalysis):
 
 '''
 function generating the random sample
-here the sample has a normal distribution
 '''
 def GenerateSample():
     sample = []
@@ -82,7 +80,6 @@ def GenerateSample():
     mean_angle_attack = 0.0 # [rad] = 0 [degrees] airfoil already has 5 degrees
     std_deviation_angle_attack = np.deg2rad(0.1)
     sample.append(np.random.normal(mean_angle_attack,std_deviation_angle_attack,number_samples))
-    print("Mach number = ",sample[0],"angle of attack = ",sample[1])
     if sample[0] >= 1.0 or sample[0] <= 0.0 :
         raise Exception ("stochastic Mach number computed > 1 or < 0")
     return sample
@@ -156,23 +153,9 @@ def SerializeModelParameters_Task(parameter_file_name):
     return pickled_model, pickled_parameters
 
 
-'''
-function computing the relative error between the Multilevel Monte Carlo expected value and the exact expected value
-input :
-        AveragedMeanQoI       : Multilevel Monte Carlo expected value
-        ExactExpectedValueQoI : exact expected value
-output :
-        relative_error        : relative error
-'''
-@ExaquteTask(returns=1)
-def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
-    relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
-    return relative_error
-
-
 if __name__ == '__main__':
 
-    parameter_file_name = "../tests/CompressiblePotentialFlowTest/parameters_potential_naca_mesh7.json"
+    parameter_file_name = "../tests/CompressiblePotentialFlowTest/parameters_potential_naca_mesh0.json"
 
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
