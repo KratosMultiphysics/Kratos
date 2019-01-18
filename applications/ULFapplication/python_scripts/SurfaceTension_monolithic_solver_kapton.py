@@ -436,7 +436,11 @@ class STMonolithicSolver:
                         node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
                         dtp[1]=0.0
                         node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
-                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) > 76.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 64.0)):
+                        node.Fix(VELOCITY_X)
+                        node.Fix(VELOCITY_Y)
+                    elif (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) > 76.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 64.0)):
+                        node.Free(VELOCITY_X)
+                        node.Free(VELOCITY_Y)
                         dtp = Vector(2)
                         dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
                         vtp = Vector(2)

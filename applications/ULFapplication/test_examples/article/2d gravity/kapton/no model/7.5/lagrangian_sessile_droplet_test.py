@@ -347,7 +347,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
         lag_solver.Solve()
-        OutputResults(lagrangian_model_part,True)
+        #OutputResults(lagrangian_model_part,True)
       
     if(step >= 100):
         for node in lagrangian_model_part.Nodes:
@@ -355,7 +355,7 @@ while(time <= final_time):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
                 node.SetSolutionStepValue(IS_INTERFACE,0, 1.0)
                 node.SetSolutionStepValue(FLAG_VARIABLE,0, 1.0)
-        wight_force = (3.0)*time + 1.0
+        wight_force = (5.0)*time + 1.0
         if (wight_force > 9.8):
             wight_force =9.8
         for node in lagrangian_model_part.Nodes:

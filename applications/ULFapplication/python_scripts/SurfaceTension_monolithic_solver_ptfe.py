@@ -401,14 +401,14 @@ class STMonolithicSolver:
                 a = node.GetSolutionStepValue(DISPLACEMENT_Y)
                 a = 0.0
                 node.SetSolutionStepValue(DISPLACEMENT_Y,0,a)
-            if (time < 100*dt):
+            if (time < 1300*dt):
                 if (node.GetSolutionStepValue(TRIPLE_POINT) == 1.0):
                     dtp = Vector(2)
                     dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
                     vtp = Vector(2)
                     vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
                     vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
-                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 106.0):
+                    if (node.GetSolutionStepValue(CONTACT_ANGLE) > 108.5 or node.GetSolutionStepValue(CONTACT_ANGLE) < 107.5):
                         dtp[1] = 0.0
                         node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
                         vtp[1]=0.0
@@ -422,8 +422,8 @@ class STMonolithicSolver:
                         node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
                     if (node.GetSolutionStepValue(CONTACT_ANGLE) < 5.0):
                         node.Set(TO_ERASE,True)
-            if (time >= 100*dt):
-                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) < 95.0 and node.GetSolutionStepValue(CONTACT_ANGLE) > 75.0)):
+            if (time >= 1300*dt):
+                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) < 110.0 and node.GetSolutionStepValue(CONTACT_ANGLE) > 75.0)):
                         dtp = Vector(2)
                         dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
                         vtp = Vector(2)
@@ -435,16 +435,22 @@ class STMonolithicSolver:
                         node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
                         dtp[1]=0.0
                         node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
-                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0 and (node.GetSolutionStepValue(CONTACT_ANGLE) > 95.0 or node.GetSolutionStepValue(CONTACT_ANGLE) < 75.0)):
-                        dtp = Vector(2)
-                        dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
-                        vtp = Vector(2)
-                        vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
-                        vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
-                        dtp[1] = 0.0
-                        node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
-                        vtp[1]=0.0
-                        node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
+                        node.Fix(VELOCITY_X)
+                        node.Fix(VELOCITY_Y)
+                    if (node.GetSolutionStepValue(TRIPLE_POINT) != 0.0):
+                        if((node.X > 0.0 and node.GetSolutionStepValue(CONTACT_ANGLE) > 95.0) or node.GetSolutionStepValue(CONTACT_ANGLE) < 75.0):
+                            node.Free(VELOCITY_X)
+                            node.Free(VELOCITY_Y)
+                            node.Free(DISPLACEMENT_X)
+                            dtp = Vector(2)
+                            dtp[1] = node.GetSolutionStepValue(DISPLACEMENT_Y)
+                            vtp = Vector(2)
+                            vtp[0] = node.GetSolutionStepValue(VELOCITY_X)
+                            vtp[1] = node.GetSolutionStepValue(VELOCITY_Y)
+                            dtp[1] = 0.0
+                            node.SetSolutionStepValue(DISPLACEMENT_Y,0,dtp[1])
+                            vtp[1]=0.0
+                            node.SetSolutionStepValue(VELOCITY_Y,0, vtp[1])
         #time = self.model_part.ProcessInfo.GetValue(TIME)
         #dt   = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
         #################### For sessile drop examples

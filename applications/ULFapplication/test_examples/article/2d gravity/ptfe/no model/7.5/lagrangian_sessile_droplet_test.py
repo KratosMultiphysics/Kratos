@@ -340,7 +340,7 @@ while(time <= final_time):
     print("STEP = ", step)
     print("TIME = ", time)
 
-    if(step >= 3 and step <100):
+    if(step >= 3 and step <1300):
         for node in lagrangian_model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) != 1.0):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
@@ -349,7 +349,7 @@ while(time <= final_time):
         lag_solver.Solve()
         #OutputResults(lagrangian_model_part,False)
       
-    if(step >= 100):
+    if(step >= 1300):
         for node in lagrangian_model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) != 0.0 and node.GetSolutionStepValue(IS_STRUCTURE) != 1.0):
                 node.SetSolutionStepValue(IS_FREE_SURFACE,0, 1.0)
