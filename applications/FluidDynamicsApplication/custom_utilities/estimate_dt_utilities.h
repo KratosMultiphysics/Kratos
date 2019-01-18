@@ -57,6 +57,7 @@ public:
      * @param DtMin user-defined minimum time increment allowed
      * @param DtMax user-defined maximum time increment allowed
      */
+    //const Variable<array_1d<double,3>>& rVariable = VELOCITY:
     EstimateDtUtility(ModelPart &ModelPart, const double CFL, const double DtMin, const double DtMax, bool TimeAveraged=false):
       mrModelPart(ModelPart)
     {
@@ -269,22 +270,16 @@ private:
         GeometryUtils::CalculateGeometryData(rGeom, rGeometryInfo.DN_DX, rGeometryInfo.N, rGeometryInfo.Area);
 
         // Elemental Velocity
-        // array_1d<double,3> ElementVel = rGeometryInfo.N[0]*rGeom[0].FastGetSolutionStepValue(VELOCITY);
-        // for (unsigned int i = 1; i < TDim+1; ++i)
-        //    ElementVel += rGeometryInfo.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
-        
         array_1d<double,3> ElementVel;
         
         if (mTimeAveraged == true){
-            ElementVel = rGeometryInfo.N[0]*(rGeom[0].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY) + rGeom[1].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY)) / 2.0;
-            
-            ElementVel += rGeometryInfo.N[1]*(rGeom[1].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY) + rGeom[2].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY)) / 2.0;
-            ElementVel += rGeometryInfo.N[2]*(rGeom[2].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY) + rGeom[0].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY)) / 2.0;
+            ElementVel = rGeometryInfo.N[0]*rGeom[0].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
+            for (unsigned int i = 1; i < TDim+1; ++i)
+                ElementVel += rGeometryInfo.N[i]*rGeom[i].FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
         } else {
-            ElementVel = rGeometryInfo.N[0]*(rGeom[0].FastGetSolutionStepValue(VELOCITY) + rGeom[1].FastGetSolutionStepValue(VELOCITY)) / 2.0;
-            
-            ElementVel += rGeometryInfo.N[1]*(rGeom[1].FastGetSolutionStepValue(VELOCITY) + rGeom[2].FastGetSolutionStepValue(VELOCITY)) / 2.0;
-            ElementVel += rGeometryInfo.N[2]*(rGeom[2].FastGetSolutionStepValue(VELOCITY) + rGeom[0].FastGetSolutionStepValue(VELOCITY)) / 2.0;
+            ElementVel = rGeometryInfo.N[0]*rGeom[0].FastGetSolutionStepValue(VELOCITY);
+            for (unsigned int i = 1; i < TDim+1; ++i)
+                ElementVel += rGeometryInfo.N[i]*rGeom[i].FastGetSolutionStepValue(VELOCITY);
         }
 
         // Calculate u/h as the maximum projection of the velocity along element heights
