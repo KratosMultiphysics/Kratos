@@ -21,6 +21,7 @@ class SlidingEdgeProcess(KratosMultiphysics.Process):
             "reform_every_step"             : true,
             "debug_info"                    : true,
             "must_find_neighbor"            : true,
+            "angled_initial_line"           : false,
             "neighbor_search_radius"        : 0.40,
             "bucket_size"                   : 10
         }

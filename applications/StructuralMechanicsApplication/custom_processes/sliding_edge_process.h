@@ -75,6 +75,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
             "reform_every_step"             : true,
             "debug_info"                    : true,
             "must_find_neighbor"            : true,
+            "angled_initial_line"           : false,
             "neighbor_search_radius"        : 0.40,
             "bucket_size"                   : 10
         })" );
@@ -132,23 +133,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         NodeVector neighbor_nodes( max_number_of_neighbors );
         DoubleVector resulting_squared_distances( max_number_of_neighbors );
 
-        int nr_searches(0);
-/*           while (number_of_neighbors<1)
-          {
-              nr_searches++;
-              neighbor_nodes.clear();
-              resulting_squared_distances.clear();
-              //1.) find nodal neighbors
-              number_of_neighbors = search_tree->SearchInRadius( node_i,
-                                                                      neighbor_search_radius,
-                                                                      neighbor_nodes.begin(),
-                                                                      resulting_squared_distances.begin(),
-                                                                      max_number_of_neighbors );
-
-              (nr_searches>10)?(KRATOS_ERROR << "found no neighbor for slave node "
-                << node_i.Id() << " " << node_i.Coordinates() << std::endl):neighbor_search_radius*=2.0;
-          } */
-
         neighbor_nodes.clear();
         resulting_squared_distances.clear();
         //1.) find nodal neighbors
@@ -168,11 +152,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
         if (number_of_neighbors>0)
         {
-            if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << " after " << nr_searches << " iterations" << std::endl;
+            if(mParameters["debug_info"].GetBool()) std::cout << "nr.ne.: " << number_of_neighbors << std::endl;
             DoubleVector list_of_weights( number_of_neighbors, 0.0 );
 
             this->CalculateNodalWeights(resulting_squared_distances,list_of_weights,number_of_neighbors);
-            this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);
+
+            if(mParameters["angled_initial_line"].GetBool())
+                {this->CoupleSlaveToNeighborMasterNodesInitialAngledLine(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);}
+            else
+                {this->CoupleSlaveToNeighborMasterNodes(node_i,neighbor_nodes,list_of_weights,number_of_neighbors);}
         }
 
       }
@@ -219,6 +207,122 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         }
     }
 
+    void CoupleSlaveToNeighborMasterNodesInitialAngledLine(const NodeType& rCurrentSlaveNode,
+      const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
+      const SizeType& rNumberOfNeighbors)
+    {
+        ModelPart &master_model_part    = mrModelPart.GetSubModelPart(mParameters["master_sub_model_part_name"].GetString());
+        ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
+        NodesArrayType &r_nodes_master  = master_model_part.Nodes();
+        NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
+
+
+        if (rNumberOfNeighbors<2)
+        {
+            for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
+            {
+                VariableComponentType current_dof =
+                KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
+
+                for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
+                {
+
+                    ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+
+                    ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    current_dof,rNodalNeighborWeights[master_iterator],0.0);
+
+                    p_current_constraint->Set(TO_ERASE);
+
+
+                    if(mParameters["debug_info"].GetBool()){
+                        std::cout << rNeighborNodes[master_iterator]->Id()
+                        << "-----" << rCurrentSlaveNode.Id() << "-----" << rNodalNeighborWeights[master_iterator]
+                        << " ::: " << mParameters["variable_names"][dof_iterator].GetString() << std::endl;
+                    }
+
+                } // each master node
+            }  // each dof
+        }
+        else if (rNumberOfNeighbors==2)
+        {
+            const auto node_i = rNeighborNodes[0];
+            const auto node_j = rNeighborNodes[1];
+
+            const VariableComponentType check_dof_z = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Z");
+            const VariableComponentType check_dof_y = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_Y");
+            const VariableComponentType check_dof_x = KratosComponents<VariableComponentType>::Get("DISPLACEMENT_X");
+
+            const double dx = (node_j->FastGetSolutionStepValue(DISPLACEMENT_X)+node_j->X0()) -
+                (node_i->FastGetSolutionStepValue(DISPLACEMENT_X)+node_i->X0());
+            const double dy = (node_j->FastGetSolutionStepValue(DISPLACEMENT_Y)+node_j->Y0()) -
+                (node_i->FastGetSolutionStepValue(DISPLACEMENT_Y)+node_i->Y0());
+            const double dz = (node_j->FastGetSolutionStepValue(DISPLACEMENT_Z)+node_j->Z0()) -
+                (node_i->FastGetSolutionStepValue(DISPLACEMENT_Z)+node_i->Z0());
+
+            // realize the coupling
+            if (std::abs(dx)>numerical_limit)
+            {
+                ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_x,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_y,dy/dx,0.0);
+                p_current_constraint->Set(TO_ERASE);
+
+                current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_x,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_z,dz/dx,0.0);
+                p_current_constraint->Set(TO_ERASE);
+            }
+            else if (std::abs(dy)>numerical_limit)
+            {
+                ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_y,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_x,dx/dy,0.0);
+                p_current_constraint->Set(TO_ERASE);
+
+                current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_y,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_z,dz/dy,0.0);
+                p_current_constraint->Set(TO_ERASE);
+            }
+            else if (std::abs(dz)>numerical_limit)
+            {
+                ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_z,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_x,dx/dz,0.0);
+                p_current_constraint->Set(TO_ERASE);
+
+                current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
+                p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(
+                    mParameters["constraint_set_name"].GetString(),current_id,
+                    r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_z,r_nodes_slave[rCurrentSlaveNode.Id()],
+                    check_dof_y,dy/dz,0.0);
+                p_current_constraint->Set(TO_ERASE);
+            }
+            else KRATOS_ERROR << "sliding edge is a point for slave node " << rCurrentSlaveNode.Id() << std::endl;
+
+        }
+        else KRATOS_ERROR << "maximal 2 neighbors allowed for slave node " << rCurrentSlaveNode.Id() << std::endl;
+    }
+
     void CoupleSlaveToNeighborMasterNodes(const NodeType& rCurrentSlaveNode,
       const NodeVector& rNeighborNodes, const DoubleVector& rNodalNeighborWeights,
       const SizeType& rNumberOfNeighbors)
@@ -227,12 +331,12 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
         ModelPart &slave_model_part     = mrModelPart.GetSubModelPart(mParameters["slave_sub_model_part_name"].GetString());
         NodesArrayType &r_nodes_master  = master_model_part.Nodes();
         NodesArrayType &r_nodes_slave   = slave_model_part.Nodes();
-
+        const double numerical_limit = std::numeric_limits<double>::epsilon();
 
         for(SizeType dof_iterator=0;dof_iterator<mParameters["variable_names"].size();++dof_iterator)
         {
             VariableComponentType current_dof =
-              KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
+            KratosComponents<VariableComponentType>::Get(mParameters["variable_names"][dof_iterator].GetString());
 
             for(SizeType master_iterator =0;master_iterator<rNumberOfNeighbors;++master_iterator)
             {
@@ -240,8 +344,8 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
                 ModelPart::IndexType current_id = mrModelPart.NumberOfMasterSlaveConstraints()+1;
 
                 ConstraintPointer p_current_constraint = master_model_part.CreateNewMasterSlaveConstraint(mParameters["constraint_set_name"].GetString(),current_id,
-                  r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,r_nodes_slave[rCurrentSlaveNode.Id()],
-                  current_dof,rNodalNeighborWeights[master_iterator],0.0);
+                r_nodes_master[rNeighborNodes[master_iterator]->Id()],current_dof,r_nodes_slave[rCurrentSlaveNode.Id()],
+                current_dof,rNodalNeighborWeights[master_iterator],0.0);
 
                 p_current_constraint->Set(TO_ERASE);
 
@@ -254,7 +358,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SlidingEdgeProcess
 
             } // each master node
         }  // each dof
-
     }
 
     void SetmIsInitialized(const bool& check) {this->mIsInitialized = check;}
