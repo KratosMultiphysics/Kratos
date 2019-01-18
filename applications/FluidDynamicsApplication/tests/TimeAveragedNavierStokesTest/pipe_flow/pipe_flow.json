@@ -50,9 +50,12 @@
         "absolute_velocity_tolerance": 1e-7,
         "relative_pressure_tolerance": 1e-5,
         "absolute_pressure_tolerance": 1e-7,
-        "linear_solver_settings" : {
-            "solver_type"         : "SuperLUSolver",
-            "verbosity"           : 0
+        "linear_solver_settings": {
+            "solver_type": "BICGSTABSolver",
+            "max_iteration": 5000,
+            "tolerance": 1e-7,
+            "preconditioner_type": "DiagonalPreconditioner",
+            "scaling": false
         },
         "volume_model_part_name"      : "Parts_fluid",
         "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_wall"],
@@ -64,10 +67,16 @@
             "maximum_delta_time": 1.0
         },
         "time_step_acceleration"        :{
-            "considered_time"     : 5.0,
-            "minimum_delta_time"  : 1e-2,
-            "maximum_delta_time"  : 1.0
-        }
+            "considered_time": 100.0,
+            "minimum_delta_time": 0.5,
+            "maximum_delta_time": 20.0,
+            "minimum_CFL": 1.0,
+            "maximum_CFL": 20.0,
+            "start_acceleration_time": 100,
+            "end_time": 100.0
+        },
+        "periodic": "periodic",
+        "move_mesh_flag": false
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{

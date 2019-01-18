@@ -65,11 +65,11 @@ for dim in dim_vector:
     tnn = symbols('tnn') # 2 previous time
     tnnn = symbols('tnnn') # 3 previous time
 
-    ## Time steps history
-    dt = symbols('dt')  # current time
-    dtn = symbols('dtn') # 1 previous time
-    dtnn = symbols('dtnn') # 2 previous time
-    dtnnn = symbols('dtnnn') # 3 previous time
+    ## Time step size history
+    dt = symbols('dt')  # current time step size
+    dtn = symbols('dtn') # 1 previous time step size
+    dtnn = symbols('dtnn') # 2 previous time step size
+    dtnnn = symbols('dtnnn') # 3 previous time step size
 
     ## time averaging parameters
     # current time step
@@ -186,7 +186,7 @@ for dim in dim_vector:
 
     # Mass conservation residual
     if (divide_by_rho):
-        mas_residual = -div_v
+        mas_residual = - div_v
         if (artificial_compressibility):
             mas_residual -= (1/(rho*c*c))*pder_gauss
     else:

@@ -80,3 +80,7 @@ applications/FluidDynamicsApplication/symbolic_generation/time_averaged_navier_s
 *.grf
 
 *.dat
+
+debug/
+
+applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/log\.txt
