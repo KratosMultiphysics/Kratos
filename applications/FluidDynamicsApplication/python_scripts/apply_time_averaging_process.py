@@ -19,12 +19,11 @@ class ApplyTimeAveragingProcess(KratosMultiphysics.Process):
         }
         """)
 
-        settings.ValidateAndAssignDefaults(default_parameters);
+        settings.ValidateAndAssignDefaults(default_parameters)
 
         # Get model part name
         self.fluid_model_part = Model[settings["model_part_name"].GetString()]
         self.TimeAveragingProcess = KratosFluid.TimeAveragingProcess(self.fluid_model_part)
-
 
 
     def ExecuteInitialize(self):
