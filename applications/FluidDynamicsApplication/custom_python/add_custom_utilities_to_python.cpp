@@ -32,6 +32,7 @@
 #include "custom_utilities/integration_point_to_node_transformation_utility.h"
 #include "custom_utilities/periodic_condition_utilities.h"
 #include "custom_utilities/compressible_element_rotation_utility.h"
+#include "custom_utilities/steady_state_indicator_utility.h"
 
 #include "utilities/split_tetrahedra.h"
 
@@ -164,6 +165,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<const unsigned int,const Variable<double>&>())
     ;
 
+    // Steady state indicator utility
+    class_< SteadyStateIndicatorUtility > (m,"SteadyStateIndicatorUtility")
+        .def(init < ModelPart& >())
+        .def("EstimateQuantityChangesInTime", &SteadyStateIndicatorUtility::EstimateQuantityChangesInTime)
+        .def("GetVelocityChange", &SteadyStateIndicatorUtility::GetVelocityChange)
+        .def("GetPressureChange", &SteadyStateIndicatorUtility::GetPressureChange)
+        ;
 }
 
 }  // namespace Python.
