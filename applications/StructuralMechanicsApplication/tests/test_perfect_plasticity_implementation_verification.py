@@ -7,6 +7,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
 
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+
 class TestPerfectPlasticityImplementationVerification(KratosUnittest.TestCase):
     def setUp(self):
         pass
@@ -214,8 +217,7 @@ def _create_check_outputs(current_model):
     }
     """)
 
-    input_filename = os.path.dirname(os.path.realpath(__file__))
-    check_parameters["input_file_name"].SetString(input_filename + "/cl_test/test_perfect_plasticity_implementation_verification_reference.json")
+    check_parameters["input_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
     check = from_json_check_result_process.FromJsonCheckResultProcess(current_model, check_parameters)
     check.ExecuteInitialize()
@@ -237,8 +239,7 @@ def _create_reference_solution(current_model):
     }
     """)
 
-    input_filename = os.path.dirname(os.path.realpath(__file__))
-    out_parameters["output_file_name"].SetString(input_filename + "/cl_test/test_perfect_plasticity_implementation_verification_reference.json")
+    out_parameters["output_file_name"].SetString(GetFilePath("cl_test/test_perfect_plasticity_implementation_verification_reference.json"))
 
     out = json_output_process.JsonOutputProcess(current_model, out_parameters)
     out.ExecuteInitialize()
