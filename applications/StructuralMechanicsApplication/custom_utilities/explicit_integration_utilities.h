@@ -91,8 +91,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ExplicitIntegrationUtilities
      * @param PredictionLevel The prediction level
      * @param Maximum The maximum delta time to be considered
      * @param SafetyFactor The factor to not consider exactly the theoretical value
+     * @return The critical delta time
      */
-    static void CalculateDeltaTime(
+    static double CalculateDeltaTime(
         ModelPart& rModelPart,
         const double PredictionLevel = 2.0,
         const double Maximum = 1.0e-3,

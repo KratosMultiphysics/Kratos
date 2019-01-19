@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-void ExplicitIntegrationUtilities::CalculateDeltaTime(
+double ExplicitIntegrationUtilities::CalculateDeltaTime(
     ModelPart& rModelPart,
     const double PredictionLevel,
     const double Maximum,
@@ -120,6 +120,8 @@ void ExplicitIntegrationUtilities::CalculateDeltaTime(
     KRATOS_INFO_IF("ExplicitIntegrationUtilities", PredictionLevel > 1)
     << "  [EXPLICIT PREDICTION LEVEL " << PredictionLevel << " ] : (computed stable time step = " << stable_delta_time << " s)\n"
     << "  Using  = " << r_current_process_info[DELTA_TIME] << " s as time step DELTA_TIME)" << std::endl;
+
+    return stable_delta_time;
 
     KRATOS_CATCH("")
 }
