@@ -92,17 +92,17 @@ public:
         : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag) {
         KRATOS_TRY
 
-        // set flags to default values
+        // Set flags to default values
         this->mCalculateReactionsFlag = CalculateReactions;
         this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-        // saving the scheme
+        // Saving the scheme
         this->mpScheme = pScheme;
 
-        // set EchoLevel to the default value (only time is displayed)
+        // Set EchoLevel to the default value (only time is displayed)
         BaseType::SetEchoLevel(1);
 
-        // set RebuildLevel to the default value
+        // Set RebuildLevel to the default value
         BaseType::SetRebuildLevel(0);
 
         KRATOS_CATCH("")
@@ -272,11 +272,11 @@ public:
         ModelPart& r_model_part = BaseType::GetModelPart();
 
         TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb = TSystemVectorType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
 
         // initial operations ... things that are constant over the Solution Step
-        pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, mDx, mb);
+        pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, rDx, rb);
 
         if (BaseType::mRebuildLevel > 0) {
             ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
@@ -352,16 +352,21 @@ public:
         typename TSchemeType::Pointer pScheme = GetScheme();
         ModelPart& r_model_part = BaseType::GetModelPart();
         DofsArrayType dof_set_dummy;
-        TSystemMatrixType mA = TSystemMatrixType();
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb = TSystemVectorType();
+        TSystemMatrixType rA = TSystemMatrixType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
 
-        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
         this->CalculateAndAddRHS(pScheme, r_model_part);
 
-        pScheme->Update(r_model_part, dof_set_dummy, mA, mDx,
-                        mb); // Explicitly integrates the equation of motion.
+        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb); // Explicitly integrates the equation of motion.
+
+        // Calculate reactions if required
+        if (mCalculateReactionsFlag) {
+            CalculateReactions(pScheme, r_model_part, rA, rDx, rb);
+        }
+
         return true;
     }
 
@@ -373,14 +378,14 @@ public:
     {
         typename TSchemeType::Pointer pScheme = GetScheme();
         ModelPart& r_model_part = BaseType::GetModelPart();
-        TSystemMatrixType mA = TSystemMatrixType();
-        TSystemVectorType mDx = TSystemVectorType();
-        TSystemVectorType mb = TSystemVectorType();
+        TSystemMatrixType rA = TSystemMatrixType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
         // Finalisation of the solution step,
         // operations to be done after achieving convergence, for example the
-        // Final Residual Vector (mb) has to be saved in there
+        // Final Residual Vector (rb) has to be saved in there
         // to avoid error accumulation
-        pScheme->FinalizeSolutionStep(r_model_part, mA, mDx, mb);
+        pScheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
 
         // Move the mesh if needed
         if (BaseType::MoveMeshFlag())
@@ -456,6 +461,62 @@ private:
     ///@name Private Operations
     ///@{
 
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
+    {
+        // We iterate over the nodes
+        auto r_nodes = rModelPart.Nodes();
+
+        // If we consider rotation dofs
+        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+
+        // Auxiliar values
+        array_1d<double, 3> force_residual = ZeroVector(3);
+        array_1d<double, 3> moment_residual = ZeroVector(3);
+
+        // Iterating nodes
+        const auto it_node_begin = r_nodes.begin();
+        #pragma omp parallel for firstprivate(force_residual, moment_residual)
+        for(int i=0; i<static_cast<int>(r_nodes.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            noalias(force_residual) = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            if (has_dof_for_rot_z) {
+                noalias(moment_residual) = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            }
+
+            for (auto& r_dof : it_node->GetDofs()) {
+                if (r_dof.IsFixed()) {
+                    const auto& r_var = r_dof.GetVariable();
+                    if (r_var == DISPLACEMENT_X) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_X);
+                        r_reaction = force_residual[0];
+                    } else if (r_var == DISPLACEMENT_Y) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
+                        r_reaction = force_residual[1];
+                    } else if (r_var == DISPLACEMENT_Z) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Z);
+                        r_reaction = force_residual[2];
+                    } else if (r_var == ROTATION_X) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_X);
+                        r_reaction = moment_residual[0];
+                    } else if (r_var == ROTATION_Y) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Y);
+                        r_reaction = moment_residual[1];
+                    } else if (r_var == ROTATION_Z) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Z);
+                        r_reaction = moment_residual[2];
+                    }
+                }
+            }
+        }
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -484,22 +545,24 @@ protected:
     typename TSchemeType::Pointer mpScheme;
 
     /**
-    Flag telling if it is needed to reform the DofSet at each
-    solution step or if it is possible to form it just once
-    - true  => reforme at each time step
-    - false => form just one (more efficient)
-
-    Default = false
+     * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
+     * @details
+        - true  => reforme at each time step
+        - false => form just one (more efficient)
+        Default = false
     */
     bool mReformDofSetAtEachStep;
 
     /**
-    Flag telling if it is needed or not to compute the reactions
+     * @brief Flag telling if it is needed or not to compute the reactions
+     * @details default = true
+     */
+    bool mCalculateReactionsFlag = true;
 
-    default = true
-    */
-    bool mCalculateReactionsFlag;
-
+    /**
+     * @brief Flag telling if the initialize was performed
+     * @details default = false
+     */
     bool mInitializeWasPerformed = false;
 
      ///@}
