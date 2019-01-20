@@ -29,7 +29,7 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
 {
     KRATOS_TRY
 
-    const ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
+    ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
     array_1d<double, 2> two_first_eigen_values;
 
@@ -112,7 +112,9 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
     KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
 
     // We save the values
-    for (auto& r_prop : mrModelPart.rProperties()) {
+    r_current_process_info.SetValue(RAYLEIGH_ALPHA, alpha);
+    r_current_process_info.SetValue(RAYLEIGH_BETA, beta);
+    for (auto& r_prop : mrModelPart.rProperties()) { // The definition should be consistent and done only once
         r_prop.SetValue(RAYLEIGH_ALPHA, alpha);
         r_prop.SetValue(RAYLEIGH_BETA, beta);
     }
