@@ -70,19 +70,28 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self._add_dynamic_dofs()
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: DOF's ADDED")
 
+    def InitializeSolutionStep(self):
+        # Using the base InitializeSolutionStep
+        super(ExplicitMechanicalSolver, self).InitializeSolutionStep()
+
+        if self.dynamic_settings["determine_rayleigh_damping"].GetBool() and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1:
+            import KratosMultiphysics.kratos_utilities as kratos_utils
+            if kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+                from KratosMultiphysics import ExternalSolversApplication
+            else:
+                raise Exception("ExternalSolversApplication not available")
+
+            computing_model_part = self.GetComputingModelPart()
+            compute_rayleigh_damping_process = StructuralMechanicsApplication.ComputeRayleighDampingCoefficientsProcess(computing_model_part, self.dynamic_settings["determine_rayleigh_damping_settings"])
+            compute_rayleigh_damping_process.Execute()
 
     #### Specific internal functions ####
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
-        if self.dynamic_settings["determine_rayleigh_damping"].GetBool():
-            computing_model_part = self.GetComputingModelPart()
-            compute_rayleigh_damping_process = StructuralMechanicsApplication.ComputeRayleighDampingCoefficientsProcess(computing_model_part, self.dynamic_settings["determine_rayleigh_damping_settings"])
-            compute_rayleigh_damping_process.Execute()
-        else:
-            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
         if(scheme_type == "central_differences"):
