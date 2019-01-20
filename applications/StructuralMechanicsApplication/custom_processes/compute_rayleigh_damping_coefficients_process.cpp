@@ -39,16 +39,40 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
         two_first_eigen_values[0] = r_eigenvalue_vector[0];
         two_first_eigen_values[1] = r_eigenvalue_vector[1];
     } else { // Otherwise we must compute by ourselves
-        // TODO
-//         typedef TUblasSparseSpace<double> SparseSpaceType;
-//         typedef TUblasDenseSpace<double> LocalSparseSpaceType;
-//         typedef TUblasSparseSpace<std::complex<double>> ComplexSparseSpaceType;
-//         typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSparseSpaceType;
-//         typedef LinearSolver<ComplexSparseSpaceType,ComplexLocalSparseSpaceType> ComplexLinearSolverType;
-//         typedef LinearSolverFactory<ComplexSparseSpaceType,  ComplexLocalSparseSpaceType> ComplexLinearSolverFactoryType;
-//         auto p_lin = KratosComponents<ComplexLinearSolverFactoryType>::Get("SkylineLUComplexSolver");
-//         auto b_and_s = ResidualBasedBlockBuilderAndSolverWithConstraints<SparseSpaceType, LocalSparseSpaceType, ComplexLinearSolverType>(p_lin);
-//         auto compute_eigen_values_strategy = EigensolverStrategy(mrModelPart);
+        // Getting Feast linear solver
+        typedef TUblasSparseSpace<double> SparseSpaceType;
+        typedef TUblasDenseSpace<double> LocalSparseSpaceType;
+        typedef LinearSolver<SparseSpaceType,LocalSparseSpaceType> LinearSolverType;
+        typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
+
+        Parameters linear_solver_settings = Parameters(R"(
+        {
+            "solver_type" : "FEASTSolver",
+            "print_feast_output": false,
+            "perform_stochastic_estimate": false,
+            "solve_eigenvalue_problem": true,
+            "lambda_min": 0.0,
+            "lambda_max": 4.0e5,
+            "number_of_eigenvalues": 2,
+            "search_dimension": 15,
+            "linear_solver_settings":{
+                "solver_type": "SkylineLUComplexSolver"
+            }
+        })" );
+
+        LinearSolverType::Pointer p_linear_solver = LinearSolverFactoryType().Create(linear_solver_settings);
+
+        // Getting B&S
+        auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraints<SparseSpaceType, LocalSparseSpaceType, LinearSolverType>>(p_linear_solver);
+
+        // Getting scheme
+        auto p_scheme = Kratos::make_shared<EigensolverDynamicScheme<SparseSpaceType, LocalSparseSpaceType>>();
+
+        // Getting strategy
+        auto p_compute_eigen_values_strategy = Kratos::make_shared<EigensolverStrategy<SparseSpaceType, LocalSparseSpaceType, LinearSolverType>>(mrModelPart, p_scheme, p_builder_and_solver);
+
+        // Compute the eigen values
+        p_compute_eigen_values_strategy->Solve();
     }
 
     const int echo_level = mParameters["echo_level"].GetInt();
