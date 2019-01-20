@@ -62,48 +62,51 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
     // The eigen values vector
     const Vector& r_eigenvalue_vector = r_current_process_info[EIGENVALUE_VECTOR];
 
-    KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << r_eigenvalue_vector[0] << " Hz\t and " << r_eigenvalue_vector[1] << " Hz" << std::endl;
+    // We need at least 2 eigenvalues
+    if (r_eigenvalue_vector.size() > 1) {
+        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << r_eigenvalue_vector[0] << " Hz\t and " << r_eigenvalue_vector[1] << " Hz" << std::endl;
 
-    // The main damping ration
-    array_1d<double, 2> damping_ratios;
-    damping_ratios[0] = mParameters["damping_ratio_0"].GetDouble();
-    damping_ratios[1] = mParameters["damping_ratio_0"].GetDouble();
+        // The main damping ration
+        array_1d<double, 2> damping_ratios;
+        damping_ratios[0] = mParameters["damping_ratio_0"].GetDouble();
+        damping_ratios[1] = mParameters["damping_ratio_0"].GetDouble();
 
-    // We define the auxiliar alpha and beta
-    double alpha = 0.0;
-    double beta = 0.0;
+        // We define the auxiliar alpha and beta
+        double alpha = 0.0;
+        double beta = 0.0;
 
-    // Depending of the second damping ratio (if defined or not) we compute
-    if (mParameters["damping_ratio_1"].GetDouble() > 0.0) {
-        damping_ratios[1] = mParameters["damping_ratio_1"].GetDouble();
-        BoundedMatrix<double, 2, 2> frequencies_matrix;
-        frequencies_matrix(0, 0) = 0.5 / r_eigenvalue_vector[0];
-        frequencies_matrix(0, 1) = 0.5 * r_eigenvalue_vector[0];
-        frequencies_matrix(1, 0) = 0.5 / r_eigenvalue_vector[1];
-        frequencies_matrix(1, 1) = 0.5 * r_eigenvalue_vector[1];
+        // Depending of the second damping ratio (if defined or not) we compute
+        if (mParameters["damping_ratio_1"].GetDouble() > 0.0) {
+            damping_ratios[1] = mParameters["damping_ratio_1"].GetDouble();
+            BoundedMatrix<double, 2, 2> frequencies_matrix;
+            frequencies_matrix(0, 0) = 0.5 / r_eigenvalue_vector[0];
+            frequencies_matrix(0, 1) = 0.5 * r_eigenvalue_vector[0];
+            frequencies_matrix(1, 0) = 0.5 / r_eigenvalue_vector[1];
+            frequencies_matrix(1, 1) = 0.5 * r_eigenvalue_vector[1];
 
-        // We compute the inverse
-        double det;
-        const BoundedMatrix<double, 2, 2> inverse_frequencies_matrix = MathUtils<double>::InvertMatrix<2>(frequencies_matrix, det);
+            // We compute the inverse
+            double det;
+            const BoundedMatrix<double, 2, 2> inverse_frequencies_matrix = MathUtils<double>::InvertMatrix<2>(frequencies_matrix, det);
 
-        // We can compute now
-        const array_1d<double, 2> aux_solution = prod(inverse_frequencies_matrix, damping_ratios);
-        alpha = aux_solution[0];
-        beta = aux_solution[1];
-    } else {
-        beta = (2.0 * damping_ratios[0])/(r_eigenvalue_vector[0] + r_eigenvalue_vector[1]);
-        alpha = r_eigenvalue_vector[0] * r_eigenvalue_vector[1] * beta;
-    }
+            // We can compute now
+            const array_1d<double, 2> aux_solution = prod(inverse_frequencies_matrix, damping_ratios);
+            alpha = aux_solution[0];
+            beta = aux_solution[1];
+        } else {
+            beta = (2.0 * damping_ratios[0])/(r_eigenvalue_vector[0] + r_eigenvalue_vector[1]);
+            alpha = r_eigenvalue_vector[0] * r_eigenvalue_vector[1] * beta;
+        }
 
-    KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
+        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
 
-    // We save the values
-    r_current_process_info.SetValue(RAYLEIGH_ALPHA, alpha);
-    r_current_process_info.SetValue(RAYLEIGH_BETA, beta);
-    if (mParameters["write_on_properties"].GetBool()) {
-        for (auto& r_prop : mrModelPart.rProperties()) { // The definition should be consistent and done only once
-            r_prop.SetValue(RAYLEIGH_ALPHA, alpha);
-            r_prop.SetValue(RAYLEIGH_BETA, beta);
+        // We save the values
+        r_current_process_info.SetValue(RAYLEIGH_ALPHA, alpha);
+        r_current_process_info.SetValue(RAYLEIGH_BETA, beta);
+        if (mParameters["write_on_properties"].GetBool()) {
+            for (auto& r_prop : mrModelPart.rProperties()) { // The definition should be consistent and done only once
+                r_prop.SetValue(RAYLEIGH_ALPHA, alpha);
+                r_prop.SetValue(RAYLEIGH_BETA, beta);
+            }
         }
     }
 
