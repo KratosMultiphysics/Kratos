@@ -35,15 +35,8 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
     // Getting echo level
     const int echo_level = mParameters["echo_level"].GetInt();
 
-    // Auxiliar array
-    array_1d<double, 2> two_first_eigen_values;
-
-    // Already computed eigen values
-    if (r_current_process_info.Has(EIGENVALUE_VECTOR)) {
-        const Vector& r_eigenvalue_vector = r_current_process_info[EIGENVALUE_VECTOR];
-        two_first_eigen_values[0] = r_eigenvalue_vector[0];
-        two_first_eigen_values[1] = r_eigenvalue_vector[1];
-    } else { // Otherwise we must compute by ourselves
+    // If not computed eigen values already
+    if (!r_current_process_info.Has(EIGENVALUE_VECTOR)) {
         // Getting Feast linear solver
         typedef TUblasSparseSpace<double> SparseSpaceType;
         typedef TUblasDenseSpace<double> LocalSparseSpaceType;
@@ -66,7 +59,10 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
         p_compute_eigen_values_strategy->Solve();
     }
 
-    KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << two_first_eigen_values[0] << " Hz\t and " << two_first_eigen_values[1] << " Hz" << std::endl;
+    // The eigen values vector
+    const Vector& r_eigenvalue_vector = r_current_process_info[EIGENVALUE_VECTOR];
+
+    KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << r_eigenvalue_vector[0] << " Hz\t and " << r_eigenvalue_vector[1] << " Hz" << std::endl;
 
     // The main damping ration
     array_1d<double, 2> damping_ratios;
@@ -81,10 +77,10 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
     if (mParameters["damping_ratio_1"].GetDouble() > 0.0) {
         damping_ratios[1] = mParameters["damping_ratio_1"].GetDouble();
         BoundedMatrix<double, 2, 2> frequencies_matrix;
-        frequencies_matrix(0, 0) = 0.5 / two_first_eigen_values[0];
-        frequencies_matrix(0, 1) = 0.5 * two_first_eigen_values[0];
-        frequencies_matrix(1, 0) = 0.5 / two_first_eigen_values[1];
-        frequencies_matrix(1, 1) = 0.5 * two_first_eigen_values[1];
+        frequencies_matrix(0, 0) = 0.5 / r_eigenvalue_vector[0];
+        frequencies_matrix(0, 1) = 0.5 * r_eigenvalue_vector[0];
+        frequencies_matrix(1, 0) = 0.5 / r_eigenvalue_vector[1];
+        frequencies_matrix(1, 1) = 0.5 * r_eigenvalue_vector[1];
 
         // We compute the inverse
         double det;
@@ -95,8 +91,8 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
         alpha = aux_solution[0];
         beta = aux_solution[1];
     } else {
-        beta = (2.0 * damping_ratios[0])/(two_first_eigen_values[0] + two_first_eigen_values[1]);
-        alpha = two_first_eigen_values[0] * two_first_eigen_values[1] * beta;
+        beta = (2.0 * damping_ratios[0])/(r_eigenvalue_vector[0] + r_eigenvalue_vector[1]);
+        alpha = r_eigenvalue_vector[0] * r_eigenvalue_vector[1] * beta;
     }
 
     KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
