@@ -35,9 +35,10 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "rayleigh_beta"              : 0.0,
             "determine_rayleigh_damping" : false,
             "determine_rayleigh_damping_settings" : {
-                "echo_level"      : 0,
-                "damping_ratio_0" : 0.0,
-                "damping_ratio_1" : -1.0,
+                "echo_level"          : 0,
+                "write_on_properties" : false,
+                "damping_ratio_0"     : 0.0,
+                "damping_ratio_1"     : -1.0,
                 "eigen_system_settings" : {
                     "solver_type"                : "FEASTSolver",
                     "print_feast_output"         : false,

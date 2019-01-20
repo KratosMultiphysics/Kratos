@@ -100,9 +100,11 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
     // We save the values
     r_current_process_info.SetValue(RAYLEIGH_ALPHA, alpha);
     r_current_process_info.SetValue(RAYLEIGH_BETA, beta);
-    for (auto& r_prop : mrModelPart.rProperties()) { // The definition should be consistent and done only once
-        r_prop.SetValue(RAYLEIGH_ALPHA, alpha);
-        r_prop.SetValue(RAYLEIGH_BETA, beta);
+    if (mParameters["write_on_properties"].GetBool()) {
+        for (auto& r_prop : mrModelPart.rProperties()) { // The definition should be consistent and done only once
+            r_prop.SetValue(RAYLEIGH_ALPHA, alpha);
+            r_prop.SetValue(RAYLEIGH_BETA, beta);
+        }
     }
 
     KRATOS_CATCH("")
@@ -115,9 +117,10 @@ Parameters ComputeRayleighDampingCoefficientsProcess::GetDefaultParameters()
 {
     Parameters default_parameters = Parameters(R"(
     {
-        "echo_level"      : 0,
-        "damping_ratio_0" : 0.0,
-        "damping_ratio_1" : -1.0,
+        "echo_level"          : 0,
+        "write_on_properties" : false,
+        "damping_ratio_0"     : 0.0,
+        "damping_ratio_1"     : -1.0,
         "eigen_system_settings" : {
             "solver_type"                : "FEASTSolver",
             "print_feast_output"         : false,
