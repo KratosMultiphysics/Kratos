@@ -130,7 +130,7 @@ Parameters ComputeRayleighDampingCoefficientsProcess::GetDefaultParameters()
     Parameters default_parameters = Parameters(R"(
     {
         "echo_level"      : 0,
-        "damping_ratio_0" : 0.1,
+        "damping_ratio_0" : 0.0,
         "damping_ratio_1" : -1.0
     })" );
 
