@@ -92,9 +92,9 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
   endif()
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -funroll-loops -Wall")
   set(CMAKE_SHARED_LINKER_FLAGS " -Wl,--no-undefined")
-  message("additional default options were set for gcc")
-  message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-  message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+  message(STATUS "additional default options were set for gcc")
+  message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+  message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 endif(${CMAKE_COMPILER_IS_GNUCXX})
 
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -209,7 +209,7 @@ endif(CMAKE_BUILD_TYPE MATCHES FullDebug)
 
 ##*****************************
 #find and include OpenMP if possible
-message(KRATOS_EXCLUDE_OPENMP ${KRATOS_EXCLUDE_OPENMP})
+#message(STATUS KRATOS_EXCLUDE_OPENMP : ${KRATOS_EXCLUDE_OPENMP})
 if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
 	message("**********************************************************")
 	message("OpenMP calculation was excluced artificially. Remove the var")
@@ -219,7 +219,7 @@ if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
     endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-	message("OpenMP included")
+	message(STATUS "OpenMP included")
 	find_package(OpenMP)
 	if (OPENMP_FOUND)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -243,8 +243,8 @@ endif(${USE_CUDA} MATCHES ON)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-message("Boost Include: ${Boost_INCLUDE_DIRS}")
-message("Boost Linkdir: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 ##*****************************
 
@@ -364,11 +364,11 @@ endif( ZLIB_FOUND )
 # including the AMatrix
 if( AMATRIX_DIR )
     message("AMATRIX_DIR : ${AMATRIX_DIR}")
-    include_directories ( "${AMATRIX_DIR}/include" )
+    include_directories("${AMATRIX_DIR}/include")
     add_definitions(-DAMATRIX_NO_IO_OPERATOR)
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
-    message( "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
 ##echo user options
@@ -424,10 +424,10 @@ endif(${MPI_NEEDED} MATCHES ON )
 # Set installation directory
 if(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${KRATOS_INSTALL_PREFIX} )
-  message("-------------------------------- user defined install dir ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "User defined install dir ${CMAKE_INSTALL_PREFIX}")
 else(DEFINED KRATOS_INSTALL_PREFIX)
   set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR} )
-  message("--------------------------------  standard install dir ${CMAKE_INSTALL_PREFIX}")
+  message(STATUS "Standard install dir ${CMAKE_INSTALL_PREFIX}")
 endif(DEFINED KRATOS_INSTALL_PREFIX)
 
 
