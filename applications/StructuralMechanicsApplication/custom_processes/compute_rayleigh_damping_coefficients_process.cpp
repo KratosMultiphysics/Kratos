@@ -29,8 +29,13 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
 {
     KRATOS_TRY
 
+    // Getting process info
     ProcessInfo& r_current_process_info = mrModelPart.GetProcessInfo();
 
+    // Getting echo level
+    const int echo_level = mParameters["echo_level"].GetInt();
+
+    // Auxiliar array
     array_1d<double, 2> two_first_eigen_values;
 
     // Already computed eigen values
@@ -72,10 +77,10 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
         auto p_compute_eigen_values_strategy = Kratos::make_shared<EigensolverStrategy<SparseSpaceType, LocalSparseSpaceType, LinearSolverType>>(mrModelPart, p_scheme, p_builder_and_solver);
 
         // Compute the eigen values
+        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "Solving eigen values" << std::endl;
         p_compute_eigen_values_strategy->Solve();
     }
 
-    const int echo_level = mParameters["echo_level"].GetInt();
     KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << two_first_eigen_values[0] << " Hz\t and " << two_first_eigen_values[1] << " Hz" << std::endl;
 
     // The main damping ration
