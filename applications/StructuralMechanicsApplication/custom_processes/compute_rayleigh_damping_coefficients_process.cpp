@@ -50,22 +50,7 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
         typedef LinearSolver<SparseSpaceType,LocalSparseSpaceType> LinearSolverType;
         typedef LinearSolverFactory<SparseSpaceType,  LocalSparseSpaceType> LinearSolverFactoryType;
 
-        Parameters linear_solver_settings = Parameters(R"(
-        {
-            "solver_type"                : "FEASTSolver",
-            "print_feast_output"         : false,
-            "perform_stochastic_estimate": false,
-            "solve_eigenvalue_problem"   : true,
-            "lambda_min"                 : 0.0,
-            "lambda_max"                 : 4.0e5,
-            "number_of_eigenvalues"      : 2,
-            "search_dimension"           : 15,
-            "linear_solver_settings": {
-                "solver_type": "skyline_lu"
-            }
-        })" );
-
-        LinearSolverType::Pointer p_linear_solver = LinearSolverFactoryType().Create(linear_solver_settings);
+        LinearSolverType::Pointer p_linear_solver = LinearSolverFactoryType().Create(mParameters["eigen_system_settings"]);
 
         // Getting B&S
         auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolverWithConstraints<SparseSpaceType, LocalSparseSpaceType, LinearSolverType>>(p_linear_solver);
@@ -136,7 +121,20 @@ Parameters ComputeRayleighDampingCoefficientsProcess::GetDefaultParameters()
     {
         "echo_level"      : 0,
         "damping_ratio_0" : 0.0,
-        "damping_ratio_1" : -1.0
+        "damping_ratio_1" : -1.0,
+        "eigen_system_settings" : {
+            "solver_type"                : "FEASTSolver",
+            "print_feast_output"         : false,
+            "perform_stochastic_estimate": true,
+            "solve_eigenvalue_problem"   : true,
+            "lambda_min"                 : 0.0,
+            "lambda_max"                 : 4.0e5,
+            "number_of_eigenvalues"      : 2,
+            "search_dimension"           : 15,
+            "linear_solver_settings": {
+                "solver_type": "skyline_lu"
+            }
+        }
     })" );
 
     return default_parameters;

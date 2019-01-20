@@ -37,7 +37,20 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
             "determine_rayleigh_damping_settings" : {
                 "echo_level"      : 0,
                 "damping_ratio_0" : 0.0,
-                "damping_ratio_1" : -1.0
+                "damping_ratio_1" : -1.0,
+                "eigen_system_settings" : {
+                    "solver_type"                : "FEASTSolver",
+                    "print_feast_output"         : false,
+                    "perform_stochastic_estimate": true,
+                    "solve_eigenvalue_problem"   : true,
+                    "lambda_min"                 : 0.0,
+                    "lambda_max"                 : 4.0e5,
+                    "number_of_eigenvalues"      : 2,
+                    "search_dimension"           : 15,
+                    "linear_solver_settings": {
+                        "solver_type": "skyline_lu"
+                    }
+                }
             }
         }
         """)
