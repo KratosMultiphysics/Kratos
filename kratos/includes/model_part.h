@@ -11,42 +11,20 @@
 //
 //
 
-
-
 #if !defined(KRATOS_MODEL_PART_H_INCLUDED )
 #define  KRATOS_MODEL_PART_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
-#include "containers/data_value_container.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
-#include "includes/condition.h"
 #include "includes/communicator.h"
 #include "includes/table.h"
-#include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
-#include "includes/kratos_flags.h"
-#include "includes/master_slave_constraint.h"
-#include "containers/variable.h"
-#include "containers/variable_component.h"
-#include "containers/vector_component_adaptor.h"
-#include "containers/variable_data.h"
 
 namespace Kratos
 {
@@ -70,7 +48,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-//forward declaring Model to be avoid cross references
+// Forward declaring Model to be avoid cross references
 class Model;
 
 /// ModelPart class.
@@ -1306,11 +1284,8 @@ public:
     ModelPart& GetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
-
-            return *i;
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name : " << SubModelPartName << std::endl;
+        return *i;
     }
 
     /** Returns a shared pointer to the sub_model part with given string name
@@ -1319,10 +1294,7 @@ public:
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName)
     {
         SubModelPartIterator i = mSubModelParts.find(SubModelPartName);
-        if(i == mSubModelParts.end())
-            KRATOS_THROW_ERROR(std::logic_error, "There is no sub model part with name : ", SubModelPartName )
-            //TODO: KRATOS_ERROR << "There is no sub model part with name : \"" << SubModelPartName << "\" in this model part"; // << std::endl;
-
+        KRATOS_ERROR_IF(i == mSubModelParts.end()) << "There is no sub model part with name : " << SubModelPartName << std::endl;
         return (i.base()->second).get();
     }
 
@@ -1660,5 +1632,3 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 } // namespace Kratos.
 
 #endif // KRATOS_MODEL_PART_H_INCLUDED  defined
-
-
