@@ -27,10 +27,18 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
          # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "scheme_type" : "central_differences",
-            "time_step_prediction_level": 0,
-            "max_delta_time": 1.0e-5,
-            "fraction_delta_time": 0.9
+            "scheme_type"                : "central_differences",
+            "time_step_prediction_level" : 0,
+            "max_delta_time"             : 1.0e-5,
+            "fraction_delta_time"        : 0.9,
+            "rayleigh_alpha"             : 0.0,
+            "rayleigh_beta"              : 0.0,
+            "determine_rayleigh_damping" : false,
+            "determine_rayleigh_damping_settings" : {
+                "echo_level"      : 0,
+                "damping_ratio_0" : 0.0,
+                "damping_ratio_1" : -1.0
+            }
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -67,6 +75,16 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
+        # Setting the Rayleigh damping parameters
+        if self.dynamic_settings["determine_rayleigh_damping"].GetBool():
+            computing_model_part = self.GetComputingModelPart()
+            compute_rayleigh_damping_process = StructuralMechanicsApplication.ComputeRayleighDampingCoefficientsProcess(computing_model_part, self.dynamic_settings["determine_rayleigh_damping_settings"])
+            compute_rayleigh_damping_process.Execute()
+        else:
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+
+        # Setting the time integration schemes
         if(scheme_type == "central_differences"):
             mechanical_scheme = StructuralMechanicsApplication.ExplicitCentralDifferencesScheme(self.dynamic_settings["max_delta_time"].GetDouble(),
                                                                              self.dynamic_settings["fraction_delta_time"].GetDouble(),

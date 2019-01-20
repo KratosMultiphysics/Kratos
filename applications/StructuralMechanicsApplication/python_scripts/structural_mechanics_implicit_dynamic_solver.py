@@ -29,10 +29,16 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
-            "scheme_type"   : "bossak",
-            "damp_factor_m" :-0.3,
-            "rayleigh_alpha": 0.0,
-            "rayleigh_beta" : 0.0
+            "scheme_type"                : "bossak",
+            "damp_factor_m"              : -0.3,
+            "rayleigh_alpha"             : 0.0,
+            "rayleigh_beta"              : 0.0,
+            "determine_rayleigh_damping" : false,
+            "determine_rayleigh_damping_settings" : {
+                "echo_level"      : 0,
+                "damping_ratio_0" : 0.0,
+                "damping_ratio_1" : -1.0
+            }
         }
         """)
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
@@ -62,8 +68,17 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+
+        # Setting the Rayleigh damping parameters
+        if self.dynamic_settings["determine_rayleigh_damping"].GetBool():
+            computing_model_part = self.GetComputingModelPart()
+            compute_rayleigh_damping_process = StructuralMechanicsApplication.ComputeRayleighDampingCoefficientsProcess(computing_model_part, self.dynamic_settings["determine_rayleigh_damping_settings"])
+            compute_rayleigh_damping_process.Execute()
+        else:
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+            self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+
+        # Setting the time integration schemes
         if(scheme_type == "newmark"):
             damp_factor_m = 0.0
             mechanical_scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(damp_factor_m)
