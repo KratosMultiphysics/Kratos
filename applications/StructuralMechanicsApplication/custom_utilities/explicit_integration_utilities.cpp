@@ -20,8 +20,9 @@
 
 namespace Kratos
 {
-
-double ExplicitIntegrationUtilities::CalculateDeltaTime(
+namespace ExplicitIntegrationUtilities
+{
+double CalculateDeltaTime(
     ModelPart& rModelPart,
     const double PredictionLevel,
     const double Maximum,
@@ -126,4 +127,5 @@ double ExplicitIntegrationUtilities::CalculateDeltaTime(
     KRATOS_CATCH("")
 }
 
+} // namespace ExplicitIntegrationUtilities
 } // namespace Kratos
