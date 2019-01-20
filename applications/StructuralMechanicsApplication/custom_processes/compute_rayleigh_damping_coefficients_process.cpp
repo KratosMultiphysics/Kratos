@@ -52,16 +52,16 @@ void ComputeRayleighDampingCoefficientsProcess::Execute()
 
         Parameters linear_solver_settings = Parameters(R"(
         {
-            "solver_type" : "FEASTSolver",
-            "print_feast_output": false,
+            "solver_type"                : "FEASTSolver",
+            "print_feast_output"         : false,
             "perform_stochastic_estimate": false,
-            "solve_eigenvalue_problem": true,
-            "lambda_min": 0.0,
-            "lambda_max": 4.0e5,
-            "number_of_eigenvalues": 2,
-            "search_dimension": 15,
-            "linear_solver_settings":{
-                "solver_type": "SkylineLUComplexSolver"
+            "solve_eigenvalue_problem"   : true,
+            "lambda_min"                 : 0.0,
+            "lambda_max"                 : 4.0e5,
+            "number_of_eigenvalues"      : 2,
+            "search_dimension"           : 15,
+            "linear_solver_settings": {
+                "solver_type": "skyline_lu"
             }
         })" );
 
