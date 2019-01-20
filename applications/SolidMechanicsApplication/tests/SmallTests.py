@@ -238,6 +238,6 @@ def SetTestSuite(suites):
                 ])
             )
         else:
-            print("FEAST_EigenValueSolver solver is not included in the compilation of the External Solvers Application")
+            print("EigenValueTests OFF : FEAST is not included in the compilation of the Solvers Application")
 
     return small_suite
