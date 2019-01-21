@@ -136,12 +136,12 @@ public:
         const TVariableType& rThisVariable)
         : IndexedObject(NodeId),
           mIsFixed(false),
+          mVariableType(DofTrait<TDataType, TVariableType>::Id),
+          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
           mpSolutionStepsData(pThisSolutionStepsData),
           mpVariable(&rThisVariable),
-          mpReaction(&msNone),
-          mVariableType(DofTrait<TDataType, TVariableType>::Id),
-          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
+          mpReaction(&msNone)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
@@ -180,12 +180,12 @@ public:
         const TReactionType& rThisReaction)
         : IndexedObject(NodeId),
           mIsFixed(false),
+          mVariableType(DofTrait<TDataType, TVariableType>::Id),
+          mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
           mpSolutionStepsData(pThisSolutionStepsData),
           mpVariable(&rThisVariable),
-          mpReaction(&rThisReaction),
-          mVariableType(DofTrait<TDataType, TVariableType>::Id),
-          mReactionType(DofTrait<TDataType, TReactionType>::Id)
+          mpReaction(&rThisReaction)
     {
         KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
@@ -200,12 +200,12 @@ public:
     Dof()
         : IndexedObject(0),
           mIsFixed(false),
+          mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
+          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
           mpSolutionStepsData(),
           mpVariable(&msNone),
-          mpReaction(&msNone),
-          mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
-          mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
+          mpReaction(&msNone)
     {
     }
 
@@ -241,12 +241,12 @@ public:
     Dof(Dof const& rOther)
         : IndexedObject(rOther),
           mIsFixed(rOther.mIsFixed),
+          mVariableType(rOther.mVariableType),
+          mReactionType(rOther.mReactionType),
           mEquationId(rOther.mEquationId),
           mpSolutionStepsData(rOther.mpSolutionStepsData),
           mpVariable(rOther.mpVariable),
-          mpReaction(rOther.mpReaction),
-          mVariableType(rOther.mVariableType),
-          mReactionType(rOther.mReactionType)
+          mpReaction(rOther.mpReaction)
     {
     }
 
@@ -270,6 +270,7 @@ public:
         mpReaction = rOther.mpReaction;
         mVariableType = rOther.mVariableType;
         mReactionType = rOther.mReactionType;
+        // mData = rOther.mData;
 
         return *this;
     }
@@ -436,7 +437,8 @@ public:
      */
     void FixDof()
     {
-        mIsFixed= true;
+        //mData |= (std::int64_t(1) << msIsFixedPosition);
+        mIsFixed=true;
     }
 
 
@@ -444,6 +446,7 @@ public:
      */
     void FreeDof()
     {
+        // mData &= ~(std::int64_t(1) << msIsFixedPosition);
         mIsFixed=false;
     }
 
@@ -470,12 +473,13 @@ public:
     bool IsFixed() const
     {
         return mIsFixed;
+        // return mData & (std::int64_t(1) << 63);
     }
 
 
     bool IsFree() const
     {
-        return !mIsFixed;
+        return !IsFixed();
     }
 
     ///@}
@@ -571,6 +575,7 @@ private:
     ///@{
 
     static const Variable<TDataType> msNone;
+    static constexpr int msIsFixedPosition = 63;
 
 
     ///@}
@@ -579,10 +584,16 @@ private:
 
 
     /** True is is fixed */
-    bool mIsFixed;
+    int mIsFixed : 1;
+
+    int mVariableType : 3;
+
+    int mReactionType : 3;
+
+    int mIndex : 8;
 
     /** Equation identificator of the degree of freedom */
-    EquationIdType mEquationId;
+    EquationIdType mEquationId : 48;
 
     /** A pointer to solutionsteps data stored in node which is corresponded to this dof */
     SolutionStepsDataContainerType* mpSolutionStepsData;
@@ -596,9 +607,13 @@ private:
      */
     const VariableData* mpReaction;
 
-    int mVariableType;
-
-    int mReactionType;
+    // This stores all Dof data in one single int64 variable using following bits for each field:
+    // 00-48 : EquationId
+    // 49-65 : DofIndex in VariablesList 
+    // 57-59 : VariableType 
+    // 60-62 : ReactionType 
+    // 63-63 : IsFixed
+    //std::int64_t mData;
 
     ///@}
     ///@name Private Operators
@@ -643,16 +658,20 @@ private:
         rSerializer.save("Solution Steps Data", mpSolutionStepsData);
         rSerializer.save("Variable", mpVariable->Name());
         rSerializer.save("Reaction", mpReaction->Name());
-        rSerializer.save("Variable Type", mVariableType);
-        rSerializer.save("Reaction Type", mReactionType);
+        rSerializer.save("Variable Type", static_cast<int>(mVariableType));
+        rSerializer.save("Reaction Type", static_cast<int>(mReactionType));
     }
 
     void load(Serializer& rSerializer) override
     {
         std::string name;
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
-        rSerializer.load("Is Fixed", mIsFixed);
-        rSerializer.load("Equation Id", mEquationId);
+        bool is_fixed;
+        rSerializer.load("Is Fixed", is_fixed);
+        mIsFixed=is_fixed;
+        EquationIdType equation_id;
+        rSerializer.load("Equation Id", equation_id);
+        mEquationId = equation_id;
         rSerializer.load("Solution Steps Data", mpSolutionStepsData);
         rSerializer.load("Variable", name);
         mpVariable=KratosComponents<VariableData>::pGet(name);
@@ -661,8 +680,13 @@ private:
             mpReaction = &msNone;
         else
             mpReaction=KratosComponents<VariableData>::pGet(name);
-        rSerializer.load("Variable Type", mVariableType);
-        rSerializer.load("Reaction Type", mReactionType);
+        int variable_type;
+        int reaction_type;
+        rSerializer.load("Variable Type", variable_type);
+        rSerializer.load("Reaction Type", reaction_type);
+
+        mVariableType = variable_type;
+        mReactionType = reaction_type;
     }
     ///@}
     ///@name Private Operations
