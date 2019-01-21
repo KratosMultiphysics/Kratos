@@ -214,9 +214,6 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
-
 class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
 
