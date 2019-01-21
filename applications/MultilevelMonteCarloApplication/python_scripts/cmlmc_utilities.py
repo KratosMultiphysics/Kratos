@@ -164,18 +164,6 @@ class StatisticalVariable(object):
         '''convergence criteria of the algorithm'''
         self.convergence_criteria = None
 
-        #################################
-        # Temporarily added             #
-        self.target_tol = 1e-1          #
-        self.target_delta = 1e-4        #
-        self.batch_size = 150           #
-        self.seeds = []                 #
-        for i in range(10000000):       #
-            self.seeds.append(random()) #
-        #################################
-
-
-
 
     '''
     function updating mean and second moment values and computing the sample variance
