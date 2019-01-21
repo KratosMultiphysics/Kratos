@@ -734,7 +734,7 @@ public:
     void ValidateAndAssignDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults. (const version)
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the defaults.
      * @details If the parameters contain values that do not appear in the defaults, an error is thrown, whereas if a parameter is found in the defaults but not in the Parameters been tested, it is copied to the parameters.
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
