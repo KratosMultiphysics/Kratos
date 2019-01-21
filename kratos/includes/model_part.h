@@ -852,7 +852,7 @@ public:
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return pprop;
             } else {
-                KRATOS_WARNING("ModelPart") << "New property added. Please use CreateNewProperties() instead" << std::endl;
+                KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return pnew_property;
@@ -878,7 +878,7 @@ public:
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return *pprop;
             } else {
-                KRATOS_WARNING("ModelPart") << "New property added. Please use CreateNewProperties() instead" << std::endl;
+                KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return *pnew_property;
