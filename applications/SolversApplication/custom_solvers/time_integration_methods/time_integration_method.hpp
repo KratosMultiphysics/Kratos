@@ -142,6 +142,13 @@ namespace Kratos
       ,mpSecondDerivative(rOther.mpSecondDerivative)
       ,mpPrimaryVariable(rOther.mpPrimaryVariable)
       ,mpInputVariable(rOther.mpInputVariable)
+      ,mpAssign(rOther.mpAssign)
+      ,mpPredict(rOther.mpPredict)
+      ,mpUpdate(rOther.mpUpdate)
+      ,mpFirstDerivativeKineticFactor(rOther.mpFirstDerivativeKineticFactor)
+      ,mpSecondDerivativeKineticFactor(rOther.mpSecondDerivativeKineticFactor)
+      ,mpFirstDerivativeInertialFactor(rOther.mpFirstDerivativeInertialFactor)
+      ,mpSecondDerivativeInertialFactor(rOther.mpSecondDerivativeInertialFactor)
     {
     }
 
@@ -188,6 +195,41 @@ namespace Kratos
       this->SetPointerAssignMethod();
     }
 
+    // set variable
+    void SetVariable(const TVariableType& rVariable)
+    {
+      mpVariable = &rVariable;
+    }
+
+    // set First Derivative
+    void SetFirstDerivative(const TVariableType& rFirstDerivativeVariable)
+    {
+      mpFirstDerivative = &rFirstDerivativeVariable;
+    }
+
+    // set Second Derivative
+    void SetSecondDerivative(const TVariableType& rSecondDerivativeVariable)
+    {
+      mpSecondDerivative = &rSecondDerivativeVariable;
+    }
+
+    // set Primary variable
+    void SetPrimaryVariable(const TVariableType& rPrimaryVariable)
+    {
+      mpPrimaryVariable = &rPrimaryVariable;
+    }
+
+    // set Variables
+    void SetVariables(const TVariableType& rVariable,
+                      const TVariableType& rFirstDerivativeVariable,
+                      const TVariableType& rSecondDerivativeVariable,
+                      const TVariableType& rPrimaryVariable)
+    {
+      mpVariable = &rVariable;
+      mpFirstDerivative = &rFirstDerivativeVariable;
+      mpSecondDerivative = &rSecondDerivativeVariable;
+      mpPrimaryVariable = &rPrimaryVariable;
+    }
 
     // get primary variable name
     std::string GetPrimaryVariableName()

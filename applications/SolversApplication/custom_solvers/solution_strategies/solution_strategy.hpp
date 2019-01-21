@@ -93,6 +93,11 @@ class SolutionStrategy : public Flags
   ///@{
 
   /**
+   * @brief Initialization of member variables and prior operations
+   */
+  virtual void Initialize(){};
+
+  /**
    * @brief The problem of interest is solved.
    * @details
    * {
@@ -272,11 +277,6 @@ class SolutionStrategy : public Flags
   ///@}
   ///@name Protected Operators
   ///@{
-
-  /**
-   * @brief Initialization of member variables and prior operations
-   */
-  virtual void Initialize(){};
 
   /**
    * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the

@@ -128,6 +128,25 @@ class EigensolverStrategy
   ///@{
 
   /**
+   * Initialization to be performed once before using the strategy.
+   */
+  void Initialize() override
+  {
+    KRATOS_TRY
+
+    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+    if(mpScheme->IsNot(LocalFlagType::INITIALIZED))
+      mpScheme->Initialize(this->GetModelPart());
+
+    //set up the system
+    this->SetSystemDofs();
+
+    this->Set(LocalFlagType::INITIALIZED,true);
+
+    KRATOS_CATCH("")
+  }
+
+  /**
    * Performs all the required operations that should be done (for each step)
    * before solving the solution step.
    * A member variable should be used as a flag to make sure this function is called only once per step.
@@ -344,25 +363,6 @@ class EigensolverStrategy
   ///@}
   ///@name Protected Operations
   ///@{
-
-  /**
-   * Initialization to be performed once before using the strategy.
-   */
-  void Initialize() override
-  {
-    KRATOS_TRY
-
-    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if(mpScheme->IsNot(LocalFlagType::INITIALIZED))
-      mpScheme->Initialize(this->GetModelPart());
-
-    //set up the system
-    this->SetSystemDofs();
-
-    this->Set(LocalFlagType::INITIALIZED,true);
-
-    KRATOS_CATCH("")
-  }
 
   ///@}
   ///@name Protected  Access

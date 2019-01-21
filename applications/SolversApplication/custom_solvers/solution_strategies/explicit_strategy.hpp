@@ -121,6 +121,35 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@{
 
   /**
+   * @brief Initialization of member variables and prior operations
+   */
+  void Initialize() override
+  {
+    KRATOS_TRY
+
+    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+    if (mpScheme->IsNot(LocalFlagType::INITIALIZED))
+      mpScheme->Initialize(this->GetModelPart());
+
+    // //Initialize The Elements - OPERATIONS TO BE DONE ONCE
+    // if (mpScheme->ElementsAreInitialized() == false)
+    //   mpScheme->InitializeElements(this->GetModelPart());
+
+    // //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
+    // if (mpScheme->ConditionsAreInitialized() == false)
+    //   mpScheme->InitializeConditions(this->GetModelPart());
+
+    //compute nodal mass and inertia
+    if(this->mOptions.Is(LocalFlagType::CONSTANT_SYSTEM_MATRIX))
+      mpBuilderAndSolver->BuildLHS(mpScheme, this->GetModelPart(), (*mpA));
+
+    this->Set(LocalFlagType::INITIALIZED,true);
+
+
+    KRATOS_CATCH( "" )
+  }
+
+  /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
   void InitializeSolutionStep() override
@@ -266,35 +295,6 @@ class ExplicitSolutionStrategy : public SolutionStrategy<TSparseSpace, TDenseSpa
   ///@}
   ///@name Protected Operations
   ///@{
-
-  /**
-   * @brief Initialization of member variables and prior operations
-   */
-  void Initialize() override
-  {
-    KRATOS_TRY
-
-    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if (mpScheme->IsNot(LocalFlagType::INITIALIZED))
-      mpScheme->Initialize(this->GetModelPart());
-
-    // //Initialize The Elements - OPERATIONS TO BE DONE ONCE
-    // if (mpScheme->ElementsAreInitialized() == false)
-    //   mpScheme->InitializeElements(this->GetModelPart());
-
-    // //Initialize The Conditions- OPERATIONS TO BE DONE ONCE
-    // if (mpScheme->ConditionsAreInitialized() == false)
-    //   mpScheme->InitializeConditions(this->GetModelPart());
-
-    //compute nodal mass and inertia
-    if(this->mOptions.Is(LocalFlagType::CONSTANT_SYSTEM_MATRIX))
-      mpBuilderAndSolver->BuildLHS(mpScheme, this->GetModelPart(), (*mpA));
-
-    this->Set(LocalFlagType::INITIALIZED,true);
-
-
-    KRATOS_CATCH( "" )
-  }
 
   /**
    * @brief Here the database is updated

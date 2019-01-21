@@ -160,6 +160,26 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
   ///@name Operations
   ///@{
 
+
+  /**
+   * @brief Initialization of member variables and prior operations
+   */
+  void Initialize() override
+  {
+    KRATOS_TRY
+
+    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+    if( mpScheme->IsNot(LocalFlagType::INITIALIZED) )
+      mpScheme->Initialize(this->GetModelPart());
+
+    //set up the system
+    this->SetSystemDofs();
+
+    this->Set(LocalFlagType::INITIALIZED,true);
+
+    KRATOS_CATCH("")
+  }
+
   /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
@@ -438,26 +458,6 @@ class LinearStrategy : public SolutionStrategy<TSparseSpace, TDenseSpace, TLinea
   ///@}
   ///@name Protected Operations
   ///@{
-
-  /**
-   * @brief Initialization of member variables and prior operations
-   */
-  void Initialize() override
-  {
-    KRATOS_TRY
-
-    //Initialize The Scheme - OPERATIONS TO BE DONE ONCE
-    if( mpScheme->IsNot(LocalFlagType::INITIALIZED) )
-      mpScheme->Initialize(this->GetModelPart());
-
-    //set up the system
-    this->SetSystemDofs();
-
-    this->Set(LocalFlagType::INITIALIZED,true);
-
-    KRATOS_CATCH("")
-  }
-
 
   /**
    * @brief Operation to predict the solution ... if it is not called a trivial predictor is used in which the

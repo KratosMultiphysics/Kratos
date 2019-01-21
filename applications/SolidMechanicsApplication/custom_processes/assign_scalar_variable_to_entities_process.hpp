@@ -60,9 +60,9 @@ public:
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
                 "value" : 1.0,
-                "compound_assignment": "direct"
+                "compound_assignment": "direct",
+                "flags_list": []
             }  )" );
-
 
         // Validate against defaults -- this ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
@@ -147,6 +147,11 @@ public:
         }
 
         this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
+
+      for(unsigned int i=0; i<rParameters["flags_list"].size(); ++i)
+      {
+        mflags_list.push_back(KratosComponents< Flags >::Get( rParameters["flags_list"][i].GetString() ));
+      }
 
         KRATOS_CATCH("")
     }
@@ -264,6 +269,8 @@ protected:
 
     EntityType mEntity;
     AssignmentType mAssignment;
+
+    std::vector<Flags> mflags_list;
 
     ///@}
     ///@name Protected member Variables
@@ -504,6 +511,45 @@ protected:
         return AssignmentMethod;
     }
 
+    bool MatchTransferFlags(const Node<3>::Pointer& pNode)
+    {
+
+      for(unsigned int i = 0; i<mflags_list.size(); i++)
+      {
+        if( pNode->IsNot(mflags_list[i]) )
+          return false;
+      }
+
+      return true;
+
+    }
+
+    bool MatchTransferFlags(const Element::Pointer& pElement)
+    {
+
+      for(unsigned int i = 0; i<mflags_list.size(); i++)
+      {
+        if( pElement->IsNot(mflags_list[i]) )
+          return false;
+      }
+
+      return true;
+
+    }
+
+    bool MatchTransferFlags(const Condition::Pointer& pCondition)
+    {
+
+      for(unsigned int i = 0; i<mflags_list.size(); i++)
+      {
+        if( pCondition->IsNot(mflags_list[i]) )
+          return false;
+      }
+
+      return true;
+
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -549,7 +595,6 @@ private:
 
     /// Assignment operator.
     AssignScalarVariableToEntitiesProcess& operator=(AssignScalarVariableToEntitiesProcess const& rOther);
-
 
     ///@}
     ///@name Serialization

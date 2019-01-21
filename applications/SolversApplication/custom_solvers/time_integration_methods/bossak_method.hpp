@@ -207,7 +207,7 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
-    double& GetSecondDerivativeKineticParameter(double& rParameter) override
+    double& GetFirstDerivativeKineticParameter(double& rParameter) override
     {
       rParameter = mAlpha;
       return rParameter;
@@ -219,6 +219,11 @@ namespace Kratos
       return rParameter;
     }
 
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = (1.0 - mAlpha) * this->mNewmark.c0 / this->mNewmark.c1;
+      return rParameter;
+    }
     ///@}
     ///@name Access
     ///@{

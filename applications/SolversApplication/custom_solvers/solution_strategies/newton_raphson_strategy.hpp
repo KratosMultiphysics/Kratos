@@ -159,6 +159,18 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   ///@{
 
   /**
+   * @brief Initialization of member variables and prior operations
+   */
+  void Initialize() override
+  {
+    KRATOS_TRY
+
+    BaseType::Initialize();
+
+    KRATOS_CATCH("")
+  }
+
+  /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
    */
   void InitializeSolutionStep() override
@@ -399,19 +411,6 @@ class NewtonRaphsonStrategy : public LinearStrategy<TSparseSpace, TDenseSpace, T
   ///@}
   ///@name Protected Operations
   ///@{
-
-  /**
-   * @brief Initialization of member variables and prior operations
-   */
-  void Initialize() override
-  {
-    KRATOS_TRY
-
-    BaseType::Initialize();
-
-    KRATOS_CATCH("")
-  }
-
   ///@}
   ///@name Protected  Access
   ///@{

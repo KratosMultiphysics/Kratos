@@ -499,28 +499,77 @@ class SolutionScheme : public Flags
    * @brief This function is designed to move the mesh
    * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
    */
-  virtual void MoveMesh(ModelPart& rModelPart)
+//   virtual void MoveMesh(ModelPart& rModelPart)
+//   {
+//     KRATOS_TRY
+
+//     if( this->mOptions.Is(LocalFlagType::MOVE_MESH) ){
+
+//       if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+//       {
+//         KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
+//       }
+
+//       bool DisplacementIntegration = false;
+//       for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+//           it!=mTimeVectorIntegrationMethods.end(); ++it)
+//       {
+//         if( "DISPLACEMENT" == (*it)->GetVariableName() ){
+//           DisplacementIntegration = true;
+//           break;
+//         }
+//       }
+
+//       if(DisplacementIntegration == true){
+
+//         // Update mesh positions : node coordinates
+//         const int nnodes = rModelPart.NumberOfNodes();
+//         ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+
+// #pragma omp parallel for
+//         for(int i = 0; i<nnodes; i++)
+//         {
+//           ModelPart::NodesContainerType::iterator it_node = it_begin + i;
+
+//           noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+//           noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+//         }
+
+//       }
+
+//     }
+
+//     KRATOS_CATCH("")
+//   }
+
+  /**
+   * @brief This function is designed to move the mesh
+   * @note Be careful it just consider displacements, derive this method to adapt to your own strategies (ALE, FSI, etc...)
+   */
+  virtual void MoveMesh(ModelPart& rModelPart, const std::string MoveMeshVariableName = "DISPLACEMENT")
   {
     KRATOS_TRY
 
     if( this->mOptions.Is(LocalFlagType::MOVE_MESH) ){
 
-      if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+      Variable<array_1d<double,3>> MoveMeshVariable = KratosComponents< Variable<array_1d<double,3> > >::Get(MoveMeshVariableName);
+
+      if (rModelPart.NodesBegin()->SolutionStepsDataHas(MoveMeshVariable) == false)
       {
-        KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
+        KRATOS_ERROR << "It is impossible to move the mesh since the "<<MoveMeshVariableName<<" variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
       }
 
-      bool DisplacementIntegration = false;
+      bool VariableIntegration = false;
       for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
           it!=mTimeVectorIntegrationMethods.end(); ++it)
       {
-        if( "DISPLACEMENT" == (*it)->GetVariableName() ){
-          DisplacementIntegration = true;
+        if( MoveMeshVariableName == (*it)->GetVariableName() ){
+          VariableIntegration = true;
           break;
         }
       }
 
-      if(DisplacementIntegration == true){
+      if(VariableIntegration == true){
 
         // Update mesh positions : node coordinates
         const int nnodes = rModelPart.NumberOfNodes();
@@ -532,7 +581,7 @@ class SolutionScheme : public Flags
           ModelPart::NodesContainerType::iterator it_node = it_begin + i;
 
           noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-          noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+          noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(MoveMeshVariable);
         }
 
       }
