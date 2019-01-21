@@ -72,8 +72,10 @@ namespace Python
 namespace py = pybind11;
 
 //base types
-typedef DenseVector<double>                                                                        DenseVectorType;
-typedef DenseMatrix<double>                                                                        DenseMatrixType;
+// typedef DenseVector<double>                                                                        DenseVectorType;
+// typedef DenseMatrix<double>                                                                        DenseMatrixType;
+typedef Kratos::Vector                                                                             DenseVectorType;
+typedef Kratos::Matrix                                                                             DenseMatrixType;
 typedef boost::numeric::ublas::vector<double>                                                     SparseVectorType;
 typedef boost::numeric::ublas::matrix<double>                                                     SparseMatrixType;
 typedef UblasSpace<double, CompressedMatrix, SparseVectorType>                                     SparseSpaceType;
