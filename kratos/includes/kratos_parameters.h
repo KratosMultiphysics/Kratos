@@ -766,7 +766,7 @@ public:
     void ValidateDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters. (const version)
+     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
      * @details If the parameters contain values that do not appear in the defaults, an error is thrown.
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
