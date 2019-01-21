@@ -42,11 +42,13 @@ class MonolithicSolver(object):
             "dofs": [],
             "time_integration_settings":{
                 "solution_type": "Dynamic",
-  	        "analysis_type": "Non-linear",
+  	            "analysis_type": "Non-linear",
                 "time_integration": "Implicit",
                 "integration_method": "Newmark",
                 "time_integration_order": 1,
-                "buffer_size": 2
+                "buffer_size": 2,
+                "move_mesh_flag": true,
+                "integration_variables": []
             },
             "convergence_criterion_settings":{
                 "convergence_criterion": "Residual_criterion",
@@ -231,6 +233,9 @@ class MonolithicSolver(object):
                 mechanical_solver.SetInitializePerformedFlag(True)
             else:
                 mechanical_solver.Set(KratosSolver.SolverLocalFlags.INITIALIZED, True)
+        else:
+            mechanical_solver = self._get_mechanical_solver()
+            mechanical_solver.Initialize()
 
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
