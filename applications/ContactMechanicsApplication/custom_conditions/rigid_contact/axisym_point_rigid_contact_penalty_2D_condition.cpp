@@ -103,7 +103,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+    NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
 
     array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
@@ -116,11 +116,9 @@ namespace Kratos
 
     for(unsigned int i = 0; i < rN.size(); i++)
       {
-	if(rN[i].Is(BOUNDARY)){
+	if(rN[i]->Is(BOUNDARY)){
 
-	  Neighb_Point[0] = rN[i].X();
-	  Neighb_Point[1] = rN[i].Y();
-	  Neighb_Point[2] = rN[i].Z();
+	  Neighb_Point = rN[i]->Coordinates();
 
 	  // radius = fabs(Contact_Point[0] + rN[i].X()) * 0.5;
 	  // meanradius += radius;
@@ -148,7 +146,7 @@ namespace Kratos
     if( GetProperties().Has(PENALTY_PARAMETER) )
       PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-    WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+    ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
     double ElasticModulus = 0;
     if( GetProperties().Has(YOUNG_MODULUS) ){
       ElasticModulus = GetProperties()[YOUNG_MODULUS];
@@ -158,11 +156,11 @@ namespace Kratos
     }
     else{
 
-	if( rE.front().GetProperties().Has(YOUNG_MODULUS) ){
-	    ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+	if( rE.front()->GetProperties().Has(YOUNG_MODULUS) ){
+	    ElasticModulus = rE.front()->GetProperties()[YOUNG_MODULUS];
 	}
-	else if( rE.front().GetProperties().Has(C10) ){
-	    ElasticModulus = rE.front().GetProperties()[C10];
+	else if( rE.front()->GetProperties().Has(C10) ){
+	    ElasticModulus = rE.front()->GetProperties()[C10];
 	}
     }
 
@@ -172,7 +170,7 @@ namespace Kratos
       ProcessInfo SomeProcessInfo;
       for ( unsigned int i = 0; i < rE.size(); i++)
 	{
-	  rE[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
+	  rE[i]->CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
 	  ElasticModulus += mModulus[0];
 	}
       ElasticModulus /= double(rE.size());
@@ -237,13 +235,13 @@ namespace Kratos
 
     if( rCurrentRadius == 0 ){
 
-      WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+      NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
 
       double counter = 0;
 
       for(unsigned int i = 0; i < rN.size(); i++)
 	{
-	  array_1d<double, 3 > & NodePosition = rN[i].Coordinates();
+	  array_1d<double, 3 > & NodePosition = rN[i]->Coordinates();
 	  if( NodePosition[0] != 0 ){
 	    rCurrentRadius += NodePosition[0] * 0.225;
 	    counter ++;

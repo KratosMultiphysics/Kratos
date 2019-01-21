@@ -33,7 +33,7 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     mPotentialWallCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3))))
   {}
 
-void KratosCompressiblePotentialFlowApplication::Register() 
+void KratosCompressiblePotentialFlowApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();

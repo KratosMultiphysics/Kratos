@@ -226,9 +226,9 @@ inline double ComputeDistance(const array_1d<double, 3>& rCoords1,
 template <typename T>
 inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 {
-    double max_element_size = 0.0f;
+    double max_element_size = 0.0;
     // Loop through each edge of a geometrical entity ONCE
-    for (auto& r_entity : rEntityContainer) {
+    for (const auto& r_entity : rEntityContainer) {
         for (std::size_t i = 0; i < (r_entity.GetGeometry().size() - 1); ++i) {
             for (std::size_t j = i + 1; j < r_entity.GetGeometry().size(); ++j) {
                 double edge_length = ComputeDistance(r_entity.GetGeometry()[i].Coordinates(),
@@ -242,10 +242,10 @@ inline double ComputeMaxEdgeLengthLocal(const T& rEntityContainer)
 
 inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNodes)
 {
-    double max_element_size = 0.0f;
+    double max_element_size = 0.0;
     // TODO modify loop such that it loop only once over the nodes
-    for (auto& r_node_1 : rNodes) {
-        for (auto& r_node_2 : rNodes) {
+    for (const auto& r_node_1 : rNodes) {
+        for (const auto& r_node_2 : rNodes) {
             double edge_length = ComputeDistance(r_node_1.Coordinates(),
                                                     r_node_2.Coordinates());
             max_element_size = std::max(max_element_size, edge_length);
@@ -256,10 +256,14 @@ inline double ComputeMaxEdgeLengthLocal(const ModelPart::NodesContainerType& rNo
 
 double ComputeSearchRadius(ModelPart& rModelPart, int EchoLevel);
 
-inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, int EchoLevel)
+inline double ComputeSearchRadius(ModelPart& rModelPart1, ModelPart& rModelPart2, const int EchoLevel)
 {
     double search_radius = std::max(ComputeSearchRadius(rModelPart1, EchoLevel),
                                     ComputeSearchRadius(rModelPart2, EchoLevel));
+
+    KRATOS_INFO_IF("Mapper", EchoLevel > 0) << "Computed search-radius: "
+        << search_radius << std::endl;
+
     return search_radius;
 }
 

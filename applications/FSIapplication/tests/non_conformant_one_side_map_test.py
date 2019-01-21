@@ -293,7 +293,7 @@ class NonConformantOneSideMapTest(UnitTest.TestCase):
         self.fluid_negative_interface_name = "Fluid_interface_neg"
         self.solid_interface_name = "Solid_interface"
 
-        self.check_tolerance = 5e-3
+        self.check_tolerance = 5e-2
 
         def SetFluidData():
             positive_interface_model_part = self.fluid_main_model_part.GetSubModelPart(self.fluid_positive_interface_name)
