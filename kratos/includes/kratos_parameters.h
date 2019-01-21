@@ -742,7 +742,7 @@ public:
     void RecursivelyValidateAndAssignDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters. (const version)
+     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters.
      * @details If a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check
