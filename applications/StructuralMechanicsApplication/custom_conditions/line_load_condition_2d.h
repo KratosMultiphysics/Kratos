@@ -18,9 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -151,9 +149,9 @@ protected:
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         ) override;
 
     void CalculateAndSubKp(
@@ -162,7 +160,7 @@ protected:
         const Vector& N,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     void CalculateAndAddPressureForce(
         VectorType& rRightHandSideVector,
@@ -170,7 +168,7 @@ protected:
         const array_1d<double, 3>& Normal,
         const double Pressure,
         const double IntegrationWeight
-        );
+        ) const;
 
     ///@}
     ///@name Protected  Access

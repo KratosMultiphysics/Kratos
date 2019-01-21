@@ -7,6 +7,7 @@
         "echo_level"      : 0
     },
     "solver_settings"          : {
+        "model_part_name"                    : "Structure",
         "domain_size"                        : 3,
         "solver_type"                        : "Static",
         "echo_level"                         : 0,
@@ -38,8 +39,8 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -71,12 +72,12 @@
         "contact_process_list" :[
         {
             "python_module"   : "penalty_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "PenaltyContactProcess",
             "Parameters"            : {
                 "model_part_name"             : "Structure",
-                "contact_model_part"          : { "0" : ["Structure.Contact_Part"]},
+                "contact_model_part"          : { "0" : ["Contact_Part"]},
                 "contact_type"                : "Frictionless"
             }
         }
@@ -90,7 +91,7 @@
             "Parameters"            : {
                 "check_variables"      : ["DISPLACEMENT_Z"],
                 "input_file_name"      : "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_results.json",
-                "model_part_name"      : "Structure.Contact_Part",
+                "model_part_name"      : "Contact_Part",
                 "time_frequency"       : 0.5
             }
         }
@@ -136,7 +137,7 @@
         "Parameters"            : {
             "output_variables"     : ["DISPLACEMENT_Z"],
             "output_file_name"     : "penalty_frictionless_contact_test_3D/3D_contact_simplest_patch_matching_test_results.json",
-            "model_part_name"      : "Structure.Contact_Part",
+            "model_part_name"      : "Contact_Part",
             "time_frequency"       : 0.5
         }
     }
