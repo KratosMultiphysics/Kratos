@@ -31,13 +31,13 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTest(Naca0012Test('test_execution'))
     #smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPotentialElement2D]))
 
     # Create a test suite with the selected tests
     # nightSuite will contain the following tests:
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
+    nightSuite.addTest(Naca0012Test('test_execution'))
 
     # Create a test suite that contains all the tests from every testCase
     # in the list:
