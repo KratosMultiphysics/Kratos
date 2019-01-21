@@ -726,7 +726,7 @@ public:
     bool HasSameKeysAndTypeOfValuesAs(Parameters& rParameters);
 
     /**
-     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters. (const version)
+     * @brief This function is designed to verify that the parameters under testing match the form prescribed by the rDefaultParameters.
      * @details If the parameters contain values that do not appear in the rDefaultParameters, an error is thrown, whereas if a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check
