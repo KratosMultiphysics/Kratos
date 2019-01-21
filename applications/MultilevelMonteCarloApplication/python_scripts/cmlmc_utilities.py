@@ -35,7 +35,7 @@ TODO: insert distinction between scalar and field Quantity of Interests
 auxiliary function of UpdateOnepassMeanVariance of the StatisticalVariable class
 '''
 @ExaquteTask(returns=4)
-def UpdateOnepassMeanVarianceAux_Task(sample, old_mean, old_M2, nsamples):
+def UpdateOnepassMeanVarianceAux_Task(sample,old_mean,old_M2,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
         new_mean = sample
@@ -49,6 +49,72 @@ def UpdateOnepassMeanVarianceAux_Task(sample, old_mean, old_M2, nsamples):
         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
     return new_mean, new_M2, new_sample_variance, nsamples
+
+
+'''
+auxiliary function of UpdateOnepassPowerSums of the StatisticalVariable class
+'''
+@ExaquteTask(returns=5)
+def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
+    if nsamples == 1:
+        new_S1 = sample
+        new_S2 = sample**2
+        new_S3 = sample**3
+        new_S3_absolute = np.abs(sample**3)
+        new_S4 = sample**4
+    else:
+        new_S1 = old_S1 + sample
+        new_S2 = old_S2 + sample**2
+        new_S3 = old_S3 + sample**3
+        new_S3_absolute = old_S3_absolute + np.abs(sample**3)
+        new_S4 = old_S4 + sample**4
+    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4
+
+
+'''
+auxiliary function of UpdateHStatistics of the StatisticalVariable class
+'''
+@ExaquteTask(returns=4)
+def ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level):
+    h1_level = 0
+    h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
+    h3_level = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
+        ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+    h4_level = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
+        (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
+        6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
+        ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+    return h1_level,h2_level,h3_level,h4_level
+
+
+'''
+auxiliary function of ComputeSkewnessKurtosis of the StatisticalVariable class
+'''
+@ExaquteTask(returns=2)
+def ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level):
+    skewness_level = h3_level / (np.sqrt(h2_level**3))
+    kurtosis_level = h4_level / (h2_level**2)
+    return skewness_level,kurtosis_level
+
+
+'''
+auxiliary function of ComputeSampleCentralMoments of the StatisticalVariable class
+'''
+@ExaquteTask(returns=5)
+def ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment,compute_second_central_moment, \
+    compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
+    first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment):
+    if (compute_first_central_moment):
+        first_central_moment = first_central_moment + ((sample - curr_mean)**1) / number_samples_level
+    if (compute_second_central_moment):
+        second_central_moment = second_central_moment + ((sample - curr_mean)**2) / number_samples_level
+    if (compute_third_central_moment):
+        third_central_moment = third_central_moment + ((sample - curr_mean)**3) / number_samples_level
+    if (compute_third_absolute_central_moment):
+        third_central_moment_absolute = third_central_moment_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
+    if (compute_fourth_central_moment):
+        fourth_central_moment = fourth_central_moment + ((sample - curr_mean)**4) / number_samples_level
+    return first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment
 
 
 '''
@@ -164,7 +230,6 @@ class StatisticalVariable(object):
         '''convergence criteria of the algorithm'''
         self.convergence_criteria = None
 
-
     '''
     function updating mean and second moment values and computing the sample variance
     M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
@@ -192,18 +257,20 @@ class StatisticalVariable(object):
         old_S3 = self.power_sum_3[level]
         old_S3_absolute = self.power_sum_3_absolute[level]
         old_S4 = self.power_sum_4[level]
-        if i_sample == 0:
-            new_S1 = sample
-            new_S2 = sample**2
-            new_S3 = sample**3
-            new_S3_absolute = np.abs(sample**3)
-            new_S4 = sample**4
-        else:
-            new_S1 = old_S1 + sample
-            new_S2 = old_S2 + sample**2
-            new_S3 = old_S3 + sample**3
-            new_S3_absolute = old_S3_absolute + np.abs(sample**3)
-            new_S4 = old_S4 + sample**4
+        number_samples_level = self.number_samples[level]
+        new_S1,new_S2,new_S3,new_S3_absolute,new_S4 = UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,number_samples_level)
+        # if i_sample == 0:
+        #     new_S1 = sample
+        #     new_S2 = sample**2
+        #     new_S3 = sample**3
+        #     new_S3_absolute = np.abs(sample**3)
+        #     new_S4 = sample**4
+        # else:
+        #     new_S1 = old_S1 + sample
+        #     new_S2 = old_S2 + sample**2
+        #     new_S3 = old_S3 + sample**3
+        #     new_S3_absolute = old_S3_absolute + np.abs(sample**3)
+        #     new_S4 = old_S4 + sample**4
         self.power_sum_1[level] = new_S1
         self.power_sum_2[level] = new_S2
         self.power_sum_3[level] = new_S3
@@ -220,49 +287,70 @@ class StatisticalVariable(object):
         S3_level = self.power_sum_3[level]
         S4_level = self.power_sum_4[level]
         self.h_statistics_computed = True
-        self.h_statistics_1[level] = 0
-        self.h_statistics_2[level] = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
-        self.h_statistics_3[level] = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
+        # h1_level,h2_level,h3_level,h4_level = ComputeHStatisticsAux_Task(S1_level,S2_level,S3_level,S4_level,number_samples_level)
+        h1_level = 0
+        h2_level = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
+        h3_level = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
             ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
-        self.h_statistics_4[level] = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
+        h4_level = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
             (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
             6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
             ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+        # self.h_statistics_1[level] = 0
+        # self.h_statistics_2[level] = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
+        # self.h_statistics_3[level] = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
+        #     ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+        # self.h_statistics_4[level] = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
+        #     (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
+        #     6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
+        #     ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+        self.h_statistics_1[level] = h1_level
+        self.h_statistics_2[level] = h2_level
+        self.h_statistics_3[level] = h3_level
+        self.h_statistics_4[level] = h4_level
 
     '''
     function computing the central moments (and the absolute third central moment)
     '''
-    def ComputeSampleCentralMoments(self,level):
-        '''evaluate locally the mean and the number of samples'''
+    def ComputeSampleCentralMoments(self,level,number_samples_level):
+        '''local variables for mean and number of samples'''
         curr_mean = self.mean[level]
-        number_samples_level = self.number_samples[level]
+        number_samples_level1 = self.number_samples[level]
+        print(number_samples_level,number_samples_level1)
         '''initialize central moements'''
         first_central_moment = 0.0
         second_central_moment = 0.0
         third_central_moment = 0.0
         third_central_moment_absolute = 0.0
         fourth_central_moment = 0.0
-        '''compute only the central moements we need, since it is expensive their computation at large number_samples_level'''
-        if (self.sample_first_central_moment_to_compute):
-            for i in range (0,number_samples_level):
-                first_central_moment = first_central_moment + ((self.values[level][i] - curr_mean)**1) / number_samples_level
-        if (self.sample_second_central_moment_to_compute):
-            for i in range (0,number_samples_level):
-                second_central_moment = second_central_moment + ((self.values[level][i] - curr_mean)**2) / number_samples_level
-        if (self.sample_third_central_moment_to_compute):
-            for i in range (0,number_samples_level):
-                third_central_moment = third_central_moment + ((self.values[level][i] - curr_mean)**3) / number_samples_level
-        if (self.sample_third_absolute_central_moment_to_compute):
-            for i in range (0,number_samples_level):
-                third_central_moment_absolute = third_central_moment_absolute + (np.abs(self.values[level][i] - curr_mean)**3) / number_samples_level
-        if (self.sample_fourth_central_moment_to_compute):
-            for i in range (0,number_samples_level):
-                fourth_central_moment = fourth_central_moment + ((self.values[level][i] - curr_mean)**4) / number_samples_level
+        compute_first_central_moment = self.sample_first_central_moment_to_compute
+        compute_second_central_moment = self.sample_second_central_moment_to_compute
+        compute_third_central_moment = self.sample_third_central_moment_to_compute
+        compute_third_absolute_central_moment = self.sample_third_absolute_central_moment_to_compute
+        compute_fourth_central_moment = self.sample_fourth_central_moment_to_compute
+        for i in range(0,number_samples_level):
+            '''compute only the central moements we need, since it is expensive their computation at large number_samples_level'''
+            sample = self.values[level][i]
+            # first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment = \
+                # ComputeSampleCentralMomentsAux_Task(sample,curr_mean,number_samples_level,compute_first_central_moment, \
+                # compute_second_central_moment,compute_third_central_moment,compute_third_absolute_central_moment,compute_fourth_central_moment, \
+                # first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment)
+            if (compute_first_central_moment):
+                first_central_moment = first_central_moment + ((sample - curr_mean)**1) / number_samples_level
+            if (compute_second_central_moment):
+                second_central_moment = second_central_moment + ((sample - curr_mean)**2) / number_samples_level
+            if (compute_third_central_moment):
+                third_central_moment = third_central_moment + ((sample - curr_mean)**3) / number_samples_level
+            if (compute_third_absolute_central_moment):
+                third_central_moment_absolute = third_central_moment_absolute + (np.abs(sample - curr_mean)**3) / number_samples_level
+            if (compute_fourth_central_moment):
+                fourth_central_moment = fourth_central_moment + ((sample - curr_mean)**4) / number_samples_level
         self.sample_central_moment_1[level] = first_central_moment
         self.sample_central_moment_2[level] = second_central_moment
         self.sample_central_moment_3[level] = third_central_moment
         self.sample_central_moment_3_absolute[level] = third_central_moment_absolute
         self.sample_central_moment_4[level] = fourth_central_moment
+        print(first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment)
 
     '''
     function computing the skewness and the kurtosis from the central moments (i.e. from the h statistics)
@@ -271,8 +359,16 @@ class StatisticalVariable(object):
     '''
     def ComputeSkewnessKurtosis(self,level):
         if (self.h_statistics_computed):
-            self.skewness[level] = self.h_statistics_3[level] / (np.sqrt(self.h_statistics_2[level]**3))
-            self.kurtosis[level] = self.h_statistics_4[level] / (self.h_statistics_2[level]**2)
+            h2_level = self.h_statistics_2[level]
+            h3_level = self.h_statistics_3[level]
+            h4_level = self.h_statistics_4[level]
+            # skewness_level,kurtosis_level =ComputeSkewnessKurtosisAux_Task(h2_level,h3_level,h4_level)
+            skewness_level = h3_level / (np.sqrt(h2_level**3))
+            kurtosis_level = h4_level / (h2_level**2)
+            self.skewness[level] = skewness_level
+            self.kurtosis[level] = kurtosis_level
+            # self.skewness[level] = self.h_statistics_3[level] / (np.sqrt(self.h_statistics_2[level]**3))
+            # self.kurtosis[level] = self.h_statistics_4[level] / (self.h_statistics_2[level]**2)
 
 
 class MultilevelMonteCarlo(object):
