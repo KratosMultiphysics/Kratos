@@ -27,6 +27,24 @@ bool ComputeLumpedMassMatrix(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo);
 
+bool HasRayleighDamping(
+    const Properties& rProperites,
+    const ProcessInfo& rCurrentProcessInfo);
+
+double GetRayleighAlpha(
+    const Properties& rProperites,
+    const ProcessInfo& rCurrentProcessInfo);
+
+double GetRayleighBeta(
+    const Properties& rProperites,
+    const ProcessInfo& rCurrentProcessInfo);
+
+void CalculateRayleighDampingMatrix(
+    Element& rElement,
+    Element::MatrixType& rDampingMatrix,
+    /*const*/ ProcessInfo& rCurrentProcessInfo,
+    const std::size_t MatrixSize);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 
