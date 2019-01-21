@@ -69,7 +69,9 @@ class KratosSolversApplication : public KratosApplication {
   /// Pointer definition of KratosSolversApplication
   KRATOS_CLASS_POINTER_DEFINITION(KratosSolversApplication);
 
-  typedef UblasSpace<double, CompressedMatrix, Vector>                       SparseSpaceType;
+  typedef boost::numeric::ublas::matrix<double>                                  UblasMatrix;
+  typedef boost::numeric::ublas::vector<double>                                  UblasVector;
+  typedef UblasSpace<double, CompressedMatrix, UblasVector>                  SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                  LocalSpaceType;
   typedef LinearSolver<SparseSpaceType, LocalSpaceType>                     LinearSolverType;
 

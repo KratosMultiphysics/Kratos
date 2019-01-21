@@ -35,7 +35,10 @@ namespace py = pybind11;
 
 void AddCustomLinearSolversToPython(pybind11::module& m)
 {
-  typedef UblasSpace<double, CompressedMatrix, Vector>                       SparseSpaceType;
+  //base types
+  typedef boost::numeric::ublas::matrix<double>                                  UblasMatrix;
+  typedef boost::numeric::ublas::vector<double>                                  UblasVector;
+  typedef UblasSpace<double, CompressedMatrix, UblasVector>                  SparseSpaceType;
   typedef UblasSpace<double, Matrix, Vector>                                  LocalSpaceType;
   typedef DirectSolver<SparseSpaceType, LocalSpaceType>                     DirectSolverType;
 
