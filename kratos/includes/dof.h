@@ -28,7 +28,6 @@
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/vector_component_adaptor.h"
-#include "utilities/indexed_object.h"
 #include "containers/array_1d.h"
 
 namespace Kratos
@@ -95,8 +94,7 @@ This class enables the system to work with different set of dofs and also
 represents the Dirichlet condition assigned to each dof.
 */
 template<class TDataType>
-class Dof : public IndexedObject
-{
+class Dof{
 public:
     ///@name Type Definitions
     ///@{
@@ -134,7 +132,7 @@ public:
     template<class TVariableType>
     Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
         const TVariableType& rThisVariable)
-        : IndexedObject(NodeId),
+        : mId(NodeId),
           mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
@@ -178,7 +176,7 @@ public:
     Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
-        : IndexedObject(NodeId),
+        : mId(NodeId),
           mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
@@ -198,7 +196,7 @@ public:
 
     //This default constructor is needed for pointer vector set
     Dof()
-        : IndexedObject(0),
+        : mId(0),
           mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
@@ -209,37 +207,9 @@ public:
     {
     }
 
-// 	  template<class TVariableType>
-// 	  Dof(const TVariableType& rThisVariable)
-// 		  : IndexedObject(Counter<Dof<TDataType> >::Increment()),
-// 		  mIsFixed(false),
-// 		  mEquationId(IndexType()),
-// 		  mpSolutionStepsData(SolutionStepsDataContainerType::Pointer(new SolutionStepsDataContainerType)),
-// 		  mpVariable(&rThisVariable),
-// 		  mpReaction(&msNone),
-// 		  mVariableType(DofTrait<TDataType, TVariableType>::Id),
-// 		  mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id)
-// 	  {
-// 	  }
-
-// 	  template<class TVariableType, class TReactionType>
-// 	  Dof(const TVariableType& rThisVariable,
-// 		  const TReactionType& rThisReaction)
-// 		  : IndexedObject(Counter<Dof<TDataType> >::Increment()),
-// 		  mIsFixed(false),
-// 		  mEquationId(IndexType()),
-// 		  mpSolutionStepsData(SolutionStepsDataContainerType::Pointer(new SolutionStepsDataContainerType)),
-// 		  mpVariable(&rThisVariable),
-// 		  mpReaction(&rThisReaction),
-// 		  mVariableType(DofTrait<TDataType, TVariableType>::Id),
-// 		  mReactionType(DofTrait<TDataType, TReactionType>::Id)
-// 	  {
-// 	  }
-
-
     /// Copy constructor.
     Dof(Dof const& rOther)
-        : IndexedObject(rOther),
+        : mId(rOther.mId),
           mIsFixed(rOther.mIsFixed),
           mVariableType(rOther.mVariableType),
           mReactionType(rOther.mReactionType),
@@ -252,7 +222,7 @@ public:
 
 
     /// Destructor.
-    ~Dof() override {}
+    ~Dof() {}
 
 
     ///@}
@@ -262,7 +232,7 @@ public:
     /// Assignment operator.
     Dof& operator=(Dof const& rOther)
     {
-        IndexedObject::operator=(rOther);
+        mId = rOther.mId;
         mIsFixed = rOther.mIsFixed;
         mEquationId = rOther.mEquationId;
         mpSolutionStepsData = rOther.mpSolutionStepsData;
@@ -399,6 +369,20 @@ public:
     ///@name Access
     ///@{
 
+    IndexType Id() const
+    {
+        return mId;
+    }
+
+    IndexType GetId() const
+    {
+        return mId;
+    }
+
+    void SetId(IndexType NewId)
+    {
+        mId = NewId;
+    }
 
     /** Returns variable assigned to this degree of freedom. */
     const VariableData& GetVariable() const
@@ -488,7 +472,7 @@ public:
 
 
     /// Turn back information as a string.
-    std::string Info() const override
+    std::string Info() const 
     {
         std::stringstream buffer;
 
@@ -505,14 +489,14 @@ public:
 
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const 
     {
         rOStream << Info();
     }
 
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const 
     {
         rOStream << "    Variable               : " << GetVariable().Name() << std::endl;
         rOStream << "    Reaction               : " << GetReaction().Name() << std::endl;
@@ -583,6 +567,8 @@ private:
     ///@{
 
 
+    IndexType mId;
+
     /** True is is fixed */
     int mIsFixed : 1;
 
@@ -650,9 +636,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const 
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        rSerializer.save("Id",mId);
         rSerializer.save("Is Fixed", mIsFixed);
         rSerializer.save("Equation Id", mEquationId);
         rSerializer.save("Solution Steps Data", mpSolutionStepsData);
@@ -662,10 +648,10 @@ private:
         rSerializer.save("Reaction Type", static_cast<int>(mReactionType));
     }
 
-    void load(Serializer& rSerializer) override
+    void load(Serializer& rSerializer) 
     {
         std::string name;
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        rSerializer.load("Id",mId);
         bool is_fixed;
         rSerializer.load("Is Fixed", is_fixed);
         mIsFixed=is_fixed;
