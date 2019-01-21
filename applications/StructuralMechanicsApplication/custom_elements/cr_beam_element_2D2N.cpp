@@ -18,6 +18,7 @@
 #include "custom_elements/cr_beam_element_2D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 
@@ -189,41 +190,13 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 }
 
 void CrBeamElement2D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY
-  if (rDampingMatrix.size1() != msElementSize) {
-    rDampingMatrix.resize(msElementSize, msElementSize, false);
-  }
-
-  rDampingMatrix = ZeroMatrix(msElementSize, msElementSize);
-
-  Matrix stiffness_matrix = ZeroMatrix(msElementSize, msElementSize);
-
-  this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
-
-  Matrix mass_matrix = ZeroMatrix(msElementSize, msElementSize);
-
-  this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-  double alpha = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_ALPHA)) {
-    alpha = this->GetProperties()[RAYLEIGH_ALPHA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
-    alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-  }
-
-  double beta = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_BETA)) {
-    beta = this->GetProperties()[RAYLEIGH_BETA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
-    beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-  }
-
-  noalias(rDampingMatrix) += alpha * mass_matrix;
-  noalias(rDampingMatrix) += beta * stiffness_matrix;
-
-  KRATOS_CATCH("")
+    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        msElementSize);
 }
 
 void CrBeamElement2D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
