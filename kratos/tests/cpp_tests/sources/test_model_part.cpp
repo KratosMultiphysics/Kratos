@@ -25,7 +25,7 @@ namespace Kratos {
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
-        Properties::Pointer p_elem_prop = rModelPart.pGetProperties(0);
+        Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // First we create the nodes
         NodeType::Pointer p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
