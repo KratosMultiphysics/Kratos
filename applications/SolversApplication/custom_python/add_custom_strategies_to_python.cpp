@@ -72,10 +72,12 @@ namespace Python
 namespace py = pybind11;
 
 //base types
-typedef boost::numeric::ublas::matrix<double>                                                          UblasMatrix;
-typedef boost::numeric::ublas::vector<double>                                                          UblasVector;
-typedef UblasSpace<double, CompressedMatrix, UblasVector>                                          SparseSpaceType;
-typedef UblasSpace<double, Matrix, Vector>                                                          LocalSpaceType;
+typedef DenseVector<double>                                                                        DenseVectorType;
+typedef DenseMatrix<double>                                                                        DenseMatrixType;
+typedef boost::numeric::ublas::vector<double>                                                     SparseVectorType;
+typedef boost::numeric::ublas::matrix<double>                                                     SparseMatrixType;
+typedef UblasSpace<double, CompressedMatrix, SparseVectorType>                                     SparseSpaceType;
+typedef UblasSpace<double, DenseMatrixType, DenseVectorType>                                        LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                             LinearSolverType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 typedef SystemBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>       SystemBuilderAndSolverType;

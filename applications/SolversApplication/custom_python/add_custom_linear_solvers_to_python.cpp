@@ -36,10 +36,12 @@ namespace py = pybind11;
 void AddCustomLinearSolversToPython(pybind11::module& m)
 {
   //base types
-  typedef boost::numeric::ublas::matrix<double>                                  UblasMatrix;
-  typedef boost::numeric::ublas::vector<double>                                  UblasVector;
-  typedef UblasSpace<double, CompressedMatrix, UblasVector>                  SparseSpaceType;
-  typedef UblasSpace<double, Matrix, Vector>                                  LocalSpaceType;
+  typedef DenseVector<double>                                                DenseVectorType;
+  typedef DenseMatrix<double>                                                DenseMatrixType;
+  typedef boost::numeric::ublas::vector<double>                             SparseVectorType;
+  typedef boost::numeric::ublas::matrix<double>                             SparseMatrixType;
+  typedef UblasSpace<double, CompressedMatrix, SparseVectorType>             SparseSpaceType;
+  typedef UblasSpace<double, DenseMatrixType, DenseVectorType>                LocalSpaceType;
   typedef DirectSolver<SparseSpaceType, LocalSpaceType>                     DirectSolverType;
 
 #ifdef INCLUDE_SUPERLU_MT
@@ -66,12 +68,13 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
 #endif
 
 #ifdef INCLUDE_FEAST
-  typedef FEASTEigenValueSolver<SparseSpaceType, LocalSpaceType>                FEASTEigenValueSolverType;
-  typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                  LinearSolverType;
-
-  typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVector> ComplexSparseSpaceType;
-  typedef UblasSpace<std::complex<double>, ComplexMatrix, ComplexVector>            ComplexLocalSpaceType;
-  typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>             ComplexLinearSolverType;
+  typedef FEASTEigenValueSolver<SparseSpaceType, LocalSpaceType>                    FEASTEigenValueSolverType;
+  typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                      LinearSolverType;
+  typedef DenseVector<std::complex<double> >                                                ComplexVectorType;
+  typedef DenseMatrix<std::complex<double> >                                                ComplexMatrixType;
+  typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVectorType> ComplexSparseSpaceType;
+  typedef UblasSpace<std::complex<double>, ComplexMatrixType, ComplexVectorType>        ComplexLocalSpaceType;
+  typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>                 ComplexLinearSolverType;
 
   py::class_<FEASTEigenValueSolverType, FEASTEigenValueSolverType::Pointer, LinearSolverType>
       (m, "FEAST_EigenValueSolver")

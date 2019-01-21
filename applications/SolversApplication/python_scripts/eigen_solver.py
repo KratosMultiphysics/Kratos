@@ -75,11 +75,9 @@ class EigenSolver(BaseSolver.MonolithicSolver):
         """
         if self.eigensolver_settings["solver_type"].GetString() == "FEAST_EigenValueSolver":
             feast_system_solver_settings = self.eigensolver_settings["linear_solver_settings"]
-            import new_linear_solver_factory
-            linear_solver = new_linear_solver_factory.ConstructSolver(feast_system_solver_settings)
             if feast_system_solver_settings["solver_type"].GetString() == "complex_skyline_lu_solver":
                 # default built-in feast system solver
-                linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings,linear_solver)
+                linear_solver = KratosSolver.FEAST_EigenValueSolver(self.eigensolver_settings)
             elif feast_system_solver_settings["solver_type"].GetString() == "pastix":
                 import KratosMultiphysics.ExternalSolversApplication as ExternalSolversApplication
                 feast_system_solver = ExternalSolversApplication.PastixComplexSolver(feast_system_solver_settings)

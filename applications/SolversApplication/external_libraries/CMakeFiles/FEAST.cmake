@@ -50,7 +50,8 @@ message(STATUS "FEAST blas: ${BLAS_LIBRARIES}")
 message(STATUS "FEAST lapack: ${LAPACK_LIBRARIES}")
 
 add_library( external_feast STATIC ${CODE90_functions_wrapper} ${CODE90} )
-target_link_libraries(external_feast ${BLAS_LIBRARIES} )
+target_link_libraries(external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+#target_link_libraries(external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
 
 # add_library( external_feast_dense STATIC ${CODE90_dense} )
 # target_link_libraries(external_feast_dense ${BLAS_LIBRARIES} )
@@ -60,5 +61,3 @@ target_link_libraries(external_feast ${BLAS_LIBRARIES} )
 
 # add_library( external_feast_sparse STATIC ${CODE90_sparse} )
 # target_link_libraries(external_feast_sparse ${BLAS_LIBRARIES} )
-
-set(FEAST_LIBRARIES external_feast ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} gfortran m)
