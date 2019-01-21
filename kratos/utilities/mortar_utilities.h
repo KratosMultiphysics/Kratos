@@ -257,6 +257,10 @@ public:
      * @param rModelPart The model part to compute
      */
     static inline void ComputeNodesMeanNormalModelPart(ModelPart& rModelPart) {
+        // Check NORMAL is available
+        KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(NORMAL)) << "NORMAL is not available on the solution step data variable database" << std::endl;
+        
+        // We iterate over nodes
         NodesArrayType& r_nodes_array = rModelPart.Nodes();
         const auto it_node_begin = r_nodes_array.begin();
         const int num_nodes = static_cast<int>(r_nodes_array.size());

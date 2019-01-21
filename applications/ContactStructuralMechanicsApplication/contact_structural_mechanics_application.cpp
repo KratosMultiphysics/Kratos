@@ -19,7 +19,6 @@
 /* Variables */
 #include "contact_structural_mechanics_application.h"
 #include "contact_structural_mechanics_application_variables.h"
-#include "includes/variables.h"
 
 /* Geometries */
 #include "geometries/triangle_3d_3.h"

@@ -73,4 +73,5 @@ install(TARGETS KratosConvectionDiffusionApplication DESTINATION libs )
 # message("KratosIncompressibleFluidApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ConvectionDiffusionApplication.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/ConvectionDiffusionApplication.py" DESTINATION "KratosMultiphysics/ConvectionDiffusionApplication" RENAME "__init__.py")
+

@@ -179,7 +179,7 @@ protected:
      /**
      * @brief This method returns if the element provides the strain
      */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -253,14 +253,14 @@ protected:
         const Matrix& rDN_DX,
         const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
         const IndexType PointNumber
-        );
+        ) const;
 
     /**
      * Calculation of the equivalent deformation gradient
      * @param StrainVector The strain tensor (Voigt notation)
      * @return The deformation gradient F
      */
-    virtual Matrix ComputeEquivalentF(const Vector& StrainVector);
+    virtual Matrix ComputeEquivalentF(const Vector& StrainVector) const;
 
     ///@}
     ///@name Protected Operations

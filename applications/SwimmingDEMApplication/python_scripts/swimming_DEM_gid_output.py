@@ -16,6 +16,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh=False,
                  write_conditions=True
                  ):
+
         gid_output.GiDOutput.__init__(self,
                                       file_name,
                  vol_output,
@@ -99,6 +100,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                                   rigid_faces_variables,
                                   mixed_nodal_variables,
                                   fluid_gp_variables):
+
         # label = str(label) #it should be a C double
         # update cut data if necessary
         out_model_part = self.get_out_model_part(fluid_model_part)

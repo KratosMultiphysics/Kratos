@@ -16,7 +16,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_load_condition.h"
 #include "utilities/math_utils.h"
 #include "utilities/integration_utilities.h"
@@ -68,9 +67,9 @@ namespace Kratos
 
     void PointLoadCondition::CalculateAll(
         MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
         )
     {
         KRATOS_TRY
@@ -130,7 +129,7 @@ namespace Kratos
     //************************************************************************************
     //************************************************************************************
 
-    double PointLoadCondition::GetPointLoadIntegrationWeight()
+    double PointLoadCondition::GetPointLoadIntegrationWeight() const
     {
         return 1.0;
     }
