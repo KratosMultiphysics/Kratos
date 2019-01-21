@@ -35,6 +35,10 @@ class CheckScalarFromProcessInfoProcess(CheckScalarBaseProcess, KratosUnittest.T
         # Construct the base process.
         super(CheckScalarFromProcessInfoProcess, self).__init__(Model, self.settings)
 
+        # Raise error in case of not time function
+        if not self.is_time_function and not self.value_is_numeric:
+            raise Exception("Must depend on time alone!: " + self.function_string)
+
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step
 
