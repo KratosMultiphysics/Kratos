@@ -31,6 +31,7 @@
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -54,7 +55,7 @@ namespace Kratos {
 
         /**
          * @brief Set the Table Properties object
-         * This function sets a temperature dependent viscosity table 
+         * This function sets a temperature dependent viscosity table
          * and a constitutive law pointer for a properties container
          * @param rModelPart model part owning the properties
          * @param pConstitutiveLaw pointer to the constitutive law to be set
@@ -193,7 +194,7 @@ namespace Kratos {
 		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 3;
-            Newtonian2DLaw::Pointer p_cons_law(new Newtonian2DLaw());
+            Newtonian2DLaw::Pointer p_cons_law(new NewtonianTemperatureDependent2DLaw());
             Vector stress_vector = ZeroVector(strain_size);
             Vector strain_vector = ZeroVector(strain_size);
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
