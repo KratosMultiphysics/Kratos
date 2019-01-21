@@ -3,7 +3,7 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
+import KratosMultiphysics.SolversApplication as KratosSolver
 
 # SolutionScheme class
 class SolutionScheme:
@@ -75,13 +75,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
-                    vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
+                    vector_integration_method = getattr(KratosSolver, integration_method_name+'VectorIntegration')
                     integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
                     if(integration_method_name.find("Step") != -1):
-                        vector_integration_method = getattr(KratosSolid, 'StaticStepVectorIntegration')
+                        vector_integration_method = getattr(KratosSolver, 'StaticStepVectorIntegration')
                     else:
-                        vector_integration_method = getattr(KratosSolid, 'StaticVectorIntegration')
+                        vector_integration_method = getattr(KratosSolver, 'StaticVectorIntegration')
                     integration_method = vector_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -105,13 +105,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if len(variables) == 4:
-                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                    scalar_integration_method = getattr(KratosSolver, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif len(variables) == 1:
                     if(integration_method_name.find("Step") != -1):
-                        scalar_integration_method = getattr(KratosSolid,'StaticStepScalarIntegration')
+                        scalar_integration_method = getattr(KratosSolver,'StaticStepScalarIntegration')
                     else:
-                        scalar_integration_method = getattr(KratosSolid,'StaticScalarIntegration')
+                        scalar_integration_method = getattr(KratosSolver,'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -134,7 +134,7 @@ class SolutionScheme:
                         # TODO: move_mesh flag
                         import KratosMultiphysics.PfemApplication as KratosPfem
                         options = KratosMultiphysics.Flags()
-                        options.Set(KratosSolid.SolverLocalFlags.MOVE_MESH, self.settings["move_mesh_flag"].GetBool())
+                        options.Set(KratosSolver.SolverLocalFlags.MOVE_MESH, self.settings["move_mesh_flag"].GetBool())
                         solution_scheme = KratosPfem.AleDynamicScheme(vector_integration_methods,scalar_integration_methods,options)
                     else:
                         raise Exception("ALE scheme needs vector and scalar integration methods.")
@@ -142,11 +142,11 @@ class SolutionScheme:
                     options = KratosMultiphysics.Flags()
                     if(len(vector_integration_methods)):
                         if(len(scalar_integration_methods)):
-                            solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods,options)
+                            solution_scheme = KratosSolver.DynamicScheme(vector_integration_methods,scalar_integration_methods,options)
                         else:
-                            solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,options)
+                            solution_scheme = KratosSolver.DynamicScheme(vector_integration_methods,options)
                     elif(len(scalar_integration_methods)):
-                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods,options)
+                        solution_scheme = KratosSolver.DynamicScheme(vector_integration_methods,scalar_integration_methods,options)
                     else:
                         print("WARNING: no integration methods")
 
@@ -154,11 +154,11 @@ class SolutionScheme:
             options = KratosMultiphysics.Flags()
             if(len(vector_integration_methods)):
                 if(len(scalar_integration_methods)):
-                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods,options)
+                    solution_scheme = KratosSolver.StaticScheme(vector_integration_methods,scalar_integration_methods,options)
                 else:
-                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,options)
+                    solution_scheme = KratosSolver.StaticScheme(vector_integration_methods,options)
             elif(len(scalar_integration_methods)):
-                solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods,options)
+                solution_scheme = KratosSolver.StaticScheme(vector_integration_methods,scalar_integration_methods,options)
             else:
                 print("WARNING: no integration methods")
 
@@ -191,13 +191,13 @@ class SolutionScheme:
 
                     integration_method = None
                     if( len(variables) == 4 ):
-                        component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+                        component_integration_method = getattr(KratosSolver, integration_method_name+'ComponentIntegration')
                         integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
                     elif( len(variables) == 1 ):
                         if(integration_method_name.find("Step") != -1):
-                            component_integration_method = getattr(KratosSolid, 'StaticStepComponentIntegration')
+                            component_integration_method = getattr(KratosSolver, 'StaticStepComponentIntegration')
                         else:
-                            component_integration_method = getattr(KratosSolid, 'StaticComponentIntegration')
+                            component_integration_method = getattr(KratosSolver, 'StaticComponentIntegration')
                         integration_method = component_integration_method(variables[0])
                     else:
                         raise Exception('len(variables) = ' + str(len(variables)))
@@ -242,13 +242,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
-                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                    scalar_integration_method = getattr(KratosSolver, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
                     if(integration_method_name.find("Step") != -1):
-                        scalar_integration_method = getattr(KratosSolid, 'StaticStepScalarIntegration')
+                        scalar_integration_method = getattr(KratosSolver, 'StaticStepScalarIntegration')
                     else:
-                        scalar_integration_method = getattr(KratosSolid, 'StaticScalarIntegration')
+                        scalar_integration_method = getattr(KratosSolver, 'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
