@@ -750,7 +750,7 @@ public:
     void AssignDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters. (const version)
+     * @brief This function is designed to verify that the parameters under testing contain at least all parameters prescribed by the rDefaultParameters.
      * @details If a parameter is found in the rDefaultParameters but not in the Parameters been tested, it is copied to the parameters.
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
