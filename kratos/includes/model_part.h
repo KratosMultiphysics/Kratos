@@ -800,31 +800,59 @@ public:
     bool HasProperties(IndexType PropertiesId, IndexType ThisIndex = 0) const
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { //property does exist
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
             return true;
         }
 
         return false;
     }
 
-    /** Returns the Properties::Pointer  corresponding to it's identifier */
+    /**
+     * @brief Creates a new property in the current mesh
+     * @details If the property is already existing it will crash
+     * @param PropertiesId The Id of the new property
+     * @param ThisIndex The Id of the mesh (0 by default)
+     * @return The new created properties
+     */
+    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
+    {
+        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
+            KRATOS_ERROR << "Property already existing. Please use pGetProperties() instead" << std::endl;
+        } else {
+            if(IsSubModelPart()) {
+                PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, ThisIndex);
+                GetMesh(ThisIndex).AddProperties(pprop);
+                return pprop;
+            } else {
+                PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
+                GetMesh(ThisIndex).AddProperties(pnew_property);
+                return pnew_property;
+            }
+        }
+
+        return nullptr;
+    }
+
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param ThisIndex The Id of the mesh (0 by default)
+     * @return The desired properties (pointer)
+     */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
-        {
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
             return *(pprop_it.base());
-        }
-        else
-        {
-            if(IsSubModelPart())
-            {
+        } else {
+            if(IsSubModelPart()) {
                 PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return pprop;
-            }
-            else
-            {
+            } else {
+                KRATOS_WARNING("ModelPart") << "New property added. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return pnew_property;
@@ -832,24 +860,25 @@ public:
         }
     }
 
-    /** Returns a reference Properties corresponding to it's identifier */
+    /**
+     * @brief Returns the Properties::Pointer  corresponding to it's identifier
+     * @details If the property is not existing it will return a warning
+     * @param PropertiesId The Id of the new property
+     * @param ThisIndex The Id of the mesh (0 by default)
+     * @return The desired properties (reference)
+     */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) //property does exist
-        {
+        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
             return *pprop_it;
-        }
-        else
-        {
-            if(IsSubModelPart())
-            {
+        } else {
+            if(IsSubModelPart()) {
                 PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
                 GetMesh(ThisIndex).AddProperties(pprop);
                 return *pprop;
-            }
-            else
-            {
+            } else {
+                KRATOS_WARNING("ModelPart") << "New property added. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
                 GetMesh(ThisIndex).AddProperties(pnew_property);
                 return *pnew_property;
