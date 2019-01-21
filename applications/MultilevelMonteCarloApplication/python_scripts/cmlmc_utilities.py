@@ -197,7 +197,7 @@ class StatisticalVariable(object):
     '''
     function updating the power sums S_p
     '''
-    def UpdatePowerSums(self,level,i_sample):
+    def UpdateOnePassPowerSums(self,level,i_sample):
         sample = self.values[level][i_sample]
         old_S1 = self.power_sum_1[level]
         old_S2 = self.power_sum_2[level]
@@ -223,32 +223,28 @@ class StatisticalVariable(object):
         self.power_sum_4[level] = new_S4
 
     '''
-    function updating the h statistics h_p
+    function computing the h statistics h_p from the power sums
     '''
-    def UpdateHStatistics(self,level):
+    def ComputeHStatistics(self,level):
         number_samples_level = self.number_samples[level]
         S1_level = self.power_sum_1[level]
         S2_level = self.power_sum_2[level]
         S3_level = self.power_sum_3[level]
         S4_level = self.power_sum_4[level]
-        # if number_samples_level > self.batch_size:
-        if number_samples_level > 100:
-            self.h_statistics_computed = True
-            self.h_statistics_1[level] = 0
-            self.h_statistics_2[level] = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
-            self.h_statistics_3[level] = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
-                ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
-            self.h_statistics_4[level] = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
-                (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
-                6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
-                ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
-        else:
-            self.h_statistics_computed = False
+        self.h_statistics_computed = True
+        self.h_statistics_1[level] = 0
+        self.h_statistics_2[level] = (number_samples_level*S2_level-S1_level**2) / ((number_samples_level-1)*number_samples_level)
+        self.h_statistics_3[level] = (number_samples_level**2*S3_level-3*number_samples_level*S2_level*S1_level+2*S1_level**3) / \
+            ((number_samples_level-2)*(number_samples_level-1)*number_samples_level)
+        self.h_statistics_4[level] = ((-4*number_samples_level**2+8*number_samples_level-12)*S3_level*S1_level+ \
+            (number_samples_level**3-2*number_samples_level**2+3*number_samples_level)*S4_level+ \
+            6*number_samples_level*S2_level*S1_level**2+(9-6*number_samples_level)*S2_level**2-3*S1_level**4) / \
+            ((number_samples_level-3)*(number_samples_level-2)*(number_samples_level-1)*number_samples_level)
 
     '''
     function computing the central moments (and the absolute third central moment)
     '''
-    def UpdateSampleCentralMoments(self,level):
+    def ComputeSampleCentralMoments(self,level):
         '''evaluate locally the mean and the number of samples'''
         curr_mean = self.mean[level]
         number_samples_level = self.number_samples[level]
@@ -285,7 +281,7 @@ class StatisticalVariable(object):
     skewness = \mu_3 / \sqrt(\mu_2^3)
     kurtosis = \mu_4 / \mu_2^2
     '''
-    def UpdateSkewnessKurtosis(self,level):
+    def ComputeSkewnessKurtosis(self,level):
         if (self.h_statistics_computed):
             self.skewness[level] = self.h_statistics_3[level] / (np.sqrt(self.h_statistics_2[level]**3))
             self.kurtosis[level] = self.h_statistics_4[level] / (self.h_statistics_2[level]**2)
@@ -346,7 +342,7 @@ class MultilevelMonteCarlo(object):
         '''previous_number_levels : number of levels of previous iteration'''
         self.previous_number_levels = None
         '''number_samples : total number of samples of current iteration'''
-        self.number_samples = [self.settings["number_samples_screening"].GetInt() for i in range (self.settings["Lscreening"].GetInt()+1)]
+        self.number_samples = [self.settings["number_samples_screening"].GetInt() for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''
         self.difference_number_samples = None
         '''previous_number_samples : total number of samples of previous iteration'''
@@ -387,11 +383,11 @@ class MultilevelMonteCarlo(object):
         '''difference_QoI : Quantity of Interest of the considered problem organized per levels
                             difference_QoI.values := Y_l = QoI_M_l - Q_M_l-1'''
         self.difference_QoI = StatisticalVariable(self.current_number_levels)
-        self.difference_QoI.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
+        self.difference_QoI.values = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)] # list containing Y_{l}^{i} = Q_{m_l} - Q_{m_{l-1}}
         self.difference_QoI.type = "scalar"
         '''time_ML : time to perform a single MLMC simulation (i.e. one value of difference_QoI.values) organized per levels'''
         self.time_ML = StatisticalVariable(self.current_number_levels)
-        self.time_ML.values = [[] for i in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
+        self.time_ML.values = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)] # list containing the time to compute the level=l simulations
 
         '''########################################################################
         # observation: levels start from level 0                                  #
@@ -809,7 +805,7 @@ class MultilevelMonteCarlo(object):
             opt_number_samples[lev] = np.ceil(opt_number_samples[lev])
             opt_number_samples[lev] = opt_number_samples[lev].astype(int)
         if len(nsam) < len(opt_number_samples):
-            for i in range (len(opt_number_samples)-len(nsam)):
+            for _ in range (len(opt_number_samples)-len(nsam)):
                 nsam.append(0)
         '''copy local string and avoid reference since we modify it'''
         previous_number_samples = nsam[:]
