@@ -207,6 +207,12 @@ namespace Kratos
      KRATOS_CATCH( "" )
     }
 
+    double& GetSecondDerivativeKineticParameter(double& rParameter) override
+    {
+      rParameter = mAlpha;
+      return rParameter;
+    }
+
     double& GetFirstDerivativeKineticParameter(double& rParameter) override
     {
       rParameter = mAlpha;
