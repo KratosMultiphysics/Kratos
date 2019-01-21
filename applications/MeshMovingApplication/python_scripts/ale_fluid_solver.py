@@ -147,15 +147,15 @@ class AleFluidSolver(PythonSolver):
                 self.mesh_motion_solvers.append(mesh_mothion_solvers_wrapper.CreateSolverByParameters(
                     self.model, sub_mesh_solver_settings, self.parallelism))
 
-        for solver in self.mesh_motion_solvers:
-            solver.Initialize()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.Initialize()
         self.fluid_solver.Initialize()
 
         if self.is_printing_rank:
             KM.Logger.PrintInfo("::[AleFluidSolver]::", "Finished initialization")
 
     def ImportModelPart(self):
-        self.fluid_solver.ImportModelPart() # only ONE solver imports the ModelPart
+        self.fluid_solver.ImportModelPart() # only ONE mesh_solver imports the ModelPart
 
     def PrepareModelPart(self):
         # Doing it ONLY for the fluid solver (since this contains filling the buffer)
@@ -166,32 +166,32 @@ class AleFluidSolver(PythonSolver):
         return self.fluid_solver.AdvanceInTime(current_time)
 
     def Finalize(self):
-        for solver in self.mesh_motion_solvers:
-            solver.Finalize()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.Finalize()
         self.fluid_solver.Finalize()
 
     def InitializeSolutionStep(self):
-        for solver in self.mesh_motion_solvers:
-            solver.InitializeSolutionStep()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.InitializeSolutionStep()
         self.fluid_solver.InitializeSolutionStep()
 
     def Predict(self):
-        for solver in self.mesh_motion_solvers:
-            solver.Predict()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.Predict()
         self.fluid_solver.Predict()
 
     def FinalizeSolutionStep(self):
-        for solver in self.mesh_motion_solvers:
-            solver.FinalizeSolutionStep()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.FinalizeSolutionStep()
         self.fluid_solver.FinalizeSolutionStep()
 
     def SolveSolutionStep(self):
-        for solver in self.mesh_motion_solvers:
-            solver.SolveSolutionStep()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.SolveSolutionStep()
 
-        for solver in self.mesh_motion_solvers:
+        for mesh_solver in self.mesh_motion_solvers:
             KMM.CalculateMeshVelocities(
-                solver.GetComputingModelPart(),
+                mesh_solver.GetComputingModelPart(),
                 self.time_int_helper)
 
         self.__ApplyALEBoundaryCondition()
@@ -199,13 +199,13 @@ class AleFluidSolver(PythonSolver):
         self.fluid_solver.SolveSolutionStep()
 
     def Check(self):
-        for solver in self.mesh_motion_solvers:
-            solver.Check()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.Check()
         self.fluid_solver.Check()
 
     def Clear(self):
-        for solver in self.mesh_motion_solvers:
-            solver.Clear()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.Clear()
         self.fluid_solver.Clear()
 
     def GetComputingModelPart(self):
@@ -224,8 +224,8 @@ class AleFluidSolver(PythonSolver):
         return self.mesh_motion_solvers
 
     def MoveMesh(self):
-        for solver in self.mesh_motion_solvers:
-            solver.MoveMesh()
+        for mesh_solver in self.mesh_motion_solvers:
+            mesh_solver.MoveMesh()
 
 
     def _CreateFluidSolver(self, solver_settings, parallelism):
