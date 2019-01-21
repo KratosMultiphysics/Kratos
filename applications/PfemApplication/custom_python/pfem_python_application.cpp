@@ -14,7 +14,7 @@
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
-
+//#include "custom_python/add_custom_strategies_to_python.h"
 
 #include "pfem_application.h"
 
@@ -36,6 +36,7 @@ PYBIND11_MODULE(KratosPfemApplication,m)
       ;
 
   AddCustomProcessesToPython(m);
+  //AddCustomStrategiesToPython(m);
 
   //registering variables in python ( if must to be seen from python )
   KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PROPERTIES_VECTOR )
