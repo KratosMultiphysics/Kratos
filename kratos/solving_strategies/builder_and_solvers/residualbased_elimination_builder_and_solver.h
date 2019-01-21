@@ -471,7 +471,7 @@ public:
         // Does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
@@ -482,7 +482,7 @@ public:
         const double stop_solve = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", (this->GetEchoLevel() >=1 && rModelPart.GetCommunicator().MyPID() == 0)) << "System solve time: " << stop_solve - start_solve << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << A << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
+        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -685,7 +685,7 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolver", this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0) << "Finished setting up the dofs" << std::endl;
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
         if (mLockArray.size() != 0) {
             for (int i = 0; i < static_cast<int>(mLockArray.size()); i++)
                 omp_destroy_lock(&mLockArray[i]);
@@ -930,7 +930,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-#ifdef _OPENMP
+#ifdef USE_LOCKS_IN_ASSEMBLY
    std::vector<omp_lock_t> mLockArray;
 #endif
 
@@ -981,7 +981,7 @@ protected:
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&rLockArray[i_global]);
 #endif
-                AssembleRowContributionFreeDofs(A, LHS_Contribution, i_global, i_local, EquationId);
+                AssembleRowContributionFreeDofs(rA, LHS_Contribution, i_global, i_local, EquationId);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
@@ -1044,7 +1044,7 @@ protected:
 
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
@@ -1052,7 +1052,7 @@ protected:
                         if (*it < BaseType::mEquationSystemSize)
                             row_indices.insert(*it);
                     }
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&mLockArray[ids[i]]);
                 #endif
                 }
@@ -1066,7 +1066,7 @@ protected:
             pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
             for (IndexType i = 0; i < ids.size(); ++i) {
                 if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_set_lock(&mLockArray[ids[i]]);
                 #endif
                     auto& row_indices = indices[ids[i]];
@@ -1074,7 +1074,7 @@ protected:
                         if (*it < BaseType::mEquationSystemSize)
                             row_indices.insert(*it);
                     }
-                #ifdef _OPENMP
+                #ifdef USE_LOCKS_IN_ASSEMBLY
                     omp_unset_lock(&mLockArray[ids[i]]);
                 #endif
                 }
@@ -1376,4 +1376,3 @@ private:
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_ELIMINATION_BUILDER_AND_SOLVER  defined */
-
