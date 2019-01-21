@@ -1,6 +1,5 @@
 import KratosMultiphysics
 import sys
-import ast
 import math
 
 # Import KratosUnittest
@@ -12,7 +11,7 @@ class aux_object_cpp_callback:
         self.compiled_function = compiled_function
 
     def f(self, x, y, z, t):
-        return ast.literal_eval(self.compiled_function)
+        return eval(self.compiled_function)
 
 
 def Factory(settings, Model):
