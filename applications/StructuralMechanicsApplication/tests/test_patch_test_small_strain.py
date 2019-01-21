@@ -456,6 +456,10 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+        # Testing explicit utilities
+        max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, 2.0, 1.0e-3, 0.5)
+        self.assertAlmostEqual(max_delta_time,1.3234236058132611e-07)
+
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(main_model_part,
@@ -484,4 +488,5 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

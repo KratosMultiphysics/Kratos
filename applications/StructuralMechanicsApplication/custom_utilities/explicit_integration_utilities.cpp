@@ -25,7 +25,7 @@ namespace ExplicitIntegrationUtilities
 double CalculateDeltaTime(
     ModelPart& rModelPart,
     const double PredictionLevel,
-    const double Maximum,
+    const double MaximumDeltaTime,
     const double SafetyFactor
     )
 {
@@ -36,7 +36,7 @@ double CalculateDeltaTime(
     ElementsArrayType& r_elements = rModelPart.Elements();
 
     // Initial delta time
-    double delta_time = Maximum / SafetyFactor;
+    double delta_time = MaximumDeltaTime / SafetyFactor;
 
     // Initialize the value
     double stable_delta_time = 1000.0;
@@ -114,7 +114,7 @@ double CalculateDeltaTime(
 
     stable_delta_time = delta_time * SafetyFactor;
 
-    if (stable_delta_time < Maximum) {
+    if (stable_delta_time < MaximumDeltaTime) {
         r_current_process_info[DELTA_TIME] = stable_delta_time;
     }
 
