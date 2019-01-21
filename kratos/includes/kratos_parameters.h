@@ -758,7 +758,7 @@ public:
     void RecursivelyAssignDefaults(const Parameters& rDefaultParameters);
 
     /**
-     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters. (const version)
+     * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
      * @details If the parameters contain values that do not appear in the defaults, an error is thrown.
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check
