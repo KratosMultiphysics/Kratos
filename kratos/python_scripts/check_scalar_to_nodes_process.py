@@ -25,19 +25,19 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
         KratosMultiphysics.Process.__init__(self)
 
         default_settings = KratosMultiphysics.Parameters("""
-            {
-                "help"            : "This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart",
-                "mesh_id"         : 0,
-                "model_part_name" : "please_specify_model_part_name",
-                "variable_name"   : "SPECIFY_VARIABLE_NAME",
-                "interval"        : [0.0, 1e30],
-                "value"           : 0.0,
-                "tolerance_rank"  : 3,
-                "reference_conf"  : false,
-                "local_axes"      : {}
-            }
-            """
-            )
+        {
+            "help"            : "This process checks analytically from a function the solution (scalar) in a set of nodes belonging a certain submodelpart",
+            "mesh_id"         : 0,
+            "model_part_name" : "please_specify_model_part_name",
+            "variable_name"   : "SPECIFY_VARIABLE_NAME",
+            "interval"        : [0.0, 1e30],
+            "value"           : 0.0,
+            "tolerance_rank"  : 3,
+            "reference_conf"  : false,
+            "local_axes"      : {}
+        }
+        """
+        )
 
         #detect "End" as a tag and replace it by a large number
         if(settings.Has("interval")):
@@ -105,11 +105,6 @@ class CheckScalarToNodesProcess(KratosMultiphysics.Process, KratosUnittest.TestC
 
         # Error tolerance
         self.tol = settings["tolerance_rank"].GetInt()
-
-        # print("Finished construction of ApplyCustomFunctionProcess Process")
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME] - self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
