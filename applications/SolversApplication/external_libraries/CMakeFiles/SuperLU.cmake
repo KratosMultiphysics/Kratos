@@ -1,3 +1,4 @@
+project (SUPERLU C)
 include_directories( ${SUPERLU_DIR}/SRC )
 
 # setup options
@@ -256,7 +257,7 @@ else(BLAS_FOUND)
   set(CBLAS_LIBRARIES external_libblas)
 endif(BLAS_FOUND)
 
-message(STATUS "cblas: ${CBLAS_LIBRARIES}")
+message(STATUS "SUPERLU cblas: ${CBLAS_LIBRARIES}")
 
 add_library(external_superlu STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
 

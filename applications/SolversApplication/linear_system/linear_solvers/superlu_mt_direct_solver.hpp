@@ -14,7 +14,10 @@
 
 // External includes
 #include "includes/ublas_interface.h"
-#include "SRC/slu_mt_ddefs.h"
+
+extern "C"{
+   #include "slu_mt_ddefs.h"
+}
 
 // Project includes
 #include "linear_solvers/direct_solver.h"

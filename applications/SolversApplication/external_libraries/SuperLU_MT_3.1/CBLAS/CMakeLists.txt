@@ -3,7 +3,8 @@ project (CBLAS C)
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} )
 
 set(CBLAS_HEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/slu_Cnames.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/slu_mt_Cnames.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/superlu_f2c.h
   ${CMAKE_CURRENT_SOURCE_DIR}/f2c.h
   )
 
@@ -19,7 +20,6 @@ if(enable_single)
     ${CMAKE_CURRENT_SOURCE_DIR}/snrm2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/srot.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sscal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/sswap.c
     ${CMAKE_CURRENT_SOURCE_DIR}/sgemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ssymv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/strsv.c
@@ -38,7 +38,6 @@ if(enable_double)
     ${CMAKE_CURRENT_SOURCE_DIR}/dnrm2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/drot.c
     ${CMAKE_CURRENT_SOURCE_DIR}/dscal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/dswap.c
     ${CMAKE_CURRENT_SOURCE_DIR}/dgemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/dsymv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/dtrsv.c
@@ -55,8 +54,6 @@ if(enable_complex)
     ${CMAKE_CURRENT_SOURCE_DIR}/ccopy.c
     ${CMAKE_CURRENT_SOURCE_DIR}/scnrm2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/cscal.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/cswap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/cdotc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/cgemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/chemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ctrsv.c
@@ -74,8 +71,6 @@ if(enable_complex16)
     ${CMAKE_CURRENT_SOURCE_DIR}/dznrm2.c
     ${CMAKE_CURRENT_SOURCE_DIR}/zscal.c
     ${CMAKE_CURRENT_SOURCE_DIR}/dcabs1.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/zswap.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/zdotc.c
     ${CMAKE_CURRENT_SOURCE_DIR}/zgemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/zhemv.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ztrsv.c
@@ -85,8 +80,10 @@ if(enable_complex16)
 endif(enable_complex16)
 
 #add_definitions( -D_LONGINT )
-add_definitions( -DAdd_ )
-add_definitions( -fPIC )
+add_definitions( -DNoChange )
+add_definitions( -D__OPENMP )
+add_definitions( -DPRNTlevel=0 )
+add_definitions( -DDEBUGlevel=0 )
 add_definitions( -w )
 
-add_library(external_libblas STATIC ${CBLAS_SOURCES} ${CBLAS_HEADERS})
+add_library(external_libblas_mt STATIC ${CBLAS_SOURCES} ${CBLAS_HEADERS})

@@ -12,20 +12,8 @@ if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
 endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
-# correction when Fortran compiler is used in other applications
-if(NOT CMP0018)
-  cmake_policy(SET CMP0018 NEW)
-endif()
-
-if(NOT CMAKE_Fortran_COMPILE_OBJECT)
-  set(CMAKE_Fortran_COMPILE_OBJECT
-    "<CMAKE_Fortran_COMPILER> <DEFINES> <FLAGS> -c <SOURCE> -o <OBJECT>")
-endif()
-
-set(FORTRAN_LIBRARIES gfortran)
-#message(STATUS "GNUG77 : ${CMAKE_COMPILER_IS_GNUG77}")
-#message(STATUS "CMAKE_Fortran_COMPILER: ${CMAKE_Fortran_COMPILER}")
-#message(STATUS "ADD gfortran libraries: ${FORTRAN_LIBRARIES}")
+# Enable Fortran compilation
+enable_language(Fortran)
 
 # Generate variables with the sources
 set( KRATOS_UMAT_APPLICATION_CORE
@@ -53,7 +41,7 @@ set( KRATOS_UMAT_APPLICATION_PYTHON_INTERFACE
 )
 
 add_library(KratosUmatCore SHARED ${KRATOS_UMAT_APPLICATION_CORE})
-target_link_libraries(KratosUmatCore PUBLIC KratosCore KratosConstitutiveModelsCore ${FORTRAN_LIBRARIES})
+target_link_libraries(KratosUmatCore PUBLIC KratosCore KratosConstitutiveModelsCore)
 set_target_properties(KratosUmatCore PROPERTIES COMPILE_DEFINITIONS "UMAT_APPLICATION=EXPORT,API")
 
 ###############################################################

@@ -264,7 +264,7 @@ else(BLAS_FOUND)
   set(CBLAS_LIBRARIES external_libblas)
 endif(BLAS_FOUND)
 
-message(STATUS "cblas: ${CBLAS_LIBRARIES}")
+message(STATUS "SUPERLU_MT cblas: ${CBLAS_LIBRARIES}")
 
 add_library(external_superlu_mt STATIC ${SUPERLU_SOURCES} ${SUPERLU_HEADERS})
 target_link_libraries(external_superlu_mt ${CBLAS_LIBRARIES})

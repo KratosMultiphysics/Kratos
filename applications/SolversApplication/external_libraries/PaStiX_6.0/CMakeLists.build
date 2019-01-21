@@ -1,3 +1,14 @@
+###
+#
+#  @copyright 2013-2018 Bordeaux INP, CNRS (LaBRI UMR 5800), Inria,
+#                       Univ. Bordeaux. All rights reserved.
+#
+#  @version 6.0.1
+#  @author Mathieu Faverge
+#  @date 2018-07-16
+#
+###
+cmake_minimum_required (VERSION 2.8)
 project (PASTIX C CXX Fortran)
 
 include(CMakeDependentOption)
@@ -10,19 +21,17 @@ set(PASTIX_VERSION_MICRO 1)
 
 set(PASTIX_VERSION "${PASTIX_VERSION_MAJOR}.${PASTIX_VERSION_MINOR}.${PASTIX_VERSION_MICRO}")
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 # Add extra cmake module path and initialize morse cmake modules
 # --------------------------------------------------------------
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 include(AddSourceFiles)
 
-if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/morse_cmake/modules)
-  set( MORSE_CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/morse_cmake/modules )
+if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules)
+  set( MORSE_CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules/morse_cmake/modules )
   list(APPEND CMAKE_MODULE_PATH ${MORSE_CMAKE_MODULE_PATH})
   include(MorseInit)
 else()
-  message(FATAL_ERROR "Submodule cmake_morse not found")
+  message(FATAL_ERROR "Submodule cmake_morse not initialized - run `git submodule update --init`")
 endif()
 
 # Define precision supported by PaStiX
@@ -38,7 +47,7 @@ include(CheckSystem)
 # --------------------
 
 # use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
+set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 
 # when building, don't use the install RPATH already
 # (but later on when installing)
@@ -46,44 +55,56 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
 # the RPATH to be used when installing
 list(APPEND CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-message(STATUS "CMAKE_INSTALL_RPATH : ${CMAKE_INSTALL_RPATH}")
 
 ### Misc options
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(BUILD_64bits "Build 64 bits mode" ON)
-
+option(BUILD_SHARED_LIBS
+  "Build shared libraries" OFF)
+option(BUILD_64bits
+  "Build 64 bits mode" ON)
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are None, Debug, Release, RelWithDebInfo and MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 ### Distributed engine parameters
-option(PASTIX_WITH_MPI "Build PaStiX for distributed memory with MPI" OFF)
+option(PASTIX_WITH_MPI
+    "Build PaStiX for distributed memory with MPI" OFF)
 
 ### GPU engine parameters
-option(PASTIX_WITH_CUDA "Enable GPU support using CUDA kernels" OFF)
+option(PASTIX_WITH_CUDA
+    "Enable GPU support using CUDA kernels" OFF)
 
-cmake_dependent_option(PASTIX_CUDA_FERMI "Enable the Fermi kernel instead of the batched kernel" OFF "PASTIX_WITH_CUDA" OFF)
+cmake_dependent_option(PASTIX_CUDA_FERMI
+    "Enable the Fermi kernel instead of the batched kernel" OFF "PASTIX_WITH_CUDA" OFF)
 
 ### Tracing parameters
-option(PASTIX_WITH_EZTRACE "Enable Eztrace for tracing CPU and GPU kernels" OFF)
+option(PASTIX_WITH_EZTRACE
+  "Enable Eztrace for tracing CPU and GPU kernels" OFF)
 
 ### Runtime engines
-option(PASTIX_WITH_STARPU "Build PaStiX with StarPU runtime support" OFF)
-option(PASTIX_WITH_PARSEC "Build PaStiX with PaRSEC runtime support" OFF)
+option(PASTIX_WITH_STARPU
+    "Build PaStiX with StarPU runtime support" OFF)
+option(PASTIX_WITH_PARSEC
+  "Build PaStiX with PaRSEC runtime support" OFF)
 
 # Internal options
-option(PASTIX_GENERATE_MODEL "Enable performances profiling for model generation" OFF)
+option(PASTIX_GENERATE_MODEL
+  "Enable performances profiling for model generation" OFF)
 
 # Internal options
-option(PASTIX_WITH_FORTRAN "Enable Fortran files/interface/examples to be compiled" OFF)
+option(PASTIX_WITH_FORTRAN
+  "Enable Fortran files/interface/examples to be compiled" ON)
 
-cmake_dependent_option(PASTIX_DISTRIBUTED "Enable the distributed interface (requires PASTIX_WITH_MPI)" OFF "PASTIX_WITH_MPI" OFF)
+cmake_dependent_option(PASTIX_DISTRIBUTED
+ "Enable the distributed interface (requires PASTIX_WITH_MPI)" OFF "PASTIX_WITH_MPI" OFF)
 
-cmake_dependent_option(PASTIX_THREAD_COMM "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
+cmake_dependent_option(PASTIX_THREAD_COMM
+ "Enable the specific communication thread (requires PASTIX_WITH_MPI)" ON "PASTIX_WITH_MPI" OFF)
 
-cmake_dependent_option(PASTIX_FUNNELED "Enable the funneled (requires PASTIX_THREAD_COMM), toggle using IPARM_THREAD_COMM_MODE" ON "PASTIX_THREAD_COMM" OFF)
+cmake_dependent_option(PASTIX_FUNNELED
+ "Enable the funneled (requires PASTIX_THREAD_COMM), toggle using IPARM_THREAD_COMM_MODE" ON "PASTIX_THREAD_COMM" OFF)
 
-option(PASTIX_INT64  "Choose between int32 and int64 for integer representation" OFF)
+option(PASTIX_INT64
+  "Choose between int32 and int64 for integer representation" ON)
 
 # Precisions generated
 if(NOT PASTIX_PRECISIONS)
@@ -93,38 +114,58 @@ else()
 endif()
 
 # Ordering step options
-option(PASTIX_ORDERING_SCOTCH "Enable Scotch Ordering" ON)
-option(PASTIX_ORDERING_METIS "Enable Metis ordering"  OFF)
+option(PASTIX_ORDERING_SCOTCH
+  "Enable Scotch Ordering" ON)
+option(PASTIX_ORDERING_METIS
+  "Enable Metis ordering"  OFF)
 cmake_dependent_option(PASTIX_ORDERING_PTSCOTCH
   "Activate the PT-scotch ordering (requires PASTIX_DISTRIBUTED and PASTIX_ORDERING_SCOTCH)" ON
   "PASTIX_DISTRIBUTED;PASTIX_ORDERING_SCOTCH" OFF)
 
 # Symbolic factorization options
-option(PASTIX_SYMBOL_DUMP_SYMBMTX "Dump the generated symbol matrix in a postscript file" OFF)
+option(PASTIX_SYMBOL_DUMP_SYMBMTX
+  "Dump the generated symbol matrix in a postscript file" OFF)
 
 # Analyze step options
-option(PASTIX_BLEND_DEEPEST_DISTRIB "Enable the candidate distribution to go to the deepest node matching the criteria" ON)
+option(PASTIX_BLEND_DEEPEST_DISTRIB
+  "Enable the candidate distribution to go to the deepest node matching the criteria" ON)
 
 # Numerical factorization options
-option(PASTIX_NUMFACT_DUMP_SOLVER "Dump the generated factorized matrix in a postscript file with information on block's compressibility" OFF)
-option(PASTIX_SUPERNODE_STATS "Enable statistics per original supernodes" OFF)
+option(PASTIX_NUMFACT_DUMP_SOLVER
+  "Dump the generated factorized matrix in a postscript file with information on block's compressibility" OFF)
+option(PASTIX_SUPERNODE_STATS
+  "Enable statistics per original supernodes" OFF)
 
 # Options to check
-option(FORGET_PARTITION "Force to forget the partition generated by Scotch" OFF)
-option(COMPACT_SMX "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
+option(FORGET_PARTITION
+  "Force to forget the partition generated by Scotch" OFF)
+option(COMPACT_SMX
+  "Optimization for solve computations (TODO: check if not obsolete because results don't converge)" OFF)
 
 # Options to increase verbosity while debuging
-option(PASTIX_DEBUG_GRAPH "Debug the graph data structure" OFF)
-option(PASTIX_DEBUG_ORDERING "Debug the ordering step" OFF)
-option(PASTIX_DEBUG_SYMBOL "Debug the symbol matrix factorization" OFF)
-option(PASTIX_DEBUG_BLEND "Debug the analyze step" OFF)
-option(PASTIX_DEBUG_DUMP_COEFTAB "Dump all cblk on disk after modifications" OFF)
-option(PASTIX_DEBUG_FACTO "Debug the factorization step" OFF)
-cmake_dependent_option(PASTIX_DEBUG_PARSEC "Debug the parsec implementation of the factorization step" OFF "PASTIX_WITH_PARSEC" OFF)
-option(PASTIX_DEBUG_LR "Debug the lowrank kernels (Valgrind)" OFF)
-option(PASTIX_DEBUG_LR_NANCHECK "Debug the lowrank kernels (nancheck)" OFF)
-option(PASTIX_DEBUG_GMRES "Debug the gmres refinment by enabling the computation of the true resiudal at each iteration" OFF)
-option(PASTIX_DEBUG_EXIT_ON_SIGSEGV "Generate a segfault on exit calls to trakc in gdb" OFF)
+option(PASTIX_DEBUG_GRAPH
+  "Debug the graph data structure" OFF)
+option(PASTIX_DEBUG_ORDERING
+  "Debug the ordering step" OFF)
+option(PASTIX_DEBUG_SYMBOL
+  "Debug the symbol matrix factorization" OFF)
+option(PASTIX_DEBUG_BLEND
+  "Debug the analyze step" OFF)
+option(PASTIX_DEBUG_DUMP_COEFTAB
+  "Dump all cblk on disk after modifications" OFF)
+option(PASTIX_DEBUG_FACTO
+  "Debug the factorization step" OFF)
+cmake_dependent_option(PASTIX_DEBUG_PARSEC
+  "Debug the parsec implementation of the factorization step" OFF
+  "PASTIX_WITH_PARSEC" OFF)
+option(PASTIX_DEBUG_LR
+  "Debug the lowrank kernels (Valgrind)" OFF)
+option(PASTIX_DEBUG_LR_NANCHECK
+  "Debug the lowrank kernels (nancheck)" OFF)
+option(PASTIX_DEBUG_GMRES
+  "Debug the gmres refinment by enabling the computation of the true resiudal at each iteration" OFF)
+option(PASTIX_DEBUG_EXIT_ON_SIGSEGV
+  "Generate a segfault on exit calls to trakc in gdb" OFF)
 
 ###############################################################################
 # Look for dependencies #
@@ -445,11 +486,9 @@ set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 #
 
 # Compile the spm library
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/spm)
+add_subdirectory(spm)
 set( SPM_LIBRARY spm )
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/spm/include")
-message(STATUS "PASTIX CMAKE_CURRENT_SOURCE_DIR : ${CMAKE_CURRENT_SOURCE_DIR}")
-message(STATUS "PASTIX CMAKE_CURRENT_BINARY_DIR : ${CMAKE_CURRENT_BINARY_DIR}")
+include_directories("spm/include")
 include_directories("${CMAKE_CURRENT_BINARY_DIR}/spm/include")
 
 # Disable restrict (temporary)
@@ -489,7 +528,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/order")
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/symbol")
 
 # Sub modules
-set(modules ${CMAKE_CURRENT_SOURCE_DIR}/kernels ${CMAKE_CURRENT_SOURCE_DIR}/refinement) #csc kernels sopalin common)
+set(modules kernels refinement) #csc kernels sopalin common)
 foreach (module ${modules})
    add_subdirectory(${module})
 endforeach()
@@ -789,11 +828,8 @@ endif()
 #   add_dependencies(pastix ${module2}_headers)
 # endforeach()
 
-#install(TARGETS pastix
-#  RUNTIME DESTINATION bin
-#  ARCHIVE DESTINATION lib
-#  LIBRARY DESTINATION lib)
 install(TARGETS pastix
+  RUNTIME DESTINATION bin
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib)
 
@@ -808,7 +844,224 @@ set(PASTIX_HDRS
   include/cblas.h
   include/lapacke.h
 )
-#install(FILES include/pastix.h DESTINATION include )
-#install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
+install(FILES
+  include/pastix.h
+  DESTINATION include )
+install(FILES ${PASTIX_HDRS} DESTINATION include/pastix )
 
-set(PASTIX_LIBRARIES pastix)
+## Executable and tests
+enable_testing()
+include(CTest)
+# Examples executables
+add_subdirectory(example)
+# Testing executables
+add_subdirectory(test)
+
+### Wrappers
+add_subdirectory(wrappers)
+
+### Build pkg-config and environment file
+include(GenPkgConfig)
+
+set(PASTIX_PKGCONFIG_LIBS pastix pastix_kernels)
+
+# StarPU
+if(PASTIX_WITH_STARPU)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_starpu)
+  if ( STARPU_FOUND_WITH_PKGCONFIG )
+    if ( PASTIX_WITH_MPI )
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED starpumpi-${PASTIX_STARPU_VERSION})
+    else()
+      list(APPEND PASTIX_PKGCONFIG_REQUIRED starpu-${PASTIX_STARPU_VERSION})
+    endif()
+  else()
+    list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${STARPU_LIBRARIES_DEP})
+  endif()
+endif()
+
+# PaRSEC
+if(PASTIX_WITH_PARSEC)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_parsec)
+  if ( PARSEC_FOUND_WITH_PKGCONFIG )
+    list(APPEND PASTIX_PKGCONFIG_REQUIRED parsec)
+  else()
+    list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${PARSEC_LIBRARIES_DEP})
+  endif()
+endif()
+
+if(PASTIX_WITH_CUDA)
+  list(APPEND PASTIX_PKGCONFIG_LIBS pastix_kernels_cuda)
+endif()
+
+if(PASTIX_WITH_EZTRACE)
+  list(APPEND PASTIX_PKGCONFIG_REQUIRED eztrace litl)
+endif()
+
+list(APPEND PASTIX_PKGCONFIG_INCS
+  )
+list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
+  ${LAPACKE_LIBRARIES_DEP}
+  ${CBLAS_LIBRARIES_DEP}
+  )
+list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE
+  ${EXTRA_LIBRARIES}
+  )
+
+# HwLoc
+if ( HWLOC_FOUND_WITH_PKGCONFIG )
+  list(APPEND PASTIX_PKGCONFIG_REQUIRED hwloc)
+else()
+  list(APPEND PASTIX_PKGCONFIG_LIBS_PRIVATE ${HWLOC_LIBRARIES})
+endif()
+
+generate_pkgconfig_files(
+  "${CMAKE_CURRENT_SOURCE_DIR}/pastix.pc.in"
+  "${CMAKE_CURRENT_SOURCE_DIR}/pastixf.pc.in"
+  PROJECTNAME PASTIX )
+
+generate_env_file( PROJECTNAME PASTIX )
+
+#############################################################
+#
+#      Build documentation
+#
+#############################################################
+add_documented_files(
+  README.md
+  docs/doxygen/chapters/eztrace.doxy
+  kernels/pastix_lowrank.h
+  #
+  include/pastix.h
+  include/pastix/api.h
+  common/api.c
+  common/get_options.c
+  common/models.c
+  common/pastixdata.h
+  #
+  graph/graph.h
+  graph/graph.c
+  graph/graph_io.c
+  graph/graph_isolate.c
+  graph/graph_prepare.c
+  graph/graph_symmetrize.c
+  #
+  include/pastix/order.h
+  #order/order_scotch_strats.h TODO: include in developer version
+  order/order.c
+  order/order_add_isolate.c
+  order/order_apply_level_order.c
+  order/order_check.c
+  order/order_find_supernodes.c
+  order/order_io.c
+  order/order_compute_metis.c
+  order/order_compute_ptscotch.c
+  order/order_compute_scotch.c
+  order/pastix_subtask_order.c
+  #
+  symbol/symbol.h
+  symbol/symbol_cost.h  #TODO: include in developer version
+  symbol/symbol_fax.h   #TODO: include in developer version
+  symbol/symbol_kass.h  #TODO: include in developer version
+  symbol/symbol.c
+  symbol/symbol_amalgamate.c
+  symbol/symbol_base.c
+  symbol/symbol_check.c
+  symbol/symbol_cost.c
+  symbol/symbol_cost_flops.c
+  symbol/symbol_cost_perfs.c
+  symbol/symbol_draw.c
+  symbol/symbol_expand.c
+  #symbol/symbol_fax.c Not documented: template file
+  symbol/symbol_fax_graph.c
+  symbol/symbol_io.c
+  symbol/symbol_kass.c
+  symbol/symbol_kass_build.c
+  symbol/symbol_kass_csr.c
+  symbol/symbol_kass_direct.c
+  symbol/symbol_kass_level.c
+  symbol/symbol_reordering.c
+  symbol/symbol_reorder.c
+  symbol/pastix_subtask_reordering.c
+  symbol/pastix_subtask_symbfact.c
+  #
+  blend/blend.h
+  blend/blendctrl.h
+  blend/blendctrl.c
+  blend/cand.h
+  blend/cand.c
+  blend/cand_gendot.c
+  blend/cost.h
+  blend/cost.c
+  blend/elimintree.h
+  blend/elimintree.c
+  blend/extendVector.h
+  blend/extendVector.c
+  blend/extracblk.h
+  blend/extracblk.c
+  blend/perf.h
+  blend/queue.h
+  blend/queue.c
+  #
+  blend/simu.h
+  blend/simu_timer.h
+  blend/simu.c
+  blend/simu_run.c
+  blend/simu_task.c
+  #
+  blend/solver.h
+  blend/solver.c
+  blend/solver_backup.c
+  blend/solver_check.c
+  blend/solver_copy.c
+  blend/solver_draw.c
+  blend/solver_io.c
+  blend/solver_matrix_gen.c
+  #
+  blend/propmap.c
+  blend/splitsymbol.c
+  blend/pastix_subtask_blend.c
+  blend/pastix_task_analyze.c
+  #
+  bcsc/bcsc.c
+  bcsc/bcsc.h
+  bcsc/bvec.c
+  bcsc/bvec.h
+  #
+  sopalin/coeftab.h
+  sopalin/coeftab.c
+  sopalin/schur.c
+  sopalin/pastix.c
+  sopalin/pastix_task_sopalin.c
+  sopalin/pastix_task_solve.c
+  #
+  refinement/pastix_task_refine.c
+  #
+  example/analyze.c
+  example/compress.c
+  example/personal.c
+  example/reentrant.c
+  example/refinement.c
+  example/schur.c
+  example/simple.c
+  example/step-by-step.c
+  )
+
+add_documented_files(
+  DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  ${generated_common_sources}
+  ${generated_bcsc_headers}
+  ${generated_bcsc_sources}
+  ${generated_sopalin_headers}
+  ${generated_sopalin_sources}
+  ${generated_refinement_sources}
+)
+
+#
+# Build documentation
+#
+add_subdirectory(docs)
+
+#-- Add a custom target to run Doxygen when ever the project is built
+add_custom_target (tags
+  COMMAND etags ${PASTIX_LIB_SRCS}
+  DEPENDS ${PASTIX_LIB_SRCS} )

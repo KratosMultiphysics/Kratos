@@ -72,20 +72,27 @@ namespace Python
 namespace py = pybind11;
 
 //base types
-typedef UblasSpace<double, CompressedMatrix, Vector>                                               SparseSpaceType;
+typedef boost::numeric::ublas::matrix<double>                                                          UblasMatrix;
+typedef boost::numeric::ublas::vector<double>                                                          UblasVector;
+typedef UblasSpace<double, CompressedMatrix, UblasVector>                                          SparseSpaceType;
 typedef UblasSpace<double, Matrix, Vector>                                                          LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                             LinearSolverType;
 typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 typedef SystemBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>       SystemBuilderAndSolverType;
 typedef SolutionScheme<SparseSpaceType, LocalSpaceType>                                         SolutionSchemeType;
 typedef ConvergenceCriterion<SparseSpaceType, LocalSpaceType>                             ConvergenceCriterionType;
-typedef SolutionStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>                   SolutionStrategyType;
 
 typedef SolutionStrategyType::Pointer                                                      SolutionStrategyPointer;
 typedef std::vector<SolutionStrategyType::Pointer>                                     SolutionStrategiesContainer;
 
 typedef typename ConvergenceCriterionType::Pointer                                 ConvergenceCriterionPointerType;
 typedef std::vector<ConvergenceCriterionPointerType>                                  ConvergenceCriteriaContainer;
+
+
+// typedef UblasSpace<double, UblasMatrix, UblasVector >                                          UblasLocalSpaceType;
+// typedef LinearSolver<SparseSpaceType, UblasLocalSpaceType>                                   UblasLinearSolverType;
+// typedef SolutionStrategy<SparseSpaceType, UblasLocalSpaceType, UblasLinearSolverType>    UblasSolutionStrategyType;
+// typedef SolutionScheme<SparseSpaceType, UblasLocalSpaceType>                               UblasSolutionSchemeType;
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {

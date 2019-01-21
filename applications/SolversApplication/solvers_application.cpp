@@ -116,7 +116,7 @@ void KratosSolversApplication::Register()
 
 #ifdef INCLUDE_FEAST
   KRATOS_REGISTER_LINEAR_SOLVER("FEAST_EigenValueSolver", mFEASTEigenValueSolverFactory);
-#endif INCLUDE_FEAST
+#endif
 
 }
 }  // namespace Kratos.

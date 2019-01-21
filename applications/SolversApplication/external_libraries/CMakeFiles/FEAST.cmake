@@ -42,7 +42,12 @@ if(NOT BLAS_FOUND)
   find_package(BLAS)
 endif(NOT BLAS_FOUND)
 
-message(STATUS "blas: ${BLAS_LIBRARIES}")
+if(NOT LAPACK_FOUND)
+  find_package(LAPACK)
+endif(NOT LAPACK_FOUND)
+
+message(STATUS "FEAST blas: ${BLAS_LIBRARIES}")
+message(STATUS "FEAST lapack: ${LAPACK_LIBRARIES}")
 
 add_library( external_feast STATIC ${CODE90_functions_wrapper} ${CODE90} )
 target_link_libraries(external_feast ${BLAS_LIBRARIES} )

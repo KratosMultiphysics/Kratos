@@ -61,79 +61,79 @@ extern void cfeast_grcix_(char *ijob,int *N,float *Ze,float *workr, float *workl
 
 // Double precision
 
-static void dfeast_srci(char *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void dfeast_srci(char *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      dfeast_srci_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void dfeast_srcix(int *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne, double *Wne){
+inline static void dfeast_srcix(int *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne, double *Wne){
      dfeast_srcix_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_hrci(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info){
+inline static void zfeast_hrci(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info){
     zfeast_hrci_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void zfeast_hrcix(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info,double *Zne, double *Wne){
+inline static void zfeast_hrcix(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info,double *Zne, double *Wne){
     zfeast_hrcix_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_srci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,int *mode,double *resr,int *info){
+inline static void zfeast_srci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,int *mode,double *resr,int *info){
      zfeast_srci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,mode,resr,info);
 }
-static void dfeast_grci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info){
+inline static void dfeast_grci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info){
      dfeast_grci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info);
 }
-static void zfeast_grci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info){
+inline static void zfeast_grci(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info){
      zfeast_grci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info);
 }
-static void zfeast_srcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,int *mode,double *resr,int *info,double *Zne,double *Wne){
+inline static void zfeast_srcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,int *mode,double *resr,int *info,double *Zne,double *Wne){
      zfeast_srcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,mode,resr,info,Zne,Wne);
 }
-static void dfeast_grcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info,double *Zne,double *Wne){
+inline static void dfeast_grcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info,double *Zne,double *Wne){
      dfeast_grcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info,Zne,Wne);
 }
-static void zfeast_grcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info,double *Zne, double *Wne){
+inline static void zfeast_grcix(char *ijob,int *N,double *Ze,double *workr, double *workl ,double *workc,double *Aq,double *Sq,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *qr,double *ql,int *mode,double *resr,double *resl,int *info,double *Zne, double *Wne){
      zfeast_grcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info,Zne,Wne);
 }
-static void DFEAST_SRCI(char *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void DFEAST_SRCI(char *ijob,int *N,double   *Ze,double *work,double   *workc,double   *Aq,double   *Sq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      dfeast_srci_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void ZFEAST_HRCI(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info){
+inline static void ZFEAST_HRCI(char *ijob,int *N,double   *Ze,double   *work,double   *workc,double   *zAq,double   *zSq,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double   *q,int *mode,double *res,int *info){
     zfeast_hrci_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
 
 // Single precision
 
-static void sfeast_srci(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void sfeast_srci(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      sfeast_srci_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void sfeast_srcix(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void sfeast_srcix(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      sfeast_srcix_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_hrci(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info){
+inline static void cfeast_hrci(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info){
     cfeast_hrci_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void cfeast_hrcix(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_hrcix(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info,float *Zne,float *Wne){
     cfeast_hrcix_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_srci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,int *mode,float *resr,int *info){
+inline static void cfeast_srci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,int *mode,float *resr,int *info){
      cfeast_srci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,mode,resr,info);
 }
-static void sfeast_grci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info){
+inline static void sfeast_grci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info){
      sfeast_grci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info);
 }
-static void cfeast_grci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info){
+inline static void cfeast_grci(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info){
      cfeast_grci_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info);
 }
-static void cfeast_srcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,int *mode,float *resr,int *info,float *Zne,float *Wne){
+inline static void cfeast_srcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,int *mode,float *resr,int *info,float *Zne,float *Wne){
      cfeast_srcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,mode,resr,info,Zne,Wne);
 }
-static void sfeast_grcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info,float *Zne,float *Wne){
+inline static void sfeast_grcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info,float *Zne,float *Wne){
      sfeast_grcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info,Zne,Wne);
 }
-static void cfeast_grcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info,float *Zne, float *Wne){
+inline static void cfeast_grcix(char *ijob,int *N,float *Ze,float *workr, float *workl ,float *workc,float *Aq,float *Sq,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *qr,float *ql,int *mode,float *resr,float *resl,int *info,float *Zne, float *Wne){
      cfeast_grcix_(ijob,N,Ze,workr,workl,workc,Aq,Sq,feastparam,epsout,loop,Emid,r,M0,lambda,qr,ql,mode,resr,resl,info,Zne,Wne);
 }
-static void SFEAST_SRCI(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void SFEAST_SRCI(char *ijob,int *N,float   *Ze,float *work,float   *workc,float   *Aq,float   *Sq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      sfeast_srci_(ijob,N,Ze,work,workc,Aq,Sq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void CFEAST_HRCI(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info){
+inline static void CFEAST_HRCI(char *ijob,int *N,float   *Ze,float   *work,float   *workc,float   *zAq,float   *zSq,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float   *q,int *mode,float *res,int *info){
     cfeast_hrci_(ijob,N,Ze,work,workc,zAq,zSq,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
 //////////////////////////////////////////////////////////////////////////

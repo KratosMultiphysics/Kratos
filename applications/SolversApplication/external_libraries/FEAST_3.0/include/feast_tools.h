@@ -48,55 +48,55 @@ extern void cfeast_gcontour_(float *Emid, float *r, int *fpm2, int *fpm17, int *
 // FEAST interfaces
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static void feastinit(int *feastparam) {
+inline static void feastinit(int *feastparam) {
      feastinit_(feastparam);
 }
-static void FEASTINIT(int *feastparam) {
+inline static void FEASTINIT(int *feastparam) {
      feastinit_(feastparam);
 }
-static void feast_init_driver(int *feastparam,int *N) {
+inline static void feast_init_driver(int *feastparam,int *N) {
      feastinit_driver_(feastparam,N);
 }
-static void cfeast_customcontour(int *feastparam2,int *N,int *Nedge,int *Tedge,float *Zedge,float *Zne,float *Wne){
+inline static void cfeast_customcontour(int *feastparam2,int *N,int *Nedge,int *Tedge,float *Zedge,float *Zne,float *Wne){
      cfeast_customcontour_(feastparam2,N,Nedge,Tedge,Zedge,Zne,Wne);
 }
-static void zfeast_customcontour(int *feastparam2,int *N,int *Nedge,int *Tedge,double *Zedge,double *Zne,double *Wne){
+inline static void zfeast_customcontour(int *feastparam2,int *N,int *Nedge,int *Tedge,double *Zedge,double *Zne,double *Wne){
      zfeast_customcontour_(feastparam2,N,Nedge,Tedge,Zedge,Zne,Wne);
 }
-static void zfeast_contour(double *Emin, double *Emax, int *fpm2, int *fpm16, int *fpm18, double *Zne, double *Wne){
+inline static void zfeast_contour(double *Emin, double *Emax, int *fpm2, int *fpm16, int *fpm18, double *Zne, double *Wne){
      zfeast_contour_(Emin,Emax,fpm2,fpm16,fpm18,Zne,Wne);
 }
-static void cfeast_contour(float *Emin,float *Emax, int *fpm2, int *fpm16, int *fpm18, float *Zne, float *Wne){
+inline static void cfeast_contour(float *Emin,float *Emax, int *fpm2, int *fpm16, int *fpm18, float *Zne, float *Wne){
      cfeast_contour_(Emin,Emax,fpm2,fpm16,fpm18,Zne,Wne);
 }
-static void zfeast_gcontour(double *Emid, double *r, int *fpm2, int *fpm17, int *fpm19, double *Zne, double *Wne){
+inline static void zfeast_gcontour(double *Emid, double *r, int *fpm2, int *fpm17, int *fpm19, double *Zne, double *Wne){
      zfeast_gcontour_(Emid,r,fpm2,fpm17,fpm19,Zne,Wne);
 }
-static void cfeast_gcontour(float *Emid, float *r, int *fpm2, int *fpm17, int *fpm19, float *Zne, float *Wne){
+inline static void cfeast_gcontour(float *Emid, float *r, int *fpm2, int *fpm17, int *fpm19, float *Zne, float *Wne){
      cfeast_gcontour_(Emid,r,fpm2,fpm17,fpm19,Zne,Wne);
 }
-static void dfeast_rational(double *Emin, double *Emax, int *fpm2, int *fpm16, int *fpm18,double *Eig, int *M0,double *f){
+inline static void dfeast_rational(double *Emin, double *Emax, int *fpm2, int *fpm16, int *fpm18,double *Eig, int *M0,double *f){
      dfeast_rational_(Emin,Emax,fpm2,fpm16,fpm18,Eig,M0,f);
 }
-static void sfeast_rational(float *Emin,float *Emax,int *fpm2,int *fpm16,int *fpm18,float *Eig,int *M0,float *f){
+inline static void sfeast_rational(float *Emin,float *Emax,int *fpm2,int *fpm16,int *fpm18,float *Eig,int *M0,float *f){
      sfeast_rational_(Emin,Emax,fpm2,fpm16,fpm18,Eig,M0,f);
 }
-static void dfeast_rationalx(double *Zne,double *Wne,int *fpm2,double *Eig,int *M0,double *f){
+inline static void dfeast_rationalx(double *Zne,double *Wne,int *fpm2,double *Eig,int *M0,double *f){
             dfeast_rationalx_(Zne,Wne,fpm2,Eig,M0,f);
 }
-static void sfeast_rationalx(float *Zne,float *Wne,int *fpm2,float *Eig,int *M0,float *f){
+inline static void sfeast_rationalx(float *Zne,float *Wne,int *fpm2,float *Eig,int *M0,float *f){
      sfeast_rationalx_(Zne,Wne,fpm2,Eig,M0,f);
 }
-static void zfeast_grational(double *Emid,double *r,int *fpm2,int *fpm17,int *fpm19,double *Eig,int *M0,double *f){
+inline static void zfeast_grational(double *Emid,double *r,int *fpm2,int *fpm17,int *fpm19,double *Eig,int *M0,double *f){
      zfeast_grational_(Emid,r,fpm2,fpm17,fpm19,Eig,M0,f);
 }
-static void cfeast_grational(float *Emid,float*r,int *fpm2,int *fpm17,int *fpm19,float *Eig,int *M0,float*f){
+inline static void cfeast_grational(float *Emid,float*r,int *fpm2,int *fpm17,int *fpm19,float *Eig,int *M0,float*f){
      cfeast_grational_(Emid,r,fpm2,fpm17,fpm19,Eig,M0,f);
 }
-static void zfeast_grationalx(double *Zne,double *Wne,int *fpm2,double *Eig,int *M0,double *f){
+inline static void zfeast_grationalx(double *Zne,double *Wne,int *fpm2,double *Eig,int *M0,double *f){
      zfeast_grationalx_(Zne,Wne,fpm2,Eig,M0,f);
 }
-static void cfeast_grationalx(float *Zne,float *Wne,int *fpm2,float*Eig,int *M0,float *f){
+inline static void cfeast_grationalx(float *Zne,float *Wne,int *fpm2,float*Eig,int *M0,float *f){
      cfeast_grationalx_(Zne,Wne,fpm2,Eig,M0,f);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

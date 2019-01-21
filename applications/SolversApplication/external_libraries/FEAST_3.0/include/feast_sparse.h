@@ -81,151 +81,151 @@ extern void sfeast_gcsrev_(int *N,float *sa,int *isa,int *jsa,int *feastparam,fl
 
 // Double precision
 
-static void dfeast_scsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void dfeast_scsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
   dfeast_scsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void dfeast_scsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void dfeast_scsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   dfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void dfeast_scsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void dfeast_scsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
   dfeast_scsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void dfeast_scsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void dfeast_scsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   dfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void zfeast_hcsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_hcsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
   zfeast_hcsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_hcsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_hcsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   zfeast_hcsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void zfeast_hcsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_hcsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
   zfeast_hcsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_hcsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_hcsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   zfeast_hcsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void DFEAST_SCSRGV(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void DFEAST_SCSRGV(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   dfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void DFEAST_SCSREV(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void DFEAST_SCSREV(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   dfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void ZFEAST_HCSRGV(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void ZFEAST_HCSRGV(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   zfeast_hcsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void ZFEAST_HCSREV(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void ZFEAST_HCSREV(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emin,double *Emax,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
   zfeast_hcsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void zfeast_gcsrgvx(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_gcsrgvx(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      zfeast_gcsrgvx_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_gcsrgv(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_gcsrgv(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      zfeast_gcsrgv_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void zfeast_gcsrevx(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_gcsrevx(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      zfeast_gcsrevx_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_gcsrev(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_gcsrev(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      zfeast_gcsrev_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void zfeast_scsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_scsrgvx(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      zfeast_scsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_scsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_scsrgv(char *UPLO,int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      zfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void zfeast_scsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void zfeast_scsrevx(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      zfeast_scsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void zfeast_scsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void zfeast_scsrev(char *UPLO,int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      zfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void dfeast_gcsrgvx(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void dfeast_gcsrgvx(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      dfeast_gcsrgvx_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void dfeast_gcsrgv(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void dfeast_gcsrgv(int *N,double *sa,int *isa,int *jsa,double *sb,int *isb,int *jsb,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      dfeast_gcsrgv_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void dfeast_gcsrevx(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
+inline static void dfeast_gcsrevx(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info,double *Zne,double *Wne){
      dfeast_gcsrevx_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void dfeast_gcsrev(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
+inline static void dfeast_gcsrev(int *N,double *sa,int *isa,int *jsa,int *feastparam,double *epsout,int *loop,double *Emid,double *r,int *M0,double *lambda,double *q,int *mode,double *res,int *info){
      dfeast_gcsrev_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
 
 
 // Single precision
 
-static void sfeast_scsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void sfeast_scsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
   sfeast_scsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void sfeast_scsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void sfeast_scsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   sfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void sfeast_scsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void sfeast_scsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
   sfeast_scsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void sfeast_scsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void sfeast_scsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   sfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void cfeast_hcsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_hcsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
   cfeast_hcsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_hcsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_hcsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   cfeast_hcsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void cfeast_hcsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_hcsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
   cfeast_hcsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_hcsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_hcsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   cfeast_hcsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void SFEAST_SCSRGV(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void SFEAST_SCSRGV(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   sfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void SFEAST_SCSREV(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void SFEAST_SCSREV(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   sfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void CFEAST_HCSRGV(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void CFEAST_HCSRGV(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   cfeast_hcsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void CFEAST_HCSREV(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void CFEAST_HCSREV(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emin,float *Emax,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
   cfeast_hcsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emin,Emax,M0,lambda,q,mode,res,info);
 }
-static void cfeast_gcsrgvx(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_gcsrgvx(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      cfeast_gcsrgvx_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_gcsrgv(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_gcsrgv(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      cfeast_gcsrgv_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void cfeast_gcsrevx(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_gcsrevx(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      cfeast_gcsrevx_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_gcsrev(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_gcsrev(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      cfeast_gcsrev_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void cfeast_scsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_scsrgvx(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      cfeast_scsrgvx_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_scsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_scsrgv(char *UPLO,int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      cfeast_scsrgv_(UPLO,N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void cfeast_scsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void cfeast_scsrevx(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      cfeast_scsrevx_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void cfeast_scsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void cfeast_scsrev(char *UPLO,int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      cfeast_scsrev_(UPLO,N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void sfeast_gcsrgvx(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void sfeast_gcsrgvx(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      sfeast_gcsrgvx_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void sfeast_gcsrgv(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void sfeast_gcsrgv(int *N,float *sa,int *isa,int *jsa,float *sb,int *isb,int *jsb,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      sfeast_gcsrgv_(N,sa,isa,jsa,sb,isb,jsb,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
-static void sfeast_gcsrevx(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
+inline static void sfeast_gcsrevx(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info,float *Zne,float *Wne){
      sfeast_gcsrevx_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info,Zne,Wne);
 }
-static void sfeast_gcsrev(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
+inline static void sfeast_gcsrev(int *N,float *sa,int *isa,int *jsa,int *feastparam,float *epsout,int *loop,float *Emid,float *r,int *M0,float *lambda,float *q,int *mode,float *res,int *info){
      sfeast_gcsrev_(N,sa,isa,jsa,feastparam,epsout,loop,Emid,r,M0,lambda,q,mode,res,info);
 }
