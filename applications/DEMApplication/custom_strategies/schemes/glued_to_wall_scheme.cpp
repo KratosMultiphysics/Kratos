@@ -68,18 +68,19 @@ namespace Kratos {
 
         for (int i=0; i<3; i++) {
             noalias(r[i]) = mCondition->GetGeometry()[i] - inner_point;
-            matrix_a(i,0)   =  0.0;
-            matrix_a(i,1)   =  r[i][2];
-            matrix_a(i,2)   = -r[i][1];
-            matrix_a(i+1,0) =  r[i][2];
-            matrix_a(i+1,1) =  0.0;
-            matrix_a(i+1,2) =  r[i][0];
-            matrix_a(i+2,0) =  r[i][1];
-            matrix_a(i+2,1) = -r[i][0];
-            matrix_a(i+2,2) =  0.0;
-            vector_b[i]   = mCondition->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[0] - velocity_of_inner_point[0];
-            vector_b[i+1] = mCondition->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[1] - velocity_of_inner_point[1];
-            vector_b[i+2] = mCondition->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[2] - velocity_of_inner_point[2];
+            matrix_a(3*i,0)   =  0.0;
+            matrix_a(3*i,1)   =  r[i][2];
+            matrix_a(3*i,2)   = -r[i][1];
+            matrix_a(3*i+1,0) = -r[i][2];
+            matrix_a(3*i+1,1) =  0.0;
+            matrix_a(3*i+1,2) =  r[i][0];
+            matrix_a(3*i+2,0) =  r[i][1];
+            matrix_a(3*i+2,1) = -r[i][0];
+            matrix_a(3*i+2,2) =  0.0;
+	    array_1d<double, 3>& velocity_of_node_i = mCondition->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+            vector_b[3*i]   = velocity_of_node_i[0] - velocity_of_inner_point[0];
+            vector_b[3*i+1] = velocity_of_node_i[1] - velocity_of_inner_point[1];
+            vector_b[3*i+2] = velocity_of_node_i[2] - velocity_of_inner_point[2];
         }
 
         BoundedMatrix<double,3,9>  trans_matrix_a = trans(matrix_a);
@@ -90,9 +91,8 @@ namespace Kratos {
         //BoundedMatrix<double,3,3> inverse_new_lhs;
         Matrix inverse_new_lhs(3,3);
         MathUtils<double>::InvertMatrix3(new_lhs, inverse_new_lhs, det);
-        array_1d<double, 3> angular_velocity;
+        array_1d<double, 3>&  angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         noalias(angular_velocity) = prod(inverse_new_lhs, new_rhs);
-        noalias(i.FastGetSolutionStepValue(ANGULAR_VELOCITY)) = angular_velocity;
         array_1d<double, 3> linear_vel_of_sphere_due_to_rotation;
         MathUtils<double>::CrossProduct(linear_vel_of_sphere_due_to_rotation, angular_velocity, mCurrentNormalToWall);
         noalias(i.FastGetSolutionStepValue(VELOCITY)) = velocity_of_inner_point + linear_vel_of_sphere_due_to_rotation;
