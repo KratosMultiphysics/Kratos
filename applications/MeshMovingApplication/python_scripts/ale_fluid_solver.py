@@ -140,6 +140,8 @@ class AleFluidSolver(PythonSolver):
         else:
             # SubModelParts of the Fluid-ModelPart are used in the Mesh-Solver
             # each SubModelPart has its own mesh-solver
+            # Note that these solvers do NOT need to call AddVariables and AddDofs
+            # since this is done already for the MainModelPart
             for i_name in range(mesh_motion_parts_params.size()):
                 sub_model_part_name = mesh_motion_parts_params[i_name].GetString()
                 if sub_model_part_name == main_model_part_name:
