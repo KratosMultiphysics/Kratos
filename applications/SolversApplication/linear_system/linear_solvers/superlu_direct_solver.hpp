@@ -27,6 +27,9 @@ extern "C"{
 namespace Kratos
 {
 
+///@name Kratos Classes
+///@{
+
 template< class TSparseSpaceType, class TDenseSpaceType, class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType> >
 class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceType, TReordererType>
 {
@@ -65,7 +68,7 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
   SuperLUDirectSolver() {}
 
   /// Default constructor.
-  SuperLUDirectSolver(Parameters settings): BaseType(settings)
+  SuperLUDirectSolver(Parameters settings) : BaseType(settings)
   {
     KRATOS_TRY
 
@@ -81,7 +84,7 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
     //now validate agains defaults -- this also ensures no type mismatch
     settings.ValidateAndAssignDefaults(default_parameters);
 
-    mEchoLevel    = settings["verbosity"].GetInt();
+    mEchoLevel = settings["verbosity"].GetInt();
 
     KRATOS_CATCH("")
   }
@@ -108,7 +111,15 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
   ///@name Operations
   ///@{
 
-
+  /// Solve
+  /**
+   * Normal solve method.
+   * Solves the linear system Ax=b and puts the result on SystemVector& rX.
+   * rX is also th initial guess for iterative methods.
+   * @param rA. System matrix
+   * @param rX. Solution vector.
+   * @param rB. Right hand side vector.
+   */
   bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
   {
     // double start_define = OpenMPUtils::GetCurrentTime();
@@ -241,13 +252,13 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
   /// Turn back information as a string.
   std::string Info() const override
   {
-    return "SuperLUDirectSolver";
+    return "SuperLU direct solver";
   }
 
   /// Print information about this object.
   void PrintInfo(std::ostream& rOStream) const override
   {
-    rOStream << "SuperLUDirectSolver";
+    rOStream << "SuperLU direct solver";
   }
 
   /// Print object's data.
