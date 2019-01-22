@@ -133,8 +133,7 @@ public:
     template<class TVariableType>
     Dof(IndexType NodeId, NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
-        : mId(NodeId),
-          mIsFixed(false),
+        : mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
@@ -177,8 +176,7 @@ public:
     Dof(IndexType NodeId, NodalData* pThisNodalData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
-        : mId(NodeId),
-          mIsFixed(false),
+        : mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
@@ -197,8 +195,7 @@ public:
 
     //This default constructor is needed for pointer vector set
     Dof()
-        : mId(0),
-          mIsFixed(false),
+        : mIsFixed(false),
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
@@ -210,8 +207,7 @@ public:
 
     /// Copy constructor.
     Dof(Dof const& rOther)
-        : mId(rOther.mId),
-          mIsFixed(rOther.mIsFixed),
+        : mIsFixed(rOther.mIsFixed),
           mVariableType(rOther.mVariableType),
           mReactionType(rOther.mReactionType),
           mEquationId(rOther.mEquationId),
@@ -233,7 +229,6 @@ public:
     /// Assignment operator.
     Dof& operator=(Dof const& rOther)
     {
-        mId = rOther.mId;
         mIsFixed = rOther.mIsFixed;
         mEquationId = rOther.mEquationId;
         mpNodalData = rOther.mpNodalData;
@@ -328,17 +323,17 @@ public:
 
     IndexType Id() const
     {
-        return mId;
+        return mpNodalData->GetId();
     }
 
     IndexType GetId() const
     {
-        return mId;
+        return mpNodalData->GetId();
     }
 
     void SetId(IndexType NewId)
     {
-        mId = NewId;
+        mpNodalData->SetId(NewId);
     }
 
     /** Returns variable assigned to this degree of freedom. */
@@ -487,8 +482,6 @@ private:
     ///@{
 
 
-    IndexType mId;
-
     /** True is is fixed */
     int mIsFixed : 1;
 
@@ -558,7 +551,6 @@ private:
 
     void save(Serializer& rSerializer) const 
     {
-        rSerializer.save("Id",mId);
         rSerializer.save("Is Fixed", mIsFixed);
         rSerializer.save("Equation Id", mEquationId);
         rSerializer.save("Nodal Data", mpNodalData);
@@ -571,7 +563,6 @@ private:
     void load(Serializer& rSerializer) 
     {
         std::string name;
-        rSerializer.load("Id",mId);
         bool is_fixed;
         rSerializer.load("Is Fixed", is_fixed);
         mIsFixed=is_fixed;
