@@ -118,7 +118,6 @@ public:
         , mNodalData(0)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
         , mNodeLock()
@@ -142,7 +141,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
         , mNodeLock()
@@ -160,7 +158,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition(NewX)
 #ifdef _OPENMP
         , mNodeLock()
@@ -180,7 +177,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY)
 #ifdef _OPENMP
         , mNodeLock()
@@ -200,7 +196,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition(NewX, NewY, NewZ)
 #ifdef _OPENMP
         , mNodeLock()
@@ -223,7 +218,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition(rThisPoint)
 #ifdef _OPENMP
         , mNodeLock()
@@ -258,7 +252,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition(rOtherCoordinates)
 #ifdef _OPENMP
         , mNodeLock()
@@ -284,7 +277,6 @@ public:
         , mNodalData(NewId)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData()
         , mInitialPosition()
 #ifdef _OPENMP
         , mNodeLock()
@@ -304,10 +296,9 @@ public:
     Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : BaseType(NewX, NewY, NewZ)
         , Flags()
-        , mNodalData(NewId)
+        , mNodalData(NewId, pVariablesList,ThisData,NewQueueSize)
         , mDofs()
         , mData()
-        , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
         , mInitialPosition(NewX, NewY, NewZ)
 #ifdef _OPENMP
         , mNodeLock()
@@ -322,7 +313,7 @@ public:
     typename Node<TDimension>::Pointer Clone()
     {
         Node<3>::Pointer p_new_node = Kratos::make_shared<Node<3> >( this->Id(), (*this)[0], (*this)[1], (*this)[2]);
-        p_new_node->mSolutionStepsNodalData = this->mSolutionStepsNodalData;
+        p_new_node->mNodalData = this->mNodalData;
 
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
         for (typename DofsContainerType::const_iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
@@ -407,7 +398,6 @@ public:
         }
 
         mData = rOther.mData;
-        mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
 
         return *this;
@@ -428,7 +418,6 @@ public:
         }
 
         mData = rOther.mData;
-        mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
         mInitialPosition = rOther.mInitialPosition;
 
         return *this;
@@ -486,37 +475,37 @@ public:
 
     void CreateSolutionStepData()
     {
-        mSolutionStepsNodalData.PushFront();
+        SolutionStepData().PushFront();
     }
 
     void CloneSolutionStepData()
     {
-        mSolutionStepsNodalData.CloneFront();
+        SolutionStepData().CloneFront();
     }
 
     void OverwriteSolutionStepData(IndexType SourceSolutionStepIndex, IndexType DestinationSourceSolutionStepIndex)
     {
-        mSolutionStepsNodalData.AssignData(mSolutionStepsNodalData.Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
+        SolutionStepData().AssignData(SolutionStepData().Data(SourceSolutionStepIndex), DestinationSourceSolutionStepIndex);
     }
 
     void ClearSolutionStepsData()
     {
-        mSolutionStepsNodalData.Clear();
+        SolutionStepData().Clear();
     }
 
     void SetSolutionStepVariablesList(VariablesList* pVariablesList)
     {
-        mSolutionStepsNodalData.SetVariablesList(pVariablesList);
+        SolutionStepData().SetVariablesList(pVariablesList);
     }
 
     VariablesListDataValueContainer& SolutionStepData()
     {
-        return mSolutionStepsNodalData;
+        return mNodalData.GetSolutionStepData();
     }
 
     const VariablesListDataValueContainer& SolutionStepData() const
     {
-        return mSolutionStepsNodalData;
+        return mNodalData.GetSolutionStepData();
     }
 
     DataValueContainer& Data()
@@ -531,32 +520,32 @@ public:
 
     template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable)
     {
-        return mSolutionStepsNodalData.GetValue(rThisVariable);
+        return SolutionStepData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable) const
     {
-        return mSolutionStepsNodalData.GetValue(rThisVariable);
+        return SolutionStepData().GetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
-        return mSolutionStepsNodalData.GetValue(rThisVariable, SolutionStepIndex);
+        return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
     template<class TVariableType> typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
-        return mSolutionStepsNodalData.GetValue(rThisVariable, SolutionStepIndex);
+        return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
 
     template<class TDataType> bool SolutionStepsDataHas(const Variable<TDataType>& rThisVariable) const
     {
-        return mSolutionStepsNodalData.Has(rThisVariable);
+        return SolutionStepData().Has(rThisVariable);
     }
     template<class TAdaptorType> bool SolutionStepsDataHas(const VariableComponent<TAdaptorType>& rThisVariable) const
     {
-        return mSolutionStepsNodalData.Has(rThisVariable);
+        return SolutionStepData().Has(rThisVariable);
     }
 
     //*******************************************************************************************
@@ -564,32 +553,32 @@ public:
     //very similar to the one before BUT throws an error if the variable does not exist
     template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable)
     {
-        return mSolutionStepsNodalData.FastGetValue(rThisVariable);
+        return SolutionStepData().FastGetValue(rThisVariable);
     }
 
     template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable) const
     {
-        return mSolutionStepsNodalData.FastGetValue(rThisVariable);
+        return SolutionStepData().FastGetValue(rThisVariable);
     }
 
     template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
-        return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex);
+        return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
     template<class TVariableType> const typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
-        return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex);
+        return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex);
     }
 
     template<class TVariableType> typename TVariableType::Type& FastGetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex, IndexType ThisPosition)
     {
-        return mSolutionStepsNodalData.FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
+        return SolutionStepData().FastGetValue(rThisVariable, SolutionStepIndex, ThisPosition);
     }
 
     template<class TVariableType> typename TVariableType::Type& FastGetCurrentSolutionStepValue(const TVariableType& rThisVariable, IndexType ThisPosition)
     {
-        return mSolutionStepsNodalData.FastGetCurrentValue(rThisVariable, ThisPosition);
+        return SolutionStepData().FastGetCurrentValue(rThisVariable, ThisPosition);
     }
 //*******************************************************************************************
 
@@ -606,7 +595,7 @@ public:
     template<class TVariableType> typename TVariableType::Type& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex)
     {
         if(!mData.Has(rThisVariable))
-            return mSolutionStepsNodalData.GetValue(rThisVariable, SolutionStepIndex);
+            return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
 
         return mData.GetValue(rThisVariable);
     }
@@ -614,7 +603,7 @@ public:
     template<class TVariableType> typename TVariableType::Type const& GetValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex) const
     {
         if(!mData.Has(rThisVariable))
-            return mSolutionStepsNodalData.GetValue(rThisVariable, SolutionStepIndex);
+            return SolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
 
         return mData.GetValue(rThisVariable);
     }
@@ -680,12 +669,12 @@ public:
 
     IndexType GetBufferSize() const
     {
-        return mSolutionStepsNodalData.QueueSize();
+        return SolutionStepData().QueueSize();
     }
 
     void SetBufferSize(IndexType NewBufferSize)
     {
-        mSolutionStepsNodalData.Resize(NewBufferSize);
+        SolutionStepData().Resize(NewBufferSize);
     }
 
     ///@}
@@ -743,12 +732,12 @@ public:
 
     VariablesList * pGetVariablesList()
     {
-        return mSolutionStepsNodalData.pGetVariablesList();
+        return SolutionStepData().pGetVariablesList();
     }
 
     const VariablesList * pGetVariablesList() const
     {
-        return mSolutionStepsNodalData.pGetVariablesList();
+        return SolutionStepData().pGetVariablesList();
     }
 
     ///@}
@@ -848,7 +837,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -871,7 +860,7 @@ public:
             {
                 *it_dof = SourceDof;
                 it_dof->SetId(Id());
-                it_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+                it_dof->SetNodalData(&mNodalData);
             }
             return *(it_dof.base());
         }
@@ -881,7 +870,7 @@ public:
 
         p_new_dof->SetId(Id());
 
-        p_new_dof->SetSolutionStepsData(&mSolutionStepsNodalData);
+        p_new_dof->SetNodalData(&mNodalData);
 
         mDofs.Sort();
 
@@ -914,7 +903,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -945,7 +934,7 @@ public:
             return *it_dof;
         }
             
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -981,7 +970,7 @@ public:
             return *it_dof;
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mSolutionStepsNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -1036,8 +1025,6 @@ public:
             rOStream << std::endl << "    Dofs :" << std::endl;
         for(typename DofsContainerType::const_iterator i = mDofs.begin() ; i != mDofs.end() ; i++)
             rOStream << "        " << i->Info() << std::endl;
-// 	  rOStream << "        " << "solution steps  : " << *mSolutionStepsNodalData;
-// 	  rOStream << "        " << "solution steps capacity : " << mSolutionStepsNodalData.GetContainer().capacity();
     }
 
 
@@ -1102,7 +1089,6 @@ private:
     /** A pointer to data related to this node. */
     DataValueContainer mData;
 
-    SolutionStepsNodalDataContainerType mSolutionStepsNodalData;
 
     ///Initial Position of the node
     PointType mInitialPosition;
@@ -1133,9 +1119,6 @@ private:
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("NodalData", mNodalData);
         rSerializer.save("Data", mData);
-        const SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
-        // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
-        rSerializer.save("Solution Steps Nodal Data", pSolutionStepsNodalData);
         rSerializer.save("Initial Position", mInitialPosition);
         rSerializer.save("Data", mDofs);
 
@@ -1147,8 +1130,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("NodalData", mNodalData);
         rSerializer.load("Data", mData);
-        SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
-        rSerializer.load("Solution Steps Nodal Data", pSolutionStepsNodalData);
         rSerializer.load("Initial Position", mInitialPosition);
         rSerializer.load("Data", mDofs);
     }
