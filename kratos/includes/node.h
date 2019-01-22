@@ -31,7 +31,6 @@
 #include "includes/dof.h"
 #include "containers/pointer_vector_set.h"
 #include "containers/variables_list_data_value_container.h"
-#include "utilities/indexed_object.h"
 #include "containers/flags.h"
 
 #include "containers/weak_pointer_vector.h"
@@ -70,7 +69,7 @@ class Element;
 /** The node class from Kratos is defined in this class
 */
 template<std::size_t TDimension, class TDofType = Dof<double> >
-class Node : public Point,  public IndexedObject, public Flags
+class Node : public Point, public Flags
 {
     class GetDofKey : public std::unary_function<TDofType, VariableData::KeyType>
     {
@@ -115,7 +114,6 @@ public:
     /// Default constructor.
     Node()
         : BaseType()
-        , IndexedObject(0)
         , Flags()
         , mNodalData(0)
         , mDofs()
@@ -140,7 +138,6 @@ public:
 
     Node(IndexType NewId )
         : BaseType()
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -159,7 +156,6 @@ public:
     /// 1d constructor.
     Node(IndexType NewId, double const& NewX)
         : BaseType(NewX)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -180,7 +176,6 @@ public:
     /// 2d constructor.
     Node(IndexType NewId, double const& NewX, double const& NewY)
         : BaseType(NewX, NewY)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -201,7 +196,6 @@ public:
     /// 3d constructor.
     Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ)
         : BaseType(NewX, NewY, NewZ)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -225,7 +219,6 @@ public:
     /// Point constructor.
     Node(IndexType NewId, PointType const& rThisPoint)
         : BaseType(rThisPoint)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -261,7 +254,6 @@ public:
     template<class TVectorType>
     Node(IndexType NewId, vector_expression<TVectorType> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -288,7 +280,6 @@ public:
     this point with the coordinates in the array. */
     Node(IndexType NewId, std::vector<double> const&  rOtherCoordinates)
         : BaseType(rOtherCoordinates)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -312,7 +303,6 @@ public:
     /// 3d with variables list and data constructor.
     Node(IndexType NewId, double const& NewX, double const& NewY, double const& NewZ, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1)
         : BaseType(NewX, NewY, NewZ)
-        , IndexedObject(NewId)
         , Flags()
         , mNodalData(NewId)
         , mDofs()
@@ -356,9 +346,19 @@ public:
 #endif
     }
 
-    void SetId(IndexType NewId) override
+    IndexType Id() const
     {
-        IndexedObject::SetId(NewId);
+        return mNodalData.Id();
+    }
+
+    IndexType GetId() const
+    {
+        return mNodalData.Id();
+    }
+
+    void SetId(IndexType NewId)
+    {
+        mNodalData.SetId(NewId);
         Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
         for(Node<3>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
         {
@@ -397,7 +397,6 @@ public:
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
-        IndexedObject::operator=(rOther);
 
         mNodalData = rOther.mNodalData;
 
@@ -420,7 +419,6 @@ public:
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
-        IndexedObject::operator=(rOther);
 
         mNodalData = rOther.mNodalData;
 
@@ -1132,8 +1130,8 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        rSerializer.save("NodalData", mNodalData);
         rSerializer.save("Data", mData);
         const SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
         // I'm saving it as pointer so the dofs pointers will point to it as stored pointer. Pooyan.
@@ -1146,8 +1144,8 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Point );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
+        rSerializer.load("NodalData", mNodalData);
         rSerializer.load("Data", mData);
         SolutionStepsNodalDataContainerType* pSolutionStepsNodalData = &mSolutionStepsNodalData;
         rSerializer.load("Solution Steps Nodal Data", pSolutionStepsNodalData);

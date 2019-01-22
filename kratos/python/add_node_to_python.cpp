@@ -143,7 +143,7 @@ void  AddNodeToPython(pybind11::module& m)
     py::class_<Dof<double>, Dof<double>::Pointer>(m,"Dof")
     ;
 
-    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, IndexedObject, Flags > NodeBinderType;
+    typedef  py::class_<NodeType, NodeType::Pointer, NodeType::BaseType, Flags > NodeBinderType;
     NodeBinderType node_binder(m,"Node");
     node_binder.def(py::init<NodeType::IndexType, double, double, double>());
     node_binder.def(py::init<NodeType::IndexType, const Point& >());
