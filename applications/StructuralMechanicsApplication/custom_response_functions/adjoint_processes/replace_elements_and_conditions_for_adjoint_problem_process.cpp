@@ -19,6 +19,7 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_base_condition.h"
 #include "custom_response_functions/adjoint_conditions/adjoint_semi_analytic_point_load_condition.h"
 
@@ -117,6 +118,12 @@ namespace Kratos
 
                     (*it.base()) = p_element;
                 }
+                else if (element_name == "AdjointFiniteDifferenceSmallDisplacementElement")
+                {
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferenceSmallDisplacementElement>(*it.base() );
+
+                    (*it.base()) = p_element;
+                }
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
             }
@@ -206,6 +213,10 @@ namespace Kratos
             rName = "AdjointFiniteDifferenceTrussElement";
         else if(name_current_element == "TrussLinearElement3D2N")
             rName = "AdjointFiniteDifferenceTrussLinearElement";
+        else if(name_current_element == "SmallDisplacementElement3D4N")
+            rName = "AdjointFiniteDifferenceSmallDisplacementElement";
+        else if(name_current_element == "SmallDisplacementElement3D6N")
+            rName = "AdjointFiniteDifferenceSmallDisplacementElement";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
@@ -234,6 +245,8 @@ namespace Kratos
             replacement_necessary = false;
         else if(name_current_condition == "ShapeOptimizationCondition3D4N")
             replacement_necessary = false;
+        else if(name_current_condition == "SurfaceLoadCondition3D3N")
+            replacement_necessary = false; //TODO not true, should be implemented!
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_condition <<

@@ -149,6 +149,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mAdjointFiniteDifferenceCrBeamElement(),
       mAdjointFiniteDifferenceTrussElement(),
       mAdjointFiniteDifferenceTrussLinearElement(),
+      mAdjointFiniteDifferenceSmallDisplacementElement(),
 
       /* CONDITIONS */
       // Adding point load conditions
@@ -511,6 +512,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceCrBeamElement", mAdjointFiniteDifferenceCrBeamElement )
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussElement", mAdjointFiniteDifferenceTrussElement)
     KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceTrussLinearElement", mAdjointFiniteDifferenceTrussLinearElement)
+    KRATOS_REGISTER_ELEMENT("AdjointFiniteDifferenceSmallDisplacementElement", mAdjointFiniteDifferenceSmallDisplacementElement)
 
     // Register the conditions
     // Point loads
