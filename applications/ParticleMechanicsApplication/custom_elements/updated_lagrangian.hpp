@@ -504,11 +504,6 @@ protected:
     double mDeterminantF0;
 
     /**
-     * Container for the total Jacobian determinants
-     */
-    double mDeterminantJ0;
-
-    /**
      * Container for constitutive law instances on each integration point
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;

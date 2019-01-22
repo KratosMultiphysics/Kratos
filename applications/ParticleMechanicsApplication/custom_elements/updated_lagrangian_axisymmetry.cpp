@@ -725,8 +725,6 @@ void UpdatedLagrangianAxisymmetry::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("DeterminantJ0",mDeterminantJ0);
-
 }
 
 void UpdatedLagrangianAxisymmetry::load( Serializer& rSerializer )
@@ -735,7 +733,6 @@ void UpdatedLagrangianAxisymmetry::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 
 } // Namespace Kratos

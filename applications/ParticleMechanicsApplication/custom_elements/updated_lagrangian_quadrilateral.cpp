@@ -68,7 +68,6 @@ UpdatedLagrangianQuadrilateral::UpdatedLagrangianQuadrilateral( UpdatedLagrangia
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mDeterminantJ0(rOther.mDeterminantJ0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     ,mFinalizedStep(rOther.mFinalizedStep)
 {
@@ -85,7 +84,6 @@ UpdatedLagrangianQuadrilateral&  UpdatedLagrangianQuadrilateral::operator=(Updat
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
 
     mDeterminantF0 = rOther.mDeterminantF0;
-    mDeterminantJ0 = rOther.mDeterminantJ0;
     mConstitutiveLawVector = rOther.mConstitutiveLawVector;
 
     return *this;
@@ -111,7 +109,6 @@ Element::Pointer UpdatedLagrangianQuadrilateral::Clone( IndexType NewId, NodesAr
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
 
     NewElement.mDeterminantF0 = mDeterminantF0;
-    NewElement.mDeterminantJ0 = mDeterminantJ0;
 
     return Element::Pointer( new UpdatedLagrangianQuadrilateral(NewElement) );
 }
@@ -1827,8 +1824,6 @@ void UpdatedLagrangianQuadrilateral::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("DeterminantJ0",mDeterminantJ0);
-
 }
 
 void UpdatedLagrangianQuadrilateral::load( Serializer& rSerializer )
@@ -1837,7 +1832,6 @@ void UpdatedLagrangianQuadrilateral::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 
 
