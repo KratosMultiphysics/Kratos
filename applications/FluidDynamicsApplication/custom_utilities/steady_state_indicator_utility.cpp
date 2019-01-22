@@ -35,25 +35,39 @@ namespace Kratos {
             mChangeInPressure += this->NodalPressureChange((*inode)) * NodalArea;
             DomainArea += NodalArea;
         }
-        //std::cout << "mChangeInVelocity" << mChangeInVelocity << std::endl;
         mChangeInVelocity = mChangeInVelocity / DomainArea;
         mChangeInPressure = mChangeInPressure / DomainArea;
     }
     
     double SteadyStateIndicatorUtility::NodalVelocityChange(ModelPart::NodeType& inode){
-        array_1d<double, 3 > prev_ave_vel = inode.FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY,2);
-        array_1d<double, 3 > averaged_vel = inode.FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
-        double NodalChangeInVelocity = 0.0;
+        array_1d<double, 3 > prev_ave_vel = inode.FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY,1);
+        array_1d<double, 3 > curr_ave_vel = inode.FastGetSolutionStepValue(TIME_AVERAGED_VELOCITY);
+        double change_in_percentage = 0.0;
+        double prev_velocity_magnitude = 0.0;
+        double curr_velocity_magnitude = 0.0;
+
         for (int i = 0; i<3; ++i){
-            NodalChangeInVelocity += (averaged_vel[i]-prev_ave_vel[i])*(averaged_vel[i]-prev_ave_vel[i]);}
-        NodalChangeInVelocity = sqrt(NodalChangeInVelocity);
-        return NodalChangeInVelocity;
+            prev_velocity_magnitude += sqrt(prev_ave_vel[i]*prev_ave_vel[i]);
+            curr_velocity_magnitude += sqrt(curr_ave_vel[i]*curr_ave_vel[i]);
+        }
+
+        if (prev_velocity_magnitude == 0.0)
+            change_in_percentage = 0.0;
+        else
+            change_in_percentage = sqrt((curr_velocity_magnitude - prev_velocity_magnitude)*(curr_velocity_magnitude - prev_velocity_magnitude))/fabs(prev_velocity_magnitude);
+        
+        return change_in_percentage;
     }
 
     double SteadyStateIndicatorUtility::NodalPressureChange(ModelPart::NodeType& inode){
-        double prev_ave_p = inode.FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE,2);
-        double averaged_p = inode.FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE);
-        return sqrt((averaged_p - prev_ave_p)*(averaged_p - prev_ave_p));
+        double prev_ave_p = inode.FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE,1);
+        double curr_ave_p = inode.FastGetSolutionStepValue(TIME_AVERAGED_PRESSURE);
+        double change_in_percentage = 0.0;
+        if (prev_ave_p == 0.0)
+            change_in_percentage = 0.0;
+        else
+            change_in_percentage = sqrt((curr_ave_p - prev_ave_p)*(curr_ave_p - prev_ave_p))/fabs(prev_ave_p);
+        return change_in_percentage;
     }
 
 }
