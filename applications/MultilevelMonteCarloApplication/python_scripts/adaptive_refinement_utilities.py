@@ -1,17 +1,10 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-from copy import copy
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.MeshingApplication as MeshingApplication
-
-# Import cpickle to pickle the serializer
-try:
-    import cpickle as pickle  # Use cPickle on Python 2.7
-except ImportError:
-    import pickle
 
 
 '''

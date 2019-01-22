@@ -1,19 +1,20 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
-import time
-import copy
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 
 # Importing the base class
 from analysis_stage import AnalysisStage
+
+# Import packages
+import numpy as np
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
@@ -24,8 +25,8 @@ get_value_from_remote is the equivalent of compss_wait_on: a synchronization poi
 in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
 '''
 
-# Import variables class
-from cmlmc_utilities import StatisticalVariable
+# Import Monte Carlo library
+import mc_utilities as mc
 
 # Import cpickle to pickle the serializer
 try:
@@ -36,15 +37,12 @@ except ImportError:
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
 
-'''This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+'''
+This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
 -lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
                     f= -432*(x**2+y**2-x-y)
 where xi is a Beta(2,6) random variable, and computes statistic of the QoI
 Q = int_(0,1)^2 u(x,y)dxdy
-more details in Section 5.2 of [PKN17]
-
-References:
-[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
 '''
 class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''
@@ -111,7 +109,7 @@ output:
         QoI         : Quantity of Interest
 '''
 @ExaquteTask(returns=1)
-def ExecuteMonteCarlo_Task(pickled_model, pickled_parameters):
+def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -139,7 +137,7 @@ output:
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
 @ExaquteTask(returns=1)
-def ExecuteExactMonteCarlo_Task(pickled_model, pickled_parameters):
+def ExecuteExactMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -226,6 +224,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     # pickle dataserialized_data
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
+    print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
     return pickled_model, pickled_parameters
 
 
@@ -244,60 +243,38 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 
 
 if __name__ == '__main__':
-    from sys import argv
-
-    if len(argv) > 2:
-        err_msg = 'Too many input arguments!\n'
-        err_msg += 'Use this script in the following way:\n'
-        err_msg += '- With default parameter file (assumed to be called "ProjectParameters.json"):\n'
-        err_msg += '    "python montecarlo_analysis.py"\n'
-        err_msg += '- With custom parameter file:\n'
-        err_msg += '    "python3 montecarlo_analysis.py <my-parameter-file>.json"\n'
-        raise Exception(err_msg)
-
-    start_time = time.time()
-
-    if len(argv) == 2: # ProjectParameters is being passed from outside
-        parameter_file_name = argv[1]
-    else: # using default name
-        parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
-
+    '''set the ProjectParameters.json path'''
+    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
-    print("\n############## Serialization completed ##############\n")
-
     '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactMonteCarlo_Task(pickled_model,pickled_parameters)
+    ExactExpectedValueQoI = ExecuteExactMonteCarloAnalysis_Task(pickled_model,pickled_parameters)
+    '''customize setting parameters of the ML simulation'''
+    settings_MC_simulation = KratosMultiphysics.Parameters("""
+    {
+        "tolerance" : 0.1,
+        "cphi" : 5e-1,
+        "batch_size" : 20,
+        "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+    }
+    """)
+    '''contruct MonteCarlo class'''
+    mc_class = mc.MonteCarlo(settings_MC_simulation)
+    '''start MC algorithm'''
+    while mc_class.convergence is not True:
+        mc_class.InitializeMCPhase()
+        mc_class.ScreeningInfoInitializeMCPhase()
+        for instance in range (mc_class.difference_number_samples[0]):
+            mc_class.AddResults(ExecuteMonteCarloAnalysis_Task(pickled_model,pickled_parameters))
+        mc_class.FinalizeMCPhase()
+        mc_class.ScreeningInfoFinalizeMCPhase()
 
-    number_samples = 10
-
-    QoI = StatisticalVariable(0) # number of levels = 0 (we only have one level), needed using this class
-    '''to exploit StatisticalVariable UpdateOnePassMeanVariance function we need to initialize a level 0 in values, mean, sample variance and second moment
-    and store in this level the informations'''
-    QoI.values = [[] for i in range (1)]
-    QoI.mean = [[] for i in range (1)]
-    QoI.second_moment = [[] for i in range (1)]
-    QoI.sample_variance = [[] for i in range (1)]
-    for instance in range (0,number_samples):
-        QoI.values[0].append(ExecuteMonteCarlo_Task(pickled_model,pickled_parameters))
-
-    '''Compute mean, second moment and sample variance'''
-    for i_sample in range (0,number_samples):
-        QoI.UpdateOnepassMeanVariance(0,i_sample)
-    '''Evaluation of the relative error between the computed mean value and the expected value of the QoI'''
-    relative_error = CompareMean_Task(QoI.mean[0],ExactExpectedValueQoI)
-    # QoI = get_value_from_remote(QoI)
-    for i in range(len(QoI.values[0])):
-        QoI.values[0][i] = get_value_from_remote(QoI.values[0][i])
-    QoI_mean = get_value_from_remote(QoI.mean[0])
+    mc_class.QoI.mean = get_value_from_remote(mc_class.QoI.mean)
     ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
-    relative_error = get_value_from_remote(relative_error)
-    # print("values MC = ",QoI.values[0])
-    print("MC mean = ",QoI_mean,"exact mean = ",ExactExpectedValueQoI)
-    print("relative error: ",relative_error)
+    print("\nMC mean = ",mc_class.QoI.mean,"exact mean = ",ExactExpectedValueQoI)
+    relative_error = (mc_class.QoI.mean[0]-ExactExpectedValueQoI)/ExactExpectedValueQoI
+    print("relative error = ",relative_error)
 
-    end_time = time.time()
-    print("total time Monte Carlo simulation = ", end_time - start_time)
 
     ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
     Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
