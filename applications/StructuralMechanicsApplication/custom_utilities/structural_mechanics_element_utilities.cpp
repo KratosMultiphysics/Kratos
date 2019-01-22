@@ -133,7 +133,7 @@ double CalculateCurrentLength2D2N(const Element& rElement) {
   const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy));
 
   KRATOS_ERROR_IF(l < numerical_limit)
-   << "Current Length of element " << rElement.Id() << " ~0" << std::endl;
+   << "Current length of element " << rElement.Id() << " ~0" << std::endl;
   return l;
   KRATOS_CATCH("")
 }
@@ -146,7 +146,7 @@ double CalculateReferenceLength2D2N(const Element& rElement) {
   const double L = std::sqrt((dx * dx) + (dy * dy));
 
   KRATOS_ERROR_IF(L < numerical_limit)
-   << "Reference Length of element " << rElement.Id() << " ~0" << std::endl;
+   << "Reference length of element " << rElement.Id() << " ~0" << std::endl;
   return L;
   KRATOS_CATCH("")
 }
@@ -162,7 +162,7 @@ double CalculateReferenceLength3D2N(const Element& rElement) {
   const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
 
   KRATOS_ERROR_IF(L<=numerical_limit)
-   << "Reference Length of element " << rElement.Id() << " ~0" << std::endl;
+   << "Reference length of element " << rElement.Id() << " ~0" << std::endl;
   return L;
   KRATOS_CATCH("")
 }
@@ -187,7 +187,7 @@ double CalculateCurrentLength3D2N(const Element& rElement) {
                              (dw + dz) * (dw + dz));
 
   KRATOS_ERROR_IF(l<=numerical_limit)
-   << "Current Length of element " << rElement.Id() << " ~0" << std::endl;
+   << "Current length of element " << rElement.Id() << " ~0" << std::endl;
   return l;
   KRATOS_CATCH("")
 }
