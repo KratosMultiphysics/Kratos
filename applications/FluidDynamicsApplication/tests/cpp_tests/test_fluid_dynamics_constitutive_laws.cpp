@@ -32,6 +32,7 @@
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 namespace Kratos {
 	namespace Testing {
