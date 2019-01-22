@@ -218,7 +218,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
 
     def Initialize(self):
         # Check that the reactions are computed in the Dirichlet side
-        (self.fluid_thermal_solver).settings["compute_reactions"].GetBool() == False:
+        if (self.fluid_thermal_solver).settings["compute_reactions"].GetBool() == False:
             (self.fluid_thermal_solver).settings["compute_reactions"].SetBool(True)
 
         # Initialize the fluid and solid solvers
