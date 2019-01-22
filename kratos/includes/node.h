@@ -125,7 +125,6 @@ public:
     {
 
         CreateSolutionStepData();
-// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -202,7 +201,6 @@ public:
 #endif
     {
         CreateSolutionStepData();
-// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -225,7 +223,6 @@ public:
     {
 
         CreateSolutionStepData();
-// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -259,7 +256,6 @@ public:
     {
 
         CreateSolutionStepData();
-// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -283,7 +279,6 @@ public:
 #endif
     {
         CreateSolutionStepData();
-// 	mDofs.SetMaxBufferSize(0);
 
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
@@ -304,7 +299,6 @@ public:
         , mNodeLock()
 #endif
     {
-// 	mDofs.SetMaxBufferSize(0);
 #ifdef _OPENMP
         omp_init_lock(&mNodeLock);
 #endif
@@ -350,11 +344,6 @@ public:
     void SetId(IndexType NewId)
     {
         mNodalData.SetId(NewId);
-        Node<3>::DofsContainerType& my_dofs = (this)->GetDofs();
-        for(Node<3>::DofsContainerType::iterator it_dof = my_dofs.begin(); it_dof != my_dofs.end(); it_dof++)
-        {
-            it_dof->SetId(NewId);
-        }
     }
 
 #ifdef _OPENMP
@@ -837,7 +826,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -859,7 +848,6 @@ public:
             if(it_dof->GetReaction() != SourceDof.GetReaction())
             {
                 *it_dof = SourceDof;
-                it_dof->SetId(Id());
                 it_dof->SetNodalData(&mNodalData);
             }
             return *(it_dof.base());
@@ -867,8 +855,6 @@ public:
 
         typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(SourceDof);
         mDofs.insert(mDofs.begin(), p_new_dof);
-
-        p_new_dof->SetId(Id());
 
         p_new_dof->SetNodalData(&mNodalData);
 
@@ -903,7 +889,7 @@ public:
             return *(it_dof.base());
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -934,7 +920,7 @@ public:
             return *it_dof;
         }
             
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
@@ -970,7 +956,7 @@ public:
             return *it_dof;
         }
 
-        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(Id(), &mNodalData, rDofVariable, rDofReaction);
+        typename DofType::Pointer p_new_dof =  Kratos::make_shared<DofType>(&mNodalData, rDofVariable, rDofReaction);
         mDofs.insert(mDofs.begin(), p_new_dof);
 
 //         if(!mDofs.IsSorted())
