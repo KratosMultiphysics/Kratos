@@ -26,9 +26,10 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/data_value_container.h"
-#include "containers/variables_list_data_value_container.h"
+#include "containers/nodal_data.h"
 #include "containers/vector_component_adaptor.h"
 #include "containers/array_1d.h"
+
 
 namespace Kratos
 {
@@ -130,18 +131,18 @@ public:
     @see VariableComponent
     */
     template<class TVariableType>
-    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
+    Dof(IndexType NodeId, NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
         : mId(NodeId),
           mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
-          mpSolutionStepsData(pThisSolutionStepsData),
+          mpNodalData(pThisNodalData),
           mpVariable(&rThisVariable),
           mpReaction(&msNone)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
     }
@@ -173,7 +174,7 @@ public:
     @see VariableComponent
     */
     template<class TVariableType, class TReactionType>
-    Dof(IndexType NodeId, SolutionStepsDataContainerType* pThisSolutionStepsData,
+    Dof(IndexType NodeId, NodalData* pThisNodalData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
         : mId(NodeId),
@@ -181,15 +182,15 @@ public:
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
           mReactionType(DofTrait<TDataType, TReactionType>::Id),
           mEquationId(IndexType()),
-          mpSolutionStepsData(pThisSolutionStepsData),
+          mpNodalData(pThisNodalData),
           mpVariable(&rThisVariable),
           mpReaction(&rThisReaction)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisVariable))
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisVariable))
             << "The Dof-Variable " << rThisVariable.Name() << " is not "
             << "in the list of variables" << std::endl;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(pThisSolutionStepsData->Has(rThisReaction))
+        KRATOS_DEBUG_ERROR_IF_NOT(pThisNodalData->GetSolutionStepData().Has(rThisReaction))
             << "The Reaction-Variable " << rThisReaction.Name() << " is not "
             << "in the list of variables" << std::endl;
     }
@@ -201,7 +202,7 @@ public:
           mVariableType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mReactionType(DofTrait<TDataType, Variable<TDataType> >::Id),
           mEquationId(IndexType()),
-          mpSolutionStepsData(),
+          mpNodalData(),
           mpVariable(&msNone),
           mpReaction(&msNone)
     {
@@ -214,7 +215,7 @@ public:
           mVariableType(rOther.mVariableType),
           mReactionType(rOther.mReactionType),
           mEquationId(rOther.mEquationId),
-          mpSolutionStepsData(rOther.mpSolutionStepsData),
+          mpNodalData(rOther.mpNodalData),
           mpVariable(rOther.mpVariable),
           mpReaction(rOther.mpReaction)
     {
@@ -235,7 +236,7 @@ public:
         mId = rOther.mId;
         mIsFixed = rOther.mIsFixed;
         mEquationId = rOther.mEquationId;
-        mpSolutionStepsData = rOther.mpSolutionStepsData;
+        mpNodalData = rOther.mpNodalData;
         mpVariable = rOther.mpVariable;
         mpReaction = rOther.mpReaction;
         mVariableType = rOther.mVariableType;
@@ -282,86 +283,42 @@ public:
     ///@name Operations
     ///@{
 
-//       TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
-//      {
-//        SolutionStepsDataContainerType::iterator i;
-//        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
-
-
-//        return GetReference(*mpVariable, *i, mVariableType);
-//      }
-
-
-//        TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
-//      {
-//        SolutionStepsDataContainerType::iterator i;
-//        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
-
-
-//        return GetReference(*mpVariable, *i, mVariableType);
-//      }
-
-
-//       template<class TVariableType>
-//                typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
-//      {
-//        SolutionStepsDataContainerType::const_iterator i;
-//        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
-
-
-//        return i->GetValue(rThisVariable);
-//      }
-
-
-//       template<class TVariableType>
-//                typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0) const
-//      {
-//        SolutionStepsDataContainerType::const_iterator i;
-//        if((i = mpSolutionStepsData->find(SolutionStepIndex)) == mpSolutionStepsData->end())
-//          KRATOS_THROW_ERROR(std::invalid_argument, "Solution step index out of range.", "");
-
-
-//        return i->GetValue(rThisVariable);
-//      }
 
 
     TDataType& GetSolutionStepValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(*mpVariable, *mpSolutionStepsData, SolutionStepIndex, mVariableType);
+        return GetReference(*mpVariable, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
 
     TDataType const& GetSolutionStepValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(*mpVariable, *mpSolutionStepsData, SolutionStepIndex, mVariableType);
+        return GetReference(*mpVariable, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mVariableType);
     }
 
 
     template<class TVariableType>
     typename TVariableType::Type& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0)
     {
-        return mpSolutionStepsData->GetValue(rThisVariable, SolutionStepIndex);
+        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
 
     template<class TVariableType>
     typename TVariableType::Type const& GetSolutionStepValue(const TVariableType& rThisVariable, IndexType SolutionStepIndex = 0) const
     {
-        return mpSolutionStepsData->GetValue(rThisVariable, SolutionStepIndex);
+        return mpNodalData->GetSolutionStepData().GetValue(rThisVariable, SolutionStepIndex);
     }
 
 
     TDataType& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0)
     {
-        return GetReference(*mpReaction, *mpSolutionStepsData, SolutionStepIndex, mReactionType);
+        return GetReference(*mpReaction, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
     TDataType const& GetSolutionStepReactionValue(IndexType SolutionStepIndex = 0) const
     {
-        return GetReference(*mpReaction, *mpSolutionStepsData, SolutionStepIndex, mReactionType);
+        return GetReference(*mpReaction, mpNodalData->GetSolutionStepData(), SolutionStepIndex, mReactionType);
     }
 
 
@@ -437,12 +394,12 @@ public:
 
     SolutionStepsDataContainerType* GetSolutionStepsData()
     {
-        return mpSolutionStepsData;
+        return &(mpNodalData->GetSolutionStepData());
     }
 
-    void SetSolutionStepsData(SolutionStepsDataContainerType* pNewSolutionStepsData)
+    void SetNodalData(NodalData* pNewNodalData)
     {
-        mpSolutionStepsData = pNewSolutionStepsData;
+        mpNodalData = pNewNodalData;
     }
 
     bool HasReaction()
@@ -544,8 +501,8 @@ private:
     /** Equation identificator of the degree of freedom */
     EquationIdType mEquationId : 48;
 
-    /** A pointer to solutionsteps data stored in node which is corresponded to this dof */
-    SolutionStepsDataContainerType* mpSolutionStepsData;
+    /** A pointer to nodal data stored in node which is corresponded to this dof */
+    NodalData* mpNodalData;
 
 
     /** Variable of the degree of freedom.
@@ -604,7 +561,7 @@ private:
         rSerializer.save("Id",mId);
         rSerializer.save("Is Fixed", mIsFixed);
         rSerializer.save("Equation Id", mEquationId);
-        rSerializer.save("Solution Steps Data", mpSolutionStepsData);
+        rSerializer.save("Nodal Data", mpNodalData);
         rSerializer.save("Variable", mpVariable->Name());
         rSerializer.save("Reaction", mpReaction->Name());
         rSerializer.save("Variable Type", static_cast<int>(mVariableType));
@@ -621,7 +578,7 @@ private:
         EquationIdType equation_id;
         rSerializer.load("Equation Id", equation_id);
         mEquationId = equation_id;
-        rSerializer.load("Solution Steps Data", mpSolutionStepsData);
+        rSerializer.load("Nodal Data", mpNodalData);
         rSerializer.load("Variable", name);
         mpVariable=KratosComponents<VariableData>::pGet(name);
         rSerializer.load("Reaction", name);
