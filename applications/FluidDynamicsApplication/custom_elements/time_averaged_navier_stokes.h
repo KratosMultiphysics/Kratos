@@ -412,11 +412,6 @@ protected:
         rData.h = ComputeH(rData.DN_DX);
 
         // Database access to all of the variables needed
-        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
-        rData.bdf0 = BDFVector[0];
-        rData.bdf1 = BDFVector[1];
-        rData.bdf2 = BDFVector[2];
-
         rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];     // Only, needed if the temporal dependent term is considered in the subscales
         rData.dt = rCurrentProcessInfo[DELTA_TIME];  // Only, needed if the temporal dependent term is considered in the subscales
         rData.t = rCurrentProcessInfo[TIME];
@@ -435,6 +430,14 @@ protected:
 		const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
         rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
         rData.tnnn = r3PreviousProcessInfo[TIME];
+
+        // BDF coefficients -> time dependent
+        // Define time step size ratios
+        double r = rData.dt / rData.dtn;
+        
+        rData.bdf0 =  1/rData.dt * (1 + 2.0*r) / (1 + r);
+        rData.bdf1 = -1/rData.dt * (1 + r);
+        rData.bdf2 =  1/rData.dt * (r * r) / (1 + r);
 
         // time period considered in the averaging scheme
         // TO DO --> find the way to define the restart time regardless of the problem itself

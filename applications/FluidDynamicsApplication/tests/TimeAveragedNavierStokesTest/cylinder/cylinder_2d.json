@@ -61,11 +61,11 @@
             "time_step"           : 0.5
         },
         "time_averaging_acceleration"        :{
-            "considered_time"           : 100000.0,
+            "considered_time"           : 1000.0,
             "minimum_delta_time"        : 1.0,
-            "maximum_delta_time"        : 1.0,
+            "maximum_delta_time"        : 9.0,
             "minimum_CFL"               : 1.0,
-            "maximum_CFL"               : 1.0,
+            "maximum_CFL"               : 20.0,
             "start_acceleration_time"   : 100,
             "end_acceleration_time"     : 1000.0,
             "end_time"                  : 100000.0
@@ -122,23 +122,6 @@
             "modulus"         : 0.0,
             "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
-        }
-    }],
-    "auxiliar_process_list"            : [{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.0,  5.0, 0.0],
-            "end_point"         : [20.0, 5.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "line_output/time_averaged",
-                "file_name" : "time_averaged"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
         }
     }]
 }

@@ -179,8 +179,8 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    # TimeAveragedNavierStokesTest().testCylinderFlow2D()
-    TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
+    TimeAveragedNavierStokesTest().testCylinderFlow2D()
+    # TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
     # TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
