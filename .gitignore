@@ -87,3 +87,5 @@ FullDebug/*
 applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/log\.txt
 
 applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/line_output/*
+
+debug/

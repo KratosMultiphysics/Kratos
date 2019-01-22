@@ -1,4 +1,0 @@
-# The fortran modules provided by this target.
-provides
- my_module
- mymodule
