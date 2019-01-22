@@ -19,6 +19,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/properties.h"
+#include "containers/model.h"
 #include "includes/model_part.h"
 #include "custom_elements/time_averaged_navier_stokes.h"
 #include "custom_conditions/time_averaged_navier_stokes_wall_condition.h"
@@ -37,8 +38,9 @@ namespace Kratos {
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTimeAveragedNavierStokes2D3N, FluidDynamicsApplicationFastSuite)
 		{
 
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+			Model model;
+			unsigned int buffer_size = 5;
+			ModelPart& modelPart = model.CreateModelPart("Main",buffer_size);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -167,8 +169,9 @@ namespace Kratos {
 		 */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTimeAveragedNavierStokes2D3NStationary, FluidDynamicsApplicationFastSuite)
 		{
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+			Model model;
+			unsigned int buffer_size = 5;
+			ModelPart& modelPart = model.CreateModelPart("Main",buffer_size);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);
@@ -268,9 +271,9 @@ namespace Kratos {
 	    //  */
 	    KRATOS_TEST_CASE_IN_SUITE(ElementTimeAveragedNavierStokes3D4N, FluidDynamicsApplicationFastSuite)
 		{
-
-			ModelPart modelPart("Main");
-			modelPart.SetBufferSize(3);
+			Model model;
+			unsigned int buffer_size = 5;
+			ModelPart& modelPart = model.CreateModelPart("Main",buffer_size);
 
 			// Variables addition
 			modelPart.AddNodalSolutionStepVariable(BODY_FORCE);

@@ -61,13 +61,14 @@
             "time_step"           : 0.5
         },
         "time_averaging_acceleration"        :{
-            "considered_time"           : 1000.0,
-            "minimum_delta_time"        : 0.5,
-            "maximum_delta_time"        : 9.0,
+            "considered_time"           : 100000.0,
+            "minimum_delta_time"        : 1.0,
+            "maximum_delta_time"        : 1.0,
             "minimum_CFL"               : 1.0,
-            "maximum_CFL"               : 10.0,
+            "maximum_CFL"               : 1.0,
             "start_acceleration_time"   : 100,
-            "end_acceleration_time"     : 1000.0
+            "end_acceleration_time"     : 1000.0,
+            "end_time"                  : 100000.0
         }
     },
     "initial_conditions_process_list"  : [],
@@ -134,7 +135,7 @@
             "sampling_points"   : 10,
             "model_part_name"  : "Parts_fluid",
             "output_file_settings": {
-                "folder_name" : "line_output\\time_averaged",
+                "folder_name" : "line_output/time_averaged",
                 "file_name" : "time_averaged"
             },
             "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
