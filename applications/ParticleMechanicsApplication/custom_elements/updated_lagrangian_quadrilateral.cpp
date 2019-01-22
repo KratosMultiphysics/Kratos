@@ -190,13 +190,9 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
 
     rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize, false );
 
-    rVariables.Normal.resize( voigtsize, voigtsize, false );
-
     rVariables.StrainVector.resize( voigtsize, false );
 
     rVariables.StressVector.resize( voigtsize, false );
-
-    rVariables.IsoStressVector.resize( voigtsize, false );
 
     rVariables.DN_DX.resize( number_of_nodes, dimension, false );
     rVariables.DN_De.resize( number_of_nodes, dimension, false );

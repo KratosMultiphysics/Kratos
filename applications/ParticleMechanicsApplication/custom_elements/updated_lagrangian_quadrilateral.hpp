@@ -107,7 +107,6 @@ protected:
         double  detFT;
         Vector  StrainVector;
         Vector  StressVector;
-        Vector  IsoStressVector;
         Vector  N;
         Matrix  B;
         Matrix  F;
@@ -116,7 +115,6 @@ protected:
         Matrix  DN_DX;
         Matrix  DN_De;
         Matrix  ConstitutiveMatrix;
-        Matrix Normal;
 
         // Variables including all integration points
         Matrix CurrentDisp;

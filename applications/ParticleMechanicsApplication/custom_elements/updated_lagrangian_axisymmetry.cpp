@@ -189,7 +189,7 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     const double initial_radius = ParticleMechanicsMathUtilities<double>::CalculateRadius(rVariables.N, GetGeometry(), Initial);
 
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-    CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
+    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, current_radius, initial_radius);
 
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
