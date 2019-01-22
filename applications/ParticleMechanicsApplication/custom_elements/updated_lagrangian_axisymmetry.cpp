@@ -151,9 +151,6 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
-    rVariables.j = this->MPMJacobianDelta( rVariables.j, xg, rVariables.CurrentDisp);
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
@@ -176,9 +173,13 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
     double detJ;
     MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
 
+    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
+    Matrix jacobian;
+    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
+
     //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n]
     rVariables.DN_DX = prod( rVariables.DN_De, InvJ);

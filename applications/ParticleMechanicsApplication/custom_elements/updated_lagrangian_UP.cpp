@@ -273,9 +273,13 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     double detJ;
     MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
 
+    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
+    Matrix jacobian;
+    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
+
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
@@ -283,14 +287,14 @@ void UpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, Proc
     /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
-    1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
     2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
 
     (NOTICE: Here, we are using method no. 1)
     */
 
     // Update Deformation gradient
-    noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    noalias( rVariables.F ) = prod( jacobian, InvJ);
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;

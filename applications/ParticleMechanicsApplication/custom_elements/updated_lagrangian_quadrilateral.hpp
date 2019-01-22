@@ -119,8 +119,6 @@ protected:
         Matrix Normal;
 
         // Variables including all integration points
-        Matrix j;
-        Matrix  DeltaPosition;
         Matrix CurrentDisp;
         Matrix PreviousDisp;
 
