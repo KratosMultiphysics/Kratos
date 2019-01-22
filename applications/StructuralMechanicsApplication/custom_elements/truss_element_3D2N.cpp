@@ -19,6 +19,7 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos {
@@ -112,35 +113,13 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void TrussElement3D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY
-  MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
-
-  MatrixType mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-  double alpha = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_ALPHA)) {
-    alpha = this->GetProperties()[RAYLEIGH_ALPHA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
-    alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-  }
-
-  double beta = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_BETA)) {
-    beta = this->GetProperties()[RAYLEIGH_BETA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
-    beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-  }
-
-  rDampingMatrix = alpha * mass_matrix;
-  noalias(rDampingMatrix) += beta * stiffness_matrix;
-
-  KRATOS_CATCH("")
+    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        msLocalSize);
 }
 
 void TrussElement3D2N::CalculateMassMatrix(

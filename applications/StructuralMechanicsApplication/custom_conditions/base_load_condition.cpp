@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
 #include "custom_conditions/base_load_condition.h"
+#include "includes/checks.h"
 
 namespace Kratos
 {

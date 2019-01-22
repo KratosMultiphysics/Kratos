@@ -62,6 +62,8 @@ void KratosConvectionDiffusionApplication::Register() {
     "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
 
     // Registering variables
+    KRATOS_REGISTER_VARIABLE(AUX_FLUX)
+    KRATOS_REGISTER_VARIABLE(AUX_TEMPERATURE)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_1)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_2)
     KRATOS_REGISTER_VARIABLE(BFECC_ERROR)
