@@ -116,12 +116,26 @@ void CalculateRayleighDampingMatrix(
     KRATOS_CATCH( "CalculateRayleighDampingMatrix" )
 }
 
+double CalculateReferenceLength2D2N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
+    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
+    const double L = std::sqrt((dx * dx) + (dy * dy));
+
+    KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
+        << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
+
+    return L;
+
+    KRATOS_CATCH("")
+}
 
 double CalculateCurrentLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double du =
         rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
         rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -134,42 +148,26 @@ double CalculateCurrentLength2D2N(const Element& rElement)
 
     const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy));
 
-    KRATOS_ERROR_IF(l < numerical_limit)
-    << "Current length of element " << rElement.Id() << " ~0" << std::endl;
+    KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
+        << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
+
     return l;
 
     KRATOS_CATCH("")
 }
 
-double CalculateReferenceLength2D2N(const Element& rElement)
-{
-    KRATOS_TRY;
-
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
-    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
-    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
-    const double L = std::sqrt((dx * dx) + (dy * dy));
-
-    KRATOS_ERROR_IF(L < numerical_limit)
-    << "Reference length of element " << rElement.Id() << " ~0" << std::endl;
-    return L;
-
-    KRATOS_CATCH("")
-}
-
-
 double CalculateReferenceLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
     const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
     const double dz = rElement.GetGeometry()[1].Z0() - rElement.GetGeometry()[0].Z0();
     const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-    KRATOS_ERROR_IF(L<=numerical_limit)
-    << "Reference length of element " << rElement.Id() << " ~0" << std::endl;
+    KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
+        << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
+
     return L;
 
     KRATOS_CATCH("")
@@ -179,7 +177,6 @@ double CalculateCurrentLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double du =
         rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
         rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
@@ -195,13 +192,13 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
                                 (dw + dz) * (dw + dz));
 
-    KRATOS_ERROR_IF(l<=numerical_limit)
-    << "Current length of element " << rElement.Id() << " ~0" << std::endl;
+    KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
+        << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
+
     return l;
 
     KRATOS_CATCH("")
 }
-
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
