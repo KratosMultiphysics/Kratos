@@ -1605,39 +1605,6 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
 }
 
 
-Vector& UpdatedLagrangian::MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint)
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = GetGeometry();
-
-    // Only local coordinated of a point in a tetrahedron is computed
-    rResult.resize(4,false);
-
-    double x10 = rGeom[1].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double x20 = rGeom[2].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double x30 = rGeom[3].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double y10 = rGeom[1].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double y20 = rGeom[2].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double y30 = rGeom[3].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double z10 = rGeom[1].Coordinates()[2]-rGeom[0].Coordinates()[2];
-    double z20 = rGeom[2].Coordinates()[2]-rGeom[0].Coordinates()[2];
-    double z30 = rGeom[3].Coordinates()[2]-rGeom[0].Coordinates()[2];
-
-    rResult[3] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y10*z20 - z10*y20) - (rPoint[1] - rGeom[0].Coordinates()[1])*(x10*z20-x20*z10) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y20*x10 - y10*x20)/mDeterminantJ0;
-
-    rResult[2] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y30*z10-y10*z30) + (rPoint[1] - rGeom[0].Coordinates()[1])*(x10*z30-x30*z10) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y10*x30 - y30*x10)/mDeterminantJ0;
-
-    rResult[1] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y20*z30-y30*z20) + (rPoint[1] - rGeom[0].Coordinates()[1])*(x30*z20-x20*z30) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y30*x20 - x30*y20)/mDeterminantJ0;
-
-    rResult[0] = 1 - rResult[1] - rResult[2] -rResult[3];
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-
 // Function which return dN/de
 Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 {
