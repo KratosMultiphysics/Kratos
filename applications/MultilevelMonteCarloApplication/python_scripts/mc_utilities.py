@@ -216,14 +216,15 @@ class MonteCarlo(object):
     '''
     def ScreeningInfoInitializeMCPhase(self):
         print("\n","#"*50," MC iter =  ",self.iteration_counter,"#"*50,"\n")
-        print(self.previous_number_samples,self.number_samples,self.difference_number_samples)
 
     '''
     function printing informations about finalizing MC phase
     '''
     def ScreeningInfoFinalizeMCPhase(self):
         # print("values computed of QoI = ",self.QoI.values)
-        print("current number of samples",self.number_samples)
+        print("samples computed in this iteration",self.difference_number_samples)
+        print("current number of samples = ",self.number_samples)
+        print("previous number of samples = ",self.previous_number_samples)
         print("monte carlo mean and variance QoI estimators = ",self.QoI.mean,self.QoI.sample_variance)
         print("convergence = ",self.convergence)
 

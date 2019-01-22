@@ -242,7 +242,6 @@ class StatisticalVariable(object):
         self.sample_central_moment_3[level] = third_central_moment
         self.sample_central_moment_3_absolute[level] = third_central_moment_absolute
         self.sample_central_moment_4[level] = fourth_central_moment
-        print(first_central_moment,second_central_moment,third_central_moment,third_central_moment_absolute,fourth_central_moment)
 
     '''
     function computing the skewness and the kurtosis from the central moments (i.e. from the h statistics)
