@@ -1,0 +1,117 @@
+{
+    "problem_data"             : {
+        "problem_name"    : "3D_Hook",
+        "parallel_type"   : "OpenMP",
+        "start_time"      : 0.0,
+        "end_time"        : 1.0,
+        "echo_level"      : 0
+    },
+    "solver_settings"          : {
+        "solver_type"                        : "adjoint_static",
+        "echo_level"                         : 0,
+        "analysis_type"                      : "linear",
+        "model_part_name" : "3D_Hook",
+        "domain_size"     : 3,
+        "time_stepping" : {
+            "time_step"       : 1.0
+        },
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "3D_Hook"
+        },
+            "material_import_settings" :{
+            "materials_filename": "materials_3D.json"
+        },
+        "scheme_settings" : {
+            "scheme_type"              : "adjoint_structural"
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "Residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "linear_solver_settings"             : {
+            "solver_type"         : "AMGCL",
+            "max_iteration"       : 500,
+            "tolerance"           : 1e-7,
+            "provide_coordinates" : false,
+            "smoother_type"       : "ilu0",
+            "krylov_type"         : "bicgstab",
+            "coarsening_type"     : "aggregation",
+            "scaling"             : false,
+            "verbosity"           : 1
+        },
+        "problem_domain_sub_model_part_list" : ["Parts_solid"],
+        "processes_sub_model_part_list"      : ["support"],
+        "rotation_dofs"                      : false,
+        "sensitivity_settings" : {
+            "sensitivity_model_part_name" :"Parts_solid",
+            "nodal_sensitivity_variables"  : ["SHAPE"],
+            "element_sensitivity_variables"  : [],
+            "condition_sensitivity_variables"  : [],
+            "build_mode": "static"
+        },
+        "compute_reactions" : false,
+        "move_mesh_flag" : false
+    },
+    "constraints_process_list" : [{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"          : "This process fixes the selected components of a given vector variable",
+        "process_name"  : "AssignVectorVariableProcess",
+        "Parameters"    : {
+            "mesh_id"         : 0,
+            "model_part_name" : "3D_Hook.support",
+            "variable_name"   : "ADJOINT_DISPLACEMENT",
+            "value"           : [0.0,0.0,0.0]
+        }
+    }],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_temporal_input_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+	        "model_part_name" : "3D_Hook",
+            "file_settings" : {
+                "file_access_mode" : "read_only"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT"]
+            }
+        }
+     }],
+    "loads_process_list"       : [],
+    "output_configuration"     : {
+        "result_file_configuration" : {
+            "gidpost_flags"       : {
+                "GiDPostMode"           : "GiD_PostAscii",
+                "WriteDeformedMeshFlag" : "WriteDeformed",
+                "WriteConditionsFlag"   : "WriteConditions",
+                "MultiFileFlag"         : "SingleFile"
+            },
+            "file_label"          : "step",
+            "output_control_type" : "step",
+            "output_frequency"    : 1.0,
+            "body_output"         : true,
+            "node_output"         : false,
+            "skin_output"         : false,
+            "plane_output"        : [],
+            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
+            "gauss_point_results" : []
+        },
+        "point_data_configuration"  : []
+    },
+    "restart_options"          : {
+        "SaveRestart"      : false,
+        "RestartFrequency" : 0,
+        "LoadRestart"      : false,
+        "Restart_Step"     : 0
+    },
+    "constraints_data"         : {
+        "incremental_load"         : false,
+        "incremental_displacement" : false
+    }
+}
