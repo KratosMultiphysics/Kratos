@@ -799,8 +799,8 @@ public:
     /** Returns if the Properties corresponding to it's identifier exists */
     bool HasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const
     {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
+        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
             return true;
         }
 
@@ -816,22 +816,20 @@ public:
      */
     PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
     {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
+        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
             KRATOS_ERROR << "Property already existing. Please use pGetProperties() instead" << std::endl;
         } else {
             if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, ThisIndex);
-                GetMesh(ThisIndex).AddProperties(pprop);
+                PropertiesType::Pointer pprop =  mpParentModelPart->CreateNewProperties(PropertiesId, MeshIndex);
+                GetMesh(MeshIndex).AddProperties(pprop);
                 return pprop;
             } else {
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(ThisIndex).AddProperties(pnew_property);
+                GetMesh(MeshIndex).AddProperties(pnew_property);
                 return pnew_property;
             }
         }
-
-        return nullptr;
     }
 
     /**
@@ -848,13 +846,13 @@ public:
             return *(pprop_it.base());
         } else {
             if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
-                GetMesh(ThisIndex).AddProperties(pprop);
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+                GetMesh(MeshIndex).AddProperties(pprop);
                 return pprop;
             } else {
                 KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(ThisIndex).AddProperties(pnew_property);
+                GetMesh(MeshIndex).AddProperties(pnew_property);
                 return pnew_property;
             }
         }
@@ -869,18 +867,18 @@ public:
      */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
     {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
+        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
             return *pprop_it;
         } else {
             if(IsSubModelPart()) {
-                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, ThisIndex);
-                GetMesh(ThisIndex).AddProperties(pprop);
+                PropertiesType::Pointer pprop =  mpParentModelPart->pGetProperties(PropertiesId, MeshIndex);
+                GetMesh(MeshIndex).AddProperties(pprop);
                 return *pprop;
             } else {
                 KRATOS_WARNING("ModelPart") << "Property " << PropertiesId << " does not exist!. Creating and adding new property. Please use CreateNewProperties() instead" << std::endl;
                 PropertiesType::Pointer pnew_property = Kratos::make_shared<PropertiesType>(PropertiesId);
-                GetMesh(ThisIndex).AddProperties(pnew_property);
+                GetMesh(MeshIndex).AddProperties(pnew_property);
                 return *pnew_property;
             }
         }
