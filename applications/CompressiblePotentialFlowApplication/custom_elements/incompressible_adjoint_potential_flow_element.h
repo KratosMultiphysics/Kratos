@@ -442,7 +442,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
-        const double delta = 1e-6;//this->GetPerturbationSize(rDesignVariable);
+        const double delta = 1e-9;//this->GetPerturbationSize(rDesignVariable);
         ProcessInfo process_info = rCurrentProcessInfo;
 
         Vector RHS;
@@ -490,9 +490,18 @@ public:
             if (rResult.size() != NumNodes)
                 rResult.resize(NumNodes, false);
 
-            for (unsigned int i = 0; i < NumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
-
+            if(this->IsNot(STRUCTURE)){
+                for (unsigned int i = 0; i < NumNodes; i++)
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+            }
+            else{
+                for (unsigned int i = 0; i < NumNodes; i++){
+                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+                    else
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
+                }
+            }
         }
         else//wake element
         {
@@ -537,8 +546,18 @@ public:
             if (rElementalDofList.size() != NumNodes)
                 rElementalDofList.resize(NumNodes);
 
-            for (unsigned int i = 0; i < NumNodes; i++)
-                rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+            if(this->IsNot(STRUCTURE)){
+                for (unsigned int i = 0; i < NumNodes; i++)
+                    rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+            }
+            else{
+                for (unsigned int i = 0; i < NumNodes; i++){
+                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                        rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+                    else
+                        rElementalDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
+                }
+            }
         }
         else//wake element
         {

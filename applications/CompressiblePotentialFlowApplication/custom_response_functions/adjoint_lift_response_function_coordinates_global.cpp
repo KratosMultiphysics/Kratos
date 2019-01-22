@@ -46,13 +46,13 @@ namespace Kratos
         ComputeInitialLift();
         auto geom = rAdjointElement.GetGeometry();
         unsigned int NumNodes = geom.PointsNumber();
-        double epsilon=1e-6;
+        double epsilon=1e-9;
         double perturbated_lift=0.0;
 
         if (rAdjointElement.IsNot(MARKER)){
             for (unsigned int i=0;i<NumNodes;i++)
             {   
-                if (geom[i].IsNot(VISITED)){
+                if (geom[i].IsNot(VISITED) && geom[i].IsNot(STRUCTURE)){
                     geom[i].Set(VISITED);
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
@@ -71,7 +71,7 @@ namespace Kratos
             distances=rAdjointElement.GetValue(ELEMENTAL_DISTANCES);
             for (unsigned int i=0;i<NumNodes;i++)
             {   
-                if (geom[i].IsNot(VISITED)){
+                if (geom[i].IsNot(VISITED)&& geom[i].IsNot(STRUCTURE)){
                     geom[i].Set(VISITED);
                     Vector resultForce(3);
                     int node_id = geom[i].Id();
@@ -193,11 +193,11 @@ namespace Kratos
             rSensitivityGradient.resize(NumNodes*Dim, false);
 
         if (rAdjointCondition.IsNot(BOUNDARY)){
-            double epsilon=1e-6;
+            double epsilon=1e-9;
             double perturbated_lift=0.0;
             for (unsigned int i_node=0;i_node<NumNodes;i_node++)
             {
-                if (geom[i_node].IsNot(VISITED) || geom[i_node].IsNot(STRUCTURE)){
+                if (geom[i_node].IsNot(VISITED) && geom[i_node].IsNot(STRUCTURE)){
                     geom[i_node].Set(VISITED); 
                     int node_id = geom[i_node].Id();
                     for (unsigned int i_dim=0;i_dim<Dim;i_dim++)
@@ -229,7 +229,6 @@ namespace Kratos
                 }
             }
         }
-        KRATOS_WATCH(rSensitivityGradient)
         KRATOS_CATCH("");
     }
 
