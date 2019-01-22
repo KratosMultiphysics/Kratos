@@ -37,15 +37,12 @@ except ImportError:
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
 
-'''This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+'''
+This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
 -lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
                     f= -432*(x**2+y**2-x-y)
 where xi is a Beta(2,6) random variable, and computes statistic of the QoI
 Q = int_(0,1)^2 u(x,y)dxdy
-more details in Section 5.2 of [PKN17]
-
-References:
-[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
 '''
 class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''

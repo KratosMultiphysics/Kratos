@@ -16,7 +16,7 @@ in future, when everything is integrated with the it4i team, importing exaqute.E
 This utility contains the classes to perform the Continuation Multilevel Monte Carlo (CMLMC) and the Monte Carlo (MC) algorithms
 
 References:
-[PKN17] M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation ;  available as MATHICSE technical report no. 23.2017
+M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation ;  available as MATHICSE technical report no. 23.2017
 '''
 
 '''
