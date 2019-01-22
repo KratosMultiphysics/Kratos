@@ -72,28 +72,13 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                                     params.PrettyPrintJsonString()
                                 ])
 
-    def ExecuteInitialize(self):
-        pass
-
-    def ExecuteBeforeSolutionLoop(self):
-        pass
-
-    def ExecuteInitializeSolutionStep(self):
-        pass
-
-    def ExecuteFinalizeSolutionStep(self):
-        pass
-
-    def ExecuteBeforeOutputStep(self):
-        pass
-
-    def ExecuteAfterOutputStep(self):
-        pass
-
     def ExecuteFinalize(self):
         """The files are compared in this function
         Please see the respective files for details on the format of the files
         """
+
+        KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator().Barrier()
+
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
             self.assertTrue(value, msg = self.info_msg)
