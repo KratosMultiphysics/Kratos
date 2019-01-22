@@ -17,12 +17,12 @@ class TestModelPart(KratosUnittest.TestCase):
         model_part= current_model.CreateModelPart("Main")
 
         parent_model_part_0 = model_part.GetParentModelPart()
-        self.assertEqual(parent_model_part_0.Name(), "Main") # Itself as it is the RootModelPart
+        self.assertEqual(parent_model_part_0.Name, "Main") # Itself as it is the RootModelPart
 
         inlet_model_part = model_part.CreateSubModelPart("Inlets")
 
         parent_model_part_1 = inlet_model_part.GetParentModelPart()
-        self.assertEqual(parent_model_part_1.Name(), "Main")
+        self.assertEqual(parent_model_part_1.Name, "Main")
 
         self.assertTrue(model_part.HasSubModelPart("Inlets"))
         self.assertEqual(model_part.NumberOfSubModelParts(), 1)
