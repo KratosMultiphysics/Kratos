@@ -161,6 +161,7 @@ def main():
 
         g.write("\nGENERIC TEST:\n")
         g.write("Benchmark 40. Generic test for code functionalities verification\n")
+
         file_contents = g.read()
         g.close()
         os.remove("errors.err")
