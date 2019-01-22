@@ -62,7 +62,8 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             "minimum_CFL"               : 1.0,
             "maximum_CFL"               : 20.0,
             "start_acceleration_time"   : 100,
-            "end_acceleration_time"     : 5000.0
+            "end_acceleration_time"     : 5000.0,
+            "end_time"                  : 10000.0
             },
             "move_mesh_flag": false,
             "use_slip_conditions": true
@@ -177,25 +178,30 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
         KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, 
                                                      self.domain_size).Execute()
+
+        # parameters for sample length calculation
+        self.initial_averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+        self.averaging_time_length = self.initial_averaging_time_length
+        self.restart_time = self.initial_averaging_time_length 
+        self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
+        # parameters for dt accleration
+        self.start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
+        self.end_acceleration_time = self.settings["time_averaging_acceleration"]["end_acceleration_time"].GetDouble()
         
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
 
 
     def AdvanceInTime(self, current_time):
-        # dt = self._ComputeDeltaTime()
+        # dt = self._ComputeDeltaTime()        
+        self._check_steady_state()
+        
         dt = self._compute_increased_delta_time(current_time)
         new_time = current_time + dt
-
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-
-        averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
-        if new_time > averaging_time_length:
-            if averaging_time_length < 10.0 * dt:
-                averaging_time_length = 10.0 * dt
-                self._set_averaging_time_length(averaging_time_length)
-            print("Averaging time length set to ", averaging_time_length, ", droping previous time infomation")
-        self._check_steady_state()
+        
+        self._compute_averaging_time_length(new_time, dt)
+        self._set_averaging_time_length(self.averaging_time_length)
 
         return new_time
 
@@ -242,10 +248,12 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
         CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
         CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
-        start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
-        end_acceleration_time = self.settings["time_averaging_acceleration"]["end_acceleration_time"].GetDouble()
 
-        if ( current_time > start_acceleration_time): CFL = CFL_min + current_time / end_acceleration_time * (CFL_max - CFL_min)
+        if ( current_time > self.start_acceleration_time): 
+            if (current_time <= self.end_acceleration_time):
+                CFL = CFL_min + current_time / self.end_acceleration_time * (CFL_max - CFL_min)
+            else:
+                CFL = CFL_max
         else: CFL = CFL_min
         
         if(self.domain_size == 3):
@@ -257,6 +265,16 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         print("New dt is: ", new_dt)
         return new_dt
+
+
+    def _compute_averaging_time_length(self, current_time, dt):
+        if (current_time > self.initial_averaging_time_length):
+            if ( current_time > self.restart_time):
+                self.averaging_time_length = self.initial_averaging_time_length
+                self.restart_time += self.restart_time
+            else: 
+                self.averaging_time_length += dt
+            print("Averaging time length set to ", self.averaging_time_length, ", droping previous time infomation")
 
 
     def _set_averaging_time_length(self, new_averaging_time_length=0.0):
@@ -272,7 +290,8 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         SteadyStateIndicatorUtility.EstimateQuantityChangesInTime()
         change_in_velocity = SteadyStateIndicatorUtility.GetVelocityChange()
         change_in_pressure = SteadyStateIndicatorUtility.GetPressureChange()
-        print("change in velocity: " + str(change_in_velocity) + ", change in pressure", str(change_in_pressure))
+        print("Change in velocity in percentage: " + str(change_in_velocity))
+        print("Change in pressure in percentage: " + str(change_in_pressure))
 
 
     def _set_constitutive_law(self):
