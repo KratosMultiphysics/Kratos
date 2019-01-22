@@ -35,6 +35,7 @@
 #include "containers/flags.h"
 
 #include "containers/weak_pointer_vector.h"
+#include "containers/nodal_data.h"
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -116,6 +117,7 @@ public:
         : BaseType()
         , IndexedObject(0)
         , Flags()
+        , mNodalData(0)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -140,6 +142,7 @@ public:
         : BaseType()
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -158,6 +161,7 @@ public:
         : BaseType(NewX)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -178,6 +182,7 @@ public:
         : BaseType(NewX, NewY)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -198,6 +203,7 @@ public:
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -221,6 +227,7 @@ public:
         : BaseType(rThisPoint)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -256,6 +263,7 @@ public:
         : BaseType(rOtherCoordinates)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -282,6 +290,7 @@ public:
         : BaseType(rOtherCoordinates)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData()
@@ -305,6 +314,7 @@ public:
         : BaseType(NewX, NewY, NewZ)
         , IndexedObject(NewId)
         , Flags()
+        , mNodalData(NewId)
         , mDofs()
         , mData()
         , mSolutionStepsNodalData(pVariablesList,ThisData,NewQueueSize)
@@ -389,6 +399,8 @@ public:
         Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
 
+        mNodalData = rOther.mNodalData;
+
         // Deep copying the dofs
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
         {
@@ -409,6 +421,9 @@ public:
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
         IndexedObject::operator=(rOther);
+
+        mNodalData = rOther.mNodalData;
+
         for(typename DofsContainerType::const_iterator it_dof = rOther.mDofs.begin() ; it_dof != rOther.mDofs.end() ; it_dof++)
         {
             pAddDof(*it_dof);
@@ -1080,6 +1095,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    NodalData mNodalData;
 
     /** storage for the dof of the node */
     DofsContainerType  mDofs;
