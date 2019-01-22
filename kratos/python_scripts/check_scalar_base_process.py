@@ -97,11 +97,3 @@ class CheckScalarBaseProcess(KratosMultiphysics.Process, KratosUnittest.TestCase
 
         # Error tolerance
         self.tolerance_rank = self.settings["tolerance_rank"].GetInt()
-
-    def ExecuteFinalizeSolutionStep(self):
-        """ This method is executed in order to finalize the current step
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        pass
