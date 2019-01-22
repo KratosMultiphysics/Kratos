@@ -76,6 +76,20 @@ void CalculateRayleighDampingMatrix(
     /*const*/ ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize);
 
+/**
+ * @brief This function calculates the reference length for 3D2N elements
+ * @param rElement The Element for which the reference length should be computed
+ * @return reference length
+ */
+double CalculateReferenceLength(const Element& rElement);
+
+/**
+ * @brief This function calculates the current length for 3D2N elements
+ * @param rElement The Element for which the current length should be computed
+ * @return current length
+ */
+double CalculateCurrentLength(const Element& rElement);
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 

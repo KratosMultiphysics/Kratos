@@ -116,6 +116,48 @@ void CalculateRayleighDampingMatrix(
     KRATOS_CATCH( "CalculateRayleighDampingMatrix" )
 }
 
+
+double CalculateReferenceLength(const Element& rElement) {
+
+  KRATOS_TRY;
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
+  const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
+  const double dz = rElement.GetGeometry()[1].Z0() - rElement.GetGeometry()[0].Z0();
+  const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+  KRATOS_ERROR_IF(L<=numerical_limit)
+   << "Reference Length of element" << rElement.Id() << "~ 0" << std::endl;
+  return L;
+  KRATOS_CATCH("")
+}
+
+double CalculateCurrentLength(const Element& rElement) {
+
+  KRATOS_TRY;
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const double du =
+      rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
+      rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+  const double dv =
+      rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
+      rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+  const double dw =
+      rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
+      rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
+  const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
+  const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
+  const double dz = rElement.GetGeometry()[1].Z0() - rElement.GetGeometry()[0].Z0();
+  const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
+                             (dw + dz) * (dw + dz));
+
+  KRATOS_ERROR_IF(l<=numerical_limit)
+   << "Current Length of element" << rElement.Id() << "~ 0" << std::endl;
+  return l;
+  KRATOS_CATCH("")
+}
+
+
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.
 
