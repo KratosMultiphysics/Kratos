@@ -117,9 +117,6 @@ public:
     informations to construct a degree of freedom. Also default
     values are used to make it easier to define for simple cases.
 
-    @param NodeId Index of the node which this degree of
-    freedom belongs to it. It can be get by Node::Index() method.
-
     @param rThisVariable Variable which this degree of freedom
     holds. This variable considered as unknown of problem to solved
     and fixing by Fix() method also applied to it. It must be a
@@ -131,7 +128,7 @@ public:
     @see VariableComponent
     */
     template<class TVariableType>
-    Dof(IndexType NodeId, NodalData* pThisNodalData,
+    Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable)
         : mIsFixed(false),
           mVariableType(DofTrait<TDataType, TVariableType>::Id),
@@ -149,10 +146,6 @@ public:
     /** Constructor. This constructor takes the same input
     as the previous one, but add the reaction on the DoF
     declaration
-
-
-    @param NodeId Index of the node which this degree of
-    freedom belongs to it. It can be get by Node::Index() method.
 
 
     @param rThisVariable Variable which this degree of freedom
@@ -173,7 +166,7 @@ public:
     @see VariableComponent
     */
     template<class TVariableType, class TReactionType>
-    Dof(IndexType NodeId, NodalData* pThisNodalData,
+    Dof(NodalData* pThisNodalData,
         const TVariableType& rThisVariable,
         const TReactionType& rThisReaction)
         : mIsFixed(false),
@@ -329,11 +322,6 @@ public:
     IndexType GetId() const
     {
         return mpNodalData->GetId();
-    }
-
-    void SetId(IndexType NewId)
-    {
-        mpNodalData->SetId(NewId);
     }
 
     /** Returns variable assigned to this degree of freedom. */
@@ -505,14 +493,6 @@ private:
     /** Reaction variable for this degree of freedom.
      */
     const VariableData* mpReaction;
-
-    // This stores all Dof data in one single int64 variable using following bits for each field:
-    // 00-48 : EquationId
-    // 49-65 : DofIndex in VariablesList 
-    // 57-59 : VariableType 
-    // 60-62 : ReactionType 
-    // 63-63 : IsFixed
-    //std::int64_t mData;
 
     ///@}
     ///@name Private Operators
