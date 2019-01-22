@@ -446,9 +446,11 @@ class DEMAnalysisStage(AnalysisStage):
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
 
+    # TODO: deprecated
     def UpdateTimeInModelParts(self):
-        self.solver.UpdateTimeInModelParts(self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
+        self.solver._UpdateTimeInModelParts(self.time, self.solver.dt, self.step, self.IsTimeToPrintPostProcess())
 
+    # TODO: deprecated
     def UpdateTimeInOneModelPart(self):
         pass
 
@@ -468,9 +470,9 @@ class DEMAnalysisStage(AnalysisStage):
         self.InitializeSolutionStep()
 
     def InitializeSolutionStep(self):
-        self.BeforeSolveOperations(self.time)
+        self._BeforeSolveOperations(self.time)
 
-    def BeforeSolveOperations(self, time):
+    def _BeforeSolveOperations(self, time):
         if self.post_normal_impact_velocity_option:
             if self.IsCountStep():
                 self.FillAnalyticSubModelPartsWithNewParticles()
@@ -481,8 +483,6 @@ class DEMAnalysisStage(AnalysisStage):
     def FinalizeSolutionStep(self):
         super(DEMAnalysisStage, self).FinalizeSolutionStep()
         self.AfterSolveOperations()
-
-        self._GetSolver().MoveAllMeshes(self.time, self.solver.dt)
 
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
@@ -602,14 +602,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.time = 0.0
         self.time_old_print = 0.0
 
+    # TODO: deprecated
     def UpdateTimeParameters(self):
         self.InitializeSolutionStep()
         self.step, self.time = self._GetSolver().AdvanceInTime(self.step, self.time)
         self.DEMFEMProcedures.UpdateTimeInModelParts(self.all_model_parts, self.time, self.solver.dt, self.step)
 
     def FinalizeSingleTimeStep(self):
-        self._GetSolver().MoveAllMeshes(self.time, self.solver.dt)
-        #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
         ##### adding DEM elements by the inlet ######
         if self.DEM_parameters["dem_inlet_option"].GetBool():
             self.DEM_inlet.CreateElementsFromInletMesh(self.spheres_model_part, self.cluster_model_part, self.creator_destructor)  # After solving, to make sure that neighbours are already set.

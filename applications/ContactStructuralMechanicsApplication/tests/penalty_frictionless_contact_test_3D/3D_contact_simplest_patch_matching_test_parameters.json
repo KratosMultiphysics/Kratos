@@ -39,8 +39,8 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1","Parts_Parts_Auto2"],
-        "processes_sub_model_part_list"      : ["Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
+        "processes_sub_model_part_list"      : ["Structure","Contact_Part","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2"]
     },
     "processes" : {
         "constraints_process_list" : [{
@@ -72,7 +72,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "penalty_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "PenaltyContactProcess",
             "Parameters"            : {
