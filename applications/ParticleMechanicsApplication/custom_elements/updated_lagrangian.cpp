@@ -68,7 +68,6 @@ UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseJ(rOther.mInverseJ)
     ,mDeterminantJ0(rOther.mDeterminantJ0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     ,mFinalizedStep(rOther.mFinalizedStep)
@@ -84,9 +83,6 @@ UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther
 
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
-
-    mInverseJ.clear();
-    mInverseJ = rOther.mInverseJ;
 
     mDeterminantF0 = rOther.mDeterminantF0;
     mDeterminantJ0 = rOther.mDeterminantJ0;
@@ -113,8 +109,6 @@ Element::Pointer UpdatedLagrangian::Clone( IndexType NewId, NodesArrayType const
     NewElement.mConstitutiveLawVector = mConstitutiveLawVector->Clone();
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
-
-    NewElement.mInverseJ = mInverseJ;
 
     NewElement.mDeterminantF0 = mDeterminantF0;
     NewElement.mDeterminantJ0 = mDeterminantJ0;
@@ -143,12 +137,6 @@ void UpdatedLagrangian::Initialize()
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
-
-    // Compute current jacobian matrix and inverses
-    Matrix j = ZeroMatrix(dimension, dimension);
-    j = this->MPMJacobian(j,xg);
-    double detj;
-    MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
 
     // Initialize constitutive law and materials
     InitializeMaterial();
@@ -1057,8 +1045,6 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
 
     double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
-
-    MathUtils<double>::InvertMatrix( rVariables.j, mInverseJ, rVariables.detJ );
 
     this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 

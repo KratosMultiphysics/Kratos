@@ -125,12 +125,6 @@ void UpdatedLagrangianUP::Initialize()
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
 
-    // Compute current jacobian matrix and inverses
-    Matrix j = ZeroMatrix(dimension,dimension);
-    j = this->MPMJacobian(j,xg);
-    double detj;
-    MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
-
     // Initialize constitutive law and materials
     InitializeMaterial();
 

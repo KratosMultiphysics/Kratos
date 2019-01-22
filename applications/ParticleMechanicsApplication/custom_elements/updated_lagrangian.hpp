@@ -502,10 +502,6 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    /**
-     * Container for historical inverse of Jacobian at reference configuration invJ0
-     */
-    Matrix mInverseJ;
 
     /**
      * Container for the total Jacobian determinants
