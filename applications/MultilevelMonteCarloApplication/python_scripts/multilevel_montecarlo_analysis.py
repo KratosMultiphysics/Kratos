@@ -17,15 +17,6 @@ from analysis_stage import AnalysisStage
 import numpy as np
 import time
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
-
 # Import Continuation Multilevel Monte Carlo library
 import cmlmc_utilities as mlmc
 
@@ -37,6 +28,15 @@ try:
     import cpickle as pickle  # Use cPickle on Python 2.7
 except ImportError:
     import pickle
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
 
 
 '''Adapt the following class depending on the problem, deriving the MultilevelMonteCarloAnalysis class from the problem of interest'''
@@ -197,7 +197,7 @@ def SerializeModelParameters_Task(parameter_file_name):
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
-    fake_sample = 1.0
+    fake_sample = GenerateSample()
     '''initialize'''
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()

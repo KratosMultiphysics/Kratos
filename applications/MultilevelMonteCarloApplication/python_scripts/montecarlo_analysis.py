@@ -16,15 +16,6 @@ from analysis_stage import AnalysisStage
 # Import packages
 import numpy as np
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
-
 # Import Monte Carlo library
 import mc_utilities as mc
 
@@ -33,6 +24,15 @@ try:
     import cpickle as pickle  # Use cPickle on Python 2.7
 except ImportError:
     import pickle
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
 
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
