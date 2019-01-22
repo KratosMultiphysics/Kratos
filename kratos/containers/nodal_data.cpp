@@ -33,20 +33,32 @@ namespace Kratos
     }
 
     /// Turn back information as a string.
-    std::string NodalData::Info() const {
+    std::string NodalData::Info() const 
+    {
         return "NodalData";
     }
 
     /// Print information about this object.
-    void NodalData::PrintInfo(std::ostream& rOStream) const {
+    void NodalData::PrintInfo(std::ostream& rOStream) const 
+    {
         rOStream << Info();
     }
 
     /// Print object's data.
-    void NodalData::PrintData(std::ostream& rOStream) const {
+    void NodalData::PrintData(std::ostream& rOStream) const 
+    {
     }
 
 
+    void NodalData::save(Serializer& rSerializer) const
+    {
+        rSerializer.save("Id",mId);
+    }
+
+    void NodalData::load(Serializer& rSerializer)
+    {
+        rSerializer.load("Id",mId);
+    }
 }  // namespace Kratos.
 
 

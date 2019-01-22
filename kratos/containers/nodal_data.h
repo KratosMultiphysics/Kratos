@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -131,6 +131,15 @@ private:
     ///@name Private Operations
     ///@{
 
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    friend class Serializer;
+
+    void save(Serializer& rSerializer) const;
+
+    void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private  Access
