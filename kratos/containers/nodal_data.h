@@ -19,7 +19,7 @@
 // External includes
 
 // Project includes
-#include "includes/serializer.h"
+#include "containers/variables_list_data_value_container.h"
 
 namespace Kratos
 {
@@ -44,11 +44,19 @@ public:
 
     using IndexType = std::size_t;
 
+    using SizeType = std::size_t;
+
+    using SolutionStepsNodalDataContainerType = VariablesListDataValueContainer;
+
+    using BlockType=VariablesListDataValueContainer::BlockType;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     NodalData(IndexType TheId);
+
+    NodalData(IndexType TheId, VariablesList*  pVariablesList, BlockType const * ThisData, SizeType NewQueueSize = 1);
 
     /// Destructor.
     ~NodalData(){}
@@ -83,6 +91,22 @@ public:
     void SetId(IndexType NewId)
     {
         mId = NewId;
+    }
+
+
+    void SetSolutionStepData(VariablesListDataValueContainer const& TheData)
+    {
+        mSolutionStepsNodalData = TheData;
+    }
+
+    VariablesListDataValueContainer& GetSolutionStepData() 
+    {
+        return mSolutionStepsNodalData;
+    }
+
+    const VariablesListDataValueContainer& GetSolutionStepData() const
+    {
+        return mSolutionStepsNodalData;
     }
 
     ///@}
@@ -122,6 +146,8 @@ private:
 
         IndexType mId;
 
+        SolutionStepsNodalDataContainerType mSolutionStepsNodalData;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -136,6 +162,9 @@ private:
     ///@{
 
     friend class Serializer;
+
+    // Only for serializer
+    NodalData() : mId(0), mSolutionStepsNodalData(){}
 
     void save(Serializer& rSerializer) const;
 
