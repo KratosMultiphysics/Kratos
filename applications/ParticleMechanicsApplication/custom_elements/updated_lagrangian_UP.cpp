@@ -125,11 +125,6 @@ void UpdatedLagrangianUP::Initialize()
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
 
-    // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension,dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
-
     // Compute current jacobian matrix and inverses
     Matrix j = ZeroMatrix(dimension,dimension);
     j = this->MPMJacobian(j,xg);
@@ -375,11 +370,6 @@ void UpdatedLagrangianUP::InitializeSolutionStep( ProcessInfo& rCurrentProcessIn
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
-
-    // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);

@@ -506,7 +506,6 @@ protected:
     /**
      * Container for historical inverse of Jacobian at reference configuration invJ0
      */
-    Matrix mInverseJ0;
     Matrix mInverseJ;
     /**
      * Container for the total Jacobian determinants

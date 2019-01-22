@@ -331,11 +331,6 @@ void UpdatedLagrangianAxisymmetry::InitializeSolutionStep( ProcessInfo& rCurrent
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
 
-    // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
-
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
 
@@ -730,7 +725,6 @@ void UpdatedLagrangianAxisymmetry::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseJ0",mInverseJ0);
     rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
 }
@@ -741,7 +735,6 @@ void UpdatedLagrangianAxisymmetry::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseJ0",mInverseJ0);
     rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 

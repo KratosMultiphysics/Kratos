@@ -68,7 +68,6 @@ UpdatedLagrangianQuadrilateral::UpdatedLagrangianQuadrilateral( UpdatedLagrangia
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseJ0(rOther.mInverseJ0)
     ,mInverseJ(rOther.mInverseJ)
     ,mDeterminantJ0(rOther.mDeterminantJ0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
@@ -86,8 +85,6 @@ UpdatedLagrangianQuadrilateral&  UpdatedLagrangianQuadrilateral::operator=(Updat
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
 
-    mInverseJ0.clear();
-    mInverseJ0 = rOther.mInverseJ0;
     mInverseJ.clear();
     mInverseJ = rOther.mInverseJ;
 
@@ -118,7 +115,6 @@ Element::Pointer UpdatedLagrangianQuadrilateral::Clone( IndexType NewId, NodesAr
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
 
-    NewElement.mInverseJ0 = mInverseJ0;
     NewElement.mInverseJ = mInverseJ;
 
     NewElement.mDeterminantF0 = mDeterminantF0;
@@ -148,11 +144,6 @@ void UpdatedLagrangianQuadrilateral::Initialize()
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
-
-    // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Compute current jacobian matrix and inverses
     Matrix j = ZeroMatrix(dimension, dimension);
@@ -864,11 +855,6 @@ void UpdatedLagrangianQuadrilateral::InitializeSolutionStep( ProcessInfo& rCurre
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     const array_1d<double,3>& xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
-
-    // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
@@ -1856,7 +1842,6 @@ void UpdatedLagrangianQuadrilateral::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseJ0",mInverseJ0);
     rSerializer.save("DeterminantJ0",mDeterminantJ0);
 
 }
@@ -1867,7 +1852,6 @@ void UpdatedLagrangianQuadrilateral::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseJ0",mInverseJ0);
     rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 
