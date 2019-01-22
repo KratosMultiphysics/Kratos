@@ -78,7 +78,8 @@ int AdjointFiniteDifferenceTrussElement::Check(const ProcessInfo& rCurrentProces
     CheckDofs();
     CheckProperties(rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF(this->GetGeometry().Length() < std::numeric_limits<double>::epsilon())
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+         < std::numeric_limits<double>::epsilon())
         << "Element #" << this->Id() << " has a length of zero!" << std::endl;
 
     return return_value;

@@ -1646,8 +1646,9 @@ int CrBeamElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
       << "LOCAL_AXIS_1 is not perpendicular to LOCAL_AXIS_2 for element " << this->Id() << std::endl;
   }
 
-
-
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+         < std::numeric_limits<double>::epsilon())
+        << "Element #" << this->Id() << " has a length of zero!" << std::endl;
 
   return 0;
 

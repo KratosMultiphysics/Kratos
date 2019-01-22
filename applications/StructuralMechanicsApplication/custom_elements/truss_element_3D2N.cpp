@@ -452,6 +452,10 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
                  << std::endl;
   }
 
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+         < std::numeric_limits<double>::epsilon())
+        << "Element #" << this->Id() << " has a length of zero!" << std::endl;
+
   return 0;
 
   KRATOS_CATCH("")

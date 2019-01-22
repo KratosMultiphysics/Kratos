@@ -923,6 +923,11 @@ int CrBeamElement2D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
     KRATOS_ERROR << "I33 not provided for this element" << this->Id()
                  << std::endl;
   }
+
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this)
+         < std::numeric_limits<double>::epsilon())
+        << "Element #" << this->Id() << " has a length of zero!" << std::endl;
+
   return 0;
 
   KRATOS_CATCH("")
