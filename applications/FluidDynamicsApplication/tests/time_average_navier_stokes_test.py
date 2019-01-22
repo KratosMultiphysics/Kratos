@@ -145,7 +145,11 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
             self.gid_output.ExecuteInitializeSolutionStep()
 
-            self.solver.Solve()
+            # self.solver.Solve() is deprecared
+            self.solver.InitializeSolutionStep()
+            self.solver.Predict()
+            self.solver.SolveSolutionStep()
+            self.solver.FinalizeSolutionStep()
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
@@ -175,8 +179,8 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    TimeAveragedNavierStokesTest().testCylinderFlow2D()
-    # TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
+    # TimeAveragedNavierStokesTest().testCylinderFlow2D()
+    TimeAveragedNavierStokesTest().testCylinderFlow2DReference()
     # TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
