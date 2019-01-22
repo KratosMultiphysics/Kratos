@@ -186,9 +186,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
     rVariables.j = this->MPMJacobianDelta( rVariables.j, xg, rVariables.CurrentDisp);
-
-    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    rVariables.J = this->MPMJacobian( rVariables.J, xg);
 }
 //************************************************************************************
 //************************************************************************************
@@ -353,10 +350,15 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // Define the stress measure
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
+    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian( Jacobian, xg);
+
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     double detJ;
-    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, detJ);
+    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
@@ -800,13 +802,9 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
     if (rVariable == DENSITY)
     {
         GeometryType& rGeom = GetGeometry();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const double & MP_Mass = this->GetValue(MP_MASS);
@@ -836,9 +834,6 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
@@ -865,9 +860,6 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);

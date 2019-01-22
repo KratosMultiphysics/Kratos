@@ -97,11 +97,11 @@ protected:
 
         StressMeasureType StressMeasure;
 
-        //for axisymmetric use only
+        // For axisymmetric use only
         double  CurrentRadius;
         double  ReferenceRadius;
 
-        //general variables for large displacement use
+        // General variables for large displacement use
         double  detF;
         double  detF0;
         double  detFT;
@@ -118,10 +118,7 @@ protected:
         Matrix  ConstitutiveMatrix;
         Matrix Normal;
 
-        //variables including all integration points
-        //GeometryType::JacobiansType J;
-        //GeometryType::JacobiansType j;
-        Matrix J;
+        // Variables including all integration points
         Matrix j;
         Matrix  DeltaPosition;
         Matrix CurrentDisp;

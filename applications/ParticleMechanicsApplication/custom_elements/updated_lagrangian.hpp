@@ -117,7 +117,6 @@ protected:
         Matrix  ConstitutiveMatrix;
 
         // Variables including all integration points
-        Matrix J;
         Matrix j;
         Matrix DeltaPosition;
         Matrix CurrentDisp;
