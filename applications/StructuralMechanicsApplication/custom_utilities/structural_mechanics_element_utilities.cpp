@@ -125,13 +125,8 @@ double CalculateReferenceLength2D2N(const Element& rElement)
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
         rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
 
-    const double L = std::sqrt((delta_pos[0] * delta_pos[0]) +
-                               (delta_pos[1] * delta_pos[1]));
-
-    KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
-        << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
-
-    return L;
+    return std::sqrt((delta_pos[0] * delta_pos[0]) +
+                     (delta_pos[1] * delta_pos[1]));
 
     KRATOS_CATCH("")
 }
@@ -165,12 +160,7 @@ double CalculateReferenceLength3D2N(const Element& rElement)
         rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
         rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
 
-    const double L = MathUtils<double>::Norm3(delta_pos);
-
-    KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
-        << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
-
-    return L;
+    return MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_CATCH("")
 }
