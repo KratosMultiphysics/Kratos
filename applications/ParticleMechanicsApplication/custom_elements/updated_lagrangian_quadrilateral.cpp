@@ -127,9 +127,6 @@ void UpdatedLagrangianQuadrilateral::Initialize()
 {
     KRATOS_TRY
 
-    // Initial position of the particle
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
