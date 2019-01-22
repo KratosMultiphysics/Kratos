@@ -33,6 +33,8 @@ namespace Kratos
 TimeAveragingProcess::TimeAveragingProcess(
     ModelPart& rModelPart)
     : Process(), mrModelPart(rModelPart) {
+        rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_VELOCITY);
+        rModelPart.AddNodalSolutionStepVariable(TIME_AVERAGED_PRESSURE);
         std::cout << "TimeAveragingProcess: Initialized." << std::endl;
 }
 
