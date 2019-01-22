@@ -55,6 +55,7 @@ void TimeAveragingProcess::ExecuteFinalizeSolutionStep() {
         this->AverageVelocity(inode);
         this->AveragePressure(inode);
     }
+    std::cout << "TimeAveragingProcess: Nodal Quantities Averaged." << std::endl;
 }
 
 /* Protected functions ****************************************************/
