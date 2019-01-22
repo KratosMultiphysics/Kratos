@@ -89,7 +89,7 @@ public:
         double ave_n_c2;
 
         // for 2 previous time step
-        // vnn = ave_nn_c1 * v_ave - ave_nn_c2 * vn_ave
+        // vnn = ave_nn_c1 * v_ave - ave_nn_c2 * vnnn_ave
         double ave_nn_c1;
         double ave_nn_c2;
 
