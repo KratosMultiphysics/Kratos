@@ -57,6 +57,8 @@ public:
     ///@name Operators
     ///@{
 
+    /// Assignment operator.
+    NodalData& operator=(NodalData const& rOther);
 
     ///@}
     ///@name Operations
@@ -143,9 +145,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    NodalData& operator=(NodalData const& rOther);
 
     /// Copy constructor.
     NodalData(NodalData const& rOther);

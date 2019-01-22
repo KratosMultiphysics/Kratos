@@ -25,6 +25,13 @@ namespace Kratos
 
     NodalData::NodalData(IndexType TheId) : mId(TheId){}
 
+    /// Assignment operator.
+    NodalData& NodalData::operator=(NodalData const& rOther){
+        mId = rOther.mId;
+
+        return *this;
+    }
+
     /// Turn back information as a string.
     std::string NodalData::Info() const {
         return "NodalData";
