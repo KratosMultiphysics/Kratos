@@ -814,7 +814,7 @@ public:
      * @param ThisIndex The Id of the mesh (0 by default)
      * @return The new created properties
      */
-    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
+    PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
         if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
