@@ -117,8 +117,7 @@ class FEMDEM3D_Solution(CouplingFemDem.FEMDEM_Solution):
 		########################################################
 		self.DEM_Solution.AfterSolveOperations()
 
-		self.DEM_Solution.DEMFEMProcedures.MoveAllMeshes(self.DEM_Solution.all_model_parts, self.DEM_Solution.time, self.DEM_Solution.solver.dt)
-
+        self.DEM_Solution.solver._MoveAllMeshes(self.DEM_Solution.time, self.DEM_Solution.solver.dt)
 		self.UpdateDEMVariables() # to print DEM with the FEM coordinates
 
 		self.PrintDEMResultsForGid()

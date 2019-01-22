@@ -644,6 +644,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
 
@@ -711,8 +712,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         }
 
         // We remove the not used conditions
-        ModelPart& root_model_part = mOriginModelPart.GetRootModelPart();
-        root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        if (remove_isolated_conditions) {
+            ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+            r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
 
         NodesArrayType& r_nodes_array = mDestinationModelPart.Nodes();
         const int num_nodes = static_cast<int>(r_nodes_array.size());
@@ -771,6 +774,7 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
     const double relative_convergence_tolerance = mThisParameters["relative_convergence_tolerance"].GetDouble();
     const double absolute_convergence_tolerance = mThisParameters["absolute_convergence_tolerance"].GetDouble();
     const double distance_threshold = mThisParameters["distance_threshold"].GetDouble();
+    const bool remove_isolated_conditions = mThisParameters["remove_isolated_conditions"].GetBool();
     const SizeType max_number_iterations = mThisParameters["max_number_iterations"].GetInt();
     IndexType iteration = 0;
 
@@ -832,8 +836,10 @@ void SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>::Exec
         }
 
         // We remove the not used conditions
-        ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
-        r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        if (remove_isolated_conditions) {
+            ModelPart& r_root_model_part = mOriginModelPart.GetRootModelPart();
+            r_root_model_part.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
 
         // Finally we solve the system
         for (IndexType i_size = 0; i_size < variable_size; ++i_size) {
@@ -875,6 +881,7 @@ Parameters SimpleMortarMapperProcess<TDim, TNumNodes, TVarType, TNumNodesMaster>
         "max_number_iterations"            : 10,
         "integration_order"                : 2,
         "distance_threshold"               : 1.0e24,
+        "remove_isolated_conditions"       : false,
         "mapping_coefficient"              : 1.0e0,
         "origin_variable"                  : "TEMPERATURE",
         "destination_variable"             : "",
