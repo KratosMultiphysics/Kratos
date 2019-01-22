@@ -20,7 +20,7 @@
 #include "includes/cfd_variables.h"
 
 // Application includes
-#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 namespace Kratos
 {
@@ -28,32 +28,32 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-NewtonianTemperatureDependent2DLaw::NewtonianTemperatureDependent2DLaw()
-    : Newtonian2DLaw()
+NewtonianTemperatureDependent3DLaw::NewtonianTemperatureDependent3DLaw()
+    : Newtonian3DLaw()
 {}
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-NewtonianTemperatureDependent2DLaw::NewtonianTemperatureDependent2DLaw(const NewtonianTemperatureDependent2DLaw& rOther)
-    : Newtonian2DLaw(rOther)
+NewtonianTemperatureDependent3DLaw::NewtonianTemperatureDependent3DLaw(const NewtonianTemperatureDependent3DLaw& rOther)
+    : Newtonian3DLaw(rOther)
 {}
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer NewtonianTemperatureDependent2DLaw::Clone() const
+ConstitutiveLaw::Pointer NewtonianTemperatureDependent3DLaw::Clone() const
 {
-    return Kratos::make_shared<NewtonianTemperatureDependent2DLaw>(*this);
+    return Kratos::make_shared<NewtonianTemperatureDependent3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-NewtonianTemperatureDependent2DLaw::~NewtonianTemperatureDependent2DLaw()
+NewtonianTemperatureDependent3DLaw::~NewtonianTemperatureDependent3DLaw()
 {}
 
-int NewtonianTemperatureDependent2DLaw::Check(
+int NewtonianTemperatureDependent3DLaw::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo)
@@ -62,31 +62,31 @@ int NewtonianTemperatureDependent2DLaw::Check(
 
     // If the viscosity is not table provided, check its value
     if (!rMaterialProperties.HasTable(TEMPERATURE, DYNAMIC_VISCOSITY)) {
-        KRATOS_ERROR << "TEMPERATURE - DYNAMICS_VISCOSITY table is missing in NewtonianTemperatureDependent2DLaw" << std::endl;
+        KRATOS_ERROR << "TEMPERATURE - DYNAMICS_VISCOSITY table is missing in NewtonianTemperatureDependent3DLaw" << std::endl;
     }
 
     return 0;
 }
 
-std::string NewtonianTemperatureDependent2DLaw::Info() const
+std::string NewtonianTemperatureDependent3DLaw::Info() const
 {
-    return "NewtonianTemperatureDependent2DLaw";
+    return "NewtonianTemperatureDependent3DLaw";
 }
 
-double NewtonianTemperatureDependent2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
+double NewtonianTemperatureDependent3DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const
 {
     const double effective_viscosity = this->GetValueFromTable(TEMPERATURE, DYNAMIC_VISCOSITY, rParameters);
     return effective_viscosity;
 }
 
-void NewtonianTemperatureDependent2DLaw::save(Serializer& rSerializer) const
+void NewtonianTemperatureDependent3DLaw::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian2DLaw )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Newtonian3DLaw )
 }
 
-void NewtonianTemperatureDependent2DLaw::load(Serializer& rSerializer)
+void NewtonianTemperatureDependent3DLaw::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian2DLaw )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Newtonian3DLaw )
 }
 
 } // Namespace Kratos

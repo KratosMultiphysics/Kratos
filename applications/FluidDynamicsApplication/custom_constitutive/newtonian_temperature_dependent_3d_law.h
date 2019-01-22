@@ -10,25 +10,26 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-#if !defined (KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_2D_H_INCLUDED)
-#define  KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_2D_H_INCLUDED
+#if !defined (KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_3D_H_INCLUDED)
+#define  KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_3D_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "newtonian_2d_law.h"
+#include "newtonian_3d_law.h"
 
 namespace Kratos
 {
+
 /**
- * Defines a Newtonian constitutive law for 2D
+ * Defines a Newtonian constitutive law in 3D.
  * This material law is defined by the parameters:
  * 1) DYNAMIC_VISCOSITY
  */
+class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent3DLaw : public Newtonian3DLaw
 
-class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NewtonianTemperatureDependent2DLaw : public Newtonian2DLaw
 {
 public:
     /**
@@ -38,10 +39,10 @@ public:
     typedef std::size_t             SizeType;
 
     /**
-     * Counted pointer of Newtonian3DLaw
+     * Counted pointer of NewtonianTemperatureDependent3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(NewtonianTemperatureDependent2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(NewtonianTemperatureDependent3DLaw);
 
     /**
      * Life Cycle
@@ -50,7 +51,7 @@ public:
     /**
      * Default constructor.
      */
-    NewtonianTemperatureDependent2DLaw();
+    NewtonianTemperatureDependent3DLaw();
 
     /**
      * Clone function (has to be implemented by any derived class)
@@ -61,12 +62,17 @@ public:
     /**
      * Copy constructor.
      */
-    NewtonianTemperatureDependent2DLaw (const NewtonianTemperatureDependent2DLaw& rOther);
+    NewtonianTemperatureDependent3DLaw (const NewtonianTemperatureDependent3DLaw& rOther);
+
 
     /**
      * Destructor.
      */
-    ~NewtonianTemperatureDependent2DLaw() override;
+    ~NewtonianTemperatureDependent3DLaw() override;
+
+    /**
+     * Operations needed by the base class:
+     */
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -85,6 +91,7 @@ public:
     /**
      * Input and output
      */
+
     /**
      * Turn back information as a string.
      */
@@ -104,11 +111,13 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    double GetEffectiveViscosity(ConstitutiveLaw::Parameters &rParameters) const override;
 
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /// Get the effective viscosity (in dynamic units -- Pa s) for the fluid.
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
 private:
@@ -144,7 +153,7 @@ private:
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-    ///@}
-}; // Class NewtonianTemperatureDependent2DLaw
+
+}; // Class NewtonianTemperatureDependent3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_2D_H_INCLUDED  defined
+#endif // KRATOS_NEWTONIAN_TEMPERATURE_DEPENDENT_LAW_3D_H_INCLUDED  defined
