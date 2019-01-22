@@ -17,6 +17,7 @@
 // Project includes
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos {
 namespace StructuralMechanicsElementUtilities {
@@ -120,9 +121,12 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
-    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
-    const double L = std::sqrt((dx * dx) + (dy * dy));
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    const double L = std::sqrt((delta_pos[0] * delta_pos[0]) +
+                               (delta_pos[1] * delta_pos[1]));
 
     KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
         << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
@@ -136,17 +140,14 @@ double CalculateCurrentLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double du =
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    const double dv =
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
+        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
 
-    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
-    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
-
-    const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy));
+    const double l = std::sqrt((delta_pos[0] * delta_pos[0]) +
+                               (delta_pos[1] * delta_pos[1]));
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
         << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
@@ -160,10 +161,11 @@ double CalculateReferenceLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
-    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
-    const double dz = rElement.GetGeometry()[1].Z0() - rElement.GetGeometry()[0].Z0();
-    const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    const double L = MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(L <= std::numeric_limits<double>::epsilon())
         << "Reference length of element " << rElement.Id() << ": ~0" << std::endl;
@@ -177,20 +179,13 @@ double CalculateCurrentLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
 
-    const double du =
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-    const double dv =
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-    const double dw =
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-    const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
-    const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
-    const double dz = rElement.GetGeometry()[1].Z0() - rElement.GetGeometry()[0].Z0();
-    const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
-                                (dw + dz) * (dw + dz));
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
+        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+
+    const double l = MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
         << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
