@@ -67,7 +67,7 @@
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
-			"solver_type" : "SuperLUSolver",
+			"solver_type" : "SuperLU_DirectSolver",
 			"tolerance"   : 1e-7,
 			"max_iteration" : 5000,
 			"scaling"     : true
@@ -96,7 +96,7 @@
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
-			"solver_type" : "SuperLUSolver",
+			"solver_type" : "SuperLU_DirectSolver",
 			"tolerance"   : 1e-7,
 			"max_iteration" : 5000,
 			"scaling"     : false
@@ -200,11 +200,11 @@
                     "python_module": "parametric_wall",
                     "model_part_name" : "Rigid_Tool",
                     "rigid_body_settings":{
-                        "rigid_body_element_type": "TranslatoryRigidBodyElement2D1N",
-                        "fixed_body": true,
-                        "compute_body_parameters": false,
-                        "rigid_body_model_part_name": "Rigid_Tool",
-                        "rigid_body_parameters":{
+                        "element_type": "TranslatoryRigidBodyElement2D1N",
+                        "constrained": true,
+                        "compute_parameters": false,
+                        "model_part_name": "Rigid_Tool",
+                        "body_parameters":{
                             "center_of_gravity": [0.00702505,0.003525,0],
                             "mass": 1,
                             "main_inertias": [0, 0, 0],
