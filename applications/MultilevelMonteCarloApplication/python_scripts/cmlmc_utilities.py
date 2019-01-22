@@ -1,9 +1,11 @@
 from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
+
+# Importing the Kratos Library
 import KratosMultiphysics
-import time
+
+# Import packages
+import numpy as np
 import copy
-from random import *
 
 # Import the StatisticalVariable class
 from auxiliary_classes_utilities import StatisticalVariable

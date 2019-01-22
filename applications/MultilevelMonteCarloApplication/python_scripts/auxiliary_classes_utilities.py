@@ -1,9 +1,7 @@
 from __future__ import absolute_import, division # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+
+# Import packages
 import numpy as np
-import KratosMultiphysics
-import time
-import copy
-from random import *
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss

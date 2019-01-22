@@ -1,17 +1,20 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
 
 # Importing the base class
 from analysis_stage import AnalysisStage
+
+# Import packages
+import numpy as np
 
 # Import exaqute
 from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
