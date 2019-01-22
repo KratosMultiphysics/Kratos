@@ -867,7 +867,7 @@ public:
      * @param ThisIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
-    PropertiesType& GetProperties(IndexType PropertiesId, IndexType ThisIndex = 0)
+    PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
         if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
