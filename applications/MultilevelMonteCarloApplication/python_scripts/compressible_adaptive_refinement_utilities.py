@@ -65,7 +65,6 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     remesh_param = KratosMultiphysics.Parameters(
         """{
             "initialize_entities"              : false,
-            "save_external_files"              : true,
             "echo_level"                       : 0}"""
             )
     MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
