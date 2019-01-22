@@ -1,6 +1,5 @@
 from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
-import time as timer
 
 import KratosMultiphysics
 import KratosMultiphysics.ConstitutiveModelsApplication as KratosModels
@@ -25,7 +24,7 @@ class NonLocalPlasticityProcess(KratosMultiphysics.Process):
         {
             "echo_level"            : 1,
             "model_part_name"       : "Main_Domain",
-            "characteristic_length": 1.0
+            "characteristic_length":  0.0
         }
         """)
 
@@ -48,15 +47,6 @@ class NonLocalPlasticityProcess(KratosMultiphysics.Process):
 
     def ExecuteInitializeSolutionStep(self):
 
-        clock_time = self._start_time_measuring()
-
         self.non_local_cxx_process.Execute()
 
-        print( "    (nonlocalPlasticity. CPTU:%.2f" % round((timer.clock()-clock_time),2)+"s-)")
 
-    def _start_time_measuring(self):
-        # Measure process time
-        time_ip = timer.clock()
-        return time_ip
-
-        

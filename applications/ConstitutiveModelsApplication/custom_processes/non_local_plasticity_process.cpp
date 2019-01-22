@@ -180,13 +180,21 @@ namespace Kratos
 
       for ( ModelPart::ElementsContainerType::iterator ie = mrModelPart.ElementsBegin(); ie != mrModelPart.ElementsEnd(); ie++)
       {
+
+
+         if ( ie->IsNot(SOLID) )
+            continue;
+
          Element::GeometryType & rGeom = ie->GetGeometry();
          MyIntegrationMethod = ie->GetIntegrationMethod();
          const Element::GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(MyIntegrationMethod);
          unsigned int numberOfGP = IntegrationPoints.size();
 
+
          std::vector<ConstitutiveLaw::Pointer> ConstitutiveLawVector(numberOfGP);
          ie->GetValueOnIntegrationPoints(CONSTITUTIVE_LAW, ConstitutiveLawVector, rCurrentProcessInfo);
+
+
 
          for ( unsigned int nGP = 0 ; nGP < numberOfGP; nGP++) {
 
