@@ -106,7 +106,7 @@ class ParametricWall(object):
 
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
             creation_utility = KratosContact.RigidBodyCreationUtility()
-            creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+            creation_utility.CreateRigidBody(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
 
             # create a contact model part
             self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
