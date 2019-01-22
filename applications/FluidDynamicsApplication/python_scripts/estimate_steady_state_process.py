@@ -50,6 +50,10 @@ class EstimateSteadyStateProcess(KratosMultiphysics.Process):
             self.model_part = model[self.settings["model_part_name"].GetString()]
 
     def ExecuteInitialize(self):
+        self.domain_size = self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
+        KratosMultiphysics.CalculateNodalAreaProcess(self.model_part, 
+                                                     self.domain_size).Execute()
 
         self.print_change_to_screen = self.settings["print_change_to_screen"].GetBool()
         self.write_change_output_file = self.settings["write_change_output_file"].GetBool()
