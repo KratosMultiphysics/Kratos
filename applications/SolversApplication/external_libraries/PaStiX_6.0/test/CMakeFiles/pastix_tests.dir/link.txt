@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpastix_tests.a  CMakeFiles/pastix_tests.dir/c_lowrank_tests.c.o CMakeFiles/pastix_tests.dir/s_lowrank_tests.c.o CMakeFiles/pastix_tests.dir/z_lowrank_tests.c.o CMakeFiles/pastix_tests.dir/d_lowrank_tests.c.o CMakeFiles/pastix_tests.dir/c_bvec_tests.c.o CMakeFiles/pastix_tests.dir/s_bvec_tests.c.o CMakeFiles/pastix_tests.dir/z_bvec_tests.c.o CMakeFiles/pastix_tests.dir/d_bvec_tests.c.o
-/usr/bin/ranlib libpastix_tests.a

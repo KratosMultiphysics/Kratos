@@ -1,3 +1,0 @@
-# Directory labels
- spm
-# Source files and their labels

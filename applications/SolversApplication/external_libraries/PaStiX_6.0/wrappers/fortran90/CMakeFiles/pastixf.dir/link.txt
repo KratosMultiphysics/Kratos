@@ -1,2 +1,0 @@
-/usr/bin/ar qc libpastixf.a  CMakeFiles/pastixf.dir/src/pastix_enums.F90.o CMakeFiles/pastixf.dir/src/pastixf.f90.o
-/usr/bin/ranlib libpastixf.a

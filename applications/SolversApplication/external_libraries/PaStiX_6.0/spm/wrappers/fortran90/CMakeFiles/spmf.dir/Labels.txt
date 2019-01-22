@@ -1,5 +1,0 @@
-# Directory labels
- spm
-# Source files and their labels
-/home/josep_maria/Kratos/applications/SolversApplication/external_libraries/pastix-lib/pastix/spm/wrappers/fortran90/src/spm_enums.F90
-/home/josep_maria/Kratos/applications/SolversApplication/external_libraries/pastix-lib/pastix/spm/wrappers/fortran90/src/spmf.f90

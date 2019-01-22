@@ -1,2 +1,0 @@
-/usr/bin/ar qc libspmf.a  CMakeFiles/spmf.dir/src/spm_enums.F90.o CMakeFiles/spmf.dir/src/spmf.f90.o
-/usr/bin/ranlib libspmf.a

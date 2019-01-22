@@ -1,4 +1,0 @@
-# Directory labels
- spm
-# Source files and their labels
-/home/josep_maria/Kratos/applications/SolversApplication/external_libraries/pastix-lib/pastix/spm/tests/spm_convert_tests.c

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libbcsc_test.a  CMakeFiles/bcsc_test.dir/c_bcsc_tests.c.o CMakeFiles/bcsc_test.dir/s_bcsc_tests.c.o CMakeFiles/bcsc_test.dir/z_bcsc_tests.c.o CMakeFiles/bcsc_test.dir/d_bcsc_tests.c.o
-/usr/bin/ranlib libbcsc_test.a
