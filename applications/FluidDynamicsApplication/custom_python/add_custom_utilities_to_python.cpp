@@ -56,7 +56,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
     // Dynamic Smagorinsky utilitites
-    py::class_<DynamicSmagorinskyUtils>(m,"DynamicSmagorinskyUtils")
+    py::class_<
+    DynamicSmagorinskyUtils>(m,"DynamicSmagorinskyUtils")
         .def(py::init<ModelPart&,unsigned int>())
         .def("StoreCoarseMesh",&DynamicSmagorinskyUtils::StoreCoarseMesh)
         .def("CalculateC",&DynamicSmagorinskyUtils::CalculateC)
@@ -64,9 +65,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Estimate time step utilities
-    class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
-        .def(init< ModelPart&, const double, const double, const double, const bool >())
-        .def(init< ModelPart&, Parameters& >())
+    py::class_<EstimateDtUtility < 2 > >(m,"EstimateDtUtility2D")
+        .def(py::init< ModelPart&, const double, const double, const double, const bool >())
+        .def(py::init< ModelPart&, Parameters& >())
         .def("SetCFL",&EstimateDtUtility < 2 > ::SetCFL)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 2 > ::SetDtMax)
@@ -74,9 +75,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateLocalCFL",&EstimateDtUtility < 2 > ::CalculateLocalCFL)
         ;
 
-    class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
-        .def(init< ModelPart&, const double, const double, const double, const bool >())
-        .def(init< ModelPart&, Parameters& >())
+    py::class_<EstimateDtUtility < 3 > >(m,"EstimateDtUtility3D")
+        .def(py::init< ModelPart&, const double, const double, const double, const bool >())
+        .def(py::init< ModelPart&, Parameters& >())
         .def("SetCFL",&EstimateDtUtility < 3 > ::SetCFL)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMin)
         .def("SetDtMax",&EstimateDtUtility < 3 > ::SetDtMax)
@@ -182,8 +183,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     // Steady state indicator utility
-    class_< SteadyStateIndicatorUtility > (m,"SteadyStateIndicatorUtility")
-        .def(init < ModelPart& >())
+    py::class_< SteadyStateIndicatorUtility > 
+        (m,"SteadyStateIndicatorUtility")
+        .def(py::init < ModelPart& >())
         .def("EstimateQuantityChangesInTime", &SteadyStateIndicatorUtility::EstimateQuantityChangesInTime)
         .def("GetVelocityChange", &SteadyStateIndicatorUtility::GetVelocityChange)
         .def("GetPressureChange", &SteadyStateIndicatorUtility::GetPressureChange)

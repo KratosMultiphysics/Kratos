@@ -133,9 +133,10 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
     ;
-    class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>
+
+    py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>
     (m,"TimeAveragingProcess")
-    .def(init < ModelPart& >())
+    .def(py::init < ModelPart& >())
     ;
 
 }
