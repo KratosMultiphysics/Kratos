@@ -63,7 +63,9 @@ class AleFluidSolver(PythonSolver):
         # Making sure the settings are consistent btw fluid and mesh-motion
         if mesh_motion_solver_settings.Has("model_part_name"):
             if not fluid_model_part_name == mesh_motion_solver_settings["model_part_name"].GetString():
-                raise Exception('Fluid- and Mesh-Solver have to use the same "model_part_name"!')
+                err_msg =  'Fluid- and Mesh-Solver have to use the same MainModelPart ("model_part_name")!\n'
+                err_msg += 'Use "mesh_motion_parts" for specifying mesh-motion on sub-model-parts'
+                raise Exception(err_msg)
         else:
             mesh_motion_solver_settings.AddValue("model_part_name", fluid_solver_settings["model_part_name"])
 
@@ -140,6 +142,10 @@ class AleFluidSolver(PythonSolver):
             # each SubModelPart has its own mesh-solver
             for i_name in range(mesh_motion_parts_params.size()):
                 sub_model_part_name = mesh_motion_parts_params[i_name].GetString()
+                if sub_model_part_name == main_model_part_name:
+                    err_msg =  'The MainModelPart cannot be used as one of the Sub-Mesh-Solvers!\n'
+                    err_msg += 'Remove "mesh_motion_parts" for specifying mesh-motion on the MainModelPart'
+                    raise Exception(err_msg)
                 full_model_part_name = main_model_part_name + "." + sub_model_part_name
                 sub_mesh_solver_settings = self.settings["mesh_motion_solver_settings"].Clone()
                 sub_mesh_solver_settings["model_part_name"].SetString(full_model_part_name)
