@@ -74,9 +74,7 @@ class CheckScalarBaseProcess(KratosMultiphysics.Process, KratosUnittest.TestCase
         # Getting model part and interval
         self.model_part = Model[self.settings["model_part_name"].GetString()]
         self.variable = KratosMultiphysics.KratosGlobals.GetVariable(self.settings["variable_name"].GetString())
-        self.interval = KratosMultiphysics.Vector(2)
-        self.interval[0] = self.settings["interval"][0].GetDouble()
-        self.interval[1] = self.settings["interval"][1].GetDouble()
+        self.interval = self.settings["interval"].GetVector()
 
         # Check if it is a function
         self.value_is_numeric = False
