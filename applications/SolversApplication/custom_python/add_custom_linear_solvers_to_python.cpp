@@ -36,12 +36,9 @@ namespace py = pybind11;
 void AddCustomLinearSolversToPython(pybind11::module& m)
 {
   //base types
-  // typedef DenseVector<double>                                                DenseVectorType;
-  // typedef DenseMatrix<double>                                                DenseMatrixType;
   typedef Kratos::Vector                                                     DenseVectorType;
   typedef Kratos::Matrix                                                     DenseMatrixType;
   typedef boost::numeric::ublas::vector<double>                             SparseVectorType;
-  typedef boost::numeric::ublas::matrix<double>                             SparseMatrixType;
   typedef UblasSpace<double, CompressedMatrix, SparseVectorType>             SparseSpaceType;
   typedef UblasSpace<double, DenseMatrixType, DenseVectorType>                LocalSpaceType;
   typedef DirectSolver<SparseSpaceType, LocalSpaceType>                     DirectSolverType;

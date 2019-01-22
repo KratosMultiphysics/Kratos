@@ -435,6 +435,11 @@ class BlockBuilderAndSolver : public SystemBuilderAndSolver< TSparseSpace, TDens
       }
     }
 
+    // if rA is modified the iterators change and must be re-pointed
+    Avalues = rA.value_data().begin();
+    Arow_indices = rA.index1_data().begin();
+    Acol_indices = rA.index2_data().begin();
+
 #pragma omp parallel for
     for (int k = 0; k < static_cast<int>(system_size); ++k)
     {
