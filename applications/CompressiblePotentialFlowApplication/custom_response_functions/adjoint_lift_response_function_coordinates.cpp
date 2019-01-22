@@ -45,7 +45,7 @@ namespace Kratos
         rResponseGradient.clear();
         auto geom = rAdjointElement.GetGeometry();
         unsigned int NumNodes = geom.PointsNumber();
-        double epsilon=1e-6;
+        double epsilon=1e-9;
 
         bool elem_is_wing = false;
         unsigned int counter = 0;
@@ -64,45 +64,51 @@ namespace Kratos
             if (rAdjointElement.IsNot(MARKER)){
                 for (unsigned int i=0;i<NumNodes;i++)
                 {        
-                    Vector resultForce(3);
-                    pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
-                    std::vector <double> cp;
-                    pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
-                    rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
-                    pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                    if (pElem->GetGeometry()[i].IsNot(STRUCTURE)){
+                        Vector resultForce(3);
+                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                        std::vector <double> cp;
+                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
+                        rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                    }
                 }
             }else{
                 array_1d<double,3> distances;
                 distances=rAdjointElement.GetValue(ELEMENTAL_DISTANCES);
                 for (unsigned int i=0;i<NumNodes;i++)
                 {   
-                    if(distances[i] > 0){
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
-                        std::vector <double> cp;
-                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
-                        rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
-                    }
-                    else{
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
-                        std::vector <double> cp;
-                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
-                        rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon;
-                    }
-                    if(distances[i] < 0){
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
-                        std::vector <double> cp;
-                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
-                        rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
-                    }
-                    else{
-                        pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
-                        std::vector <double> cp;
-                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
-                        rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                    if (pElem->GetGeometry()[i].IsNot(STRUCTURE)){
+                        if(distances[i] > 0){
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                            std::vector <double> cp;
+                            pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
+                            rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                        }
+                        else{
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
+                            std::vector <double> cp;
+                            pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
+                            rResponseGradient(i) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon;
+                        }
+                        if(distances[i] < 0){
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) += epsilon;
+                            std::vector <double> cp;
+                            pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
+                            rResponseGradient(i+NumNodes) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(POSITIVE_POTENTIAL) -= epsilon;
+                        }
+                        else{
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) += epsilon;
+                            std::vector <double> cp;
+                            pElem -> GetValueOnIntegrationPoints(PRESSURE,cp,mrModelPart.GetProcessInfo());
+                            rResponseGradient(i+NumNodes) = normal(1)*(cp_ini[0]-cp[0])/epsilon;
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon; 
                         pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon; 
+                            pElem -> GetGeometry()[i].FastGetSolutionStepValue(NEGATIVE_POTENTIAL) -= epsilon; 
+                        }
                     }
                 }
             }
@@ -182,7 +188,7 @@ namespace Kratos
         if (rSensitivityGradient.size() != NumNodes*Dim)
             rSensitivityGradient.resize(NumNodes*Dim, false);
 
-        double epsilon=1e-6;
+        double epsilon=1e-9;
         
         if (rAdjointCondition.IsNot(BOUNDARY)){
             Vector normal_ini = ComputeNormalCondition(geom);
@@ -194,25 +200,27 @@ namespace Kratos
 
             std::vector<IndexType> NodeIds, ElementNodeIds;
             GetSortedIds(NodeIds, rGeom);
-            Element::WeakPointer pElem=FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
-
-            pElem.lock() -> GetValueOnIntegrationPoints(PRESSURE,cp_ini,mrModelPart.GetProcessInfo());
-
+            Element::WeakPointer pElemWeak=FindParentElement(NodeIds, ElementNodeIds, ElementCandidates);
+            Element::Pointer pElem=mrModelPart.pGetElement(pElemWeak.lock()->Id(),0);
+            pElem -> GetValueOnIntegrationPoints(PRESSURE,cp_ini,mrModelPart.GetProcessInfo());
             for (unsigned int i_node=0;i_node<NumNodes;i_node++)
-            {   if (geom[i_node].IsNot(STRUCTURE)){
+            {   
+                if (geom[i_node].IsNot(STRUCTURE)){
                     for (unsigned int i_dim=0;i_dim<Dim;i_dim++)
                     {   
-                        pElem.lock() -> GetGeometry()[i_node].GetInitialPosition()[i_dim] += epsilon;
-                        pElem.lock() -> GetGeometry()[i_node].Coordinates()[i_dim] += epsilon;
+                        pElem -> GetGeometry()[i_node].GetInitialPosition()[i_dim] += epsilon;
+                        pElem -> GetGeometry()[i_node].Coordinates()[i_dim] += epsilon;
 
-                        Vector normal_perturbed = ComputeNormalCondition(pElem.lock()->GetGeometry());
+                        Vector normal_perturbed = ComputeNormal(pElem->GetGeometry());
+
                         std::vector <double> cp_perturbed;
-                        pElem.lock() -> GetValueOnIntegrationPoints(PRESSURE,cp_perturbed,mrModelPart.GetProcessInfo());
+                        pElem -> GetValueOnIntegrationPoints(PRESSURE,cp_perturbed,mrModelPart.GetProcessInfo());
+
 
                         rSensitivityGradient(i_dim + i_node*Dim) = (cp_ini[0]*normal_ini(1)-cp_perturbed[0]*normal_perturbed(1))/epsilon;
-                        
-                        pElem.lock() -> GetGeometry()[i_node].GetInitialPosition()[i_dim] += epsilon;
-                        pElem.lock() -> GetGeometry()[i_node].Coordinates()[i_dim] += epsilon;
+
+                        pElem -> GetGeometry()[i_node].GetInitialPosition()[i_dim] -= epsilon;
+                        pElem -> GetGeometry()[i_node].Coordinates()[i_dim] -= epsilon;
                     }
                 }else{            
                     for (unsigned int i_dim=0;i_dim<Dim;i_dim++)                      
@@ -227,24 +235,9 @@ namespace Kratos
                     rSensitivityGradient(i_dim + i_node*Dim) = 0.0;                
             }
         }
-        KRATOS_WATCH(rSensitivityGradient)
 
         KRATOS_CATCH("");
     }
-
-    void AdjointLiftCoordinatesResponseFunction::FinalizeSolutionStep() 
-    {
-        KRATOS_TRY;
-        // #pragma omp parallel for
-        for (int k = 0; k< static_cast<int> (mrModelPart.Nodes().size()); ++k)
-        {
-            auto it_node = mrModelPart.NodesBegin() + k;
-            it_node->Set(VISITED,false);
-        }
-
-        KRATOS_CATCH("");
-    }
-
 
     void AdjointLiftCoordinatesResponseFunction::ComputeInitialLift()
     {
@@ -285,7 +278,6 @@ namespace Kratos
         An[2] = 0.00;
         if((An[1]*(y_check-y(0)))>0){
             An = -An;
-            std::cout<<"Switching normal facing in adjoint lift coordinates response function!"<<std::endl;
         }
         return An;
     }

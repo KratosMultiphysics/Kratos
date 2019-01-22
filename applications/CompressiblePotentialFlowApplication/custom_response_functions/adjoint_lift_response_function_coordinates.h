@@ -129,9 +129,6 @@ public:
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
 
-
-    void FinalizeSolutionStep() override;
-
     double CalculateValue(ModelPart& rModelPart) override;
 
     void ComputeInitialLift();
