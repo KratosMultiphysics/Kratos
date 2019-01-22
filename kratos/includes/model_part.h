@@ -797,7 +797,7 @@ public:
     void AddProperties(PropertiesType::Pointer pNewProperties, IndexType ThisIndex = 0);
 
     /** Returns if the Properties corresponding to it's identifier exists */
-    bool HasProperties(IndexType PropertiesId, IndexType ThisIndex = 0) const
+    bool HasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const
     {
         auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
         if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
