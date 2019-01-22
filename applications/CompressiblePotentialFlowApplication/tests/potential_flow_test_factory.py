@@ -77,9 +77,9 @@ class PotentialFlowTestFactory(UnitTest.TestCase):
         potential_flow_analysis = PotentialFlowAnalysis(model,ProjectParameters)
         potential_flow_analysis.Run()
 
-class Naca0012Test(PotentialFlowTestFactory):
-    file_name = "naca0012_Case_5"
-    work_folder = "naca0012_tests"
+class Naca0012SmallTest(PotentialFlowTestFactory):
+    file_name = "naca0012_small"
+    work_folder = "naca0012_small_test"
 
 if __name__ == '__main__':
     UnitTest.main()

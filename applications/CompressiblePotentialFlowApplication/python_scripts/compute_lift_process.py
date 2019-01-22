@@ -35,7 +35,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.reference_area =  settings["reference_area"].GetDouble()
         self.create_output_file = settings["create_output_file"].GetBool()
 
-    def ExecuteFinalize(self):
+    def ExecuteFinalizeSolutionStep(self):
          print('COMPUTE LIFT')
 
          rx = 0.0
