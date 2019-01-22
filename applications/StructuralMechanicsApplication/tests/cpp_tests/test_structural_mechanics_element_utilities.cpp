@@ -98,56 +98,50 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateElementLength, KratosStructuralMechanicsFastS
     Model current_model;
 
     // Generate a model part with the previous
-    ModelPart& model_part = current_model.CreateModelPart("Tetrahedra");
+    ModelPart& model_part = current_model.CreateModelPart("test_model_part");
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
 
     // Fill the model part geometry data
     model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    model_part.CreateNewNode(2, 1.0, 1.0, 1.0);
+    auto p_node_2 = model_part.CreateNewNode(2, 1.0, 1.0, 1.0);
     model_part.CreateNewNode(3, 0.0, 0.0, 0.0);
 
-
-    // Set the DISTANCE field
-    model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
-    model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_Y) = 1.0;
-    model_part.Nodes()[2].FastGetSolutionStepValue(DISPLACEMENT_Z) = 1.0;
+    // Set the DISPLACEMENT
+    p_node_2->FastGetSolutionStepValue(DISPLACEMENT_X) = 1.0;
+    p_node_2->FastGetSolutionStepValue(DISPLACEMENT_Y) = 1.0;
+    p_node_2->FastGetSolutionStepValue(DISPLACEMENT_Z) = 1.0;
 
     Properties::Pointer p_properties(new Properties(0));
-    std::vector<ModelPart::IndexType> nodes1{1,2};
-    std::vector<ModelPart::IndexType> nodes2{1,3};
-    model_part.CreateNewElement("Element3D2N", 1, nodes1, p_properties);
-    model_part.CreateNewElement("Element3D2N", 2, nodes2, p_properties);
-    model_part.CreateNewElement("Element2D2N", 3, nodes1, p_properties);
-    model_part.CreateNewElement("Element2D2N", 4, nodes2, p_properties);
-
+    const std::vector<ModelPart::IndexType> nodes1{1,2};
+    const std::vector<ModelPart::IndexType> nodes2{1,3};
+    auto p_element_1 = model_part.CreateNewElement("Element3D2N", 1, nodes1, p_properties);
+    auto p_element_2 = model_part.CreateNewElement("Element3D2N", 2, nodes2, p_properties);
+    auto p_element_3 = model_part.CreateNewElement("Element2D2N", 3, nodes1, p_properties);
+    auto p_element_4 = model_part.CreateNewElement("Element2D2N", 4, nodes2, p_properties);
 
     // length 3D
-    Element& r_element_1 = model_part.GetElement(1);
-    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(r_element_1), sqrt(3.0));
-    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(r_element_1), sqrt(12.0));
+    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*p_element_1), std::sqrt(3.0));
+    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*p_element_1), std::sqrt(12.0));
 
     // 0 length throws ERROR  3D
-    Element& r_element_2 = model_part.GetElement(2);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(r_element_2),
-        "Error: Reference length of element 2 ~0");
+        StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*p_element_2),
+        "Error: Reference length of element 2: ~0");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(r_element_2),
-        "Error: Current length of element 2 ~0");
+        StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*p_element_2),
+        "Error: Current length of element 2: ~0");
 
     // length 2D
-    Element& r_element_3 = model_part.GetElement(3);
-    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(r_element_3), sqrt(2.0));
-    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(r_element_3), sqrt(8.0));
+    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*p_element_3), std::sqrt(2.0));
+    KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*p_element_3), std::sqrt(8.0));
 
     // 0 length throws ERROR 2D
-    Element& r_element_4 = model_part.GetElement(4);
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(r_element_4),
-        "Error: Reference length of element 4 ~0");
+        StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*p_element_4),
+        "Error: Reference length of element 4: ~0");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(r_element_4),
-        "Error: Current length of element 4 ~0");
+        StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*p_element_4),
+        "Error: Current length of element 4: ~0");
 }
 
 } // namespace Testing
