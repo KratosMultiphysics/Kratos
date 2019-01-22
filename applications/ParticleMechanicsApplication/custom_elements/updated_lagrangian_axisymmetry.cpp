@@ -122,8 +122,6 @@ void UpdatedLagrangianAxisymmetry::InitializeGeneralVariables (GeneralVariables&
 
     rVariables.detFT = 1;
 
-    rVariables.detJ = 1;
-
     rVariables.B.resize( strain_size , number_of_nodes * dimension, false );
 
     rVariables.F.resize( 3, 3, false );
@@ -174,11 +172,12 @@ void UpdatedLagrangianAxisymmetry::CalculateKinematics(GeneralVariables& rVariab
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, rVariables.detJ);
+    double detJ;
+    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, detJ);
 
     //Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n]
     rVariables.DN_DX = prod( rVariables.DN_De, InvJ);

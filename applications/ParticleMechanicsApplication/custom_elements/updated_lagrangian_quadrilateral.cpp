@@ -180,8 +180,6 @@ void UpdatedLagrangianQuadrilateral::InitializeGeneralVariables (GeneralVariable
 
     rVariables.detFT = 1;
 
-    rVariables.detJ = 1;
-
     rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
 
     rVariables.F.resize( dimension, dimension, false );
@@ -384,11 +382,12 @@ void UpdatedLagrangianQuadrilateral::CalculateKinematics(GeneralVariables& rVari
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, rVariables.detJ);
+    double detJ;
+    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, detJ);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx

@@ -105,7 +105,6 @@ protected:
         double  detF;
         double  detF0;
         double  detFT;
-        double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
