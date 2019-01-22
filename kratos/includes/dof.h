@@ -576,11 +576,6 @@ private:
 
 
     ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
     ///@name Un accessible methods
     ///@{
 
