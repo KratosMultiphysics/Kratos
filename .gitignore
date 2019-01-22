@@ -81,8 +81,9 @@ applications/FluidDynamicsApplication/symbolic_generation/time_averaged_navier_s
 
 *.dat
 
-debug/
+debug/*
+FullDebug/*
 
 applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/log\.txt
 
-applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/line_output/time_averaged/
+applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/line_output/*
