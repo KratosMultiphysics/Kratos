@@ -138,8 +138,8 @@ void CableElement3D2N::UpdateInternalForces(
 
   this->CreateTransformationMatrix(transformation_matrix);
 
-  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength(*this);
-  const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength(*this);
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;

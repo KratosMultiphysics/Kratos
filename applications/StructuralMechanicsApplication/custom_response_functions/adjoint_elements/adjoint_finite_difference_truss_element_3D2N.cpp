@@ -145,7 +145,7 @@ void AdjointFiniteDifferenceTrussElement::CalculateCurrentLengthDisplacementDeri
     if (rDerivativeVector.size() != num_dofs)
         rDerivativeVector.resize(num_dofs, false);
 
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
     const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
     const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
@@ -192,8 +192,8 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorFX(const
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
     const double A = mpPrimalElement->GetProperties()[CROSS_AREA];
-    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength(*this);
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength(*this);
+    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
     double prestress = 0.0;
     if (mpPrimalElement->GetProperties().Has(TRUSS_PRESTRESS_PK2))
         prestress = mpPrimalElement->GetProperties()[TRUSS_PRESTRESS_PK2];
@@ -213,8 +213,8 @@ double AdjointFiniteDifferenceTrussElement::CalculateDerivativePreFactorPK2(cons
 {
     const double numerical_limit = std::numeric_limits<double>::epsilon();
     const double E = mpPrimalElement->GetProperties()[YOUNG_MODULUS];
-    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength(*this);
-    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double l_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     double derivative_pre_factor = E * l / (l_0 * l_0);
 
     KRATOS_DEBUG_ERROR_IF(derivative_pre_factor<=numerical_limit)

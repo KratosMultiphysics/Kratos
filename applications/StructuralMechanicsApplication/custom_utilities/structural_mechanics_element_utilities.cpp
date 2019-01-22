@@ -117,7 +117,42 @@ void CalculateRayleighDampingMatrix(
 }
 
 
-double CalculateReferenceLength(const Element& rElement) {
+double CalculateCurrentLength2D2N(const Element& rElement) {
+  KRATOS_TRY;
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const double du =
+      rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
+      rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+  const double dv =
+      rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
+      rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
+
+  const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
+  const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
+
+  const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy));
+
+  KRATOS_ERROR_IF(l < numerical_limit) << "length 0 for element " << rElement.Id()
+                                       << std::endl;
+  return l;
+  KRATOS_CATCH("")
+}
+
+double CalculateReferenceLength2D2N(const Element& rElement) {
+  KRATOS_TRY;
+  const double numerical_limit = std::numeric_limits<double>::epsilon();
+  const double dx = rElement.GetGeometry()[1].X0() - rElement.GetGeometry()[0].X0();
+  const double dy = rElement.GetGeometry()[1].Y0() - rElement.GetGeometry()[0].Y0();
+  const double L = std::sqrt((dx * dx) + (dy * dy));
+
+  KRATOS_ERROR_IF(L < numerical_limit) << "length 0 for element " << rElement.Id()
+                                       << std::endl;
+  return L;
+  KRATOS_CATCH("")
+}
+
+
+double CalculateReferenceLength3D2N(const Element& rElement) {
 
   KRATOS_TRY;
   const double numerical_limit = std::numeric_limits<double>::epsilon();
@@ -132,7 +167,7 @@ double CalculateReferenceLength(const Element& rElement) {
   KRATOS_CATCH("")
 }
 
-double CalculateCurrentLength(const Element& rElement) {
+double CalculateCurrentLength3D2N(const Element& rElement) {
 
   KRATOS_TRY;
   const double numerical_limit = std::numeric_limits<double>::epsilon();
