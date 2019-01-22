@@ -525,6 +525,13 @@ class DEMAnalysisStage(AnalysisStage):
         it_must_or_not = it_must_or_not and not self.BreakSolutionStepsLoop()
         return it_must_or_not
 
+    def __SafeDeleteModelParts(self):
+        self.model.DeleteModelPart(self.cluster_model_part.Name)
+        self.model.DeleteModelPart(self.rigid_face_model_part.Name)
+        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.mapping_model_part.Name)
+        self.model.DeleteModelPart(self.spheres_model_part.Name)
+
     def Finalize(self):
 
         self.KRATOSprint("Finalizing execution...")
