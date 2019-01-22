@@ -20,6 +20,8 @@
 
 // Project includes
 #include "processes/process.h"
+#include "processes/variational_distance_calculation_process.h"
+// #include "custom_processes/trilinos_variational_distance_calculation_process.h"
 
 // Application includes
 
@@ -76,7 +78,8 @@ public:
      */
     TwoFluidsInletProcess(
         ModelPart& rModelPart,
-        Parameters& rParameters);
+        Parameters& rParameters,
+        Process::Pointer dist_proc );
 
     /// Destructor.
     ~TwoFluidsInletProcess() override {}

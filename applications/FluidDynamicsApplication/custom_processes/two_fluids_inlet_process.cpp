@@ -34,7 +34,8 @@ namespace Kratos
 
 TwoFluidsInletProcess::TwoFluidsInletProcess(
     ModelPart& rModelPart,
-    Parameters& rParameters)
+    Parameters& rParameters,
+    Process::Pointer dist_proc )
     : Process(), mrInletModelPart(rModelPart) {
 
     KRATOS_CHECK_VARIABLE_KEY( DISTANCE )
@@ -96,33 +97,54 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // Preparing the distance computation
-    VariableUtils var_utils;
-    var_utils.SetNonHistoricalVariable( IS_VISITED, 0.0, rRootModelPart.Nodes() );
-    var_utils.SetNonHistoricalVariable( IS_VISITED, 1.0, mrInletModelPart.Nodes() );
-    var_utils.SetScalarVar( DISTANCE, 0.0, rRootModelPart.Nodes() );
-    var_utils.SetScalarVar( DISTANCE, 0.0, mrInletModelPart.Nodes() );
+    // VariableUtils var_utils;
+    // var_utils.SetNonHistoricalVariable( IS_VISITED, 0.0, rRootModelPart.Nodes() );
+    // var_utils.SetNonHistoricalVariable( IS_VISITED, 1.0, mrInletModelPart.Nodes() );
+    // var_utils.SetScalarVar( DISTANCE, 0.0, rRootModelPart.Nodes() );
+    // var_utils.SetScalarVar( DISTANCE, 0.0, mrInletModelPart.Nodes() );
 
-    var_utils.SetScalarVar( NODAL_AREA, 0.0, rRootModelPart.Nodes() );
-    var_utils.SetScalarVar( NODAL_AREA, 1.0, mrInletModelPart.Nodes() );
+    // var_utils.SetScalarVar( NODAL_AREA, 0.0, rRootModelPart.Nodes() );
+    // var_utils.SetScalarVar( NODAL_AREA, 1.0, mrInletModelPart.Nodes() );
 
+    // for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
+    //     // iteration over all nodes to ensure the existence of the non-hist. variable (OMP parallel leads to problems)
+    //     auto it_node = rRootModelPart.NodesBegin() + i_node;
+    //     it_node->GetValue(DISTANCE) = 0.0;
+    // }
+
+    // const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
+    // // MPI Version used here
+    // if ( dim == 2 ){
+    //     ParallelDistanceCalculator<2> parallel_distance_util;
+    //     parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
+    // } else if ( dim == 3 ){
+    //     ParallelDistanceCalculator<3> parallel_distance_util;
+    //     parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
+    // } else {
+    //     KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
+    // }
+
+    // Preparation for variational distance calculation process
+    // setting distance of inlet nodes to 0.0
+    // setting rest of distances to 1.0
+    #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
-        // iteration over all nodes to ensure the existence of the non-hist. variable (OMP parallel leads to problems)
+        // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
-        it_node->GetValue(DISTANCE) = 0.0;
+        it_node->GetSolutionStepValue(DISTANCE, 0) = 1.0;
     }
 
-    const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    // MPI Version used here
-    if ( dim == 2 ){
-        ParallelDistanceCalculator<2> parallel_distance_util;
-        parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
-    } else if ( dim == 3 ){
-        ParallelDistanceCalculator<3> parallel_distance_util;
-        parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
-    } else {
-        KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>( mrInletModelPart.NumberOfNodes() ); ++i_node){
+        // iteration over all nodes
+        auto it_node = mrInletModelPart.NodesBegin() + i_node;
+        it_node->GetSolutionStepValue(DISTANCE, 0) = -1.0e-7;
     }
 
+    // Variational distance calculation process is executed to calculate distance from inlet
+    KRATOS_WATCH( "DITANCE from the inlet is being calcualted ")
+    dist_proc->Execute();
+    KRATOS_WATCH( "DITANCE from the inlet is being calcualted end ")
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
@@ -130,10 +152,18 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
         // iteration over all nodes
         auto it_node = rRootModelPart.NodesBegin() + i_node;
-        it_node->GetSolutionStepValue(DISTANCE, 0) = scaling_factor * (mInletRadius -  it_node->GetSolutionStepValue(DISTANCE, 0));
+
+        if ( (mInletRadius - it_node->GetSolutionStepValue(DISTANCE, 0)) >= 0 ){
+            // inside the transition radius (from 1 to 0)
+            it_node->GetSolutionStepValue(DISTANCE, 0) = scaling_factor * (mInletRadius - it_node->GetSolutionStepValue(DISTANCE, 0));
+        } else {
+            // outside the transition radius
+            it_node->GetSolutionStepValue(DISTANCE, 0) = 0.0;
+        }
     }
 
     // saving the value of DISTANCE to the non-historical variable AUX_DISTANCE
+    VariableUtils var_utils;
     var_utils.SaveScalarVar( DISTANCE, AUX_DISTANCE, rRootModelPart.Nodes() );
 
     // (*) restoring the original distance field from its stored version

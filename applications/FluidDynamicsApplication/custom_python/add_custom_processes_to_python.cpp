@@ -135,7 +135,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<TwoFluidsInletProcess, TwoFluidsInletProcess::Pointer, Process>
     (m,"TwoFluidsInletProcess")
-    .def(py::init< ModelPart&, Parameters& >())
+    .def(py::init< ModelPart&, Parameters&, Process::Pointer >())
     .def("SmoothDistanceField", &TwoFluidsInletProcess::SmoothDistanceField)
     ;
 }
