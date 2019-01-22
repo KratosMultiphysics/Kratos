@@ -53,13 +53,13 @@ class DesignLoggerUNV( DesignLogger ):
     # --------------------------------------------------------------------------
     def __CreateUNVIO( self ):
         results_directory = self.output_settings["output_directory"].GetString()
-        design_history_filename_with_path =  results_directory+"/"+self.design_history_filename
+        design_history_file_path =  results_directory+"/"+self.design_history_filename
         nodal_results = self.output_settings["nodal_results"]
 
         if self.write_design_surface:
-            self.UNVIO = UniversalFileIO( self.design_surface, design_history_filename_with_path, "WriteConditionsOnly", nodal_results )
+            self.UNVIO = UniversalFileIO( self.design_surface, design_history_file_path, "WriteConditionsOnly", nodal_results )
         elif self.write_optimization_model_part:
-            self.UNVIO = UniversalFileIO( self.optimization_model_part, design_history_filename_with_path, "WriteElementsOnly", nodal_results )
+            self.UNVIO = UniversalFileIO( self.optimization_model_part, design_history_file_path, "WriteElementsOnly", nodal_results )
 
     # --------------------------------------------------------------------------
     def InitializeLogging( self ):

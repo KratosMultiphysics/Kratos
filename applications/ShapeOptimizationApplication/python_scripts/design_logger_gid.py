@@ -69,12 +69,12 @@ class DesignLoggerGID( DesignLogger ):
 
         gid_config = self.output_settings["output_format"]["gid_parameters"]
         results_directory = self.output_settings["output_directory"].GetString()
-        design_history_filename_with_path =  results_directory+"/"+self.design_history_filename
+        design_history_file_path =  results_directory+"/"+self.design_history_filename
 
         if self.write_design_surface:
-            self.gid_io = GiDOutputProcess(self.design_surface, design_history_filename_with_path, gid_config)
+            self.gid_io = GiDOutputProcess(self.design_surface, design_history_file_path, gid_config)
         elif self.write_optimization_model_part:
-            self.gid_io = GiDOutputProcess(self.optimization_model_part, design_history_filename_with_path, gid_config)
+            self.gid_io = GiDOutputProcess(self.optimization_model_part, design_history_file_path, gid_config)
 
     # --------------------------------------------------------------------------
     def __ModifySettingsToMatchDefaultGiDOutputProcess( self ):
