@@ -205,7 +205,6 @@ class MultilevelMonteCarlo(object):
         #      self.current_level = len(self.difference_QoI.values) - 1           #
         ########################################################################'''
 
-
     '''
     function finalizing the screening phase of MLMC algorithm
     Usage: It is designed to be called ONCE, AFTER the screening phase
@@ -257,7 +256,6 @@ class MultilevelMonteCarlo(object):
         '''start first iteration, we enter in the MLMC algorithm'''
         self.current_iteration = 1
 
-
     '''
     function performing all the required operations that should be executed
     (for each MLMC iteration) BEFORE the MLMC solution step
@@ -275,7 +273,6 @@ class MultilevelMonteCarlo(object):
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
             self.difference_QoI.values.append([])
             self.time_ML.values.append([])
-
 
     '''function performing all the required operations that should be executed
     (for each MLMC iteration) AFTER the MLMC solution step'''
@@ -337,7 +334,6 @@ class MultilevelMonteCarlo(object):
         else:
             self.current_iteration = self.current_iteration + 1
 
-
     '''
     function printing informations about screening phase
     '''
@@ -350,7 +346,6 @@ class MultilevelMonteCarlo(object):
         print("rates coefficient = ",self.rates_error)
         print("estimated Bayesian variance = ",self.BayesianVariance)
         print("minimum number of MLMC iterations = ",self.number_iterations_iE)
-
 
     '''
     function printing informations about initializing MLMC phase
@@ -365,7 +360,6 @@ class MultilevelMonteCarlo(object):
         print("difference number of samples = ",self.difference_number_samples)
         print("previous number of samples = ",self.previous_number_samples)
 
-
     '''
     function printing informations about finalizing MLMC phase
     '''
@@ -379,7 +373,6 @@ class MultilevelMonteCarlo(object):
         print("estimated Bayesian variance = ",self.BayesianVariance)
         print("multilevel monte carlo mean estimator = ",self.mean_mlmc_QoI)
         print("TErr = bias + statistical error = ",self.TErr)
-
 
     '''
     function adding QoI and MLMC time values to the corresponding level
@@ -397,7 +390,6 @@ class MultilevelMonteCarlo(object):
             if (lev != level):
                 self.number_samples[lev] = self.number_samples[lev] + 1
 
-
     '''
     function giving as output the mesh discretization parameter
     the mesh parameter is the reciprocal of the minimum mesh size of the grid
@@ -411,7 +403,6 @@ class MultilevelMonteCarlo(object):
             mesh_parameter_current_level = h_current_level**(-1)
             self.sizes_mesh.append(h_current_level)
             self.mesh_parameters.append(mesh_parameter_current_level)
-
 
     '''
     function computing the problem parameters P=[calpha,alpha,cbeta,beta,cgamma,gamma] using least squares fit
@@ -445,7 +436,6 @@ class MultilevelMonteCarlo(object):
         self.rates_error["cgamma"] = C3
         self.rates_error["gamma"] = gamma
         del(bias_ratesLS,variance_ratesLS,cost_ML_ratesLS,mesh_param_ratesLS,C1,C2,C3,alpha,beta,gamma)
-
 
     '''
     function performing the Bayesian update of the variance
@@ -485,7 +475,6 @@ class MultilevelMonteCarlo(object):
         self.BayesianVariance = BayesianVariance
         del(BayesianVariance)
 
-
     '''
     function computing the minimum number of iterations of MLMC algorithm
     iteration < number_iterations_iE : iterations needed to obtain increasingly accurate estimates of the
@@ -500,7 +489,6 @@ class MultilevelMonteCarlo(object):
         r2 = self.settings["r2"].GetDouble()
         r1 = self.settings["r1"].GetDouble()
         self.number_iterations_iE = np.floor((-np.log(tolF)+np.log(r2)+np.log(tol0))/(np.log(r1)))
-
 
     '''
     function computing the tolerance for the i^th iteration
@@ -518,7 +506,6 @@ class MultilevelMonteCarlo(object):
         else:
             tol = tolF
         self.tolerance_i = tol
-
 
     '''
     function computing the number of levels for i^th iteration of the algorithm
@@ -568,7 +555,6 @@ class MultilevelMonteCarlo(object):
         self.previous_number_levels = Lmin
         del(tol,Wmin,current_number_levels,cgamma,gamma,calpha,alpha,cphi,mesh_parameters_all_levels,Lmax,Lmin)
 
-
     '''
     function computing the splitting parameter theta \in (0,1)
     '''
@@ -583,7 +569,6 @@ class MultilevelMonteCarlo(object):
         elif (self.theta_i < self.settings["splitting_parameter_min"].GetDouble()):
             self.theta_i = self.settings["splitting_parameter_min"].GetDouble()
         del(calpha,alpha,tol,mesh_param)
-
 
     '''
     function computing the updated number of samples for each level for i^th iteration of CMLMC algorithm
@@ -642,13 +627,11 @@ class MultilevelMonteCarlo(object):
         del(current_number_levels,BayesianVariance,min_samples_add,cgamma,gamma,cphi,mesh_parameters_current_levels,\
         theta,tol,nsam,opt_number_samples,previous_number_samples,diff_nsam)
 
-
     '''
     function computing the mlmc estimator for the mean of the Quantity of Interest
     '''
     def ComputeMeanMLMCQoI(self):
         self.mean_mlmc_QoI = np.sum(self.difference_QoI.mean)
-
 
     '''
     function computing the total error:

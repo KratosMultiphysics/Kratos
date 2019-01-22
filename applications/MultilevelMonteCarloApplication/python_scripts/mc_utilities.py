@@ -238,11 +238,13 @@ class MonteCarlo(object):
     def SetConvergenceCriteria(self,convergence_string_name):
         self.convergence_criteria = convergence_string_name
 
+
 '''
 auxiliary function of CheckConvergence for the MC_higher_moments_sequential_stopping_rule criteria
 '''
 def _ComputeBoundFunction(x,beta):
     return np.minimum(0.3328 * (beta + 0.429), 18.1139 * beta / (1 + (np.abs(x)**3)))
+
 
 '''
 function computing the cumulative distribution function for the standard normal distribution
