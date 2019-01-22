@@ -70,33 +70,23 @@
         }]
     },
     "output_processes" : {
-        "gid_output" : [{
-            "python_module" : "gid_output_process",
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
             "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "GiDOutputProcess",
-            "help"          : "This process writes postprocessing files for GiD",
+            "process_name"  : "VTKOutputProcess",
             "Parameters"    : {
-                "model_part_name"        : "3D_Hook",
-                "output_name"            : "3D_Hook",
-                "postprocess_parameters" : {
-                    "result_file_configuration" : {
-                        "gidpost_flags"       : {
-                            "GiDPostMode"           : "GiD_PostBinary",
-                            "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
-                        },
-                        "file_label"          : "step",
-                        "output_control_type" : "step",
-                        "output_frequency"    : 1,
-                        "body_output"         : true,
-                        "node_output"         : false,
-                        "skin_output"         : false,
-                        "nodal_results"       : ["DISPLACEMENT","REACTION"],
-                        "gauss_point_results" : ["VON_MISES_STRESS"]
-                    },
-                    "point_data_configuration"  : []
-                }
+                "model_part_name": "3D_Hook",
+                "file_format": "ascii",
+                "output_precision": 7,
+                "output_control_type": "step",
+                "output_frequency": 1.0,
+                "output_sub_model_parts": true,
+                "folder_name": "Primal_Results",
+                "save_output_files_in_folder": true,
+                "nodal_solution_step_data_variables": [],
+                "nodal_data_value_variables": ["DISPLACEMENT","REACTION"],
+                "element_data_value_variables": ["VON_MISES_STRESS"],
+                "condition_data_value_variables": []
             }
         }]
     }
