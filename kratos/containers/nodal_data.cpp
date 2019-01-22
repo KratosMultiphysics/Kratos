@@ -27,7 +27,7 @@ namespace Kratos
 
     /// Turn back information as a string.
     std::string NodalData::Info() const {
-        return "NodalData"
+        return "NodalData";
     }
 
     /// Print information about this object.
