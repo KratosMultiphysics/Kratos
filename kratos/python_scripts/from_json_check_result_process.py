@@ -51,14 +51,7 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         ## Overwrite the default settings with user-provided parameters
         params.ValidateAndAssignDefaults(default_parameters)
         self.params = params
-
-        # We get the submodelpart
-        model_part_name = self.params["model_part_name"].GetString()
-        sub_model_part_name = self.params["sub_model_part_name"].GetString()
-        if (sub_model_part_name != ""):
-            self.model_part = model[model_part_name].GetSubModelPart(sub_model_part_name)
-        else:
-            self.model_part = model[model_part_name]
+        self.model  = model
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -66,6 +59,14 @@ class FromJsonCheckResultProcess(KratosMultiphysics.Process, KratosUnittest.Test
         Keyword arguments:
         self -- It signifies an instance of a class.
         """
+        # We get the submodelpart
+        model_part_name = self.params["model_part_name"].GetString()
+        sub_model_part_name = self.params["sub_model_part_name"].GetString()
+        if (sub_model_part_name != ""):
+            self.model_part = self.model[model_part_name].GetSubModelPart(sub_model_part_name)
+        else:
+            self.model_part = self.model[model_part_name]
+
         # If we consider any flag
         flag_name = self.params["check_for_flag"].GetString()
         if flag_name != "":
