@@ -16,17 +16,7 @@ def AuxiliarDampingSettings():
                 "damping_ratio_1"     : -1.0,
                 "eigen_values_vector" : [0.0],
                 "eigen_system_settings" : {
-                    "solver_type"                : "eigen_eigensystem",
-                    "print_feast_output"         : false,
-                    "perform_stochastic_estimate": true,
-                    "solve_eigenvalue_problem"   : true,
-                    "lambda_min"                 : 0.0,
-                    "lambda_max"                 : 4.0e5,
-                    "number_of_eigenvalues"      : 2,
-                    "search_dimension"           : 15,
-                    "linear_solver_settings": {
-                        "solver_type": "SkylineLUComplexSolver"
-                    }
+                    "solver_type"                : "eigen_eigensystem"
                 }
             }
         }
@@ -34,6 +24,36 @@ def AuxiliarDampingSettings():
     """)
 
     return damping_settings
+
+def AuxiliarEigenSettings(solver_type):
+    if solver_type == "feast" or solver_type == "FEAST":
+        eigen_system_settings = KratosMultiphysics.Parameters("""
+        {
+            "eigen_system_settings" : {
+                "solver_type"                : "feast",
+                "print_feast_output"         : false,
+                "perform_stochastic_estimate": true,
+                "solve_eigenvalue_problem"   : true,
+                "lambda_min"                 : 0.0,
+                "lambda_max"                 : 4.0e5,
+                "number_of_eigenvalues"      : 2,
+                "search_dimension"           : 15,
+                "linear_solver_settings": {
+                    "solver_type": "SkylineLUComplexSolver"
+                }
+            }
+        }
+        """)
+    else:
+        eigen_system_settings = KratosMultiphysics.Parameters("""
+        {
+            "eigen_system_settings" : {
+                "solver_type"       : "eigen_eigensystem"
+            }
+        }
+        """)
+        eigen_system_settings["eigen_system_settings"]["solver_type"].SetString(solver_type)
+    return eigen_system_settings
 
 def ComputeDampingCoefficients(model, settings, damping_settings):
     import KratosMultiphysics.kratos_utilities as kratos_utils

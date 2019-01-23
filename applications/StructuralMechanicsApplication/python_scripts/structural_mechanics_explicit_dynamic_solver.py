@@ -40,6 +40,10 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         damping_settings = common_methods_solvers.AuxiliarDampingSettings()
         self.dynamic_settings.AddValue("damping_settings", damping_settings["damping_settings"])
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
+        solver_type = self.dynamic_settings["damping_settings"]["determine_rayleigh_damping_settings"]["eigen_system_settings"]["solver_type"].GetString()
+        eigen_system_settings = common_methods_solvers.AuxiliarEigenSettings(solver_type)
+        self.dynamic_settings["damping_settings"]["determine_rayleigh_damping_settings"]["eigen_system_settings"] = eigen_system_settings["eigen_system_settings"]
+        self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
