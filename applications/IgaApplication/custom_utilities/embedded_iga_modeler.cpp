@@ -32,7 +32,7 @@ namespace Kratos
                 const bool is_rational = true;
 
                 ANurbs::Pointer<ANurbs::CurveGeometry3D> geometry = ANurbs::New<ANurbs::CurveGeometry3D>(degree, number_cps, is_rational);
-
+                
                 const std::vector<double> knot_vector = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Knots();
                 const int number_knots = m_brep_model_vector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->NbKnots();
 
@@ -109,12 +109,12 @@ namespace Kratos
                         
                         for (unsigned int cp_i = 0; cp_i < number_cps; ++cp_i)
                         {
-                            const auto node_x = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Poles()[cp_i][0];
-                            const auto node_y = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Poles()[cp_i][1];
-                            const double weight = boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Weight(cp_i); 
-
-                            geometry->SetPole(cp_i, {node_x, node_y});
-                            if (is_rational == true)   geometry->SetWeight(cp_i, weight); 
+                            geometry->SetPole(cp_i, {boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Poles()[cp_i][0], 
+                                                     boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Poles()[cp_i][1]});
+                            if (is_rational == true)
+                            {   
+                                geometry->SetWeight(cp_i, boundary_loop[b_loop_i].GetTrimmingCurves()[t_curve_i].GetCurve2D()->CurveGeometry()->Weight(cp_i)); 
+                            }
                         }
 
                         // Create the three dimensional curve which is to be tessellated
@@ -137,21 +137,29 @@ namespace Kratos
                 }
             }
         }
-        // std::reverse(std::begin(rPolygon), std::end(rPolygon));
+        
+        rPolygon.resize(point_id + 1);
+        rPolygon[point_id][0] = rPolygon[0][0];
+        rPolygon[point_id][1] = rPolygon[0][1];
+        rPolygon[point_id][2] = rPolygon[0][2];
     }
 
     std::vector<Matrix> EmbeddedIgaModeler::Triangulate()
     {
-        std::vector<array_1d<double,3>> polygon; 
-        CreateTessellationParameterCurve(polygon);
+        std::vector<array_1d<double,3>> polygon;
 
+        CreateTessellationParameterCurve(polygon);
+        
         std::vector<Matrix> triangles;
         EmbeddedIgaTriangulation embedded_triangulation; 
-        embedded_triangulation.CreateTriangles(polygon, triangles); 
+        embedded_triangulation.CreateTrianglesEmpire(polygon, triangles); 
         
         return triangles;
     }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//// Helper Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     std::vector<std::vector<double>> EmbeddedIgaModeler::PrintCurveTessellationPoints()
     {
@@ -164,7 +172,6 @@ namespace Kratos
             coords[i][0] = tessellation->Point(i).X();
             coords[i][1] = tessellation->Point(i).Y();
         }
-        
         return coords; 
     }
 
@@ -190,11 +197,7 @@ namespace Kratos
     std::vector<std::vector<double>> EmbeddedIgaModeler::PrintParameterCurveTessellationPoints()
     {
         std::vector<array_1d<double,3>> polygon; 
-        std::vector<Matrix> triangles;
-        EmbeddedIgaTriangulation embedded_triangulation; 
-        
         CreateTessellationParameterCurve(polygon);
-        embedded_triangulation.CreateTriangles(polygon, triangles);
         
         std::vector<std::vector<double>> coords(polygon.size(), std::vector<double>(2,0));
 
@@ -206,14 +209,61 @@ namespace Kratos
         return coords;
     }
 
-    void EmbeddedIgaModeler::PrintGaussPoints()
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintGaussPoints()
     {
         std::vector<Matrix> triangles = Triangulate(); 
         EmbeddedIgaErrorEstimation error_estimator(triangles); 
+        std::vector<array_1d<double, 2> > gp_pos; 
+        error_estimator.InsertGaussPoints(gp_pos);
 
-        error_estimator.PrintTriangleGaussPoints(); 
+        std::vector<std::vector<double>> gp_coords(gp_pos.size(), std::vector<double>(2,0)); 
         
+        for (unsigned int i = 0; i < gp_pos.size(); ++i)
+        {
+            gp_coords[i][0] = gp_pos[i][0]; 
+            gp_coords[i][1] = gp_pos[i][1]; 
+        }
+        return gp_coords; 
     }
+
+    std::vector<std::vector<double>> EmbeddedIgaModeler::PrintMappedGaussPoints()
+    {
+        std::vector<Matrix> triangles = Triangulate(); 
+        EmbeddedIgaErrorEstimation error_estimator(triangles); 
+        std::vector<array_1d<double, 2> > gp_pos; 
+
+        error_estimator.InsertGaussPoints(gp_pos); 
+        
+
+        auto geometry = m_brep_model_vector[0].GetFaceVector()[0].GetSurface(); 
+
+        std::vector<std::vector<double>> mapped_gp_coords (gp_pos.size(), std::vector<double>(3,0)); 
+
+        for (unsigned int i = 0; i < gp_pos.size(); ++i)
+        {    
+            auto point = geometry->PointAt(gp_pos[i][0],gp_pos[i][1]); 
+            
+            mapped_gp_coords[i][0] = point[0]; 
+            mapped_gp_coords[i][1] = point[1]; 
+            mapped_gp_coords[i][2] = point[2]; 
+        }
+        return mapped_gp_coords; 
+    }
+
+
+    void EmbeddedIgaModeler::TestTriangle()
+    {
+        std::vector<array_1d<double,3>> polygon;
+
+        CreateTessellationParameterCurve(polygon);
+
+    }
+
+    
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//// Helper Functions
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 

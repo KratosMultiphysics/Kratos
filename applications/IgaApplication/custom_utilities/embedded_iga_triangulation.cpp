@@ -20,7 +20,13 @@
 namespace Kratos
 {   
 
-    bool EmbeddedIgaTriangulation::CreateTriangles(const std::vector<array_1d<double,3>>& rPolygon, std::vector<Matrix>& rTriangles)
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//// Triangulation taken from 
+//// https://github.com/KratosMultiphysics/Kratos/blob/Brep_Application/applications/NurbsBrepApplication/custom_utilities/Polygon.cpp
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    bool EmbeddedIgaTriangulation::CreateTrianglesEmpire(const std::vector<array_1d<double,3>>& rPolygon, std::vector<Matrix>& rTriangles)
     {
         array_1d<double,3> p1,p2,p3,p4; 
         int bestvertex;
@@ -154,8 +160,8 @@ namespace Kratos
             }
             else
             {
-                std::cout << "triangle with zero area" << GetAreaOfTriangle(triangle) << std::endl;
-                KRATOS_WATCH(triangle)
+                // std::cout << "triangle with zero area" << GetAreaOfTriangle(triangle) << std::endl;
+                // KRATOS_WATCH(triangle)
             }
             if (bestvertex > (diagonal.index1 + 1)) 
             {

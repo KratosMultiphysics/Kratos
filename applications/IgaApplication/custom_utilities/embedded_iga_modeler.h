@@ -6,7 +6,6 @@
 // External includes
 #include "anurbs.h"
 
-
 // Project includes
 #include "containers/model.h"
 #include "includes/model_part.h"
@@ -14,6 +13,7 @@
 #include "nurbs_brep_modeler.h"
 #include "embedded_iga_triangulation.h"
 #include "embedded_iga_error_estimation.h"
+#include "meshing_application.h"
 
 namespace Kratos
 {
@@ -45,8 +45,10 @@ namespace Kratos
         std::vector<std::vector<double>> PrintCurveTessellationPoints(); 
         std::vector<std::vector<double>> PrintTriangulationPoints(); 
         std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
-        void PrintGaussPoints(); 
+        std::vector<std::vector<double>> PrintGaussPoints();
+        std::vector<std::vector<double>> PrintMappedGaussPoints(); 
 
+        void TestTriangle(); 
         
 
         ///@}

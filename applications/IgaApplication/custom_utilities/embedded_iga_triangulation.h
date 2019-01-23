@@ -37,7 +37,7 @@ namespace Kratos
         ///@name functions
         ///@{
 
-        bool CreateTriangles(
+        bool CreateTrianglesEmpire(
             const std::vector<array_1d<double,3> >& rpolygon, 
             std::vector<Matrix>& rtriangles); 
 

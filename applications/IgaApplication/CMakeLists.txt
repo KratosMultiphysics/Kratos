@@ -16,6 +16,7 @@ endif()
 
 include_directories(
     ${CMAKE_SOURCE_DIR}/kratos
+    ${CMAKE_SOURCE_DIR}/applications/MeshingApplication
     ${ANURBS_ROOT}/include
     ${ANURBS_ROOT}/external_libraries
 )
