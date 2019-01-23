@@ -457,7 +457,8 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         #self.__post_process(mp)
 
         # Testing explicit utilities
-        max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, 2.0, 1.0e-3, 0.5)
+        empty_param = KratosMultiphysics.Parameters("""{}""")
+        max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, empty_param)
         self.assertAlmostEqual(max_delta_time,1.3234236058132611e-07)
 
     def __post_process(self, main_model_part):

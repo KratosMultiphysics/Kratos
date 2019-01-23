@@ -62,16 +62,29 @@ namespace ExplicitIntegrationUtilities
     /**
      * @brief This method computes the necessry delta time to avoid numerical instabilities
      * @param rModelPart The model of the problem to solve
-     * @param PredictionLevel The prediction level
-     * @param MaximumDeltaTime The maximum delta time to be considered
-     * @param SafetyFactor The factor to not consider exactly the theoretical value
+     * @param ThisParameters The configuration parameters
      * @return The critical delta time
      */
     double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateDeltaTime(
         ModelPart& rModelPart,
-        const double PredictionLevel = 2.0,
-        const double MaximumDeltaTime = 1.0e-3,
-        const double SafetyFactor = 0.5
+        Parameters ThisParameters = Parameters(R"({})")
+        );
+
+    /**
+     * @brief This method computes the necessry delta time to avoid numerical instabilities (inner method)
+     * @param rModelPart The model of the problem to solve
+     * @param TimeStepPredictionLevel The prediction level
+     * @param MaxDeltaTime The max delta time
+     * @param SafetyFactor The safety factor
+     * @param MassFactor The factor that multiplies the mass
+     * @return The critical delta time
+     */
+    double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InnerCalculateDeltaTime(
+        ModelPart& rModelPart,
+        const double TimeStepPredictionLevel,
+        const double MaxDeltaTime,
+        const double SafetyFactor,
+        const double MassFactor
         );
 
 }; // namespace ExplicitIntegrationUtilities

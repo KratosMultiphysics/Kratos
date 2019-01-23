@@ -24,30 +24,97 @@ namespace ExplicitIntegrationUtilities
 {
 double CalculateDeltaTime(
     ModelPart& rModelPart,
-    const double PredictionLevel,
-    const double MaximumDeltaTime,
-    const double SafetyFactor
+    Parameters ThisParameters
     )
 {
     KRATOS_TRY
 
+    Parameters default_parameters = Parameters(R"(
+    {
+        "time_step_prediction_level" : 2.0,
+        "max_delta_time"             : 1.0e-3,
+        "safety_factor"              : 0.5,
+        "mass_factor"                : 1.0,
+        "desired_delta_time"         : -1.0,
+        "max_number_of_iterations"   : 10
+    })" );
+
+
+    ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
+
+    const double time_step_prediction_level = ThisParameters["time_step_prediction_level"].GetDouble(); // The prediction level
+    const double max_delta_time = ThisParameters["max_delta_time"].GetDouble(); // The prediction level
+    const double safety_factor = ThisParameters["safety_factor"].GetDouble(); // The factor to not consider exactly the theoretical value
+    double mass_factor = ThisParameters["mass_factor"].GetDouble(); // How the density of the solid is going to be multiplied (1.0 by default)
+    const double desired_delta_time = ThisParameters["desired_delta_time"].GetDouble(); // The minimum delta time we want, if the value is negative not mass factor will be computed
+    const bool compute_mass_factor = desired_delta_time < 0.0 ? false : true;
+    const bool max_number_of_iterations = ThisParameters["max_number_of_iterations"].GetInt();
+
     // Getting process info
     ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-    ElementsArrayType& r_elements = rModelPart.Elements();
+
+    // Initialize the value
+    double stable_delta_time = 1000.0;
+
+    // Actaully compute the value
+    if (compute_mass_factor) {
+        int iteration = 1;
+        stable_delta_time = InnerCalculateDeltaTime(rModelPart, time_step_prediction_level, max_delta_time, safety_factor, mass_factor);
+        if (stable_delta_time < desired_delta_time) {
+            while (iteration < max_number_of_iterations) {
+                mass_factor *= std::pow(desired_delta_time/stable_delta_time, 2);
+                stable_delta_time = InnerCalculateDeltaTime(rModelPart, time_step_prediction_level, max_delta_time, safety_factor, mass_factor);
+                KRATOS_INFO("ExplicitIntegrationUtilities") << "ITERATION NUMBER: " << iteration << "\tMass factor: " << mass_factor << "\tCurrent delta time: " << stable_delta_time << "\tDesired delta time:" << desired_delta_time << "\t RATIO: " << stable_delta_time/desired_delta_time << std::endl;
+                if (stable_delta_time > desired_delta_time) {
+                    break;
+                }
+                ++iteration;
+            }
+        }
+    } else {
+        stable_delta_time = InnerCalculateDeltaTime(rModelPart, time_step_prediction_level, max_delta_time, safety_factor, mass_factor);
+    }
+
+    if (stable_delta_time < max_delta_time) {
+        r_current_process_info[DELTA_TIME] = stable_delta_time;
+    }
+
+    KRATOS_INFO_IF("ExplicitIntegrationUtilities", time_step_prediction_level > 1)
+    << "  [EXPLICIT PREDICTION LEVEL " << time_step_prediction_level << " ] : (computed stable time step = " << stable_delta_time << " s)\n"
+    << "  Using  = " << r_current_process_info[DELTA_TIME] << " s as time step DELTA_TIME)" << std::endl;
+
+    return stable_delta_time;
+
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double InnerCalculateDeltaTime(
+    ModelPart& rModelPart,
+    const double TimeStepPredictionLevel,
+    const double MaxDeltaTime,
+    const double SafetyFactor,
+    const double MassFactor
+    )
+{
+    KRATOS_TRY
 
     // Initial delta time
-    double delta_time = MaximumDeltaTime / SafetyFactor;
+    double delta_time = MaxDeltaTime / SafetyFactor;
 
     // Initialize the value
     double stable_delta_time = 1000.0;
 
     // Auxiliar parameters
     bool check_has_all_variables = true;
-    double E(0.0), nu(0.0), roh(0.0), alpha(0.0), beta(0.0);
+    double E(0.0), nu(0.0), rho(0.0), alpha(0.0), beta(0.0);
 
     // Iterate over elements
-    const auto it_elem_begin = rModelPart.ElementsBegin();
-    #pragma omp parallel for firstprivate(check_has_all_variables, E, nu, roh, alpha, beta)
+    ElementsArrayType& r_elements = rModelPart.Elements();
+    const auto it_elem_begin = r_elements.begin();
+    #pragma omp parallel for firstprivate(check_has_all_variables, E, nu, rho, alpha, beta)
     for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
@@ -87,7 +154,7 @@ double CalculateDeltaTime(
 
         // Getting density
         if (r_properties.Has(DENSITY)) {
-            roh = r_properties[DENSITY];
+            rho = MassFactor * r_properties[DENSITY];
         } else {
             check_has_all_variables = false;
         }
@@ -97,7 +164,7 @@ double CalculateDeltaTime(
 
             // Compute courant criterion
             const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
-            const double wavespeed = std::sqrt(bulk_modulus / roh);
+            const double wavespeed = std::sqrt(bulk_modulus / rho);
             const double w = 2.0 * wavespeed / length; // Frequency
 
             const double psi = 0.5 * (alpha / w + beta * w); // Critical ratio;
@@ -108,19 +175,11 @@ double CalculateDeltaTime(
                 if (stable_delta_time < delta_time) delta_time = stable_delta_time;
             }
         } else {
-            KRATOS_ERROR << "Not enough parameters for prediction level " << PredictionLevel << std::endl;
+            KRATOS_ERROR << "Not enough parameters for prediction level " << TimeStepPredictionLevel << std::endl;
         }
     }
 
     stable_delta_time = delta_time * SafetyFactor;
-
-    if (stable_delta_time < MaximumDeltaTime) {
-        r_current_process_info[DELTA_TIME] = stable_delta_time;
-    }
-
-    KRATOS_INFO_IF("ExplicitIntegrationUtilities", PredictionLevel > 1)
-    << "  [EXPLICIT PREDICTION LEVEL " << PredictionLevel << " ] : (computed stable time step = " << stable_delta_time << " s)\n"
-    << "  Using  = " << r_current_process_info[DELTA_TIME] << " s as time step DELTA_TIME)" << std::endl;
 
     return stable_delta_time;
 

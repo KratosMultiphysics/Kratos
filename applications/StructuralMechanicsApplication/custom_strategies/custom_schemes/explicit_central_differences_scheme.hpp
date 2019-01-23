@@ -178,7 +178,15 @@ public:
         KRATOS_TRY
 
         if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
-            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, mDeltaTime.PredictionLevel, mDeltaTime.Maximum);
+            Parameters prediction_parameters = Parameters(R"(
+            {
+                "time_step_prediction_level" : 2.0,
+                "max_delta_time"             : 1.0e-3,
+                "safety_factor"              : 0.5
+            })" );
+            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel);
+            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
+            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
         }
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -223,7 +231,17 @@ public:
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-        if (mDeltaTime.PredictionLevel > 1) ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, mDeltaTime.PredictionLevel, mDeltaTime.Maximum); // WARNING This could be problematic if PredictionLevel is a double and not a integer
+        if (mDeltaTime.PredictionLevel > 1) {
+            Parameters prediction_parameters = Parameters(R"(
+            {
+                "time_step_prediction_level" : 2.0,
+                "max_delta_time"             : 1.0e-3,
+                "safety_factor"              : 0.5
+            })" );
+            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel); // WARNING This could be problematic if PredictionLevel is a double and not a integer
+            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
+            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
+        }
         InitializeResidual(rModelPart);
 
         KRATOS_CATCH("")
