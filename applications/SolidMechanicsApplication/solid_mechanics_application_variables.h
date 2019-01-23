@@ -24,12 +24,7 @@
 
 // External includes
 
-
 // Project includes
-#include "includes/kratos_application.h"
-#include "includes/variables.h"
-#include "includes/mat_variables.h"
-#include "includes/kratos_flags.h"
 #include "custom_utilities/shell_cross_section.hpp"
 
 #include "solvers_application_variables.h"

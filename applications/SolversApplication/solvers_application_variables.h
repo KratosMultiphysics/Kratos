@@ -26,6 +26,7 @@
 
 // Project includes
 #include "includes/variables.h"
+#include "includes/mat_variables.h"
 #include "includes/kratos_application.h"
 #include "includes/kratos_flags.h"
 #include "custom_solvers/time_integration_methods/time_integration_methods_container.hpp"
@@ -65,8 +66,6 @@ namespace Kratos
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLVERS_APPLICATION, ComponentTimeIntegrationContainerPointerType, COMPONENT_TIME_INTEGRATION_METHODS )
 
   // implicit solution
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLVERS_APPLICATION, bool, IMPLEX )
-  KRATOS_DEFINE_APPLICATION_VARIABLE( SOLVERS_APPLICATION, bool, IMPLEX_CONTACT )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLVERS_APPLICATION, bool, CONVERGENCE_ACHIEVED )
   KRATOS_DEFINE_APPLICATION_VARIABLE( SOLVERS_APPLICATION, bool, COMPUTE_CONSISTENT_MASS_MATRIX )
 
