@@ -57,7 +57,7 @@ namespace Kratos
 
         double GetAreaOfTriangle(const Matrix& triangle);
 
-        void PrintTriangleGaussPoints(); 
+        
 
         ///@}
         ///@name Life Cycle

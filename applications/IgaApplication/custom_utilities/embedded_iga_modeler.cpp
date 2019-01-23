@@ -253,10 +253,8 @@ namespace Kratos
 
     void EmbeddedIgaModeler::TestTriangle()
     {
-        std::vector<array_1d<double,3>> polygon;
-
-        CreateTessellationParameterCurve(polygon);
-
+        struct triangulateio inData;
+        struct triangulateio outData;
     }
 
     

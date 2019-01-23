@@ -21,10 +21,6 @@ namespace Kratos
 {   
     void EmbeddedIgaErrorEstimation::InsertGaussPoints(std::vector<array_1d<double, 2> >& gp_pos)
     {
-
-        // xiTri = x1*(1-triGP(iGP,2)-triGP(iGP,3)) + x2 * triGP(iGP,2) + x3 * triGP(iGP,3); 
-        // etaTri = y1*(1-triGP(iGP,2)-triGP(iGP,3)) + y2 * triGP(iGP,2) + y3 * triGP(iGP,3);
-
         auto gp_coords = Quadrature<TriangleGaussLegendreIntegrationPoints2, 2, IntegrationPoint<3> >::GenerateIntegrationPoints();
 
         gp_pos.resize(mTriangles.size() * gp_coords.size()); 
@@ -39,8 +35,6 @@ namespace Kratos
                 id += 1; 
             }
         }
-
-        
     }
 
     EmbeddedIgaErrorEstimation::EmbeddedIgaErrorEstimation(std::vector<Matrix> rTriangles)

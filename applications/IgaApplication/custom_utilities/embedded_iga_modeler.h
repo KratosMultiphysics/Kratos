@@ -1,6 +1,13 @@
 #if !defined(KRATOS_EMBEDDED_IGA_MODELER_H_INCLUDED )
 #define  KRATOS_EMBEDDED_IGA_MODELER_H_INCLUDED
 
+extern "C" {
+    #ifdef SINGLE
+        #define REAL float
+    #else /* not SINGLE */
+        #define REAL double
+#endif /* not SINGLE */
+
 // System includes
 
 // External includes
@@ -13,7 +20,7 @@
 #include "nurbs_brep_modeler.h"
 #include "embedded_iga_triangulation.h"
 #include "embedded_iga_error_estimation.h"
-#include "meshing_application.h"
+#include "custom_external_libraries/triangle/triangle.h"
 
 namespace Kratos
 {
