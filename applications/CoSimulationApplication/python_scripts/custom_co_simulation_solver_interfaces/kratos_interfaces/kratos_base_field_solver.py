@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
-import co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 
 # Importing the Kratos Library
 try:
@@ -10,7 +10,7 @@ except ModuleNotFoundError:
     exit()
 
 # Importing the base class
-from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 
 # Other imports
 import os

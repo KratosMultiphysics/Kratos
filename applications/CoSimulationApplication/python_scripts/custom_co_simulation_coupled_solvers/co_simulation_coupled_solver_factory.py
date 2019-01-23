@@ -22,7 +22,7 @@ def CreateCoupledSolver(settings):
 
     if coupled_solver_type.GetString() in available_coupled_solvers:
         module_name = available_coupled_solvers[coupled_solver_type.GetString()]
-        module_full = 'custom_co_simulation_coupled_solvers.'+module_name
+        module_full = 'KratosMultiphysics.CoSimulationApplication.custom_co_simulation_coupled_solvers.'+module_name
         coupled_solver_module = __import__(module_full,fromlist=[module_name])
         return coupled_solver_module.Create(settings)
     else:

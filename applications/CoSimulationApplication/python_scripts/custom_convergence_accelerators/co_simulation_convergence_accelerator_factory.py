@@ -20,7 +20,7 @@ def CreateConvergenceAccelerator(settings, solver):
     accelerator_type = settings["type"].GetString()
     if accelerator_type in available_convergence_accelerators:
         module_name = available_convergence_accelerators[accelerator_type]
-        module_full = "custom_convergence_accelerators."+module_name
+        module_full = "KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators."+module_name
         accelerator_module = __import__(module_full,fromlist=[module_name])
         return accelerator_module.Create(settings, solver)
     else:

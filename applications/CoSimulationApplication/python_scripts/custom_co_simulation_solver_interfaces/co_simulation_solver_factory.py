@@ -21,7 +21,7 @@ def CreateSolverInterface(solver_name, settings):
 
     if solver_type in available_solver_interfaces:
         solver_module_name = available_solver_interfaces[solver_type]
-        module_full = 'custom_co_simulation_solver_interfaces.'+solver_module_name
+        module_full = 'KratosMultiphysics.CoSimulationApplication.custom_co_simulation_solver_interfaces.'+solver_module_name
         solver_module = __import__(module_full,fromlist=[solver_module_name])
         return solver_module.Create(solver_name, settings)
     else:

@@ -1,9 +1,9 @@
 # co simulation imports
-import co_simulation_tools as tools
-from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
+from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
-import co_simulation_data_structure
-cs_data_structure = co_simulation_data_structure.__DATA_STRUCTURE__
+import KratosMultiphysics.CoSimulationApplication.co_simulation_data_structure as data_str
+cs_data_structure = data_str.__DATA_STRUCTURE__
 import collections
 
 ##
@@ -199,7 +199,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _CreateSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
         num_solvers = len(SolversDataMap.keys())
-        import custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
+        import KratosMultiphysics.CoSimulationApplication.custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
 
         for solver_name, settings in SolversDataMap.items():
             solver = factory.CreateSolverInterface(solver_name,settings)
@@ -231,7 +231,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def _CreateConvergenceAccelerators(self, conv_acc_settings): # probably better in some utils file
         conv_accelerators = []
         num_acceleratos = conv_acc_settings.size()
-        import custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
+        import KratosMultiphysics.CoSimulationApplication.custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
         for i in range(num_acceleratos):
             accelerator_settings = conv_acc_settings[i]
             solver_name = accelerator_settings["data"]["solver"].GetString()
