@@ -21,7 +21,7 @@ while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
 done
 
 # Download additional dependencies
-sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl python3-numpy python3-scipy
 
 # We move to home directory
 cd ${HOME}
