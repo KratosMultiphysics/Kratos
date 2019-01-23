@@ -425,11 +425,11 @@ class SolutionScheme : public Flags
 
    if( mOptions.Is(LocalFlagType::INCREMENTAL_SOLUTION) ){
      //AddSolution(rModelPart,rDofSet,rDx);  //dof = incremental variable
-     mpDofUpdater->AddSolution(rDofSet,rDx);
+     mpDofUpdater->UpdateDofs(rDofSet,rDx);
    }
    else{
      //SetSolution(rModelPart,rDofSet,rDx);  //dof = total variable
-     mpDofUpdater->SetSolution(rDofSet,rDx);
+     mpDofUpdater->AssignDofs(rDofSet,rDx);
    }
 
     KRATOS_CATCH("")
