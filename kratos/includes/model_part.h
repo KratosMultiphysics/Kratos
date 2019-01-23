@@ -811,7 +811,7 @@ public:
      * @brief Creates a new property in the current mesh
      * @details If the property is already existing it will crash
      * @param PropertiesId The Id of the new property
-     * @param ThisIndex The Id of the mesh (0 by default)
+     * @param MeshIndex The Id of the mesh (0 by default)
      * @return The new created properties
      */
     PropertiesType::Pointer CreateNewProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
@@ -836,7 +836,7 @@ public:
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
      * @details If the property is not existing it will return a warning
      * @param PropertiesId The Id of the new property
-     * @param ThisIndex The Id of the mesh (0 by default)
+     * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (pointer)
      */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
@@ -862,7 +862,7 @@ public:
      * @brief Returns the Properties::Pointer  corresponding to it's identifier
      * @details If the property is not existing it will return a warning
      * @param PropertiesId The Id of the new property
-     * @param ThisIndex The Id of the mesh (0 by default)
+     * @param MeshIndex The Id of the mesh (0 by default)
      * @return The desired properties (reference)
      */
     PropertiesType& GetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
