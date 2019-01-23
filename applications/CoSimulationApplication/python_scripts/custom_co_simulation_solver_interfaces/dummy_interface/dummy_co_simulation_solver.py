@@ -18,13 +18,13 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
         self.dummy_model_part = self.model.CreateModelPart('dummy_model_part')
         for variable_name in self.data_list.keys():
             if(not data_structure.KratosGlobals.HasVariable(variable_name)):
-                variable_obj = data_structure.Array1DVariable3(variable_name)
-                self.dummy_model_part.AddNodalSolutionStepVariable(variable_obj)
-                print("################### :: ", variable_name, " ########## :: ", variable_obj)
+                self.variable_obj = data_structure.Array1DVariable3(variable_name)
+                self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
+                print("################### :: ", variable_name, " ########## :: ", self.variable_obj)
                 print("################### :: ", data_structure.KratosGlobals.HasVariable(variable_name))
             else:
-                variable_obj = data_structure.KratosGlobals.GetVariable(variable_name)
-                self.dummy_model_part.AddNodalSolutionStepVariable(variable_obj)
+                self.variable_obj = data_structure.KratosGlobals.GetVariable(variable_name)
+                self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
 
         self._SetUpModelpart()
         DummyCoSimulationSolver.dummy_solver_count = DummyCoSimulationSolver.dummy_solver_count + 1
