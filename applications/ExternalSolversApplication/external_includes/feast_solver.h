@@ -181,7 +181,7 @@ public:
             Calculate(M,K,EigenvalueRangeMin,EigenvalueRangeMax,SearchDimension,
                     NumEigenvalues,Eigenvalues,Eigenvectors,true);
 
-            std::cout << "Estimated number of eigenvalues = " << NumEigenvalues << std::endl;
+            KRATOS_INFO("FEASTSolver") << "Estimated number of eigenvalues = " << NumEigenvalues << std::endl;
 
             // recommended estimate of search dimension from FEAST documentation
             SearchDimension = NumEigenvalues + NumEigenvalues/2 + 1;
