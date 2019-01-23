@@ -113,7 +113,7 @@ class StressToNodesProcess : public Process
             norm = this->CalculateVonMisesStress(r_nodal_stress);
         }
 
-        // Loop to compute the max eq. stress and normalize
+        // Loop to compute the max eq. stress to normalize the inidicator
         double max_equivalent_stress = 0.0;
         for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
             double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
@@ -123,6 +123,9 @@ class StressToNodesProcess : public Process
 
         for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
             double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
+            int Id = (*it).Id();
+            double nodal_damage = pNodeStressesVector[Id - 1].Damage;
+            if (nodal_damage >= 0.9) norm = max_equivalent_stress;
             norm /= (max_equivalent_stress * 1.0e4);
         }
     }
