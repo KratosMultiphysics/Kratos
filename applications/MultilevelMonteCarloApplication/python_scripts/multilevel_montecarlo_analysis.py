@@ -210,7 +210,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
-    return pickled_model, pickled_parameters
+    return pickled_model,pickled_parameters
 
 
 '''
