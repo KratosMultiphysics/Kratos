@@ -66,20 +66,23 @@ class StressToNodesProcess : public Process
     void StressExtrapolationAndSmoothing(NodeStresses *pNodeStressesVector)
     {
         Vector gauss_point_stress;
+        double gauss_point_damage;
         // Loop over elements to extrapolate the stress to the nodes
         for (ElementsArrayType::ptr_iterator it = mr_model_part.Elements().ptr_begin(); it != mr_model_part.Elements().ptr_end(); ++it) {
             auto& r_geometry = (*it)->GetGeometry();
+            gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
+            gauss_point_damage = (*it)->GetValue(DAMAGE_ELEMENT);
+
             if (r_geometry.PointsNumber() == 3) { // 2D version
-                gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
                 for (unsigned int i = 0; i < 3; i++) {
                     const int node_id = r_geometry.GetPoint(i).Id();
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[1] += gauss_point_stress[1];
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[2];
+                    pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
                     pNodeStressesVector[node_id - 1].NElems += 1;
                 }
             } else { // 3D version
-                gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
                 for (unsigned int i = 0; i < 4; i++) {
                     const int node_id = r_geometry.GetPoint(i).Id();
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
@@ -88,6 +91,7 @@ class StressToNodesProcess : public Process
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[3];
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[4] += gauss_point_stress[4];
                     pNodeStressesVector[node_id - 1].EffectiveStressVector[5] += gauss_point_stress[5];
+                    pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
                     pNodeStressesVector[node_id - 1].NElems += 1;
                 }
             }
@@ -95,10 +99,11 @@ class StressToNodesProcess : public Process
 
         // Ponderate over the elements coincident on that node
         for (unsigned int i = 0; i < mNNodes; i++) {
-            pNodeStressesVector[i].EffectiveStressVector = pNodeStressesVector[i].EffectiveStressVector / pNodeStressesVector[i].NElems;
+            pNodeStressesVector[i].EffectiveStressVector /= pNodeStressesVector[i].NElems;
+            pNodeStressesVector[i].Damage /= pNodeStressesVector[i].NElems;
         }
 
-        // Loop to compute the max eq. stress in order to normalize
+        // Loop to compute the equivalent streses at each node
         for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
             int Id = (*it).Id();
             const Vector& r_nodal_stress = pNodeStressesVector[Id - 1].EffectiveStressVector;
