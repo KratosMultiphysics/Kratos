@@ -841,8 +841,8 @@ public:
      */
     PropertiesType::Pointer pGetProperties(IndexType PropertiesId, IndexType MeshIndex = 0)
     {
-        auto pprop_it = GetMesh(ThisIndex).Properties().find(PropertiesId);
-        if(pprop_it != GetMesh(ThisIndex).Properties().end()) { // Property does exist
+        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
             return *(pprop_it.base());
         } else {
             if(IsSubModelPart()) {
