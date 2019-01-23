@@ -105,9 +105,6 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "design_history_filename" : "design_history",
-            "response_log_filename"   : "response_log",
             "design_output_mode"      : "WriteOptimizationModelPart",
             "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
                                           "DF1DX",
