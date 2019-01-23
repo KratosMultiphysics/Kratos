@@ -255,7 +255,7 @@ Element::Pointer BaseSolidElement::Clone (
 {
     KRATOS_TRY
 
-    KRATOS_WARNING("BaseSolidElement") << " Call solid base class element Clone " << std::endl;
+    KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
 
     BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(this->GetData());
