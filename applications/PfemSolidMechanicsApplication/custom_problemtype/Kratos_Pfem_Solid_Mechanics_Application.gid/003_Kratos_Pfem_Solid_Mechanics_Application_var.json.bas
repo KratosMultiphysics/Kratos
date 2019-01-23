@@ -386,12 +386,11 @@
 		{
 		    "python_module": "parametric_wall",
 		    "model_part_name" : "*cond(Structural_Type)_*GroupName",
-		    "rigid_body_settings":{
-			"rigid_body_element_type": "*cond(Rigid_Element)",
-			"fixed_body": true,
-			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
-			"rigid_body_model_part_name": "*cond(Structural_Type)_*GroupName",
-			"rigid_body_parameters":{
+		    "body_settings":{
+			"element_type": "*cond(Rigid_Element)",
+			"constrained": true,
+			"compute_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
+			"body_parameters":{
 			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
 			    "mass": *cond(Mass),
 			    "main_inertias": [*cond(LocalInertiaTensor,1), *cond(LocalInertiaTensor,2), *cond(LocalInertiaTensor,3)],
