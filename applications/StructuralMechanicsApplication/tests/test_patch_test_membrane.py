@@ -349,7 +349,7 @@ class TestPatchTestMembrane(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
-    def _test_membrane_3d4n_dynamic(self):
+    def test_membrane_3d4n_dynamic(self):
 
         displacement_results = [-0.004416597413161373, -0.017672715828946108, -0.0383282878649957,
         -0.060720299929014065, -0.07850778062395564, -0.08727738281567025,

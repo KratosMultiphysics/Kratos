@@ -56,8 +56,8 @@ namespace Kratos
         mDistance = mParameters["transformation_settings"]["translation_settings"]["magnitude"].GetDouble();
         mAngleOfRotation = mParameters["transformation_settings"]["rotation_settings"]["angle_degree"].GetDouble() * 2 * Globals::Pi / 360.0;
 
-        mTransformationMatrix.resize(4,4);
-        mTransformationMatrixVariable.resize(4,4);
+        mTransformationMatrix.resize(4,4, false);
+        mTransformationMatrixVariable.resize(4,4, false);
 
         mSearchMaxResults = mParameters["search_settings"]["max_results"].GetInt();
         mSearchTolerance = mParameters["search_settings"]["tolerance"].GetDouble();

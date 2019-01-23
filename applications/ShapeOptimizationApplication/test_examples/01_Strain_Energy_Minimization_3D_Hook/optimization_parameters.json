@@ -116,22 +116,19 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "response_log_filename"   : "response_log",
-            "design_history_filename" : "design_history",
-            "design_output_mode"      : "WriteOptimizationModelPart",
-            "nodal_results" : [ "NORMALIZED_SURFACE_NORMAL",
-                                "DF1DX",
-                                "DC1DX",
-                                "DF1DX_MAPPED",
-                                "DC1DX_MAPPED",
-                                "CONTROL_POINT_UPDATE",
-                                "CONTROL_POINT_CHANGE",
-                                "SHAPE_UPDATE",
-                                "SHAPE_CHANGE",
-                                "MESH_CHANGE" ],
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
+                                     "DF1DX",
+                                     "DC1DX",
+                                     "DF1DX_MAPPED",
+                                     "DC1DX_MAPPED",
+                                     "CONTROL_POINT_UPDATE",
+                                     "CONTROL_POINT_CHANGE",
+                                     "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE",
+                                     "MESH_CHANGE" ],
             "output_format" : {
-                "name": "gid"
+                "name": "vtk"
             }
         }
     }
