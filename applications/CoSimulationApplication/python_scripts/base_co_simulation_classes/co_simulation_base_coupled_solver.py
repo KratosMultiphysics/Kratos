@@ -26,13 +26,13 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         default_setting = cs_data_structure.Parameters("""
         {
             "name" : "",
-            "solver_type" : "gauss_seidel_strong_coupling", #Comment I think this should always be specified by the user
+            "solver_type" : "gauss_seidel_strong_coupling",
             "echo_level" : 0,
-            "num_coupling_iterations" : 10, #Comment this cannot be here if it is the base for all (also weakly-couples) solvers
+            "num_coupling_iterations" : 10,
             "start_coupling_time" : 0.0,
-            "convergence_accelerators" : [], #Comment same
+            "convergence_accelerators" : [],
             "participants" : [],
-            "convergence_criteria_settings" : {} #Comment same
+            "convergence_criteria_settings" : {}
         }
         """)
         #Comment predictors are missing (I think those can be optional, but also used for weak-coupling)
