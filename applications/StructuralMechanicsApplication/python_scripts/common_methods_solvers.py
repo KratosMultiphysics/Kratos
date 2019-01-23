@@ -70,6 +70,9 @@ def ComputeDampingCoefficients(model, settings, damping_settings):
     damping_ratio_1 = damping_settings["determine_rayleigh_damping_settings"]["damping_ratio_1"].GetDouble()
 
     # We get the model parts which divide the problem
+    main_model_part_name = settings["model_part_name"].GetString()
+    current_process_info = model[main_model_part_name].ProcessInfo
+    existing_computation = current_process_info.Has(StructuralMechanicsApplication.EIGENVALUE_VECTOR)
     structural_parts = ExtractModelParts(model, settings)
     for part in structural_parts:
         # Create auxiliar parameters
@@ -105,7 +108,7 @@ def ComputeDampingCoefficients(model, settings, damping_settings):
             compute_damping_coefficients_settings["eigen_values_vector"].SetVector(precomputed_eigen_values)
         else:
             # If not computed eigen values already
-            if not current_process_info.Has(StructuralMechanicsApplication.EIGENVALUE_VECTOR):
+            if not existing_computation:
                 KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
                 import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(damping_settings["determine_rayleigh_damping_settings"]["eigen_system_settings"])

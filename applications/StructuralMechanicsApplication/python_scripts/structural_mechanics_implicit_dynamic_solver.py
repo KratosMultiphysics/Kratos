@@ -79,6 +79,9 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         if self.dynamic_settings["damping_settings"]["determine_rayleigh_damping"].GetBool() and self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1:
             common_methods_solvers.ComputeDampingCoefficients(self.model, self.settings, self.dynamic_settings["damping_settings"])
 
+            # Resetting the global equations ids
+            self.get_builder_and_solver().SetUpSystem(self.GetComputingModelPart())
+
     #### Private functions ####
 
     def _create_solution_scheme(self):
