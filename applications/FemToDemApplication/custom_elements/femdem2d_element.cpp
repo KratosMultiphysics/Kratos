@@ -287,8 +287,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
 		integration_weight *= this->GetProperties()[THICKNESS];
 
-		if (detJ < 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 " << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
 		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
@@ -359,8 +358,14 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
 		Matrix tangent_tensor;
 		if (is_damaging == true && std::abs(strain_vector[0] + strain_vector[1] + strain_vector[2]) > tolerance) {
-			this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
-			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
+			if (this->GetProperties()[TANGENT_CONSTITUTIVE_TENSOR] == true) {
+				// this->CalculateSecondOrderTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
+				this->CalculateSecondOrderCentralDifferencesTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);;
+				noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
+			} else {
+				this->CalculateTangentTensor(tangent_tensor, strain_vector, integrated_stress_vector, C);
+				noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(tangent_tensor, B)));
+			}
 		} else {
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(C, B)));
 		}
@@ -1429,6 +1434,42 @@ void FemDem2DElement::CalculateSecondOrderTangentTensor(
 	}
 }
 
+void FemDem2DElement::CalculateSecondOrderCentralDifferencesTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP,
+	const Matrix& rElasticMatrix
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	rTangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain, minus_perturbed_stress, minus_perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+	minus_perturbed_strain.resize(number_components);
+	minus_perturbed_stress.resize(number_components);
+
+	for (unsigned int component = 0; component < number_components; component++) {
+		double perturbation;
+		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+
+		// 1st the f(x+h)
+		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+
+		// Then the f(x-h)
+		this->PerturbateStrainVector(minus_perturbed_strain, rStrainVectorGP, -perturbation, component);
+		this->IntegratePerturbedStrain(minus_perturbed_stress, minus_perturbed_strain, rElasticMatrix);
+
+		this->AssignComponentsToSecondOrderCentralDifferencesTangentTensor(
+			rTangentTensor, 
+			rStressVectorGP, 
+			perturbed_stress, 
+			minus_perturbed_stress, 
+			perturbation, 
+			component);
+	}
+}
 void FemDem2DElement::CalculatePerturbation(
 	const Vector& rStrainVectorGP,
 	double& rPerturbation,
@@ -1517,6 +1558,21 @@ void FemDem2DElement::AssignComponentsToSecondOrderTangentTensor(
 	const int voigt_size = rGaussPointStress.size();
 	for (IndexType row = 0; row < voigt_size; ++row) {
 		rTangentTensor(row, Component) = (4.0 * rPerturbedStress[row] - rTwicePerturbedStress[row] - 3.0 * rGaussPointStress[row]) / Perturbation;
+	}
+}
+
+void FemDem2DElement::AssignComponentsToSecondOrderCentralDifferencesTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rGaussPointStress,
+	const Vector& rPerturbedStress,
+	const Vector& rMinusPerturbedStress,
+	const double Perturbation,
+	const int Component
+	)
+{
+	const int voigt_size = rGaussPointStress.size();
+	for (IndexType row = 0; row < voigt_size; ++row) {
+		rTangentTensor(row, Component) = (rPerturbedStress[row] - rMinusPerturbedStress[row]) / Perturbation;
 	}
 }
 } // namespace Kratos
