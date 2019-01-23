@@ -199,12 +199,6 @@ namespace Kratos
         virtual double CalculateLength() const;
 
         /**
-         * @brief This function calculates the reference length
-         */
-        double CalculateReferenceLength() const;
-
-
-        /**
          * @brief This function calculates the elastic part of the total stiffness matrix
          */
         BoundedMatrix<double,msLocalSize,msLocalSize> CreateElementStiffnessMatrix_Kd_mat() const;

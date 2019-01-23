@@ -105,6 +105,18 @@ public:
         PropertiesType::Pointer pProperties
         ) const override;
 
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+        ) const override;
+        
     ///@}
     ///@name Access
     ///@{
@@ -119,6 +131,27 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Surface load Condition #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Surface load Condition #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+        
     ///@}
     ///@name Friends
     ///@{
