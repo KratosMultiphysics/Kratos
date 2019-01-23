@@ -18,6 +18,7 @@
 
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
+#include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 
 namespace Kratos {
 namespace Python {
@@ -32,6 +33,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ReadPrestressData",&FormfindingIOUtility::ReadPrestressData )
         .def("PrintPrestressData",&FormfindingIOUtility::PrintPrestressData )
         ;
+
+    m.def("ComputeDampingCoefficients",&RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients);
 }
 
 }  // namespace Python.

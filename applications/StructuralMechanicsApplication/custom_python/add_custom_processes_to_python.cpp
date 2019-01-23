@@ -28,7 +28,6 @@
 #include "custom_processes/solid_shell_thickness_compute_process.h"
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
-#include "custom_processes/compute_rayleigh_damping_coefficients_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -85,11 +84,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         ;
 
     py::class_<ImposeRigidMovementProcess, ImposeRigidMovementProcess::Pointer, Process>(m, "ImposeRigidMovementProcess")
-        .def(py::init<ModelPart&>())
-        .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<ComputeRayleighDampingCoefficientsProcess, ComputeRayleighDampingCoefficientsProcess::Pointer, Process>(m, "ComputeRayleighDampingCoefficientsProcess")
         .def(py::init<ModelPart&>())
         .def(py::init< ModelPart&, Parameters >())
         ;
