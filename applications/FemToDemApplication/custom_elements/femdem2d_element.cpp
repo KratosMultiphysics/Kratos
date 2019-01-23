@@ -1514,9 +1514,9 @@ void FemDem2DElement::AssignComponentsToSecondOrderTangentTensor(
 	const int Component
 	)
 {
-	const int voigt_size = rDeltaStress.size();
+	const int voigt_size = rGaussPointStress.size();
 	for (IndexType row = 0; row < voigt_size; ++row) {
-		rTangentTensor(row, Component) = (4.0 * rPerturbedStress - rTwicePerturbedStress - 3.0 * rGaussPointStress) / Perturbation;
+		rTangentTensor(row, Component) = (4.0 * rPerturbedStress[row] - rTwicePerturbedStress[row] - 3.0 * rGaussPointStress[row]) / Perturbation;
 	}
 }
 } // namespace Kratos
