@@ -17,6 +17,7 @@
 // Project includes
 #include "structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos {
 namespace StructuralMechanicsElementUtilities {
@@ -114,6 +115,74 @@ void CalculateRayleighDampingMatrix(
     noalias(rDampingMatrix) += GetRayleighBeta(rElement.GetProperties(), rCurrentProcessInfo)  * stiffness_matrix;
 
     KRATOS_CATCH( "CalculateRayleighDampingMatrix" )
+}
+
+double CalculateReferenceLength2D2N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    return std::sqrt((delta_pos[0] * delta_pos[0]) +
+                     (delta_pos[1] * delta_pos[1]));
+
+    KRATOS_CATCH("")
+}
+
+double CalculateCurrentLength2D2N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
+        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+
+    const double l = std::sqrt((delta_pos[0] * delta_pos[0]) +
+                               (delta_pos[1] * delta_pos[1]));
+
+    KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
+        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
+
+    return l;
+
+    KRATOS_CATCH("")
+}
+
+double CalculateReferenceLength3D2N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates();
+
+    return MathUtils<double>::Norm3(delta_pos);
+
+    KRATOS_CATCH("")
+}
+
+double CalculateCurrentLength3D2N(const Element& rElement)
+{
+    KRATOS_TRY;
+
+    const array_1d<double, 3> delta_pos =
+        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
+        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
+        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+
+    const double l = MathUtils<double>::Norm3(delta_pos);
+
+    KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
+        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
+
+    return l;
+
+    KRATOS_CATCH("")
 }
 
 } // namespace StructuralMechanicsElementUtilities.
