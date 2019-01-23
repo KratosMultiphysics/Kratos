@@ -145,7 +145,7 @@ double CalculateCurrentLength2D2N(const Element& rElement)
                                (delta_pos[1] * delta_pos[1]));
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
-        << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
+        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
 
     return l;
 
@@ -178,7 +178,7 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     const double l = MathUtils<double>::Norm3(delta_pos);
 
     KRATOS_ERROR_IF(l <= std::numeric_limits<double>::epsilon())
-        << "Current length of element " << rElement.Id() << ": ~0" << std::endl;
+        << "Element #" << rElement.Id() << " has a current length of zero!" << std::endl;
 
     return l;
 

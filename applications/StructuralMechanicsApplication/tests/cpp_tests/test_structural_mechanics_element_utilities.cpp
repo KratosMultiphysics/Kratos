@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateElementLength, KratosStructuralMechanicsFastS
     // 0 length throws ERROR  3D
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*p_element_2),
-        "Error: Current length of element 2: ~0");
+        "Error: Element #2 has a current length of zero!");
 
     // length 2D
     KRATOS_CHECK_DOUBLE_EQUAL(StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*p_element_3), std::sqrt(2.0));
@@ -140,7 +140,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateElementLength, KratosStructuralMechanicsFastS
     // 0 length throws ERROR 2D
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*p_element_4),
-        "Error: Current length of element 4: ~0");
+        "Error: Element #4 has a current length of zero!");
 }
 
 } // namespace Testing
