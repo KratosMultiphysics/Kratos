@@ -2,8 +2,8 @@ from __future__ import print_function, absolute_import, division  # makes these 
 
 #@Aditya we cannot import this here, this will not work with only python
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
-import co_simulation_tools as cs_tools
-from CoSimulationApplication import *
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
+
 import sys
 
 class CoSimulationAnalysis(object):

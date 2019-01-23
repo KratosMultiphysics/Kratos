@@ -8,7 +8,7 @@ import os
 
 def Create(custom_settings):
     return GaussSeidelIterativeStrongCouplingSolver(custom_settings)
-#Comment I would say we either use "Strong" or "Iterative"
+#Comment Use "Strong" or "Iterative"
 #Comment same for weak/loose
 #Comment I vote for strong & weak
 class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
@@ -26,10 +26,10 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
         #Comment how the settings are specified has to be consistent!
         ### Making the convergence accelerator for this strategy
-        self.convergence_accelerators_list = self._GetConvergenceAccelerators(self.settings["convergence_accelerators"])
+        self.convergence_accelerators_list = self._CreateConvergenceAccelerators(self.settings["convergence_accelerators"])
 
         ### Creating the convergence criterion
-        self.convergence_criteria_list = self._GetConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
+        self.convergence_criteria_list = self._CreateConvergenceCriteria(self.settings["convergence_criteria_settings"]["data_list"])
 
     def Initialize(self):
         super(GaussSeidelIterativeStrongCouplingSolver, self).Initialize()

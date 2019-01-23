@@ -22,7 +22,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # for mandatory settings, the type is defined
         self.full_settings = custom_settings
         self.settings= custom_settings['coupled_solver_settings']
-        #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings) #Comment why commented?
+        #super(CoSimulationBaseCoupledSolver,self).__init__(custom_settings)
         default_setting = cs_data_structure.Parameters("""
         {
             "name" : "",
@@ -43,7 +43,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         self.num_coupling_iterations = self.settings["num_coupling_iterations"].GetInt() #Comment should not be here
 
         # Get the participating solvers a map with their names and objects
-        self.participating_solvers = self._GetSolvers(self.full_settings['solvers'])
+        self.participating_solvers = self._CreateSolvers(self.full_settings['solvers'])
 
         self.solver_settings = self._GetSolverCoSimulationDetails(self.full_settings['coupled_solver_settings']["participants"])
 
@@ -145,9 +145,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         for solver_name, solver in self.participating_solvers.items():
             solver.PrintInfo()
 
-#Comment the following functions are protected not private
-
-    ## _SynchronizeInputData : Private Function to obtain new (if any) input data for the
+    ## _SynchronizeInputData : Protected Function to obtain new (if any) input data for the
     #                          participating solvers. That will get the data necessary from
     #                          python cosim solver with name solver_name and export (if necessary)
     #                          it to the remote solver of solver_name
@@ -175,7 +173,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
                 solver.ImportData(solver_data_conf, from_solver)
 
-    ## _SynchronizeOutputData : Private Function to synchronize the out put data between the solver
+    ## _SynchronizeOutputData : Protected Function to synchronize the out put data between the solver
     #                           interface and the remote solver. This assumes that the remote solver
     #                           has output the data in the format specified in the settings (of the out put data def in JSON)
     #
@@ -196,9 +194,9 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
                 solver.ExportData(solver_data_conf, to_solver)
 
-    ## _GetSolvers : Private Function to make the participating solver objects
+    ## _CreateSolvers : Private Function to make the participating solver objects
     #
-    def _GetSolvers(self, SolversDataMap): #Comment _CreateSolvers
+    def _CreateSolvers(self, SolversDataMap):
         solvers_map = collections.OrderedDict()
         num_solvers = len(SolversDataMap.keys())
         import custom_co_simulation_solver_interfaces.co_simulation_solver_factory as factory
@@ -209,7 +207,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         return solvers_map
 
-    ## _GetSolverCoSimulationDetails : Private Function to obtain a dict of setting with solver #Comment protected
+    ## _GetSolverCoSimulationDetails : Private Function to obtain a dict of setting with solver
     #                                  name as key
     #
     def _GetSolverCoSimulationDetails(self,co_simulation_solver_settings):
@@ -227,10 +225,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
         # - check if data format has been specified
         return solver_cosim_details
 
-    ## _GetConvergenceAccelerators : Private Function to make convergence accelerator objects list #Comment protected
+    ## _CreateConvergenceAccelerators : Protected Function to make convergence accelerator objects list
     #
     #  @param conv_acc_settings dict: setting of the convergence accelerator to be make
-    def _GetConvergenceAccelerators(self, conv_acc_settings): #Comment _CreateConvAcc, but also not sure if this should be here => probably better in some utils file
+    def _CreateConvergenceAccelerators(self, conv_acc_settings): # probably better in some utils file
         conv_accelerators = []
         num_acceleratos = conv_acc_settings.size()
         import custom_convergence_accelerators.co_simulation_convergence_accelerator_factory as factory
@@ -243,10 +241,10 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
 
         return conv_accelerators
 
-    ## _GetConvergenceCriteria : Private Function to make convergence criteria objects list #Comment protected
+    ## _CreateConvergenceCriteria : Private Function to make convergence criteria objects list #Comment protected
     #
     #  @param conv_acc_settings dict: setting of the convergence criteria to be make
-    def _GetConvergenceCriteria(self, conv_criteria_settings): #Comment _CreateConvCrit, but also not sure if this should be here => probably better in some utils file
+    def _CreateConvergenceCriteria(self, conv_criteria_settings): # probably better in some utils file
         conv_criteria = []
         import base_co_simulation_classes.co_simulation_base_convergence_criteria as criteria
         num_criteria = conv_criteria_settings.size()
