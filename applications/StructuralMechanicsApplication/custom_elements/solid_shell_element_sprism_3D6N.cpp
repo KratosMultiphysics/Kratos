@@ -19,6 +19,7 @@
 #include "utilities/geometry_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_elements/solid_shell_element_sprism_3D6N.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -562,55 +563,14 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
-
     WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const IndexType mat_size = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) * 3;
 
-    // 0.-Initialize the DampingMatrix:
-    const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
-
-    // Resizing as needed the LHS
-    const IndexType mat_size = number_of_nodes * 3;
-
-    if ( rDampingMatrix.size1() != mat_size )
-        rDampingMatrix.resize( mat_size, mat_size, false );
-
-    noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
-
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType stiffness_matrix  = Matrix();
-
-    this->CalculateLeftHandSide( stiffness_matrix, rCurrentProcessInfo );
-
-    // 2.-Calculate mass matrix:
-
-    MatrixType mass_matrix  = Matrix();
-
-    this->CalculateMassMatrix ( mass_matrix, rCurrentProcessInfo );
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0.0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) ) {
-        alpha = GetProperties()[RAYLEIGH_ALPHA];
-    } else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) ) {
-        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-    }
-
-    double beta  = 0.0;
-    if( GetProperties().Has(RAYLEIGH_BETA) ) {
-        beta = GetProperties()[RAYLEIGH_BETA];
-    } else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) ) {
-        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-    }
-
-    // 4.-Compose the Damping Matrix:
-
-    // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * mass_matrix;
-    noalias( rDampingMatrix ) += beta  * stiffness_matrix;
-
-    KRATOS_CATCH( "" );
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        mat_size);
 }
 
 /***********************************************************************************/
