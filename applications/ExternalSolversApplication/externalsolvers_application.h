@@ -29,8 +29,6 @@ namespace Kratos {
 ///@name Kratos Globals
 ///@{
 
-// Variables definition
-
 ///@}
 ///@name Type Definitions
 ///@{
