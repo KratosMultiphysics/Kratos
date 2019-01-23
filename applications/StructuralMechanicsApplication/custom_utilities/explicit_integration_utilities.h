@@ -67,7 +67,7 @@ namespace ExplicitIntegrationUtilities
      * @param SafetyFactor The factor to not consider exactly the theoretical value
      * @return The critical delta time
      */
-    double CalculateDeltaTime(
+    double KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) CalculateDeltaTime(
         ModelPart& rModelPart,
         const double PredictionLevel = 2.0,
         const double MaximumDeltaTime = 1.0e-3,
