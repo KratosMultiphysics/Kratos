@@ -1291,15 +1291,6 @@ public:
     */
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
-    /** Add an existing model part as a sub model part.
-    	All the meshes will be added to the parents.
-    	NOTE: The added sub model part should not have
-    	mesh entities with id in conflict with other ones in the parent
-    	In the case of conflict the new one would replace the old one
-    	resulting inconsitency in parent.
-    */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
-
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
@@ -1365,7 +1356,7 @@ public:
         return mpParentModelPart;
     }
 
-    bool HasSubModelPart(std::string const& ThisSubModelPartName)
+    bool HasSubModelPart(std::string const& ThisSubModelPartName) const
     {
         return (mSubModelParts.find(ThisSubModelPartName) != mSubModelParts.end());
     }

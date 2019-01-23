@@ -24,9 +24,11 @@ except ImportError as e:
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+from test_perfect_plasticity_implementation_verification import TestPerfectPlasticityImplementationVerification as TTestPerfectPlasticityImplementationVerification
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
+from test_compute_mass_moment_of_inertia import TestComputeMassMomentOfInertia as TTestComputeMassMomentOfInertia
 # Simple patch tests
 from test_patch_test_small_strain import TestPatchTestSmallStrain as TTestPatchTestSmallStrain
 from test_patch_test_small_strain_bbar import TestPatchTestSmallStrainBbar as TTestPatchTestSmallStrainBbar
@@ -39,6 +41,7 @@ from test_patch_test_cr_beam import TestCrBeam2D2N as TTestCrBeam2D2N
 from test_patch_test_shells_stress import TestPatchTestShellsStressRec as TTestPatchTestShellsStressRec
 from test_patch_test_shells_orthotropic import TestPatchTestShellsOrthotropic as TTestPatchTestShellsOrthotropic
 from test_patch_test_formfinding import TestPatchTestFormfinding as TTestPatchTestFormfinding
+from test_patch_test_membrane import TestPatchTestMembrane as TTestPatchTestMembrane
 # Test loading conditions
 from test_loading_conditions_point import TestLoadingConditionsPoint as TTestLoadingConditionsPoint
 from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadingConditionsLine
@@ -102,6 +105,8 @@ from structural_mechanics_test_factory import ULThreeDTensionTetraPatchTest as T
 # SPRISM tests
 from structural_mechanics_test_factory import SprismMembranePatchTests as TSprismMembranePatchTests
 from structural_mechanics_test_factory import SprismBendingPatchTests as TSprismBendingPatchTests
+# Explicit tests
+from structural_mechanics_test_factory import ExplicitSolidBeam as TExplicitSolidBeam
 # Eigenvalues tests
 from structural_mechanics_test_factory import EigenQ4Thick2x2PlateTests as TEigenQ4Thick2x2PlateTests
 from structural_mechanics_test_factory import EigenTL3D8NCubeTests as TEigenTL3D8NCubeTests
@@ -154,7 +159,6 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearStaticStructH
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests
 from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests as TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests
 # CL tests
-from structural_mechanics_test_factory import IsotropicDamageSimoJuPSTest    as TIsotropicDamageSimoJuPSTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityMCTest as TSimpleSmallDeformationPlasticityMCTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityVMTest as TSimpleSmallDeformationPlasticityVMTest
 from structural_mechanics_test_factory import SimpleSmallDeformationPlasticityDPTest as TSimpleSmallDeformationPlasticityDPTest
@@ -164,9 +168,11 @@ from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityV
 from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityDPTest as TBigCubeSmallDeformationPlasticityDPTest
 from structural_mechanics_test_factory import BigCubeSmallDeformationPlasticityTTest as TBigCubeSmallDeformationPlasticityTTest
 from structural_mechanics_test_factory import SmallDeformationPlasticityTest as TSmallDeformationPlasticityTest
+from structural_mechanics_test_factory import SimpleJ2PlasticityTest as TSimpleJ2PlasticityTest
 from structural_mechanics_test_factory import TensileTestStructuralTest as TTensileTestStructuralTest
 # Rigid test
 from structural_mechanics_test_factory import RigidFaceTestWithImposeRigidMovementProcess as TRigidFaceTestWithImposeRigidMovementProcess
+from structural_mechanics_test_factory import RigidSphereFailing as TRigidSphereFailing
 
 ##### VALIDATION TESTS #####
 # SPRISM tests
@@ -234,9 +240,11 @@ def AssembleTestSuites():
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityVMTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityDPTest('test_execution'))
     nightSuite.addTest(TBigCubeSmallDeformationPlasticityTTest('test_execution'))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerfectPlasticityImplementationVerification]))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeMassMomentOfInertia]))
     # Solids
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrain]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestSmallStrainBbar]))
@@ -248,6 +256,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestShellsOrthotropic])) # TODO should be in smallSuite but is too slow
     # Membranes
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestFormfinding]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPatchTestMembrane]))
     # Trusses
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTruss3D2N]))
     # Beams
@@ -337,9 +346,10 @@ def AssembleTestSuites():
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateTests('test_execution'))
     # nightSuite.addTest(TShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests('test_execution'))
     # Constitutive Law tests
-    # nightSuite.addTest(TIsotropicDamageSimoJuPSTest('test_execution')) # FIXME: Needs get up to date
     nightSuite.addTest(TSmallDeformationPlasticityTest('test_execution'))
+    nightSuite.addTest(TSimpleJ2PlasticityTest('test_execution'))
     nightSuite.addTest(TRigidFaceTestWithImposeRigidMovementProcess('test_execution'))
+    nightSuite.addTest(TRigidSphereFailing('test_execution'))
 
     if (missing_external_dependencies == False):
         if (hasattr(KratosMultiphysics.ExternalSolversApplication, "FEASTSolver")):
@@ -359,7 +369,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisShell3D3NStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisLinearTrussStructure]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestAdjointSensitivityAnalysisNonLinearTrussStructure]))
-
     nightSuite.addTest(TTestMassResponseFunction('test_execution'))
     nightSuite.addTest(TTestStrainEnergyResponseFunction('test_execution'))
     nightSuite.addTest(TTestEigenfrequencyResponseFunction('test_execution'))
@@ -397,6 +406,8 @@ def AssembleTestSuites():
     # validationSuite.addTest(TShellT3AndQ4NonLinearDynamicUnstructOscillatingPlateLumpedTests('test_execution'))
     # CL tests
     validationSuite.addTest(TTensileTestStructuralTest('test_execution'))
+    # Explicit solid beam
+    validationSuite.addTest(TExplicitSolidBeam('test_execution'))
 
     ### OLD Shell Tests Start, will be removed soon, Philipp Bucher, 31.01.2018 |---
     # They have been moved to validation temporarily until they will be removed
@@ -421,8 +432,8 @@ def AssembleTestSuites():
 
     # Create a test suit that contains all the tests:
     allSuite = suites['all']
-    allSuite.addTests(nightSuite) # already contains the smallSuite
-    allSuite.addTests(validationSuite)
+    allSuite.addTests(nightSuite) # Already contains the smallSuite
+    validationSuite.addTests(allSuite) # Validation contains all
 
     return suites
 

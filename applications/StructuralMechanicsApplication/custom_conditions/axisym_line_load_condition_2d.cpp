@@ -82,7 +82,7 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const SizeType PointNumber,
     const double detJ
-    )
+    ) const
 {
     // We calculate the axisymmetric coefficient
     Vector N;
@@ -100,7 +100,6 @@ double AxisymLineLoadCondition2D::GetIntegrationWeight(
 
 void AxisymLineLoadCondition2D::save( Serializer& rSerializer ) const
 {
-    rSerializer.save( "Name", "AxisymLineLoadCondition2D" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoadCondition2D );
 }
 

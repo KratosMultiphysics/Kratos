@@ -2,7 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 
 import KratosMultiphysics.KratosUnittest as UnitTest
-        
+
 import vms_monolithic_solver
 
 class WorkFolderScope:
@@ -53,7 +53,7 @@ class FluidElementTest(UnitTest.TestCase):
 
             self.checkResults()
 
-    
+
     def testCavityQSASGS(self):
         self.reference_file = "reference10_qsasgs"
         self.element = "QSVMS2D3N"
@@ -65,7 +65,7 @@ class FluidElementTest(UnitTest.TestCase):
         self.element = "QSVMS2D3N"
         self.oss_switch = 1
         self.testCavity()
-    
+
     def testCavityDASGS(self):
         self.reference_file = "reference10_dasgs"
         self.element = "DVMS2D3N"
@@ -113,8 +113,10 @@ class FluidElementTest(UnitTest.TestCase):
         alpha = -0.3
         move_mesh = 0
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+        import linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "AMGCL"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False

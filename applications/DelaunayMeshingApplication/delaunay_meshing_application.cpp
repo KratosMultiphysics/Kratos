@@ -48,12 +48,37 @@ namespace Kratos
     // calling base class register to register Kratos components
     KratosApplication::Register();
 
-    std::cout << "            ___      _                                        " << std::endl;
-    std::cout << "     KRATOS|   \\ ___| |__ _ _  _ _ _  __ _ _  _              " << std::endl;
-    std::cout << "           | |) / -_| / _` | || | ' \\/ _` | || |             " << std::endl;
-    std::cout << "           |___/\\___|_\\__,_|\\_,_|_||_\\__,_|\\_, |MESHING  " << std::endl;
-    std::cout << "                                            |__/              " << std::endl;
-    std::cout << "Initializing KratosDelaunayMeshingApplication    ...          " << std::endl;
+    std::stringstream banner;
+
+    banner << "            ___      _                                  \n"
+           << "    KRATOS |   \\ ___| |__ _ _  _ _ _  __ _ _  _         \n"
+           << "           | |) / -_| / _` | || | ' \\/ _` | || |        \n"
+           << "           |___/\\___|_\\__,_|\\_,_|_||_\\__,_|\\_, | MESHING\n"
+           << "                                            |__/        \n"
+           << "Initialize KratosDelaunayMeshingApplication..." << std::endl;
+    // mpi initialization
+    int mpi_is_initialized = 0;
+    int rank = -1;
+
+#ifdef KRATOS_MPI
+
+    MPI_Initialized(&mpi_is_initialized);
+
+    if (mpi_is_initialized)
+    {
+      MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+    }
+
+#endif
+
+    if (mpi_is_initialized)
+    {
+      if (rank == 0) KRATOS_INFO("") << banner.str();
+    }
+    else
+    {
+      KRATOS_INFO("") << banner.str();
+    }
 
     //Register Variables (variables created in delaunay_meshing_application_variables.cpp)
 
@@ -61,17 +86,26 @@ namespace Kratos
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( OFFSET )
     KRATOS_REGISTER_VARIABLE( SHRINK_FACTOR )
 
-
     //domain definition
     KRATOS_REGISTER_VARIABLE( INITIALIZED_DOMAINS )
     KRATOS_REGISTER_VARIABLE( MESHING_STEP_TIME )
     KRATOS_REGISTER_VARIABLE( MODEL_PART_NAME )
+    KRATOS_REGISTER_VARIABLE( MODEL_PART_NAMES )
 
     //boundary definition
     KRATOS_REGISTER_VARIABLE( RIGID_WALL )
+
+    KRATOS_REGISTER_VARIABLE( MASTER_NODE )
+    KRATOS_REGISTER_VARIABLE( MASTER_ELEMENT )
     KRATOS_REGISTER_VARIABLE( MASTER_CONDITION )
-    KRATOS_REGISTER_VARIABLE( MASTER_ELEMENTS )
+
     KRATOS_REGISTER_VARIABLE( MASTER_NODES )
+    KRATOS_REGISTER_VARIABLE( MASTER_ELEMENTS )
+    KRATOS_REGISTER_VARIABLE( MASTER_CONDITIONS )
+
+    KRATOS_REGISTER_VARIABLE( NEIGHBOR_NODES )
+    KRATOS_REGISTER_VARIABLE( NEIGHBOR_ELEMENTS )
+    KRATOS_REGISTER_VARIABLE( NEIGHBOR_CONDITIONS )
 
     //condition variables
     KRATOS_REGISTER_VARIABLE( CHILDREN_CONDITIONS )

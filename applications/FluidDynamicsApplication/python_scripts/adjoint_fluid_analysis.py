@@ -2,10 +2,6 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsApplication as KFluid
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 from fluid_dynamics_analysis import FluidDynamicsAnalysis
@@ -17,12 +13,12 @@ class AdjointFluidAnalysis(AnalysisStage):
         # Deprecation warnings
         solver_settings = parameters["solver_settings"]
         if not solver_settings.Has("domain_size"):
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
+            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the domain_size, this will be removed!")
             solver_settings.AddEmptyValue("domain_size")
             solver_settings["domain_size"].SetInt(parameters["problem_data"]["domain_size"].GetInt())
 
         if not solver_settings.Has("model_part_name"):
-            Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
+            Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to pass the model_part_name, this will be removed!")
             solver_settings.AddEmptyValue("model_part_name")
             solver_settings["model_part_name"].SetString(parameters["problem_data"]["model_part_name"].GetString())
 
@@ -39,14 +35,6 @@ class AdjointFluidAnalysis(AnalysisStage):
                             parameters["problem_data"]["start_step"].GetDouble() \
                             )
         self.number_of_steps = parameters["problem_data"]["nsteps"].GetInt()
-
-        self.is_printing_rank = True
-        ## Import parallel modules if needed
-        if (parameters["problem_data"]["parallel_type"].GetString() == "MPI"):
-            from KratosMultiphysics.mpi import mpi
-            import KratosMultiphysics.MetisApplication as MetisApplication
-            import KratosMultiphysics.TrilinosApplication as TrilinosApplication
-            self.is_printing_rank = (mpi.rank == 0)
 
         super(AdjointFluidAnalysis, self).__init__(model, parameters)
 
@@ -73,7 +61,7 @@ class AdjointFluidAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
             if len(list_of_processes) == 0: # Processes are given in the old format
-                Kratos.Logger.PrintInfo(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the processes, this will be removed!")
                 from process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
@@ -85,7 +73,7 @@ class AdjointFluidAnalysis(AnalysisStage):
                         raise Exception("Mixing of process initialization is not alowed!")
         elif parameter_name == "output_processes":
             if self.project_parameters.Has("output_configuration"):
-                #KratosMultiphysics.Logger.PrintInfo("FluidDynamicsAnalysis", "Using the old way to create the gid-output, this will be removed!")
+                Kratos.Logger.PrintWarning(self.__class__.__name__, "Using the old way to create the gid-output, this will be removed!")
                 gid_output= self._SetUpGiDOutput()
                 list_of_processes += [gid_output,]
         else:

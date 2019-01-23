@@ -95,6 +95,7 @@
         }
     },
     "solver_settings"          : {
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
 *if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
         "solver_type" : "solid_mechanics_explicit_dynamic_solver",

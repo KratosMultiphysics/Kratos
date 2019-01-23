@@ -1472,21 +1472,6 @@ ModelPart&  ModelPart::CreateSubModelPart(std::string const& NewSubModelPartName
         //KRATOS_ERROR << "There is an already existing sub model part with name \"" << NewSubModelPartName << "\" in model part: \"" << Name() << "\"" << std::endl;
     }
 
-KRATOS_DEPRECATED void ModelPart::AddSubModelPart(ModelPart& rThisSubModelPart)
-{
-    KRATOS_ERROR << "cannot add a submodelpart, since submodelparts are univocally owned by their father " << std::endl;
-//     if (mSubModelParts.find(pThisSubModelPart->Name()) != mSubModelParts.end())
-//         // Here a warning would be enough. To be disscussed. Pooyan.
-//         KRATOS_ERROR << "There is an already existing sub model part with name \"" << pThisSubModelPart->Name() << "\" in model part: \"" << Name() << "\"" << std::endl;
-//
-//     if (IsSubModelPart())
-//     {
-//         mpParentModelPart->AddSubModelPart(pThisSubModelPart);
-//         return;
-//     }
-//
-//     pThisSubModelPart->SetParentModelPart(this);
-}
 /** Remove a sub modelpart with given name.
 */
 void  ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)

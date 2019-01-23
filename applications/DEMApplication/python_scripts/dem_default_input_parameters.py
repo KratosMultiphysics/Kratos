@@ -1,11 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import KratosMultiphysics
-KratosMultiphysics.CheckForPreviousImport()
 
 def GetDefaultInputParameters():
 
     default_settings = KratosMultiphysics.Parameters("""
         {
+            "do_print_results_option"          : true,
             "Dimension"                        : 3,
             "PeriodicDomainOption"             : false,
             "BoundingBoxOption"                : false,
@@ -19,7 +19,6 @@ def GetDefaultInputParameters():
             "BoundingBoxMinX"                  : -10.0,
             "BoundingBoxMinY"                  : -10.0,
             "BoundingBoxMinZ"                  : -10.0,
-
             "dem_inlet_option"                 : true,
             "GravityX"                         : 0.0,
             "GravityY"                         : 0.0,
@@ -43,6 +42,36 @@ def GetDefaultInputParameters():
             "strategy_parameters" :{
                 "RemoveBallsInitiallyTouchingWalls": false
             },
+            "echo_level"                  : 1,
+            "problem_data"     : {
+                "problem_name"  : "dummy_name.Provide_a_real_one",
+                "parallel_type" : "OpenMP",
+                "echo_level"    : 1,
+                "start_time"    : 0.0,
+                "end_time"      : 1
+            },
+            "_json_output_process"  : [{
+            "python_module" : "json_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "JsonOutputProcess",
+            "Parameters"    : {
+                "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "output_file_name"     : "candelier_results.json",
+                "model_part_name"      : "CandelierDEM",
+                "time_frequency"       : 1
+            }
+            }],
+            "print_output_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module"   : "KratosMultiphysics",
+            "process_name"    : "FromJsonCheckResultProcess",
+            "Parameters"      : {
+                "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
+                "input_file_name"      : "candelier_errors.json",
+                "model_part_name"      : "SpheresPart",
+                "time_frequency"       : 1
+            }
+            }],
             "DeltaOption"                      : "Absolute",
             "SearchTolerance"                  : 0.0,
             "CoordinationNumber"               : 10,
@@ -81,6 +110,7 @@ def GetDefaultInputParameters():
                 "PostVirtualSeaSurfaceX4"      : 0.0,
                 "PostVirtualSeaSurfaceY4"      : 0.0
             },
+            "output_processes"                 :{},
 
             "ConfinementPressure"              : 0.0,
             "LoadingVelocity"                  : -0.10,
@@ -136,7 +166,8 @@ def GetDefaultInputParameters():
             "LoadingVelocityTop"               : 0.0,
             "LoadingVelocityBot"               : 0.0,
 
-            "problem_name" : "dummy_name.Provide_a_real_one"
+            "problem_name" : "dummy_name.Provide_a_real_one",
+            "processes" : {}
             }""")
 
     return default_settings

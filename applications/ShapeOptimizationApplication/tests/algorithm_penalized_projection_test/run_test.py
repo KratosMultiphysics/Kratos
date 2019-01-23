@@ -63,7 +63,6 @@ class CustomAnalyzer(AnalyzerBaseClass):
                 local_gradient[0] = 2*(constrained_node.X0 - self.target_x)
                 local_gradient[1] = 2*(constrained_node.Y0 - self.target_y)
                 local_gradient[2] = 2*(constrained_node.Z0 - self.target_z)
-                print(local_gradient)
             else:
                 local_gradient[0] = 0.0
                 local_gradient[1] = 0.0
@@ -86,14 +85,14 @@ optimizer.Optimize()
 # Test results and clean directory
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
-response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
+optimization_log_filename = parameters["optimization_settings"]["output"]["optimization_log_filename"].GetString() + ".csv"
 optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
 original_directory = os.getcwd()
 os.chdir(output_directory)
 
-with open(response_log_filename, 'r') as csvfile:
+with open(optimization_log_filename, 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     last_line = None
     for line in reader:
@@ -102,12 +101,14 @@ with open(response_log_filename, 'r') as csvfile:
         else:
             last_line = line
 
+    resulting_iteration = float(last_line[0].strip())
     resulting_improvement = float(last_line[2].strip())
     resulting_constraint_value = float(last_line[4].strip())
 
     # # Check against specifications
-    TestCase().assertAlmostEqual(resulting_improvement, -19.201365, 2)
-    TestCase().assertAlmostEqual(resulting_constraint_value, 0.015641, 4)
+    TestCase().assertEqual(resulting_iteration, 8)
+    TestCase().assertAlmostEqual(resulting_improvement, -1.09262E+01, 4)
+    TestCase().assertAlmostEqual(resulting_constraint_value, 2.76773E-02, 4)
 
 os.chdir(original_directory)
 

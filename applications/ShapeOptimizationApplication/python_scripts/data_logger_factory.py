@@ -12,6 +12,9 @@
 # Making KratosMultiphysics backward compatible with python 2.6 and 2.7
 from __future__ import print_function, absolute_import, division
 
+# Kratos Core and Apps
+import KratosMultiphysics
+
 # Additional imports
 import shutil
 import os
@@ -23,6 +26,7 @@ from design_logger_vtk import DesignLoggerVTK
 from value_logger_steepest_descent import ValueLoggerSteepestDescent
 from value_logger_penalized_projection import ValueLoggerPenalizedProjection
 from value_logger_trust_region import ValueLoggerTrustRegion
+from value_logger_bead_optimization import ValueLoggerBeadOptimization
 
 # ==============================================================================
 def CreateDataLogger( ModelPartController, Communicator, OptimizationSettings ):
@@ -35,6 +39,17 @@ class DataLogger():
         self.ModelPartController = ModelPartController
         self.Communicator = Communicator
         self.OptimizationSettings = OptimizationSettings
+
+        default_logger_settings = KratosMultiphysics.Parameters("""
+        {
+            "output_directory"          : "Optimization_Results",
+            "optimization_log_filename" : "optimization_log",
+            "design_output_mode"        : "WriteOptimizationModelPart",
+            "nodal_results"             : [ "SHAPE_CHANGE" ],
+            "output_format"             : { "name": "vtk" }
+        }""")
+
+        self.OptimizationSettings["output"].ValidateAndAssignDefaults(default_logger_settings)
 
         self.ValueLogger = self.__CreateValueLogger()
         self.DesignLogger = self.__CreateDesignLogger()
@@ -51,6 +66,8 @@ class DataLogger():
             return ValueLoggerPenalizedProjection( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "trust_region":
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
+        elif AlgorithmName == "bead_optimization":
+            return ValueLoggerBeadOptimization( self.Communicator, self.OptimizationSettings )
         else:
             raise NameError("The following optimization algorithm not supported by the response logger (name may be misspelled): " + AlgorithmName)
 

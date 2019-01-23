@@ -4,10 +4,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.MeshMovingApplication as MeshMovingApplication
 import KratosMultiphysics.FluidDynamicsApplication as FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-except ImportError:
-    pass
 
 from analysis_stage import AnalysisStage
 
@@ -81,17 +77,52 @@ class FSIAnalysis(AnalysisStage):
         self.ModifyInitialProperties()
         self.ModifyInitialGeometry()
 
-        self._GetListOfProcesses()
-        self._SetUpAnalysis()
+        # Initialize the user-provided processes
+        self._AnalysisStage__CreateListOfProcesses() # Why name mangling?
+        for process in self._GetListOfProcesses():
+            process.ExecuteInitialize()
+
+        self._GetSolver().Initialize()
+        self.Check()
+
+        self.ModifyAfterSolverInitialize()
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
 
+        ## Stepping and time settings
+        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+        fluid_is_restarted = self.fluid_main_model_part.ProcessInfo[Kratos.IS_RESTARTED]
+        structure_is_restarted = self.structure_main_model_part.ProcessInfo[Kratos.IS_RESTARTED]
+        is_restarted = fluid_is_restarted and structure_is_restarted
+
+        if is_restarted:
+            fluid_time = self.fluid_main_model_part.ProcessInfo[Kratos.TIME]
+            structure_time = self.structure_main_model_part.ProcessInfo[Kratos.TIME]
+            if (abs(fluid_time - structure_time) > 1.0e-12):
+                err_msg = 'Fluid restarting time is:' + str(fluid_time) + '\n'
+                err_msg += 'Structure restarting time is:' + \
+                    str(structure_time) + '\n'
+                err_msg += 'Restarting time must coincide between subdomains.\n'
+                raise Exception(err_msg)
+            self.time = fluid_time
+        else:
+            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+
+        ## If the echo level is high enough, print the complete list of settings used to run the simulation
+        if self.is_printing_rank and self.echo_level > 1:
+            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
+                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
+
+        if self.is_printing_rank:
+            Kratos.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START-")
+
     def InitializeSolutionStep(self):
 
         # Since no substepping is implemented yet, structure and fluid step/time must match
-        step_fluid = self.fluid_main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        step_structure = self.structure_main_model_part.ProcessInfo[KratosMultiphysics.STEP]
+        step_fluid = self.fluid_main_model_part.ProcessInfo[Kratos.STEP]
+        step_structure = self.structure_main_model_part.ProcessInfo[Kratos.STEP]
         if step_fluid != step_structure:
             err_msg =  'Fluid step: '+ str(step_fluid) + '\n'
             err_msg += 'Structure step: '+ str(step_structure) + '\n'
@@ -132,45 +163,7 @@ class FSIAnalysis(AnalysisStage):
 
     def _GetOrderOfOutputProcessesInitialization(self):
         return ["gid_output"]
-
-    def _SetUpAnalysis(self):
-        '''
-        Initialize the Python solver and its auxiliary tools and processes.
-        This function should prepare everything so that the simulation
-        can start immediately after exiting it.
-        '''
-
-        for process in self._GetListOfProcesses():
-            process.ExecuteInitialize()
-
-        self._GetSolver().Initialize()
-
-        self.ModifyAfterSolverInitialize()
-
-        ## If the echo level is high enough, print the complete list of settings used to run the simulation
-        if self.is_printing_rank and self.echo_level > 1:
-            with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
-                parameter_output_file.write(self.project_parameters.PrettyPrintJsonString())
-
-        ## Stepping and time settings
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-
-        fluid_is_restarted = self.fluid_main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-        structure_is_restarted = self.structure_main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
-        is_restarted = fluid_is_restarted and structure_is_restarted
-
-        if is_restarted:
-            fluid_time = self.fluid_main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            structure_time = self.structure_main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-            if (fluid_time != structure_time):
-                err_msg =  'Fluid restarting time is:' + str(fluid_time) + '\n'
-                err_msg += 'Structure restarting time is:' + str(structure_time) + '\n'
-                err_msg += 'Restarting time must coincide between subdomains.\n'
-                raise Exception(err_msg)
-            self.time = fluid_time
-        else:
-            self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-
+        
     def _SetUpRestart(self):
         """Initialize self.restart_utility as a RestartUtility instance and check if we need to initialize the problem from a restart file."""
         has_restart = self.project_parameters.Has("restart_settings")
@@ -178,6 +171,7 @@ class FSIAnalysis(AnalysisStage):
         if has_restart:
             raise Exception("FSI restart not implemented yet.")
         else:
+
             self.load_restart = False
             self.save_restart = False
 
@@ -190,7 +184,6 @@ class FSIAnalysis(AnalysisStage):
                 from restart_utility import RestartUtility as Restart
             elif self.parallel_type == "MPI":
                 from trilinos_restart_utility import TrilinosRestartUtility as Restart
-
             model_part_name = self.project_parameters["fluid_solver_settings"]["solver_settings"]["model_part_name"].GetString()
             if self.model.HasModelPart(model_part_name):
                 model_part = self.model.GetModelPart(model_part_name)
