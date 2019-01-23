@@ -1,11 +1,11 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.CompressiblePotentialFlowApplication as KratosCompressFlow
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
@@ -16,26 +16,27 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 # Importing derived classes
 from potential_flow_analysis import PotentialFlowAnalysis
 
-# Import pycompss
-# from pycompss.api.task import task
-# from pycompss.api.api import compss_wait_on
-# from pycompss.api.parameter import *
+# Import packages
+import numpy as np
 
-# Import exaqute
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
-# get_value_from_remote is the equivalent of compss_wait_on
-# in the future, when everything is integrated with the it4i team, putting exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-
-# Import variables class
-from cmlmc_utilities import StatisticalVariable
+# Import Monte Carlo library
+import mc_utilities as mc
 
 # Import cpickle to pickle the serializer
 try:
     import cpickle as pickle  # Use cPickle on Python 2.7
 except ImportError:
     import pickle
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to exequte with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to exequte with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
+
 
 class MonteCarloAnalysis(PotentialFlowAnalysis):
     """Main analyis stage for Monte Carlo simulations"""
@@ -102,7 +103,7 @@ output:
         QoI         : Quantity of Interest
 '''
 @ExaquteTask(returns=1)
-def ExecuteMonteCarlo_Task(pickled_model, pickled_parameters):
+def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -139,7 +140,6 @@ def SerializeModelParameters_Task(parameter_file_name):
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
-    # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
     fake_sample = GenerateSample() # fake sample generated just to do the serialization
     simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
@@ -150,35 +150,35 @@ def SerializeModelParameters_Task(parameter_file_name):
     # pickle dataserialized_data
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
-    return pickled_model, pickled_parameters
+    print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
+    return pickled_model,pickled_parameters
 
 
 if __name__ == '__main__':
 
+    '''set the ProjectParameters.json path'''
     parameter_file_name = "../tests/CompressiblePotentialFlowTest/parameters_potential_naca_mesh0.json"
-
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
-    print("\n############## Serialization completed ##############\n")
+    '''customize setting parameters of the ML simulation'''
+    settings_MC_simulation = KratosMultiphysics.Parameters("""
+    {
+        "tolerance" : 0.1,
+        "cphi" : 5e-1,
+        "batch_size" : 5,
+        "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
+    }
+    """)
+    '''contruct MonteCarlo class'''
+    mc_class = mc.MonteCarlo(settings_MC_simulation)
+    '''start MC algorithm'''
+    while mc_class.convergence is not True:
+        mc_class.InitializeMCPhase()
+        mc_class.ScreeningInfoInitializeMCPhase()
+        for instance in range (mc_class.difference_number_samples[0]):
+            mc_class.AddResults(ExecuteMonteCarloAnalysis_Task(pickled_model,pickled_parameters))
+        mc_class.FinalizeMCPhase()
+        mc_class.ScreeningInfoFinalizeMCPhase()
 
-    '''estimate the number of samples'''
-    number_samples = 3
-
-    QoI = StatisticalVariable(0) # number of levels = 0 (we only have one level), needed using this class
-    '''to exploit StatisticalVariable UpdateOnePassMeanVariance function we need to initialize a level 0 in values, mean, sample variance and second moment
-    and store in this level the informations'''
-    QoI.values = [[] for _ in range (1)]
-    QoI.mean = [[] for _ in range (1)]
-    QoI.second_moment = [[] for _ in range (1)]
-    QoI.sample_variance = [[] for _ in range (1)]
-
-    for instance in range (0,number_samples):
-        QoI.values[0].append(ExecuteMonteCarlo_Task(pickled_model,pickled_parameters))
-
-    '''Compute mean, second moment and sample variance'''
-    for i_sample in range (0,number_samples):
-        QoI.UpdateOnepassMeanVariance(0,i_sample)
-
-    QoI = get_value_from_remote(QoI)
-    print("\nMonte Carlo mean estimator lift coefficient = ",QoI.mean)
-
+    mc_class.QoI.mean = get_value_from_remote(mc_class.QoI.mean)
+    print("\nMC mean = ",mc_class.QoI.mean)

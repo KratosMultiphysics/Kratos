@@ -1,6 +1,4 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
-import time
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -18,14 +16,9 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 # Importing derived classes
 from potential_flow_analysis import PotentialFlowAnalysis
 
-# Import exaqute
-# from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
+# Import packages
+import numpy as np
+import time
 
 # Import Continuation Multilevel Monte Carlo library
 import cmlmc_utilities as mlmc
@@ -38,6 +31,16 @@ try:
     import cpickle as pickle  # Use cPickle on Python 2.7
 except ImportError:
     import pickle
+
+# Import exaqute
+from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
+# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
+# from exaqute.ExaquteTaskLocal import *      # to execute with python3
+'''
+get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
+in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
+'''
+
 
 class MultilevelMonteCarloAnalysis(PotentialFlowAnalysis):
     '''Main analysis stage for MultilevelMonte Carlo simulations'''
@@ -82,7 +85,6 @@ def GenerateSample():
     mean_angle_attack = 0.0 # [rad] = 0 [degrees] airfoil already has 5 degrees
     std_deviation_angle_attack = np.deg2rad(0.1)
     sample.append(np.random.normal(mean_angle_attack,std_deviation_angle_attack,number_samples))
-    print("Mach number = ",sample[0],"angle of attack = ",sample[1])
     if sample[0] >= 1.0 or sample[0] <= 0.0 :
         raise Exception ("stochastic Mach number computed > 1 or < 0")
     return sample
@@ -193,7 +195,7 @@ def SerializeModelParameters_Task(parameter_file_name):
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
-    fake_sample = [0.3,0.0]
+    fake_sample = GenerateSample()
     '''initialize'''
     simulation = MultilevelMonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
@@ -206,7 +208,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
-    return pickled_model, pickled_parameters
+    return pickled_model,pickled_parameters
 
 
 '''
@@ -276,20 +278,20 @@ if __name__ == '__main__':
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
     '''start MLMC phase'''
-    # while mlmc_class.convergence is not True:
-    #     '''initialize MLMC phase'''
-    #     mlmc_class.InitializeMLMCPhase()
-    #     mlmc_class.ScreeningInfoInitializeMLMCPhase()
-    #     '''MLMC execution phase'''
-    #     for lev in range (mlmc_class.current_number_levels+1):
-    #         for instance in range (mlmc_class.difference_number_samples[lev]):
-    #             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
-    #     '''finalize MLMC phase'''
-    #     mlmc_class.FinalizeMLMCPhase()
-    #     mlmc_class.ScreeningInfoFinalizeMLMCPhase()
+    while mlmc_class.convergence is not True:
+        '''initialize MLMC phase'''
+        mlmc_class.InitializeMLMCPhase()
+        mlmc_class.ScreeningInfoInitializeMLMCPhase()
+        '''MLMC execution phase'''
+        for lev in range (mlmc_class.current_number_levels+1):
+            for instance in range (mlmc_class.difference_number_samples[lev]):
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh))
+        '''finalize MLMC phase'''
+        mlmc_class.FinalizeMLMCPhase()
+        mlmc_class.ScreeningInfoFinalizeMLMCPhase()
 
-    # print("\niterations = ",mlmc_class.current_iteration,\
-    # "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
+    print("\niterations = ",mlmc_class.current_iteration,\
+    "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
 
     '''### OBSERVATIONS ###
 
