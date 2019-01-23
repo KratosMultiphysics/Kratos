@@ -62,6 +62,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   py::class_<TransferSolvingModelPartEntitiesProcess, TransferSolvingModelPartEntitiesProcess::Pointer, Process>(m,"TransferSolvingModelPartProcess")
       .def(py::init<ModelPart&, Parameters>())
       .def(py::init<ModelPart&, Parameters& >())
+      .def("Execute", &TransferSolvingModelPartEntitiesProcess::Execute)
+      .def("ExecuteFinalizeSolutionStep", &TransferSolvingModelPartEntitiesProcess::ExecuteFinalizeSolutionStep)
       ;
 
 

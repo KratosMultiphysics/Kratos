@@ -145,7 +145,25 @@ public:
       KRATOS_CATCH("")
     }
 
+    /// this function will be executed at every time step AFTER performing the solve phase
+    void ExecuteFinalizeSolutionStep() override
+    {
+      KRATOS_TRY
 
+      ModelPart& SolvingModelPart = mrModelPart.GetSubModelPart(mSolvingModelPartName);
+
+
+      for(ModelPart::ElementsContainerType::iterator i_elem = SolvingModelPart.ElementsBegin(); i_elem != SolvingModelPart.ElementsEnd(); ++i_elem)
+      {
+        //set the element itself as pointer
+        //i_elem->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
+
+        //set the element pointer nullptr
+        i_elem->SetValue(MASTER_ELEMENT, nullptr);
+      }
+
+      KRATOS_CATCH("")
+    }
     ///@}
     ///@name Access
     ///@{
