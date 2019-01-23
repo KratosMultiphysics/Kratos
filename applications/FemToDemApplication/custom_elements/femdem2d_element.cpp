@@ -1370,14 +1370,14 @@ void FemDem2DElement::CalculateExponentialDamage(
 
 // Methods to compute the tangent tensor by numerical derivation
 void FemDem2DElement::CalculateTangentTensor(
-	Matrix& TangentTensor,
+	Matrix& rTangentTensor,
 	const Vector& rStrainVectorGP,
 	const Vector& rStressVectorGP,
 	const Matrix& rElasticMatrix
 	)
 {
 	const double number_components = rStrainVectorGP.size();
-	TangentTensor.resize(number_components, number_components);
+	rTangentTensor.resize(number_components, number_components);
 	Vector perturbed_stress, perturbed_strain;
 	perturbed_strain.resize(number_components);
 	perturbed_stress.resize(number_components);
@@ -1388,7 +1388,44 @@ void FemDem2DElement::CalculateTangentTensor(
 		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
 		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
 		const Vector& delta_stress = perturbed_stress - rStressVectorGP;
-		this->AssignComponentsToTangentTensor(TangentTensor, delta_stress, perturbation, component);
+		this->AssignComponentsToTangentTensor(rTangentTensor, delta_stress, perturbation, component);
+	}
+}
+
+void FemDem2DElement::CalculateSecondOrderTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rStrainVectorGP,
+	const Vector& rStressVectorGP,
+	const Matrix& rElasticMatrix
+	)
+{
+	const double number_components = rStrainVectorGP.size();
+	rTangentTensor.resize(number_components, number_components);
+	Vector perturbed_stress, perturbed_strain, twice_perturbed_stress, twice_perturbed_strain;
+	perturbed_strain.resize(number_components);
+	perturbed_stress.resize(number_components);
+	twice_perturbed_strain.resize(number_components);
+	twice_perturbed_stress.resize(number_components);
+
+	for (unsigned int component = 0; component < number_components; component++) {
+		double perturbation;
+		this->CalculatePerturbation(rStrainVectorGP, perturbation, component);
+
+		// 1st the f(x+h)
+		this->PerturbateStrainVector(perturbed_strain, rStrainVectorGP, perturbation, component);
+		this->IntegratePerturbedStrain(perturbed_stress, perturbed_strain, rElasticMatrix);
+
+		// Then the f(x+2h)
+		this->PerturbateStrainVector(twice_perturbed_strain, rStrainVectorGP, 2*perturbation, component);
+		this->IntegratePerturbedStrain(twice_perturbed_stress, twice_perturbed_strain, rElasticMatrix);
+
+		this->AssignComponentsToSecondOrderTangentTensor(
+			rTangentTensor, 
+			rStressVectorGP, 
+			perturbed_stress, 
+			twice_perturbed_stress, 
+			perturbation, 
+			component);
 	}
 }
 
@@ -1468,5 +1505,18 @@ void FemDem2DElement::AssignComponentsToTangentTensor(
 	}
 }
 
-
+void FemDem2DElement::AssignComponentsToSecondOrderTangentTensor(
+	Matrix& rTangentTensor,
+	const Vector& rGaussPointStress,
+	const Vector& rPerturbedStress,
+	const Vector& rTwicePerturbedStress,
+	const double Perturbation,
+	const int Component
+	)
+{
+	const int voigt_size = rDeltaStress.size();
+	for (IndexType row = 0; row < voigt_size; ++row) {
+		rTangentTensor(row, Component) = (4.0 * rPerturbedStress - rTwicePerturbedStress - 3.0 * rGaussPointStress) / Perturbation;
+	}
+}
 } // namespace Kratos
