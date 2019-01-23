@@ -58,7 +58,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     metric_param.AddEmptyValue("maximal_size")
     metric_param["maximal_size"].SetDouble(maximal_size_value)
 
-    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess2D(simulation_coarse._GetSolver().main_model_part, KratosMultiphysics.TEMPERATURE, metric_param)
+    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess2D(simulation_coarse._GetSolver().main_model_part, KratosMultiphysics.CompressiblePotentialFlowApplication.POSITIVE_POTENTIAL, metric_param)
     local_gradient.Execute()
 
     '''create the remeshing process: echo_level: 0 for no output at all, 3 for standard output'''
