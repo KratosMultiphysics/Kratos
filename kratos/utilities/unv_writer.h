@@ -22,6 +22,7 @@ public:
         initializeOutputFile();
         writeNodes();
         writeElements();
+        writeNodalResults();
     }
 
     void initializeOutputFile() {
@@ -109,6 +110,59 @@ public:
                 outputFile << std::setw(10) << elementGeometry[3].Id() << "\n";
             }
         }
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile.close();
+    }
+
+    enum DatasetLocation {
+        DataAtNodes = 1,
+        DataAtElemen = 2,
+        DataAtNodeOnElement = 3,
+        DataAtPoint = 5,
+        DataOnElementAtNode = 6
+    };
+
+    void writeNodalResults() {
+        std::ofstream outputFile;
+        outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
+
+        const int dataSetNumberForResults = 2414;
+        std::string dataSetLabel = "NodalResults";
+        std::string dataSetName = "NodalResults";
+        const int physicalPropertyTableNumber = 1;
+        const int materialPropertyTableNumber = 1;
+        const int color = 0;
+
+        outputFile << std::setw(6) << "-1" << "\n";
+        outputFile << std::setw(6) << dataSetNumberForResults << "\n";
+
+        outputFile << std::setw(10) << dataSetLabel << "\n";
+        outputFile << std::setw(6) << dataSetName << "\n";
+        outputFile << std::setw(10) << DatasetLocation::DataAtNodes << "\n";
+
+        outputFile << std::setw(6) << dataSetName << "\n";
+        outputFile << std::setw(6) << 'Double precision floating point' << "\n";
+        outputFile << std::setw(6) << 'NONE' << "\n";
+        outputFile << std::setw(6) << 'NONE' << "\n";
+        outputFile << std::setw(6) << 'NONE' << "\n";
+        
+        // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues
+        outputFile << std::setw(6) << 1 << 1 << 1 << 5 << 2 << 1 << "\n";
+
+        // ????
+        outputFile << std::setw(6) << 'NONE' << "\n";   // 10
+        outputFile << std::setw(6) << 'NONE' << "\n";   // 11
+        outputFile << std::setw(6) << 'NONE' << "\n";   // 12
+        outputFile << std::setw(6) << 'NONE' << "\n";   // 13
+
+        // Data at nodes:
+        for (auto &node_i : mrOutputModelPart.Nodes()) {
+            int node_label = node_i.Id();
+            outputFile << std::setw(6) << node_label << "\n";   // 14 - Node Number
+            outputFile << std::setw(6) << node_i.FastGetSolutionStepValue(TEMPERATURE) << "\n";   // 15 - NumberOfDataValues' data of the node
+        }
+
+
         outputFile << std::setw(6) << "-1" << "\n";
         outputFile.close();
     }
