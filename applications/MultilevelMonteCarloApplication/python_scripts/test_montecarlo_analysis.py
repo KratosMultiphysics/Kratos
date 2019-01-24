@@ -1,13 +1,11 @@
 from __future__ import absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
-import numpy as np
-import time
-import copy
 
 # Importing the Kratos Library
 import KratosMultiphysics
 
 # Import applications
 import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Avoid printing of Kratos informations
 KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) # avoid printing of Kratos things
@@ -15,8 +13,11 @@ KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logg
 # Importing the base class
 from analysis_stage import AnalysisStage
 
-# Import variables class
-from test_cmlmc_utilities import StatisticalVariable
+# Import packages
+import numpy as np
+
+# Import Monte Carlo library
+import test_mc_utilities as mc
 
 # Import cpickle to pickle the serializer
 try:
@@ -47,7 +48,7 @@ class MonteCarloAnalysis(AnalysisStage):
     def _CreateSolver(self):
         import convection_diffusion_stationary_solver
         return convection_diffusion_stationary_solver.CreateSolver(self.model,self.project_parameters["solver_settings"])
-    
+
     def _GetSimulationName(self):
         return "Monte Carlo Analysis"
 
@@ -89,7 +90,6 @@ def EvaluateQuantityOfInterest(simulation):
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
         Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        #print("NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
     return Q
 
 
@@ -101,7 +101,7 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-def ExecuteMonteCarlo_Task(pickled_model, pickled_parameters):
+def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -128,7 +128,7 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-def ExecuteExactMonteCarlo_Task(pickled_model, pickled_parameters):
+def ExecuteExactMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
     current_model = KratosMultiphysics.Model()
@@ -173,7 +173,7 @@ def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, m
     simulation_coarse.Run()
     QoI =  EvaluateQuantityOfInterest(simulation_coarse)
     '''refine'''
-    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)    
+    model_refined = refinement.compute_refinement_from_analysisstage_object(simulation_coarse,min_size,max_size)
     '''initialize'''
     simulation = MonteCarloAnalysis(model_refined,parameters_refinement,sample)
     simulation.Initialize()
