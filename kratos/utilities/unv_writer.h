@@ -69,6 +69,8 @@ public:
         DOUBLE_PRECISION_COMPLEX = 6
     };
 
+    KRATOS_CLASS_POINTER_DEFINITION(UnvWriter);
+
     UnvWriter(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension)
             : mrOutputModelPart(modelPart),
               mOutputFileName(outFileWithoutExtension + ".unv") {
