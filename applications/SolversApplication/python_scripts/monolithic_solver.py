@@ -148,7 +148,6 @@ class MonolithicSolver(object):
     def Clear(self):
         if self.settings["solving_strategy_settings"]["clear_storage"].GetBool():
             self._get_mechanical_solver().Clear()
-        self._check_reform_dofs()
 
     def Check(self):
         self._get_mechanical_solver().Check()
@@ -158,12 +157,14 @@ class MonolithicSolver(object):
 
     def Solve(self):
         self.Clear()
+        self._check_reform_dofs()
         return self._get_mechanical_solver().Solve()
 
     # step by step:
 
     def InitializeSolutionStep(self):
         self.Clear()
+        self._check_reform_dofs()
         self._get_mechanical_solver().InitializeSolutionStep()
 
     def SolveSolutionStep(self):
@@ -192,7 +193,7 @@ class MonolithicSolver(object):
         update_time = False
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolver.RESTART_STEP_TIME):
-                update_time = self._check_current_time_step(self.process_info[KratosSolver.RESTART_STEP_TIME])
+                update_time = self._check_previous_time_step(self.process_info[KratosSolver.RESTART_STEP_TIME])
 
         if not update_time and self.process_info.Has(KratosSolver.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolver.MESHING_STEP_TIME])
