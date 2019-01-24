@@ -77,11 +77,11 @@ public:
     }
 
 
-    void writeMesh() {
+    void writeMesh(int dataSetLabel) {
         initializeOutputFile();
         writeNodes();
         writeElements();
-        writeNodalResults();
+        writeNodalResults(dataSetLabel);
     }
 
     template <typename Enumeration>
@@ -202,16 +202,12 @@ public:
 
     // Fordes
 
-    void writeNodalResults() {
+    void writeNodalResults(int dataSetLabel) {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         const int dataSetNumberForResults = 2414;
-        std::string dataSetLabel = 1;
-        std::string dataSetName = "NodalResults";   
-        const int physicalPropertyTableNumber = 1;
-        const int materialPropertyTableNumber = 1;
-        const int color = 0;
+        std::string dataSetName = "NodalResults";
 
         outputFile << std::setw(6) << "-1" << "\n";                                                 // Begin block
         outputFile << std::setw(6) << dataSetNumberForResults << "\n";                              // DatasetID
@@ -220,27 +216,51 @@ public:
         outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 2
         outputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
 
-        outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 4
-        outputFile << std::setw(6) << 'None' << "\n";                                               // Record 5
-        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 6
-        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 7
-        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 8
+        outputFile << "" << "\n";                                                                   // Record 4
+        outputFile << "NONE" << "\n";                                                               // Record 5
+        outputFile << "NONE" << "\n";                                                               // Record 6
+        outputFile << "NONE" << "\n";                                                               // Record 7
+        outputFile << "NONE" << "\n";                                                               // Record 8
         
         // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues    // Record 9
-        outputFile << std::setw(6);
-        outputFile << as_integer(ModelType::STRUCTURAL); 
-        outputFile << as_integer(AnalysisType::STATIC);
-        outputFile << as_integer(DataCharacteristics::SCALAR);
-        outputFile << 5;
-        outputFile << as_integer(DataType::SINGLE_PRECISION_FLOATING_POINT);
-        outputFile << 1; 
+        outputFile << std::setw(10) << as_integer(ModelType::STRUCTURAL); 
+        outputFile << std::setw(10) << as_integer(AnalysisType::STATIC);
+        outputFile << std::setw(10) << as_integer(DataCharacteristics::SCALAR);
+        outputFile << std::setw(10) << 5;
+        outputFile << std::setw(10) << as_integer(DataType::SINGLE_PRECISION_FLOATING_POINT);
+        outputFile << std::setw(10) << 1; 
         outputFile << "\n";
 
         // ????
-        outputFile << std::setw(6) << 0 << 0 << 0 << 0 << 0 << 1 << 0 << 0 << "\n";                 // Record 10
-        outputFile << std::setw(6) << 0 << 0 << "\n";                                               // Record 11
-        outputFile << std::setw(6) << 0 << "\n";                                                    // Record 12
-        outputFile << std::setw(6) << 0 << "\n";                                                    // Record 13
+        outputFile << std::setw(10) << 0;                                                           // Record 10
+        outputFile << std::setw(10) << 0;
+        outputFile << std::setw(10) << 0;
+        outputFile << std::setw(10) << 0;
+        outputFile << std::setw(10) << 0;
+        outputFile << std::setw(10) << 1;
+        outputFile << std::setw(10) << 0;
+        outputFile << std::setw(10) << 0;
+        outputFile << "\n";
+
+        outputFile << std::setw(10) << 0;                                                           // Record 11
+        outputFile << std::setw(10) << 0;
+        outputFile << "\n";
+
+        outputFile << std::setw(13) << "0.00000E+00";                                               // Record 12
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << "\n";
+
+        outputFile << std::setw(13) << "0.00000E+00";                                               // Record 13
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << std::setw(13) << "0.00000E+00";
+        outputFile << "\n";
 
         // Data at nodes:
         for (auto &node_i : mrOutputModelPart.Nodes()) {
