@@ -82,7 +82,7 @@ Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Paramete
         coefficients_vector[0] = alpha;
         coefficients_vector[1] = beta;
 
-        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
+        KRATOS_INFO_IF("RayleighDampingCoefficientsUtilities", echo_level > 0) <<  "With the damping ratios of:\t" << damping_ratios[0] << "\t and " << damping_ratios[1] << "\n the RAYLEIGH_ALPHA is: " << alpha << "\tand RAYLEIGH_BETA: " << beta << std::endl;
     }
 
     return coefficients_vector;
