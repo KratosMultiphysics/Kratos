@@ -213,13 +213,13 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
+    if (rSecondVector.size() != 3)
+        rSecondVector.resize(3);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
+    for (IndexType i = 0; i < 3; ++i) {
         rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
     }
-    rSecondVector[3] *= 2.0;
+    rSecondVector[2] *= 2.0;
 }
 
 /***********************************************************************************/
