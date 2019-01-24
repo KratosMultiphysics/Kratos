@@ -92,13 +92,13 @@ public:
     ///@name Operations
     ///@{
 
-    // Name Operations
-    Condition::Pointer Create(
-        IndexType NewId,
-        GeometryType::Pointer pGeom,
-        PropertiesType::Pointer pProperties
-        ) const override;
-
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -106,10 +106,22 @@ public:
         ) const override;
 
     /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
      * @brief Creates a new condition pointer and clones the previous condition data
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
-     * @param pProperties the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone (
