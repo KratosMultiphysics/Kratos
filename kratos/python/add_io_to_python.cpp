@@ -26,7 +26,12 @@
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
+
+// VTK
 #include "input_output/vtk_output.h"
+
+// UNV
+#include "utilities/unv_writer.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -305,6 +310,11 @@ void  AddIOToPython(pybind11::module& m)
     py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
         .def(py::init< ModelPart&, Parameters >())
         .def("PrintOutput", &VtkOutput::PrintOutput)
+        ;
+
+    py::class_<UnvWriter, UnvWriter::Pointer>(m, "UnvOutput")
+        .def(py::init<ModelPart&, const std::string &>())
+        .def("PrintOutput", &UnvWriter::writeMesh)
         ;
 }
 }  // namespace Python.
