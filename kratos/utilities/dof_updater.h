@@ -129,19 +129,17 @@ public:
      *  @param[in] rX The solution vector.
      *  This method will check if Initialize() was called before and call it if necessary.
      */
-    virtual void AssignDofs(
-        DofsArrayType& rDofSet,
-        const SystemVectorType& rX)
+    virtual void AssignDofs(DofsArrayType& rDofSet, const SystemVectorType& rX)
     {
-        const int num_dof = static_cast<int>(rDofSet.size());
+      const int num_dof = static_cast<int>(rDofSet.size());
 
-        #pragma omp parallel for
-        for(int i = 0;  i < num_dof; ++i) {
-            auto it_dof = rDofSet.begin() + i;
-
-			if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rX,it_dof->EquationId());
-        }
+      #pragma omp parallel for
+      for(int i = 0;  i < num_dof; ++i)
+      {
+        auto it_dof = rDofSet.begin() + i;
+        if (it_dof->IsFree())
+          it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rX,it_dof->EquationId());
+      }
     }
 
     ///@}
