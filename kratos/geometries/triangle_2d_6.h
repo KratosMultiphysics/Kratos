@@ -48,11 +48,22 @@ namespace Kratos
 ///@{
 
 /**
- * A six node triangular geometry. While the shape functions are only defined in
- * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
- * defining surfaces on 3D elements.
+ * @class Triangle2D6
+ * @ingroup KratosCore
+ * @brief A six node 2D triangular geometry with quadratic shape functions
+ * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
+ * The node ordering corresponds with:       
+ *          2                    
+ *          |`\              
+ *          |  `\           
+ *          5    `4           
+ *          |      `\          
+ *          |        `\          
+ *          0-----3----1           
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Triangle2D6
     : public Geometry<TPointType>
 {
@@ -343,7 +354,7 @@ public:
 
     //     return p_clone;
     // }
-    
+
     /**
      * returns the local coordinates of all nodes of the current geometry
      * @param rResult a Matrix object that will be overwritten by the result
@@ -457,16 +468,16 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
-        const CoordinatesArrayType& rPoint, 
-        CoordinatesArrayType& rResult, 
+    bool IsInside(
+        const CoordinatesArrayType& rPoint,
+        CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
@@ -492,7 +503,7 @@ public:
 
     /**
      * @brief Returns vector of shape function values at local coordinate.
-     * 
+     *
      * For a definition of the shape functions see, e.g.,
      * https://www.colorado.edu/engineering/CAS/courses.d/IFEM.d/IFEM.Ch18.d/IFEM.Ch18.pdf.
      */
@@ -657,6 +668,7 @@ public:
 
     void NodesInFaces (DenseMatrix<unsigned int>& NodesInFaces) const override
     {
+        // faces in columns
         if(NodesInFaces.size1() != 4 || NodesInFaces.size2() != 3)
             NodesInFaces.resize(4,3,false);
 
@@ -665,7 +677,7 @@ public:
         NodesInFaces(1,0)=1;
         NodesInFaces(2,0)=4;
         NodesInFaces(3,0)=2;
- 
+
         NodesInFaces(0,1)=1;//face or master node
         NodesInFaces(1,1)=2;
         NodesInFaces(2,1)=5;
@@ -1143,5 +1155,4 @@ GeometryData Triangle2D6<TPointType>::msGeometryData(
 );
 }// namespace Kratos.
 
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined 
-
+#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined

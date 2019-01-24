@@ -72,7 +72,7 @@ namespace Kratos
           ModelPart &rModelPart,
           double AptQuality = 0.5,
           std::size_t MaxIterationsNumber = 10,
-          const Flags rBoundaryFlag = BOUNDARY);
+          const Flags &rBoundaryFlag = BOUNDARY);
 
       /// Destructor.
       ~MeshLocalSmoothingProcess() override;
@@ -165,17 +165,17 @@ namespace Kratos
 
 		ModelPart& mrModelPart;
 
-        double mAptQuality;
-
 		std::size_t mMaxIterationsNumber;
 
-        const Flags mrBoundaryFlag;
+		double mAptQuality;
 
 		std::size_t mNumberOfLowQualityElements;
 
 		double mMeshMinQuality;
 
 		double mMeshQualityNorm;
+
+        const Flags &mrBoundaryFlag;
         
         
       ///@} 

@@ -64,7 +64,7 @@ class EigensolverScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 
   typedef SolutionScheme<TSparseSpace,TDenseSpace>                                    BaseType;
   typedef typename BaseType::SolutionSchemePointerType                         BasePointerType;
-  
+
   typedef typename BaseType::LocalSystemVectorType                       LocalSystemVectorType;
   typedef typename BaseType::LocalSystemMatrixType                       LocalSystemMatrixType;
 
@@ -83,7 +83,7 @@ class EigensolverScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
       :BaseType(rOptions)
   {
   }
-  
+
   /// Destructor.
   ~EigensolverScheme() override {}
 
@@ -285,5 +285,5 @@ class EigensolverScheme : public SolutionScheme<TSparseSpace,TDenseSpace>
 
 }  // namespace Kratos.
 
-#endif // KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED  defined 
+#endif // KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED  defined
 

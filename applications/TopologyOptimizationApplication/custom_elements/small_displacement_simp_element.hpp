@@ -57,6 +57,8 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+    ///Type for element variables
+    typedef SmallDisplacementElement::ElementDataType ElementDataType;
 
     /// Counted pointer of SmallDisplacementSIMPElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementSIMPElement );

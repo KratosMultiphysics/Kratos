@@ -494,7 +494,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -502,12 +502,11 @@ public:
     CoordinatesArrayType& PointLocalCoordinates(
         CoordinatesArrayType& rResult,
         const CoordinatesArrayType& rPoint
-        ) override
+        ) const override
     {
         BoundedMatrix<double,3,3> X;
         BoundedMatrix<double,3,2> DN;
-        for(unsigned int i=0; i<3;i++)
-        {
+        for(unsigned int i=0; i<3;i++) {
             X(0,i ) = 0.5*(this->GetPoint( i ).X() + this->GetPoint( i+3 ).X());
             X(1,i ) = 0.5*(this->GetPoint( i ).Y() + this->GetPoint( i+3 ).Y());
             X(2,i ) = 0.5*(this->GetPoint( i ).Z() + this->GetPoint( i+3 ).Z());
@@ -635,7 +634,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 4 ));

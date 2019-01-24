@@ -64,9 +64,6 @@ bool LinearIsotropicDamage3D::Has(const Variable<bool>& rThisVariable)
 
 bool LinearIsotropicDamage3D::Has(const Variable<double>& rThisVariable)
 {
-    if(rThisVariable == STRAIN_ENERGY){
-        return true;
-    }
     if(rThisVariable == DAMAGE_VARIABLE){
         return true;
     }
@@ -99,20 +96,78 @@ void LinearIsotropicDamage3D::InitializeMaterial(
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
-    mStrainVariableOld = yield_stress / std::sqrt(young_modulus);
+    mStrainVariable = yield_stress / std::sqrt(young_modulus);
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeSolutionStep(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo& rCurrentProcessInfo)
+void LinearIsotropicDamage3D::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    // update of damage threshold
-    mStrainVariableOld = mStrainVariable;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::InitializeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::InitializeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    InitializeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
+{
+    double strain_variable;
+    this->CalculateStressResponse(rValues, strain_variable);
+    mStrainVariable = strain_variable;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
+{
+    // In small deformation is the same as compute Cauchy
+    FinalizeMaterialResponseCauchy(rValues);
 }
 
 //************************************************************************************
@@ -144,50 +199,60 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseKirchhoff(Parameters& rVa
 
 void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValues)
 {
-    const Flags &Options = rValues.GetOptions();
+    double strain_variable;
+    this->CalculateStressResponse(rValues, strain_variable);
+}
 
+//************************************************************************************
+//************************************************************************************
+
+void LinearIsotropicDamage3D::CalculateStressResponse(
+    Parameters& rValues,
+    double& rStrainVariable)
+{
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    Vector& strain_vector = rValues.GetStrainVector();
-    Vector& stress_vector = rValues.GetStressVector();
-
-    if (Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
+    Flags & r_constitutive_law_options = rValues.GetOptions();
+    Vector& r_strain_vector = rValues.GetStrainVector();
+    if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+        noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
     }
 
-    if (Options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-            noalias(strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
-        }
-        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+    if( r_constitutive_law_options.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN )) {
+        //this->CalculateValue(rValues, STRAIN, r_strain_vector);
+    }
 
-        CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
-        noalias(stress_vector) = prod(constitutive_matrix, strain_vector);
+    // If we compute the tangent moduli or the stress
+    if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
+        r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )) {
+        Vector& r_stress_vector = rValues.GetStressVector();
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix(rMaterialProperties, r_constitutive_matrix);
+        noalias(r_stress_vector) = prod(r_constitutive_matrix, r_strain_vector);
+        const double strain_norm = std::sqrt(inner_prod(r_stress_vector, r_strain_vector));
 
-        const double strain_norm = std::sqrt(inner_prod(stress_vector, strain_vector));
-        if (strain_norm <= mStrainVariableOld)
+        if (strain_norm <= mStrainVariable)
         {
             // ELASTIC
             mInelasticFlag = false;
-            mStrainVariable = mStrainVariableOld;
-            const double stress_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
-            const double damage_variable = 1. - stress_variable / mStrainVariable;
-            constitutive_matrix *= (1 - damage_variable);
-            stress_vector *= (1 - damage_variable);
+            rStrainVariable = mStrainVariable;
+            const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / rStrainVariable;
+            r_constitutive_matrix *= (1 - damage_variable);
+            r_stress_vector *= (1 - damage_variable);
         }
         else
         {
             // INELASTIC
             mInelasticFlag = true;
-            mStrainVariable = strain_norm;
-            const double stress_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
-            const double damage_variable = 1. - stress_variable / mStrainVariable;
+            rStrainVariable = strain_norm;
+            const double stress_variable = EvaluateHardeningLaw(rStrainVariable, rMaterialProperties);
+            const double damage_variable = 1. - stress_variable / rStrainVariable;
             const double hardening_modulus = rMaterialProperties[ISOTROPIC_HARDENING_MODULUS];
-            const double damage_rate = (stress_variable - hardening_modulus * mStrainVariable)
-                                       / (mStrainVariable * mStrainVariable * mStrainVariable);
-            constitutive_matrix *= (1. - damage_variable);
-            constitutive_matrix -= damage_rate * outer_prod(stress_vector, stress_vector);
-            stress_vector *= (1. - damage_variable);
+            const double damage_rate = (stress_variable - hardening_modulus * rStrainVariable)
+                                       / (rStrainVariable * rStrainVariable * rStrainVariable);
+            r_constitutive_matrix *= (1. - damage_variable);
+            r_constitutive_matrix -= damage_rate * outer_prod(r_stress_vector, r_stress_vector);
+            r_stress_vector *= (1. - damage_variable);
         }
     }
 }
@@ -196,31 +261,31 @@ void LinearIsotropicDamage3D::CalculateMaterialResponseCauchy(Parameters& rValue
 //************************************************************************************
 
 double& LinearIsotropicDamage3D::CalculateValue(
-    Parameters& rParameterValues,
+    Parameters& rValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
     if (rThisVariable == STRAIN_ENERGY){
-        Vector& strain_vector = rParameterValues.GetStrainVector();
-        if (rParameterValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
-            noalias(strain_vector) += rParameterValues.GetProcessInfo()[INITIAL_STRAIN];
+        Vector& r_strain_vector = rValues.GetStrainVector();
+        if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
+            noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
         }
-        const Properties& rMaterialProperties = rParameterValues.GetMaterialProperties();
-        Matrix& constitutive_matrix = rParameterValues.GetConstitutiveMatrix();
-        CalculateConstitutiveMatrix(constitutive_matrix, rMaterialProperties);
-        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariableOld, rMaterialProperties);
-        const double damage_variable = 1. - stress_like_variable / mStrainVariableOld;
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        Matrix& constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix(rMaterialProperties, constitutive_matrix);
+        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
+        const double damage_variable = 1. - stress_like_variable / mStrainVariable;
 
-        rValue = 0.5 * ((1. - damage_variable) * inner_prod(strain_vector,
-                                              prod(constitutive_matrix, strain_vector)));
+        rValue = 0.5 * ((1. - damage_variable) * inner_prod(r_strain_vector,
+                                              prod(constitutive_matrix, r_strain_vector)));
     }
 
     if (rThisVariable == DAMAGE_VARIABLE){
-        const Properties& rMaterialProperties = rParameterValues.GetMaterialProperties();
-        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariableOld, rMaterialProperties);
+        const Properties& rMaterialProperties = rValues.GetMaterialProperties();
+        const double stress_like_variable = EvaluateHardeningLaw(mStrainVariable, rMaterialProperties);
 
-        rValue = 1. - stress_like_variable / mStrainVariableOld;
+        rValue = 1. - stress_like_variable / mStrainVariable;
     }
 
     return(rValue);
@@ -229,38 +294,9 @@ double& LinearIsotropicDamage3D::CalculateValue(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::FinalizeMaterialResponsePK1(Parameters& rValues)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearIsotropicDamage3D::FinalizeMaterialResponsePK2(Parameters& rValues)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearIsotropicDamage3D::FinalizeMaterialResponseKirchhoff(Parameters& rValues)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void LinearIsotropicDamage3D::FinalizeMaterialResponseCauchy(Parameters& rValues)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
-
 double LinearIsotropicDamage3D::EvaluateHardeningLaw(
         double StrainVariable,
-        const Properties &rMaterialProperties
-)
+        const Properties &rMaterialProperties)
 {
     const double yield_stress = rMaterialProperties[YIELD_STRESS];
     const double inf_yield_stress = rMaterialProperties[INFINITY_YIELD_STRESS];
@@ -283,30 +319,28 @@ double LinearIsotropicDamage3D::EvaluateHardeningLaw(
 //************************************************************************************
 //************************************************************************************
 
-void LinearIsotropicDamage3D::CalculateConstitutiveMatrix(
-    Matrix &rConstitTensor,
-    const Properties &rMaterialProperties
-    )
+void LinearIsotropicDamage3D::CalculateElasticMatrix(
+    const Properties &rMaterialProperties, Matrix &rElasticMatrix)
 {
     const double E = rMaterialProperties[YOUNG_MODULUS];
     const double nu = rMaterialProperties[POISSON_RATIO];
 
-    if (rConstitTensor.size1() != 6 || rConstitTensor.size2() != 6)
-        rConstitTensor.resize(6, 6, false);
-    rConstitTensor.clear();
+    if (rElasticMatrix.size1() != 6 || rElasticMatrix.size2() != 6)
+        rElasticMatrix.resize(6, 6, false);
+    rElasticMatrix.clear();
 
-    rConstitTensor(0, 0) = (E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)));
-    rConstitTensor(1, 1) = rConstitTensor(0, 0);
-    rConstitTensor(2, 2) = rConstitTensor(0, 0);
-    rConstitTensor(3, 3) = rConstitTensor(0, 0) * (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    rConstitTensor(4, 4) = rConstitTensor(3, 3);
-    rConstitTensor(5, 5) = rConstitTensor(3, 3);
-    rConstitTensor(0, 1) = rConstitTensor(0, 0) * nu / (1.0 - nu);
-    rConstitTensor(1, 0) = rConstitTensor(0, 1);
-    rConstitTensor(0, 2) = rConstitTensor(0, 1);
-    rConstitTensor(2, 0) = rConstitTensor(0, 1);
-    rConstitTensor(1, 2) = rConstitTensor(0, 1);
-    rConstitTensor(2, 1) = rConstitTensor(0, 1);
+    rElasticMatrix(0, 0) = (E * (1. - nu) / ((1. + nu) * (1. - 2. * nu)));
+    rElasticMatrix(1, 1) = rElasticMatrix(0, 0);
+    rElasticMatrix(2, 2) = rElasticMatrix(0, 0);
+    rElasticMatrix(3, 3) = rElasticMatrix(0, 0) * (1. - 2. * nu) / (2. * (1. - nu));
+    rElasticMatrix(4, 4) = rElasticMatrix(3, 3);
+    rElasticMatrix(5, 5) = rElasticMatrix(3, 3);
+    rElasticMatrix(0, 1) = rElasticMatrix(0, 0) * nu / (1. - nu);
+    rElasticMatrix(1, 0) = rElasticMatrix(0, 1);
+    rElasticMatrix(0, 2) = rElasticMatrix(0, 1);
+    rElasticMatrix(2, 0) = rElasticMatrix(0, 1);
+    rElasticMatrix(1, 2) = rElasticMatrix(0, 1);
+    rElasticMatrix(2, 1) = rElasticMatrix(0, 1);
 }
 
 //************************************************************************************
@@ -318,8 +352,8 @@ void LinearIsotropicDamage3D::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set(INFINITESIMAL_STRAINS);
     rFeatures.mOptions.Set(ISOTROPIC);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
-    rFeatures.mStrainSize = 6;
-    rFeatures.mSpaceDimension = 3;
+    rFeatures.mStrainSize = this->GetStrainSize();
+    rFeatures.mSpaceDimension = this->WorkingSpaceDimension();
 }
 
 //************************************************************************************
@@ -364,7 +398,6 @@ void LinearIsotropicDamage3D::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.save("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
-    rSerializer.save("mStrainVariableOld", mStrainVariableOld);
 }
 
 //************************************************************************************
@@ -375,7 +408,6 @@ void LinearIsotropicDamage3D::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     rSerializer.load("mInelasticFlag", mInelasticFlag);
     rSerializer.save("mStrainVariable", mStrainVariable);
-    rSerializer.save("mStrainVariableOld", mStrainVariableOld);
 }
 
 } /* namespace Kratos.*/

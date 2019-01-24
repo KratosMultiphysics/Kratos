@@ -17,16 +17,11 @@
 
 /* System includes */
 
-
 /* External includes */
 #include "Epetra_Import.h"
 
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-// #include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
 #include "includes/c2c_variables.h"
 #include "includes/convection_diffusion_settings.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"

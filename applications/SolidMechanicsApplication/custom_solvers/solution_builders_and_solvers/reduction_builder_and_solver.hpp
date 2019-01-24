@@ -62,7 +62,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
   typedef SolutionBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>      BaseType;
   typedef typename BaseType::Pointer                                       BasePointerType;
-  
+
   typedef typename BaseType::LocalFlagType                                   LocalFlagType;
   typedef typename BaseType::DofsArrayType                                   DofsArrayType;
 
@@ -126,7 +126,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
    * @brief Function to perform the building of the LHS,
    * @details Depending on the implementation choosen the size of the matrix could be
    * @details equal to the total number of Dofs or to the number of non constrained dofs
-   */  
+   */
   void BuildLHS(SchemePointerType pScheme,
                 ModelPart& rModelPart,
                 SystemMatrixType& rA) override
@@ -250,7 +250,6 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
         if (condition_is_active)
         {
-
           //calculate elemental contribution
           pScheme->Condition_Calculate_RHS_Contribution(*(it.base()), RHS_Contribution, EquationId, rCurrentProcessInfo);
 
@@ -267,14 +266,14 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   /**
    * @brief Function to perform the build of the RHS.
    * @details The vector could be sized as the total number of dofs or as the number of non constrained ones
-   */  
+   */
   void Build(SchemePointerType pScheme,
              ModelPart& rModelPart,
              SystemMatrixType& rA,
              SystemVectorType& rb) override
   {
     KRATOS_TRY
-        
+
     if (!pScheme)
       KRATOS_ERROR << "No scheme provided!" << std::endl;
 
@@ -416,7 +415,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     KRATOS_TRY
 
     double begin_time = OpenMPUtils::GetCurrentTime();
-    Build(pScheme, rModelPart, rA, rb);    
+    Build(pScheme, rModelPart, rA, rb);
     double end_time = OpenMPUtils::GetCurrentTime();
 
     if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
@@ -425,7 +424,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
     if (this->mEchoLevel == 3)
-    {     
+    {
       KRATOS_INFO("LHS before solve") << "Matrix = " << rA << std::endl;
       KRATOS_INFO("Dx before solve")  << "Solution = " << rDx << std::endl;
       KRATOS_INFO("RHS before solve") << "Vector = " << rb << std::endl;
@@ -435,7 +434,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
     end_time = OpenMPUtils::GetCurrentTime();
 
-    
+
     if (this->mEchoLevel > 1 && rModelPart.GetCommunicator().MyPID() == 0)
       KRATOS_INFO("system_solve_time") << end_time - begin_time << std::endl;
 
@@ -482,11 +481,11 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
                                 SystemVectorType& rb) override
   {
   }
-  
+
   /**
    * @brief Builds the list of the DofSets involved in the problem by "asking" to each element and condition its Dofs.
    * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the way the matrix and RHS are built
-  */  
+  */
   void SetUpDofSet(SchemePointerType pScheme,
                    ModelPart& rModelPart) override
   {
@@ -519,7 +518,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     {
       KRATOS_INFO("setting_dofs") << "Number of threads:" << nthreads << std::endl;
     }
-    
+
     for (int i = 0; i < static_cast<int>(nthreads); i++)
     {
 #ifdef USE_GOOGLE_HASH
@@ -533,7 +532,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     {
       KRATOS_INFO("setting_dofs") << "initialize_elements" << std::endl;
     }
-    
+
 #pragma omp parallel for firstprivate(nelements, ElementalDofList)
     for (int i = 0; i < static_cast<int>(nelements); i++)
     {
@@ -545,12 +544,12 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
       dofs_aux_list[this_thread_id].insert(ElementalDofList.begin(), ElementalDofList.end());
     }
-      
+
     if( this->mEchoLevel > 2)
     {
       KRATOS_INFO("setting_dofs") << "initialize_conditions" << std::endl;
     }
-      
+
     ConditionsContainerType& rConditions = rModelPart.Conditions();
     const int nconditions = static_cast<int>(rConditions.size());
 #pragma omp parallel for firstprivate(nconditions, ElementalDofList)
@@ -569,7 +568,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     {
       KRATOS_INFO("setting_dofs") << "initialize tree reduction" << std::endl;
     }
-    
+
     //here we do a reduction in a tree so to have everything on thread 0
     unsigned int old_max = nthreads;
     unsigned int new_max = ceil(0.5*static_cast<double>(old_max));
@@ -607,7 +606,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     {
       KRATOS_INFO("setting_dofs") << "initializing ordered array filling" << std::endl;
     }
-    
+
     DofsArrayType Doftemp;
     this->mDofSet = DofsArrayType();
 
@@ -619,7 +618,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     Doftemp.Sort();
 
     this->mDofSet = Doftemp;
-    
+
     //Throws an exception if there are no Degrees Of Freedom involved in the analysis
     if (this->mDofSet.size() == 0)
     {
@@ -652,20 +651,20 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     for (int i = 0; i < static_cast<int>(mlock_array.size()); i++)
       omp_init_lock(&mlock_array[i]);
 #endif
-    
+
     if( this->mEchoLevel > 2)
     {
       KRATOS_INFO("setting_dofs") << "End of setupdofset" << std::endl;
-    }    
+    }
 
     this->Set(LocalFlagType::DOFS_INITIALIZED, true);
-    
+
     KRATOS_CATCH("");
   }
 
   /**
    * @brief organises the dofset in order to speed up the building phase
-   */ 
+   */
   void SetUpSystem() override
   {
     // Set equation id for degrees of freedom
@@ -687,7 +686,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     this->mEquationSystemSize = fix_id;
 
   }
-  
+
   /**
    * @brief Resizes and Initializes the system vectors and matrices after SetUpDofSet and SetUpSytem has been called
    */
@@ -698,25 +697,25 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
                            SystemVectorPointerType& pb) override
   {
     KRATOS_TRY
-        
+
     if (pA == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemMatrixPointerType pNewA = SystemMatrixPointerType(new SystemMatrixType(0, 0));
+      SystemMatrixPointerType pNewA = Kratos::make_shared<SystemMatrixType>(0, 0);
       pA.swap(pNewA);
     }
     if (pDx == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemVectorPointerType pNewDx = SystemVectorPointerType(new SystemVectorType(0));
+      SystemVectorPointerType pNewDx = Kratos::make_shared<SystemVectorType>(0);
       pDx.swap(pNewDx);
     }
     if (pb == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemVectorPointerType pNewb = SystemVectorPointerType(new SystemVectorType(0));
+      SystemVectorPointerType pNewb = Kratos::make_shared<SystemVectorType>(0);
       pb.swap(pNewb);
     }
     if (this->mpReactionsVector == nullptr) //if the pointer is not initialized initialize it to an empty matrix
     {
-      SystemVectorPointerType pNewReactionsVector = SystemVectorPointerType(new SystemVectorType(0));
+      SystemVectorPointerType pNewReactionsVector = Kratos::make_shared<SystemVectorType>(0);
       this->mpReactionsVector.swap(pNewReactionsVector);
     }
 
@@ -769,13 +768,13 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     KRATOS_TRY
 
     BaseType::InitializeSolutionStep(pScheme, rModelPart, pA, pDx, pb);
-        
-    // // Initialize 
+
+    // // Initialize
     // pScheme->InitializeSolutionStep(rModelPart);
-        
+
     // // Set up the system dofs and shape
-    // if(this->mOptions.Is(LocalFlagType::REFORM_DOFS)) 
-    //   this->SetSystemDofs(pScheme, rModelPart); 
+    // if(this->mOptions.Is(LocalFlagType::REFORM_DOFS))
+    //   this->SetSystemDofs(pScheme, rModelPart);
 
     // // Set up system matrices and vectors
     // double begin_time = OpenMPUtils::GetCurrentTime();
@@ -784,7 +783,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 
     // if (this->mEchoLevel >= 2)
     //   KRATOS_INFO("system_resize_time") << ": system_resize_time : " << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-        
+
     KRATOS_CATCH("")
   }
 
@@ -801,12 +800,12 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     KRATOS_TRY
 
     BaseType::FinalizeSolutionStep(pScheme, rModelPart, pA, pDx, pb);
-        
+
     KRATOS_CATCH("")
   }
-  
+
   /**
-   * @brief Calculates system reactions 
+   * @brief Calculates system reactions
    * @details A flag controls if reactions must be calculated
    * @details An internal variable to store the reactions vector is needed
    */
@@ -835,13 +834,13 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     }
   }
 
-  
+
   /**
    * @brief This function is intended to be called at the end of the solution step to clean up memory storage not needed
-   */  
+   */
   void Clear() override
   {
-    
+
     BaseType::Clear();
 
 #ifdef _OPENMP
@@ -849,7 +848,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
       omp_destroy_lock(&mlock_array[i]);
     mlock_array.resize(0);
 #endif
-    
+
   }
 
   /**
@@ -864,7 +863,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     KRATOS_TRY
 
     return 0;
-    
+
     KRATOS_CATCH("");
   }
 
@@ -885,7 +884,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
  protected:
   ///@name Protected static Member Variables
   ///@{
-  
+
   ///@}
   ///@name Protected member Variables
   ///@{
@@ -897,7 +896,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   ///@}
   ///@name Protected Operators
   ///@{
-  
+
   ///@}
   ///@name Protected Operations
   ///@{
@@ -950,7 +949,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   {
     //filling with zero the matrix (creating the structure)
     double begin_time = OpenMPUtils::GetCurrentTime();
- 
+
     const std::size_t equation_size = this->mEquationSystemSize;
 
 #ifdef USE_GOOGLE_HASH
@@ -1055,7 +1054,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
         Avalues[k] = 0.0;
         k++;
       }
-      
+
       indices[i].clear(); //deallocating the memory
 
       std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
@@ -1067,9 +1066,9 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
     double end_time = OpenMPUtils::GetCurrentTime();
     if (this->mEchoLevel >= 2)
       KRATOS_INFO("BlockBuilderAndSolver") << "construct matrix structure time:" << end_time - begin_time << "\n" << LoggerMessage::Category::STATISTICS;
-    
+
   }
-  
+
   void AssembleLHS(SystemMatrixType& rA,
                    LocalSystemMatrixType& rLHS_Contribution,
                    Element::EquationIdVectorType& rEquationId)
@@ -1098,7 +1097,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   {
     unsigned int local_size = rRHS_Contribution.size();
 
-    if(this->mOptions.IsNot(LocalFlagType::COMPUTE_REACTIONS))      
+    if(this->mOptions.IsNot(LocalFlagType::COMPUTE_REACTIONS))
     {
       for (unsigned int i_local = 0; i_local < local_size; i_local++)
       {
@@ -1142,7 +1141,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
       }
     }
   }
-  
+
   void Assemble(SystemMatrixType& rA,
                 SystemVectorType& rb,
                 const LocalSystemMatrixType& rLHS_Contribution,
@@ -1193,24 +1192,24 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   ///@}
   ///@name Protected LifeCycle
   ///@{
-    
+
   ///@}
 
  private:
   ///@name Static Member Variables
   ///@{
-  
+
   ///@}
   ///@name Member Variables
   ///@{
-  
+
   ///@}
   ///@name Private Operators
   ///@{
-  
+
   ///@}
   ///@name Private Operations
-  ///@{ 
+  ///@{
 
 
   inline void AddUnique(std::vector<std::size_t>& v, const std::size_t& candidate)
@@ -1231,11 +1230,11 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   ///@}
   ///@name Private  Access
   ///@{
-  
+
   ///@}
   ///@name Serialization
   ///@{
-  
+
   ///@}
   ///@name Private Inquiry
   ///@{
@@ -1243,7 +1242,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
   ///@}
   ///@name Un accessible methods
   ///@{
-  
+
   ///@}
 
 }; // Class ReductionBuilderAndSolver
@@ -1256,7 +1255,7 @@ class ReductionBuilderAndSolver : public SolutionBuilderAndSolver< TSparseSpace,
 ///@name Input and output
 ///@{
 
-  
+
 ///@}
 
 ///@} addtogroup block

@@ -4,7 +4,7 @@
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
-//   license: convection_diffusion_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //
@@ -27,7 +27,7 @@
 #include "includes/properties.h"
 #include "includes/condition.h"
 #include "geometries/geometry.h"
-
+#include "includes/variables.h"
 
 namespace Kratos
 {

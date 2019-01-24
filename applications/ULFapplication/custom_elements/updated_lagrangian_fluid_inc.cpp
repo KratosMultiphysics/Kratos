@@ -67,11 +67,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 //static variables
-boost::numeric::ublas::bounded_matrix<double,3,6> UpdatedLagrangianFluidInc::msB;
-boost::numeric::ublas::bounded_matrix<double,3,3> UpdatedLagrangianFluidInc::ms_constitutive_matrix;
-boost::numeric::ublas::bounded_matrix<double,3,6> UpdatedLagrangianFluidInc::ms_temp;
+BoundedMatrix<double,3,6> UpdatedLagrangianFluidInc::msB;
+BoundedMatrix<double,3,3> UpdatedLagrangianFluidInc::ms_constitutive_matrix;
+BoundedMatrix<double,3,6> UpdatedLagrangianFluidInc::ms_temp;
 array_1d<double,6> UpdatedLagrangianFluidInc::ms_temp_vec;
-boost::numeric::ublas::bounded_matrix<double,3,2> UpdatedLagrangianFluidInc::msDN_Dx;
+BoundedMatrix<double,3,2> UpdatedLagrangianFluidInc::msDN_Dx;
 array_1d<double,3> UpdatedLagrangianFluidInc::msN; //dimension = number of nodes
 
 //************************************************************************************

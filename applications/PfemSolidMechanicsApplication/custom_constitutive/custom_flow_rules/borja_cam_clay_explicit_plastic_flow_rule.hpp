@@ -46,7 +46,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class BorjaCamClayExplicitFlowRule 
+  class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) BorjaCamClayExplicitFlowRule 
 	  :public NonAssociativeExplicitPlasticFlowRule
   {
   

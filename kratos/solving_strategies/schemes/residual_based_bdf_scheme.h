@@ -116,12 +116,11 @@ public:
     ///@{
 
     /**
-     * Constructor.
-     * The BDF method
+     * @brief Constructor. The BDF method
      * @param Order The integration order
      * @todo The ideal would be to use directly the dof or the variable itself to identify the type of variable and is derivatives
      */
-    ResidualBasedBDFScheme(const std::size_t Order = 2)
+    explicit ResidualBasedBDFScheme(const std::size_t Order = 2)
         :ImplicitBaseType(),
          mOrder(Order)
     {
@@ -141,7 +140,7 @@ public:
 
     /** Copy Constructor.
      */
-    ResidualBasedBDFScheme(ResidualBasedBDFScheme& rOther)
+    explicit ResidualBasedBDFScheme(ResidualBasedBDFScheme& rOther)
         :ImplicitBaseType(rOther)
         ,mOrder(rOther.mOrder)
         ,mBDF(rOther.mBDF)
@@ -349,6 +348,24 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedBDFScheme";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

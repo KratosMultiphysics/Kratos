@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_hardening_laws/exponential_damage_hardening_law.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -28,7 +25,7 @@ namespace Kratos
 ExponentialDamageHardeningLaw::ExponentialDamageHardeningLaw()
 	:HardeningLaw()
 {
-       
+
 }
 
 
@@ -56,8 +53,7 @@ ExponentialDamageHardeningLaw::ExponentialDamageHardeningLaw(ExponentialDamageHa
 
 HardeningLaw::Pointer ExponentialDamageHardeningLaw::Clone() const
 {
-  HardeningLaw::Pointer p_clone(new ExponentialDamageHardeningLaw(*this));
-  return p_clone;
+  return Kratos::make_shared<ExponentialDamageHardeningLaw>(*this);
 }
 
 
@@ -85,7 +81,7 @@ double& ExponentialDamageHardeningLaw::CalculateHardening(double &rHardening, co
     double A = 1.0/(FractureEnergy/(CharacteristicSize*DamageThreshold*DamageThreshold)-0.5);
 
     if(A < 0.0) A = 0.0;
-    
+
     //Compute Damage variable from the internal historical variable
     rHardening = 1.0-DamageThreshold/StateVariable*exp(A*(1.0-StateVariable/DamageThreshold));
 
@@ -97,7 +93,7 @@ double& ExponentialDamageHardeningLaw::CalculateHardening(double &rHardening, co
     {
         rHardening = 1.0;
     }
-    
+
 	return rHardening;
 }
 
@@ -117,12 +113,12 @@ double& ExponentialDamageHardeningLaw::CalculateDeltaHardening(double &rDeltaHar
     double A = 1.0/(FractureEnergy/(CharacteristicSize*DamageThreshold*DamageThreshold)-0.5);
 
     if(A < 0.0) A = 0.0;
-    
+
     //Damage derivative with respect to the internal historical variable
     rDeltaHardening = (DamageThreshold + A*StateVariable)/(StateVariable*StateVariable)*exp(A*(1.0-StateVariable/DamageThreshold));
 
     if(rDeltaHardening < 0.0) rDeltaHardening = 0.0;
-    
+
 	return rDeltaHardening;
 }
 

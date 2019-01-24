@@ -15,7 +15,6 @@
 
 /* System includes */
 #include <set>
-/* #include <omp.h> */
 
 /* External includes */
 #include "boost/timer.hpp"
@@ -33,25 +32,12 @@
 #include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
 #include "Epetra_IntSerialDenseVector.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_RowMatrixOut.h"
 #include "EpetraExt_MultiVectorOut.h"
 #include "Epetra_Import.h"
-// #include "epetra_test_err.h"
-
-
-
-//aztec solver includes
-#include "AztecOO.h"
-
-#include "Amesos.h"
-// #include "AmesosClassType.h"
-#include "Epetra_LinearProblem.h"
-#include "ml_MultiLevelPreconditioner.h"
-
 
 namespace Kratos
 {
@@ -749,9 +735,7 @@ public:
       TSystemMatrixPointerType& pA,
       TSystemVectorPointerType& pDx,
       TSystemVectorPointerType& pb,
-      ElementsArrayType& rElements,
-      ConditionsArrayType& rConditions,
-      ProcessInfo& CurrentProcessInfo
+      ModelPart& rModelPart
     ) override
     {
         KRATOS_TRY
@@ -768,6 +752,8 @@ public:
             if(temp_size <1000) temp_size = 1000;
             int* temp = new int[temp_size]; //
 
+            auto& rElements = rModelPart.Elements();
+            auto& rConditions = rModelPart.Conditions();
 
             //generate map - use the "temp" array here
             for(unsigned int i=0; i!=number_of_local_dofs; i++)
@@ -776,8 +762,10 @@ public:
 
             //create and fill the graph of the matrix --> the temp array is reused here with a different meaning
             Epetra_FECrsGraph Agraph(Copy, my_map, mguess_row_size);
-            //int ierr;
+
             Element::EquationIdVectorType EquationId;
+            ProcessInfo &CurrentProcessInfo = rModelPart.GetProcessInfo();
+
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it=rElements.ptr_begin(); it!=rElements.ptr_end(); ++it)
             {

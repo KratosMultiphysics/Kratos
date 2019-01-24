@@ -1,4 +1,4 @@
-proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {    
+proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
@@ -54,8 +54,6 @@ proc ConstraintVectorTable {FileVar TableId TableDict CondName VarName} {
     }
 }
 
-# TODO: it may be dangerous to write Tables without format (puts -nonewline $FileVar [format  "%.10f" [lindex $Table $j]])
-
 #-------------------------------------------------------------------------------
 
 proc PressureTable {FileVar TableId TableDict CondName VarName} {
@@ -64,7 +62,7 @@ proc PressureTable {FileVar TableId TableDict CondName VarName} {
         upvar $FileVar MyFileVar
         upvar $TableId MyTableId
         upvar $TableDict MyTableDict
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
             if {[lindex [lindex $Groups $i] 9] eq "Table_Interpolation"} {
@@ -94,7 +92,7 @@ proc ScalarTable {FileVar TableId TableDict CondName VarName} {
         upvar $FileVar MyFileVar
         upvar $TableId MyTableId
         upvar $TableDict MyTableDict
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set AuxList [list]
             if {[lindex [lindex $Groups $i] 4] eq "Table_Interpolation"} {
@@ -124,7 +122,7 @@ proc WriteElements {FileVar Group ElemType ElemName PropertyId ConnectivityType}
     set Entities [GiD_EntitiesGroups get [lindex $Group 1] elements -element_type $ElemType]
     if {[llength $Entities] > 0} {
         upvar $FileVar MyFileVar
-        
+
         puts $MyFileVar "Begin Elements $ElemName"
         for {set j 0} {$j < [llength $Entities]} {incr j} {
             puts $MyFileVar "  [lindex $Entities $j]  $PropertyId  [$ConnectivityType [lindex $Entities $j]]"
@@ -141,7 +139,7 @@ proc WriteFaceConditions {FileVar ConditionId ConditionDict Groups CondName Prop
         upvar $FileVar MyFileVar
         upvar $ConditionId MyConditionId
         upvar $ConditionDict MyConditionDict
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             set MyConditionList [list]
             set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups $i] 1] faces]
@@ -197,7 +195,7 @@ proc WriteTypeFaceConditions {FileVar ConditionId ConditionList Group ElemType C
 #-------------------------------------------------------------------------------
 
 proc Triangle2D3Connectivities { ElemId } {
-    
+
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]"
@@ -206,9 +204,9 @@ proc Triangle2D3Connectivities { ElemId } {
 #-------------------------------------------------------------------------------
 
 proc Quadrilateral2D4Connectivities { ElemId } {
-    
+
     #Note: It is the same for the Tethrahedron3D4
-    
+
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
@@ -218,9 +216,9 @@ proc Quadrilateral2D4Connectivities { ElemId } {
 #-------------------------------------------------------------------------------
 
 proc Hexahedron3D8Connectivities { ElemId } {
-    
+
     #It is the same for Quadrilateral2D8
-    
+
     set ElementInfo [GiD_Mesh get element $ElemId]
     #ElementInfo: <layer> <elemtype> <NumNodes> <N1> <N2> ...
     return "[lindex $ElementInfo 3] [lindex $ElementInfo 4] [lindex $ElementInfo 5]\
@@ -235,7 +233,7 @@ proc WriteElementSubmodelPart {FileVar CondName} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
             # Tables
@@ -261,7 +259,7 @@ proc WriteElementSubmodelPart {FileVar CondName} {
             puts $MyFileVar "End SubModelPart"
             puts $MyFileVar ""
         }
-    }    
+    }
 }
 
 
@@ -271,7 +269,7 @@ proc WriteConstraintSubmodelPart {FileVar CondName TableDict} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
             # Tables
@@ -306,7 +304,7 @@ proc WriteLoadSubmodelPart {FileVar CondName TableDict ConditionDict} {
     set Groups [GiD_Info conditions $CondName groups]
     if {[llength $Groups]>0} {
         upvar $FileVar MyFileVar
-        
+
         for {set i 0} {$i < [llength $Groups]} {incr i} {
             puts $MyFileVar "Begin SubModelPart [lindex [lindex $Groups $i] 1]"
             # Tables

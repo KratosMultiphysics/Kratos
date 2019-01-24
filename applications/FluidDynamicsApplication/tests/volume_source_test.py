@@ -37,6 +37,7 @@ class VolumeSourceTest(UnitTest.TestCase):
         self.print_reference_values = False
 
     def tearDown(self):
+
         import os
         with WorkFolderScope("BuoyancyTest"):
             try:
@@ -78,8 +79,8 @@ class VolumeSourceTest(UnitTest.TestCase):
                 self.FinalizeOutput()
 
     def setUpModel(self):
-
-        self.model_part = ModelPart("Fluid")
+        self.model = Model()
+        self.model_part = self.model.CreateModelPart("Fluid")
 
         thermal_settings = ConvectionDiffusionSettings()
         thermal_settings.SetUnknownVariable(TEMPERATURE)
@@ -131,8 +132,10 @@ class VolumeSourceTest(UnitTest.TestCase):
         alpha = -0.3
         move_mesh = 0
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent(alpha,move_mesh,self.domain_size)
-        precond = DiagonalPreconditioner()
-        self.fluid_solver.linear_solver = BICGSTABSolver(1e-6, 5000, precond)
+        import linear_solver_factory
+        self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
+                "solver_type" : "AMGCL"
+            }'''))
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.fluid_solver.linear_solver)
         self.fluid_solver.max_iter = 50
         self.fluid_solver.compute_reactions = False

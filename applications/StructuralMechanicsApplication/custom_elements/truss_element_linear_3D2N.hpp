@@ -25,7 +25,7 @@
 
 namespace Kratos
 {
-	/**
+    /**
      * @class TrussElementLinear3D2N
      *
      * @brief This is a linear 3D-2node truss element with 3 translational dofs per node inheriting from TrussElement3D2N
@@ -33,64 +33,114 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-	class TrussElementLinear3D2N : public TrussElement3D2N
-	{
-	public:
-		KRATOS_CLASS_POINTER_DEFINITION(TrussElementLinear3D2N);
+    class TrussElementLinear3D2N : public TrussElement3D2N
+    {
+    public:
+        KRATOS_CLASS_POINTER_DEFINITION(TrussElementLinear3D2N);
 
-		TrussElementLinear3D2N() {};
-		TrussElementLinear3D2N(IndexType NewId,
-						GeometryType::Pointer pGeometry);
-		TrussElementLinear3D2N(IndexType NewId,
-						GeometryType::Pointer pGeometry,
-						PropertiesType::Pointer pProperties);
-
-
-		~TrussElementLinear3D2N() override;
+        TrussElementLinear3D2N() {};
+        TrussElementLinear3D2N(IndexType NewId,
+                        GeometryType::Pointer pGeometry);
+        TrussElementLinear3D2N(IndexType NewId,
+                        GeometryType::Pointer pGeometry,
+                        PropertiesType::Pointer pProperties);
 
 
-		BaseType::Pointer Create(
-			IndexType NewId,
-			NodesArrayType const& rThisNodes,
-			PropertiesType::Pointer pProperties) const override;
+        ~TrussElementLinear3D2N() override;
 
-		void CalculateLocalSystem(
-			MatrixType& rLeftHandSideMatrix,
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-		void CalculateRightHandSide(
-			VectorType& rRightHandSideVector,
-			ProcessInfo& rCurrentProcessInfo) override;
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
 
-		void CalculateLeftHandSide(
-			MatrixType& rLeftHandSideMatrix,
-			ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateLocalSystem(
+            MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override;
 
-		/**
-		 * @brief This function adds forces from prestressing to the force vector
-		 * @param rRightHandSideVector The right hand side of the problem
-		 */
-		void AddPrestressLinear(VectorType& rRightHandSideVector);
+        void CalculateRightHandSide(
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo) override;
 
-		void CalculateOnIntegrationPoints(
-			const Variable<array_1d<double, 3 > >& rVariable,
-			std::vector< array_1d<double, 3 > >& rOutput,
-			const ProcessInfo& rCurrentProcessInfo) override;
+        void CalculateLeftHandSide(
+            MatrixType& rLeftHandSideMatrix,
+            ProcessInfo& rCurrentProcessInfo) override;
 
+        /**
+         * @brief This function adds forces from prestressing to the force vector
+         * @param rRightHandSideVector The right hand side of the problem
+         */
+        void AddPrestressLinear(VectorType& rRightHandSideVector);
 
-		/**
+        void CalculateOnIntegrationPoints(
+            const Variable<array_1d<double, 3 > >& rVariable,
+            std::vector< array_1d<double, 3 > >& rOutput,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
+
+        /**
          * @brief This function calculates the total stiffness matrix for the element
          */
-		BoundedMatrix<double,msLocalSize,msLocalSize>
-		 CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
+        BoundedMatrix<double,msLocalSize,msLocalSize>
+         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo) override;
 
-		/**
+        /**
          * @brief This function calculates the original nodal postion for the transformation matrix
          * @param rReferenceCoordinates The original coordinates
          */
-		void WriteTransformationCoordinates(
-			BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
+        void WriteTransformationCoordinates(
+            BoundedVector<double,msLocalSize>& rReferenceCoordinates) override;
+
+		/**
+         * @brief This function calculates the current linear-Lagrange strain
+         */
+		double CalculateLinearStrain();
+
+
+		/**
+         * @brief This function updates the internal forces
+         * @param rinternalForces The internal forces
+         */
+
+		void UpdateInternalForces(
+			BoundedVector<double,msLocalSize>& rInternalForces) override;
+
+
+        void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+
+        /**
+         * @brief This function calls the constitutive law to get stresses
+         * @param rCurrentProcessInfo Current process info
+         * @param rSaveInternalVariables Boolean to save internal constit. law variables
+         */
+        BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
+            ProcessInfo& rCurrentProcessInfo,
+            const bool& rSaveInternalVariables) override;
 
 
 		private:

@@ -145,9 +145,9 @@ public:
     void Execute() override;
 
     /**
-     * @brief This method should be called in case that the current list of neighbour must be drop
+     * @brief This function is designed for being called at the end of the computations right after reading the model and the groups
      */
-    void ClearNeighbours();
+    void ExecuteFinalize() override;
 
     ///@}
     ///@name Access
@@ -231,17 +231,32 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
-    template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+
+    /**
+     * @brief This method should be called in case that the current list of neighbour must be drop
+     */
+    void ClearNeighbours();
+
+    /**
+     * @brief This method add a unique weak pointer for any class
+     * @param rPointerVector The vector containing the pointers of the defined class
+     * @param Candidate The potential candidate  to add to the vector of pointers
+     * @tparam TDataType The class type of the pointer
+     * @todo Move this method to a common class (it is reused in the prism neighbour)
+     */
+    template< class TDataType >
+    void  AddUniqueWeakPointer(
+        WeakPointerVector< TDataType >& rPointerVector,
+        const typename TDataType::WeakPointer Candidate
+        )
     {
-        typename WeakPointerVector< TDataType >::iterator i     = v.begin();
-        typename WeakPointerVector< TDataType >::iterator endit = v.end();
-        while ( i != endit && (i)->Id() != (candidate.lock())->Id()) {
-            i++;
+        typename WeakPointerVector< TDataType >::iterator beginit = rPointerVector.begin();
+        typename WeakPointerVector< TDataType >::iterator endit   = rPointerVector.end();
+        while ( beginit != endit && beginit->Id() != (Candidate.lock())->Id()) {
+            beginit++;
         }
-        if( i == endit ) {
-            v.push_back(candidate);
+        if( beginit == endit ) {
+            rPointerVector.push_back(Candidate);
         }
 
     }

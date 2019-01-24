@@ -41,7 +41,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 
 
     def setModelPart(self):
-        modelPart = ModelPart("Test ModelPart")
+        self.model = Model()
+        modelPart = self.model.CreateModelPart("Test ModelPart")
 
         modelPart.AddNodalSolutionStepVariable(DISTANCE)
         modelPart.AddNodalSolutionStepVariable(VELOCITY)
@@ -105,6 +106,7 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
         self.gid_io.WriteNodalResults(VELOCITY, self.modelPart.Nodes, label, 0)
         self.gid_io.PrintOnGaussPoints(VORTICITY, self.modelPart, label)
         self.gid_io.PrintOnGaussPoints(NORMAL, self.modelPart, label)
+        self.gid_io.PrintFlagsOnGaussPoints(ACTIVE, "ACTIVE", self.modelPart, label)
 
 
     def finalizeOutputFile(self):
@@ -152,6 +154,8 @@ class TestGiDIOGaussPoints(UnitTest.TestCase):
 if __name__ == '__main__':
     test = TestGiDIOGaussPoints()
     test.setUp()
-    #test.test_write_active_only()
+    test.test_write_active_only()
+    test.tearDown()
+    test.setUp()
     test.test_write_dynamic_deactivation()
     test.tearDown()

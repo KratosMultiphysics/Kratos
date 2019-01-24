@@ -2,8 +2,7 @@
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.ULFApplication import *
-from KratosMultiphysics.PFEMApplication import PfemUtils
-from KratosMultiphysics.StructuralApplication import *
+from KratosMultiphysics.StructuralMechanicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 # CheckForPreviousImport()
@@ -79,7 +78,7 @@ class ULF_FSISolver:
         self.conv_criteria = DisplacementCriteria(1e-6, 1e-9)
 
         self.pressure_calculate_process = PressureCalculateProcess(fluid_model_part, domain_size);
-        self.ulf_apply_bc_process = UlfApplyBCProcess(fluid_model_part);
+        self.mark_free_surface_process = MarkFreeSurfaceProcess(fluid_model_part);
         self.ulf_time_step_dec_process = UlfTimeStepDecProcess(fluid_model_part);
         self.mark_fluid_process = MarkFluidProcess(fluid_model_part);
         self.mark_close_nodes_process = MarkCloseNodesProcess(fluid_model_part);
@@ -95,8 +94,6 @@ class ULF_FSISolver:
 
         # temporary ... i need it to calculate the nodal area
         self.UlfUtils = UlfUtils()
-        self.PfemUtils = PfemUtils()
-
         # self.save_structural_elements
         self.alpha_shape = 1.5;
         self.h_multiplier = 0.1
@@ -160,7 +157,7 @@ class ULF_FSISolver:
 
         # marking the fluid
         (self.fluid_neigh_finder).Execute();
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
 
         # remeshing before the first solution
@@ -261,15 +258,15 @@ class ULF_FSISolver:
 #
     def Remesh(self):
 
-        # self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.15)
-        self.PfemUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.05)
+	self.UlfUtils.MarkNodesTouchingWall(self.fluid_model_part, self.domain_size, 0.08)
+        self.UlfUtils.MarkExcessivelyCloseNodes(self.fluid_model_part.Nodes, 0.00005)	
 
         # erase all conditions and elements prior to remeshing
         ((self.combined_model_part).Elements).clear();
         ((self.combined_model_part).Conditions).clear();
         ((self.combined_model_part).Nodes).clear();
         ((self.fluid_model_part).Elements).clear();
-        ((self.fluid_model_part).Conditions).clear();
+        #((self.fluid_model_part).Conditions).clear();
 
         # self.UlfUtils.DeleteFreeSurfaceNodesBladder(self.fluid_model_part)
         # marking nodes outside of the bounding box
@@ -290,7 +287,7 @@ class ULF_FSISolver:
         (self.condition_neigh_finder).Execute();
 
         # print "marking fluid" and applying fluid boundary conditions
-        (self.ulf_apply_bc_process).Execute();
+        (self.mark_free_surface_process).Execute();
         (self.mark_fluid_process).Execute();
         # merging the structural elements back (they are saved in the Initialize)
         (self.merge_model_parts_process).MergeParts(self.fluid_model_part, self.structure_model_part, self.combined_model_part);

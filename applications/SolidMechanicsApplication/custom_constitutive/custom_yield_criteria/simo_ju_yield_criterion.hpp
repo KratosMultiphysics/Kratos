@@ -73,7 +73,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 
 
         /// Destructor.
-        virtual ~SimoJuYieldCriterion();
+        ~SimoJuYieldCriterion() override;
 
 
         ///@}
@@ -91,8 +91,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
         ///@{
 
         double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables) override;
-        
-        
+
+
         double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables) override;
 
 
@@ -101,7 +101,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
         ///@}
         ///@name Access
         ///@{
-        
+
 
         ///@}
         ///@name Inquiry
@@ -127,8 +127,8 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
         ///@}
         ///@name Protected member Variables
         ///@{
-	
-	
+
+
         ///@}
         ///@name Protected Operators
         ///@{
@@ -137,7 +137,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
         ///@}
         ///@name Protected Operations
         ///@{
-        
+
         ///@}
         ///@name Protected  Access
         ///@{
@@ -179,7 +179,7 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
         ///@name Private  Access
         ///@{
 
-	
+
 	///@}
 	///@name Serialization
 	///@{
@@ -220,4 +220,4 @@ class KRATOS_API(SOLID_MECHANICS_APPLICATION) SimoJuYieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_JU_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_SIMO_JU_YIELD_CRITERION_H_INCLUDED  defined

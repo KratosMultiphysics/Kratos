@@ -195,22 +195,22 @@ namespace Kratos
 		inline const Vector3Type & P4()const { return mP[3]; }
 		inline const Vector3Type & Center()const { return mCenter; }
 
-		inline const RealType X1()const { return mP[0][0]; }
-		inline const RealType X2()const { return mP[1][0]; }
-		inline const RealType X3()const { return mP[2][0]; }
-		inline const RealType X4()const { return mP[3][0]; }
+		inline RealType X1()const { return mP[0][0]; }
+		inline RealType X2()const { return mP[1][0]; }
+		inline RealType X3()const { return mP[2][0]; }
+		inline RealType X4()const { return mP[3][0]; }
 
-		inline const RealType Y1()const { return mP[0][1]; }
-		inline const RealType Y2()const { return mP[1][1]; }
-		inline const RealType Y3()const { return mP[2][1]; }
-		inline const RealType Y4()const { return mP[3][1]; }
+		inline RealType Y1()const { return mP[0][1]; }
+		inline RealType Y2()const { return mP[1][1]; }
+		inline RealType Y3()const { return mP[2][1]; }
+		inline RealType Y4()const { return mP[3][1]; }
 
-		inline const RealType Z1()const { return mP[0][2]; }
-		inline const RealType Z2()const { return mP[1][2]; }
-		inline const RealType Z3()const { return mP[2][2]; }
-		inline const RealType Z4()const { return mP[3][2]; }
+		inline RealType Z1()const { return mP[0][2]; }
+		inline RealType Z2()const { return mP[1][2]; }
+		inline RealType Z3()const { return mP[2][2]; }
+		inline RealType Z4()const { return mP[3][2]; }
 
-		inline const RealType Area()const { return mArea; }
+		inline RealType Area()const { return mArea; }
 
 		inline const MatrixType & Orientation()const { return mOrientation; }
 
@@ -218,8 +218,8 @@ namespace Kratos
 		inline const ConstMatrixRowType Vy()const { return row( mOrientation, 1 ); }
 		inline const ConstMatrixRowType Vz()const { return row( mOrientation, 2 ); }
 
-		inline const double WarpageFactor()const { return this->Z1(); }
-		inline const bool IsWarped()const { return std::abs(this->WarpageFactor()) > 0.0; }
+		inline double WarpageFactor()const { return this->Z1(); }
+		inline bool IsWarped()const { return std::abs(this->WarpageFactor()) > 0.0; }
 
 		inline void ComputeTotalRotationMatrix( MatrixType & R )const
 		{
@@ -308,7 +308,7 @@ namespace Kratos
 		}
 
 		template<int TComponent>
-		inline const double Coord_ij(int Tid1, int Tid2)const {
+		inline double Coord_ij(int Tid1, int Tid2)const {
             KRATOS_ERROR_IF_NOT(TComponent >= 0 && TComponent < 3)
                 << "The component index should be 0-based, from 0 to 2" << std::endl;
 			double ci, cj;
@@ -331,11 +331,11 @@ namespace Kratos
 			return cj - ci;
 		}
 
-		inline const double Xij(int i, int j)const { return Coord_ij<0>(i,j); }
+		inline double Xij(int i, int j)const { return Coord_ij<0>(i,j); }
 
-		inline const double Yij(int i, int j)const { return Coord_ij<1>(i,j); }
+		inline double Yij(int i, int j)const { return Coord_ij<1>(i,j); }
 
-		inline const double Zij(int i, int j)const { return Coord_ij<2>(i,j); }
+		inline double Zij(int i, int j)const { return Coord_ij<2>(i,j); }
 
 	};
 

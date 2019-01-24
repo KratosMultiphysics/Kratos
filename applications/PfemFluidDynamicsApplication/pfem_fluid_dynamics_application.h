@@ -30,16 +30,23 @@
 // Project includes
 
 // Core applications
-//#include "solid_mechanics_application.h"
-#include "pfem_application.h"
+#include "delaunay_meshing_application.h"
 
 //conditions
 
 /* //elements */
-#include "custom_elements/two_step_updated_lagrangian_V_P_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_solid_element.h"
-#include "custom_elements/updated_lagrangian_V_solid_element.h"
-#include "custom_elements/two_step_updated_lagrangian_V_P_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_implicit_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_implicit_nodally_integrated_fluid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_solid_element.h"
+#include "custom_elements/updated_lagrangian_V_explicit_solid_element.h"
+#include "custom_elements/two_step_updated_lagrangian_V_P_explicit_fluid_element.h"
 
 //constitutive laws
 #include "containers/flags.h"
@@ -87,7 +94,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KratosPfemFluidDynamicsApplication : public KratosApplication
+  class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) KratosPfemFluidDynamicsApplication : public KratosApplication
   {
   public:
 
@@ -120,7 +127,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -139,20 +146,20 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
       {
 	return "KratosPfemFluidDynamicsApplication";
       }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << Info();
       PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
       KRATOS_WATCH( "in KratosPfemFluidDynamicsApplication" ) 
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
@@ -220,39 +227,101 @@ namespace Kratos
    /*  ///@{  */
    /*  //updated lagrangian */
 
-    /// 2D two step v-p fluid element
-    const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2D;
-    const TwoStepUpdatedLagrangianVPElement<2> mTwoStepUpdatedLagrangianVPElement2Dquadratic;
+    /// 2D two step v-p implicit element
+    const TwoStepUpdatedLagrangianVPImplicitElement<2> mTwoStepUpdatedLagrangianVPImplicitElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitElement<2> mTwoStepUpdatedLagrangianVPImplicitElement2Dquadratic;
 
-    /// 3D two step v-p fluid element
-    const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3D;
-    const TwoStepUpdatedLagrangianVPElement<3> mTwoStepUpdatedLagrangianVPElement3Dquadratic;
+    /// 3D two step v-p implicit element
+    const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitElement<3> mTwoStepUpdatedLagrangianVPImplicitElement3Dquadratic;
+
+    /// 2D two step v-p implicit NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement2Dquadratic;
+
+    /// 3D two step v-p implicit NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedElement3Dquadratic;
 
     /// 2D two step v-p solid element
-    const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2D;
-    const TwoStepUpdatedLagrangianVPSolidElement<2> mTwoStepUpdatedLagrangianVPSolidElement2Dquadratic;
+    const TwoStepUpdatedLagrangianVPImplicitSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitSolidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitSolidElement2Dquadratic;
 
     /// 3D two step v-p solid element
-    const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3D;
-    const TwoStepUpdatedLagrangianVPSolidElement<3> mTwoStepUpdatedLagrangianVPSolidElement3Dquadratic;
+    const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitSolidElement3Dquadratic;
+    
+    /// 2D two step v-p solid NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement2Dquadratic;
+
+    /// 3D two step v-p solid NodallyIntegrated element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedSolidElement3Dquadratic;
 
     /// 2D velocity solid element
-    const UpdatedLagrangianVSolidElement<2> mUpdatedLagrangianVSolidElement2D;
-    const UpdatedLagrangianVSolidElement<2> mUpdatedLagrangianVSolidElement2Dquadratic;
+    const UpdatedLagrangianVImplicitSolidElement<2> mUpdatedLagrangianVImplicitSolidElement2D;
+    const UpdatedLagrangianVImplicitSolidElement<2> mUpdatedLagrangianVImplicitSolidElement2Dquadratic;
 
     /// 3D velocity solid element
-    const UpdatedLagrangianVSolidElement<3> mUpdatedLagrangianVSolidElement3D;
-    const UpdatedLagrangianVSolidElement<3> mUpdatedLagrangianVSolidElement3Dquadratic;
+    const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3D;
+    const UpdatedLagrangianVImplicitSolidElement<3> mUpdatedLagrangianVImplicitSolidElement3Dquadratic;
 
     /// 2D two step v-p fluid element
-    const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2D;
-    const TwoStepUpdatedLagrangianVPFluidElement<2> mTwoStepUpdatedLagrangianVPFluidElement2Dquadratic;
+    const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitFluidElement2Dquadratic;
 
     /// 3D two step v-p fluid element
-    const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3D;
-    const TwoStepUpdatedLagrangianVPFluidElement<3> mTwoStepUpdatedLagrangianVPFluidElement3Dquadratic;
+    const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitFluidElement3Dquadratic;
 
+    /// 2D two step v-p fluid element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<2> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement2Dquadratic;
 
+    /// 3D two step v-p fluid element
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3D;
+    const TwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement<3> mTwoStepUpdatedLagrangianVPImplicitNodallyIntegratedFluidElement3Dquadratic;
+
+    /// 2D two step v-p  element
+    const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2D;
+    const TwoStepUpdatedLagrangianElement<2> mTwoStepUpdatedLagrangianElement2Dquadratic;
+
+    /// 3D two step v-p  element
+    const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3D;
+    const TwoStepUpdatedLagrangianElement<3> mTwoStepUpdatedLagrangianElement3Dquadratic;
+    
+    /// 2D two step v-p explicit element
+    const TwoStepUpdatedLagrangianVPExplicitElement<2> mTwoStepUpdatedLagrangianVPExplicitElement2D;
+    const TwoStepUpdatedLagrangianVPExplicitElement<2> mTwoStepUpdatedLagrangianVPExplicitElement2Dquadratic;
+
+    /// 3D two step v-p explicit element
+    const TwoStepUpdatedLagrangianVPExplicitElement<3> mTwoStepUpdatedLagrangianVPExplicitElement3D;
+    const TwoStepUpdatedLagrangianVPExplicitElement<3> mTwoStepUpdatedLagrangianVPExplicitElement3Dquadratic;
+
+    /// 2D two step v-p solid explicit element
+    const TwoStepUpdatedLagrangianVPExplicitSolidElement<2> mTwoStepUpdatedLagrangianVPExplicitSolidElement2D;
+    const TwoStepUpdatedLagrangianVPExplicitSolidElement<2> mTwoStepUpdatedLagrangianVPExplicitSolidElement2Dquadratic;
+
+    /// 3D two step v-p solid explicit element
+    const TwoStepUpdatedLagrangianVPExplicitSolidElement<3> mTwoStepUpdatedLagrangianVPExplicitSolidElement3D;
+    const TwoStepUpdatedLagrangianVPExplicitSolidElement<3> mTwoStepUpdatedLagrangianVPExplicitSolidElement3Dquadratic;
+
+    /// 2D velocity solid explicit element
+    const UpdatedLagrangianVExplicitSolidElement<2> mUpdatedLagrangianVExplicitSolidElement2D;
+    const UpdatedLagrangianVExplicitSolidElement<2> mUpdatedLagrangianVExplicitSolidElement2Dquadratic;
+
+    /// 3D velocity solid explicit element
+    const UpdatedLagrangianVExplicitSolidElement<3> mUpdatedLagrangianVExplicitSolidElement3D;
+    const UpdatedLagrangianVExplicitSolidElement<3> mUpdatedLagrangianVExplicitSolidElement3Dquadratic;
+
+    /// 2D two step v-p fluid explicit element
+    const TwoStepUpdatedLagrangianVPExplicitFluidElement<2> mTwoStepUpdatedLagrangianVPExplicitFluidElement2D;
+    const TwoStepUpdatedLagrangianVPExplicitFluidElement<2> mTwoStepUpdatedLagrangianVPExplicitFluidElement2Dquadratic;
+
+    /// 3D two step v-p fluid explicit element
+    const TwoStepUpdatedLagrangianVPExplicitFluidElement<3> mTwoStepUpdatedLagrangianVPExplicitFluidElement3D;
+    const TwoStepUpdatedLagrangianVPExplicitFluidElement<3> mTwoStepUpdatedLagrangianVPExplicitFluidElement3Dquadratic;
     ///@} 
     ///@name Private Operators
     ///@{ 

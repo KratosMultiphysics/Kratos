@@ -12,15 +12,9 @@ Begin Properties 2
 End Properties
 
 Begin Properties 3
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   1.000E+11 
-    POISSON_RATIO   0.0
 End Properties
 
 Begin Properties 4
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   1.000E+11 
-    POISSON_RATIO   0.0
 End Properties
 
 Begin Nodes

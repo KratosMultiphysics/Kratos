@@ -117,7 +117,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~LagrangianInletProcess()
+    ~LagrangianInletProcess() override
     {
     }
 
@@ -135,8 +135,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    virtual void Execute()
+ 
+    void Execute() override
     {
         KRATOS_TRY;
         double dt = mr_model_part.GetProcessInfo()[DELTA_TIME];
@@ -309,19 +309,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "LagrangianInletProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "LagrangianInletProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

@@ -60,7 +60,7 @@ def GetAvailableApplication():
     kratosPath = GetModulePath('KratosMultiphysics')
 
     apps = [
-        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application\.py$', f)
+        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application*', f)
     ]
 
     return apps
@@ -185,11 +185,15 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
-    def RunCppTests(self):
+    def RunCppTests(self, applications):
         ''' Calls the cpp tests directly
         '''
 
         self.exitCode = 0
+
+        # importing the apps such that they get registered for the cpp-tests
+        for application in applications:
+            __import__("KratosMultiphysics." + application)
 
         try:
             Tester.SetVerbosity(Tester.Verbosity.PROGRESS)
@@ -325,7 +329,7 @@ def main():
     # Run the cpp tests (does the same as run_cpp_tests.py)
     print('Running cpp tests', file=sys.stderr)
     with SupressConsoleOutput():
-        commander.RunCppTests()
+        commander.RunCppTests(applications)
 
     exit_code = max(exit_code, commander.exitCode)
 

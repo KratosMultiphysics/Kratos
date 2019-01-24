@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined( KRATOS_PROCESS_INFO_H_INCLUDED )
@@ -25,7 +25,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/data_value_container.h"
-#include "includes/variables.h"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -50,13 +49,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// ProcessInfo holds the current value of different solution parameters. 
-/** 
- * ProcessInfo holds the current value of different solution parameters. 
- * It can be used to keep variables like time, solution step, non linear step, or any other variable defined in Kratos. 
- * Its variable base interface provides a clear and flexible access to these data. 
+/// ProcessInfo holds the current value of different solution parameters.
+/**
+ * ProcessInfo holds the current value of different solution parameters.
+ * It can be used to keep variables like time, solution step, non linear step, or any other variable defined in Kratos.
+ * Its variable base interface provides a clear and flexible access to these data.
 */
-class ProcessInfo : public DataValueContainer, public Flags
+class KRATOS_API(KRATOS_CORE) ProcessInfo : public DataValueContainer, public Flags
 {
 public:
     ///@name Type Definitions
@@ -77,7 +76,7 @@ public:
 
     /// Default constructor.
     ProcessInfo() :
-		BaseType(),
+        BaseType(),
         Flags(),
         mIsTimeStep(true),
         mSolutionStepIndex(),
@@ -88,7 +87,7 @@ public:
 
     /// Copy constructor.
     ProcessInfo(const ProcessInfo& Other) :
-		BaseType(Other),
+        BaseType(Other),
         Flags(Other),
         mIsTimeStep(Other.mIsTimeStep),
         mSolutionStepIndex(Other.mSolutionStepIndex),
@@ -118,7 +117,6 @@ public:
 
         return *this;
     }
-
 
     ///@}
     ///@name Time steps
@@ -178,58 +176,22 @@ public:
         SetCurrentTime(NewTime);
     }
 
-    void SetAsTimeStepInfo()
-    {
-        mIsTimeStep = true;
-        SetCurrentTime((*this)(TIME));
-    }
+    void SetAsTimeStepInfo();
 
-    void SetAsTimeStepInfo(double NewTime)
-    {
-        mIsTimeStep = true;
-        SetCurrentTime(NewTime);
-    }
+    void SetAsTimeStepInfo(double NewTime);
 
-    ProcessInfo::Pointer pGetPreviousTimeStepInfo(IndexType StepsBefore = 1)
-    {
-        if(StepsBefore > 1)
-            return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
+    ProcessInfo::Pointer pGetPreviousTimeStepInfo(IndexType StepsBefore = 1);
 
-        if(StepsBefore == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-        if(!mpPreviousTimeStepInfo)
-            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
-
-        return mpPreviousTimeStepInfo;
-
-    }
-
-    const ProcessInfo::Pointer pGetPreviousTimeStepInfo(IndexType StepsBefore = 1) const
-    {
-        if(StepsBefore > 1)
-            return mpPreviousTimeStepInfo->pGetPreviousTimeStepInfo(--StepsBefore);
-
-        if(StepsBefore == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-        if(!mpPreviousTimeStepInfo)
-            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
-
-        return mpPreviousTimeStepInfo;
-
-    }
+    const ProcessInfo::Pointer pGetPreviousTimeStepInfo(IndexType StepsBefore = 1) const;
 
     ProcessInfo& GetPreviousTimeStepInfo(IndexType StepsBefore = 1)
     {
         return *pGetPreviousTimeStepInfo(StepsBefore);
-
     }
 
     ProcessInfo const& GetPreviousTimeStepInfo(IndexType StepsBefore = 1) const
     {
         return *pGetPreviousTimeStepInfo(StepsBefore);
-
     }
 
     IndexType GetPreviousTimeStepIndex(IndexType StepsBefore = 1) const
@@ -241,37 +203,16 @@ public:
     ///@name Operations
     ///@{
 
-    void SetCurrentTime(double NewTime)
-    {
-        (*this)(TIME) = NewTime;
-        if(!mpPreviousTimeStepInfo)
-            (*this)(DELTA_TIME) = NewTime;
-        else
-            (*this)(DELTA_TIME) = NewTime -  mpPreviousTimeStepInfo->GetValue(TIME);
-    }
+    void SetCurrentTime(double NewTime);
 
-    void ReIndexBuffer(SizeType BufferSize, IndexType BaseIndex = 0)
-    {
-        mSolutionStepIndex = BaseIndex;
-        if(BufferSize > 1)
-            if(mpPreviousSolutionStepInfo)
-                mpPreviousSolutionStepInfo->ReIndexBuffer(BufferSize - 1, BaseIndex + 1);
-    }
+    void ReIndexBuffer(SizeType BufferSize, IndexType BaseIndex = 0);
 
 
     ///@}
     ///@name Solution Step Data
     ///@{
 
-    void CreateSolutionStepInfo(IndexType SolutionStepIndex = 0)
-    {
-        mpPreviousSolutionStepInfo = Pointer(new ProcessInfo(*this));
-        mSolutionStepIndex = SolutionStepIndex;
-        if(mIsTimeStep)
-            mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
-        mIsTimeStep = false;
-		BaseType::Clear();
-    }
+    void CreateSolutionStepInfo(IndexType SolutionStepIndex = 0);
 
 //       void CloneSolutionStepInfo(IndexType SolutionStepIndex = 0)
 // 	{
@@ -298,120 +239,30 @@ public:
 // 	    CreateSolutionStepInfo(SolutionStepIndex);
 // 	}
 
-    void CloneSolutionStepInfo()
-    {
-        mpPreviousSolutionStepInfo = Pointer(new ProcessInfo(*this));
-        mSolutionStepIndex = 0;
-        if(mIsTimeStep)
-            mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
-        mIsTimeStep = false;
-    }
+    void CloneSolutionStepInfo();
 
-    void CloneSolutionStepInfo(IndexType SourceSolutionStepIndex)
-    {
-        ProcessInfo& source_info = FindSolutionStepInfo(SourceSolutionStepIndex);
-        if(source_info.GetSolutionStepIndex() == SourceSolutionStepIndex)
-        {
-            mpPreviousSolutionStepInfo = Pointer(new ProcessInfo(*this));
-            mSolutionStepIndex = 0;
-            BaseType::operator=(source_info);
-            if(mIsTimeStep)
-                mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
-            mIsTimeStep = false;
-        }
-        else
-            CreateSolutionStepInfo(0);
-    }
+    void CloneSolutionStepInfo(IndexType SourceSolutionStepIndex);
 
-    void CloneSolutionStepInfo(IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo)
-    {
-        mpPreviousSolutionStepInfo = Pointer(new ProcessInfo(*this));
-        mSolutionStepIndex = SolutionStepIndex;
-        BaseType::operator=(SourceSolutionStepInfo);
-        if(mIsTimeStep)
-            mpPreviousTimeStepInfo = mpPreviousSolutionStepInfo;
-        mIsTimeStep = false;
-    }
+    void CloneSolutionStepInfo(IndexType SolutionStepIndex, ProcessInfo const &  SourceSolutionStepInfo);
 
-    ProcessInfo& FindSolutionStepInfo(IndexType ThisIndex)
-    {
-        if(mSolutionStepIndex == ThisIndex)
-            return *this;
+    ProcessInfo& FindSolutionStepInfo(IndexType ThisIndex);
 
-        if(!mpPreviousSolutionStepInfo)
-            return *this;
+    void RemoveSolutionStepInfo(IndexType SolutionStepIndex);
 
-        return mpPreviousTimeStepInfo->FindSolutionStepInfo(ThisIndex);
+    void ClearHistory(IndexType StepsBefore = 0);
 
-    }
+    ProcessInfo::Pointer pGetPreviousSolutionStepInfo(IndexType StepsBefore = 1);
 
-    void RemoveSolutionStepInfo(IndexType SolutionStepIndex)
-    {
-        if(!mpPreviousSolutionStepInfo)
-            return;
-
-        if(mpPreviousSolutionStepInfo->GetSolutionStepIndex() == SolutionStepIndex)
-            mpPreviousSolutionStepInfo = mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo();
-        else
-            mpPreviousSolutionStepInfo->RemoveSolutionStepInfo(SolutionStepIndex);
-    }
-
-    void ClearHistory(IndexType StepsBefore = 0)
-    {
-        if(StepsBefore == 0)
-        {
-            mpPreviousTimeStepInfo = Pointer();
-            mpPreviousSolutionStepInfo = Pointer();
-        }
-        else
-        {
-            if(mpPreviousTimeStepInfo)
-                mpPreviousTimeStepInfo->ClearHistory(--StepsBefore);
-            if(mpPreviousSolutionStepInfo)
-                mpPreviousSolutionStepInfo->ClearHistory(--StepsBefore);
-        }
-    }
-
-    ProcessInfo::Pointer pGetPreviousSolutionStepInfo(IndexType StepsBefore = 1)
-    {
-        if(StepsBefore > 1)
-            return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
-
-        if(StepsBefore == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-        if(!mpPreviousSolutionStepInfo)
-            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
-
-        return mpPreviousSolutionStepInfo;
-
-    }
-
-    const ProcessInfo::Pointer pGetPreviousSolutionStepInfo(IndexType StepsBefore = 1) const
-    {
-        if(StepsBefore > 1)
-            return mpPreviousSolutionStepInfo->pGetPreviousSolutionStepInfo(--StepsBefore);
-
-        if(StepsBefore == 0)
-            KRATOS_THROW_ERROR(std::invalid_argument, "Steps before = 0", "");
-
-        if(!mpPreviousSolutionStepInfo)
-            KRATOS_THROW_ERROR(std::invalid_argument, "No previous time step exist.", "");
-
-        return mpPreviousSolutionStepInfo;
-
-    }
+    const ProcessInfo::Pointer pGetPreviousSolutionStepInfo(IndexType StepsBefore = 1) const;
 
     ProcessInfo& GetPreviousSolutionStepInfo(IndexType StepsBefore = 1)
     {
         return *pGetPreviousSolutionStepInfo(StepsBefore);
-
     }
 
     ProcessInfo const& GetPreviousSolutionStepInfo(IndexType StepsBefore = 1) const
     {
         return *pGetPreviousSolutionStepInfo(StepsBefore);
-
     }
 
     IndexType GetPreviousSolutionStepIndex(IndexType StepsBefore = 1) const
@@ -433,7 +284,6 @@ public:
         mSolutionStepIndex = NewIndex;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -449,7 +299,6 @@ public:
         return "Process Info";
     }
 
-
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
@@ -462,7 +311,6 @@ public:
         rOStream << "    Current solution step index : " << mSolutionStepIndex << std::endl;
         BaseType::PrintData(rOStream);
     }
-
 
     ///@}
     ///@name Friends
@@ -540,28 +388,9 @@ private:
 
     friend class Serializer;
 
+    void save(Serializer& rSerializer) const override;
 
-    void save(Serializer& rSerializer) const override
-    {
-		KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("Is Time Step",mIsTimeStep);
-        rSerializer.save("Solution Step Index",mSolutionStepIndex);
-        rSerializer.save("Previous Solution Step Info",mpPreviousSolutionStepInfo);
-        rSerializer.save("Previous Time Step Info", mpPreviousTimeStepInfo);
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-		KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType );
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("Is Time Step",mIsTimeStep);
-        rSerializer.load("Solution Step Index",mSolutionStepIndex);
-        rSerializer.load("Previous Solution Step Info",mpPreviousSolutionStepInfo);
-        rSerializer.load("Previous Time Step Info", mpPreviousTimeStepInfo);
-    }
-
-
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private  Access
@@ -612,6 +441,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_PROCESS_INFO_H_INCLUDED  defined 
+#endif // KRATOS_PROCESS_INFO_H_INCLUDED  defined
 
 

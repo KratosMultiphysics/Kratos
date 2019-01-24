@@ -57,8 +57,8 @@ namespace Kratos
 
   /// Trilinos version of the partitioned FSI tools
   /** @see PartitionedFSIUtilities */
-  template< class TSpace, unsigned int TDim >
-  class TrilinosPartitionedFSIUtilities : public PartitionedFSIUtilities<TSpace,TDim>
+  template< class TSpace, class TValueType, unsigned int TDim >
+  class TrilinosPartitionedFSIUtilities : public PartitionedFSIUtilities<TSpace,TValueType,TDim>
   {
   public:
       ///@name Type Definitions
@@ -95,8 +95,7 @@ namespace Kratos
       ///@name Operations
       ///@{
 
-      virtual void SetUpInterfaceVector(ModelPart& rInterfaceModelPart,
-                                        VectorPointerType& pInterfaceVector) override
+      VectorPointerType SetUpInterfaceVector(ModelPart& rInterfaceModelPart) override
       {
           // Initialize Epetra_Map for the vector
           int NumLocalInterfaceDofs = rInterfaceModelPart.GetCommunicator().LocalMesh().NumberOfNodes() * TDim;
@@ -106,11 +105,12 @@ namespace Kratos
           Epetra_Map InterfaceMap(NumGlobalInterfaceDofs,NumLocalInterfaceDofs,IndexBase,mrEpetraComm);
 
           // Create new vector using given map
-          VectorPointerType Temp = VectorPointerType(new Epetra_FEVector(InterfaceMap));
-          pInterfaceVector.swap(Temp);
+          VectorPointerType p_int_vect = Kratos::make_shared<Epetra_FEVector>(InterfaceMap);
 
           // Set interface vector to zero
-          pInterfaceVector->PutScalar(0.0);
+          p_int_vect->PutScalar(0.0);
+
+          return p_int_vect;
       }
 
       ///@}
@@ -160,7 +160,7 @@ namespace Kratos
           rVector.ReplaceMyValue(LocalRow,0,Value);
       }
 
-      virtual double GetLocalValue(VectorType& rVector, int LocalRow) const override
+      virtual double GetLocalValue(const VectorType& rVector, int LocalRow) const override
       {
           return rVector[0][LocalRow];
       }

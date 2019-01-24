@@ -50,7 +50,7 @@ namespace Kratos
 
   HardeningRule::Pointer CamClayHardeningRule::Clone() const
   {
-    return ( HardeningRule::Pointer(new CamClayHardeningRule(*this)) );
+    return Kratos::make_shared<CamClayHardeningRule>(*this);
   }
 
 
@@ -71,24 +71,24 @@ namespace Kratos
     KRATOS_TRY
 
     const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+    const Properties& rProperties = rModelData.GetProperties();
 
     // get values
     const double & rVolumetricPlasticDeformation = rVariables.GetInternalVariables()[1];
 
     // Set constitutive parameters
-    const double & rFirstPreconsolidationPressure = rMaterialProperties[PRE_CONSOLIDATION_STRESS];
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+    const double & rFirstPreconsolidationPressure = rProperties[PRE_CONSOLIDATION_STRESS];
+    const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+    const double & rOtherSlope = rProperties[NORMAL_COMPRESSION_SLOPE];
 
 
     rHardening = -rFirstPreconsolidationPressure*(std::exp (-rVolumetricPlasticDeformation/(rOtherSlope-rSwellingSlope)) ) ;
 
     return rHardening;
-	
+
     KRATOS_CATCH(" ")
   }
-  
+
 
 
   //*******************************CALCULATE HARDENING DERIVATIVE***********************
@@ -97,13 +97,13 @@ namespace Kratos
   double& CamClayHardeningRule::CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
   {
     KRATOS_TRY
-      
-    const ModelDataType & rModelData = rVariables.GetModelData();
-    const Properties& rMaterialProperties = rModelData.GetMaterialProperties();
+
+    const ModelDataType & rModelData    = rVariables.GetModelData();
+    const Properties& rProperties       = rModelData.GetProperties();
     const MatrixType    & rStressMatrix = rModelData.GetStressMatrix();
 
-    const double & rSwellingSlope = rMaterialProperties[SWELLING_SLOPE];
-    const double & rOtherSlope = rMaterialProperties[NORMAL_COMPRESSION_SLOPE];
+    const double & rSwellingSlope = rProperties[SWELLING_SLOPE];
+    const double & rOtherSlope = rProperties[NORMAL_COMPRESSION_SLOPE];
 
 
     double MeanStress = 0.0;
@@ -116,7 +116,7 @@ namespace Kratos
     rDeltaHardening = (2.0*MeanStress-PreconsolidationStress) ;
     rDeltaHardening *= (-MeanStress);
     rDeltaHardening *= PreconsolidationStress/ ( rOtherSlope - rSwellingSlope);
-    return rDeltaHardening;	
+    return rDeltaHardening;
 
     KRATOS_CATCH(" ")
   }

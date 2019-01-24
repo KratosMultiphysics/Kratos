@@ -37,6 +37,8 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 {
     KRATOS_TRY;
 
+    this->CheckVariableLists(rOriginModelPart, rDestinationModelPart);
+
     this->ResetModelPart(rDestinationModelPart);
 
     this->CopyCommonData(rOriginModelPart, rDestinationModelPart);
@@ -53,9 +55,25 @@ void ConnectivityPreserveModeler::GenerateModelPart(
 }
 
 // Private methods /////////////////////////////////////////////////////////////
+void ConnectivityPreserveModeler::CheckVariableLists(ModelPart &rOriginModelPart, ModelPart &rDestinationModelPart)
+{
+    //check that the variable lists are matching
+    auto& rdestination_variable_list = rDestinationModelPart.GetNodalSolutionStepVariablesList();
+    auto& rorigin_variable_list = rOriginModelPart.GetNodalSolutionStepVariablesList();
+
+    for(const auto& var : rdestination_variable_list)
+        if(rorigin_variable_list.Has(var) == false)
+            KRATOS_WARNING("VARIABLE LIST MISMATCH - ") << "Variable: " << var << " is in rDestinationModelPart variables but not in the rOriginModelPart variables" << std::endl;
+
+    for(const auto& var : rorigin_variable_list)
+        if(rdestination_variable_list.Has(var) == false)
+            KRATOS_WARNING("VARIABLE LIST MISMATCH - ") << "Variable: " << var << " is in rOriginModelPart variables but not in the rDestinationModelPart variables" << std::endl;
+
+}
 
 void ConnectivityPreserveModeler::ResetModelPart(ModelPart &rDestinationModelPart)
 {
+
     for(auto it = rDestinationModelPart.NodesBegin(); it != rDestinationModelPart.NodesEnd(); it++)
         it->Set(TO_ERASE);
     rDestinationModelPart.RemoveNodesFromAllLevels(TO_ERASE);

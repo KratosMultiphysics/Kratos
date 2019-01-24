@@ -21,8 +21,12 @@
 
 
 // Project includes
-#include "includes/define.h"
+#include "includes/define.h" 
 #include "includes/kratos_application.h"
+
+#include <pybind11/pybind11.h>
+
+#include "ULF_application_variables.h"
 
 #include "includes/variables.h"
 #include "includes/deprecated_variables.h"
@@ -34,6 +38,7 @@
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
 #include "custom_elements/ulf_axisym.h"
+#include "custom_elements/fluid_2dGLS_expl.h"
 //#include "custom_elements/ulf_frac2d_swimming.h"
 //#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
@@ -86,7 +91,8 @@ public:
     KratosULFApplication();
 
     /// Destructor.
-    virtual ~KratosULFApplication() {}
+//     virtual ~KratosULFApplication() {}
+    ~KratosULFApplication() override {}
 
 
     ///@}
@@ -98,7 +104,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register();
+    void Register() override;
 
 
 
@@ -117,20 +123,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "KratosULFApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosULFApplication");
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
@@ -205,6 +211,7 @@ private:
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
     const UlfAxisym mUlfAxisym;    
+    const Fluid2DGLS_expl mFluid2DGLS_expl;
     const PointNeumann3D  mPointNeumann3D;
     const PointNeumann2D  mPointNeumann2D;
     const PointNeumannAxisym  mPointNeumannAxisym;

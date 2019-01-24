@@ -11,10 +11,6 @@ End Properties
 Begin Properties 3
 End Properties
 Begin Properties 4
-    THICKNESS   1.00000E-02 
-    DENSITY   7.85000E+03 
-    YOUNG_MODULUS   2.06900E+11 
-    POISSON_RATIO   3.00000E-01 
 End Properties
 
 Begin Nodes
@@ -797,7 +793,7 @@ Begin Elements ShellThinElement3D3N// GUI group identifier: plate
 497	4	116	96	120
 498	4	96	99	120
 499	4	96	76	99
-500	4	76	81	99 
+500	4	76	81	99
 End Elements
 
 Begin SubModelPart Parts_plate // Group plate // Subtree Parts

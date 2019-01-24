@@ -11,6 +11,7 @@
 //
 //
 
+
 #if !defined(KRATOS_ADD_CUSTOM_CONDITIONS_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_CUSTOM_CONDITIONS_TO_PYTHON_H_INCLUDED
 
@@ -21,7 +22,6 @@
 
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos
 {

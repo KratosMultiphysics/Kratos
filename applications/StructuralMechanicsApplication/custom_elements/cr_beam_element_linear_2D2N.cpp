@@ -19,6 +19,7 @@
 #include "custom_utilities/static_condensation_utility.h"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 
@@ -38,6 +39,14 @@ CrBeamElementLinear2D2N::Create(IndexType NewId,
   const GeometryType &rGeom = this->GetGeometry();
   return Kratos::make_shared<CrBeamElementLinear2D2N>(
       NewId, rGeom.Create(rThisNodes), pProperties);
+}
+
+Element::Pointer
+CrBeamElementLinear2D2N::Create(IndexType NewId,
+                                GeometryType::Pointer pGeom,
+                                PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElementLinear2D2N>(
+      NewId, pGeom, pProperties);
 }
 
 CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
@@ -201,9 +210,9 @@ void CrBeamElementLinear2D2N::GetValueOnIntegrationPoints(
   KRATOS_CATCH("")
 }
 
-double CrBeamElementLinear2D2N::CalculateLength() {
+double CrBeamElementLinear2D2N::CalculateLength() const {
   KRATOS_TRY;
-  return this->CalculateReferenceLength();
+  return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
   KRATOS_CATCH("")
 }
 

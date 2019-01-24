@@ -1,0 +1,37 @@
+BeginZE /home/latorre/CIMNE/kratos/siemens/nvidia_flex_application_sample.gid/nvidia_flex_application_sample.vv
+   x 0.000379951437935233116 0.0386616364121437073
+   y 0.00607439503073692322 -0.0283637512475252151
+   z -0.152370452880859375 0.0545683503150939941
+   e 0.0493648946285247803
+   v 0.275456986909557722 0.480631021616125198 0.734527938554430548
+   r 0.391900468111392841
+   m -0.541074931621551514 -0.310937345027923584 0.781380772590637207 0 0.840510010719299316 -0.230815693736076355 0.490170389413833618 0 0.0279426611959934235 0.92197728157043457 0.386234551668167114 0 0 0 0 1
+   c 0.0190323181450366974 -0.0131816612556576729 0.0489010512828826904
+   pd 0
+   pno 0
+   pfo 0
+   pf 4
+   pv 0
+   NowUse 1
+   DrawingType 2
+   LightVector 90 90 150 0
+   OGLShadow(UseShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
+   OGLShadow(UseFBO) 1
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
+   OGLStereo(UseStereo) 0
+   OGLStereo(RelativeEyeDistance) 1
+   OGLStereo(FlipEyes) 0
+   OGLStereo(StereoMode) AnaglyphColors
+   OGLStereo(EyeDistance) 0.075
+   OGLStereo(LeftEyeDistance) 1 0 0 1
+   OGLStereo(RightEyeDistance) 0 1 1 1
+EndZE /home/latorre/CIMNE/kratos/siemens/nvidia_flex_application_sample.gid/nvidia_flex_application_sample.vv
+
+BeginMirror
+   Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
+EndMirror
+

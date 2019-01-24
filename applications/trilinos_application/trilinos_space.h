@@ -13,33 +13,22 @@
 #if !defined(KRATOS_TRILINOS_SPACE_H_INCLUDED )
 #define  KRATOS_TRILINOS_SPACE_H_INCLUDED
 
-
-
 // System includes
-#include <string>
-#include <iostream>
-#include <cstddef>
-#include <sstream>
 
 // External includes
 
-
-//Trilinos includes
-#include "mpi.h"
+// Trilinos includes
 #include "Epetra_Import.h"
-
-//#include "epetra_test_err.h"
 #include "Epetra_MpiComm.h"
-// #include "Epetra_Comm.h"
 #include "Epetra_Map.h"
 #include "Epetra_Vector.h"
-#include "Epetra_FECrsGraph.h"
 #include "Epetra_FECrsMatrix.h"
-#include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_IntSerialDenseVector.h"
 #include "Epetra_SerialDenseMatrix.h"
 #include "Epetra_SerialDenseVector.h"
 #include "EpetraExt_CrsMatrixIn.h"
+#include <EpetraExt_RowMatrixOut.h>
+#include <EpetraExt_MultiVectorOut.h>
 
 // Project includes
 #include "includes/define.h"
@@ -485,7 +474,7 @@ public:
 
     //***********************************************************************
 
-    inline static bool IsDistributed()
+    inline static constexpr bool IsDistributed()
     {
         return true;
     }
@@ -621,18 +610,19 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char *FileName, TOtherMatrixType &M, bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
+        // the argument "Symmetric" does not have an effect for Trilinos => needed for compatibility with other Spaces
         KRATOS_TRY;
-        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        return EpetraExt::RowMatrixToMatrixMarketFile(pFileName, rM); // Returns 0 if no error, -1 if any problems with file system.
         KRATOS_CATCH("");
     }
 
-            template< class VectorType >
-    static bool WriteMatrixMarketVector(const char *FileName, VectorType& V)
+    template< class VectorType >
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         KRATOS_TRY;
-        KRATOS_THROW_ERROR(std::logic_error,"Matrix Market interface not implemented for Trilinos","");
+        return EpetraExt::MultiVectorToMatrixMarketFile(pFileName, rV);
         KRATOS_CATCH("");
     }
 

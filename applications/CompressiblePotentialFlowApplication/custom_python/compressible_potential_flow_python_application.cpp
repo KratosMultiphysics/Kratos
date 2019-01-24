@@ -14,49 +14,38 @@
 
 #if defined(KRATOS_PYTHON)
 // External includes
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 
 // Project includes
 #include "includes/define.h"
 #include "compressible_potential_flow_application.h"
 #include "compressible_potential_flow_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
 
-namespace Kratos
+namespace Kratos {
+namespace Python {
+
+PYBIND11_MODULE(KratosCompressiblePotentialFlowApplication,m)
 {
+	namespace py = pybind11;
 
-namespace Python
-{
+	py::class_<KratosCompressiblePotentialFlowApplication,
+		KratosCompressiblePotentialFlowApplication::Pointer,
+		KratosApplication >(m,"KratosCompressiblePotentialFlowApplication")
+		.def(py::init<>())
+		;
 
-  using namespace boost::python;
+	AddCustomProcessesToPython(m);
 
-
-
-  BOOST_PYTHON_MODULE(KratosCompressiblePotentialFlowApplication)
-  {
-
-	  class_<KratosCompressiblePotentialFlowApplication,
-			  KratosCompressiblePotentialFlowApplication::Pointer,
-			  bases<KratosApplication>, boost::noncopyable >("KratosCompressiblePotentialFlowApplication")
-			;
-
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
-        AddCustomProcessesToPython();
 	//registering variables in python
+	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(m,VELOCITY_INFINITY);
 
-//	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
-
-  }
-
+}
 
 }  // namespace Python.
-
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

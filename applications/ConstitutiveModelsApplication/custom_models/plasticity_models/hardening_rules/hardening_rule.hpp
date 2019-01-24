@@ -51,16 +51,16 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
    */
-  class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) HardeningRule
+  class HardeningRule
   {
   protected:
 
     //warning::this variable is going to be shadowed by they derived classes
     //if any problem is detected an alternative method must be used instead
-    constexpr static std::size_t VarSize = 1; 
-    
+    constexpr static std::size_t VarSize = 1;
+
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -68,7 +68,7 @@ namespace Kratos
     typedef ConstitutiveModelData::VectorType                  VectorType;
     typedef ConstitutiveModelData::ModelData                ModelDataType;
     typedef ConstitutiveModelData::MaterialData          MaterialDataType;
-    
+
     template<std::size_t TVarSize>
     struct InternalVariables
     {
@@ -85,7 +85,7 @@ namespace Kratos
     private:
 
       friend class Serializer;
-     
+
       void save(Serializer& rSerializer) const
       {
 	rSerializer.save("Variables",Variables);
@@ -95,10 +95,10 @@ namespace Kratos
       {
 	rSerializer.load("Variables",Variables);
       };
-      
+
     };
-    
-    
+
+
     template<std::size_t TVarSize>
     struct PlasticModelData
     {
@@ -106,27 +106,27 @@ namespace Kratos
 
       Flags*               mpState;
       const ModelDataType* mpModelData;
-      
+
     public:
 
-      //flow rule internal variables     
+      //flow rule internal variables
       double TrialStateFunction;
       double StressNorm;
-      
+
       //hardening rule internal variables
       double RateFactor;
 
       //internal variables
       InternalVariables<TVarSize>      Internal;
       InternalVariables<TVarSize> DeltaInternal;
-      
+
       //strain matrix
       MatrixType StrainMatrix; //wildcard strain (cauchy green tensors or infinitessimal tensor)
-      
+
       //Set Data Pointers
       void SetState           (Flags& rState)                    {mpState = &rState;};
       void SetModelData       (const ModelDataType&  rModelData) {mpModelData = &rModelData;};
-      
+
       //Get Data Pointers
       const ModelDataType&    GetModelData                () const {return *mpModelData;};
       const MaterialDataType& GetMaterialParameters       () const {return mpModelData->GetMaterialParameters();};
@@ -137,22 +137,22 @@ namespace Kratos
       //Get const Data
       const Flags&  GetState              () const {return *mpState;};
       const double& GetTrialStateFunction () const {return TrialStateFunction;};
-      const double& GetStressNorm         () const {return StressNorm;};     
+      const double& GetStressNorm         () const {return StressNorm;};
       const double& GetRateFactor         () const {return RateFactor;};
-      
+
       const InternalVariables<TVarSize>&      GetInternal () const {return Internal;};
       const InternalVariables<TVarSize>& GetDeltaInternal () const {return DeltaInternal;};
-      
+
       const MatrixType&                   GetStrainMatrix () const {return StrainMatrix;};
-      
+
       const array_1d<double,TVarSize>& GetInternalVariables       () const {return Internal.Variables;};
       const array_1d<double,TVarSize>& GetDeltaInternalVariables  () const {return DeltaInternal.Variables;};
-     
+
     };
 
     typedef InternalVariables<VarSize>   InternalVariablesType;
     typedef PlasticModelData<VarSize>          PlasticDataType;
-    
+
     /// Pointer definition of HardeningRule
     KRATOS_CLASS_POINTER_DEFINITION( HardeningRule );
 
@@ -171,12 +171,11 @@ namespace Kratos
       {
 	return *this;
       }
-    
+
     /// Clone.
     virtual HardeningRule::Pointer Clone() const
     {
-      HardeningRule::Pointer p_clone(new HardeningRule(*this));
-      return p_clone;
+      return Kratos::make_shared<HardeningRule>(*this);
     }
 
     /// Destructor.
@@ -194,47 +193,47 @@ namespace Kratos
     /**
      * Calculate Hardening functions
      */
-    
+
     virtual double& CalculateHardening(const PlasticDataType& rVariables, double& rHardening)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;
 
       return rHardening;
-	
+
       KRATOS_CATCH(" ")
     }
-    
+
 
     /**
      * Calculate Hardening function derivatives
      */
-    
+
     virtual double& CalculateDeltaHardening(const PlasticDataType& rVariables, double& rDeltaHardening)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;
 
       return rDeltaHardening;
-	
+
       KRATOS_CATCH(" ")
     }
 
-    
+
     virtual double& CalculateDeltaThermalHardening(const PlasticDataType& rVariables, double& rDeltaThermalHardening)
     {
       KRATOS_TRY
-	
-      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;	
+
+      KRATOS_ERROR << "calling the HardeningRule base class ... illegal operation" << std::endl;
 
       return rDeltaThermalHardening;
-	
+
       KRATOS_CATCH(" ")
     }
-    
-    
+
+
     ///@}
     ///@name Access
     ///@{
@@ -285,12 +284,12 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
 
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -343,7 +342,7 @@ namespace Kratos
     ///@{
     friend class Serializer;
 
-    
+
     virtual void save(Serializer& rSerializer) const
     {
     }
@@ -375,13 +374,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
-  
+
   ///@} addtogroup block
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HARDENING_RULE_H_INCLUDED  defined 
-
-
+#endif // KRATOS_HARDENING_RULE_H_INCLUDED  defined

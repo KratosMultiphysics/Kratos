@@ -106,7 +106,7 @@ for dim in dim_vector:
     vconv_gauss_norm = sqrt(vconv_gauss_norm)
 
     tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*vconv_gauss_norm)/h + (stab_c1*mu)/(h*h))   # Stabilization parameter 1
-    tau2 = mu + (stab_c2*vconv_gauss_norm*h)/stab_c1                                        # Stabilization parameter 2
+    tau2 = mu + (stab_c2*rho*vconv_gauss_norm*h)/stab_c1                                    # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N

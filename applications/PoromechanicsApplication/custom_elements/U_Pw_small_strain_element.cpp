@@ -1,9 +1,15 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
@@ -108,7 +114,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeNonLinearIteration(Process
     Matrix B(VoigtSize,TNumNodes*TDim);
     noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
 
     //Create constitutive law parameters:
     Vector StrainVector(VoigtSize);
@@ -169,7 +175,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::FinalizeSolutionStep( ProcessInfo& r
     Matrix B(VoigtSize,TNumNodes*TDim);
     noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
 
     //Create constitutive law parameters:
     Vector StrainVector(VoigtSize);
@@ -260,30 +266,53 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& StressContain
 {
     KRATOS_TRY
 
-    // Triangle_2d_3 with GI_GAUSS_1
+    // Triangle_2d_3 with GI_GAUSS_2
 
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+    array_1d<double,3> DamageContainer; // 3 GPoints
+
+    for ( unsigned int i = 0;  i < 3; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area();
     array_1d<Vector,3> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,3> NodalStressTensor;
 
-    for(unsigned int Node = 0; Node < 3; Node ++)
+    for(unsigned int Node = 0; Node < 3; Node++)
     {
         NodalStressVector[Node].resize(VoigtSize);
         NodalStressTensor[Node].resize(2,2);
     }
 
-    for(unsigned int i = 0; i < 3; i++) //NumNodes
+    BoundedMatrix<double,3,3> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,3,3> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    /* INFO:
+        *
+        *                  |S0-0 S1-0 S2-0|
+        * AuxNodalStress = |S0-1 S1-1 S2-1|
+        *                  |S0-2 S1-2 S2-2|
+        *
+        * S1-0 = S[1] at node 0
+    */
+
+    array_1d<double,3> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 3; i++) //TNumNodes
     {
-        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -320,7 +349,7 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& StressContain
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
-    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,4,3> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -360,10 +389,15 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
 {
     KRATOS_TRY
 
-    // Tetrahedra_3d_4 with GI_GAUSS_1
+    // Tetrahedra_3d_4 with GI_GAUSS_2
 
-    double DamageContainer = 0.0;
-    DamageContainer = mConstitutiveLawVector[0]->GetValue( DAMAGE_VARIABLE, DamageContainer );
+    array_1d<double,4> DamageContainer; // 4 GPoints
+
+    for ( unsigned int i = 0;  i < 4; i++ ) //NumGPoints
+    {
+        DamageContainer[i] = 0.0;
+        DamageContainer[i] = mConstitutiveLawVector[i]->GetValue( DAMAGE_VARIABLE, DamageContainer[i] );
+    }
 
     GeometryType& rGeom = this->GetGeometry();
     const double& Area = rGeom.Area(); // In 3D this is Volume
@@ -376,14 +410,23 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& StressContain
         NodalStressTensor[Node].resize(3,3);
     }
 
-    for(unsigned int i = 0; i < 4; i++) //NumNodes
+    BoundedMatrix<double,4,4> ExtrapolationMatrix;
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+
+    BoundedMatrix<double,4,6> AuxNodalStress;
+    noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
+
+    array_1d<double,4> NodalDamage;
+    noalias(NodalDamage) = prod(ExtrapolationMatrix,DamageContainer);
+
+    for(unsigned int i = 0; i < 4; i++) //TNumNodes
     {
-        noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
+        noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
         noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
 
         rGeom[i].SetLock();
         noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
-        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += DamageContainer*Area;
+        rGeom[i].FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) += NodalDamage[i]*Area;
         rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
         rGeom[i].UnSetLock();
     }
@@ -420,7 +463,7 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& StressContain
     }
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;
-    ElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
 
     BoundedMatrix<double,8,6> AuxNodalStress;
     noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
@@ -465,7 +508,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         Matrix B(VoigtSize,TNumNodes*TDim);
         noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
 
         //Create constitutive law parameters:
         Vector StrainVector(VoigtSize);
@@ -499,8 +542,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
             //compute constitutive tensor and/or stresses
             mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
 
-            ComparisonUtilities EquivalentStress;
-            rOutput[GPoint] = EquivalentStress.CalculateVonMises(StressVector);
+            rOutput[GPoint] = ElementUtilities::CalculateVonMises(StressVector);
         }
     }
 
@@ -531,11 +573,11 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         for(unsigned int i=0; i<TNumNodes; i++)
             PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         array_1d<double,TNumNodes*TDim> VolumeAcceleration;
-        ElementUtilities::GetVolumeAccelerationVector(VolumeAcceleration,Geom);
+        PoroElementUtilities::GetNodalVariableVector(VolumeAcceleration,Geom,VOLUME_ACCELERATION);
         array_1d<double,TDim> BodyAcceleration;
         BoundedMatrix<double,TNumNodes, TDim> GradNpT;
         BoundedMatrix<double,TDim, TDim> PermeabilityMatrix;
-        ElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,Prop);
+        PoroElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,Prop);
         const double& DynamicViscosityInverse = 1.0/Prop[DYNAMIC_VISCOSITY];
         const double& FluidDensity = Prop[DENSITY_WATER];
         array_1d<double,TDim> GradPressureTerm;
@@ -546,14 +588,14 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         {
             noalias(GradNpT) = DN_DXContainer[GPoint];
 
-            ElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
+            PoroElementUtilities::InterpolateVariableWithComponents(BodyAcceleration,NContainer,VolumeAcceleration,GPoint);
 
             noalias(GradPressureTerm) = prod(trans(GradNpT),PressureVector);
             noalias(GradPressureTerm) += -FluidDensity*BodyAcceleration;
 
             noalias(FluidFlux) = -DynamicViscosityInverse*prod(PermeabilityMatrix,GradPressureTerm);
 
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],FluidFlux);
         }
     }
 
@@ -582,7 +624,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         Matrix B(VoigtSize,TNumNodes*TDim);
         noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
 
         //Create constitutive law parameters:
         Vector StrainVector(VoigtSize);
@@ -654,7 +696,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         Matrix B(VoigtSize,TNumNodes*TDim);
         noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
         double Pressure;
         array_1d<double,TNumNodes> PressureVector;
         for(unsigned int i=0; i<TNumNodes; i++)
@@ -722,7 +764,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
         Matrix B(VoigtSize,TNumNodes*TDim);
         noalias(B) = ZeroMatrix(VoigtSize,TNumNodes*TDim);
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
         Vector StrainVector(VoigtSize);
 
         //Loop over integration points
@@ -742,7 +784,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints( const 
 
         //If the permeability of the element is a given property
         BoundedMatrix<double,TDim,TDim> PermeabilityMatrix;
-        ElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,this->GetProperties());
+        PoroElementUtilities::CalculatePermeabilityMatrix(PermeabilityMatrix,this->GetProperties());
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++ )
@@ -849,8 +891,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAll( MatrixType& rLeftHandS
 
         //Compute Np, Nu and BodyAcceleration
         noalias(Variables.Np) = row(NContainer,GPoint);
-        ElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
 
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -905,8 +947,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHand
 
         //Compute Np, Nu and BodyAcceleration
         noalias(Variables.Np) = row(NContainer,GPoint);
-        ElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::CalculateNuMatrix(Variables.Nu,NContainer,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
 
         //Compute stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -938,7 +980,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
     rVariables.Density = Porosity*rVariables.FluidDensity + (1.0-Porosity)*Prop[DENSITY_SOLID];
     rVariables.BiotCoefficient = 1.0-BulkModulus/BulkModulusSolid;
     rVariables.BiotModulusInverse = (rVariables.BiotCoefficient-Porosity)/BulkModulusSolid + Porosity/Prop[BULK_MODULUS_FLUID];
-    ElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix,Prop);
+    PoroElementUtilities::CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix,Prop);
 
     //ProcessInfo variables
     rVariables.VelocityCoefficient = CurrentProcessInfo[VELOCITY_COEFFICIENT];
@@ -950,9 +992,9 @@ void UPwSmallStrainElement<TDim,TNumNodes>::InitializeElementVariables(ElementVa
         rVariables.PressureVector[i] = Geom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         rVariables.DtPressureVector[i] = Geom[i].FastGetSolutionStepValue(DT_WATER_PRESSURE);
     }
-    ElementUtilities::GetDisplacementsVector(rVariables.DisplacementVector,Geom);
-    ElementUtilities::GetVelocitiesVector(rVariables.VelocityVector,Geom);
-    ElementUtilities::GetVolumeAccelerationVector(rVariables.VolumeAcceleration,Geom);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VelocityVector,Geom,VELOCITY);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
 
     //General Variables
     unsigned int VoigtSize;
@@ -1123,7 +1165,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessMatrix(Matri
     noalias(rVariables.UMatrix) = prod(rVariables.UVoigtMatrix,rVariables.B)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
-    ElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
+    PoroElementUtilities::AssembleUBlockMatrix(rLeftHandSideMatrix,rVariables.UMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1136,12 +1178,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingMatrix(Matrix
     noalias(rVariables.UPMatrix) = -rVariables.BiotCoefficient*outer_prod(rVariables.UVector,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute coupling block matrix into the elemental matrix
-    ElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
+    PoroElementUtilities::AssembleUPBlockMatrix(rLeftHandSideMatrix,rVariables.UPMatrix);
 
     noalias(rVariables.PUMatrix) = -rVariables.VelocityCoefficient*trans(rVariables.UPMatrix);
 
     //Distribute transposed coupling block matrix into the elemental matrix
-    ElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
+    PoroElementUtilities::AssemblePUBlockMatrix(rLeftHandSideMatrix,rVariables.PUMatrix);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1152,7 +1194,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityMatrix
     noalias(rVariables.PMatrix) = rVariables.DtPressureCoefficient*rVariables.BiotModulusInverse*outer_prod(rVariables.Np,rVariables.Np)*rVariables.IntegrationCoefficient;
 
     //Distribute compressibility block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1165,7 +1207,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityMatrix(Ma
     noalias(rVariables.PMatrix) = rVariables.DynamicViscosityInverse*prod(rVariables.PDimMatrix,trans(rVariables.GradNpT))*rVariables.IntegrationCoefficient;
 
     //Distribute permeability block matrix into the elemental matrix
-    ElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockMatrix< BoundedMatrix<double,TNumNodes,TNumNodes> >(rLeftHandSideMatrix,rVariables.PMatrix,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1195,7 +1237,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddStiffnessForce(Vector
     noalias(rVariables.UVector) = -1.0*prod(trans(rVariables.B),rVariables.StressVector)*rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block vector into elemental vector
-    ElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1206,7 +1248,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddMixBodyForce(VectorTy
     noalias(rVariables.UVector) = rVariables.Density*prod(trans(rVariables.Nu),rVariables.BodyAcceleration)*rVariables.IntegrationCoefficient;
 
     //Distribute body force block vector into elemental vector
-    ElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1221,12 +1263,12 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCouplingTerms(VectorT
     noalias(rVariables.UVector) = prod(rVariables.UPMatrix,rVariables.PressureVector);
 
     //Distribute coupling block vector 1 into elemental vector
-    ElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
+    PoroElementUtilities::AssembleUBlockVector(rRightHandSideVector,rVariables.UVector);
 
     noalias(rVariables.PVector) = -1.0*prod(trans(rVariables.UPMatrix),rVariables.VelocityVector);
 
     //Distribute coupling block vector 2 into elemental vector
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1239,7 +1281,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddCompressibilityFlow(V
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.DtPressureVector);
 
     //Distribute compressibility block vector into elemental vector
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1254,7 +1296,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddPermeabilityFlow(Vect
     noalias(rVariables.PVector) = -1.0*prod(rVariables.PMatrix,rVariables.PressureVector);
 
     //Distribute permeability block vector into elemental vector
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------
@@ -1268,7 +1310,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateAndAddFluidBodyFlow(VectorT
                                     prod(rVariables.PDimMatrix,rVariables.BodyAcceleration);
 
     //Distribute fluid body flow block vector into elemental vector
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -12,7 +12,7 @@
 
 // System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_laws/small_strain_laws/small_strain_3D_law.hpp"
@@ -23,24 +23,24 @@ namespace Kratos
   ///@{
 
   ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
+  ///@{
+
+  ///@}
   ///@name  Enum's
   ///@{
-      
+
   ///@}
-  ///@name  Functions 
+  ///@name  Functions
   ///@{
-      
+
   ///@}
   ///@name Kratos Classes
   ///@{
-  
+
   /// Short class definition.
   /** Detail class definition.
   */
@@ -52,17 +52,17 @@ namespace Kratos
 
      /// Pointer definition of SmallStrainOrthotropic3DLaw
       KRATOS_CLASS_POINTER_DEFINITION(SmallStrainOrthotropic3DLaw);
-  
+
       ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
+      ///@name Life Cycle
+      ///@{
+
       /// Default constructor.
       SmallStrainOrthotropic3DLaw() : SmallStrain3DLaw() {}
 
       /// Constructor.
       SmallStrainOrthotropic3DLaw(ModelTypePointer pModel) : SmallStrain3DLaw(pModel) {};
-      
+
       /// Copy constructor.
       SmallStrainOrthotropic3DLaw(const SmallStrainOrthotropic3DLaw& rOther) : SmallStrain3DLaw(rOther) {}
 
@@ -72,19 +72,19 @@ namespace Kratos
 	SmallStrain3DLaw::operator=(rOther);
 	return *this;
       }
-      
+
       /// Clone.
       ConstitutiveLaw::Pointer Clone() const override
       {
-	return (SmallStrainOrthotropic3DLaw::Pointer(new SmallStrainOrthotropic3DLaw(*this)));
+        return Kratos::make_shared<SmallStrainOrthotropic3DLaw>(*this);
       }
-      
+
       /// Destructor.
-      virtual ~SmallStrainOrthotropic3DLaw(){}
-      
+      ~SmallStrainOrthotropic3DLaw() override{}
+
 
       ///@}
-      ///@name Operators 
+      ///@name Operators
       ///@{
 
       /// Law Dimension
@@ -97,7 +97,7 @@ namespace Kratos
       void GetLawFeatures(Features& rFeatures) override
       {
 	KRATOS_TRY
-	  
+
     	//Set the type of law
 	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
@@ -105,7 +105,7 @@ namespace Kratos
 
 	//Get model features
 	GetModelFeatures(rFeatures);
-	
+
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
@@ -115,145 +115,145 @@ namespace Kratos
 
 	//Set the spacedimension
 	rFeatures.mSpaceDimension = WorkingSpaceDimension();
-	
+
 	KRATOS_CATCH(" ")
       }
-      
+
       ///@}
       ///@name Operations
       ///@{
-      
+
       void CalculateMaterialResponseKirchhoff(Parameters& rValues) override
-      {    
+      {
 	KRATOS_TRY
 
 	//0.- Check if the constitutive parameters are passed correctly to the law calculation
 	//CheckParameters(rValues);
 
         const Flags& rOptions = rValues.GetOptions();
-  
-	const Properties& rMaterialProperties  = rValues.GetMaterialProperties();    
+
+	const Properties& rProperties  = rValues.GetMaterialProperties();
 
 	Vector& rStrainVector                  = rValues.GetStrainVector();
 	Vector& rStressVector                  = rValues.GetStressVector();
 
-    
+
 	// Calculate total Kirchhoff stress
-	
+
 	if( rOptions.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-      
+
 	  Matrix& rConstitutiveMatrix = rValues.GetConstitutiveMatrix();
-	
-	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rMaterialProperties);
-	
+
+	  this->CalculateConstitutiveMatrix( rConstitutiveMatrix, rProperties);
+
 	  this->CalculateStress( rStrainVector, rConstitutiveMatrix, rStressVector );
-	
+
 	}
 	else if( rOptions.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-	
+
 	  Matrix& rConstitutiveMatrix  = rValues.GetConstitutiveMatrix();
-	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rMaterialProperties);
-	
+	  this->CalculateConstitutiveMatrix(rConstitutiveMatrix, rProperties);
+
 	}
-	        
+
 	// std::cout<<" StrainVector "<<rValues.GetStrainVector()<<std::endl;
 	// std::cout<<" StressVector "<<rValues.GetStressVector()<<std::endl;
 	// std::cout<<" ConstitutiveMatrix "<<rValues.GetConstitutiveMatrix()<<std::endl;
-	
+
 	KRATOS_CATCH(" ")
-	  
+
       }
-	    
+
       ///@}
       ///@name Access
-      ///@{ 
-      
-      
+      ///@{
+
+
       ///@}
       ///@name Inquiry
       ///@{
 
-      
+
       /**
        * This function is designed to be called once to perform all the checks needed
        * on the input provided. Checks can be "expensive" as the function is designed
        * to catch user's errors.
-       * @param rMaterialProperties
+       * @param rProperties
        * @param rElementGeometry
        * @param rCurrentProcessInfo
        * @return
        */
-      int Check(const Properties& rMaterialProperties,
+      int Check(const Properties& rProperties,
 		const GeometryType& rElementGeometry,
 		const ProcessInfo& rCurrentProcessInfo) override
       {
-  
-	if(YOUNG_MODULUS_X.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_X))
+
+	if(YOUNG_MODULUS_X.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_X))
 	  KRATOS_ERROR << "YOUNG_MODULUS_X has Key zero or invalid value" << std::endl;
 
-	if(YOUNG_MODULUS_Y.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Y))
+	if(YOUNG_MODULUS_Y.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_Y))
 	  KRATOS_ERROR << "YOUNG_MODULUS_Y has Key zero or invalid value" << std::endl;
-	
-	if(YOUNG_MODULUS_Z.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Z))
+
+	if(YOUNG_MODULUS_Z.Key() == 0 || !rProperties.Has(YOUNG_MODULUS_Z))
 	  KRATOS_ERROR << "YOUNG_MODULUS_Z has Key zero or invalid value" << std::endl;
 
-	if(POISSON_RATIO_XY.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XY))
+	if(POISSON_RATIO_XY.Key() == 0 || !rProperties.Has(POISSON_RATIO_XY))
 	  KRATOS_ERROR << "POISSON_RATIO_XY has Key zero invalid value" << std::endl;
 
-	if(POISSON_RATIO_YZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_YZ))
+	if(POISSON_RATIO_YZ.Key() == 0 || !rProperties.Has(POISSON_RATIO_YZ))
 	  KRATOS_ERROR << "POISSON_RATIO_YZ has Key zero invalid value" << std::endl;
 
-	if(POISSON_RATIO_XZ.Key() == 0 || !rMaterialProperties.Has(POISSON_RATIO_XZ))
+	if(POISSON_RATIO_XZ.Key() == 0 || !rProperties.Has(POISSON_RATIO_XZ))
 	  KRATOS_ERROR << "POISSON_RATIO_XZ has Key zero invalid value" << std::endl;
 
-        if(DENSITY.Key() == 0 || !rMaterialProperties.Has(DENSITY))
+        if(DENSITY.Key() == 0 || !rProperties.Has(DENSITY))
 	  KRATOS_ERROR << "DENSITY has Key zero or invalid value" << std::endl;
 
         return 0;
-	
+
       }
-      
-      
-      
-      ///@}      
+
+
+
+      ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
 	std::stringstream buffer;
         buffer << "SmallStrainOrthotropic3DLaw" ;
         return buffer.str();
       }
-      
+
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainOrthotropic3DLaw";}
+      void PrintInfo(std::ostream& rOStream) const override {rOStream << "SmallStrainOrthotropic3DLaw";}
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override {}
-      
-            
-      ///@}      
+      void PrintData(std::ostream& rOStream) const override {}
+
+
+      ///@}
       ///@name Friends
       ///@{
-      
-            
+
+
       ///@}
-      
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Protected static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Protected member Variables
+      ///@{
+
+
+      ///@}
       ///@name Protected Operators
-      ///@{ 
+      ///@{
 
 
       /**
@@ -264,18 +264,18 @@ namespace Kratos
        * @return the linear elastic constitutive matrix
        */
       void CalculateConstitutiveMatrix( Matrix& rConstitutiveMatrix,
-					 const Properties& rMaterialProperties) override
+					 const Properties& rProperties) override
       {
 	KRATOS_TRY
-  
-	// Orthotropic constitutive matrix
-	double E1 = rMaterialProperties[YOUNG_MODULUS_X];
-	double E2 = rMaterialProperties[YOUNG_MODULUS_Y];
-	double E3 = rMaterialProperties[YOUNG_MODULUS_Z];
 
-	double v12 = rMaterialProperties[POISSON_RATIO_XY];
-	double v23 = rMaterialProperties[POISSON_RATIO_YZ];
-	double v13 = rMaterialProperties[POISSON_RATIO_XZ];
+	// Orthotropic constitutive matrix
+	double E1 = rProperties[YOUNG_MODULUS_X];
+	double E2 = rProperties[YOUNG_MODULUS_Y];
+	double E3 = rProperties[YOUNG_MODULUS_Z];
+
+	double v12 = rProperties[POISSON_RATIO_XY];
+	double v23 = rProperties[POISSON_RATIO_YZ];
+	double v13 = rProperties[POISSON_RATIO_XZ];
 
 	double P1 = 1.0/(E2*E2*v12*v12 + 2.0*E3*E2*v12*v13*v23 + E3*E2*v13*v13 - E1*E2 + E1*E3*v23*v23);
 	double P2 = E1*E1;
@@ -296,102 +296,102 @@ namespace Kratos
 	rConstitutiveMatrix(3, 3) = (E2*P2)/(P2 + v12*(P2 + P3) + E1*E2)/2.0;
 	rConstitutiveMatrix(4, 4) = (E3*P3)/(P3 + v23*(P3 + P6) + E2*E3)/2.0;
 	rConstitutiveMatrix(5, 5) = (E3*P2)/(P2 + v13*(P2 + P6) + E1*E3)/2.0;
-    
+
 	KRATOS_CATCH(" ")
-      }    
-      
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
+      }
+
+
       ///@}
-      
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+
+      ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
+      ///@name Static Member Variables
+      ///@{
+
+
+      ///@}
+      ///@name Member Variables
+      ///@{
+
+
+      ///@}
       ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
+      ///@{
+
+
+      ///@}
       ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
 
       ///@}
       ///@name Serialization
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }
-      
-      virtual void load(Serializer& rSerializer) override
+
+      void load(Serializer& rSerializer) override
       {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrain3DLaw )
       }
 
-      
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-        
-      ///@}    
-        
-    }; // Class SmallStrainOrthotropic3DLaw 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
+      ///@}
+
+    }; // Class SmallStrainOrthotropic3DLaw
+
+  ///@}
+
+  ///@name Type Definitions
+  ///@{
+
+
+  ///@}
+  ///@name Input and output
+  ///@{
+
 
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_SMALL_STRAIN_ORTHOTROPIC_3D_LAW_H_INCLUDED  defined

@@ -14,15 +14,12 @@
 #define KRATOS_TRILINOS_APPLICATION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/variables.h"
 
 namespace Kratos {
 
@@ -66,7 +63,7 @@ class KratosTrilinosApplication : public KratosApplication {
     KratosTrilinosApplication() : KratosApplication("TrilinosApplication") {}
 
     /// Destructor.
-    virtual ~KratosTrilinosApplication() {}
+    ~KratosTrilinosApplication() override {}
 
     ///@}
     ///@name Operators

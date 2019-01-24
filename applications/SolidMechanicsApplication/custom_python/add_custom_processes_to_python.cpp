@@ -7,117 +7,127 @@
 //
 //
 
-// System includes 
+// System includes
 #include <pybind11/stl.h>
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 
 // Processes
-#include "custom_processes/transfer_entities_between_model_parts_process.h"
-#include "custom_processes/transfer_nodes_to_model_part_process.h"
-#include "custom_processes/assign_scalar_variable_to_entities_process.h"
-#include "custom_processes/assign_vector_variable_to_conditions_process.h"
-#include "custom_processes/assign_vector_field_to_entities_process.h"
-#include "custom_processes/fix_scalar_dof_process.h"
-#include "custom_processes/free_scalar_dof_process.h"
-#include "custom_processes/add_dofs_process.h"
-#include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.h"
-#include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.h"
-#include "custom_processes/build_string_skin_process.h"
+#include "custom_processes/transfer_solving_model_part_entities_process.hpp"
+#include "custom_processes/transfer_entities_between_model_parts_process.hpp"
+#include "custom_processes/assign_flags_to_model_part_entities_process.hpp"
+#include "custom_processes/assign_scalar_variable_to_entities_process.hpp"
+#include "custom_processes/assign_vector_variable_to_conditions_process.hpp"
+#include "custom_processes/assign_vector_field_to_entities_process.hpp"
+#include "custom_processes/fix_scalar_dof_process.hpp"
+#include "custom_processes/free_scalar_dof_process.hpp"
+#include "custom_processes/add_dofs_process.hpp"
+#include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
+#include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
+#include "custom_processes/build_string_skin_process.hpp"
+
+
+// Solver Processes
+#include "custom_processes/solver_process.hpp"
 
 namespace Kratos
 {
-	
+
 namespace Python
 {
 
 typedef std::vector<Flags>  FlagsContainer;
-    
+
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
 
-  using namespace pybind11;
-      
-  //**********TRANSFER NODES TO MODEL PART*********//
+  namespace py = pybind11;
 
-  class_<TransferNodesToModelPartProcess, TransferNodesToModelPartProcess::Pointer, Process>(m,"TransferNodesProcess")
-      .def(init<ModelPart&, ModelPart&, const FlagsContainer&>())
-      .def(init<ModelPart&, ModelPart&, const FlagsContainer&, const FlagsContainer& >())
-      .def("Execute", &TransferNodesToModelPartProcess::Execute)
+  //**********ASSIGN FLAGS TO MODEL PART ENTITIES*********//
+
+  py::class_<AssignFlagsToModelPartEntitiesProcess, AssignFlagsToModelPartEntitiesProcess::Pointer, Process>(m,"AssignFlagsToEntitiesProcess")
+      .def(py::init<ModelPart&, const std::string, const FlagsContainer&>())
+      .def(py::init<ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+      .def("Execute", &AssignFlagsToModelPartEntitiesProcess::Execute)
       ;
-      
+
   //**********TRANSFER ENTITIES BETWEEN MODEL PARTS*********//
 
-  class_<TransferEntitiesBetweenModelPartsProcess, TransferEntitiesBetweenModelPartsProcess::Pointer, Process>(m,"TransferEntitiesProcess")
-      .def(init<ModelPart&, ModelPart&, const std::string>())	
-      .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
-      .def(init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
+  py::class_<TransferEntitiesBetweenModelPartsProcess, TransferEntitiesBetweenModelPartsProcess::Pointer, Process>(m,"TransferEntitiesProcess")
+      .def(py::init<ModelPart&, ModelPart&, const std::string>())
+      .def(py::init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&>())
+      .def(py::init<ModelPart&, ModelPart&, const std::string, const FlagsContainer&, const FlagsContainer& >())
       .def("Execute", &TransferEntitiesBetweenModelPartsProcess::Execute)
       ;
-      
-      
+
+  py::class_<TransferSolvingModelPartEntitiesProcess, TransferSolvingModelPartEntitiesProcess::Pointer, Process>(m,"TransferSolvingModelPartProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters& >())
+      ;
+
+
   //**********ASSIGN VALUES TO VARIABLES PROCESSES*********//
 
-  class_<AssignScalarVariableToEntitiesProcess, AssignScalarVariableToEntitiesProcess::Pointer, Process>(m,"AssignScalarToEntitiesProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init< ModelPart&, Parameters& >())
+  py::class_<AssignScalarVariableToEntitiesProcess, AssignScalarVariableToEntitiesProcess::Pointer, Process>(m,"AssignScalarToEntitiesProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init< ModelPart&, Parameters& >())
       .def("Execute", &AssignScalarVariableToEntitiesProcess::Execute)
       ;
 
-  class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, Process>(m,"AssignScalarFieldToEntitiesProcess")
-      .def(init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
-      .def(init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
+  py::class_<AssignScalarFieldToEntitiesProcess, AssignScalarFieldToEntitiesProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignScalarFieldToEntitiesProcess")
+      .def(py::init<ModelPart&, pybind11::object&, const std::string, const bool, Parameters>())
+      .def(py::init< ModelPart&, pybind11::object&, const std::string, const bool, Parameters& >())
       .def("Execute", &AssignScalarFieldToEntitiesProcess::Execute)
       ;
-  
-  class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, Process>(m,"AssignVectorFieldToEntitiesProcess")
-      .def(init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
-      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+
+  py::class_<AssignVectorFieldToEntitiesProcess, AssignVectorFieldToEntitiesProcess::Pointer, AssignScalarFieldToEntitiesProcess>(m,"AssignVectorFieldToEntitiesProcess")
+      .def(py::init<ModelPart&, pybind11::object&,const std::string,const bool, Parameters>())
+      .def(py::init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
       .def("Execute", &AssignVectorFieldToEntitiesProcess::Execute)
       ;
 
-  class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, Process>(m,"AssignVectorToConditionsProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init< ModelPart&, Parameters& >())
-      .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
+  py::class_<AssignVectorVariableToConditionsProcess, AssignVectorVariableToConditionsProcess::Pointer, AssignScalarVariableToEntitiesProcess>(m,"AssignVectorToConditionsProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init< ModelPart&, Parameters& >())
+      .def(py::init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
       .def("Execute", &AssignVectorVariableToConditionsProcess::Execute)
       ;
-	
+
   //**********FIX AND FREE DOFS PROCESSES*********//
 
-  class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters&>())
-      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
-      .def(init<ModelPart&, const Variable<double>&>())
-      .def(init<ModelPart&, const Variable<int>&>())
-      .def(init<ModelPart&, const Variable<bool>&>())
+  py::class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>())
+      .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(py::init<ModelPart&, const Variable<double>&>())
+      .def(py::init<ModelPart&, const Variable<int>&>())
+      .def(py::init<ModelPart&, const Variable<bool>&>())
       .def("Execute", &FixScalarDofProcess::Execute)
 
       ;
 
 
-  class_<FreeScalarDofProcess, FreeScalarDofProcess::Pointer, Process>(m,"FreeScalarDofProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters&>())
-      .def(init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
-      .def(init<ModelPart&, const Variable<double>&>())
-      .def(init<ModelPart&, const Variable<int>&>())
-      .def(init<ModelPart&, const Variable<bool>&>())
+  py::class_<FreeScalarDofProcess, FreeScalarDofProcess::Pointer, Process>(m,"FreeScalarDofProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>())
+      .def(py::init<ModelPart&, const VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > >&>())
+      .def(py::init<ModelPart&, const Variable<double>&>())
+      .def(py::init<ModelPart&, const Variable<int>&>())
+      .def(py::init<ModelPart&, const Variable<bool>&>())
       .def("Execute", &FreeScalarDofProcess::Execute)
 
       ;
 
- 
+
   //**********ADD DOFS PROCESS*********//
 
-  class_<AddDofsProcess, AddDofsProcess::Pointer, Process>(m,"AddDofsProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init<ModelPart&, Parameters&>())
-      .def(init<ModelPart&, const pybind11::list&, const pybind11::list&>())
+  py::class_<AddDofsProcess, AddDofsProcess::Pointer, Process>(m,"AddDofsProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init<ModelPart&, Parameters&>())
+      .def(py::init<ModelPart&, const pybind11::list&, const pybind11::list&>())
       .def("Execute", &AddDofsProcess::Execute)
 
       ;
@@ -125,34 +135,34 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********ASSIGN ROTATION ABOUT AND AXIS*********//
 
-  class_<AssignRotationAboutAnAxisToNodesProcess, AssignRotationAboutAnAxisToNodesProcess::Pointer, Process>(m,"AssignRotationAboutAnAxisToNodesProcess")
-      .def(init<ModelPart&, Parameters>())
-      .def(init< ModelPart&, Parameters& >())
+  py::class_<AssignRotationAboutAnAxisToNodesProcess, AssignRotationAboutAnAxisToNodesProcess::Pointer, Process>(m,"AssignRotationAboutAnAxisToNodesProcess")
+      .def(py::init<ModelPart&, Parameters>())
+      .def(py::init< ModelPart&, Parameters& >())
       .def("Execute", &AssignRotationAboutAnAxisToNodesProcess::Execute)
 
       ;
 
-      
-  class_<AssignRotationFieldAboutAnAxisToNodesProcess, AssignRotationFieldAboutAnAxisToNodesProcess::Pointer, Process>(m,"AssignRotationFieldAboutAnAxisToNodesProcess")
-      .def(init<ModelPart&, pybind11::object&, const std::string,const bool, Parameters>())
-      .def(init< ModelPart&, pybind11::object&, const std::string,const bool, Parameters& >())
+
+  py::class_<AssignRotationFieldAboutAnAxisToNodesProcess, AssignRotationFieldAboutAnAxisToNodesProcess::Pointer, Process>(m,"AssignRotationFieldAboutAnAxisToNodesProcess")
+      .def(py::init<ModelPart&, pybind11::object&, const std::string,const bool, Parameters>())
+      .def(py::init< ModelPart&, pybind11::object&, const std::string,const bool, Parameters& >())
       .def("Execute", &AssignRotationFieldAboutAnAxisToNodesProcess::Execute)
 
       ;
 
   //**********ASSIGN TORQUE ABOUT AN AXIS*********//
 
-  class_<AssignTorqueAboutAnAxisToConditionsProcess, AssignTorqueAboutAnAxisToConditionsProcess::Pointer, Process>(m,"AssignTorqueAboutAnAxisToConditionsProcess")
-      .def(init< ModelPart&, Parameters >())
-      .def(init< ModelPart&, Parameters& >())
+  py::class_<AssignTorqueAboutAnAxisToConditionsProcess, AssignTorqueAboutAnAxisToConditionsProcess::Pointer, Process>(m,"AssignTorqueAboutAnAxisToConditionsProcess")
+      .def(py::init< ModelPart&, Parameters >())
+      .def(py::init< ModelPart&, Parameters& >())
       .def("Execute", &AssignTorqueAboutAnAxisToConditionsProcess::Execute)
 
       ;
 
-      
-  class_<AssignTorqueFieldAboutAnAxisToConditionsProcess, AssignTorqueFieldAboutAnAxisToConditionsProcess::Pointer, Process>(m,"AssignTorqueFieldAboutAnAxisToConditionsProcess")
-      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters >())
-      .def(init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
+
+  py::class_<AssignTorqueFieldAboutAnAxisToConditionsProcess, AssignTorqueFieldAboutAnAxisToConditionsProcess::Pointer, Process>(m,"AssignTorqueFieldAboutAnAxisToConditionsProcess")
+      .def(py::init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters >())
+      .def(py::init< ModelPart&, pybind11::object&,const std::string,const bool, Parameters& >())
       .def("Execute", &AssignTorqueFieldAboutAnAxisToConditionsProcess::Execute)
 
       ;
@@ -160,17 +170,26 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
   //**********BUILD STRING SKIN PROCESS*********//
 
-  class_<BuildStringSkinProcess, BuildStringSkinProcess::Pointer, Process>(m,"BuildStringSkinProcess")
-      .def(init<ModelPart&, unsigned int, double>())
+  py::class_<BuildStringSkinProcess, BuildStringSkinProcess::Pointer, Process>(m,"BuildStringSkinProcess")
+      .def(py::init<ModelPart&, unsigned int, double>())
       .def("ExecuteInitialize", &BuildStringSkinProcess::ExecuteInitialize)
       .def("ExecuteFinalizeSolutionStep", &BuildStringSkinProcess::ExecuteFinalizeSolutionStep)
-      .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)	
+      .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)
       .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
       ;
-            
+
+
+
+  //**********SOLVER PROCESS*********//
+
+  py::class_<SolverProcess, SolverProcess::Pointer, Process>(m,"SolverProcess")
+      .def(py::init<>())
+      ;
+
+
+
 }
- 
+
 }  // namespace Python.
 
 } // Namespace Kratos
-

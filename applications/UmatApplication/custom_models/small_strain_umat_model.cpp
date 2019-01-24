@@ -46,7 +46,7 @@ namespace Kratos
 
    SmallStrainUmatModel::SmallStrainUmatModel(const SmallStrainUmatModel& rOther)
       : ConstitutiveModel(rOther), mInitializedModel(rOther.mInitializedModel),
-      mStateVariablesFinalized( rOther.mStateVariablesFinalized), mStressVectorFinalized( rOther.mStressVectorFinalized), 
+      mStateVariablesFinalized( rOther.mStateVariablesFinalized), mStressVectorFinalized( rOther.mStressVectorFinalized),
       mStrainVectorFinalized( rOther.mStrainVectorFinalized)
    {
       KRATOS_TRY
@@ -61,7 +61,7 @@ namespace Kratos
    {
       KRATOS_TRY
 
-      return ( SmallStrainUmatModel::Pointer(new SmallStrainUmatModel(*this)) );
+          return Kratos::make_shared<SmallStrainUmatModel>(*this);
 
       KRATOS_CATCH("")
    }
@@ -73,7 +73,7 @@ namespace Kratos
       KRATOS_TRY
 
       ConstitutiveModel::operator=(rOther);
-      this->mInitializedModel = rOther.mInitializedModel; 
+      this->mInitializedModel = rOther.mInitializedModel;
       return *this;
 
       KRATOS_CATCH("")
@@ -124,20 +124,20 @@ namespace Kratos
 
       //set model data pointer
       rVariables.SetModelData(rValues);
-      rVariables.SetState(rValues.State);     
+      rVariables.SetState(rValues.State);
 
       //add initial strain
       if(this->mOptions.Is(ConstitutiveModel::ADD_HISTORY_VECTOR) && this->mOptions.Is(ConstitutiveModel::HISTORY_STRAIN_MEASURE) ){
          VectorType StrainVector;
-         StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+         ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
          for(unsigned int i=0; i<StrainVector.size(); i++)
          {
-            StrainVector[i] += this->mHistoryVector[i];	
+            StrainVector[i] += this->mHistoryVector[i];
          }
          rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
       }
 
-      rValues.SetStrainMeasure( ConstitutiveModelData::CauchyGreen_None);
+      rValues.SetStrainMeasure( ConstitutiveModelData::StrainMeasureType::CauchyGreen_None);
 
       rVariables.TotalStrainMatrix = rValues.StrainMatrix;
       rVariables.IncrementalDeformation = rValues.GetDeltaDeformationMatrix();
@@ -181,7 +181,7 @@ namespace Kratos
       KRATOS_TRY
 
       MatrixType StressMatrix;
-      this->CalculateStressAndConstitutiveTensors( rValues, StressMatrix, rConstitutiveMatrix);    
+      this->CalculateStressAndConstitutiveTensors( rValues, StressMatrix, rConstitutiveMatrix);
 
       KRATOS_CATCH(" ")
    }
@@ -216,7 +216,7 @@ namespace Kratos
          delta_time = 0.01;
       pTime[0] = 0.0;
       pTime[1] = pTime[0] + delta_time;
-          
+
 
       // ??
       double SPD;
@@ -224,7 +224,7 @@ namespace Kratos
       int npt = 0; // integration point number
 
       // A. Create Properties vector
-      const Properties & rMaterialProperties = rModelData.GetMaterialProperties();
+      const Properties & rMaterialProperties = rModelData.GetProperties();
       int number_properties;
       double* pPropertiesVector;
       this->CreateConstitutiveParametersVector( pPropertiesVector, number_properties, rMaterialProperties);
@@ -268,7 +268,7 @@ namespace Kratos
             Matrix(i,j) = pConstitutiveMatrix[i][j];
          }
       }
-      
+
       this->SetConstitutiveMatrix( rConstitutiveMatrix, Matrix, rStressMatrix);
 
 

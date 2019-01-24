@@ -83,7 +83,7 @@ public:
     KratosThermoMechanicalApplication();
 
     /// Destructor.
-    virtual ~KratosThermoMechanicalApplication() {}
+    ~KratosThermoMechanicalApplication() override {}
 
 
     ///@}

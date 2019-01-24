@@ -8,16 +8,13 @@
 //
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-#include "solid_mechanics_application_variables.h"
 #include "custom_constitutive/custom_hardening_laws/modified_exponential_damage_hardening_law.hpp"
+
+#include "solid_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -28,7 +25,7 @@ namespace Kratos
 ModifiedExponentialDamageHardeningLaw::ModifiedExponentialDamageHardeningLaw()
 	:HardeningLaw()
 {
-       
+
 }
 
 
@@ -56,8 +53,7 @@ ModifiedExponentialDamageHardeningLaw::ModifiedExponentialDamageHardeningLaw(Mod
 
 HardeningLaw::Pointer ModifiedExponentialDamageHardeningLaw::Clone() const
 {
-  HardeningLaw::Pointer p_clone(new ModifiedExponentialDamageHardeningLaw(*this));
-  return p_clone;
+  return Kratos::make_shared<ModifiedExponentialDamageHardeningLaw>(*this);
 }
 
 
@@ -81,7 +77,7 @@ double& ModifiedExponentialDamageHardeningLaw::CalculateHardening(double &rHarde
     const double& SofteningSlope = MaterialProperties[SOFTENING_SLOPE];
 
     const double& StateVariable = rValues.GetDeltaGamma();
-    
+
     //Compute Damage variable from the internal historical variable
     rHardening = 1.0-DamageThreshold*(1.0-ResidualStrength)/StateVariable-ResidualStrength*exp(-SofteningSlope*(StateVariable-DamageThreshold));
 
@@ -93,7 +89,7 @@ double& ModifiedExponentialDamageHardeningLaw::CalculateHardening(double &rHarde
     {
         rHardening = 1.0;
     }
-    
+
 	return rHardening;
 }
 
@@ -109,13 +105,13 @@ double& ModifiedExponentialDamageHardeningLaw::CalculateDeltaHardening(double &r
     const double& SofteningSlope = MaterialProperties[SOFTENING_SLOPE];
 
     const double& StateVariable = rValues.GetDeltaGamma();
-    
+
     //Damage derivative with respect to the internal historical variable
     rDeltaHardening = DamageThreshold*(1.0-ResidualStrength)/(StateVariable*StateVariable)+ResidualStrength*SofteningSlope*
                         exp(-SofteningSlope*(StateVariable-DamageThreshold));
 
     if(rDeltaHardening < 0.0) rDeltaHardening = 0.0;
-    
+
 	return rDeltaHardening;
 }
 

@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -13,11 +10,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 
-
-
-
-def CreateSolver(main_model_part, custom_settings):
-    return ExplicitMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return ExplicitMechanicalSolver(model, custom_settings)
 
 class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
     """The structural mechanics explicit dynamic solver.
@@ -29,7 +23,7 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
          # Set defaults and validate custom settings.
         self.dynamic_settings = KratosMultiphysics.Parameters("""
         {
@@ -42,9 +36,10 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         self.validate_and_transfer_matching_settings(custom_settings, self.dynamic_settings)
         # Validate the remaining settings in the base class.
 
-
         # Construct the base solver.
-        super(ExplicitMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(ExplicitMechanicalSolver, self).__init__(model, custom_settings)
+        # Lumped mass-matrix is necessary for explicit analysis
+        self.main_model_part.ProcessInfo[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX] = True
         self.print_on_rank_zero("::[ExplicitMechanicalSolver]:: Construction finished")
 
     def AddVariables(self):

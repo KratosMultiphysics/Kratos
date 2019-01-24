@@ -17,9 +17,9 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
-// External includes 
+// External includes
 
 // Core applications
 #include "topology_optimization_application.h"
@@ -38,7 +38,7 @@ namespace Kratos
 {
 
 	///@name Kratos Globals
-	///@{ 
+	///@{
 
     // Variables definition with Python connection
     KRATOS_DEFINE_VARIABLE( double, E_MIN )
@@ -52,16 +52,16 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( double, LOCAL_STRAIN_ENERGY )
 
 
-	///@} 
+	///@}
 	///@name Type Definitions
-	///@{ 
+	///@{
 
-	///@} 
+	///@}
 	///@name  Enum's
 	///@{
 
 	///@}
-	///@name  Functions 
+	///@name  Functions
 	///@{
 
 	///@}
@@ -76,24 +76,24 @@ namespace Kratos
 	public:
 		///@name Type Definitions
 		///@{
-		
+
 
 		/// Pointer definition of KratosTopologyOptimizationApplication
 		KRATOS_CLASS_POINTER_DEFINITION(KratosTopologyOptimizationApplication);
 
 		///@}
-		///@name Life Cycle 
-		///@{ 
+		///@name Life Cycle
+		///@{
 
 		/// Default constructor.
 		KratosTopologyOptimizationApplication();
 
 		/// Destructor.
-		virtual ~KratosTopologyOptimizationApplication(){}
+		~KratosTopologyOptimizationApplication() override {}
 
 
 		///@}
-		///@name Operators 
+		///@name Operators
 		///@{
 
 
@@ -107,7 +107,7 @@ namespace Kratos
 
 		///@}
 		///@name Access
-		///@{ 
+		///@{
 
 
 		///@}
@@ -115,7 +115,7 @@ namespace Kratos
 		///@{
 
 
-		///@}      
+		///@}
 		///@name Input and output
 		///@{
 
@@ -148,7 +148,7 @@ namespace Kratos
       }
 
 
-		///@}      
+		///@}
 		///@name Friends
 		///@{
 
@@ -156,49 +156,49 @@ namespace Kratos
 		///@}
 
 	protected:
-		///@name Protected static Member Variables 
-		///@{ 
+		///@name Protected static Member Variables
+		///@{
 
 
-		///@} 
-		///@name Protected member Variables 
-		///@{ 
+		///@}
+		///@name Protected member Variables
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Protected Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Protected  Access 
-		///@{ 
+		///@}
+		///@name Protected  Access
+		///@{
 
 
-		///@}      
-		///@name Protected Inquiry 
-		///@{ 
+		///@}
+		///@name Protected Inquiry
+		///@{
 
 
-		///@}    
-		///@name Protected LifeCycle 
-		///@{ 
+		///@}
+		///@name Protected LifeCycle
+		///@{
 
 
 		///@}
 
 	private:
-		///@name Static Member Variables 
-		///@{ 
+		///@name Static Member Variables
+		///@{
 
-		///@} 
-		///@name Member Variables 
-		///@{ 
+		///@}
+		///@name Member Variables
+		///@{
 
         //small_displacement
       	const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D3N; // dummy element for surface representation
@@ -213,29 +213,29 @@ namespace Kratos
 //        const SmallDisplacementSIMPElement mSmallDisplacementSIMPElement3D27N;
 
 
-		///@} 
+		///@}
 		///@name Private Operators
-		///@{ 
+		///@{
 
 
-		///@} 
+		///@}
 		///@name Private Operations
-		///@{ 
+		///@{
 
 
-		///@} 
-		///@name Private  Access 
-		///@{ 
+		///@}
+		///@name Private  Access
+		///@{
 
 
-		///@}    
-		///@name Private Inquiry 
-		///@{ 
+		///@}
+		///@name Private Inquiry
+		///@{
 
 
-		///@}    
-		///@name Un accessible methods 
-		///@{ 
+		///@}
+		///@name Un accessible methods
+		///@{
 
 		/// Assignment operator.
 		KratosTopologyOptimizationApplication& operator=(KratosTopologyOptimizationApplication const& rOther);
@@ -244,26 +244,26 @@ namespace Kratos
 		KratosTopologyOptimizationApplication(KratosTopologyOptimizationApplication const& rOther);
 
 
-		///@}    
+		///@}
 
-	}; // Class KratosTopologyOptimizationApplication 
+	}; // Class KratosTopologyOptimizationApplication
 
-	///@} 
-
-
-	///@name Type Definitions       
-	///@{ 
+	///@}
 
 
-	///@} 
-	///@name Input and output 
-	///@{ 
+	///@name Type Definitions
+	///@{
 
-	///@} 
+
+	///@}
+	///@name Input and output
+	///@{
+
+	///@}
 
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED  defined 
+#endif // KRATOS_TOPOLOGYOPTIMIZATION_APPLICATION_H_INCLUDED  defined
 
 

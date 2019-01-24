@@ -13,9 +13,7 @@
 
 // Project includes
 #include "custom_elements/rigid_body_element.hpp"
-
 #include "contact_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -23,33 +21,28 @@ namespace Kratos
 /**
  * Flags related to the element computation
  */
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
+KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_RHS_VECTOR, 0 );
+KRATOS_CREATE_LOCAL_FLAG( RigidBodyElement, COMPUTE_LHS_MATRIX, 1 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 RigidBodyElement::RigidBodyElement(IndexType NewId,GeometryType::Pointer pGeometry)
-    : Element(NewId, pGeometry)
+    :Element(NewId, pGeometry)
 {
-    //DO NOT ADD DOFS HERE!!!    
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Element(NewId, pGeometry, pProperties)
+    :Element(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
-    //DO NOT ADD DOFS HERE!!!
+    this->Set(RIGID);
 
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
 //******************************CONSTRUCTOR*******************************************
@@ -57,16 +50,13 @@ RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeome
 
 
 RigidBodyElement::RigidBodyElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, NodesContainerType::Pointer pNodes)
-    : Element(NewId, pGeometry, pProperties)
+    :Element(NewId, pGeometry, pProperties)
 {
     KRATOS_TRY
 
-    //DO NOT ADD DOFS HERE!!!
-
     mpNodes = pNodes;
 
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
 
@@ -85,7 +75,7 @@ RigidBodyElement::RigidBodyElement(RigidBodyElement const& rOther)
 
 Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new RigidBodyElement(NewId, GetGeometry().Create(ThisNodes), pProperties));
+  return Kratos::make_shared<RigidBodyElement>(NewId, GetGeometry().Create(ThisNodes), pProperties);
 }
 
 
@@ -95,15 +85,13 @@ Element::Pointer RigidBodyElement::Create(IndexType NewId, NodesArrayType const&
 Element::Pointer RigidBodyElement::Clone(IndexType NewId, NodesArrayType const& ThisNodes) const
 {
   RigidBodyElement NewElement( NewId, GetGeometry().Create(ThisNodes), pGetProperties(), mpNodes );
-  
-  //-----------//
-  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;     
+
+  NewElement.mInitialLocalQuaternion = this->mInitialLocalQuaternion;
   NewElement.SetData(this->GetData());
   NewElement.SetFlags(this->GetFlags());
 
-  return Element::Pointer( new RigidBodyElement(NewElement) );
+  return Kratos::make_shared<RigidBodyElement>(NewElement);
 }
-
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -112,67 +100,49 @@ RigidBodyElement::~RigidBodyElement()
 {
 }
 
-
-//************* GETTING METHODS
 //************************************************************************************
 //************************************************************************************
-
 
 void RigidBodyElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
-
     ElementalDofList.resize(0);
-    
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-	ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-	if( dimension == 2 ){
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-	}
-	else{
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_X));
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Y));
-	  ElementalDofList.push_back(GetGeometry()[i].pGetDof(ROTATION_Z));
-	}
-      }
-
+    ElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_X));
+    ElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_Y));
+    if( dimension == 2 ){
+      ElementalDofList.push_back(GetGeometry()[0].pGetDof(ROTATION_Z));
+    }
+    else{
+      ElementalDofList.push_back(GetGeometry()[0].pGetDof(DISPLACEMENT_Z));
+      ElementalDofList.push_back(GetGeometry()[0].pGetDof(ROTATION_X));
+      ElementalDofList.push_back(GetGeometry()[0].pGetDof(ROTATION_Y));
+      ElementalDofList.push_back(GetGeometry()[0].pGetDof(ROTATION_Z));
+    }
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void RigidBodyElement::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int element_size          = number_of_nodes * ( dofs_size );
+    if ( rResult.size() != dofs_size )
+        rResult.resize(dofs_size, false);
 
-    if ( rResult.size() != element_size )
-        rResult.resize( element_size, false );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rResult[index]   = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-      rResult[index+1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-      if( dimension == 2 ){
-	rResult[index+2] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-      }
-      else{
-	rResult[index+2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();	  
-	rResult[index+3] = GetGeometry()[i].GetDof(ROTATION_X).EquationId();
-	rResult[index+4] = GetGeometry()[i].GetDof(ROTATION_Y).EquationId();
-	rResult[index+5] = GetGeometry()[i].GetDof(ROTATION_Z).EquationId();
-      }
+    rResult[0] = GetGeometry()[0].GetDof(DISPLACEMENT_X).EquationId();
+    rResult[1] = GetGeometry()[0].GetDof(DISPLACEMENT_Y).EquationId();
+    if( dimension == 2 ){
+      rResult[2] = GetGeometry()[0].GetDof(ROTATION_Z).EquationId();
     }
- 
+    else{
+      rResult[2] = GetGeometry()[0].GetDof(DISPLACEMENT_Z).EquationId();
+      rResult[3] = GetGeometry()[0].GetDof(ROTATION_X).EquationId();
+      rResult[4] = GetGeometry()[0].GetDof(ROTATION_Y).EquationId();
+      rResult[5] = GetGeometry()[0].GetDof(ROTATION_Z).EquationId();
+    }
 }
 
 
@@ -183,66 +153,53 @@ void RigidBodyElement::GetValuesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
-      rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
-      if( dimension == 2 ){
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
-      }
-      else{
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
-	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ROTATION_X, Step );
-	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Y, Step );
-	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ROTATION_Z, Step );
-      }
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+    if( dimension == 2 ){
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( ROTATION_Z, Step );
+    }
+    else{
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+      rValues[3] = GetGeometry()[0].GetSolutionStepValue( ROTATION_X, Step );
+      rValues[4] = GetGeometry()[0].GetSolutionStepValue( ROTATION_Y, Step );
+      rValues[5] = GetGeometry()[0].GetSolutionStepValue( ROTATION_Z, Step );
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************VELOCITY****************************************
 //************************************************************************************
 
-//************************************************************************************
-//************************************************************************************
 void RigidBodyElement::GetFirstDerivativesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
-      rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
-      if( dimension == 2 ){
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
-      }
-      else{
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );      
-	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
-	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
-	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );	
-      }
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Y, Step );
+    if( dimension == 2 ){
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
+    }
+    else{
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( VELOCITY_Z, Step );
+      rValues[3] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_VELOCITY_X, Step );
+      rValues[4] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
+      rValues[5] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
     }
 
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //*********************************ACCELERATION***************************************
@@ -252,63 +209,40 @@ void RigidBodyElement::GetSecondDerivativesVector(Vector& rValues, int Step)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int       element_size    = number_of_nodes * (dofs_size);
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    if ( rValues.size() != element_size ) rValues.resize( element_size, false );
+    if ( rValues.size() != dofs_size )
+      rValues.resize( dofs_size, false );
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-      int index = i * (dofs_size);
-      rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
-      rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
-      if( dimension == 2 ){
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
-      }
-      else{
-	rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
-	rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
-	rValues[index + 4] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
-	rValues[index + 5] = GetGeometry()[i].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
-      }
-
+    rValues[0] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_X, Step );
+    rValues[1] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Y, Step );
+    if( dimension == 2 ){
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
+    }
+    else{
+      rValues[2] = GetGeometry()[0].GetSolutionStepValue( ACCELERATION_Z, Step );
+      rValues[3] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_ACCELERATION_X, Step );
+      rValues[4] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_ACCELERATION_Y, Step );
+      rValues[5] = GetGeometry()[0].GetSolutionStepValue( ANGULAR_ACCELERATION_Z, Step );
     }
 
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-//**********************************GET VECTOR VALUE**********************************
-//************************************************************************************
-
-void RigidBodyElement::GetValueOnIntegrationPoints( const Variable<array_1d<double, 3 > >& rVariable,
-						    std::vector< array_1d<double, 3 > >& rValues,
-						    const ProcessInfo& rCurrentProcessInfo )
-{
-
-    this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
-
+    KRATOS_CATCH("")
 }
 
 
-//************* STARTING - ENDING  METHODS
 //************************************************************************************
 //************************************************************************************
 
 void RigidBodyElement::Initialize()
 {
     KRATOS_TRY
-      
+
     Matrix& LocalAxesMatrix = GetProperties()[LOCAL_AXES_MATRIX];
 
     mInitialLocalQuaternion = QuaternionType::FromRotationMatrix( LocalAxesMatrix );
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -318,9 +252,8 @@ void RigidBodyElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
-
 
 
 //************************************************************************************
@@ -330,7 +263,9 @@ void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 {
      KRATOS_TRY
 
-     KRATOS_CATCH( "" )
+     //this->UpdateRigidBodyNodes(rCurrentProcessInfo);
+
+     KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -339,10 +274,10 @@ void RigidBodyElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 void RigidBodyElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
      KRATOS_TRY
-       
+
      this->UpdateRigidBodyNodes(rCurrentProcessInfo);
 
-     KRATOS_CATCH( "" )
+     KRATOS_CATCH("")
 }
 
 
@@ -354,8 +289,9 @@ void RigidBodyElement::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
 {
      KRATOS_TRY
 
+     //this->UpdateRigidBodyNodes(rCurrentProcessInfo);
 
-     KRATOS_CATCH( "" )
+     KRATOS_CATCH("")
 }
 
 
@@ -367,102 +303,27 @@ void RigidBodyElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 						Flags& rCalculationFlags)
 
 {
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
     //resizing as needed the LHS
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * ( dofs_size );
+    const SizeType dofs_size = this->GetDofsSize();
 
     if ( rCalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
-        if ( rLeftHandSideMatrix.size1() != MatSize )
-            rLeftHandSideMatrix.resize( MatSize, MatSize, false );
+        if ( rLeftHandSideMatrix.size1() != dofs_size )
+            rLeftHandSideMatrix.resize( dofs_size, dofs_size, false );
 
-        noalias( rLeftHandSideMatrix ) = ZeroMatrix( MatSize, MatSize ); //resetting LHS
+        noalias( rLeftHandSideMatrix ) = ZeroMatrix( dofs_size, dofs_size ); //resetting LHS
     }
 
     //resizing as needed the RHS
     if ( rCalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
-        if ( rRightHandSideVector.size() != MatSize )
-	    rRightHandSideVector.resize( MatSize, false );
-      
-	noalias( rRightHandSideVector ) = ZeroVector( MatSize ); //resetting RHS
-	  
+        if ( rRightHandSideVector.size() != dofs_size )
+	    rRightHandSideVector.resize( dofs_size, false );
+
+	noalias( rRightHandSideVector ) = ZeroVector( dofs_size ); //resetting RHS
     }
 }
 
-
-//************* COMPUTING  METHODS
-//************************************************************************************
-//************************************************************************************
-
-
-//************************************************************************************
-//************************************************************************************
-
-Vector& RigidBodyElement::GetNodalCurrentValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
-{
-    KRATOS_TRY
-
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    array_1d<double,3> ArrayValue;
-    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable );
-    
-    if( rValue.size() != dimension )
-      rValue.resize(dimension, false);
-
-    for( unsigned int i=0; i<dimension; i++ )
-      {
-	rValue[i] = ArrayValue[i];
-      }
-   
-
-    return rValue;
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-Vector& RigidBodyElement::GetNodalPreviousValue(const Variable<array_1d<double,3> >&rVariable, Vector& rValue, const unsigned int& rNode)
-{
-    KRATOS_TRY
-
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    array_1d<double,3> ArrayValue;
-    ArrayValue = GetGeometry()[rNode].FastGetSolutionStepValue( rVariable, 1 );
-    
-    if( rValue.size() != dimension )
-      rValue.resize(dimension, false);
-
-    for( unsigned int i=0; i<dimension; i++ )
-      {
-	rValue[i] = ArrayValue[i];
-      }
-   
-
-    return rValue;
-
-    KRATOS_CATCH( "" )
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-void RigidBodyElement::InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    KRATOS_CATCH( "" )   
-}
 
 //************************************************************************************
 //************************************************************************************
@@ -471,7 +332,7 @@ void RigidBodyElement::CalculateRigidBodyProperties(RigidBodyProperties & rRigid
 {
     KRATOS_TRY
 
-   
+
     if( GetProperties().Has(NODAL_MASS) ){
         rRigidBody.Mass = GetProperties()[NODAL_MASS];
     }
@@ -484,7 +345,7 @@ void RigidBodyElement::CalculateRigidBodyProperties(RigidBodyProperties & rRigid
         rRigidBody.InertiaTensor = inertia;
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 
 }
 
@@ -494,7 +355,6 @@ void RigidBodyElement::CalculateRigidBodyProperties(RigidBodyProperties & rRigid
 void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 					      ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
 
     //create local system components
@@ -506,77 +366,75 @@ void RigidBodyElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     MatrixType LeftHandSideMatrix = Matrix();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices(LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
-
-
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+                                             ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     //create local system components
     LocalSystemComponents LocalSystem;
 
-    //calculation flags   
+    //calculation flags
     LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags);
 
-
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                            VectorType& rRightHandSideVector,
+                                            ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     //create local system components
     LocalSystemComponents LocalSystem;
 
-    //calculation flags 
+    //calculation flags
     LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_RHS_VECTOR);
     LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_LHS_MATRIX);
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+    this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
-
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
+
 //************************************************************************************
 //************************************************************************************
 
-
-void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSystem,
-					       ProcessInfo& rCurrentProcessInfo )
+void RigidBodyElement::CalculateDynamicSystem(LocalSystemComponents& rLocalSystem,
+                                              ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
     //create and initialize element variables:
     ElementVariables Variables;
-    this->InitializeElementVariables(Variables, rCurrentProcessInfo);
+    Variables.Initialize(dimension,rCurrentProcessInfo);
 
-    std::cout<<" ID "<<this->Id()<<std::endl;
-    std::cout<<" Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<std::endl;
-    std::cout<<" Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<std::endl;
+    // std::cout<<" RigidBodyElement "<<this->Id()<<std::endl;
+    // std::cout<<" [Displacement "<<GetGeometry()[0].FastGetSolutionStepValue( DISPLACEMENT )<<"]"<<std::endl;
+    // std::cout<<" [Rotation     "<<GetGeometry()[0].FastGetSolutionStepValue( ROTATION )<<"]"<<std::endl;
 
     //Compute Rigid Body Properties:
     this->CalculateRigidBodyProperties(Variables.RigidBody);
@@ -587,29 +445,31 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
       {
 	MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
-	this->CalculateAndAddInertiaLHS( rLeftHandSideMatrix, Variables, rCurrentProcessInfo); // (R_N+1, R_N)
-	
-	//std::cout<<" LeftHandSide "<<rLeftHandSideMatrix<<std::endl;
+	this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
       }
 
     if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
       {
 	VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector();
 
-	this->CalculateAndAddInertiaRHS( rRightHandSideVector, Variables, rCurrentProcessInfo);
-	
-	Vector VolumeForce(3);
-	noalias(VolumeForce) = ZeroVector(3);
-	VolumeForce = CalculateVolumeForce(VolumeForce);
-	this->CalculateAndAddExternalForces( rRightHandSideVector, Variables, VolumeForce);
-
-	// std::cout<<" VolumeForce "<<VolumeForce<<std::endl;
-	//std::cout<<" RightHandSide "<<rRightHandSideVector<<std::endl;
-
+	this->CalculateAndAddRHS(rRightHandSideVector, Variables);
       }
 
 
-    // Note: 
+    this->MapLocalToGlobalSystem(rLocalSystem);
+
+    KRATOS_CATCH("")
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::MapLocalToGlobalSystem(LocalSystemComponents& rLocalSystem)
+{
+    KRATOS_TRY
+
+     // Note:
     // That means that the standard rotation K = Q·K'·QT and F = Q·F' is the correct transformation
 
     Matrix InitialLocalMatrix = ZeroMatrix(3,3);
@@ -619,7 +479,7 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
     if ( rLocalSystem.CalculationFlags.Is(RigidBodyElement::COMPUTE_LHS_MATRIX) ){
 
       MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
-      
+
       // works for 2D and 3D case
       BeamMathUtilsType::MapLocalToGlobal3D(InitialLocalMatrix, rLeftHandSideMatrix);
 
@@ -639,38 +499,36 @@ void RigidBodyElement::CalculateDynamicSystem( LocalSystemComponents& rLocalSyst
       //std::cout<<"["<<this->Id()<<"] RB RotatedDynamic rRightHandSideVector "<<rRightHandSideVector<<std::endl;
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
+
 //************************************************************************************
 //************************************************************************************
 
-
-Vector& RigidBodyElement::MapToInitialLocalFrame(Vector& rVariable)
+RigidBodyElement::ArrayType& RigidBodyElement::MapToInitialLocalFrame(ArrayType& rVariable)
 {
     KRATOS_TRY
-         
+
     BeamMathUtilsType::MapToCurrentLocalFrame(mInitialLocalQuaternion, rVariable);
 
     return rVariable;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
-
 
 //************************************************************************************
 //************************************************************************************
 
 void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						     ElementVariables& rVariables,
-						     Vector& rVolumeForce)
+						     ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    unsigned int number_of_nodes   = GetGeometry().PointsNumber();
-    unsigned int dimension         = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size   = dimension * (dimension + 1) * 0.5;
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+
+    rVariables.VolumeForce = CalculateVolumeForce(rVariables.VolumeForce);
 
     double DomainSize = rVariables.RigidBody.Mass;
 
@@ -678,137 +536,107 @@ void RigidBodyElement::CalculateAndAddExternalForces(VectorType& rRightHandSideV
     Vector GravityLoad(dimension);
     noalias(GravityLoad) = ZeroVector(dimension);
 
-    unsigned int RowIndex = 0;
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    for ( SizeType j = 0; j < dimension; j++ )
     {
-      	RowIndex = i * (dofs_size);
-	
-	for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-	    GravityLoad[j] = rVolumeForce[j] * DomainSize;
-	  }
-	
-	//substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
-	BeamMathUtilsType::SubstractVector( GravityLoad, rRightHandSideVector, RowIndex );
-    
+      GravityLoad[j] = rVariables.VolumeForce[j] * DomainSize;
     }
 
-    std::cout<<" Rigid Element Gravity "<<GravityLoad<<std::endl;
-    std::cout<<" rRightHandSideVector "<<rRightHandSideVector<<std::endl;
+    //substract because is added as a component of the InertiaRHS and is substracted again later in the scheme
+    BeamMathUtilsType::SubstractVector( GravityLoad, rRightHandSideVector, 0 );
 
-    KRATOS_CATCH( "" )
+    // std::cout<<" Rigid Element Gravity x Mass"<<GravityLoad<<std::endl;
+    // std::cout<<" Rigid Body External Force : "<<rRightHandSideVector<<std::endl;
 
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector, 
-					       const Variable<VectorType>& rRHSVariable, 
-					       Variable<array_1d<double,3> >& rDestinationVariable, 
+void RigidBodyElement::AddExplicitContribution(const VectorType& rRHSVector,
+					       const Variable<VectorType>& rRHSVariable,
+					       Variable<array_1d<double,3> >& rDestinationVariable,
 					       const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-      
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
+
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
     if( (rRHSVariable == RESIDUAL_VECTOR) ){
 
       if ( rDestinationVariable == FORCE_RESIDUAL )
-	{
+      {
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
-	    {
-	      int index = (dofs_size) * i;
+        GetGeometry()[0].SetLock();
 
-	      GetGeometry()[i].SetLock();
+        array_1d<double, 3 > &ForceResidual = GetGeometry()[0].FastGetSolutionStepValue(FORCE_RESIDUAL);
 
-	      array_1d<double, 3 > &ForceResidual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+        for(SizeType j=0; j<dimension; j++)
+        {
+          ForceResidual[j] += rRHSVector[j];
+        }
 
-	      for(unsigned int j=0; j<dimension; j++)
-		{
-		  ForceResidual[j] += rRHSVector[index + j];
-		}
-
-	      GetGeometry()[i].UnSetLock();
-	    }
-	}
+        GetGeometry()[0].UnSetLock();
+      }
       else if( rDestinationVariable == MOMENT_RESIDUAL )
-	{
+      {
+        int index = dimension;
 
-	  for(unsigned int i=0; i< number_of_nodes; i++)
-	    {
-	      int index = dimension + (dofs_size) * i;
+        GetGeometry()[0].SetLock();
 
-	      GetGeometry()[i].SetLock();
+        array_1d<double, 3 > &MomentResidual = GetGeometry()[0].FastGetSolutionStepValue(MOMENT_RESIDUAL);
 
-	      array_1d<double, 3 > &MomentResidual = GetGeometry()[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
-
-	      if( dimension == 2 ){
-		MomentResidual[2] += rRHSVector[index];
-	      }
-	      else{
-		for(unsigned int j=0; j<dimension; j++)
-		  {
-		    MomentResidual[j] += rRHSVector[index + j];
-		  }
-	      }
-	      GetGeometry()[i].UnSetLock();
-	    }
-
-	}
-
-      
+        if( dimension == 2 ){
+          MomentResidual[2] += rRHSVector[index];
+        }
+        else{
+          for(SizeType j=0; j<dimension; j++)
+          {
+            MomentResidual[j] += rRHSVector[index + j];
+          }
+        }
+        GetGeometry()[0].UnSetLock();
+      }
     }
 
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
-
-
 
 //************************************CALCULATE VOLUME ACCELERATION*******************
 //************************************************************************************
 
-Vector&  RigidBodyElement::CalculateVolumeForce( Vector& rVolumeForce)
+RigidBodyElement::ArrayType& RigidBodyElement::CalculateVolumeForce(ArrayType& rVolumeForce)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
 
-    if( rVolumeForce.size() != dimension )
-      rVolumeForce.resize(dimension,false);
-    
-    noalias(rVolumeForce) = ZeroVector(dimension);
-    
-    for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    {
-        if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
-            rVolumeForce += GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-    }
+    noalias(rVolumeForce) = ZeroVector(3);
+
+    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+      for(SizeType i=0; i<dimension; ++i)
+        rVolumeForce[i] += GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)[i];
 
     //rVolumeForce *= GetProperties()[DENSITY];
-    
+
     //Current Frame is the local frame
     rVolumeForce = MapToInitialLocalFrame( rVolumeForce );
 
     return rVolumeForce;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                               VectorType& rRightHandSideVector,
+                                                               ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
 
     bool ComputeDynamicTangent = false;
     if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) ){
@@ -823,17 +651,17 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       //create local system components
       LocalSystemComponents LocalSystem;
 
-      //calculation flags 
+      //calculation flags
       LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_RHS_VECTOR);
       LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_LHS_MATRIX);
-    
+
       //Initialize sizes for the system components:
-      this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+      this->InitializeSystemMatrices(rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags);
 
       //Set Variables to Local system components
       LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
       LocalSystem.SetRightHandSideVector(rRightHandSideVector);
-	
+
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
@@ -843,51 +671,54 @@ void RigidBodyElement::CalculateSecondDerivativesContributions(MatrixType& rLeft
       //1.-Calculate Tangent Inertia Matrix:
       this->CalculateMassMatrix( rLeftHandSideMatrix, rCurrentProcessInfo );
 
-      double MatSize = rLeftHandSideMatrix.size1();
+      double dofs_size = rLeftHandSideMatrix.size1();
 
       //2.-Calculate Inertial Forces:
-      if ( rRightHandSideVector.size() != MatSize )
-	rRightHandSideVector.resize( MatSize, false );
-      
-      noalias(rRightHandSideVector) = ZeroVector( MatSize ); //resetting RHS
+      if ( rRightHandSideVector.size() != dofs_size )
+	rRightHandSideVector.resize( dofs_size, false );
+
+      noalias(rRightHandSideVector) = ZeroVector( dofs_size ); //resetting RHS
     }
 
+    // std::cout<<" RIGID BODY RHS "<<rRightHandSideVector<<std::endl;
+    // std::cout<<" RIGID BODY LHS "<<rLeftHandSideMatrix<<std::endl;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                                     ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-      
+
     bool ComputeDynamicTangent = false;
     if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
       if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
 	ComputeDynamicTangent = true;
-    
+
     if( ComputeDynamicTangent == true ){
 
       //create local system components
       LocalSystemComponents LocalSystem;
 
-      //calculation flags   
+      //calculation flags
       LocalSystem.CalculationFlags.Set(RigidBodyElement::COMPUTE_LHS_MATRIX);
 
       VectorType RightHandSideVector = Vector();
 
       //Initialize sizes for the system components:
-      this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags );
-	
+      this->InitializeSystemMatrices(rLeftHandSideMatrix, RightHandSideVector,  LocalSystem.CalculationFlags);
+
       //Set Variables to Local system components
       LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
       LocalSystem.SetRightHandSideVector(RightHandSideVector);
-	
+
       //Calculate elemental system
-      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );    
+      CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
 
     }
     else{
@@ -897,13 +728,14 @@ void RigidBodyElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMa
 
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                                     ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -911,7 +743,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
     if( rCurrentProcessInfo.Has(COMPUTE_DYNAMIC_TANGENT) )
       if(rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true)
 	ComputeDynamicTangent = true;
-    
+
     if( ComputeDynamicTangent == true ){
 
       //create local system components
@@ -931,7 +763,7 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
 
       //Calculate elemental system
       CalculateDynamicSystem( LocalSystem, rCurrentProcessInfo );
- 
+
     }
     else{
 
@@ -950,133 +782,107 @@ void RigidBodyElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideV
     }
 
 
-    KRATOS_CATCH( "" )   
+    KRATOS_CATCH("")
 }
 
-
 //************************************************************************************
 //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+                                          ElementVariables& rVariables)
 {
+  // add inertia RHS
+  this->CalculateAndAddInertiaLHS(rLeftHandSideMatrix, rVariables);
 
+  std::cout<<" Rigid body LHS "<<rLeftHandSideMatrix<<std::endl;
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void RigidBodyElement::CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                          ElementVariables& rVariables)
+{
+  // add inertia RHS
+  this->CalculateAndAddInertiaRHS(rRightHandSideVector, rVariables);
+
+  // calculate and add external forces
+  this->CalculateAndAddExternalForces(rRightHandSideVector, rVariables);
+
+  std::cout<<" Rigid body RHS "<<rRightHandSideVector<<std::endl;
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
+//Inertia in the SPATIAL configuration
+void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix,
+                                                 ElementVariables& rVariables)
+{
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
+    const SizeType dimension       = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size       = this->GetDofsSize();
 
-    if(rLeftHandSideMatrix.size1() != MatSize)
-      rLeftHandSideMatrix.resize (MatSize, MatSize, false);
+    if(rLeftHandSideMatrix.size1() != dofs_size)
+      rLeftHandSideMatrix.resize (dofs_size, dofs_size, false);
 
-    rLeftHandSideMatrix = ZeroMatrix( MatSize, MatSize );
+    rLeftHandSideMatrix = ZeroMatrix( dofs_size, dofs_size );
 
     //rCurrentProcessInfo must give it:
-    double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
- 
-    double Newmark1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
-    double Newmark2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+    double Newmark0 = 0;
+    double Newmark1 = 0;
+    double Newmark2 = 0;
 
-    //block m(1,1) of the mass matrix
+    this->GetTimeIntegrationParameters(Newmark0,Newmark1,Newmark2,rCurrentProcessInfo);
 
-    MatrixType m11 = ZeroMatrix(3,3);
+    //Current Compound Rotation Vector
+    ArrayType CurrentCompoundRotationVector = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+    CurrentCompoundRotationVector = MapToInitialLocalFrame(CurrentCompoundRotationVector);
 
-    double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
-    
-    //block m(2,2) of the mass matrix
-     
-    MatrixType m22 = ZeroMatrix(3,3);
+    //Previous Compound Rotation Vector
+    // ArrayType PreviousCompoundRotationVector = GetGeometry()[0].FastGetSolutionStepValue(ROTATION,1);
+    // PreviousCompoundRotationVector = MapToInitialLocalFrame(PreviousCompoundRotationVector);
 
-    Vector CurrentCompoundRotationVector(3);
-    noalias(CurrentCompoundRotationVector) = ZeroVector(3);
-    Vector PreviousCompoundRotationVector(3);
-    noalias(PreviousCompoundRotationVector) = ZeroVector(3);
+    //Current Step Rotation Vector
+    ArrayType CurrentStepRotationVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_ROTATION);
+    CurrentStepRotationVector = MapToInitialLocalFrame(CurrentStepRotationVector);
 
-    Vector CurrentStepRotationVector(3);
-    noalias(CurrentStepRotationVector) = ZeroVector(3);
-    Vector AngularVelocityVector(3);
-    noalias(AngularVelocityVector) = ZeroVector(3);
-    Vector AngularAccelerationVector(3);
-    noalias(AngularAccelerationVector) = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector(3);
-    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector(3);
-    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
- 
-    Vector CurrentValueVector(3);
-    noalias(CurrentValueVector) = ZeroVector(3);
-    Vector PreviousValueVector(3);
-    noalias(PreviousValueVector) = ZeroVector(3);
+    //Angular Velocity Vector
+    ArrayType AngularVelocityVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    AngularVelocityVector = MapToInitialLocalFrame(AngularVelocityVector);
 
-    std::vector<QuaternionType> PreviousNodeQuaternions;
-    QuaternionType QuaternionValue;
+    //CurrentAngular Acceleration Vector
+    ArrayType CurrentAngularAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+    CurrentAngularAccelerationVector = MapToInitialLocalFrame(CurrentAngularAccelerationVector);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
+    //PreviousAngular Acceleration Vector
+    ArrayType PreviousAngularAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION,1);
+    PreviousAngularAccelerationVector = MapToInitialLocalFrame(PreviousAngularAccelerationVector);
 
-	//Current Compound Rotation Vector 
-	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
-	CurrentValueVector = MapToInitialLocalFrame( CurrentValueVector );
-
-    	CurrentCompoundRotationVector = CurrentValueVector;
-
-    	//Previous Compound Rotation Vector 
-	PreviousValueVector = GetNodalPreviousValue( ROTATION, PreviousValueVector, i );
-	PreviousValueVector = MapToInitialLocalFrame( PreviousValueVector );
-
-	PreviousCompoundRotationVector = PreviousValueVector;
-    
-	//Current Step Rotation Vector 
-	CurrentValueVector = GetNodalCurrentValue( STEP_ROTATION, CurrentValueVector, i );
-	CurrentStepRotationVector              = CurrentValueVector;
-
-	//Angular Velocity Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	AngularVelocityVector                  = CurrentValueVector;
-
-	//CurrentAngular Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	CurrentAngularAccelerationVector       = CurrentValueVector;
-        
-        //PreviousAngular Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	PreviousAngularAccelerationVector       = CurrentValueVector;
-		
-      }
-     
-    //Set step variables to local frame (current Frame is the local frame)
-    CurrentStepRotationVector         = MapToInitialLocalFrame( CurrentStepRotationVector );
-    AngularVelocityVector             = MapToInitialLocalFrame( AngularVelocityVector );
-    CurrentAngularAccelerationVector  = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
-    PreviousAngularAccelerationVector = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
 
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-
-    AngularAccelerationVector = (1.0-AlphaM)*CurrentAngularAccelerationVector + AlphaM*(PreviousAngularAccelerationVector);
+    ArrayType AngularAccelerationVector = (1.0-AlphaM)*CurrentAngularAccelerationVector + AlphaM*(PreviousAngularAccelerationVector);
 
     //Set step variables to local frame (current Frame is the local frame)
-    Matrix CurrentRotationMatrix   = ZeroMatrix(3,3);
-    Matrix PreviousRotationMatrix = ZeroMatrix(3,3);  
-    
 
     //1.-Get rotation matrix
-    QuaternionType TotalQuaternion;    
+    QuaternionType TotalQuaternion;
 
-    //1.1.-Current Rotation Matrix   
+    //1.1.-Current Rotation Matrix
+    Matrix CurrentRotationMatrix(3,3);
     TotalQuaternion = QuaternionType::FromRotationVector(CurrentCompoundRotationVector);
-
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
-    
+
     //1.2.-Previous Rotation Matrix
 
     //option 1:
-    TotalQuaternion = QuaternionType::FromRotationVector(PreviousCompoundRotationVector);
+    // Matrix PreviousRotationMatrix(3,3);
+    // TotalQuaternion = QuaternionType::FromRotationVector(PreviousCompoundRotationVector);
+    // TotalQuaternion.ToRotationMatrix( PreviousRotationMatrix );
 
-    TotalQuaternion.ToRotationMatrix( PreviousRotationMatrix );
-    
     //2.-Get inertia dyadic
     Matrix InertiaDyadic = ZeroMatrix(3,3);
     InertiaDyadic = rVariables.RigidBody.InertiaTensor;
@@ -1084,11 +890,11 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
     InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
 
-    
+
     // SIMO -----------------------------
     //2.- Compute Term 1:
-    
-    Matrix MassTerm1 = ZeroMatrix(3,3);
+
+    Matrix MassTerm1(3,3);
 
     Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
     Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
@@ -1096,108 +902,80 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // previous implementation
     // Vector VectorTerm1 = MathUtils<double>::CrossProduct( AngularVelocityVector, InertiaxAngularVelocity);
     // VectorTerm1 += InertiaxAngularAcceleration;
-   
-    Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+
+    Matrix TensorAngularVelocity(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
     Vector VectorTerm1(3);
-    noalias(VectorTerm1) = ZeroVector(3);
-
-    VectorTerm1  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
-
+    noalias(VectorTerm1) = prod( TensorAngularVelocity, InertiaxAngularVelocity );
     VectorTerm1 += InertiaxAngularAcceleration;
 
     BeamMathUtilsType::VectorToSkewSymmetricTensor(VectorTerm1, MassTerm1);
-        
-    //3.- Compute Term 2:
-    
-    Matrix MassTerm2 = ZeroMatrix(3,3);
 
-    // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
+    //3.- Compute Term 2:
+
+     // Matrix TensorAngularVelocity(3,3);
     // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
 
-    Matrix InertiaxAngularVelocityTensor = ZeroMatrix(3,3);
+    Matrix InertiaxAngularVelocityTensor(3,3);
     BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, InertiaxAngularVelocityTensor );
 
-    Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
+    Matrix TensorAngularVelocityxInertia(3,3);
     noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
-    
-    Matrix InertiaxTensorAngularVelocity = ZeroMatrix(3,3);
+
+    Matrix InertiaxTensorAngularVelocity(3,3);
     noalias(InertiaxTensorAngularVelocity) = prod( InertiaDyadic, TensorAngularVelocity );
-    
+
     //MassTerm2 = InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia + Newmark2 * InertiaxTensorAngularVelocity; //Cardona
 
-    MassTerm2 = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo
-         
+    Matrix MassTerm2(3,3);
+    noalias(MassTerm2) = (1.0-AlphaM) * InertiaDyadic - Newmark2 * InertiaxAngularVelocityTensor + Newmark2 * TensorAngularVelocityxInertia; //Simo
     MassTerm2 *= Newmark1;
-    
-    MatrixType MassMatrixBlock2 = ZeroMatrix(3,3);
 
-    MassMatrixBlock2 = (-1) * MassTerm1 + MassTerm2;	
-  
+    Matrix MassMatrixBlock2(3,3);
+    noalias(MassMatrixBlock2) = (-1) * MassTerm1 + MassTerm2;
+
     // Compute Linear Part of the Step Rotation
-    Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
+    Matrix LinearPartRotationTensor(3,3);
 
     double NormCurrentStepRotation =  norm_2(CurrentStepRotationVector);
     if( NormCurrentStepRotation != 0 ){
-
       this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
-
     }
     else{
-
       //std::cout<<" Attention... problem sure "<<std::endl;
-      LinearPartRotationTensor = IdentityMatrix(3);
+      noalias(LinearPartRotationTensor) = IdentityMatrix(3);
     }
 
     //this->CalculateRotationLinearPartTensor( CurrentStepRotationVector , LinearPartRotationTensor );
     // std::cout<<" MassMatrixBlock 2 SPA "<<MassMatrixBlock2<<std::endl;
     // std::cout<<" LinearPartRotationTensor SPA "<<LinearPartRotationTensor<<std::endl;
 
-    MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
- 
+    //block 1 of the mass matrix
+    MatrixType m11(dimension,dimension);
+    noalias(m11) = IdentityMatrix(dimension);
+    m11 *= (1.0-AlphaM) * Newmark1 * rVariables.RigidBody.Mass;
 
-    unsigned int RowIndex = 0;
-    unsigned int ColIndex = 0;
+    //block 2 of the mass matrix
+    MatrixType m22(3,3);
+    noalias(m22) = prod(MassMatrixBlock2, LinearPartRotationTensor);
 
-    Matrix DiagonalMatrix = IdentityMatrix(3);        
+    //Building the Local Tangent Inertia Matrix
+    BeamMathUtilsType::AddMatrix(rLeftHandSideMatrix, m11, 0, 0);
+    if(dimension == 2)
+      rLeftHandSideMatrix(2,2) = m22(2,2);
+    else
+      BeamMathUtilsType::AddMatrix(rLeftHandSideMatrix, m22, 3, 3);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-    	m11 = ZeroMatrix(3,3);
-    	m22 = ZeroMatrix(3,3);
 
-    	RowIndex = i * (dofs_size);
-
-    	for ( unsigned int j = 0; j < number_of_nodes; j++ )
-    	  {
-
-    	    ColIndex = j * (dofs_size);
-
-    	    m11 = (1.0-AlphaM) * Newmark1 * TotalMass * DiagonalMatrix;
-
-    	    m22 = MassMatrixBlock2;
-	    
-
-    	    //Building the Local Tangent Inertia Matrix
-    	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
-	    if(dimension == 2)
-	      rLeftHandSideMatrix(RowIndex+3,ColIndex+3) = m22(2,2);
-	    else  
-	      BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
-	    
-    	  }
-      }
-    
-  
-    //std::cout<<" rLeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
+    // std::cout<<" Rigid Body LeftHandSideMatrix "<<rLeftHandSideMatrix<<std::endl;
 
     // SIMO -----------------------------
 
 
     // GERADIN --------------------------
     // //2.- Compute Damping term:
-    
+
     // Matrix DampingTerm = ZeroMatrix(3,3);
     // Matrix TensorAngularVelocity = ZeroMatrix(3,3);
     // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
@@ -1205,7 +983,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // Matrix TensorAngularVelocityxInertia = ZeroMatrix(3,3);
     // noalias(TensorAngularVelocityxInertia) = prod( TensorAngularVelocity, InertiaDyadic );
 
-     
+
     // Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
     // Matrix TensorInertiaxAngularVelocity = ZeroMatrix(3,3);
     // BeamMathUtilsType::VectorToSkewSymmetricTensor( InertiaxAngularVelocity, TensorInertiaxAngularVelocity );
@@ -1221,7 +999,7 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // Matrix TensorAngularAcceleration = ZeroMatrix(3,3);
     // BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularAccelerationVector, TensorAngularAcceleration );
     // TensorAngularAcceleration *= (-1);
-    
+
     // Matrix InertiaxTensorAngularAcceleration = prod( InertiaDyadic, TensorAngularAcceleration );
 
     // Matrix VelocityxInertiaxVelocity = prod( InertiaDyadic, TensorAngularVelocity );
@@ -1238,9 +1016,9 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // Matrix MassMatrixBlock2 = Newmark1 * (InertiaDyadic + Newmark2*DampingTerm) + StiffnessTerm;
 
     // MassMatrixBlock2 = prod( CurrentRotationMatrix, MassMatrixBlock2 );
-    
+
     // MassMatrixBlock2 = prod( MassMatrixBlock2, trans(PreviousRotationMatrix));
-        
+
     // // Compute Linear Part of the Step Rotation
     // Matrix LinearPartRotationTensor = ZeroMatrix(3,3);
 
@@ -1254,28 +1032,26 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
 
     //   LinearPartRotationTensor = IdentityMatrix(3);
     //   MassMatrixBlock2 = InertiaDyadic;
- 
+
     // }
 
     // //std::cout<<" LinearPartRotationTensor "<<LinearPartRotationTensor<<std::endl;
 
     // MassMatrixBlock2 = prod( MassMatrixBlock2, LinearPartRotationTensor );
- 
-     
 
-    // unsigned int RowIndex = 0;
-    // unsigned int ColIndex = 0;
+    // SizeType RowIndex = 0;
+    // SizeType ColIndex = 0;
 
     // Matrix DiagonalMatrix = IdentityMatrix(3);
-    
-    // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+
+    // for ( SizeType i = 0; i < number_of_nodes; i++ )
     //   {
     // 	m11 = ZeroMatrix(3,3);
     // 	m22 = ZeroMatrix(3,3);
 
     // 	RowIndex = i * (dofs_size);
 
-    // 	for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    // 	for ( SizeType j = 0; j < number_of_nodes; j++ )
     // 	  {
 
     // 	    ColIndex = j * (dofs_size);
@@ -1283,258 +1059,205 @@ void RigidBodyElement::CalculateAndAddInertiaLHS(MatrixType& rLeftHandSideMatrix
     // 	    m11 = TotalMass * DiagonalMatrix;
 
     // 	    m22 = MassMatrixBlock2;
-	    
+
 
     // 	    //Building the Local Tangent Inertia Matrix
     // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m11, RowIndex, ColIndex );
     // 	    BeamMathUtilsType::AddMatrix( rLeftHandSideMatrix, m22, RowIndex+3, ColIndex+3 );
-	    
+
     // 	  }
     //   }
 
     // GERADIN --------------------------
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 
 }
 
 //************************************************************************************
 //************************************************************************************
 
-//Inertia in the SPATIAL configuration 
-void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::GetTimeIntegrationParameters(double& rP0,double& rP1,double& rP2, const ProcessInfo& rCurrentProcessInfo)
+{
+  KRATOS_TRY
+
+  double DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+  rP0 = 1.0;
+  rP1 = (1.0/ ( DeltaTime * DeltaTime * rCurrentProcessInfo[NEWMARK_BETA] ));
+  rP2 = ( DeltaTime * rCurrentProcessInfo[NEWMARK_GAMMA] );
+
+  KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+//Inertia in the SPATIAL configuration
+void RigidBodyElement::CalculateAndAddInertiaRHS(VectorType& rRightHandSideVector,
+                                                 ElementVariables& rVariables)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const ProcessInfo& rCurrentProcessInfo = rVariables.GetProcessInfo();
 
-    if(rRightHandSideVector.size() != MatSize)
-      rRightHandSideVector.resize(MatSize, false);
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    noalias(rRightHandSideVector) = ZeroVector( MatSize );
+    if(rRightHandSideVector.size() != dofs_size)
+      rRightHandSideVector.resize(dofs_size, false);
 
-     double TotalMass = 0;
-    TotalMass = rVariables.RigidBody.Mass;
+    noalias(rRightHandSideVector) = ZeroVector( dofs_size );
 
+    //Current Compound Rotation Vector
+    ArrayType CurrentCompoundRotationVector = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
+    CurrentCompoundRotationVector = MapToInitialLocalFrame(CurrentCompoundRotationVector);
 
-    //displacements and rotations vector
-    Matrix TotalRotationMatrix(3,3);
-    noalias(TotalRotationMatrix) = ZeroMatrix(3,3);
-    Vector TotalRotationVector(3);
-    noalias(TotalRotationVector) = ZeroVector(3);
+    //CurrentLinear Acceleration Vector
+    ArrayType CurrentLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION);
+    CurrentLinearAccelerationVector = MapToInitialLocalFrame(CurrentLinearAccelerationVector);
 
-    Vector LinearAccelerationVector(3);
-    noalias(LinearAccelerationVector) = ZeroVector(3);
-    Vector CurrentLinearAccelerationVector(3);
-    noalias(CurrentLinearAccelerationVector) = ZeroVector(3);
-    Vector PreviousLinearAccelerationVector(3);
-    noalias(PreviousLinearAccelerationVector) = ZeroVector(3);
+    //PreviousLinear Acceleration Vector
+    ArrayType PreviousLinearAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
+    PreviousLinearAccelerationVector = MapToInitialLocalFrame(PreviousLinearAccelerationVector);
 
-    Vector AngularVelocityVector(3);
-    noalias(AngularVelocityVector) = ZeroVector(3);
-    Vector AngularAccelerationVector(3);
-    noalias(AngularAccelerationVector) = ZeroVector(3);
-    Vector CurrentAngularAccelerationVector(3);
-    noalias(CurrentAngularAccelerationVector) = ZeroVector(3);
-    Vector PreviousAngularAccelerationVector(3);
-    noalias(PreviousAngularAccelerationVector) = ZeroVector(3);
- 
+    //Angular Velocity Vector
+    ArrayType AngularVelocityVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_VELOCITY);
+    AngularVelocityVector = MapToInitialLocalFrame(AngularVelocityVector);
 
-    Vector CurrentValueVector(3);
-    noalias(CurrentValueVector) = ZeroVector(3);
+    //CurrentAngular Acceleration Vector
+    ArrayType CurrentAngularAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION);
+    CurrentAngularAccelerationVector = MapToInitialLocalFrame(CurrentAngularAccelerationVector);
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	//Current Compound Rotation Vector 
-	CurrentValueVector = GetNodalCurrentValue( ROTATION, CurrentValueVector, i );
-	TotalRotationVector             =  CurrentValueVector;
-
-	//Current Linear Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ACCELERATION, CurrentValueVector, i );
-	CurrentLinearAccelerationVector  = CurrentValueVector;
-
-	//Previous Linear Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ACCELERATION, CurrentValueVector, i );
-	PreviousLinearAccelerationVector = CurrentValueVector;
-
-	//Angular Velocity Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_VELOCITY, CurrentValueVector, i );
-	AngularVelocityVector           =  CurrentValueVector;
-
-	//Current Angular Acceleration Vector
-	CurrentValueVector = GetNodalCurrentValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	CurrentAngularAccelerationVector       =  CurrentValueVector;
-        
-        //Previous Angular Acceleration Vector
-	CurrentValueVector = GetNodalPreviousValue( ANGULAR_ACCELERATION, CurrentValueVector, i );
-	PreviousAngularAccelerationVector       =  CurrentValueVector;
-
-      }
-     
-    //Set step variables to local frame (current Frame is the local frame)
-    TotalRotationVector                 = MapToInitialLocalFrame( TotalRotationVector );
-    CurrentLinearAccelerationVector     = MapToInitialLocalFrame( CurrentLinearAccelerationVector );
-    PreviousLinearAccelerationVector    = MapToInitialLocalFrame( PreviousLinearAccelerationVector );
-    AngularVelocityVector               = MapToInitialLocalFrame( AngularVelocityVector );
-    CurrentAngularAccelerationVector    = MapToInitialLocalFrame( CurrentAngularAccelerationVector );
-    PreviousAngularAccelerationVector   = MapToInitialLocalFrame( PreviousAngularAccelerationVector );
+    //PreviousAngular Acceleration Vector
+    ArrayType PreviousAngularAccelerationVector = GetGeometry()[0].FastGetSolutionStepValue(ANGULAR_ACCELERATION,1);
+    PreviousAngularAccelerationVector = MapToInitialLocalFrame(PreviousAngularAccelerationVector);
 
     double AlphaM = rCurrentProcessInfo[BOSSAK_ALPHA];
-    LinearAccelerationVector  = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
-    AngularAccelerationVector = (1.0-AlphaM) * CurrentAngularAccelerationVector + AlphaM * (PreviousAngularAccelerationVector);
+    ArrayType LinearAccelerationVector  = (1.0-AlphaM) * CurrentLinearAccelerationVector + AlphaM * (PreviousLinearAccelerationVector);
+    ArrayType AngularAccelerationVector = (1.0-AlphaM) * CurrentAngularAccelerationVector + AlphaM * (PreviousAngularAccelerationVector);
 
-
-    QuaternionType TotalQuaternion = QuaternionType::FromRotationVector(TotalRotationVector);
+    QuaternionType TotalQuaternion = QuaternionType::FromRotationVector(CurrentCompoundRotationVector);
     Matrix CurrentRotationMatrix   = ZeroMatrix(3,3);
     TotalQuaternion.ToRotationMatrix( CurrentRotationMatrix );
 
+
+    //for writting purposes
+    ArrayType CurrentStepRotationVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_ROTATION);
+    CurrentStepRotationVector = MapToInitialLocalFrame(CurrentStepRotationVector);
+    ArrayType CurrentDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    CurrentDisplacementVector = MapToInitialLocalFrame(CurrentDisplacementVector);
+    ArrayType CurrentStepDisplacementVector = GetGeometry()[0].FastGetSolutionStepValue(STEP_DISPLACEMENT);
+    CurrentStepDisplacementVector = MapToInitialLocalFrame(CurrentStepDisplacementVector);
+    ArrayType CurrentVelocityVector = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+    CurrentVelocityVector = MapToInitialLocalFrame(CurrentVelocityVector);
+
+
+    std::cout<<" [ Rotation:"<<CurrentCompoundRotationVector<<",StepRotation:"<<CurrentStepRotationVector<<"]"<<std::endl;
+    std::cout<<" [ Displacement:"<<CurrentDisplacementVector<<",StepDisplacement:"<<CurrentStepDisplacementVector<<"]"<<std::endl;
+    std::cout<<" [ Velocity:"<<CurrentVelocityVector<<",Acceleration:"<<CurrentLinearAccelerationVector<<"]"<<std::endl;
+    std::cout<<" [ AngularVelocity:"<<AngularVelocityVector<<",AngularAcceleration:"<<CurrentAngularAccelerationVector<<"]"<<std::endl;
+
+
     //-----------------
-    //block m(1) of the inertial force vector
+    //block 1 of the inertial force vector
 
     //Compute Linear Term:
 
-    Vector LinearInertialForceVector(3);
-    noalias(LinearInertialForceVector) = ZeroVector(3);
+    Vector LinearInertialForceVector(dimension);
 
-    //this transformation is wrong
-    //LinearInertialForceVector  = MapToMaterialFrame( TotalQuaternion, LinearInertialForceVector );
-
-    LinearInertialForceVector = TotalMass * LinearAccelerationVector;
-
+    for(SizeType i=0; i<dimension; ++i)
+      LinearInertialForceVector[i] = rVariables.RigidBody.Mass * LinearAccelerationVector[i];
 
     //-----------------
-    //block m(2,2) of the inertial force vector (rotations part::to be defined)
+    //block 2 of the inertial force vector (rotations part::to be defined)
 
     //Get inertia dyadic
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
-    InertiaDyadic = rVariables.RigidBody.InertiaTensor;
+    Matrix InertiaDyadic(3,3);
+    noalias(InertiaDyadic) = rVariables.RigidBody.InertiaTensor;
     //Inertia dyadic expressed in the initial frame
     InertiaDyadic = prod(CurrentRotationMatrix,InertiaDyadic);
     InertiaDyadic = prod(InertiaDyadic,trans(CurrentRotationMatrix));
 
     //Compute Angular Term:
-    
-    Vector InertiaxAngularVelocity     = prod( InertiaDyadic, AngularVelocityVector );
-    Vector InertiaxAngularAcceleration = prod( InertiaDyadic, AngularAccelerationVector );
-    
-    Matrix TensorAngularVelocity = ZeroMatrix(3,3);
-    BeamMathUtilsType::VectorToSkewSymmetricTensor( AngularVelocityVector, TensorAngularVelocity );
+
+    Vector InertiaxAngularVelocity(3);
+    noalias(InertiaxAngularVelocity) = prod(InertiaDyadic, AngularVelocityVector);
+    Vector InertiaxAngularAcceleration(3);
+    noalias(InertiaxAngularAcceleration) = prod(InertiaDyadic, AngularAccelerationVector);
+
+    Matrix TensorAngularVelocity(3,3);
+    BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocityVector, TensorAngularVelocity);
 
     Vector AngularInertialForceVector(3);
-    noalias(AngularInertialForceVector) = ZeroVector(3);
-
-    AngularInertialForceVector  = prod( TensorAngularVelocity, InertiaxAngularVelocity );
+    noalias(AngularInertialForceVector) = prod(TensorAngularVelocity, InertiaxAngularVelocity);
 
     // CROSS PRODUCT of AxB = prod( skewA, B )  where (skewA) = [Ax] = [A]^v =>  (skewA)^T = hat(A) (nomenclature)
     AngularInertialForceVector += InertiaxAngularAcceleration;
 
     //compose total acceleration integral function:
 
-    Vector TotalInertialForceVector(3);
+    Vector TotalInertialForceVector(dofs_size);
     noalias(TotalInertialForceVector) = ZeroVector(dofs_size);
 
     BeamMathUtilsType::AddVector(LinearInertialForceVector, TotalInertialForceVector, 0);
 
     if(dimension == 2)
-      TotalInertialForceVector[dofs_size-1] = AngularInertialForceVector[2];
+      TotalInertialForceVector[dofs_size-1] += AngularInertialForceVector[2];
     else
       BeamMathUtilsType::AddVector(AngularInertialForceVector, TotalInertialForceVector, 3);
 
-    //Initialize Local Matrices
-    VectorType Fi(dofs_size);
-    noalias(Fi) = ZeroVector(dofs_size);
-    unsigned int RowIndex = 0;
 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
+    BeamMathUtilsType::AddVector(TotalInertialForceVector, rRightHandSideVector, 0);
 
-    	RowIndex = i * (dofs_size);
 
-    	noalias(Fi) = ZeroVector(dofs_size);
-	
-    	//nodal force vector
-    	Fi  = TotalInertialForceVector;
+    std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
 
-	BeamMathUtilsType::AddVector(Fi, rRightHandSideVector, RowIndex);
-
-    	//std::cout<<" Fi "<<Fi<<std::endl;
-
-      }
-
-    //std::cout<<" Rigid Body: rRightHandSideVector "<<rRightHandSideVector<<std::endl;
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix,
+                                           ProcessInfo& rCurrentProcessInfo)
 {
-
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-    const unsigned int dofs_size       = dimension * (dimension + 1) * 0.5;
-    unsigned int MatSize               = number_of_nodes * (dofs_size);
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType dofs_size = this->GetDofsSize();
 
-    if(rMassMatrix.size1() != MatSize)
-        rMassMatrix.resize (MatSize, MatSize, false);
+    if(rMassMatrix.size1() != dofs_size || rMassMatrix.size2() != dofs_size)
+      rMassMatrix.resize(dofs_size,dofs_size,false);
 
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
+    noalias(rMassMatrix) = ZeroMatrix(dofs_size,dofs_size);
 
     // Rigid Body Properties
     RigidBodyProperties RigidBody;
     this->CalculateRigidBodyProperties(RigidBody);
 
-    //block m(1,1) of the mass matrix
+    //block 1 of the mass matrix
+    MatrixType m11(dimension,dimension);
+    noalias(m11) = ZeroMatrix(dimension,dimension);
+    for(SizeType i=0; i<dimension; ++i)
+    {
+      m11(i,i) = RigidBody.Mass;
+    }
 
-    MatrixType m11 = ZeroMatrix(3,3);
+    //block 2 of the mass matrix
+    MatrixType m22(3,3);
+    noalias(m22) = RigidBody.InertiaTensor;
+    m22 *= RigidBody.Mass;
 
-    double TotalMass = 0;
-    TotalMass = RigidBody.Mass;
+    //Building the Local Tangent Inertia Matrix
+    BeamMathUtilsType::AddMatrix(rMassMatrix, m11, 0, 0);
 
+    if(dimension == 2)
+      rMassMatrix(2,2) = m22(2,2);
+    else
+      BeamMathUtilsType::AddMatrix(rMassMatrix, m22, 3, 3);
 
-    //block m(2,2) of the mass matrix
-    
-    MatrixType m22 = ZeroMatrix(3,3);
-
-    Matrix InertiaDyadic = ZeroMatrix(3,3);
-    InertiaDyadic = RigidBody.InertiaTensor;
-
-
-    for( unsigned int i=0; i < number_of_nodes; i++ )
-      {
-
-        double temp = TotalMass;
-
-    	int RowIndex = i * (dofs_size);
-
-    	for( unsigned int k=0; k < dimension; k++ )
-    	  {
-    	    m11(k,k) = temp;
-    	  }
-
-    	m22 = InertiaDyadic * temp;
-
-    	//Building the Local Tangent Inertia Matrix
-    	BeamMathUtilsType::AddMatrix( rMassMatrix, m11, RowIndex, RowIndex );
-
-	if(dimension == 2)
-	  rMassMatrix(RowIndex+3,RowIndex+3) = m22(2,2);
-	else
-	  BeamMathUtilsType::AddMatrix( rMassMatrix, m22, RowIndex+3, RowIndex+3 );
-
-      }
- 
-
-    KRATOS_CATCH( "" )
-
+    KRATOS_CATCH("")
 }
 
 
@@ -1542,35 +1265,35 @@ void RigidBodyElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateRotationLinearPartTensor(Vector& rRotationVector, Matrix& rRotationTensor)
+void RigidBodyElement::CalculateRotationLinearPartTensor(ArrayType& rRotationVector,
+                                                         Matrix& rRotationTensor)
 
 {
     KRATOS_TRY
 
     if( rRotationTensor.size1() != 3 )
       rRotationTensor.resize(3, 3, false);
-    
-    rRotationTensor = ZeroMatrix(3,3);
 
     // adding term 3
-    BeamMathUtilsType::VectorToSkewSymmetricTensor( rRotationVector, rRotationTensor );
+    BeamMathUtilsType::VectorToSkewSymmetricTensor(rRotationVector, rRotationTensor);
 
     rRotationTensor *= 0.5;
-    
+
     double NormRotation =  norm_2(rRotationVector);
-    Matrix RotationxRotation = outer_prod( rRotationVector, rRotationVector );
-    
+    Matrix RotationxRotation(3,3);
+    noalias(RotationxRotation) = outer_prod(rRotationVector, rRotationVector);
+
     if( NormRotation != 0 )
-      RotationxRotation *= ( 1.0/( NormRotation * NormRotation ) );
+      RotationxRotation *= ( 1.0/(NormRotation * NormRotation) );
 
     // adding term 1
-    rRotationTensor += RotationxRotation;
-    
+    rRotationTensor = RotationxRotation;
+
     double Coefficient = 0;
     if( NormRotation != 0 )
-      Coefficient = 0.5 * NormRotation / std::tan( 0.5 * NormRotation );
-    
-    for(unsigned int i=0; i<3; i++)
+      Coefficient = 0.5 * NormRotation / std::tan(0.5 * NormRotation);
+
+    for(SizeType i=0; i<3; i++)
       RotationxRotation(i,i) -= 1.0;
 
     RotationxRotation *= (-1)*Coefficient;
@@ -1578,8 +1301,7 @@ void RigidBodyElement::CalculateRotationLinearPartTensor(Vector& rRotationVector
     // adding term 2
     rRotationTensor += RotationxRotation;
 
-
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 
@@ -1591,150 +1313,113 @@ void RigidBodyElement::UpdateRigidBodyNodes(ProcessInfo& rCurrentProcessInfo)
 
      KRATOS_TRY
 
-     Matrix SkewSymVariable(3,3);
-     noalias(SkewSymVariable) = ZeroMatrix(3,3);
-     Vector RadiusVector(3);
-     noalias(RadiusVector) = ZeroVector(3);
-     Vector Variable(3);
-     noalias(Variable) = ZeroVector(3);
-     Vector AngularVariable(3);
-     noalias(AngularVariable) = ZeroVector(3);
-     array_1d<double,3>     VariableArray;
- 
-     array_1d<double,3> Radius;
-
      Node<3>::Pointer rCenterOfGravity = this->GetGeometry()(0);
-     
+
      if( rCenterOfGravity->Is(SLAVE) ){
-       Element& MasterElement = this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();
-       rCenterOfGravity = MasterElement.GetGeometry()(0); 
+       Element& MasterElement = *this->GetGeometry()[0].GetValue(MASTER_ELEMENTS).back();
+       rCenterOfGravity = MasterElement.GetGeometry()(0);
      }
 
-     array_1d<double, 3 >&  Center              = rCenterOfGravity->GetInitialPosition();
-     
-     array_1d<double, 3 >&  Displacement        = rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT);
-     array_1d<double, 3 >&  Rotation            = rCenterOfGravity->FastGetSolutionStepValue(ROTATION);
-     array_1d<double, 3 >&  StepRotation        = rCenterOfGravity->FastGetSolutionStepValue(STEP_ROTATION);
-     array_1d<double, 3 >&  DeltaRotation       = rCenterOfGravity->FastGetSolutionStepValue(DELTA_ROTATION);
-     
-     array_1d<double, 3 >&  Velocity            = rCenterOfGravity->FastGetSolutionStepValue(VELOCITY);
-     array_1d<double, 3 >&  Acceleration        = rCenterOfGravity->FastGetSolutionStepValue(ACCELERATION);
-     array_1d<double, 3 >&  AngularVelocity     = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-     array_1d<double, 3 >&  AngularAcceleration = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-     
-     //std::cout<<" [  MasterElement "<<this->Id() ];
-     //std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<",DeltaRotation:"<<DeltaRotation<<"]"<<std::endl;
-     //std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<",DeltaDisplacement"<<Displacement-rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT,1)<<"]"<<std::endl;
-     
-     for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
-       {	
-	 //Get rotation matrix
-	 QuaternionType TotalQuaternion = QuaternionType::FromRotationVector<array_1d<double,3> >(Rotation);
+     ArrayType&  Center              = rCenterOfGravity->GetInitialPosition();
 
-	 Radius = (i)->GetInitialPosition() - Center;
+     ArrayType&  Displacement        = rCenterOfGravity->FastGetSolutionStepValue(DISPLACEMENT);
+     ArrayType&  Rotation            = rCenterOfGravity->FastGetSolutionStepValue(ROTATION);
+     ArrayType&  StepRotation        = rCenterOfGravity->FastGetSolutionStepValue(STEP_ROTATION);
 
-	 Matrix RotationMatrix;
-	 TotalQuaternion.ToRotationMatrix(RotationMatrix);
-	      
-	 for(int j=0; j<3; j++)
-	   RadiusVector[j] = Radius[j];
-	      
-	 RadiusVector = prod( RotationMatrix, RadiusVector );
+     ArrayType&  Velocity            = rCenterOfGravity->FastGetSolutionStepValue(VELOCITY);
+     ArrayType&  Acceleration        = rCenterOfGravity->FastGetSolutionStepValue(ACCELERATION);
+     ArrayType&  AngularVelocity     = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+     ArrayType&  AngularAcceleration = rCenterOfGravity->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
 
-	 for(int j=0; j<3; j++)
-	   Radius[j] = RadiusVector[j];
+     // std::cout<<" [ MasterElement "<<this->Id()<<" ]"<<rCenterOfGravity->Coordinates()<<std::endl;
+     // std::cout<<" [ Nodes_size "<<mpNodes->size()<<" ]"<<std::endl;
+     // std::cout<<" [ Rotation:"<<Rotation<<",StepRotation:"<<StepRotation<<"]"<<std::endl;
+     // std::cout<<" [ Velocity:"<<Velocity<<",Acceleration:"<<Acceleration<<",Displacement:"<<Displacement<<"]"<<std::endl;
+     // std::cout<<" [ AngularVelocity:"<<AngularVelocity<<",AngularAcceleration:"<<AngularAcceleration<<"]"<<std::endl;
 
-	 //TotalQuaternion.RotateVector3<array_1d<double,3> >(Radius);
-        
-	 array_1d<double, 3 >&  NodeDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-	 array_1d<double, 3 >&  NodeRotation      = (i)->FastGetSolutionStepValue(ROTATION);
-	 array_1d<double, 3 >&  NodeStepRotation  = (i)->FastGetSolutionStepValue(STEP_ROTATION);
-	 array_1d<double, 3 >&  NodeDeltaRotation = (i)->FastGetSolutionStepValue(DELTA_ROTATION);
+     ArrayType Radius;
+     ArrayType Variable;
+     QuaternionType TotalQuaternion;
+     Matrix RotationMatrix(3,3);
 
-	 noalias(NodeDisplacement)  = ( (Center + Displacement)  + Radius ) - (i)->GetInitialPosition();
-	 noalias(NodeRotation)      = Rotation;
-	 noalias(NodeStepRotation)  = StepRotation;
-	 noalias(NodeDeltaRotation) = DeltaRotation;    
-     
+     if( rCenterOfGravity->SolutionStepsDataHas(STEP_DISPLACEMENT) ){
+       ArrayType& StepDisplacement = rCenterOfGravity->FastGetSolutionStepValue(STEP_DISPLACEMENT);
+       //std::cout<<" [ StepDisplacement"<<StepDisplacement<<"]"<<std::endl;
 
-	 for(int j=0; j<3; j++)
-	   RadiusVector[j] = Radius[j];
-
-	 //********************
-	 for(int j=0; j<3; j++)
-	   Variable[j] = AngularVelocity[j];
-
-	 //compute the skewsymmmetric tensor of the angular velocity
-	 BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
-	 //compute the contribution of the angular velocity to the velocity v = Wxr
-	 Variable = prod(SkewSymVariable,RadiusVector);
-     
-	 for(int j=0; j<3; j++)
-	   VariableArray[j] = Variable[j];
-
-	 (i)->FastGetSolutionStepValue(VELOCITY)               = Velocity + VariableArray;
-
-
-	 //********************
-	      
-	 //centripetal acceleration:
-	 for(int j=0; j<3; j++)
-	   AngularVariable[j] = AngularVelocity[j];
-		
-	 //compute the skewsymmmetric tensor of the angular velocity
-	 BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVariable, SkewSymVariable);
-
-	 AngularVariable = prod(SkewSymVariable,Variable); //ac = Wx(Wxr)
-
-
-	 for(int j=0; j<3; j++)
-	   Variable[j] = AngularAcceleration[j];
-
-	 //compute the skewsymmmetric tensor of the angular acceleration
-	 BeamMathUtilsType::VectorToSkewSymmetricTensor(Variable, SkewSymVariable);
-	      
-	 //compute the contribution of the angular velocity to the velocity a = Axr
-	 Variable = prod(SkewSymVariable,RadiusVector);
-
-	 for(int j=0; j<3; j++)
-	   VariableArray[j] = Variable[j] + AngularVariable[j];
-
-	 (i)->FastGetSolutionStepValue(ACCELERATION)           = Acceleration + VariableArray;
-
-
-	 //********************
-	 (i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)       = AngularVelocity;
-	 (i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)   = AngularAcceleration;
-    
-	 // 	std::cout<<"  [ Finalize Rigid Body Link Point : [Id:"<<(i)->Id()<<"] "<<std::endl;
-	 // 	std::cout<<"  [ Displacement:"<<NodeDisplacement<<" / StepRotation"<<NodeStepRotation<<" ] "<<std::endl;  
-	 // 	std::cout<<"  [ Rotation:"<<NodeRotation<<" / Angular Acceleration"<<AngularAcceleration<<" ] "<<std::endl;  
-
+       for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
+       {
+         if( (i)->Id() != this->Id() ){
+           TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(StepRotation);
+           TotalQuaternion.ToRotationMatrix(RotationMatrix);
+           Radius = (i)->GetInitialPosition() - Center;
+           Radius = prod(RotationMatrix, Radius);
+           noalias(Variable) = Center + StepDisplacement + Radius;
+           noalias((i)->FastGetSolutionStepValue(STEP_DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+         }
        }
+     }
 
-     KRATOS_CATCH( "" )
+     Matrix SkewSymVelocity(3,3);
+     Matrix SkewSymAcceleration(3,3);
+     //Get rotation matrix
+     TotalQuaternion = QuaternionType::FromRotationVector<ArrayType>(Rotation);
+     //compute the skewsymmmetric tensor of the angular velocity
+     BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularVelocity, SkewSymVelocity);
+     //compute the skewsymmmetric tensor of the angular acceleration
+     BeamMathUtilsType::VectorToSkewSymmetricTensor(AngularAcceleration, SkewSymAcceleration);
+
+     for (NodesContainerType::iterator i = mpNodes->begin(); i != mpNodes->end(); ++i)
+     {
+       if( (i)->Id() != this->Id() ){
+
+         Radius = (i)->GetInitialPosition() - Center;
+         TotalQuaternion.ToRotationMatrix(RotationMatrix);
+         Radius = prod(RotationMatrix, Radius);
+
+         noalias(Variable) = Center + Displacement + Radius ;
+         noalias((i)->Coordinates()) = Variable;
+         noalias((i)->FastGetSolutionStepValue(DISPLACEMENT)) =  Variable - (i)->GetInitialPosition();
+
+         noalias((i)->FastGetSolutionStepValue(ROTATION)) = Rotation;
+         noalias((i)->FastGetSolutionStepValue(STEP_ROTATION)) = StepRotation;
+         noalias((i)->FastGetSolutionStepValue(ANGULAR_VELOCITY)) = AngularVelocity;
+         noalias((i)->FastGetSolutionStepValue(ANGULAR_ACCELERATION)) = AngularAcceleration;
+         noalias((i)->FastGetSolutionStepValue(VELOCITY)) = Velocity;
+         noalias((i)->FastGetSolutionStepValue(ACCELERATION)) = Acceleration;
+
+         // Update velocity:
+         noalias(Variable) = prod(SkewSymVelocity,Radius); //v=Wxr
+         (i)->FastGetSolutionStepValue(VELOCITY) += Variable;
+
+         // Update Acceleration:
+         Variable = prod(SkewSymVelocity,Variable); //ac=Wx(Wxr)
+         (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
+         noalias(Variable) = prod(SkewSymAcceleration,Radius); //a=Axr
+         (i)->FastGetSolutionStepValue(ACCELERATION) += Variable;
+       }
+     }
+
+     KRATOS_CATCH("")
 }
 
+
 //************************************************************************************
 //************************************************************************************
 
-void RigidBodyElement::CalculateOnIntegrationPoints(  const Variable<array_1d<double, 3 > >& rVariable,
-						      std::vector< array_1d<double, 3 > >& rOutput, 
-						      const ProcessInfo& rCurrentProcessInfo )
+RigidBodyElement::SizeType RigidBodyElement::GetDofsSize()
 {
+  KRATOS_TRY
 
-    KRATOS_TRY
+  const SizeType dimension = GetGeometry().WorkingSpaceDimension();
 
+  return (dimension * (dimension + 1) * 0.5);
 
-    KRATOS_CATCH( "" )
+  KRATOS_CATCH( "" )
 }
 
 
-
 //************************************************************************************
 //************************************************************************************
-
 
 /**
  * This function provides the place to perform checks on the completeness of the input.
@@ -1747,9 +1432,9 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if (GetGeometry().WorkingSpaceDimension() != 3 || GetGeometry().size()!=1 )
+    if(GetGeometry().size()!=1)
     {
-      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only in 3D and with 1 noded geometry", "")
+      KRATOS_THROW_ERROR( std::invalid_argument, "This element works only with 1 noded geometry", "")
     }
 
     //verify that the variables are correctly initialized
@@ -1761,8 +1446,6 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(DENSITY.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
-     if(VOLUME_ACCELERATION.Key() == 0)
-        // KRATOS_THROW_ERROR( std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(NODAL_MASS.Key() == 0)
         KRATOS_THROW_ERROR( std::invalid_argument,"NODAL_MASS has Key zero! (check if the application is correctly registered", "" )
     if(LOCAL_INERTIA_TENSOR.Key() == 0)
@@ -1771,12 +1454,12 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_THROW_ERROR( std::invalid_argument,"ROTATION has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
-    for(unsigned int i=0; i<this->GetGeometry().size(); i++)
+    for(SizeType i=0; i<this->GetGeometry().size(); i++)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
             KRATOS_THROW_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
+                KRATOS_THROW_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the area is given by properties
@@ -1793,10 +1476,9 @@ int  RigidBodyElement::Check(const ProcessInfo& rCurrentProcessInfo)
 	  KRATOS_THROW_ERROR( std::logic_error,"LOCAL_INERTIA_TENSOR not provided for this element ", this->Id() )
     }
 
-
     return 0;
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -1807,7 +1489,6 @@ void RigidBodyElement::save( Serializer& rSerializer ) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     rSerializer.save("InitialLocalQuaternion",mInitialLocalQuaternion);
     rSerializer.save("RigidBodyNodes",mpNodes);
-
 }
 
 void RigidBodyElement::load( Serializer& rSerializer )
@@ -1819,5 +1500,3 @@ void RigidBodyElement::load( Serializer& rSerializer )
 
 
 } // Namespace Kratos
-
-

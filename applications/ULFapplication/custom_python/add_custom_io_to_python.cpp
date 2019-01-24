@@ -48,7 +48,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 
 // External includes
-#include <boost/python.hpp>
+//#include <boost/python.hpp>
 
 
 // Project includes
@@ -127,13 +127,13 @@ void  AddCustomIOToPython()
 
     using namespace boost::python;
 
-    class_<GidIOType, GidIOType::Pointer, bases<DatafileIO>, boost::noncopyable>(
+    py::class_<GidIOType, GidIOType::Pointer, bases<DatafileIO>, boost::noncopyable>(
         "PFEMGidIO",init<std::string const&, GiD_PostMode,
         MultiFileFlag,
         WriteDeformedMeshFlag,
         WriteConditionsFlag>())
-    //.def(init<std::string const&>())
-    .def(init<std::string const&,
+    //.def(py::init<std::string const&>())
+    .def(py::init<std::string const&,
          std::string const&,
          std::string const&,
          std::string const&,

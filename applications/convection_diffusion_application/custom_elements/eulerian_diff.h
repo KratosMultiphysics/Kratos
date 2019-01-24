@@ -4,7 +4,7 @@
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
-//   license: convection_diffusion_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:  Riccardo Rossi
 //
@@ -55,7 +55,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-///formulation described in 
+///formulation described in https://docs.google.com/document/d/13a_zGLj6xORDuLgoOG5LwHI6BwShvfO166opZ815zLY/edit?usp=sharing
 template< unsigned int TDim, unsigned int TNumNodes>
 class EulerianDiffusionElement
     : public Element
@@ -195,7 +195,7 @@ public:
 
         BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
 
-        bounded_matrix<double,TNumNodes, TNumNodes> Ncontainer;
+        BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
         GetShapeFunctionsOnGauss(Ncontainer);
         for(unsigned int igauss=0; igauss<TDim+1; igauss++)
         {

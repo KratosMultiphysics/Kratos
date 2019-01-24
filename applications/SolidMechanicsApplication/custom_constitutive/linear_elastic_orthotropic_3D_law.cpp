@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_orthotropic_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -43,8 +40,7 @@ LinearElasticOrthotropic3DLaw::LinearElasticOrthotropic3DLaw(const LinearElastic
 
 ConstitutiveLaw::Pointer LinearElasticOrthotropic3DLaw::Clone() const
 {
-    LinearElasticOrthotropic3DLaw::Pointer p_clone(new LinearElasticOrthotropic3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElasticOrthotropic3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -75,7 +71,7 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
@@ -84,9 +80,9 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
 
     if(Options.Is( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN ))
     {
-	//only needed 
+	//only needed
 	const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
-		
+
         //4.-Right Cauchy Green
         Matrix RightCauchyGreen = prod(trans(DeformationGradientF),DeformationGradientF);
 
@@ -101,7 +97,7 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
       if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-      	
+
 	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
@@ -115,7 +111,7 @@ void  LinearElasticOrthotropic3DLaw::CalculateMaterialResponsePK2 (Parameters& r
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
       }
-      
+
     }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
@@ -172,27 +168,27 @@ void LinearElasticOrthotropic3DLaw::CalculateMaterialResponseKirchhoff (Paramete
     //7.-Calculate total Kirchhoff stress
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-      
+
       if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-	
+
 	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
-      
+
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 
       }
       else {
-	
+
 	Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size() );
 	noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size() );
-	
+
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, MaterialProperties );
-      
+
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-      
+
       }
-      
+
     }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
@@ -222,7 +218,7 @@ void LinearElasticOrthotropic3DLaw::CalculateStress( const Vector & rStrainVecto
     //1.-2nd Piola Kirchhoff StressVector increment
     if( rStressVector.size() != rStrainVector.size() )
       rStressVector.resize(rStrainVector.size(),false);
-  
+
     noalias(rStressVector) = prod(rConstitutiveMatrix,rStrainVector);
 
 
@@ -311,7 +307,7 @@ int LinearElasticOrthotropic3DLaw::Check(const Properties& rMaterialProperties,
 
 	if(YOUNG_MODULUS_Y.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Y))
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS_Y has Key zero or invalid value ", "" )
-	
+
 	if(YOUNG_MODULUS_Z.Key() == 0 || !rMaterialProperties.Has(YOUNG_MODULUS_Z))
         KRATOS_THROW_ERROR( std::invalid_argument,"YOUNG_MODULUS_Z has Key zero or invalid value ", "" )
 

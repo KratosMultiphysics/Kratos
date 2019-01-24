@@ -31,6 +31,7 @@
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/process_factory_utility.h"
+#include "custom_utilities/contact_utilities.h"
 
 namespace Kratos {
 
@@ -139,6 +140,7 @@ public:
         ProcessesListType pPostProcesses = nullptr
     )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag),
+        mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
     {
@@ -147,11 +149,7 @@ public:
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
         
         Parameters default_parameters = GetDefaultParameters(); 
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-        
-        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
-        mSplitFactor = ThisParameters["split_factor"].GetDouble();
-        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -183,6 +181,7 @@ public:
         ProcessesListType pPostProcesses = nullptr                                     
         )
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag ),
+        mThisParameters(ThisParameters),
         mpMyProcesses(pMyProcesses),
         mpPostProcesses(pPostProcesses)
     {
@@ -191,11 +190,7 @@ public:
         mConvergenceCriteriaEchoLevel = pNewConvergenceCriteria->GetEchoLevel();
 
         Parameters default_parameters = GetDefaultParameters(); 
-        ThisParameters.ValidateAndAssignDefaults(default_parameters);
-        
-        mAdaptativeStrategy = ThisParameters["adaptative_strategy"].GetBool();
-        mSplitFactor = ThisParameters["split_factor"].GetDouble();
-        mMaxNumberSplits = ThisParameters["max_number_splits"].GetInt();
+        mThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         KRATOS_CATCH("");
     }
@@ -218,6 +213,45 @@ public:
     {
         KRATOS_TRY
         
+        // Auxiliar zero array
+        const array_1d<double, 3> zero_array = ZeroVector(3);
+
+        // Set to zero the weighted gap
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        NodesArrayType& nodes_array = r_model_part.GetSubModelPart("Contact").Nodes();
+        const bool frictional = r_model_part.Is(SLIP);
+
+        // We predict contact pressure in case of contact problem
+        if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
+            VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
+            if (frictional) {
+                VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, nodes_array);
+            }
+
+            // Compute the current gap
+            ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
+
+            // We predict a contact pressure
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+            const std::size_t step = r_process_info[STEP];
+
+            if (step == 1) {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+
+                }
+            } else {
+                #pragma omp parallel for
+                for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+                    auto it_node = nodes_array.begin() + i;
+                    noalias(it_node->Coordinates()) += (it_node->FastGetSolutionStepValue(DISPLACEMENT) - it_node->FastGetSolutionStepValue(DISPLACEMENT, 1));
+
+                }
+            }
+        }
+
 //         BaseType::Predict();  // NOTE: May cause problems in dynamics!!! 
 // 
 //         // Set to zero the weighted gap // NOTE: This can be done during the search if the predict is deactivated
@@ -228,14 +262,8 @@ public:
 //         if (nodes_array.begin()->SolutionStepsDataHas(WEIGHTED_GAP)) {
 //             VariableUtils().SetScalarVar<Variable<double>>(WEIGHTED_GAP, 0.0, nodes_array);
 //             
-//             ConditionsArrayType& conditions_array = r_model_part.GetSubModelPart("ComputingContact").Conditions();
-//         
-//             if (conditions_array.size() == 0) 
-//                 KRATOS_TRACE("Empty model part") << "YOUR COMPUTING CONTACT MODEL PART IS EMPTY" << std::endl;
-//             
-//             #pragma omp parallel for
-//             for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-//                 (conditions_array.begin() + i)->AddExplicitContribution(r_model_part.GetProcessInfo());
+//             // Compute the current gap
+//             ContactUtilities::ComputeExplicitContributionConditions(r_model_part.GetSubModelPart("ComputingContact"));
 //             
 //             // We predict a contact pressure
 //             ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
@@ -277,6 +305,11 @@ public:
 
         BaseType::Initialize();
         mFinalizeWasPerformed = false;
+
+        // Initializing NL_ITERATION_NUMBER
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+        r_process_info[NL_ITERATION_NUMBER] = 1;
 
         KRATOS_CATCH("");
     }
@@ -343,10 +376,52 @@ public:
         
 //         bool is_converged = BaseType::SolveSolutionStep(); // FIXME: Requires to separate the non linear iterations 
         
-        bool is_converged = BaseSolveSolutionStep();
+//         bool is_converged = BaseSolveSolutionStep(); // Direct solution
+        bool is_converged = false;
+
+        // Getting model part
+        ModelPart& r_model_part = StrategyBaseType::GetModelPart();
+
+        if (r_model_part.IsNot(INTERACTION)) {
+            // We get the system
+            TSystemMatrixType& A = *BaseType::mpA;
+            TSystemVectorType& Dx = *BaseType::mpDx;
+            TSystemVectorType& b = *BaseType::mpb;
+
+            // We get the process info
+            ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
+
+            int inner_iteration = 0;
+            while (!is_converged && inner_iteration < mThisParameters["inner_loop_iterations"].GetInt()) {
+                ++inner_iteration;
+
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    std::cout << std::endl << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << inner_iteration;;
+                }
+
+                // We solve one loop
+                r_process_info[NL_ITERATION_NUMBER] = 1;
+                r_process_info[INNER_LOOP_ITERATION] = inner_iteration;
+                is_converged = BaseSolveSolutionStep();
+
+                // We check the convergence
+                BaseType::mpConvergenceCriteria->SetEchoLevel(0);
+                is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, BaseType::GetBuilderAndSolver()->GetDofSet(), A, Dx, b);
+                BaseType::mpConvergenceCriteria->SetEchoLevel(mConvergenceCriteriaEchoLevel);
+
+                if (mConvergenceCriteriaEchoLevel > 0 && StrategyBaseType::GetModelPart().GetCommunicator().MyPID() == 0 ) {
+                    if (is_converged) std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FGRN("CONVERGED")) << std::endl;
+                    else std::cout << BOLDFONT("Simplified semi-smooth strategy. INNER ITERATION: ") << BOLDFONT(FRED("NOT CONVERGED")) << std::endl;
+                }
+            }
+        } else {
+            // We compute the base loop
+            r_model_part.GetProcessInfo()[INNER_LOOP_ITERATION] = 1;
+            is_converged = BaseSolveSolutionStep();
+        }
         
-        if (mAdaptativeStrategy == true) {
-            if (is_converged == false) {
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (!is_converged) {
                 is_converged = AdaptativeStep();
             }
         }
@@ -381,13 +456,12 @@ protected:
     ///@name Protected member Variables
     ///@{
     
+    Parameters mThisParameters;        /// The configuration parameters
+
     // ADAPTATIVE STRATEGY PARAMETERS
-    bool mAdaptativeStrategy;          /// If consider time split
-    bool mFinalizeWasPerformed;        /// If the FinalizeSolutionStep has been already performed
-    double mSplitFactor;               /// Number by one the delta time is split
+    bool mFinalizeWasPerformed;        /// If the FinalizeSolutionStep has been already permformed
     ProcessesListType mpMyProcesses;   /// The processes list
     ProcessesListType mpPostProcesses; /// The post processes list
-    IndexType mMaxNumberSplits;     /// Maximum number of splits
     
     // OTHER PARAMETERS
     int mConvergenceCriteriaEchoLevel; /// The echo level of the convergence criteria
@@ -425,8 +499,8 @@ protected:
         is_converged = BaseType::mpConvergenceCriteria->PreCriteria(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
         // We do a geometry check before solve the system for first time
-        if (mAdaptativeStrategy == true) { 
-            if (CheckGeometryInverted() == true) {
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (CheckGeometryInverted()) {
                 KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT BEFORE FIRST SOLVE"  << std::endl;
                 r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
                 return false;
@@ -454,8 +528,8 @@ protected:
         UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
         
         // We now check the geometry
-        if (mAdaptativeStrategy == true) {
-            if (CheckGeometryInverted() == true) {
+        if (mThisParameters["adaptative_strategy"].GetBool()) {
+            if (CheckGeometryInverted()) {
                 KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT DURING DATABASE UPDATE" << std::endl;
                 r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
                 return false;
@@ -464,11 +538,11 @@ protected:
         
         pScheme->FinalizeNonLinIteration(r_model_part, A, Dx, b);
 
-        if (is_converged == true) {
+        if (is_converged) {
             //initialisation of the convergence criteria
             BaseType::mpConvergenceCriteria->InitializeSolutionStep(r_model_part, pBuilderAndSolver->GetDofSet(), A, Dx, b);
 
-            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+            if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
                 TSparseSpace::SetToZero(b);
 
                 pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
@@ -522,8 +596,8 @@ protected:
             UpdateDatabase(A, Dx, b, StrategyBaseType::MoveMeshFlag());
             
             // We now check the geometry
-            if (mAdaptativeStrategy == true) {
-                if (CheckGeometryInverted() == true) {
+            if (mThisParameters["adaptative_strategy"].GetBool()) {
+                if (CheckGeometryInverted()) {
                     KRATOS_WARNING("Element inverted") << "INVERTED ELEMENT DURING DATABASE UPDATE" << std::endl;
                     r_process_info[STEP] -= 1; // We revert one step in the case that the geometry is already broken before start the computing 
                     return false;
@@ -534,9 +608,9 @@ protected:
 
             residual_is_updated = false;
 
-            if (is_converged == true) {
+            if (is_converged) {
 
-                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag() == true) {
+                if (BaseType::mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(b);
 
                     pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
@@ -566,7 +640,7 @@ protected:
         }
 
         // Calculate reactions if required
-        if (BaseType::mCalculateReactionsFlag == true)
+        if (BaseType::mCalculateReactionsFlag)
             pBuilderAndSolver->CalculateReactions(pScheme, r_model_part, A, Dx, b);
 
         return is_converged;
@@ -594,10 +668,10 @@ protected:
 
         const double original_delta_time = r_process_info[DELTA_TIME]; // We save the delta time to restore later
         
-        IndexType split_number = 0;
+        int split_number = 0;
         
         // We iterate until we reach the convergence or we split more than desired
-        while (is_converged == false && split_number <= mMaxNumberSplits) {                   
+        while (is_converged == false && split_number <= mThisParameters["max_number_splits"].GetInt()) {
             // Expliting time step as a way to try improve the convergence
             split_number += 1;
             double aux_delta_time, current_time; 
@@ -773,7 +847,7 @@ protected:
         CurrentTime = aux_time - AuxDeltaTime;
         
         StrategyBaseType::GetModelPart().GetProcessInfo()[TIME] = CurrentTime; // Restore time to the previous one
-        AuxDeltaTime /= mSplitFactor;
+        AuxDeltaTime /= mThisParameters["split_factor"].GetDouble();
         StrategyBaseType::GetModelPart().GetProcessInfo()[DELTA_TIME] = AuxDeltaTime; // Change delta time
         
         CoutSplittingTime(AuxDeltaTime, aux_time);
@@ -818,7 +892,8 @@ protected:
         {
             "adaptative_strategy"              : false,
             "split_factor"                     : 10.0,
-            "max_number_splits"                : 3
+            "max_number_splits"                : 3,
+            "inner_loop_iterations"            : 5
         })" );
         
         return default_parameters;

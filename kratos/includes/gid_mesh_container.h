@@ -1,26 +1,16 @@
-//    |  /           | 
-//    ' /   __| _` | __|  _ \   __| 
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ \.
-//   _|\_\_|  \__,_|\__|\___/ ____/ 
-//                   Multi-Physics  
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
 //                   Pooyan Dadvand
 //
-
-
-
-
-
-
-
-
-
-
 
 #if !defined(KRATOS_GID_MESH_CONTAINER_H_INCLUDED)
 #define  KRATOS_GID_MESH_CONTAINER_H_INCLUDED
@@ -34,7 +24,6 @@
 #include "gidpost/source/gidpost.h"
 // Project includes
 #include "includes/define.h"
-#include "includes/gid_io.h"
 #include "geometries/geometry_data.h"
 #include "includes/deprecated_variables.h"
 
@@ -117,6 +106,10 @@ public:
             for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
             {
+                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Element #"
+                    << (it)->Id() << " does not have Properties and hence cannot "
+                    << "be used with the GiD-Output" << std::endl;
+
                 int prop_id = (it)->GetProperties().Id();
                 if (max_id < prop_id) max_id = prop_id;
             }
@@ -187,7 +180,7 @@ public:
                             nodes_id[2] = (it)->GetGeometry() [2].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        
+
                         bool element_is_active = true;
                         if ((it)->IsDefined(ACTIVE))
                             element_is_active = (it)->Is(ACTIVE);
@@ -195,7 +188,7 @@ public:
                         if (element_is_active)
                             if ((it)->GetProperties().Id()==current_layer)
                                 GiD_fWriteElementMat ( MeshFile, (it)->Id(), nodes_id);
-                        
+
                     }
                     delete [] nodes_id;
                     GiD_fEndElements(MeshFile);
@@ -221,6 +214,10 @@ public:
             for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin();
                     it != mMeshConditions.end(); ++it )
             {
+                KRATOS_DEBUG_ERROR_IF_NOT((it)->HasProperties()) << "Condition #"
+                    << (it)->Id() << " does not have Properties and hence cannot "
+                    << "be used with the GiD-Output" << std::endl;
+
                 int prop_id = (it)->GetProperties().Id();
                 conditions_per_layer[prop_id] += 1;
             }
@@ -289,7 +286,7 @@ public:
                             nodes_id[19] = (it)->GetGeometry() [15].Id();
                         }
                         nodes_id[ (it)->GetGeometry().size()]= (it)->GetProperties().Id()+1;
-                        
+
                         bool element_is_active = true;
                         if ((it)->IsDefined(ACTIVE))
                             element_is_active = (it)->Is(ACTIVE);
@@ -328,4 +325,3 @@ protected:
 };//class GidMeshContainer
 }// namespace Kratos.
 #endif // KRATOS_GID_MESH_CONTAINER_H_INCLUDED defined
-

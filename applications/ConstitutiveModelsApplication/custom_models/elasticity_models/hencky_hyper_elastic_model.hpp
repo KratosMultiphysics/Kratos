@@ -58,8 +58,8 @@ namespace Kratos
          ///@name Life Cycle
          ///@{
 
-         /// Default constructor.    
-         HenckyHyperElasticModel(): HyperElasticModel() {}; 
+         /// Default constructor.
+         HenckyHyperElasticModel(): HyperElasticModel() {};
 
          /// Copy constructor.
          HenckyHyperElasticModel(HenckyHyperElasticModel const& rOther) : HyperElasticModel( rOther) {};
@@ -72,14 +72,14 @@ namespace Kratos
          };
 
          /// Clone.
-         virtual ConstitutiveModel::Pointer Clone() const override
+         ConstitutiveModel::Pointer Clone() const override
          {
             return ( HenckyHyperElasticModel::Pointer( new HenckyHyperElasticModel(*this)) );
          };
 
 
          /// Destructor.
-         virtual ~HenckyHyperElasticModel() {};
+         ~HenckyHyperElasticModel() override {};
 
 
          ///@}
@@ -93,8 +93,8 @@ namespace Kratos
 
          /**
           * Initialize member data
-          */    
-         virtual void InitializeModel(ModelDataType& rValues) override
+          */
+         void InitializeModel(ModelDataType& rValues) override
          {
             KRATOS_TRY
 
@@ -128,7 +128,7 @@ namespace Kratos
          ///@{
 
          /// Turn back information as a string.
-         virtual std::string Info() const override
+         std::string Info() const override
          {
             std::stringstream buffer;
             buffer << "HenckyHyperElasticModel";
@@ -136,13 +136,13 @@ namespace Kratos
          }
 
          /// Print information about this object.
-         virtual void PrintInfo(std::ostream& rOStream) const override
+         void PrintInfo(std::ostream& rOStream) const override
          {
             rOStream << "HenckyHyperElasticModel";
          }
 
          /// Print object's data.
-         virtual void PrintData(std::ostream& rOStream) const override
+         void PrintData(std::ostream& rOStream) const override
          {
             rOStream << "HenckyHyperElasticModel Data";
          }
@@ -174,7 +174,7 @@ namespace Kratos
          ///@name Protected Operations
          ///@{
 
-         virtual void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override
+         void CalculateStrainData(ModelDataType& rValues, HyperElasticDataType& rVariables) override
          {
             KRATOS_TRY
 
@@ -183,15 +183,15 @@ namespace Kratos
 
             const StressMeasureType& rStressMeasure  = rValues.GetStressMeasure();
 
-            if( rStressMeasure == ConstitutiveModelData::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
+            if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_PK2 ){ //mStrainMatrix = RightCauchyGreen (C=FT*F)  C^-1=(FT*F)^-1=F^-1*FT^-1
 
                KRATOS_ERROR << "calling HenckyHyperelastic based method with PK2 stress. not implemented" << std::endl;
 
             }
-            else if( rStressMeasure == ConstitutiveModelData::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
+            else if( rStressMeasure == ConstitutiveModelData::StressMeasureType::StressMeasure_Kirchhoff ){ //mStrainMatrix = LeftCauchyGreen (b=F*FT)
 
                //set working strain measure
-               rValues.SetStrainMeasure(ConstitutiveModelData::CauchyGreen_Left);
+               rValues.SetStrainMeasure(ConstitutiveModelData::StrainMeasureType::CauchyGreen_Left);
 
                MatrixType EigenVectors;
                MatrixType EigenValues;
@@ -217,7 +217,7 @@ namespace Kratos
 
 
             KRATOS_CATCH("")
-         };    
+         };
 
          ///@}
          ///@name Protected  Access
@@ -268,14 +268,14 @@ namespace Kratos
          friend class Serializer;
 
 
-         virtual void save(Serializer& rSerializer) const override
+         void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticModel )
          }
 
-         virtual void load(Serializer& rSerializer) override
+         void load(Serializer& rSerializer) override
          {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )      
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticModel )
          }
 
          ///@}
@@ -308,6 +308,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_HENCKY_HYPER_ELASTIC_MODEL_H_INCLUDED  defined

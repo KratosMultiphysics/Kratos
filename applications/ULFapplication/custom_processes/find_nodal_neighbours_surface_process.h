@@ -25,7 +25,10 @@
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "processes/process.h"
 #include "includes/node.h"
 // #include "includes/element.h"
@@ -88,7 +91,7 @@ public:
     }
 
     /// Destructor.
-    virtual ~FindNodalNeighboursSurfaceProcess()
+    ~FindNodalNeighboursSurfaceProcess() override
     {
     }
 
@@ -107,7 +110,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
         NodesContainerType& rNodes = mr_model_part.Nodes();
 	ConditionsContainerType& rConds = mr_model_part.Conditions();
@@ -187,19 +190,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
         return "FindNodalNeighboursSurfaceProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "FindNodalNeighboursSurfaceProcess";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 

@@ -22,7 +22,8 @@
 
 #include "includes/model_part.h"
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
+#include "custom_processes/mesher_process.hpp"
 
 ///VARIABLES used:
 //Data:      
@@ -45,7 +46,7 @@ namespace Kratos
   */
 
   class RecoverVolumeLossesProcess
-    : public Process
+    : public MesherProcess
   {
   public:
     ///@name Type Definitions
@@ -65,7 +66,7 @@ namespace Kratos
 
     /// Default constructor.
     RecoverVolumeLossesProcess(ModelPart& rModelPart,
-			       ModelerUtilities::MeshingParameters& rRemeshingParameters,
+			       MesherUtilities::MeshingParameters& rRemeshingParameters,
 			       int EchoLevel) 
       : mrModelPart(rModelPart),
 	mrRemesh(rRemeshingParameters)
@@ -96,7 +97,7 @@ namespace Kratos
     ///@{
 
     /// Execute method is used to execute the Process algorithms.
-    virtual void Execute()
+    void Execute() override
     {
 
       KRATOS_TRY
@@ -108,7 +109,7 @@ namespace Kratos
       if( mrModelPart.Name() != mrRemesh.SubModelPartName )
 	std::cout<<" ModelPart Supplied do not corresponds to the Meshing Domain: ("<<mrModelPart.Name()<<" != "<<mrRemesh.SubModelPartName<<")"<<std::endl;
 
-      ModelerUtilities ModelerUtils;
+      MesherUtilities MesherUtils;
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       const ProcessInfo& rCurrentProcessInfo = mrModelPart.GetProcessInfo();
       double currentTime = rCurrentProcessInfo[TIME];
@@ -119,7 +120,7 @@ namespace Kratos
       double volumeLoss=0;
 	
       if(currentTime<=2*timeInterval){
-	initialVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
+	initialVolume=MesherUtils.ComputeModelPartVolume(mrModelPart);
 	if( mEchoLevel > 0 )
 	  std::cout<<"setting                                InitialVolume "<<initialVolume<<std::endl;
 	mrRemesh.Info->SetInitialMeshVolume(initialVolume);
@@ -128,7 +129,7 @@ namespace Kratos
       if(currentTime>2*timeInterval){
 
 	initialVolume=mrRemesh.Info->InitialMeshVolume;
-	currentVolume=ModelerUtils.ComputeModelPartVolume(mrModelPart);
+	currentVolume=MesherUtils.ComputeModelPartVolume(mrModelPart);
 	volumeLoss=initialVolume-currentVolume;
 	if( mEchoLevel > 0 ){
 	  std::cout<<" InitialVolume "<<initialVolume<<" currentVolume "<<currentVolume<<"-->  volumeLoss "<<volumeLoss<<std::endl;
@@ -231,44 +232,6 @@ namespace Kratos
       KRATOS_CATCH(" ")
 	}
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {	
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
 
     ///@}
     ///@name Access
@@ -285,19 +248,19 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "RecoverVolumeLossesProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "RecoverVolumeLossesProcess";
     }
 
     /// Print object's data.s
-    virtual void PrintData(std::ostream& rOStream) const
+    void PrintData(std::ostream& rOStream) const override
     {
     }
 
@@ -318,9 +281,9 @@ namespace Kratos
     ///@{
     ModelPart& mrModelPart;
  
-    ModelerUtilities::MeshingParameters& mrRemesh;
+    MesherUtilities::MeshingParameters& mrRemesh;
 
-    ModelerUtilities mModelerUtilities;  
+    MesherUtilities mMesherUtilities;  
 
     int mEchoLevel;
 

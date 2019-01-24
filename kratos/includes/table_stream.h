@@ -78,7 +78,7 @@ public:
     /// Default constructor.
     TableStream(
         std::ostream * Output, 
-        const std::string Separator = "|", 
+        const std::string& Separator = "|", 
         const bool UseBoldFont = true
         ) : mOutStream(Output),
             mSeparator(Separator),

@@ -19,6 +19,7 @@
 #include "custom_utilities/static_condensation_utility.h"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 
@@ -38,6 +39,14 @@ CrBeamElementLinear3D2N::Create(IndexType NewId,
   const GeometryType &rGeom = this->GetGeometry();
   return Kratos::make_shared<CrBeamElementLinear3D2N>(
       NewId, rGeom.Create(rThisNodes), pProperties);
+}
+
+Element::Pointer
+CrBeamElementLinear3D2N::Create(IndexType NewId,
+                                 GeometryType::Pointer pGeom,
+                                PropertiesType::Pointer pProperties) const {
+  return Kratos::make_shared<CrBeamElementLinear3D2N>(
+      NewId, pGeom, pProperties);
 }
 
 CrBeamElementLinear3D2N::~CrBeamElementLinear3D2N() {}
@@ -139,7 +148,7 @@ void CrBeamElementLinear3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 
 BoundedMatrix<double, CrBeamElement3D2N::msLocalSize,
                CrBeamElement3D2N::msLocalSize>
-CrBeamElementLinear3D2N::CalculateDeformationStiffness() {
+CrBeamElementLinear3D2N::CalculateDeformationStiffness() const {
 
   KRATOS_TRY
   BoundedMatrix<double, msLocalSize, msLocalSize> Kd =
@@ -147,7 +156,7 @@ CrBeamElementLinear3D2N::CalculateDeformationStiffness() {
   const double E = this->GetProperties()[YOUNG_MODULUS];
   const double G = this->CalculateShearModulus();
   const double A = this->GetProperties()[CROSS_AREA];
-  const double L = this->CalculateReferenceLength();
+  const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
 
   const double J = this->GetProperties()[TORSIONAL_INERTIA];
   const double Iy = this->GetProperties()[I22];

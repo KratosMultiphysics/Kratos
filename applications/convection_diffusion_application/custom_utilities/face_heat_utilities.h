@@ -1,10 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
-//   license: convection_diffusion_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:  Riccardo Rossi
 //
@@ -146,7 +146,7 @@ public:
                         temp1.push_back(im->GetGeometry()(2));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3;
-                        Condition::Pointer p_cond(new ThermalFace2D(id, cond, properties));
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }
@@ -163,7 +163,7 @@ public:
                         temp1.push_back(im->GetGeometry()(0));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3+1;
-                        Condition::Pointer p_cond(new ThermalFace2D(id, cond, properties));
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
 
@@ -180,7 +180,7 @@ public:
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Geometry< Node<3> >(temp1) );
                         int id = (im->Id()-1)*3+2;
 
-                        Condition::Pointer p_cond(new ThermalFace2D(id, cond, properties));
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }
@@ -194,8 +194,8 @@ public:
 
                 int n_int=im->GetGeometry()[0].FastGetSolutionStepValue(MATERIAL_VARIABLE);
                 for(int j=1; j<nd+1; j++) n_int+= im->GetGeometry()[j].FastGetSolutionStepValue(MATERIAL_VARIABLE);
-
                 if (n_int==4)
+
                 {
 
                 }
@@ -215,7 +215,7 @@ public:
                         temp.push_back(im->GetGeometry()(3));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Condition::Pointer(new ThermalFace3D(id, cond, properties) );
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
                     n_int=0.0;
@@ -232,7 +232,7 @@ public:
                         temp.push_back(im->GetGeometry()(2));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Condition::Pointer(new ThermalFace3D(id, cond, properties) );
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
                     n_int=0.0;
@@ -249,7 +249,7 @@ public:
                         temp.push_back(im->GetGeometry()(3));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Condition::Pointer(new ThermalFace3D(id, cond, properties) );
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
                     }
 
@@ -268,7 +268,7 @@ public:
                         temp.push_back(im->GetGeometry()(1));
                         Geometry< Node<3> >::Pointer cond = Geometry< Node<3> >::Pointer(new Triangle3D3< Node<3> >(temp) );
                         int id = (im->Id()-1)*4;
-                        Condition::Pointer p_cond = Condition::Pointer(new ThermalFace3D(id, cond, properties) );
+                        Condition::Pointer p_cond = Kratos::make_shared<ThermalFace>(id, cond, properties);
                         temperature_model_part.Conditions().push_back(p_cond);
 
                     }
@@ -289,6 +289,4 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_FACE_HEAT_UTILITIES_INCLUDED  defined 
-
-
+#endif // KRATOS_FACE_HEAT_UTILITIES_INCLUDED  defined

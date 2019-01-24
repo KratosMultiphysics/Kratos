@@ -13,38 +13,25 @@
 // System includes
 
 // External includes
-#include <boost/python.hpp>
 
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/kutta_condition_process.h"
 
+namespace Kratos {
+namespace Python {
 
-
-namespace Kratos
+void  AddCustomProcessesToPython(pybind11::module& m)
 {
+	namespace py = pybind11;
 
-namespace Python
-{
-
-
-  void  AddCustomProcessesToPython()
-  {
-	using namespace boost::python;
-
-        class_<KuttaConditionProcess, bases<Process>, boost::noncopyable >("KuttaConditionProcess",init<ModelPart&>())
-            .def("Execute",&KuttaConditionProcess::Execute)
-            ;
-
-
-  }
-
-
-
-
+    py::class_<KuttaConditionProcess, KuttaConditionProcess::Pointer, Process >
+        (m, "KuttaConditionProcess")
+        .def(py::init<ModelPart&>())
+        ;
+}
 
 }  // namespace Python.
 

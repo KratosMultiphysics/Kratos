@@ -50,7 +50,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) VonMisesLinearElasticPlasticityModel : public NonLinearAssociativePlasticityModel<LinearElasticModel, MisesHuberYieldSurface<SimoExponentialHardeningRule> >
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -89,7 +89,7 @@ namespace Kratos
       {
 	mPlasticStrainVector.clear();
       }
-    
+
     /// Copy constructor.
     VonMisesLinearElasticPlasticityModel(VonMisesLinearElasticPlasticityModel const& rOther)
       :BaseType(rOther)
@@ -106,11 +106,11 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( VonMisesLinearElasticPlasticityModel::Pointer(new VonMisesLinearElasticPlasticityModel(*this)) );
+      return Kratos::make_shared<VonMisesLinearElasticPlasticityModel>(*this);
     }
-    
+
     /// Destructor.
-    virtual ~VonMisesLinearElasticPlasticityModel() {}
+    ~VonMisesLinearElasticPlasticityModel() override {}
 
 
     ///@}
@@ -129,24 +129,24 @@ namespace Kratos
 
     /**
      * Has Values
-     */   
-    virtual bool Has(const Variable<double>& rThisVariable) override
+     */
+    bool Has(const Variable<double>& rThisVariable) override
     {
       if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
 	return true;
 
       return false;
     }
-    
+
 
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
     {
-      
+
       rValue=0;
-      
+
       if (rThisVariable==PLASTIC_STRAIN)
 	{
 	  rValue = this->mInternal.Variables[0];
@@ -158,10 +158,10 @@ namespace Kratos
 	  rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
 	}
 
-      
+
       return rValue;
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -172,7 +172,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "VonMisesLinearElasticPlasticityModel" ;
@@ -180,13 +180,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "VonMisesLinearElasticPlasticityModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "VonMisesLinearElasticPlasticityModel Data";
     }
@@ -206,8 +206,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -219,8 +219,8 @@ namespace Kratos
 
     /**
      * Initialize variables
-     */    
-    virtual void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables) override
+     */
+    void InitializeVariables(ModelDataType& rValues, PlasticDataType& rVariables) override
     {
       KRATOS_TRY
 
@@ -228,41 +228,41 @@ namespace Kratos
 
       //elastic strain
       VectorType StrainVector;
-      StrainVector = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
+      ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, StrainVector);
 
       StrainVector -= mPlasticStrainVector;
 
       rValues.StrainMatrix = ConstitutiveModelUtilities::StrainVectorToTensor(StrainVector, rValues.StrainMatrix);
-      
+
       KRATOS_CATCH(" ")
     }
-    
+
     /**
      * Update internal variables
-     */    
-    virtual void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix) override
+     */
+    void UpdateInternalVariables(ModelDataType& rValues, PlasticDataType& rVariables, const MatrixType& rStressMatrix) override
     {
       KRATOS_TRY
-      
+
       double& rEquivalentPlasticStrainOld  = mPreviousInternal.Variables[0];
       double& rEquivalentPlasticStrain     = mInternal.Variables[0];
       double& rDeltaGamma                  = rVariables.DeltaInternal.Variables[0];
-      
+
       //update mechanical variables
       rEquivalentPlasticStrainOld  = rEquivalentPlasticStrain;
       rEquivalentPlasticStrain    += sqrt(2.0/3.0) * rDeltaGamma;
 
       const MaterialDataType& rMaterial    = rVariables.GetMaterialParameters();
-      
+
       //update plastic strain measure
       rValues.StrainMatrix  = ConstitutiveModelUtilities::StrainVectorToTensor(mPlasticStrainVector, rValues.StrainMatrix);
       rValues.StrainMatrix += rDeltaGamma *  rStressMatrix / (rVariables.StressNorm - 2.0 * rMaterial.GetLameMuBar() * rDeltaGamma);
-      mPlasticStrainVector  = ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, mPlasticStrainVector);
-      
-      KRATOS_CATCH(" ")    
+      ConstitutiveModelUtilities::StrainTensorToVector(rValues.StrainMatrix, mPlasticStrainVector);
+
+      KRATOS_CATCH(" ")
     }
-        
-    
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -290,7 +290,7 @@ namespace Kratos
     ///@{
 
     VectorType mPlasticStrainVector;
-	
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -313,15 +313,15 @@ namespace Kratos
 
     ///@}
     ///@name Serialization
-    ///@{    
+    ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
-    
-    virtual void load(Serializer& rSerializer) override
+
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
@@ -345,12 +345,12 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
-  ///@} 
-  ///@name Input and output 
+
+  ///@}
+  ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
@@ -358,6 +358,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VON_MISES_LINEAR_ELASTIC_PLASTICITY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_VON_MISES_LINEAR_ELASTIC_PLASTICITY_MODEL_H_INCLUDED  defined

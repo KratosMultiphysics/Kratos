@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
@@ -13,8 +10,8 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 
-def CreateSolver(main_model_part, custom_settings):
-    return StaticMechanicalSolver(main_model_part, custom_settings)
+def CreateSolver(model, custom_settings):
+    return StaticMechanicalSolver(model, custom_settings)
 
 
 class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
@@ -29,7 +26,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
 
     See structural_mechanics_solver.py for more information.
     """
-    def __init__(self, main_model_part, custom_settings):
+    def __init__(self, model, custom_settings):
         # Set defaults and validate custom settings.
         static_settings = KratosMultiphysics.Parameters("""
         {
@@ -53,7 +50,7 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         # Validate the remaining settings in the base class.
 
         # Construct the base solver.
-        super(StaticMechanicalSolver, self).__init__(main_model_part, custom_settings)
+        super(StaticMechanicalSolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Construction finished")
 
     def Initialize(self):
@@ -63,9 +60,12 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(StaticMechanicalSolver, self).Initialize() # The mechanical solver is created here.
         self.print_on_rank_zero("::[StaticMechanicalSolver]:: ", "Finished initialization.")
 
-    def Solve(self):
-        super(StaticMechanicalSolver, self).Solve()
+    def SolveSolutionStep(self):
+        super(StaticMechanicalSolver, self).SolveSolutionStep()
         if self.settings["analysis_type"].GetString() == "arc_length":
+            raise Exception('"arc_length is not available at the moment"')
+            # it is not clear if this should be called after SolveSolutionStep or FinalizeSolutionStep
+            # this has to be updated once the ArcLength-Method is working again
             lambda_value = self.main_model_part.ProcessInfo[StructuralMechanicsApplication.LAMBDA]
             if self.settings["echo_level"].GetInt() > 0:
                 self.print_on_rank_zero("LAMBDA: ", lambda_value)
@@ -111,11 +111,9 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         elif analysis_type == "arc_length":
             raise Exception('"arc_length is not available at the moment"')
             mechanical_solution_strategy = self._create_arc_length_strategy()
-        elif analysis_type == "formfinding":
-            mechanical_solution_strategy = self._create_formfinding_strategy()
         else:
             err_msg =  "The requested analysis type \"" + analysis_type + "\" is not available!\n"
-            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\", \"formfinding\""
+            err_msg += "Available options are: \"linear\", \"non_linear\", \"arc_length\""
             raise Exception(err_msg)
         return mechanical_solution_strategy
 
@@ -134,23 +132,6 @@ class StaticMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
                                                                 self.arc_length_settings["max_iteration"].GetInt(),
                                                                 self.arc_length_settings["max_recursive"].GetInt(),
                                                                 self.arc_length_settings["factor_delta_lmax"].GetDouble(),
-                                                                self.settings["compute_reactions"].GetBool(),
-                                                                self.settings["reform_dofs_at_each_step"].GetBool(),
-                                                                self.settings["move_mesh_flag"].GetBool())
-
-    def _create_formfinding_strategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        mechanical_scheme = self.get_solution_scheme()
-        linear_solver = self.get_linear_solver()
-        mechanical_convergence_criterion = self.get_convergence_criterion()
-        builder_and_solver = self.get_builder_and_solver()
-        return StructuralMechanicsApplication.FormfindingUpdatedReferenceStrategy(
-                                                                computing_model_part,
-                                                                mechanical_scheme,
-                                                                linear_solver,
-                                                                mechanical_convergence_criterion,
-                                                                builder_and_solver,
-                                                                self.settings["max_iteration"].GetInt(),
                                                                 self.settings["compute_reactions"].GetBool(),
                                                                 self.settings["reform_dofs_at_each_step"].GetBool(),
                                                                 self.settings["move_mesh_flag"].GetBool())

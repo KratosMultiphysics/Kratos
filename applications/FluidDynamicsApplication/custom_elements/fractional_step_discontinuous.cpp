@@ -167,10 +167,10 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         // Evaluate required variables at the integration point
         double Density;
         double pgauss;
-        //        array_1d<double,3> Velocity(3,0.0);
-        //        array_1d<double,3> MeshVelocity(3,0.0);
-        array_1d<double, 3 > BodyForce(3, 0.0);
-        array_1d<double, 3 > MomentumProjection(3, 0.0);
+        //        array_1d<double,3> Velocity = ZeroVector(3);
+        //        array_1d<double,3> MeshVelocity = ZeroVector(3);
+        array_1d<double, 3 > BodyForce = ZeroVector(3);
+        array_1d<double, 3 > MomentumProjection = ZeroVector(3);
 
         this->EvaluateInPoint(Density, DENSITY, N);
         this->EvaluateInPoint(pgauss, PRESSURE, N);
@@ -184,14 +184,14 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
         //        double OldPressure;
         //        this->EvaluateInPoint(OldPressure,PRESSURE,N,0);
 
-        array_1d<double, TDim> OldPressureGradient(TDim, 0.0);
+        array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
         this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX);
 
         //        // For ALE: convective velocity
         //        array_1d<double,3> ConvVel = Velocity - MeshVelocity;
 
         // Stabilization parameters
-        array_1d<double, 3 > ConvVel(3, 0.0);
+        array_1d<double, 3 > ConvVel = ZeroVector(3);
         this->EvaluateConvVelocity(ConvVel, N);
         double Viscosity = this->EffectiveViscosity(Density,N, rDN_DX, ElemSize, rCurrentProcessInfo);
         this->CalculateTau(TauOne, TauTwo, ElemSize, ConvVel, Density, Viscosity, rCurrentProcessInfo);
@@ -419,7 +419,7 @@ void FractionalStepDiscontinuous<TDim>::Calculate(const Variable<array_1d<double
 
             const double Coeff = GaussWeights[g] / (Density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]);
 
-            array_1d<double, TDim> DeltaPressureGradient(TDim, 0.0);
+            array_1d<double, TDim> DeltaPressureGradient = ZeroVector(TDim);
             this->EvaluateGradientInPoint(DeltaPressureGradient, PRESSURE_OLD_IT, rDN_DX);
 
             // Calculate contribution to the gradient term (RHS)
@@ -668,7 +668,11 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalSystem(MatrixType& rLeftHa
             //compute the block diagonal parallel projection
             //defined as the operator which extracts the part of the velocity
             //tangent to the embedded wall
+            #ifdef KRATOS_USE_AMATRIX
+            BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim);
+            #else
             BoundedMatrix<double, TDim, TDim> block = IdentityMatrix(TDim, TDim);
+            #endif
             BoundedMatrix<double, TDim, TDim> nn_matrix = outer_prod(normal, normal);
             noalias(block) -= nn_matrix;
             //KRATOS_WATCH(block)

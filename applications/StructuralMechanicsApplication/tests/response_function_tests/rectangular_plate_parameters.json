@@ -1,9 +1,6 @@
 {
     "problem_data"             : {
         "problem_name"    : "rectangular_plate_structure",
-        "model_part_name" : "rectangular_plate",
-        "domain_size"     : 3,
-        "time_step"       : 1.0,
         "start_time"      : 0.0,
         "end_time"        : 1.0,
         "parallel_type"   : "OpenMP",
@@ -12,7 +9,12 @@
     "solver_settings"          : {
         "solver_type"                        : "static",
         "echo_level"                         : 0,
-        "analysis_type"                      : "non_linear",
+        "time_stepping"                      : {
+            "time_step" : 1.0
+        },
+        "analysis_type"                      : "linear",
+        "model_part_name" : "rectangular_plate_structure",
+        "domain_size"     : 3,
         "model_import_settings"              : {
             "input_type"       : "mdpa",
             "input_filename"   : "rectangular_plate_structure",
@@ -22,7 +24,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
+        "convergence_criterion"              : "Residual_criterion",
         "displacement_relative_tolerance"    : 0.0001,
         "displacement_absolute_tolerance"    : 1e-9,
         "residual_relative_tolerance"        : 0.0001,
@@ -35,6 +37,7 @@
         },
         "rotation_dofs"                      : true
     },
+    "processes" : {
     "constraints_process_list" : [{
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics",
@@ -42,13 +45,30 @@
         "process_name"  : "AssignVectorVariableProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "DISPLACEMENT_DIR_BC",
+            "model_part_name" : "rectangular_plate_structure.DISPLACEMENT_DIR_BC",
             "variable_name"   : "DISPLACEMENT",
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
-    "list_other_processes" :[],
+    "list_other_processes" :[{
+        "kratos_module" : "KratosMultiphysics.HDF5Application",
+        "python_module" : "single_mesh_primal_output_process",
+        "help"          : "",
+        "process_name"  : "",
+        "Parameters" : {
+            "model_part_name" : "rectangular_plate_structure",
+            "file_settings" : {
+                "file_access_mode" : "truncate"
+            },
+            "model_part_output_settings" : {
+                "prefix" : "/ModelData"
+            },
+            "nodal_solution_step_data_settings" : {
+                "list_of_variables": ["DISPLACEMENT", "ROTATION", "POINT_LOAD"]
+            }
+        }
+    }],
     "loads_process_list"       : [{
         "python_module" : "assign_vector_by_direction_to_condition_process",
         "kratos_module" : "KratosMultiphysics",
@@ -57,14 +77,14 @@
         "process_name"  : "AssignModulusAndDirectionToConditionsProcess",
         "Parameters"    : {
             "mesh_id"         : 0,
-            "model_part_name" : "PointLoad3D_NODES",
+            "model_part_name" : "rectangular_plate_structure.PointLoad3D_NODES",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : 1.0,
+            "modulus"         : 10.0,
             "direction"       : [0.0,0.0,1],
             "interval"        : [0.0,"End"]
         }
-    }],
-    "output_configuration"     : {
+    }]},
+    "_output_configuration"     : {
         "result_file_configuration" : {
             "gidpost_flags"       : {
                 "GiDPostMode"           : "GiD_PostBinary",
@@ -83,18 +103,5 @@
             "gauss_point_results" : ["SHELL_MOMENT","SHELL_MOMENT_GLOBAL"]
         },
         "point_data_configuration"  : []
-    },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    },
-    "material_import_settings" : {
-        "materials_filename" : "StructuralMaterials.json"
     }
 }

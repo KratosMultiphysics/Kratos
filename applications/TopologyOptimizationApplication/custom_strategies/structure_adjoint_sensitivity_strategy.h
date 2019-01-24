@@ -137,7 +137,7 @@ private:
 	///@{
 
 	ModelPart& mr_structure_model_part;
-	ModelPart::Pointer mpAdjointModelPart;
+	ModelPart* mpAdjointModelPart;
 	typename BaseType::Pointer mpStrategy;
 	int m_dimension;
 

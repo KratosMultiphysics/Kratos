@@ -1,0 +1,169 @@
+Begin ModelPartData
+// VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+WALL_FRICTION 0.5773502691896257
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e20
+POISSON_RATIO 0.25
+End Properties
+
+Begin Properties 1
+WALL_FRICTION 0.5773502691896257
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e20
+POISSON_RATIO 0.25
+End Properties
+
+Begin Properties 2
+WALL_FRICTION 0.5773502691896257
+WALL_COHESION 0.0
+COMPUTE_WEAR 0
+SEVERITY_OF_WEAR 0.001
+IMPACT_WEAR_SEVERITY 0.001
+BRINELL_HARDNESS 200.0
+YOUNG_MODULUS 1e20
+POISSON_RATIO 0.25
+End Properties
+
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-wall1
+1 0.00000 1.00000 2.00000
+3 0.00000 0.00000 2.00000
+4 1.00000 1.00000 2.00000
+7 1.00000 0.00000 2.00000
+End Nodes
+
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-wall2
+2 0.00000 1.00000 1.00000
+5 0.00000 0.00000 1.00000
+6 1.00000 1.00000 1.00000
+8 1.00000 0.00000 1.00000
+End Nodes
+
+Begin Nodes // GUI DEM-FEM-Wall group identifier: DEM-wall3
+9 0.00000 1.00000 0.00000
+10 0.00000 0.00000 0.00000
+11 1.00000 1.00000 0.00000
+12 1.00000 0.00000 0.00000
+End Nodes
+
+Begin Conditions AnalyticRigidFace3D3N // GUI DEM-FEM-Wall group identifier: DEM-wall1
+5 0 7 4 3
+6 0 4 1 3
+End Conditions
+
+Begin Conditions AnalyticRigidFace3D3N // GUI DEM-FEM-Wall group identifier: DEM-wall2
+3 1 8 6 5
+4 1 6 2 5
+End Conditions
+
+Begin Conditions RigidFace3D3N // GUI DEM-FEM-Wall group identifier: DEM-wall3
+1 2 12 11 10
+2 2 11 9 10
+End Conditions
+
+Begin SubModelPart 1 // DEM-FEM-Wall. Group name: DEM-wall1
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall1
+  PROPERTIES_ID 0
+  LINEAR_VELOCITY [3] (0.0,0.0,0.0)
+  VELOCITY_PERIOD 0.0
+  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+  ROTATION_CENTER [3] (0.0,0.0,0.0)
+  ANGULAR_VELOCITY_PERIOD 0.0
+  VELOCITY_START_TIME 0.0
+  VELOCITY_STOP_TIME 1000.0
+  ANGULAR_VELOCITY_START_TIME 0.0
+  ANGULAR_VELOCITY_STOP_TIME 1000.0
+  FIXED_MESH_OPTION 0
+  RIGID_BODY_MOTION 1
+  IS_GHOST 1
+  IDENTIFIER DEM-wall1
+  TOP 0
+  BOTTOM 0
+  FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  1
+  3
+  4
+  7
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  5
+  6
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart 2 // DEM-FEM-Wall. Group name: DEM-wall2
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall2
+  PROPERTIES_ID 1
+  LINEAR_VELOCITY [3] (0.0,0.0,0.0)
+  VELOCITY_PERIOD 0.0
+  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+  ROTATION_CENTER [3] (0.0,0.0,0.0)
+  ANGULAR_VELOCITY_PERIOD 0.0
+  VELOCITY_START_TIME 0.0
+  VELOCITY_STOP_TIME 1000.0
+  ANGULAR_VELOCITY_START_TIME 0.0
+  ANGULAR_VELOCITY_STOP_TIME 1000.0
+  FIXED_MESH_OPTION 0
+  RIGID_BODY_MOTION 1
+  IS_GHOST 1
+  IDENTIFIER DEM-wall2
+  TOP 0
+  BOTTOM 0
+  FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  2
+  5
+  6
+  8
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  3
+  4
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart 3 // DEM-FEM-Wall. Group name: DEM-wall3
+  Begin SubModelPartData // DEM-FEM-Wall. Group name: DEM-wall3
+  PROPERTIES_ID 2
+  LINEAR_VELOCITY [3] (0.0,0.0,0.0)
+  VELOCITY_PERIOD 0.0
+  ANGULAR_VELOCITY [3] (0.0,0.0,0.0)
+  ROTATION_CENTER [3] (0.0,0.0,0.0)
+  ANGULAR_VELOCITY_PERIOD 0.0
+  VELOCITY_START_TIME 0.0
+  VELOCITY_STOP_TIME 1000.0
+  ANGULAR_VELOCITY_START_TIME 0.0
+  ANGULAR_VELOCITY_STOP_TIME 1000.0
+  FIXED_MESH_OPTION 0
+  RIGID_BODY_MOTION 1
+  IS_GHOST 0
+  IDENTIFIER DEM-wall3
+  TOP 0
+  BOTTOM 0
+  FORCE_INTEGRATION_GROUP 0
+  End SubModelPartData
+  Begin SubModelPartNodes
+  9
+  10
+  11
+  12
+  End SubModelPartNodes
+  Begin SubModelPartConditions
+  1
+  2
+  End SubModelPartConditions
+End SubModelPart
+

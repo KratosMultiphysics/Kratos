@@ -40,8 +40,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.point_load_updater = 1.5
         self.initial_point_load = 10000
 
-        self.nl_tol = 1.0e-9
-        self.max_nl_it = 50
+        self.max_nl_it = 250
+        self.nl_tol = 1.0e-10
         self.initial_relaxation = 0.825
 
     def tearDown(self):
@@ -59,12 +59,14 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQN(self):
-        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation)
+        abs_cut_off = 1.0e-2
+        self.coupling_utility = MVQNFullJacobianConvergenceAccelerator(self.initial_relaxation, abs_cut_off)
         self.RunTestCase()
 
     def testFSIProblemEmulatorWithMVQNRecursive(self):
         buffer_size = 7
-        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size)
+        abs_cut_off = 1.0e-2
+        self.coupling_utility = MVQNRecursiveJacobianConvergenceAccelerator(self.initial_relaxation, buffer_size, abs_cut_off)
         self.RunTestCase()
 
     def RunTestCase(self):
@@ -74,6 +76,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 "parallel_type" : "OpenMP"
             },
             "solver_settings" : {
+                "model_part_name"         : "Structure",
+                "domain_size"             : 2,
                 "solver_type"             : "Dynamic",
                 "echo_level"              : 0,
                 "analysis_type"           : "linear",
@@ -107,16 +111,19 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
 
         with WorkFolderScope(self.work_folder):
 
-            self.structure_main_model_part = ModelPart("Structure")
-            self.structure_main_model_part.ProcessInfo.SetValue(DOMAIN_SIZE, 2)
+            self.model = Model()
 
             # Construct the structure solver
             import python_solvers_wrapper_structural
-            self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.structure_main_model_part, StructureSolverSettings)
+            self.structure_solver = python_solvers_wrapper_structural.CreateSolver(self.model, StructureSolverSettings)
 
             self.structure_solver.AddVariables()
 
             self.structure_solver.ImportModelPart()
+
+            self.structure_solver.PrepareModelPart()
+
+            self.structure_main_model_part = self.model["Structure"]
 
             self.structure_solver.AddDofs()
 
@@ -134,10 +141,15 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
             step = 0
             time = 0.0
 
+
             while(time <= self.end_time):
 
                 time = time + self.Dt
                 step = step + 1
+
+                print("##################################")
+                print("########## step = ", step, "#############")
+                print("##################################")
 
                 self.structure_solver.main_model_part.ProcessInfo.SetValue(TIME_STEPS, step)
 
@@ -149,7 +161,7 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                 self.structure_solver.Predict()
 
                 self.coupling_utility.InitializeSolutionStep()
-
+                
                 for nl_it in range(1,self.max_nl_it+1):
 
                     self.coupling_utility.InitializeNonLinearIteration()
@@ -157,6 +169,8 @@ class FSIProblemEmulatorTest(UnitTest.TestCase):
                     # Residual computation
                     disp_residual = self.ComputeDirichletNeumannResidual()
                     nl_res_norm = UblasSparseSpace().TwoNorm(disp_residual)
+
+                    print("nl_it: ",nl_it," nl_res_norm: ",nl_res_norm)
 
                     # Check convergence
                     if nl_res_norm < self.nl_tol:

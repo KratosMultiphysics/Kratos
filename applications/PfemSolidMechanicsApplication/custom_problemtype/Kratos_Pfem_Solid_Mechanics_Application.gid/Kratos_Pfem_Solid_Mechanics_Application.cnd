@@ -485,6 +485,14 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
+CONDITION: surface_UpdatedLagrangianUJWwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
 CONDITION: surface_UpdatedLagrangianUWElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
@@ -510,6 +518,14 @@ STATE: HIDDEN
 END CONDITION
 
 CONDITION: surface_AxisymUpdatedLagrangianUJwPElement2D3N
+CONDTYPE: over surfaces
+CONDMESHTYPE: over body elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_AxisymUpdatedLagrangianUJWwPElement2D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over body elements
 QUESTION: Automatic
@@ -678,12 +694,18 @@ QUESTION: Wall_Circle:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Wall_Noses:(TipCx,TipCy,TipCz,Tip_Radius,Rake_Angle,Clearance_Angle,Convexity)
 VALUE: #N# 7 0 0 0 0.0004 5 5 1
-QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C1x,C1y,C1z,Convexity)
+QUESTION: Wall_Cylinder:(Cx,Cy,Cz,Radius,C0x,C1y,C1z,Convexity)
 VALUE: #N# 8 0 0 0 0.004 0 0 0 1 
 QUESTION: Wall_Sphere:(Cx,Cy,Cz,Radius,Convexity)
 VALUE: #N# 5 0 0 0 0.004 1 
 QUESTION: Plane_Size
 VALUE: 1.0
+QUESTION: Hydraulic_Condition#CB#(False,True)
+VALUE: False
+DEPENDENCIES: (False,HIDE,Hydraulic_Contact_Condition,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Hydraulic_Contact_Condition,#CURRENT#)
+QUESTION: Hydraulic_Contact_Condition#CB#(HydraulicPointContactCondition2D1N,HydraulicAxisymPointContactCondition2D1N)
+VALUE: HydraulicPointContactCondition2D1N
 QUESTION: Imposed_Movement#CB#(False,True)
 VALUE: False
 DEPENDENCIES:(True,RESTORE,Linear_Velocity,#CURRENT#,RESTORE,Angular_Velocity,#CURRENT#,RESTORE,Rotation_Center,#CURRENT#)

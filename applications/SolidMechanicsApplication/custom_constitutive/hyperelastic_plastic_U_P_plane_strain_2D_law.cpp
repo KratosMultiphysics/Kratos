@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -54,8 +51,7 @@ HyperElasticPlasticUPPlaneStrain2DLaw::HyperElasticPlasticUPPlaneStrain2DLaw(con
 
 ConstitutiveLaw::Pointer HyperElasticPlasticUPPlaneStrain2DLaw::Clone() const
 {
-    HyperElasticPlasticUPPlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlasticUPPlaneStrain2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticUPPlaneStrain2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -203,7 +199,7 @@ void HyperElasticPlasticUPPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

@@ -7,20 +7,18 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Ilaria Iaconeta
+//  Main authors:    Ilaria Iaconeta, Bodhinanda Chandra
 //
 //
+
 
 #if !defined(KRATOS_MPM_STRATEGY )
 #define  KRATOS_MPM_STRATEGY
 
-
 /* System includes */
 #include <set>
-//#include <chrono>
-/* External includes */
-#include "boost/smart_ptr.hpp"
 
+/* External includes */
 
 /* Project includes */
 #include "spaces/ublas_space.h"
@@ -30,41 +28,31 @@
 #include "includes/kratos_flags.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
-#include "solid_mechanics_application.h"
-//geometry utilities
+#include "boost/numeric/ublas/matrix.hpp"
+
+// Application includes
+#include "particle_mechanics_application_variables.h"
+
+// Geometry utilities
 #include "utilities/geometry_utilities.h"
 
-#include "particle_mechanics_application.h"
-
+// Custom includes
+#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_elements/updated_lagrangian.hpp"
 
-
-#include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
-
+// Core includes
+#include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
-
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
-
-//convergence criterias
+#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "solving_strategies/convergencecriterias/residual_criteria.h"
-
-#include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
-//#include "custom_strategies/strategies/MPM_strategy.h"
-
-#include "solving_strategies/builder_and_solvers/builder_and_solver.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "linear_solvers/linear_solver.h"
-
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-
-#include "utilities/binbased_fast_point_locator.h"
-#include "custom_utilities/quad_binbased_fast_point_locator.h"
-
+#include "custom_utilities/mpm_search_element_utility.h"
 
 namespace Kratos
 {
@@ -95,24 +83,6 @@ namespace Kratos
 /** Short class definition.
 Detail class definition.
 
-  \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-        \URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-          \URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-                \URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-                        \URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-                          \URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-                                \URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-                                  \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
  */
 template<class TSparseSpace,
          class TDenseSpace,
@@ -126,9 +96,10 @@ public:
     /*@{ */
     //		typedef std::set<Dof::Pointer,ComparePDof> DofSetType;
 
-    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
+    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
     typedef typename TSparseSpace::DataType TDataType;
     typedef typename TSparseSpace::MatrixType TSystemMatrixType;
@@ -140,7 +111,6 @@ public:
     typedef Node < 3 > NodeType;
     typedef Geometry<NodeType> GeometryType;
 
-
     typedef typename TDenseSpace::MatrixType LocalSystemMatrixType;
     typedef typename TDenseSpace::VectorType LocalSystemVectorType;
 
@@ -150,7 +120,7 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
 
-    /** Counted pointer of ClassName */
+    // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(MPMStrategy);
 
     typedef typename ModelPart::DofType TDofType;
@@ -160,21 +130,24 @@ public:
     typedef typename PointerVectorSet<TDofType, IndexedObject>::const_iterator DofConstantIterator;
 
 
-    /** Constructor.
+    /**
+     * @brief Default constructor of MPM Strategy.
+     * @details
      * The grid model part contains all the information about ID, geometry and initial/boundary conditions
      * of the computational mesh.
      * In the costructor of time scheme the model part of material points is defined as:
+     *
      * STEP 1:
      * The nodes, properties and process info of grid_model_part are assigned to the material points' mdpa.
      *
      * STEP 2:
-     *loop over grid elements to evaluate:
+     * loop over grid elements to evaluate:
      * - the MP integration weight and MP mass
      * - rGeo : connectivity of the grid element
      * - shape function values of the integration points of the grid element
      *
      * STEP 3:
-     *loop over the integration points of a grid element to
+     * loop over the integration points of a grid element to
      * - create a new MP element
      * - evaluate xg which is the coordinate of the integration point
      * - to assign all MP variables
@@ -183,151 +156,37 @@ public:
 
     /*@{ */
 
-    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,Element const& NewElement, bool MoveMeshFlag = false, std::string SolutionType = "StaticType", std::string GeometryElement = "Triangle", int NumPar = 3, bool BlockBuilder = false)
-        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part), mr_mpm_model_part(mpm_model_part), m_GeometryElement(GeometryElement), m_NumPar(NumPar)
+    MPMStrategy(ModelPart& grid_model_part, ModelPart& initial_model_part, ModelPart& mpm_model_part, typename TLinearSolver::Pointer plinear_solver,
+        Element const& rNewElement, std::string SolutionType = "static", int MaxIteration = 10, bool ComputeReaction = false, bool BlockBuilder = false,
+        bool IsMixedFormulation = false, bool MoveMeshFlag = false)
+        : SolvingStrategyType(grid_model_part, MoveMeshFlag), mr_grid_model_part(grid_model_part), mr_initial_model_part(initial_model_part),
+        mr_mpm_model_part(mpm_model_part)
     {
 
-        //assigning the nodes to the new model part
-        mpm_model_part.Nodes() = grid_model_part.Nodes();
+        // Assigning the nodes to the new model part
+        mr_mpm_model_part.Nodes() = mr_grid_model_part.Nodes();
 
-        mpm_model_part.SetProcessInfo(grid_model_part.pGetProcessInfo());
-        mpm_model_part.SetBufferSize(grid_model_part.GetBufferSize());
-        mpm_model_part.SetProperties(initial_model_part.pProperties());
-        mpm_model_part.SetConditions(grid_model_part.pConditions());
+        mr_mpm_model_part.SetProcessInfo(mr_grid_model_part.pGetProcessInfo());
+        mr_mpm_model_part.SetBufferSize(mr_grid_model_part.GetBufferSize());
+        mr_mpm_model_part.SetProperties(mr_initial_model_part.pProperties());
 
-        array_1d<double,3> xg = ZeroVector(3);
-        array_1d<double,3> MP_Displacement = ZeroVector(3);
-        array_1d<double,3> MP_Velocity = ZeroVector(3);
-        
-        //double MP_KineticEnergy = 0.0;
-        //double MP_StrainEnergy = 0.0;
-        //Vector MP_CauchyVector = ZeroVector(3);
-        //Vector MP_AlmansiVector = ZeroVector(3);
-        //Matrix MP_ConstitutiveMatrix = ZeroMatrix(6,6);
+        // Prepare Dimension and Block Size
+        unsigned int TBlock = TDim;
+        if (IsMixedFormulation) TBlock ++;
 
-        double MP_Mass;
-        double MP_Volume;
+        KRATOS_INFO("MPM_Strategy") << "Dimension Size = " << TDim << " and Block Size = " << TBlock << std::endl;
 
-        unsigned int k = 0;
-        const unsigned int number_elements = grid_model_part.NumberOfElements();
-        const unsigned int number_nodes = grid_model_part.NumberOfNodes();
-        int new_element_id = 0;
+        // Create Material Point Element
+        this->CreateMaterialPointElement(rNewElement, IsMixedFormulation);
 
-        for (ModelPart::ElementIterator i = initial_model_part.ElementsBegin();
-                i != initial_model_part.ElementsEnd(); i++)
-        {
-            if(i->IsDefined(ACTIVE))
-            {
-                Properties::Pointer properties = i->pGetProperties();
-                int Material_id = i->GetProperties().Id();
-                double Density  = i->GetProperties()[DENSITY];
+        // Create Material Point Condition
+        this->CreateMaterialPointCondition();
 
-                Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
-                Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                if (m_GeometryElement == "Triangle")
-                {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 3)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 6)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = this->MP16ShapeFunctions();
-                    }
-                }
-                else if(m_GeometryElement == "Quadrilateral")
-                {
-                    if(m_NumPar == 1)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
-                    }
-                    else if(m_NumPar == 4)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
-                    }
-                    else if(m_NumPar == 9)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
-                    }
-                    else if(m_NumPar == 16)
-                    {
-                        shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
-                    }
-                }
-
-                //INITIAL NUMBER OF MATERIAL POINTS PER ELEMENT
-                unsigned int integration_point_per_elements = shape_functions_values.size1();
-
-                //evaluation of element area/volume
-                double area = rGeom.Area();
-
-                MP_Mass = area * Density / integration_point_per_elements;
-                MP_Volume = area / integration_point_per_elements;
-
-                //loop over the material points that fall in each grid element
-                for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
-                {
-                    if(number_elements > number_nodes)
-                    {
-                        new_element_id = (1+PointNumber+number_elements)+(integration_point_per_elements*k);
-                    }
-                    else
-                    {
-                        new_element_id = (1+PointNumber+number_nodes)+(integration_point_per_elements*k);
-                    }
-                    Element::Pointer p_element = NewElement.Create(new_element_id, rGeom, properties);
-                    double MP_Density  = Density;
-                    int MP_Material_Id = Material_id;
-
-                    xg.clear();
-
-                    //loop over the nodes of the grid element
-                    for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
-                    {
-                        for ( unsigned int j = 0; j < rGeom.size(); j ++)
-                        {
-
-                            xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
-                        }
-                    }
-
-                    p_element -> SetValue(MP_NUMBER, integration_point_per_elements);
-                    p_element -> SetValue(MP_MATERIAL_ID, MP_Material_Id);
-                    p_element -> SetValue(MP_DENSITY, MP_Density);
-                    p_element -> SetValue(MP_MASS, MP_Mass);
-                    p_element -> SetValue(MP_VOLUME, MP_Volume);
-                    p_element -> SetValue(GAUSS_COORD, xg);
-                    p_element -> SetValue(MP_DISPLACEMENT, MP_Displacement);
-                    p_element -> SetValue(MP_VELOCITY, MP_Velocity);
-
-                    //p_element -> SetValue(MP_CAUCHY_STRESS_VECTOR, MP_CauchyVector);
-                    //p_element -> SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_AlmansiVector);
-                    //p_element -> SetValue(MP_CONSTITUTIVE_MATRIX, MP_ConstitutiveMatrix);
-                    //p_element -> SetValue(MP_KINETIC_ENERGY, MP_KineticEnergy);
-                    //p_element -> SetValue(MP_STRAIN_ENERGY, MP_StrainEnergy);
-                    //push back to model_part
-                    
-                    mpm_model_part.Elements().push_back(p_element);
-                }
-
-                k +=1;
-
-            }
-
-        }
-        //define a standard static strategy to be used in the calculation
-        if(SolutionType == "StaticSolver" || SolutionType == "Static")
+        // Define a standard static strategy to be used in the calculation
+        if(SolutionType == "static" || SolutionType == "Static")
         {
             typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-            
+
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
                 KRATOS_INFO("MPM_Strategy") << "Block Builder is used" << std::endl;
@@ -338,24 +197,21 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 1e-04;
-            double always_converged_norm = 1e-09;
+            const double ratio_tolerance = 1e-04;
+            const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
 
-            int MaxIterations = 20;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
+            bool reform_DOF_at_each_iteration = false;
 
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIteration,ComputeReaction,reform_DOF_at_each_iteration,MoveMeshFlag) );
         }
 
-        //define a dynamic strategy to be used in the calculation
-        else if(SolutionType == "DynamicSolver" || SolutionType == "Dynamic")
+        // Define a quasi-static strategy to be used in the calculation
+        else if(SolutionType == "quasi_static" || SolutionType == "Quasi-static")
         {
-            double Alpham;
-            double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.0, Dynamic=1) );
+            double alpha_M;
+            double dynamic;
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, alpha_M = 0.00, dynamic=0) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -367,24 +223,21 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 0.00005;
-            double always_converged_norm = 1e-09;
-
+            const double ratio_tolerance = 0.0001;
+            const double always_converged_norm = 1e-09;
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
-            int MaxIterations = 20;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
 
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
+            bool reform_DOF_at_each_iteration = false;
+
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIteration,ComputeReaction,reform_DOF_at_each_iteration,MoveMeshFlag) );
         }
 
-        //define a quasi-static strategy to be used in the calculation
-        else if(SolutionType == "QuasiStaticSolver" || SolutionType == "Quasi-static")
+        // Define a dynamic strategy to be used in the calculation
+        else if(SolutionType == "dynamic" || SolutionType == "Dynamic")
         {
-            double Alpham;
-            double Dynamic;
-            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, Alpham = 0.00, Dynamic=0) );
+            double alpha_M;
+            double dynamic;
+            typename TSchemeType::Pointer pscheme = typename TSchemeType::Pointer( new MPMResidualBasedBossakScheme< TSparseSpace,TDenseSpace >(mr_grid_model_part, TDim, TBlock, alpha_M = 0.0, dynamic=1) );
 
             typename TBuilderAndSolverType::Pointer pBuilderAndSolver;
             if(BlockBuilder == true){
@@ -396,18 +249,17 @@ public:
                 pBuilderAndSolver = typename TBuilderAndSolverType::Pointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(plinear_solver) );
             }
 
-            double ratio_tolerance = 0.0001;
-            double always_converged_norm = 1e-09;
+            const double ratio_tolerance = 0.00005;
+            const double always_converged_norm = 1e-09;
+
             typename TConvergenceCriteriaType::Pointer pConvergenceCriteria = typename TConvergenceCriteriaType::Pointer(new ResidualCriteria< TSparseSpace, TDenseSpace >(ratio_tolerance,always_converged_norm));
+            bool reform_DOF_at_each_iteration = false;
 
-            int MaxIterations = 100;
-            bool CalculateReactions = false;
-            bool ReformDofAtEachIteration = false;
-            bool MoveMeshFlags = false;
-
-            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofAtEachIteration,MoveMeshFlags) );
+            mp_solving_strategy = typename SolvingStrategyType::Pointer( new MPMResidualBasedNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(mr_mpm_model_part,pscheme,plinear_solver,pConvergenceCriteria,pBuilderAndSolver,MaxIteration,ComputeReaction,reform_DOF_at_each_iteration,MoveMeshFlag) );
         }
+
     }
+
     /*@} */
 
     /** Destructor.
@@ -419,65 +271,354 @@ public:
     }
     /*@} */
 
+
     //*********************************************************************************
     /**OPERATIONS ACCESSIBLE FROM THE INPUT:*/
-    /*@{ */
 
     /**
-    operation to predict the solution ... if it is not called a trivial predictor is used in which the
-    values of the solution step of interest are assumed equal to the old values
+     * @brief This sets the level of echo for the solution strategy
+     * @param Level of echo for the solution strategy
+     * @details
+     * {
+     * 0->Mute... no echo at all
+     * 1->Printing time and basic informations
+     * 2->Printing linear solver data
+     * 3->Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * }
      */
-    void Predict() override
+    void SetEchoLevel(const int Level) override
     {
+        BaseType::mEchoLevel = Level;
+        mp_solving_strategy->SetEchoLevel(Level);
     }
 
     /**
-    Initialization of member variables and prior operations
+     * @brief Initialization of member variables and prior operations
      */
     void Initialize() override
     {
+        // Initialize solving strategy: only to be done at the beginning of time step
+        mp_solving_strategy->Initialize();
     }
 
     /**
-    the problem of interest is solved
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
      */
-    double Solve() override
+    void InitializeSolutionStep() override
     {
-        //check which nodes and elements are ACTIVE and populate the MPM model part
-        this->SearchElement(mr_grid_model_part, mr_mpm_model_part);
-
-        mp_solving_strategy->Initialize();
-
-        //the nodal initial conditions are computed
+        // The nodal initial conditions are computed
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - InitializeSolutionStep" <<std::endl;
         mp_solving_strategy->InitializeSolutionStep();
-
-        mp_solving_strategy->Predict();
-        //do solution iterations
-        mp_solving_strategy->SolveSolutionStep();
-
-        //the nodal solution are mapped on MP
-        mp_solving_strategy->FinalizeSolutionStep();
-        mp_solving_strategy->Clear();
-
-		return 0.00;
     }
 
+    /**
+     * @brief Operation to predict the solution
+     */
+    void Predict() override
+    {
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Predict" <<std::endl;
+        mp_solving_strategy->Predict();
+    }
+
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        // Do solution iterations
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - SolveSolutionStep" <<std::endl;
+        return mp_solving_strategy->SolveSolutionStep();
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     */
+    void FinalizeSolutionStep() override
+    {
+        // The nodal solution are mapped from mesh to MP
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - FinalizeSolutionStep" <<std::endl;
+        mp_solving_strategy->FinalizeSolutionStep();
+    }
+
+    /**
+     * @brief Clears the internal storage
+     */
+    void Clear() override
+    {
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Clear" <<std::endl;
+        mp_solving_strategy->Clear();
+    }
+
+    /**
+     * @brief Search element connectivity for each particle
+     * @details A search is performed to know in which grid element the material point falls.
+     * If one or more material points fall in the grid element, the grid element is
+     * set to be active and its connectivity is associated to the material point
+     * element.
+     *
+    */
+    virtual void SearchElement(
+        const std::size_t MaxNumberOfResults = 1000,
+        const double Tolerance = 1.0e-5)
+    {
+        KRATOS_INFO_IF("MPM_Strategy", this->GetEchoLevel() > 1) << "Main Solve - Search Element" <<std::endl;
+        MPMSearchElementUtility::SearchElement<TDim>(mr_grid_model_part, mr_mpm_model_part, MaxNumberOfResults, Tolerance);
+    }
+
+
+    /**
+     * @brief Function to perform expensive checks.
+     * @details It is designed to be called ONCE to verify that the input is correct.
+     */
+    int Check() override
+    {
+        KRATOS_TRY
+
+        const auto& mpm_process_info  = mr_mpm_model_part.GetProcessInfo();
+        for (auto& r_element : mr_mpm_model_part.Elements())
+            r_element.Check(mpm_process_info);
+
+        const auto& grid_process_info = mr_grid_model_part.GetProcessInfo();
+        for (auto& r_condition : mr_grid_model_part.Conditions())
+            r_condition.Check(grid_process_info);
+
+        return 0;
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Function to Initiate material point element.
+     * @details It is designed to be called ONCE by the class constructor.
+     */
+    virtual void CreateMaterialPointElement(Element const& rNewElement, bool IsMixedFormulation = false)
+    {
+        // Initialize zero the variables needed
+        array_1d<double,3> xg = ZeroVector(3);
+        array_1d<double,3> MP_Displacement = ZeroVector(3);
+        array_1d<double,3> MP_Velocity = ZeroVector(3);
+        array_1d<double,3> MP_Acceleration = ZeroVector(3);
+        array_1d<double,3> Aux_MP_Velocity = ZeroVector(3);
+        array_1d<double,3> Aux_MP_Acceleration = ZeroVector(3);
+        array_1d<double,3> MP_Volume_Acceleration = ZeroVector(3);
+
+        Vector MP_Cauchy_Stress_Vector = ZeroVector(6);
+        Vector MP_Almansi_Strain_Vector = ZeroVector(6);
+        double MP_Pressure = 0.0;
+        double Aux_MP_Pressure = 0.0;
+
+        double MP_Mass;
+        double MP_Volume;
+
+        // Determine element index
+        const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
+        const unsigned int number_nodes = mr_grid_model_part.NumberOfNodes();
+        unsigned int last_element_id;
+        if (number_nodes>number_elements)
+            last_element_id = number_nodes + 1;
+        else
+            last_element_id = number_elements + 1;
+
+        // Loop over the submodelpart of mr_initial_model_part
+        for (ModelPart::SubModelPartIterator submodelpart_it = mr_initial_model_part.SubModelPartsBegin();
+                submodelpart_it != mr_initial_model_part.SubModelPartsEnd(); submodelpart_it++)
+        {
+            ModelPart& submodelpart = *submodelpart_it;
+            std::string submodelpart_name = submodelpart.Name();
+
+            mr_mpm_model_part.CreateSubModelPart(submodelpart_name);
+
+            // Loop over the element of submodelpart's submodelpart and generate mpm element to be appended to the mr_mpm_model_part
+            for (ModelPart::ElementIterator i = submodelpart.ElementsBegin();
+                    i != submodelpart.ElementsEnd(); i++)
+            {
+                if(i->IsDefined(ACTIVE))
+                {
+                    Properties::Pointer properties = i->pGetProperties();
+                    const int material_id = i->GetProperties().Id();
+                    const double density  = i->GetProperties()[DENSITY];
+
+                    // Check number of particles per element to be created
+                    unsigned int particles_per_element;
+                    if (i->GetProperties().Has( PARTICLES_PER_ELEMENT )){
+                        particles_per_element = i->GetProperties()[PARTICLES_PER_ELEMENT];
+                    }
+                    else{
+                        std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
+                        warning_msg += "1 Particle per element is assumed.";
+                        KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                        particles_per_element = 1;
+                    }
+
+                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
+                    Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                    if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
+                    {
+                        switch (particles_per_element)
+                        {
+                            case 1:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                break;
+                            case 3:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                break;
+                            case 6:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                break;
+                            case 12:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                break;
+                            case 16:
+                                if (TDim==2){
+                                    shape_functions_values = this->MP16ShapeFunctions();
+                                    break;
+                                }
+                            case 33:
+                                if (TDim==2) {
+                                    shape_functions_values = this->MP33ShapeFunctions();
+                                    break;
+                                }
+                            default:
+                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
+                                warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
+                                warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
+                                warning_msg += "The default number of particle: 3 is currently assumed.";
+                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                break;
+                        }
+                    }
+                    else if(rGeoType == GeometryData::Kratos_Hexahedra3D8  || rGeoType == GeometryData::Kratos_Quadrilateral2D4)
+                    {
+                        switch (particles_per_element)
+                        {
+                            case 1:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                break;
+                            case 4:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                break;
+                            case 9:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                break;
+                            case 16:
+                                shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                break;
+                            default:
+                                std::string warning_msg = "The input number of PARTICLES_PER_ELEMENT: " + std::to_string(particles_per_element);
+                                warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
+                                warning_msg += "Available options are: 1, 4, 9, 16.\n";
+                                warning_msg += "The default number of particle: 4 is currently assumed.";
+                                KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                break;
+                        }
+                    }
+                    else{
+                        std::string error_msg = "The Geometry type of the Element given is invalid or currently not available. ";
+                        error_msg += "Please remesh the problem domain to Triangle2D3N or Quadrilateral2D4N for 2D or ";
+                        error_msg += "Tetrahedral3D4N or Hexahedral3D8N for 3D.";
+                        KRATOS_ERROR << error_msg << std::endl;
+                    }
+
+                    // Number of MP per elements
+                    const unsigned int integration_point_per_elements = shape_functions_values.size1();
+
+                    // Evaluation of element area/volume
+                    const double area = rGeom.Area();
+                    if(TDim == 2 && i->GetProperties().Has( THICKNESS )){
+						const double thickness = i->GetProperties()[THICKNESS];
+						MP_Mass = area * thickness * density / integration_point_per_elements;
+					}
+					else {
+                        MP_Mass = area * density / integration_point_per_elements;
+                    }
+                    MP_Volume = area / integration_point_per_elements;
+
+                    // Loop over the material points that fall in each grid element
+                    unsigned int new_element_id = 0;
+                    for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_elements; PointNumber++ )
+                    {
+                        new_element_id = last_element_id + PointNumber;
+                        Element::Pointer p_element = rNewElement.Create(new_element_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
+                        const double MP_Density  = density;
+                        const int MP_Material_Id = material_id;
+
+                        xg.clear();
+
+                        // Loop over the nodes of the grid element
+                        for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
+                        {
+                            for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                            {
+                                xg[dim] = xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                            }
+                        }
+
+                        // Setting particle element's initial condition
+                        p_element->SetValue(MP_MATERIAL_ID, MP_Material_Id);
+                        p_element->SetValue(MP_DENSITY, MP_Density);
+                        p_element->SetValue(MP_MASS, MP_Mass);
+                        p_element->SetValue(MP_VOLUME, MP_Volume);
+                        p_element->SetValue(MP_COORD, xg);
+                        p_element->SetValue(MP_DISPLACEMENT, MP_Displacement);
+                        p_element->SetValue(MP_VELOCITY, MP_Velocity);
+                        p_element->SetValue(MP_ACCELERATION, MP_Acceleration);
+                        p_element->SetValue(AUX_MP_VELOCITY, Aux_MP_Velocity);
+                        p_element->SetValue(AUX_MP_ACCELERATION, Aux_MP_Acceleration);
+                        p_element->SetValue(MP_VOLUME_ACCELERATION, MP_Volume_Acceleration);
+                        p_element->SetValue(MP_CAUCHY_STRESS_VECTOR, MP_Cauchy_Stress_Vector);
+                        p_element->SetValue(MP_ALMANSI_STRAIN_VECTOR, MP_Almansi_Strain_Vector);
+
+                        if(IsMixedFormulation)
+                        {
+                            p_element->SetValue(MP_PRESSURE, MP_Pressure);
+                            p_element->SetValue(AUX_MP_PRESSURE, Aux_MP_Pressure);
+                        }
+
+                        // Add the MP Element to the model part
+                        mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddElement(p_element);
+                    }
+
+                    last_element_id += integration_point_per_elements;
+
+                }
+
+
+            }
+
+        }
+    }
+
+    /**
+     * @brief Function to Initiate material point condition.
+     * @details It is designed to be called ONCE by the class constructor.
+     */
+    virtual void CreateMaterialPointCondition()
+    {
+        mr_mpm_model_part.SetConditions(mr_grid_model_part.pConditions());
+        // TODO: Going to be implemented further to generate particle condition
+    }
+
+    /**
+     * @brief Function that return matrix of shape function value for 16 particles.
+     * @details It is only possible to be used in 2D Triangular.
+     */
     virtual Matrix MP16ShapeFunctions()
     {
-        double Na1 = 0.33333333333333;
-        double Nb1 = 0.45929258829272;
-        double Nb2 = 0.08141482341455;
-        double Nc1 = 0.17056930775176;
-        double Nc2 = 0.65886138449648;
+        const double Na1 = 0.33333333333333;
+        const double Nb1 = 0.45929258829272;
+        const double Nb2 = 0.08141482341455;
+        const double Nc1 = 0.17056930775176;
+        const double Nc2 = 0.65886138449648;
 
-        double Nd1 = 0.05054722831703;
-        double Nd2 = 0.89890554336594;
+        const double Nd1 = 0.05054722831703;
+        const double Nd2 = 0.89890554336594;
 
-        double Ne1 = 0.26311282963464;
-        double Ne2 = 0.72849239295540;
-        double Ne3 = 0.00839477740996;
+        const double Ne1 = 0.26311282963464;
+        const double Ne2 = 0.72849239295540;
+        const double Ne3 = 0.00839477740996;
 
-        BoundedMatrix<double,16,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        BoundedMatrix<double,16,3> MP_ShapeFunctions;
+
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
         MP_ShapeFunctions(0,2) = Na1;
@@ -548,38 +689,42 @@ public:
         //                    (Ne3, Ne1, Ne2),(Ne2, Ne1, Ne3),(Ne1, Ne3, Ne2),(Ne3, Ne2, Ne1)];
 
         return MP_ShapeFunctions;
-
     }
 
+    /**
+     * @brief Function that return matrix of shape function value for 33 particles.
+     * @details It is only possible to be used in 2D Triangular.
+     */
     virtual Matrix MP33ShapeFunctions()
     {
-        double Na2 = 0.02356522045239;
-        double Na1 = 0.488217389773805;
+        const double Na2 = 0.02356522045239;
+        const double Na1 = 0.488217389773805;
 
-        double Nb2 = 0.120551215411079;
-        double Nb1 = 0.43972439229446;
+        const double Nb2 = 0.120551215411079;
+        const double Nb1 = 0.43972439229446;
 
-        double Nc2 = 0.457579229975768;
-        double Nc1 = 0.271210385012116;
+        const double Nc2 = 0.457579229975768;
+        const double Nc1 = 0.271210385012116;
 
-        double Nd2 = 0.744847708916828;
-        double Nd1 = 0.127576145541586;
+        const double Nd2 = 0.744847708916828;
+        const double Nd1 = 0.127576145541586;
 
-        double Ne2 = 0.957365299093579;
-        double Ne1 = 0.021317350453210;
+        const double Ne2 = 0.957365299093579;
+        const double Ne1 = 0.021317350453210;
 
-        double Nf1 = 0.115343494534698;
-        double Nf2 = 0.275713269685514;
-        double Nf3 = 0.608943235779788;
+        const double Nf1 = 0.115343494534698;
+        const double Nf2 = 0.275713269685514;
+        const double Nf3 = 0.608943235779788;
 
-        double Ng1 = 0.022838332222257;
-        double Ng2 = 0.281325580989940;
-        double Ng3 = 0.695836086787803;
+        const double Ng1 = 0.022838332222257;
+        const double Ng2 = 0.281325580989940;
+        const double Ng3 = 0.695836086787803;
 
-        double Nh1 = 0.025734050548330;
-        double Nh2 = 0.116251915907597;
-        double Nh3 = 0.858014033544073;
-        BoundedMatrix<double,33,3> MP_ShapeFunctions;// = ZeroMatrix(16,3);
+        const double Nh1 = 0.025734050548330;
+        const double Nh2 = 0.116251915907597;
+        const double Nh3 = 0.858014033544073;
+
+        BoundedMatrix<double,33,3> MP_ShapeFunctions;
 
         MP_ShapeFunctions(0,0) = Na1;
         MP_ShapeFunctions(0,1) = Na1;
@@ -714,172 +859,16 @@ public:
         MP_ShapeFunctions(32,1) = Nh2;
         MP_ShapeFunctions(32,2) = Nh1;
 
-
         return MP_ShapeFunctions;
-
     }
-
-    /** SearchElement.
-     * A search is performed to know in which grid element the material point falls.
-     *
-     * If one or more material points fall in the grid element, the grid element is
-     * set to be active and its connectivity is associated to the material point
-     * element.
-     *
-     * STEPS:
-     * 1) all the elements are set to be INACTIVE
-     * 2) a serching is performed and the grid elements which contain at least a MP are set to be ACTIVE
-     *
-    */
-    virtual void SearchElement(
-        ModelPart& grid_model_part,
-        ModelPart& mpm_model_part)
-    { 
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(grid_model_part.Elements().size()); ++i){
-			
-			auto elemItr = grid_model_part.Elements().begin() + i;
-			elemItr -> Reset(ACTIVE);
-            elemItr ->GetGeometry()[0].Reset(ACTIVE);
-            elemItr ->GetGeometry()[1].Reset(ACTIVE);
-            elemItr ->GetGeometry()[2].Reset(ACTIVE);
-            if (TDim ==3)
-            {
-                elemItr ->GetGeometry()[3].Reset(ACTIVE);
-            }
-		}
-
-        //******************SEARCH FOR TRIANGLES************************
-
-        if (m_GeometryElement == "Triangle")
-        {
-            const int max_results = 1000;
-
-            BinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-			#pragma omp parallel
-			{
-                array_1d<double, TDim + 1 > N;
-                typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                    auto elemItr = mpm_model_part.Elements().begin() + i;
-                    
-                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                    Element::Pointer pelem;
-
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, max_results);
-
-                    if (is_found == true)
-                    {
-                        pelem->Set(ACTIVE);
-                    
-                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
-
-                        pelem->GetGeometry()[0].Set(ACTIVE);
-                        pelem->GetGeometry()[1].Set(ACTIVE);
-                        pelem->GetGeometry()[2].Set(ACTIVE);
-                        
-                        if (TDim ==3)
-                        {
-                            elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                            pelem->GetGeometry()[3].Set(ACTIVE);
-                        }
-                    }
-                }
-		    }
-        }
-
-        //******************SEARCH FOR QUADRILATERALS************************
-        else if(m_GeometryElement == "Quadrilateral")
-        {
-            const int max_results = 1000;
-
-            QuadBinBasedFastPointLocator<TDim> SearchStructure(grid_model_part);
-            SearchStructure.UpdateSearchDatabase();
-
-	        #pragma omp parallel
-			{
-                typename QuadBinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-
-                //loop over the material points
-                #pragma omp for
-                for(int i = 0; i < static_cast<int>(mpm_model_part.Elements().size()); ++i){
-
-                    auto elemItr = mpm_model_part.Elements().begin() + i;
-                            
-                    array_1d<double,3> xg = elemItr -> GetValue(GAUSS_COORD);
-                    typename QuadBinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
-
-                    Element::Pointer pelem;
-
-                    //FindPointOnMesh find the element in which a given point falls and the relative shape functions
-                    bool is_found = SearchStructure.FindPointOnMesh(xg, pelem, result_begin, max_results);
-                
-                    if (is_found == true)
-                    {
-                        pelem->Set(ACTIVE);
-                        
-                        elemItr->GetGeometry()(0) = pelem->GetGeometry()(0);
-                        elemItr->GetGeometry()(1) = pelem->GetGeometry()(1);
-                        elemItr->GetGeometry()(2) = pelem->GetGeometry()(2);
-                        elemItr->GetGeometry()(3) = pelem->GetGeometry()(3);
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
-     * function to perform expensive checks.
-     * It is designed to be called ONCE to verify that the input is correct.
-     */
-    int Check() override
-    {
-        KRATOS_TRY
-
-        for (ModelPart::ElementsContainerType::iterator it = mr_mpm_model_part.ElementsBegin();
-                it != mr_mpm_model_part.ElementsEnd(); it++)
-        {
-            it->Check(mr_mpm_model_part.GetProcessInfo());
-        }
-
-        for (ModelPart::ConditionsContainerType::iterator it = mr_grid_model_part.ConditionsBegin();
-                it != mr_grid_model_part.ConditionsEnd(); it++)
-        {
-            it->Check(mr_grid_model_part.GetProcessInfo());
-        }
-        return 0;
-        KRATOS_CATCH("")
-    }
-
-    /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
 
-    //level of echo for the solving strategy
-    //int mEchoLevel;
-
-    //settings for the rebuilding of the stiffness matrix
-    //int mRebuildLevel;
-    //bool mStiffnessMatrixIsBuilt;
-
     ModelPart& mr_grid_model_part;
     ModelPart& mr_initial_model_part;
     ModelPart& mr_mpm_model_part;
-    std::string m_GeometryElement;
-    int m_NumPar;
 
     SolvingStrategyType::Pointer mp_solving_strategy;
 
@@ -949,9 +938,6 @@ private:
 
     /** Copy constructor.
      */
-
-
-
 
     /*@} */
 

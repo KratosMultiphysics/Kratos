@@ -40,7 +40,8 @@ class ShallowWaterTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
             # Creating the test
-            self.test = shallow_water_analysis.ShallowWaterAnalysis(ProjectParameters)
+            model = KratosMultiphysics.Model()
+            self.test = shallow_water_analysis.ShallowWaterAnalysis(model, ProjectParameters)
 
     def test_execution(self):
         # Within this location context:

@@ -81,6 +81,12 @@ class DamNodalYoungModulusProcess : public Process
 
     void Execute() override
     {
+    }
+
+    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void ExecuteInitialize() override
+    {
 
         KRATOS_TRY;
 

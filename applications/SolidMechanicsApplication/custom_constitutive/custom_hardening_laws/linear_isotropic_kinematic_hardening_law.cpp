@@ -30,12 +30,12 @@ LinearIsotropicKinematicHardeningLaw::LinearIsotropicKinematicHardeningLaw()
 	:NonLinearIsotropicKinematicHardeningLaw()
 {
    //Combined isotropic-kinematic 0<mTheta<1
-   //Pure isotropic hardening mTheta=1;  
-   //Pure kinematic hardening mTheta=0; 
+   //Pure isotropic hardening mTheta=1;
+   //Pure kinematic hardening mTheta=0;
 
    //Hardening law:
-   this->mTheta = 0; 
-   
+   this->mTheta = 0;
+
 }
 
 
@@ -63,8 +63,7 @@ LinearIsotropicKinematicHardeningLaw::LinearIsotropicKinematicHardeningLaw(Linea
 
 HardeningLaw::Pointer LinearIsotropicKinematicHardeningLaw::Clone() const
 {
-  HardeningLaw::Pointer p_clone(new LinearIsotropicKinematicHardeningLaw(*this));
-  return p_clone;
+  return Kratos::make_shared<LinearIsotropicKinematicHardeningLaw>(*this);
 }
 
 
@@ -77,7 +76,7 @@ LinearIsotropicKinematicHardeningLaw::~LinearIsotropicKinematicHardeningLaw()
 
 /// Operations.
 
-  
+
 //*******************************CALCULATE ISOTROPIC HARDENING************************
 //************************************************************************************
 
@@ -90,13 +89,13 @@ double& LinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double
 	//linear hardening properties
 	const double& YieldStress                 =  GetProperties()[YIELD_STRESS];
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
 
 	//Linear Hardening law: (mTheta = 0)
 	rIsotropicHardening  = YieldStress + (1.0 - mTheta) * KinematicHardeningConstant * rEquivalentPlasticStrain;
-	
-	
-	return rIsotropicHardening;	
+
+
+	return rIsotropicHardening;
 }
 
 
@@ -107,11 +106,11 @@ double& LinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &rD
 {
       	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
 	//Linear Hardening law: (mTheta = 0)
 	rDeltaHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
-		
-	return rDeltaHardening;	
+
+	return rDeltaHardening;
 }
 
 //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
@@ -121,11 +120,11 @@ double& LinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(d
 {
        	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
 	//Linear Hardening law: (mTheta = 0)
 	rDeltaIsotropicHardening  = mTheta * KinematicHardeningConstant;
-	
-	return rDeltaIsotropicHardening;	
+
+	return rDeltaIsotropicHardening;
 }
 
 

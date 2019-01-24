@@ -30,8 +30,6 @@ class TestEigenSolvers(KratosUnittest.TestCase):
             for j in range(n):
                 if (i == j):
                     M[i, j] = 1.0
-                else:
-                    M[i, j] = 0.0
 
         # create result containers (they will be resized inside the solver)
         eigenvalues = KratosMultiphysics.Vector(n)
@@ -139,7 +137,7 @@ class TestEigenSolvers(KratosUnittest.TestCase):
                 "test_list" : [
                     {
                         "solver_type": "eigen_eigensystem",
-                        "number_of_eigenvalues": 5,
+                        "number_of_eigenvalues": 3,
                         "max_iteration": 1000,
                         "tolerance": 1e-8,
                         "echo_level": 1

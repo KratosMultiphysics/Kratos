@@ -10,7 +10,7 @@
 #if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED)
 #define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
-// System includes 
+// System includes
 
 // External includes
 
@@ -58,7 +58,11 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-   
+    ///Type for size
+    typedef GeometryData::SizeType SizeType;
+    ///Type for element variables
+    typedef SolidElement::ElementDataType ElementDataType;
+
     /// Counted pointer of SmallDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
 
@@ -80,7 +84,7 @@ public:
     SmallDisplacementElement(SmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacementElement();
+    ~SmallDisplacementElement() override;
 
     ///@}
     ///@name Operators
@@ -113,7 +117,7 @@ public:
 
 
     //on integration points:
-    
+
     /**
      * Calculate a double Variable on the Element Constitutive Law
      */
@@ -129,7 +133,7 @@ public:
      */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
-    
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -175,29 +179,29 @@ protected:
     /**
      * Calculation of the Geometric Stiffness Matrix
      */
-    
+
     void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                             ElementVariables& rVariables,
+                             ElementDataType& rVariables,
                              double& rIntegrationWeight) override;
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-   void SetElementVariables(ElementVariables& rVariables,
-                            ConstitutiveLaw::Parameters& rValues,
-                            const int & rPointNumber) override;
+   void SetElementData(ElementDataType& rVariables,
+                       ConstitutiveLaw::Parameters& rValues,
+                       const int & rPointNumber) override;
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(ElementVariables& rVariables,
+    void CalculateKinematics(ElementDataType& rVariables,
                              const double& rPointNumber) override;
 
     /**
      * Initialize Element General Variables
      */
-    void InitializeElementVariables(ElementVariables & rVariables, 
+    void InitializeElementData(ElementDataType & rVariables,
                                     const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -212,12 +216,6 @@ protected:
      */
     void CalculateDisplacementGradient(Matrix& rH,
                                        const Matrix& rDN_DX);
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    const Matrix& rDN_DX);
 
 
     ///@}
@@ -262,9 +260,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
     ///@name Private Inquiry
@@ -285,4 +283,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined

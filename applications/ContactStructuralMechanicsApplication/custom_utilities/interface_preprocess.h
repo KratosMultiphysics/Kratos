@@ -161,6 +161,22 @@ private:
     ///@{
 
     /**
+     * @brief Check if the existing conditions have properties and if doesn't it creates it
+     * @param rInterfacePart The interface model part
+     */
+    void CheckAndCreateProperties(ModelPart& rInterfacePart);
+
+    /**
+     * @brief Check if the existing combination exists on the geometry
+     * @param IndexVector The vector containing the indexes of the nodes in the condition
+     * @param rElementGeometry The element geometry
+     */
+    bool CheckOnTheFace(
+        const std::vector<std::size_t>& rIndexVector,
+        GeometryType& rElementGeometry
+        );
+
+    /**
      * @brief Creates a new properties (contaning just values related with contact)
      * @details These values are removed from the original property (in order to reduce overload of properties on the original elements)
      * @return A map containing new properties

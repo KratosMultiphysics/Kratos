@@ -18,10 +18,10 @@
 namespace Kratos {
 Kernel::Kernel() : mpKratosCoreApplication(Kratos::make_shared<KratosApplication>(
                 std::string("KratosMultiphysics"))) {
-    KRATOS_INFO("") << " |  /           |             " << std::endl
-                    << " ' /   __| _` | __|  _ \\   __|" << std::endl
-                    << " . \\  |   (   | |   (   |\\__ \\ " << std::endl
-                    << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl
+    KRATOS_INFO("") << " |  /           |\n"
+                    << " ' /   __| _` | __|  _ \\   __|\n"
+                    << " . \\  |   (   | |   (   |\\__ \\\n"
+                    << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/\n"
                     << "           Multi-Physics " << KRATOS_VERSION << std::endl;
 
     if (!IsImported("KratosMultiphysics")) {
@@ -75,4 +75,13 @@ void Kernel::PrintData(std::ostream& rOStream) const {
     for (auto it = application_list.begin(); it != application_list.end(); ++it)
         rOStream << "  " << *it << std::endl;
 }
+
+std::string Kernel::BuildType() {
+    return KRATOS_BUILD_TYPE;
+}
+
+std::string Kernel::Version() {
+    return KRATOS_VERSION;
+}
+
 }

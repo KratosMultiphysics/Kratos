@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 #if !defined(KRATOS_GEOMETRY_DATA_H_INCLUDED )
@@ -153,17 +153,17 @@ public:
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef boost::array<IntegrationPointsArrayType, NumberOfIntegrationMethods> IntegrationPointsContainerType;
+    typedef std::array<IntegrationPointsArrayType, NumberOfIntegrationMethods> IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     continer.
     */
-    typedef boost::array<Matrix, NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
+    typedef std::array<Matrix, NumberOfIntegrationMethods> ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry data.
     */
-    typedef boost::array<DenseVector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
+    typedef std::array<DenseVector<Matrix>, NumberOfIntegrationMethods> ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold shape functions'
     gradients. ShapefunctionsLocalGradients function return this
@@ -881,6 +881,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined 
+#endif // KRATOS_GEOMETRY_DATA_H_INCLUDED  defined
 
 

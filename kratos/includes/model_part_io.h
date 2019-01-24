@@ -13,23 +13,19 @@
 #if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
 #define  KRATOS_MODEL_PART_IO_H_INCLUDED
 
-
 // System includes
 #include <string>
 #include <fstream>
 #include <set>
 #include <typeinfo>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
 #include "utilities/timer.h"
 #include "containers/flags.h"
-
 
 namespace Kratos
 {
@@ -88,13 +84,10 @@ public:
     /// Constructor with filenames.
     ModelPartIO(std::string const& Filename, const Flags Options = IO::READ|IO::NOT_IGNORE_VARIABLES_ERROR);
 
-    /// Constructor with Echolevel to write/Not write time.out
-    ModelPartIO(std::string const& Filename, int rEchoLevel);
-    
     /// Constructor with stream.
-    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream);
-    
-    
+    ModelPartIO(Kratos::shared_ptr<std::iostream> Stream, const Flags Options = IO::NOT_IGNORE_VARIABLES_ERROR);
+
+
     /// Constructor with filenames.
     // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
     //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
@@ -154,7 +147,6 @@ public:
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
     void WriteModelPart(ModelPart & rThisModelPart) override;
-
 
     /// Read the input file and create the nodal connectivities graph, stored in CSR format.
     /**
@@ -272,7 +264,7 @@ protected:
 
     ///@}
 
-protected:
+private:
     ///@name Static Member Variables
     ///@{
 
@@ -301,13 +293,12 @@ protected:
 
     std::string& ReadBlockName(std::string& rBlockName);
 
-
     void SkipBlock(std::string const& BlockName);
 
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
     void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
-    
+
     void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
 
     template<class TablesContainerType>
@@ -319,7 +310,7 @@ protected:
     void WriteTableBlock(TablesContainerType& rTables);
 
     void WriteTableBlock(ModelPart::TablesContainerType& rTables);
-    
+
     void ReadNodesBlock(NodesContainerType& rThisNodes);
 
     void ReadNodesBlock(ModelPart& rModelPart);
@@ -339,7 +330,7 @@ protected:
 
 
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
-    
+
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
     template<class TVariableType>
@@ -396,7 +387,7 @@ protected:
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadMeshBlock(ModelPart& rModelPart);
-    
+
     void WriteMeshBlock(ModelPart& rModelPart);
 
 
@@ -412,8 +403,8 @@ protected:
     void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
     void ReadSubModelPartBlock(ModelPart& rMainModelPart, ModelPart& rParentModelPart);
-    
-    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string InitialTabulation);
+
+    void WriteSubModelPartBlock(ModelPart& rMainModelPart, const std::string& InitialTabulation);
 
     void ReadSubModelPartDataBlock(ModelPart& rModelPart);
 
@@ -547,7 +538,6 @@ protected:
 
     ModelPartIO& ReadBlock(std::string& Block, std::string const& BlockName);
 
-
     char SkipWhiteSpaces();
 
     bool IsWhiteSpace(char C);
@@ -558,9 +548,7 @@ protected:
 
     void ResetInput();
 
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions);
-
-
+    inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     ///@}
     ///@name Private  Access

@@ -112,7 +112,7 @@ namespace Kratos
       double Ymax = rModelPart.NodesBegin()->Y(); 
       for (ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
       {
-         if ( Ymax < in->Y() ) {
+         if ( ( Ymax < in->Y() ) && ( in->IsNot(RIGID) ) ) {
             Ymax = in->Y();
          }
       } 
@@ -177,6 +177,8 @@ namespace Kratos
          {
             double & rNodeWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
             rNodeWaterPressure = rWaterPressure;
+            double & rNodeWaterPressureOld = pNode->FastGetSolutionStepValue( WATER_PRESSURE , 1);
+            rNodeWaterPressureOld = rWaterPressure;
          }
 
       }
@@ -457,6 +459,9 @@ namespace Kratos
       std::cout << " number " << OverLoad / 10.0 / (MixtureDensity +WaterDensity) << std::endl;
       std::cout << " olverLoad " << OverLoad << std::endl; */
 
+      double sign = 1.0;
+      if ( (rModelPart.NodesBegin() )->SolutionStepsDataHas( WATER_DISPLACEMENT_X) )
+         sign = -1.0;
       for (ModelPart::NodesContainerType::const_iterator pNode = rModelPart.NodesBegin(); pNode != rModelPart.NodesEnd() ; pNode++) {
 
          WaterPressure = 10.0*WaterDensity * ( pNode->Y() -rYmax ) + WaterOverLoad;
@@ -468,7 +473,9 @@ namespace Kratos
             WaterPressure = 0.0;
 
          double& rWaterPressure = pNode->FastGetSolutionStepValue( WATER_PRESSURE );
-         rWaterPressure = WaterPressure ;
+         rWaterPressure = sign * WaterPressure ;
+         double& rWaterPressureOld = pNode->FastGetSolutionStepValue( WATER_PRESSURE, 1 );
+         rWaterPressureOld = sign * WaterPressure ;
       }
 
       double VerticalStress, HorizontalStress;

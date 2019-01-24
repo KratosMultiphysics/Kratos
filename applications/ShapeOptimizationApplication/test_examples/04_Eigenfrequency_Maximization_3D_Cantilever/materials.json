@@ -1,16 +1,16 @@
 {
     "properties": [{
-            "model_part_name": "structure",
+            "model_part_name": "solid_cantilever.structure",
             "properties_id": 1,
             "Material": {
                     "name": "Material",
                     "constitutive_law": {
-                            "name": "KratosMultiphysics.StructuralMechanicsApplication.LinearElastic3DLaw"
+                            "name": "StructuralMechanicsApplication.LinearElastic3DLaw"
                     },
                     "Variables": {
-                            "KratosMultiphysics.DENSITY": 7.85000E+3,
-                            "KratosMultiphysics.YOUNG_MODULUS": 2.06900E+11,
-                            "KratosMultiphysics.POISSON_RATIO": 0.00000E-01
+                            "DENSITY": 7.85000E+3,
+                            "YOUNG_MODULUS": 2.06900E+11,
+                            "POISSON_RATIO": 0.00000E-01
                     },
                     "Tables": {}
             }

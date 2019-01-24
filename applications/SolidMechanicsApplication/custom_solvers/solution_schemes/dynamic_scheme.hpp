@@ -51,28 +51,28 @@ namespace Kratos
     {
       std::vector< Vector > v;    // Velocity
       std::vector< Vector > a;    // Acceleration
-      std::vector< Vector > c;    // Composed Variable 
+      std::vector< Vector > c;    // Composed Variable
     };
 
-    
+
   public:
-    
+
     ///@name Type Definitions
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( DynamicScheme );
-    
+
     typedef SolutionScheme<TSparseSpace,TDenseSpace>                             BaseType;
     typedef typename BaseType::SolutionSchemePointerType                  BasePointerType;
     typedef typename BaseType::LocalFlagType                                LocalFlagType;
 
     typedef StaticScheme<TSparseSpace,TDenseSpace>                           DerivedType;
-    
+
     typedef typename BaseType::NodeType                                          NodeType;
     typedef typename BaseType::DofsArrayType                                DofsArrayType;
     typedef typename BaseType::SystemMatrixType                          SystemMatrixType;
     typedef typename BaseType::SystemVectorType                          SystemVectorType;
     typedef typename BaseType::LocalSystemVectorType                LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType; 
+    typedef typename BaseType::LocalSystemMatrixType                LocalSystemMatrixType;
 
     typedef typename BaseType::NodesContainerType                      NodesContainerType;
     typedef typename BaseType::ElementsContainerType                ElementsContainerType;
@@ -80,7 +80,7 @@ namespace Kratos
 
     typedef typename BaseType::IntegrationMethodsVectorType  IntegrationMethodsVectorType;
     typedef typename BaseType::IntegrationMethodsScalarType  IntegrationMethodsScalarType;
-   
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -98,6 +98,19 @@ namespace Kratos
     }
 
     /// Constructor.
+    DynamicScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions)
+        :DerivedType(rTimeScalarIntegrationMethods, rOptions)
+    {
+    }
+
+    /// Constructor.
+    DynamicScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
+        :DerivedType(rTimeScalarIntegrationMethods)
+    {
+    }
+
+
+    /// Constructor.
     DynamicScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                   IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
                   Flags& rOptions)
@@ -111,13 +124,13 @@ namespace Kratos
         :DerivedType(rTimeVectorIntegrationMethods, rTimeScalarIntegrationMethods)
     {
     }
-    
+
     /// Constructor.
     DynamicScheme(Flags& rOptions)
       :DerivedType(rOptions)
     {
     }
-    
+
     /// Copy Constructor.
     DynamicScheme(DynamicScheme& rOther)
       :DerivedType(rOther)
@@ -147,30 +160,34 @@ namespace Kratos
     this is the place to initialize the Scheme.
     This is intended to be called just once when the strategy is initialized
      */
-    virtual void Initialize(ModelPart& rModelPart) override
+    void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
 	DerivedType::Initialize(rModelPart);
-	  
+
 	// Allocate auxiliary memory
 	const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
 
 	mMatrix.M.resize(NumThreads);
 	mMatrix.D.resize(NumThreads);
-	
+
 	mVector.v.resize(NumThreads);
 	mVector.a.resize(NumThreads);
 
-        double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+        double parameter = 0.0;
+        if(this->mTimeVectorIntegrationMethods.size() != 0)
+          parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
+        else if(this->mTimeScalarIntegrationMethods.size() != 0)
+          parameter = this->mTimeScalarIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
 
         if( parameter != 0 )
           mVector.c.resize(NumThreads);
-        
+
 	KRATOS_CATCH("")
     }
 
-   
+
     /**
      * This function is designed to be called in the builder and solver to introduce
      * @param pCurrentElement: The element to compute
@@ -202,19 +219,19 @@ namespace Kratos
 
         AddDynamicTangentsToLHS(rLHS_Contribution,this->mMatrix.D[thread],this->mMatrix.M[thread],rCurrentProcessInfo);
 
-        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);        
-        
+        AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
+
       }
       else{
-        
+
         (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
-        
+
         (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
-        
+
         AddDynamicsToLHS (rLHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
-        
+
         AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
-        
+
       }
 
       KRATOS_CATCH("")
@@ -242,13 +259,13 @@ namespace Kratos
       (pCurrentElement) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentElement) -> EquationIdVector(EquationId, rCurrentProcessInfo);
-      
+
       if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
         (pCurrentElement) -> CalculateSecondDerivativesRHS(this->mVector.a[thread],rCurrentProcessInfo);
 
         (pCurrentElement) -> CalculateFirstDerivativesRHS(this->mVector.v[thread],rCurrentProcessInfo);
-        
+
         AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
       }
@@ -257,12 +274,9 @@ namespace Kratos
         (pCurrentElement) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
 
         (pCurrentElement) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
-        
+
         AddDynamicsToRHS (pCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
-        
-      }     
-
-
+      }
 
       KRATOS_CATCH("")
     }
@@ -300,10 +314,10 @@ namespace Kratos
         AddDynamicTangentsToLHS(rLHS_Contribution,this->mMatrix.D[thread],this->mMatrix.M[thread],rCurrentProcessInfo);
 
         AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
-        
+
       }
       else{
-      
+
         (pCurrentCondition) -> CalculateMassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
 
         (pCurrentCondition) -> CalculateDampingMatrix(mMatrix.D[thread], rCurrentProcessInfo);
@@ -312,7 +326,7 @@ namespace Kratos
 
         AddDynamicsToRHS  (pCurrentCondition, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
       }
-      
+
       KRATOS_CATCH("")
     }
 
@@ -337,13 +351,13 @@ namespace Kratos
       (pCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 
       (pCurrentCondition) -> EquationIdVector(EquationId, rCurrentProcessInfo);
-      
+
       if ( rCurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] == true ){
 
         (pCurrentCondition) -> CalculateSecondDerivativesRHS(this->mVector.a[thread],rCurrentProcessInfo);
 
         (pCurrentCondition) -> CalculateFirstDerivativesRHS(this->mVector.v[thread],rCurrentProcessInfo);
-      
+
         AddDynamicForcesToRHS(rRHS_Contribution,this->mVector.v[thread],this->mVector.a[thread],rCurrentProcessInfo);
 
       }
@@ -368,7 +382,7 @@ namespace Kratos
      * @return Zero means  all ok
      */
 
-    virtual int Check(ModelPart& rModelPart) override
+    int Check(ModelPart& rModelPart) override
     {
       KRATOS_TRY;
 
@@ -379,9 +393,9 @@ namespace Kratos
       if( !rModelPart.GetProcessInfo().Has(COMPUTE_DYNAMIC_TANGENT) )
         KRATOS_ERROR << "COMPUTE_DYNAMIC_TANGENT must be set to use a Dynamic Scheme" << std::endl;
 
-      
+
       return ErrorCode;
-      
+
       KRATOS_CATCH("")
     }
 
@@ -396,9 +410,9 @@ namespace Kratos
     ///@}
     ///@name Input and output
     ///@{
-    
+
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         std::stringstream buffer;
         buffer << "DynamicScheme";
@@ -406,23 +420,23 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "DynamicScheme";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
-      rOStream << "DynamicScheme Data";     
+      rOStream << "DynamicScheme Data";
     }
-    
+
     ///@}
     ///@name Friends
     ///@{
-    
+
     ///@}
-    
+
   protected:
 
     ///@name Protected static Member Variables
@@ -463,14 +477,23 @@ namespace Kratos
       // Adding mass contribution to the dynamic stiffness
       if (rM.size1() != 0) // if M matrix declared
         {
-	  parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeInertialParameter(parameter);
+          if(this->mTimeVectorIntegrationMethods.size() != 0)
+            parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeInertialFactor(parameter);
+          else if(this->mTimeScalarIntegrationMethods.size() != 0)
+            parameter = this->mTimeScalarIntegrationMethods.front()->GetSecondDerivativeInertialFactor(parameter);
+
 	  noalias(rLHS_Contribution) += rM * parameter;
         }
 
       // Adding  damping contribution
       if (rD.size1() != 0) // if D matrix declared
         {
-	  parameter = this->mTimeVectorIntegrationMethods.front()->GetFirstDerivativeInertialParameter(parameter);
+          parameter = 0;
+          if(this->mTimeVectorIntegrationMethods.size() != 0)
+            parameter = this->mTimeVectorIntegrationMethods.front()->GetFirstDerivativeInertialFactor(parameter);
+          else if(this->mTimeScalarIntegrationMethods.size() != 0)
+            parameter = this->mTimeScalarIntegrationMethods.front()->GetFirstDerivativeInertialFactor(parameter);
+
 	  noalias(rLHS_Contribution) += rD * parameter;
         }
     }
@@ -502,7 +525,7 @@ namespace Kratos
 	  noalias(rLHS_Contribution) += rD;
         }
     }
-    
+
     /**
      * It adds the dynamic RHS contribution of the elements: b - M*a - D*v
      * @param pCurrentElement: The element to compute
@@ -524,8 +547,12 @@ namespace Kratos
       if (rM.size1() != 0)
         {
 	  pCurrentElement->GetSecondDerivativesVector(mVector.a[thread], 0);
-          
-          double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
+
+          double parameter = 0.0;
+          if(this->mTimeVectorIntegrationMethods.size() != 0)
+            parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
+          else if(this->mTimeScalarIntegrationMethods.size() != 0)
+            parameter = this->mTimeScalarIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
 
           if( parameter != 0 ){
 
@@ -536,7 +563,7 @@ namespace Kratos
             noalias(mVector.a[thread]) += parameter * mVector.c[thread];
 
           }
-                     
+
 	  noalias(rRHS_Contribution) -= prod(rM, mVector.a[thread]);
         }
 
@@ -571,8 +598,12 @@ namespace Kratos
         {
 	  pCurrentCondition->GetSecondDerivativesVector(mVector.a[thread], 0);
 
-          double parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticParameter(parameter);
-          
+          double parameter = 0.0;
+          if(this->mTimeVectorIntegrationMethods.size() != 0)
+            parameter = this->mTimeVectorIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
+          else if(this->mTimeScalarIntegrationMethods.size() != 0)
+            parameter = this->mTimeScalarIntegrationMethods.front()->GetSecondDerivativeKineticFactor(parameter);
+
           if( parameter != 0 ){
 
             (mVector.a[thread]) *= (1.00 - parameter);
@@ -582,7 +613,7 @@ namespace Kratos
             noalias(mVector.a[thread]) += parameter * mVector.c[thread];
 
           }
-          
+
 	  noalias(rRHS_Contribution) -= prod(rM, mVector.a[thread]);
         }
 
@@ -623,7 +654,7 @@ namespace Kratos
 	  noalias(rRHS_Contribution) -=  rfv;
         }
     }
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -635,34 +666,34 @@ namespace Kratos
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     ///@}
 
   private:
 
    ///@name Static Member Variables
     ///@{
-  
+
     ///@}
     ///@name Member Variables
     ///@{
-  
+
     ///@}
     ///@name Private Operators
     ///@{
-  
+
     ///@}
     ///@name Private Operations
     ///@{
-  
+
     ///@}
     ///@name Private  Access
     ///@{
-  
+
     ///@}
     ///@name Serialization
     ///@{
-  
+
     ///@}
     ///@name Private Inquiry
     ///@{
@@ -670,7 +701,7 @@ namespace Kratos
     ///@}
     ///@name Un accessible methods
     ///@{
-  
+
     ///@}
   }; // Class DynamicScheme
   ///@}
@@ -683,11 +714,11 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
-  
+
 }  // namespace Kratos.
 
 #endif // KRATOS_DYNAMIC_SCHEME_H_INCLUDED defined

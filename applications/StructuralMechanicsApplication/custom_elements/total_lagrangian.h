@@ -44,8 +44,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class ShapeParameter;
-
 /**
  * @class TotalLagrangian
  * @ingroup StructuralMechanicsApplication
@@ -61,12 +59,24 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
 public:
     ///@name Type Definitions
     ///@{
+
     ///Reference type definition for constitutive laws
     typedef ConstitutiveLaw ConstitutiveLawType;
+
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
 
     /// Counted pointer of TotalLagrangian
     KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian);
@@ -79,6 +89,11 @@ public:
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
     TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
+    // Copy constructor
+    TotalLagrangian(TotalLagrangian const& rOther)
+        :BaseType(rOther)
+    {};
+
     /// Destructor.
     ~TotalLagrangian() override;
 
@@ -88,12 +103,44 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
     /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     * @todo ADD THE OTHER CREATE FUNCTION
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
 
     /**
      * @brief This function provides the place to perform checks on the completeness of the input.
@@ -122,13 +169,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -144,7 +203,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    
+
     TotalLagrangian() : BaseSolidElement()
     {
     }
@@ -158,24 +217,25 @@ protected:
      * @param CalculateResidualVectorFlag The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
      * @brief This functions updates the kinematics variables
-     * @param rThisKinematicVariables The kinematic variables to be calculated 
+     * @param rThisKinematicVariables The kinematic variables to be calculated
      * @param PointNumber The integration point considered
-     */ 
+     * @param rIntegrationMethod The integration method considered
+     */
     void CalculateKinematicVariables(
         KinematicVariables& rThisKinematicVariables,
-        const unsigned int PointNumber,
+        const IndexType PointNumber,
         const GeometryType::IntegrationMethod& rIntegrationMethod
         ) override;
-    
+
     ///@}
     ///@name Protected Operations
     ///@{
@@ -205,7 +265,7 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-   
+
     /**
      * @brief This method computes the deformation matrix B
      * @param rB The deformation matrix
@@ -238,6 +298,7 @@ private:
                          ProcessInfo const& rCurrentProcessInfo);
 
     void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0,
                                    Matrix& rDN_DX0_Deriv,
                                    Matrix& rF_Deriv,
                                    double& rDetJ0_Deriv,
@@ -291,4 +352,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
