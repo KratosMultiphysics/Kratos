@@ -126,7 +126,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "buffer_size"                          : 0
     })" );
 
-    mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
 
     mStdStringFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
