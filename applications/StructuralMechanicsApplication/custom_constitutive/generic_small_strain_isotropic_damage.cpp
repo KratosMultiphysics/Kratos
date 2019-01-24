@@ -243,12 +243,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
-
     // We compute the stress
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
         // Elastic Matrix
