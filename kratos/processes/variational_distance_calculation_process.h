@@ -123,11 +123,9 @@ public:
         ModelPart& base_model_part,
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string aux_part_name = "StandardAuxPartName" )
-        : mr_base_model_part( base_model_part ),
-        mOptions( Options ),
-        mAuxModelPart( aux_part_name )
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        :mr_base_model_part(base_model_part),
+         mOptions(Options)
     {
         KRATOS_TRY
 
@@ -162,7 +160,7 @@ public:
         BuilderSolverPointerType pBuilderSolver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> >(plinear_solver);
 
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
 
         mp_solving_strategy = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
@@ -184,8 +182,8 @@ public:
     {
 
         Model& current_model = mr_base_model_part.GetModel();
-        if(current_model.HasModelPart( mAuxModelPart ))
-            current_model.DeleteModelPart( mAuxModelPart );
+        if(current_model.HasModelPart("RedistanceCalculationPart"))
+            current_model.DeleteModelPart("RedistanceCalculationPart");
     };
 
     ///@}
@@ -210,7 +208,7 @@ public:
         }
 
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
 
         // TODO: check flag    PERFORM_STEP1
         // Step1 - solve a poisson problem with a source term which depends on the sign of the existing distance function
@@ -355,7 +353,7 @@ public:
     virtual void Clear()
     {
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
@@ -408,9 +406,8 @@ protected:
     VariationalDistanceCalculationProcess(
         ModelPart &base_model_part,
         unsigned int max_iterations,
-        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string aux_part_name = "StandardAuxPartName")
-        : mr_base_model_part(base_model_part), mOptions(Options), mAuxModelPart(aux_part_name)
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE)
+        : mr_base_model_part(base_model_part), mOptions(Options)
     {
         mdistance_part_is_initialized = false;
         mmax_iterations = max_iterations;
@@ -425,7 +422,6 @@ protected:
 
     ModelPart& mr_base_model_part;
     Flags mOptions;
-    std::string mAuxModelPart;
 
     typename SolvingStrategyType::UniquePointer mp_solving_strategy;
 
@@ -442,16 +438,16 @@ protected:
         KRATOS_TRY
 
         Model& current_model = mr_base_model_part.GetModel();
-        if(current_model.HasModelPart( mAuxModelPart ))
-            current_model.DeleteModelPart( mAuxModelPart );
+        if(current_model.HasModelPart("RedistanceCalculationPart"))
+            current_model.DeleteModelPart("RedistanceCalculationPart");
 
         // Generate
-        ModelPart& r_distance_model_part = current_model.CreateModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.CreateModelPart("RedistanceCalculationPart");
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
         r_distance_model_part.Elements().clear();
 
-        r_distance_model_part.SetProcessInfo( base_model_part.pGetProcessInfo() );
+        r_distance_model_part.SetProcessInfo(  base_model_part.pGetProcessInfo() );
         r_distance_model_part.SetBufferSize(base_model_part.GetBufferSize());
         r_distance_model_part.SetProperties(base_model_part.pProperties());
         r_distance_model_part.Tables() = base_model_part.Tables();
@@ -543,7 +539,7 @@ private:
 
     void SynchronizeDistance(){
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
         auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
@@ -573,7 +569,7 @@ private:
 
     void SynchronizeFixity(){
         Model& current_model = mr_base_model_part.GetModel();
-        ModelPart& r_distance_model_part = current_model.GetModelPart( mAuxModelPart );
+        ModelPart& r_distance_model_part = current_model.GetModelPart("RedistanceCalculationPart");
                 auto &r_communicator = r_distance_model_part.GetCommunicator();
 
         // Only required in the MPI case
