@@ -981,7 +981,7 @@ protected:
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&rLockArray[i_global]);
 #endif
-                AssembleRowContributionFreeDofs(rA, rLHS_Contribution, i_global, i_local, rEquationId);
+                AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_unset_lock(&lock_array[i_global]);
