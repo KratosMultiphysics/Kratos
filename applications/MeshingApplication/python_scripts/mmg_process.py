@@ -95,6 +95,8 @@ class MmgProcess(KratosMultiphysics.Process):
             },
             "initial_remeshing"                : false,
             "fix_contour_model_parts"          : [],
+            "fix_conditions_model_parts"       : [],
+            "fix_elements_model_parts"         : [],
             "force_min"                        : false,
             "minimal_size"                     : 0.1,
             "force_max"                        : false,
@@ -160,6 +162,12 @@ class MmgProcess(KratosMultiphysics.Process):
         self.step_frequency = self.settings["step_frequency"].GetInt()
 
     def ExecuteInitialize(self):
+        """ This method is executed at the begining to initialize the process
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
         # Calculate NODAL_H
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_H, 0.0, self.model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.NODAL_AREA, 0.0, self.model_part.Nodes)
@@ -216,12 +224,26 @@ class MmgProcess(KratosMultiphysics.Process):
 
         self.internal_variable_interpolation_list = self.__generate_internal_variable_list_from_input(self.settings["internal_variables_parameters"]["internal_variable_interpolation_list"])
 
-        # NOTE: Add more model part if interested
-        submodelpartslist = self.__generate_submodelparts_list_from_input(self.settings["fix_contour_model_parts"])
+        # Model parts to fix the nodes
+        fix_contour_model_parts = self.__generate_submodelparts_list_from_input(self.settings["fix_contour_model_parts"])
 
-        # Setting flag BLOCKED to the non moving boundary
-        for submodelpart in submodelpartslist:
+        # Setting flag BLOCKED to the non nodes
+        for submodelpart in fix_contour_model_parts:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BLOCKED, True, submodelpart.Nodes)
+
+        # Model parts to fix the conditions
+        fix_conditions_model_parts = self.__generate_submodelparts_list_from_input(self.settings["fix_conditions_model_parts"])
+
+        # Setting flag BLOCKED to the non conditions
+        for submodelpart in fix_conditions_model_parts:
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BLOCKED, True, submodelpart.Conditions)
+
+        # Model parts to fix the nodes
+        fix_elements_model_parts = self.__generate_submodelparts_list_from_input(self.settings["fix_elements_model_parts"])
+
+        # Setting flag BLOCKED to the non elements
+        for submodelpart in fix_elements_model_parts:
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BLOCKED, True, submodelpart.Elements)
 
         if self.strategy == "LevelSet":
             self._CreateGradientProcess()
@@ -268,9 +290,20 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.model_part.Set(KratosMultiphysics.MODIFIED, False)
 
     def ExecuteBeforeSolutionLoop(self):
+        """ This method is executed before starting the time loop
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         pass
 
     def ExecuteInitializeSolutionStep(self):
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+
         if not self.initial_remeshing:
             # We need to check if the model part has been modified recently
             if self.model_part.Is(KratosMultiphysics.MODIFIED):
@@ -285,13 +318,28 @@ class MmgProcess(KratosMultiphysics.Process):
                             self.step = 0  # Reset
 
     def ExecuteFinalizeSolutionStep(self):
+        """ This method is executed in order to finalize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         if self.strategy == "superconvergent_patch_recovery":
             self._ErrorCalculation()
 
     def ExecuteBeforeOutputStep(self):
+        """ This method is executed right before the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         pass
 
     def ExecuteAfterOutputStep(self):
+        """ This method is executed right after the ouput process computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         if self.strategy == "superconvergent_patch_recovery":
             if self.model_part.ProcessInfo[MeshingApplication.ERROR_ESTIMATE] > self.error_threshold:
                 self.__execute_refinement()
@@ -300,6 +348,11 @@ class MmgProcess(KratosMultiphysics.Process):
                 self.model_part.ProcessInfo[MeshingApplication.EXECUTE_REMESHING] = False
 
     def ExecuteFinalize(self):
+        """ This method is executed in order to finalize the current computation
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
         pass
 
     def _CreateMetricsProcess(self):
