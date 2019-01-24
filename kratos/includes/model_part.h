@@ -1353,7 +1353,11 @@ public:
 
     ModelPart* GetParentModelPart() const
     {
-        return mpParentModelPart;
+        if (IsSubModelPart()) {
+            return mpParentModelPart;
+        } else {
+            return const_cast<ModelPart*>(this);
+        }
     }
 
     bool HasSubModelPart(std::string const& ThisSubModelPartName) const
@@ -1651,5 +1655,3 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 } // namespace Kratos.
 
 #endif // KRATOS_MODEL_PART_H_INCLUDED  defined
-
-
