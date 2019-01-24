@@ -122,12 +122,32 @@ public:
         DataOnElementAtNode = 6
     };
 
+
+    // # beginning of dataset
+    // # type of dataset: data at mesh entities
+    // # R.  1: unique number of dataset (dataset_label)
+    // # R.  2: text describing content (dataset_name)
+    // # R.  3: data belongs to: nodes, elements,...
+    // #        (dataset_location)
+    // # R.  4: user-specified text (id_lines_1_to_5[0])
+    // # R.  5: user-specified text (id_lines_1_to_5[1])
+    // # R.  6: user-specified text (id_lines_1_to_5[2])
+    // # R.  7: user-specified text (id_lines_1_to_5[3])
+    // # R.  8: user-specified text (id_lines_1_to_5[4])
+    // # R.  9: (model_type) (analysis_type)
+    // #        (data_characteristic) (result_type)
+    // #        (data_type) (nvaldc)
+    // # R. 10: analysis-specific data (record_10)
+    // # R. 11: analysis-specific data (record_11)
+    // # R. 12: analysis-specific data (record_12)
+    // # R. 13: analysis-specific data (record_13)
+
     void writeNodalResults() {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         const int dataSetNumberForResults = 2414;
-        std::string dataSetLabel = "NodalResults";
+        std::string dataSetLabel = 1;                   // TimeStep?
         std::string dataSetName = "NodalResults";
         const int physicalPropertyTableNumber = 1;
         const int materialPropertyTableNumber = 1;
