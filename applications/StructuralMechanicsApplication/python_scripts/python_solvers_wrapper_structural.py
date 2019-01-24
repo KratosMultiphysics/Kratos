@@ -6,8 +6,8 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
     solver_type = solver_settings["solver_type"].GetString()
 
-    if solver_settings["solver_settings"].Has("time_integration_method"):
-        time_integration_method = solver_settings["solver_settings"]["time_integration_method"].GetString()
+    if solver_settings.Has("time_integration_method"):
+        time_integration_method = solver_settings["time_integration_method"].GetString()
     else:
         time_integration_method = "implicit" # defaulting to implicit time-integration
 
