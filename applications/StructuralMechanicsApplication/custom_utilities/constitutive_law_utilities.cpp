@@ -168,12 +168,23 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+template<>
+void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector = ZeroVector(6);
     for (IndexType i = 0; i < Dimension; ++i)
         rFirstVector[i] = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+{
+    rFirstVector = ZeroVector(3);
+    rFisrtVector[0] = 1.0;
+    rFisrtVector[1] = 1.0;    
 }
 
 /***********************************************************************************/
