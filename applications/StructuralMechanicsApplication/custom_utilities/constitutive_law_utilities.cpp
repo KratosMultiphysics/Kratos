@@ -183,8 +183,8 @@ template<>
 void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector = ZeroVector(3);
-    rFisrtVector[0] = 1.0;
-    rFisrtVector[1] = 1.0;    
+	rFirstVector[0] = 1.0;
+	rFirstVector[1] = 1.0;
 }
 
 /***********************************************************************************/
@@ -266,8 +266,8 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector = ZeroVector(6);
+    if (rThirdVector.size() != 3)
+        rThirdVector = ZeroVector(3);
 
     const double J2thirds = J2 / 3.0;
 
