@@ -96,7 +96,6 @@ def EvaluateQuantityOfInterest(simulation):
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
         Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        #print("NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
     return Q
 
 
@@ -243,7 +242,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 
 
 if __name__ == '__main__':
-    
+
     '''set the ProjectParameters.json path'''
     parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
     '''create a serialization of the model and of the project parameters'''

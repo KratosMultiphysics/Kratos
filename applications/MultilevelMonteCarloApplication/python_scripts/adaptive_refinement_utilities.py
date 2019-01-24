@@ -38,7 +38,7 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     metric_param.AddEmptyValue("maximal_size")
     metric_param["maximal_size"].SetDouble(maximal_size_value)
     '''calculate the gradient of the variable'''
-    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(simulation_coarse._GetSolver().main_model_part,local_gradient_variable, metric_param)
+    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(simulation_coarse._GetSolver().main_model_part,local_gradient_variable,metric_param)
     local_gradient.Execute()
     '''add again the removed variable parameter'''
     metric_param.AddEmptyValue("local_gradient_variable")
