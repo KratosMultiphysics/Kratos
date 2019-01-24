@@ -110,7 +110,6 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             ## Setting the nodal distance
             self._set_distance_function()
             ## Sets DENSITY, DYNAMIC_VISCOSITY and SOUND_VELOCITY
-            print("Call from PrepareModelPart(self) --------------------------------------------------------------------")
             self._set_physical_properties()
             ## Sets the constitutive law
             self._set_constitutive_law()
@@ -177,8 +176,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
             (self.bdf_process).Execute()                    # Recompute the BDF2 coefficients
             (self.level_set_convection_process).Execute()   # Convect the level-set according to the previous step velocity
             (self.variational_distance_process).Execute()   # Recompute the distance field according to the new level set position
-            print("Call from InitializeSolutionStep(self) --------------------------------------------------------------------")
-            # self._set_physical_properties()                 # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level set
+            self._set_physical_properties()                 # Update the DENSITY and DYNAMIC_VISCOSITY values according to the new level set
             (self.solver).InitializeSolutionStep()          # Initialize the solver current step
 
     def FinalizeSolutionStep(self):
@@ -196,19 +194,15 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
         rho_2 = properties_2.GetValue(KratosMultiphysics.DENSITY)
         mu_1 = properties_1.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
         mu_2 = properties_2.GetValue(KratosMultiphysics.DYNAMIC_VISCOSITY)
-        print( rho_1 )
-        print( rho_2 )
-        print( mu_1 )
-        print( mu_2 )
 
         if rho_1 <= 0.0:
             raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho_1, properties_1.Id))
         if rho_2 <= 0.0:
             raise Exception("DENSITY set to {0} in Properties {1}, positive number expected.".format(rho_2, properties_2.Id))
         if mu_1 <= 0.0:
-            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {2}, positive number expected.".format(mu_1, properties_1.Id))
+            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(mu_1, properties_1.Id))
         if mu_2 <= 0.0:
-            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {2}, positive number expected.".format(mu_2, properties_2.Id))
+            raise Exception("DYNAMIC_VISCOSITY set to {0} in Properties {1}, positive number expected.".format(mu_2, properties_2.Id))
 
         # Transfer density and (dynamic) viscostity to the nodes
         for node in self.main_model_part.Nodes:
