@@ -527,25 +527,25 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     strain_vector = ZeroVector(6);
     strain_vector[0] = 0.0;
     strain_vector[1] = 0.0;
-    strain_vector[2] = -8.0e-5;
+    strain_vector[2] = 8.0e-5;
     strain_vector[3] = 0.0;
     strain_vector[4] = 0.0;
-    strain_vector[5] = -1.6941e-21;
+    strain_vector[5] = 1.6941e-21;
     Matrix deformation_gradient = ZeroMatrix(3, 3);
     deformation_gradient(0,0) = 1.0;
     deformation_gradient(1,1) = 1.0;
-    deformation_gradient(2,2) = (1.0 - 8.0e-5);
-    deformation_gradient(2,0) = 0.5 * -1.6941e-21;
-    deformation_gradient(0,2) = 0.5 * -1.6941e-21;
+    deformation_gradient(2,2) = (1.0 + 8.0e-5);
+    deformation_gradient(2,0) = 0.5 * 1.6941e-21;
+    deformation_gradient(0,2) = 0.5 * 1.6941e-21;
 
     material_properties.SetValue(YOUNG_MODULUS, 210e9);
     material_properties.SetValue(POISSON_RATIO, 0.22);
-    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 3.0e6);
-    material_properties.SetValue(YIELD_STRESS_TENSION, 3.0e6);
+    material_properties.SetValue(YIELD_STRESS_COMPRESSION, 1.0e5);
+    material_properties.SetValue(YIELD_STRESS_TENSION, 1.0e5);
     material_properties.SetValue(FRICTION_ANGLE, 32.0);
     material_properties.SetValue(DILATANCY_ANGLE, 16.0);
     material_properties.SetValue(SOFTENING_TYPE, 1);
-    material_properties.SetValue(FRACTURE_ENERGY, 1000.0);
+    material_properties.SetValue(FRACTURE_ENERGY, 10.0);
     material_properties.SetValue(HARDENING_CURVE, 0);
 
     // Set constitutive law flags:
@@ -575,21 +575,33 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC_res(cl_parameters);
     MohrCoulombCL.CalculateMaterialResponseCauchy(cl_parameters_MC_res);
+    MohrCoulombCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
     MCres = cl_parameters_MC_res.GetConstitutiveMatrix();
+
+	// double diss;
+	// Vector stress;
+	// stress = cl_parameters_MC_res.GetStressVector();
+	// MohrCoulombCL.GetValue(PLASTIC_DISSIPATION, diss);
+	
+	// KRATOS_WATCH(diss)
+	// KRATOS_WATCH(stress)
 
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM_res(cl_parameters);
     VonMisesCL.CalculateMaterialResponseCauchy(cl_parameters_VM_res);
+    VonMisesCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
     VMres = cl_parameters_MC_res.GetConstitutiveMatrix();
 
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP_res(cl_parameters);
     DruckerPragerCL.CalculateMaterialResponseCauchy(cl_parameters_DP_res);
+    DruckerPragerCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
     DPres = cl_parameters_DP_res.GetConstitutiveMatrix();
 
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T_res(cl_parameters);
     TrescaCL.CalculateMaterialResponseCauchy(cl_parameters_T_res);
+    TrescaCL.FinalizeMaterialResponseCauchy(cl_parameters_MC_res);
     Tres = cl_parameters_T_res.GetConstitutiveMatrix();
 
     // Create the CL's (Finite strain)
@@ -605,13 +617,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Mohr Coulomb
     ConstitutiveLaw::Parameters cl_parameters_MC(cl_parameters);
     MohrCoulombCLFS.CalculateMaterialResponsePK2(cl_parameters_MC);
+    MohrCoulombCLFS.FinalizeMaterialResponsePK2(cl_parameters_MC);
     TestMC = cl_parameters_MC.GetConstitutiveMatrix();
     MohrCoulombCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "MohrCoulomb:: This test is not in plastic range" << std::endl;
-
+	KRATOS_WATCH(plastic_dissipation)
     // Von Mises
     ConstitutiveLaw::Parameters cl_parameters_VM(cl_parameters);
     VonMisesCLFS.CalculateMaterialResponsePK2(cl_parameters_VM);
+    VonMisesCLFS.FinalizeMaterialResponsePK2(cl_parameters_VM);
     TestVM = cl_parameters_VM.GetConstitutiveMatrix();
     VonMisesCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "VonMises:: This test is not in plastic range" << std::endl;
@@ -619,6 +633,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Drucker Pragger
     ConstitutiveLaw::Parameters cl_parameters_DP(cl_parameters);
     DruckerPragerCLFS.CalculateMaterialResponsePK2(cl_parameters_DP);
+    DruckerPragerCLFS.FinalizeMaterialResponsePK2(cl_parameters_DP);
     TestDP = cl_parameters_DP.GetConstitutiveMatrix();
     DruckerPragerCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "DruckerPrager:: This test is not in plastic range" << std::endl;
@@ -626,6 +641,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawCTensorPlasticityFiniteStrainKirchoff, 
     // Tresca
     ConstitutiveLaw::Parameters cl_parameters_T(cl_parameters);
     TrescaCLFS.CalculateMaterialResponsePK2(cl_parameters_T);
+    TrescaCLFS.FinalizeMaterialResponsePK2(cl_parameters_T);
     TestT = cl_parameters_T.GetConstitutiveMatrix();
     TrescaCLFS.GetValue(PLASTIC_DISSIPATION, plastic_dissipation);
     KRATOS_WARNING_IF("TestPlasticity", plastic_dissipation < 1.0e-12) << "Tresca:: This test is not in plastic range" << std::endl;
