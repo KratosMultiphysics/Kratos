@@ -122,16 +122,16 @@ public:
         }
     }
 
-    /// Assign new values for the problem's degrees of freedom using the vector rDx.
+    /// Assign new values for the problem's degrees of freedom using the vector rX.
     /** For each Dof in rDofSet, this function assigns the value for the corresponding
-     *  variable as value = rDx[dof.EquationId()].
+     *  variable as value = rX[dof.EquationId()].
      *  @param[in/out] rDofSet The list of degrees of freedom.
-     *  @param[in] rDx The update vector.
+     *  @param[in] rX The solution vector.
      *  This method will check if Initialize() was called before and call it if necessary.
      */
     virtual void AssignDofs(
         DofsArrayType& rDofSet,
-        const SystemVectorType& rDx)
+        const SystemVectorType& rX)
     {
         const int num_dof = static_cast<int>(rDofSet.size());
 
@@ -140,7 +140,7 @@ public:
             auto it_dof = rDofSet.begin() + i;
 
 			if (it_dof->IsFree())
-                it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rDx,it_dof->EquationId());
+                it_dof->GetSolutionStepValue() = TSparseSpace::GetValue(rX,it_dof->EquationId());
         }
     }
 
