@@ -19,6 +19,7 @@
 #include "custom_elements/truss_element_linear_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos {
 TrussElementLinear3D2N::TrussElementLinear3D2N(IndexType NewId,
@@ -227,7 +228,7 @@ double TrussElementLinear3D2N::CalculateLinearStrain()  {
   this->CreateTransformationMatrix(transformation_matrix);
 
   current_disp = prod(Matrix(trans(transformation_matrix)),current_disp);
-  const double length_0 = this->CalculateReferenceLength();
+  const double length_0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double e = (current_disp[3]-current_disp[0])/length_0;
 
   return e;

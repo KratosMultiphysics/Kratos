@@ -61,8 +61,8 @@ class ValueLogger():
     @staticmethod
     def __CreateCompleteLogFileName( optimization_settings ):
         resultsDirectory = optimization_settings["output"]["output_directory"].GetString()
-        responseLogFilename = optimization_settings["output"]["response_log_filename"].GetString() + ".csv"
-        return os.path.join( resultsDirectory, responseLogFilename )
+        optimizationLogFilename = optimization_settings["output"]["optimization_log_filename"].GetString() + ".csv"
+        return os.path.join( resultsDirectory, optimizationLogFilename )
 
     # --------------------------------------------------------------------------
     def __LogValuesToHistory( self, additional_values_dictionary ):

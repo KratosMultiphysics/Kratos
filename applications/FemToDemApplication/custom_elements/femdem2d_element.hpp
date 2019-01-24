@@ -67,6 +67,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo) override;
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
 							  ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 
@@ -94,6 +95,7 @@ class FemDem2DElement : public SmallDisplacementElement // Derived Element from 
 	void DruckerPragerCriterion(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void SimoJuCriterion(double& rThreshold, double &rDamage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void RankineFragileLaw(double& rThreshold, double &rDamage, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
+	void ElasticLaw(double& rThreshold,double &rDamage, const Vector &rStressVector, const int Edge, const double Length, bool& rIsDamaging);
 
 	void CalculateExponentialDamage(
 		double& rDamage,
