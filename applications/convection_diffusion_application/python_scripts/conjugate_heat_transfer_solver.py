@@ -127,13 +127,13 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.fluid_solver.AddVariables()
         self.fluid_thermal_solver.AddVariables()
 
-        #TODO: WHY ARE WE USING NODAL_PAUX?
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
+        self.fluid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
 
         # Temporary container for un-relaxed temperature
         KratosMultiphysics.MergeVariableListsUtility().Merge(
@@ -144,6 +144,7 @@ class ConjugateHeatTransferSolver(PythonSolver):
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_FLUX)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosConvDiff.AUX_TEMPERATURE)
+        self.solid_thermal_solver.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SCALAR_INTERFACE_RESIDUAL)
 
     def ImportModelPart(self):
         # Check that both thermal solvers have a different model part name. If
