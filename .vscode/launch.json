@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit:
+    // https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python launch",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": true,
+            "pythonPath": "/usr/bin/python3",
+            "program":
+"/media/farrufat/Data/EXXON/UCS_debug_with_skin65k.gid/KratosDEM.py",
+            //"program" :"${file}",
+            "cwd": "",
+            "env":
+{"LD_LIBRARY_PATH":"/home/farrufat/kratos/libs","PYTHONPATH":"/home/farrufat/kratos","OMP_NUM_THREADS":"1"},
+            "envFile": "${workspaceRoot}/.env",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ]
+        },
+        {
+            "name": "GDB Attach proc 0",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "/usr/bin/python3",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb"
+        }
+    ]
+}
