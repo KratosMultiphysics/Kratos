@@ -106,15 +106,13 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.neighbour_search.Execute()
 
         if ( self.complete_model.GetCommunicator().TotalProcesses() == 1 ):
-
+            # operation for serial or OpenMP
             self.variational_distance_process = self._set_variational_distance_process_serial()
-            # Adding the C++ constructor (here the sub-division of the model part is performed)
             self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
         elif ( self.complete_model.GetCommunicator().TotalProcesses() > 1 ):
-
+            # operation for MPI (based on Trilinos)
             self.variational_distance_process = self._set_variational_distance_process_mpi()
-            # Adding the C++ constructor (here the sub-division of the model part is performed)
             self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
 

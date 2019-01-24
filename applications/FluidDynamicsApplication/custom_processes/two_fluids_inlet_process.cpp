@@ -17,10 +17,7 @@
 
 // Project includes
 #include "utilities/openmp_utils.h"
-#include "utilities/body_distance_calculation_utils.h"
-#include "utilities/parallel_levelset_distance_calculator.h"
 #include "utilities/variable_utils.h"
-#include "includes/deprecated_variables.h"
 
 // Application includes
 #include "two_fluids_inlet_process.h"
@@ -95,34 +92,6 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
         auto it_node = rRootModelPart.NodesBegin() + i_node;
         it_node->GetSolutionStepValue(DISTANCE, 2) = it_node->GetSolutionStepValue(DISTANCE, 0);
     }
-
-    // Preparing the distance computation
-    // VariableUtils var_utils;
-    // var_utils.SetNonHistoricalVariable( IS_VISITED, 0.0, rRootModelPart.Nodes() );
-    // var_utils.SetNonHistoricalVariable( IS_VISITED, 1.0, mrInletModelPart.Nodes() );
-    // var_utils.SetScalarVar( DISTANCE, 0.0, rRootModelPart.Nodes() );
-    // var_utils.SetScalarVar( DISTANCE, 0.0, mrInletModelPart.Nodes() );
-
-    // var_utils.SetScalarVar( NODAL_AREA, 0.0, rRootModelPart.Nodes() );
-    // var_utils.SetScalarVar( NODAL_AREA, 1.0, mrInletModelPart.Nodes() );
-
-    // for (int i_node = 0; i_node < static_cast<int>( rRootModelPart.NumberOfNodes() ); ++i_node){
-    //     // iteration over all nodes to ensure the existence of the non-hist. variable (OMP parallel leads to problems)
-    //     auto it_node = rRootModelPart.NodesBegin() + i_node;
-    //     it_node->GetValue(DISTANCE) = 0.0;
-    // }
-
-    // const unsigned int dim = rRootModelPart.GetProcessInfo()[DOMAIN_SIZE];
-    // // MPI Version used here
-    // if ( dim == 2 ){
-    //     ParallelDistanceCalculator<2> parallel_distance_util;
-    //     parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
-    // } else if ( dim == 3 ){
-    //     ParallelDistanceCalculator<3> parallel_distance_util;
-    //     parallel_distance_util.CalculateDistancesLagrangianSurface(rRootModelPart, DISTANCE, NODAL_AREA, 100, mInletRadius);
-    // } else {
-    //     KRATOS_ERROR << "Error thrown in TwoFluidsInletProcess: Dimension not valid." << std::endl;
-    // }
 
     // Preparation for variational distance calculation process
     // setting distance of inlet nodes to 0.0
