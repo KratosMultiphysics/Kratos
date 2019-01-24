@@ -45,14 +45,10 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         if (settings["fluid_1_settings"].Has("modulus")):
             if (settings["fluid_1_settings"]["modulus"].IsString()):
                 default_settings["fluid_1_settings"]["modulus"].SetString("0.0")
-        else:
-            print("Default is taken...1")   # REMOVE
 
         if (settings["fluid_2_settings"].Has("modulus")):
             if (settings["fluid_2_settings"]["modulus"].IsString()):
                 default_settings["fluid_2_settings"]["modulus"].SetString("0.0")
-        else:
-            print("Default is taken...2")   # REMOVE
 
         # checking (and adapting) type of direction for both fluids
         if (settings["fluid_1_settings"].Has("direction")):
