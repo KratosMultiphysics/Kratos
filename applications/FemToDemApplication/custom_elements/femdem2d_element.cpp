@@ -162,16 +162,16 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
 	// Loop Over Integration Points
 	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
@@ -263,16 +263,16 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
 	WeakPointerVector<Element> &elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
 	KRATOS_ERROR_IF(elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
@@ -364,7 +364,7 @@ void FemDem2DElement::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 		} else {
 			noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(C, B)));
 		}
-		
+
 		Vector VolumeForce = ZeroVector(dimension);
 		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
 		// RHS
@@ -420,16 +420,16 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
 	// Loop Over Integration Points
 	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
@@ -480,6 +480,65 @@ void FemDem2DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		const Matrix& C =  Values.GetConstitutiveMatrix();
 		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(C, B)));
+	}
+}
+
+void FemDem2DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+	const unsigned int number_of_nodes = GetGeometry().size();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int system_size = number_of_nodes * dimension;
+
+	if (rRightHandSideVector.size() != system_size)
+		rRightHandSideVector.resize(system_size, false);
+	noalias(rRightHandSideVector) = ZeroVector(system_size);
+
+	Matrix B(voigt_size, dimension * number_of_nodes);
+	noalias(B) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+	Matrix DN_DX(number_of_nodes, dimension);
+	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+
+	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
+
+	GeometryType::JacobiansType J;
+	J.resize(1, false);
+	J[0].resize(dimension, dimension, false);
+	noalias(J[0]) = ZeroMatrix(dimension, dimension);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
+
+	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+
+		Matrix InvJ(dimension, dimension);
+		noalias(InvJ) = ZeroMatrix(dimension, dimension);
+		double detJ = 0;
+		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+
+		Vector N = row(Ncontainer, PointNumber);
+		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		integration_weight *= this->GetProperties()[THICKNESS];
+		Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			const int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weight * N[i] * VolumeForce[j];
+			}
+		}
+		
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector& r_stress_vector = this->GetValue(STRESS_VECTOR);
+		const Vector& integrated_stress_vector = (1.0 - damage_element) * r_stress_vector;
+
+		this->CalculateDeformationMatrix(B, DN_DX);
+		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), integrated_stress_vector);
 	}
 }
 
@@ -557,15 +616,16 @@ void FemDem2DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 
 	//get the shape functions parent coordinates derivative [dN/d�] (for the order of the default integration method)
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
-	//KRATOS_WATCH(DeltaPosition)
+	Matrix delta_position = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
+
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0] = ZeroMatrix(1, 1);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 	//a.-compute element kinematics
 
 	//calculating the inverse of the jacobian for this integration point[d�/dx_n]
@@ -573,8 +633,7 @@ void FemDem2DElement::CalculateDN_DX(Matrix &rDN_DX, int PointNumber)
 	double detJ = 0;
 	MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
-	if (detJ < 0)
-		KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+	KRATOS_ERROR_IF(detJ < 0) << "SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0" << std::endl;
 
 	//compute cartesian derivatives for this integration point  [dN/dx_n]
 	rDN_DX = prod(DN_De[PointNumber], InvJ);
@@ -587,12 +646,12 @@ void FemDem2DElement::CalculateInfinitesimalStrain(Vector &rStrainVector, const 
 	Matrix H = zero_matrix<double>(dimension); //[dU/dx_n]
 
 	for (unsigned int i = 0; i < number_of_nodes; i++) {
-		array_1d<double, 3> &Displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+		array_1d<double, 3> &r_displacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-		H(0, 0) += Displacement[0] * rDN_DX(i, 0);
-		H(0, 1) += Displacement[0] * rDN_DX(i, 1);
-		H(1, 0) += Displacement[1] * rDN_DX(i, 0);
-		H(1, 1) += Displacement[1] * rDN_DX(i, 1);
+		H(0, 0) += r_displacement[0] * rDN_DX(i, 0);
+		H(0, 1) += r_displacement[0] * rDN_DX(i, 1);
+		H(1, 0) += r_displacement[1] * rDN_DX(i, 0);
+		H(1, 1) += r_displacement[1] * rDN_DX(i, 1);
 	}
 	//Infinitesimal Strain Calculation
 	if (rStrainVector.size() != 3)
@@ -699,7 +758,6 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 	std::vector<Vector> &rOutput,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	KRATOS_TRY
 	const unsigned int &integration_points_number = GetGeometry().IntegrationPointsNumber(mThisIntegrationMethod);
 	if (rOutput.size() != integration_points_number)
 		rOutput.resize(integration_points_number);
@@ -709,7 +767,7 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 	} else if (rVariable == STRAIN_VECTOR) {
 		rOutput[0] = this->GetValue(STRAIN_VECTOR);
 	} else if (rVariable == STRESS_VECTOR_INTEGRATED) {
-		rOutput[0] = (1.0- mDamage)* (this->GetValue(STRESS_VECTOR));
+		rOutput[0] = (1.0- mDamage) * (this->GetValue(STRESS_VECTOR));
 	} else if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR || rVariable == ALMANSI_STRAIN_VECTOR) {
           // create and initialize element variables:
           ElementDataType Variables;
@@ -717,7 +775,6 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 
           // reading integration points
         for (unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++) {
-            // compute element kinematics B, F, DN_DX ...
             this->CalculateKinematics(Variables, PointNumber);
             if (rOutput[PointNumber].size() != Variables.StrainVector.size())
               rOutput[PointNumber].resize(Variables.StrainVector.size(), false);
@@ -728,13 +785,12 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 			rOutput[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, rOutput[ii]);
 		}
 	}
-	KRATOS_CATCH("")
 }
 
-double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *CurrentElement, const Element &NeibElement, int cont)
+double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *pCurrentElement, const Element &rNeibElement, int cont)
 {
-	Geometry<Node<3>> &NodesElem1 = CurrentElement->GetGeometry(); // 3 nodes of the Element 1
-	Geometry<Node<3>> NodesElem2 = NeibElement.GetGeometry();	   // "         " 2
+	Geometry<Node<3>> &NodesElem1 = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
+	Geometry<Node<3>> NodesElem2 = rNeibElement.GetGeometry();	   // "         " 2
 	Vector Xcoord, Ycoord;
 	Xcoord.resize(3);
 	Ycoord.resize(3);
@@ -755,7 +811,7 @@ double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *CurrentEl
 	if (aux < 3) {  // It is not an edge element --> The 2 elements are not equal
 		return std::pow((std::pow(Xcoord[0] - Xcoord[1], 2) + std::pow(Ycoord[0] - Ycoord[1], 2)), 0.5); // Length of the edge between 2 elements                                                                  // Currently the characteristic length is the edge length (can be modified)
 	} else { // Edge element
-		double element_area = std::abs(this->GetGeometry().Area());
+		const double element_area = std::abs(this->GetGeometry().Area());
 		return std::sqrt(4.0 * element_area / std::sqrt(3.0)); // Cervera's Formula
 	} // l_char computed
 }
@@ -983,6 +1039,9 @@ void FemDem2DElement::IntegrateStressDamageMechanics(
 			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(
+			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
+	} else if (yield_surface == "Elastic") {
+		this->ElasticLaw(
 			rThreshold, rDamage, rStressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << " Yield Surface not defined " << std::endl;
@@ -1249,13 +1308,41 @@ void FemDem2DElement::RankineFragileLaw(
 	}
 }
 
+void FemDem2DElement::ElasticLaw(
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &rStressVector, 
+	const int Edge, 
+	const double Length,
+	bool& rIsDamaging
+	)
+{
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double c_max = std::abs(sigma_t);
+	rDamage = 0.0;
+	if (rThreshold < tolerance) {
+		rThreshold = c_max;
+	} // 1st iteration sets threshold as c_max
+}
+
 void FemDem2DElement::SetValueOnIntegrationPoints(
 	const Variable<double> &rVariable,
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
-		this->SetValue(rVariable, rValues[point_number]);
+	if (rVariable == DAMAGE_ELEMENT) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mDamage = rValues[PointNumber];
+		}
+	} else if (rVariable == STRESS_THRESHOLD) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mThreshold = rValues[PointNumber];
+		}
+	} else {
+		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
+			this->SetValue(rVariable, rValues[point_number]);
+		}
 	}
 }
 

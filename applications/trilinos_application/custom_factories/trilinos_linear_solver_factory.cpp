@@ -48,7 +48,10 @@ void RegisterTrilinosLinearSolvers()
         TrilinosSparseSpaceType,
         TrilinosLocalSpaceType,
         AmesosSolverType>();
-    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amesos", AmesosSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("amesos",        AmesosSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("klu",           AmesosSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("super_lu_dist", AmesosSolverFactory);
+    KRATOS_REGISTER_TRILINOS_LINEAR_SOLVER("mumps",         AmesosSolverFactory);
 
     typedef MultiLevelSolver<TrilinosSparseSpaceType,
         TrilinosLocalSpaceType > MLSolverType;

@@ -52,7 +52,7 @@ public:
     /// Constructor using Properties
     UPwElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : Element( NewId, pGeometry, pProperties ) 
     {
-        mThisIntegrationMethod = this->GetGeometry().GetDefaultIntegrationMethod();
+        mThisIntegrationMethod = this->GetIntegrationMethod();
     }
 
     /// Destructor
@@ -69,6 +69,8 @@ public:
     void Initialize() override;
     
     void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

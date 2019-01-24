@@ -19,6 +19,7 @@
 #include "custom_elements/truss_element_3D2N.hpp"
 #include "includes/define.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos {
@@ -112,58 +113,36 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void TrussElement3D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo) {
-
-  KRATOS_TRY
-  MatrixType stiffness_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  this->CalculateLeftHandSide(stiffness_matrix, rCurrentProcessInfo);
-
-  MatrixType mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-
-  this->CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-  double alpha = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_ALPHA)) {
-    alpha = this->GetProperties()[RAYLEIGH_ALPHA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
-    alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-  }
-
-  double beta = 0.0;
-  if (this->GetProperties().Has(RAYLEIGH_BETA)) {
-    beta = this->GetProperties()[RAYLEIGH_BETA];
-  } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
-    beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-  }
-
-  rDampingMatrix = alpha * mass_matrix;
-  noalias(rDampingMatrix) += beta * stiffness_matrix;
-
-  KRATOS_CATCH("")
+    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        msLocalSize);
 }
 
-void TrussElement3D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
-                                           ProcessInfo &rCurrentProcessInfo) {
+void TrussElement3D2N::CalculateMassMatrix(
+    MatrixType &rMassMatrix,
+    ProcessInfo &rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY
 
-  KRATOS_TRY
-  rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
+    // Compute lumped mass matrix
+    VectorType temp_vector(msLocalSize);
+    CalculateLumpedMassVector(temp_vector);
 
-  const double A = this->GetProperties()[CROSS_AREA];
-  const double L = this->CalculateReferenceLength();
-  const double rho = this->GetProperties()[DENSITY];
+    // Clear matrix
+    if (rMassMatrix.size1() != msLocalSize || rMassMatrix.size2() != msLocalSize)
+        rMassMatrix.resize( msLocalSize, msLocalSize, false );
+    rMassMatrix = ZeroMatrix(msLocalSize, msLocalSize);
 
-  const double total_mass = A * L * rho;
+    // Fill the matrix
+    for (IndexType i = 0; i < msLocalSize; ++i)
+        rMassMatrix(i, i) = temp_vector[i];
 
-  for (int i = 0; i < msNumberOfNodes; ++i) {
-
-    for (int j = 0; j < msDimension; ++j) {
-      int index = i * msDimension + j;
-
-      rMassMatrix(index, index) = total_mass * 0.50;
-    }
-  }
-  KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
 
 BoundedVector<double, TrussElement3D2N::msLocalSize>
@@ -176,7 +155,7 @@ TrussElement3D2N::CalculateBodyForces() {
 
   // creating necessary values
   const double A = this->GetProperties()[CROSS_AREA];
-  const double L = this->CalculateReferenceLength();
+  const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double rho = this->GetProperties()[DENSITY];
 
   double total_mass = A * L * rho;
@@ -383,8 +362,8 @@ void TrussElement3D2N::CalculateOnIntegrationPoints(
       prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
     }
 
-    const double L0 = this->CalculateReferenceLength();
-    const double l = this->CalculateCurrentLength();
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
 
 
     array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
@@ -473,6 +452,10 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
                  << std::endl;
   }
 
+    KRATOS_ERROR_IF(StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this)
+         < std::numeric_limits<double>::epsilon())
+        << "Element #" << this->Id() << " has a length of zero!" << std::endl;
+
   return 0;
 
   KRATOS_CATCH("")
@@ -480,51 +463,13 @@ int TrussElement3D2N::Check(const ProcessInfo &rCurrentProcessInfo) {
 double TrussElement3D2N::CalculateGreenLagrangeStrain() {
 
   KRATOS_TRY
-  const double l = this->CalculateCurrentLength();
-  const double L = this->CalculateReferenceLength();
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double e = ((l * l - L * L) / (2.00 * L * L));
   return e;
   KRATOS_CATCH("")
 }
 
-double TrussElement3D2N::CalculateReferenceLength() {
-
-  KRATOS_TRY;
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
-  const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-  const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-  const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-  const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
-
-  KRATOS_ERROR_IF(L<=numerical_limit)
-   << "Reference Length of element" << this->Id() << "~ 0" << std::endl;
-  return L;
-  KRATOS_CATCH("")
-}
-double TrussElement3D2N::CalculateCurrentLength() {
-
-  KRATOS_TRY;
-  const double numerical_limit = std::numeric_limits<double>::epsilon();
-  const double du =
-      this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_X) -
-      this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-  const double dv =
-      this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Y) -
-      this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Y);
-  const double dw =
-      this->GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT_Z) -
-      this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-  const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
-  const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
-  const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-  const double l = std::sqrt((du + dx) * (du + dx) + (dv + dy) * (dv + dy) +
-                             (dw + dz) * (dw + dz));
-
-  KRATOS_ERROR_IF(l<=numerical_limit)
-   << "Current Length of element" << this->Id() << "~ 0" << std::endl;
-  return l;
-  KRATOS_CATCH("")
-}
 void TrussElement3D2N::UpdateInternalForces(
     BoundedVector<double, TrussElement3D2N::msLocalSize> &rInternalForces) {
 
@@ -534,8 +479,8 @@ void TrussElement3D2N::UpdateInternalForces(
 
   this->CreateTransformationMatrix(transformation_matrix);
 
-  const double l = this->CalculateCurrentLength();
-  const double L0 = this->CalculateReferenceLength();
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+  const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double A = this->GetProperties()[CROSS_AREA];
 
   double prestress = 0.00;
@@ -657,60 +602,80 @@ void TrussElement3D2N::WriteTransformationCoordinates(
 }
 
 void TrussElement3D2N::AddExplicitContribution(
-    const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
-    Variable<array_1d<double, 3>> &rDestinationVariable,
-    const ProcessInfo &rCurrentProcessInfo) {
+    const VectorType& rRHSVector,
+    const Variable<VectorType>& rRHSVariable,
+    Variable<double >& rDestinationVariable,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
     KRATOS_TRY;
 
-    if (rRHSVariable == RESIDUAL_VECTOR &&
-        rDestinationVariable == FORCE_RESIDUAL) {
+    auto& r_geom = GetGeometry();
 
-    BoundedVector<double, msLocalSize> damping_residual_contribution =
-        ZeroVector(msLocalSize);
-      Vector current_nodal_velocities = ZeroVector(msLocalSize);
-      this->GetFirstDerivativesVector(current_nodal_velocities);
-      Matrix damping_matrix;
-      ProcessInfo temp_process_information; // cant pass const ProcessInfo
-      this->CalculateDampingMatrix(damping_matrix, temp_process_information);
-      // current residual contribution due to damping
-      noalias(damping_residual_contribution) =
-          prod(damping_matrix, current_nodal_velocities);
+    if (rDestinationVariable == NODAL_MASS) {
+        VectorType element_mass_vector(msLocalSize);
+        this->CalculateLumpedMassVector(element_mass_vector);
 
+        for (SizeType i = 0; i < msNumberOfNodes; ++i) {
+            double &r_nodal_mass = r_geom[i].GetValue(NODAL_MASS);
+            int index = i * msDimension;
 
-      for (size_t i = 0; i < msNumberOfNodes; ++i) {
-        size_t index = msDimension * i;
-        array_1d<double, 3> &r_force_residual =
-            GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
-        for (size_t j = 0; j < msDimension; ++j) {
-  #pragma omp atomic
-          r_force_residual[j] +=
-              rRHSVector[index + j] - damping_residual_contribution[index + j];
+            #pragma omp atomic
+            r_nodal_mass += element_mass_vector(index);
         }
-      }
     }
 
-    else if (rDestinationVariable == NODAL_INERTIA) {
+    KRATOS_CATCH("")
+}
 
-      Matrix element_mass_matrix = ZeroMatrix(msLocalSize, msLocalSize);
-      ProcessInfo temp_info; // Dummy
-      this->CalculateMassMatrix(element_mass_matrix, temp_info);
+void TrussElement3D2N::AddExplicitContribution(
+    const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
+    Variable<array_1d<double, 3>> &rDestinationVariable,
+    const ProcessInfo &rCurrentProcessInfo
+    )
+{
+    KRATOS_TRY;
 
-      for (int i = 0; i < msNumberOfNodes; ++i) {
-        double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
-        array_1d<double, msDimension> &r_nodal_inertia =
-            GetGeometry()[i].GetValue(NODAL_INERTIA);
-        int index = i * msDimension;
+    if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
 
-        for (SizeType j = 0; j < msLocalSize; ++j) {
-  #pragma omp atomic
-          r_nodal_mass += element_mass_matrix(index, j);
+        BoundedVector<double, msLocalSize> damping_residual_contribution = ZeroVector(msLocalSize);
+        Vector current_nodal_velocities = ZeroVector(msLocalSize);
+        this->GetFirstDerivativesVector(current_nodal_velocities);
+        Matrix damping_matrix;
+        ProcessInfo temp_process_information; // cant pass const ProcessInfo
+        this->CalculateDampingMatrix(damping_matrix, temp_process_information);
+        // current residual contribution due to damping
+        noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+        for (size_t i = 0; i < msNumberOfNodes; ++i) {
+            size_t index = msDimension * i;
+            array_1d<double, 3> &r_force_residual = GetGeometry()[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+            for (size_t j = 0; j < msDimension; ++j) {
+                #pragma omp atomic
+                r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+            }
         }
-        for (int k = 0; k < msDimension; ++k) {
-  #pragma omp atomic
-          r_nodal_inertia[k] += 0.00;
+    } else if (rDestinationVariable == NODAL_INERTIA) {
+
+        // Getting the vector mass
+        VectorType mass_vector(msLocalSize);
+        CalculateLumpedMassVector(mass_vector);
+
+        for (int i = 0; i < msNumberOfNodes; ++i) {
+            double &r_nodal_mass = GetGeometry()[i].GetValue(NODAL_MASS);
+            array_1d<double, msDimension> &r_nodal_inertia = GetGeometry()[i].GetValue(NODAL_INERTIA);
+            int index = i * msDimension;
+
+            #pragma omp atomic
+            r_nodal_mass += mass_vector[index];
+
+            for (int k = 0; k < msDimension; ++k) {
+                #pragma omp atomic
+                r_nodal_inertia[k] += 0.0;
+            }
         }
-      }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -749,8 +714,8 @@ void TrussElement3D2N::CalculateGeometricStiffnessMatrix(
   const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
   const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
   const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-  const double L = this->CalculateReferenceLength();
-  const double l = this->CalculateCurrentLength();
+  const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+  const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
   double e_gL = (l * l - L * L) / (2.00 * L * L);
   const double L3 = L * L * L;
 
@@ -830,7 +795,7 @@ void TrussElement3D2N::CalculateElasticStiffnessMatrix(
   const double dx = this->GetGeometry()[1].X0() - this->GetGeometry()[0].X0();
   const double dy = this->GetGeometry()[1].Y0() - this->GetGeometry()[0].Y0();
   const double dz = this->GetGeometry()[1].Z0() - this->GetGeometry()[0].Z0();
-  const double L = this->CalculateReferenceLength();
+  const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
   const double L3 = L * L * L;
 
   const double EA = E * A;
@@ -926,8 +891,8 @@ BoundedVector<double,TrussElement3D2N::msLocalSize>
     this->GetGeometry(),temp_vector,true,true,rSaveInternalVariables);
 
     BoundedVector<double,msLocalSize> internal_forces = ZeroVector(msLocalSize);
-    const double l = this->CalculateCurrentLength();
-    const double L0 = this->CalculateReferenceLength();
+    const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+    const double L0 = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
     const double A = this->GetProperties()[CROSS_AREA];
     double prestress = 0.00;
     if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
@@ -978,7 +943,30 @@ bool TrussElement3D2N::HasSelfWeight() const
   else return true;
 }
 
+void TrussElement3D2N::CalculateLumpedMassVector(VectorType &rMassVector)
+{
+    KRATOS_TRY
 
+    // Clear matrix
+    if (rMassVector.size() != msLocalSize)
+        rMassVector.resize( msLocalSize );
+
+    const double A = this->GetProperties()[CROSS_AREA];
+    const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+    const double rho = this->GetProperties()[DENSITY];
+
+    const double total_mass = A * L * rho;
+
+    for (int i = 0; i < msNumberOfNodes; ++i) {
+        for (int j = 0; j < msDimension; ++j) {
+            int index = i * msDimension + j;
+
+            rMassVector[index] = total_mass * 0.50;
+        }
+    }
+
+    KRATOS_CATCH("")
+}
 
 
 

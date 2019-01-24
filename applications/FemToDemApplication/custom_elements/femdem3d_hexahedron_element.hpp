@@ -46,8 +46,9 @@ class FemDem3DHexahedronElement : public FemDem3DElement
 	void CalculateLocalSystem(
 		MatrixType &rLeftHandSideMatrix,
 		VectorType &rRightHandSideVector,
-		ProcessInfo &rCurrentProcessInfo);
+		ProcessInfo &rCurrentProcessInfo) override;
 
+	// void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 	void FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo);
 
 	void GetValueOnIntegrationPoints(

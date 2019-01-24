@@ -1291,15 +1291,6 @@ public:
     */
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
-    /** Add an existing model part as a sub model part.
-    	All the meshes will be added to the parents.
-    	NOTE: The added sub model part should not have
-    	mesh entities with id in conflict with other ones in the parent
-    	In the case of conflict the new one would replace the old one
-    	resulting inconsitency in parent.
-    */
-    void AddSubModelPart(ModelPart& rThisSubModelPart);
-
     /** Returns a reference to the sub_model part with given string name
     	In debug gives an error if does not exist.
     */
@@ -1362,7 +1353,11 @@ public:
 
     ModelPart* GetParentModelPart() const
     {
-        return mpParentModelPart;
+        if (IsSubModelPart()) {
+            return mpParentModelPart;
+        } else {
+            return const_cast<ModelPart*>(this);
+        }
     }
 
     bool HasSubModelPart(std::string const& ThisSubModelPartName) const
@@ -1660,5 +1655,3 @@ KRATOS_API(KRATOS_CORE) inline std::ostream & operator <<(std::ostream& rOStream
 } // namespace Kratos.
 
 #endif // KRATOS_MODEL_PART_H_INCLUDED  defined
-
-
