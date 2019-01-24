@@ -26,21 +26,23 @@ bool ComputeLumpedMassMatrix(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // giving the globally defined setting (through ProcessInfo) priority
+    // Giving the globally defined setting (through ProcessInfo) priority
     // over the locally defined one (through Properties)
-    // this is needed for the explicit solver, which requires the lumped
+    // This is needed for the explicit solver, which requires the lumped
     // mass matrix and specifies it's computation through the ProcessInfo
     if (rCurrentProcessInfo.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
         return rCurrentProcessInfo[COMPUTE_LUMPED_MASS_MATRIX];
-    }
-    else if (rProperites.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
+    } else if (rProperites.Has(COMPUTE_LUMPED_MASS_MATRIX)) {
         return rProperites[COMPUTE_LUMPED_MASS_MATRIX];
     }
 
-    // the default for all elements in StructuralMechanics is
+    // The default for all elements in StructuralMechanics is
     // to use the consistent-mass-matrix, hence returning false here
     return false;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool HasRayleighDamping(
     const Properties& rProperites,
@@ -50,6 +52,9 @@ bool HasRayleighDamping(
             GetRayleighBeta(rProperites, rCurrentProcessInfo) > 0.0);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GetRayleighAlpha(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
@@ -58,29 +63,50 @@ double GetRayleighAlpha(
     // over the globally defined one (through ProcessInfo)
     if (rProperites.Has(RAYLEIGH_ALPHA)) {
         return rProperites[RAYLEIGH_ALPHA];
-    }
-    else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_ALPHA)) {
         return rCurrentProcessInfo[RAYLEIGH_ALPHA];
     }
 
     return 0.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double GetRayleighBeta(
     const Properties& rProperites,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // giving the locally defined setting (through Properties) priority
+    // Giving the locally defined setting (through Properties) priority
     // over the globally defined one (through ProcessInfo)
     if (rProperites.Has(RAYLEIGH_BETA)) {
         return rProperites[RAYLEIGH_BETA];
-    }
-    else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
+    } else if (rCurrentProcessInfo.Has(RAYLEIGH_BETA)) {
         return rCurrentProcessInfo[RAYLEIGH_BETA];
     }
 
     return 0.0;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetDensity(const Element& rElement)
+{
+    // Getting the properties of the element
+    const auto& r_prop = rElement.GetProperties();
+
+    // Getting the density of the element
+    const double density = r_prop[DENSITY];
+
+    // Getting the mass factor
+    const double mass_factor = rElement.Has(MASS_FACTOR) ? rElement.GetValue(MASS_FACTOR) : r_prop.Has(MASS_FACTOR) ? r_prop.GetValue(MASS_FACTOR) : 1.0;
+
+    return mass_factor * density;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 void CalculateRayleighDampingMatrix(
     Element& rElement,
@@ -117,6 +143,9 @@ void CalculateRayleighDampingMatrix(
     KRATOS_CATCH( "CalculateRayleighDampingMatrix" )
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double CalculateReferenceLength2D2N(const Element& rElement)
 {
     KRATOS_TRY;
@@ -130,6 +159,9 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double CalculateCurrentLength2D2N(const Element& rElement)
 {
@@ -152,6 +184,9 @@ double CalculateCurrentLength2D2N(const Element& rElement)
     KRATOS_CATCH("")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 double CalculateReferenceLength3D2N(const Element& rElement)
 {
     KRATOS_TRY;
@@ -164,6 +199,9 @@ double CalculateReferenceLength3D2N(const Element& rElement)
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 double CalculateCurrentLength3D2N(const Element& rElement)
 {
