@@ -1,6 +1,6 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
@@ -45,8 +45,9 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node<3> >(Element::GeometryType::PointsArrayType(8)))),
       mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node<3> >(Element::GeometryType::PointsArrayType(27)))),
-      mThermalFace2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
-      mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mThermalFace2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
+      mThermalFace3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
+      mThermalFace3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
       mFluxCondition2D2N(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >(Element::GeometryType::PointsArrayType(2)))),
       mFluxCondition3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
       mFluxCondition3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))) {}
@@ -54,13 +55,15 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
 void KratosConvectionDiffusionApplication::Register() {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << 
+    KRATOS_INFO("") <<
     " KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ " << std::endl <<
     "       / __/ _ || || | | / /__|   |_ _| __| __|" << std::endl <<
     "      | (_| (_) | .` || V /___| |) | || _|| _| " << std::endl <<
     "       |___|___/|_||_| |_/    |___/___|_| |_|  APPLICATION" << std::endl;
 
     // Registering variables
+    KRATOS_REGISTER_VARIABLE(AUX_FLUX)
+    KRATOS_REGISTER_VARIABLE(AUX_TEMPERATURE)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_1)
     KRATOS_REGISTER_VARIABLE(MELT_TEMPERATURE_2)
     KRATOS_REGISTER_VARIABLE(BFECC_ERROR)
@@ -89,8 +92,9 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D8N", mLaplacian3D8N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
 
-    KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
-    KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
+    KRATOS_REGISTER_CONDITION("ThermalFace2D2N", mThermalFace2D2N);
+    KRATOS_REGISTER_CONDITION("ThermalFace3D3N", mThermalFace3D3N);
+    KRATOS_REGISTER_CONDITION("ThermalFace3D4N", mThermalFace3D4N);
     KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);

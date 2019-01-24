@@ -26,6 +26,7 @@
 #include "includes/gid_io.h"
 #include "python/add_io_to_python.h"
 #include "containers/flags.h"
+#include "input_output/vtk_output.h"
 
 #ifdef JSON_INCLUDED
 #include "includes/json_io.h"
@@ -299,6 +300,12 @@ void  AddIOToPython(pybind11::module& m)
     .value("SingleFile",SingleFile)
     .value("MultipleFiles",MultipleFiles)
     ;
+
+
+    py::class_<VtkOutput, VtkOutput::Pointer, IO>(m, "VtkOutput")
+        .def(py::init< ModelPart&, Parameters >())
+        .def("PrintOutput", &VtkOutput::PrintOutput)
+        ;
 }
 }  // namespace Python.
 

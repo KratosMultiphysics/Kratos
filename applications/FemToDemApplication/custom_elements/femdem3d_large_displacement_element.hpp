@@ -43,12 +43,15 @@ class FemDem3DLargeDisplacementElement : public FemDem3DElement
 	{
 	}
 
-    void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
-    void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
+	void InitializeNonLinearIteration(ProcessInfo &rCurrentProcessInfo);
+	void FinalizeNonLinearIteration(ProcessInfo &CurrentProcessInfo);
 
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
-                              VectorType &rRightHandSideVector,
-							  ProcessInfo &rCurrentProcessInfo);
+							  VectorType &rRightHandSideVector,
+							  ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+  
 
     int GetStrainSize(){return 6;}
     double CalculateDerivativesOnReferenceConfiguration(Matrix& rJ0,

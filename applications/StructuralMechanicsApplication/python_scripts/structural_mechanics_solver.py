@@ -420,6 +420,12 @@ class MechanicalSolver(PythonSolver):
                 return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
         else:
             # using a default linear solver (selecting the fastest one available)
+            import KratosMultiphysics.kratos_utilities as kratos_utils
+            if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+                from KratosMultiphysics import EigenSolversApplication
+            elif kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
+                from KratosMultiphysics import ExternalSolversApplication
+
             linear_solvers_by_speed = [
                 "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
                 "SparseLUSolver",  # EigenSolversApplication
@@ -427,6 +433,7 @@ class MechanicalSolver(PythonSolver):
                 "SuperLUSolver",   # ExternalSolversApplication
                 "SkylineLUFactorizationSolver" # in Core, always available, but slow
             ]
+
             for solver_name in linear_solvers_by_speed:
                 if KratosMultiphysics.LinearSolverFactory().Has(solver_name):
                     linear_solver_configuration.AddEmptyValue("solver_type").SetString(solver_name)
@@ -445,9 +452,10 @@ class MechanicalSolver(PythonSolver):
             else:
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
         else:
-            if (self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-                raise Exception("To use MPCs you also have to set \"block_builder\" to \"true\"")
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+            if self.settings["multi_point_constraints_used"].GetBool():
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
+            else:
+                builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
         return builder_and_solver
 
     def _create_solution_scheme(self):
