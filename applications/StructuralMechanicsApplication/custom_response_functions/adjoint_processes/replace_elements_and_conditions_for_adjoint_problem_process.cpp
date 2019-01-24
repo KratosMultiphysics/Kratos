@@ -117,6 +117,12 @@ namespace Kratos
 
                     (*it.base()) = p_element;
                 }
+                else if (element_name == "AdjointFiniteDifferencingBaseElement")
+                {
+                    Element::Pointer p_element = Kratos::make_shared<AdjointFiniteDifferencingBaseElement>(*it.base() );
+
+                    (*it.base()) = p_element;
+                }
                 else
                     KRATOS_ERROR << "Unknown adjoint element: " << element_name << std::endl;
             }
@@ -206,6 +212,8 @@ namespace Kratos
             rName = "AdjointFiniteDifferenceTrussElement";
         else if(name_current_element == "TrussLinearElement3D2N")
             rName = "AdjointFiniteDifferenceTrussLinearElement";
+        else if( (name_current_element == "SmallDisplacementElement3D4N") || (name_current_element == "SmallDisplacementElement3D8N"))
+            rName = "AdjointFiniteDifferencingBaseElement";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
