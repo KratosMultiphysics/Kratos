@@ -300,11 +300,10 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const
     for(IndexType i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)  {
         const array_1d<double, 3>& aux_vector = r_center.Coordinates() - rGeometry[i_node].Coordinates();
         double aux_value = inner_prod(aux_vector, aux_vector);
-        aux_value = std::sqrt(aux_value);
         if(aux_value > radius) radius = aux_value;
     }
 
-    return radius;
+    return std::sqrt(radius);
 }
 
 /***********************************************************************************/
