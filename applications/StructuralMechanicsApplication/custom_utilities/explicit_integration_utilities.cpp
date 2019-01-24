@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "geometries/point.h"
 #include "custom_utilities/explicit_integration_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -33,7 +34,7 @@ double CalculateDeltaTime(
     {
         "time_step_prediction_level" : 2.0,
         "max_delta_time"             : 1.0e-3,
-        "safety_factor"              : 0.5,
+        "safety_factor"              : 0.4,
         "mass_factor"                : 1.0,
         "desired_delta_time"         : -1.0,
         "max_number_of_iterations"   : 10
@@ -120,6 +121,7 @@ double InnerCalculateDeltaTime(
 
         /* Get geometric and material properties */
         const Properties& r_properties = it_elem->GetProperties();
+        const auto& r_geometry = it_elem->GetGeometry();
 
         // Initialize
         check_has_all_variables = true;
@@ -160,7 +162,18 @@ double InnerCalculateDeltaTime(
         }
 
         if (check_has_all_variables) {
-            const double length = it_elem->GetGeometry().Length();
+            // Computing length as the element radius
+//             const double length = it_elem->GetGeometry().Length();
+            double length = 0.0;
+            const Point& r_center = r_geometry.Center();
+
+            array_1d<double, 3> aux_vector;
+            for(std::size_t i_node = 0; i_node < r_geometry.PointsNumber(); ++i_node)  {
+                noalias(aux_vector) = r_center.Coordinates() - r_geometry[i_node].Coordinates();
+                const double aux_value = norm_2(aux_vector);
+                if(aux_value > length)
+                    length = aux_value;
+            }
 
             // Compute courant criterion
             const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
