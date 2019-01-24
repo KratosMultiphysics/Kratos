@@ -11,6 +11,63 @@ namespace Kratos {
 
 class UnvWriter {
 public:
+    
+    enum class DatasetLocation {
+        DATA_AT_NODES               = 1,
+        DATA_AT_ELEMENTS            = 2,
+        DATA_AT_NODES_ON_ELEMENTS   = 3,
+        DATA_AT_POINTS              = 5,
+        DATA_ON_ELEMENTS_AT_NODES   = 6
+    };
+
+    enum class ModelType {
+        UNKNOWN         = 0,
+        STRUCTURAL      = 1,
+        HEAT_TRANSFER   = 2,
+        FLUID_FLOW      = 3
+    };
+
+    enum class AnalysisType {
+        UNKNOWN                             = 0,
+        STATIC                              = 1,
+        NORMAL_MODE                         = 2,
+        COMPLEX_EIGENVALUE_FIRST_ORDER      = 3,
+        TRANSIENT                           = 4,
+        FREQUENCY_RESPONSE                  = 5,
+        BUCKLING                            = 6,
+        COMPLEX_EIGENVALUE_SECOND_ORDER     = 7,
+        STATIC_NON_LINEAR                   = 9,
+        CRAIG_BAMPTON_CONSTRAINT_MODES      = 10,
+        EQUIVALENT_ATTACHMENT_MODES         = 11,
+        EFFECTIVE_MASS_MODES                = 12,
+        EFFECTIVE_MASS_MATRIX               = 13,
+        EFFECTIVE_MASS_MATRIX_COPY          = 14,   // This record is duplicared intentionally
+        DISTRIBUTED_LOAD_LOAD_DISTRIBUTION  = 15,
+        DISTRIBUTED_LOAD_ATTACHMENT_MODES   = 16
+    };
+
+    // 3_DOF_* Records have their name changed to D3_DOF to avoid conflicts.
+    enum class DataCharacteristics {
+        UNKNOWN = 0,
+        SCALAR = 1,
+        D3_DOF_GLOBAL_TRANSLATION_VECTOR = 2,
+        D3_DOF_GLOBAL_TRANSLATION_ROTATION_VECTOR = 3,
+        SYMMETRIC_GLOBAL_TENSOR = 4,
+        STRESS_RESULTANTS = 6
+    };
+
+    // This record is to big, I will consider moving these enums to another file.
+    // enum class ResultType {
+
+    // };
+
+    enum class DataType {
+        INTEGER = 1,
+        SINGLE_PRECISION_FLOATING_POINT = 2,
+        DOUBLE_PRECISION_FLOATING_POINT = 4,
+        SINGLE_PRECISION_COMPLEX = 5,
+        DOUBLE_PRECISION_COMPLEX = 6
+    };
 
     UnvWriter(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension)
             : mrOutputModelPart(modelPart),
@@ -23,6 +80,13 @@ public:
         writeNodes();
         writeElements();
         writeNodalResults();
+    }
+
+    template <typename Enumeration>
+    auto as_integer(Enumeration const value)
+        -> typename std::underlying_type<Enumeration>::type
+    {
+        return static_cast<typename std::underlying_type<Enumeration>::type>(value);
     }
 
     void initializeOutputFile() {
@@ -114,15 +178,7 @@ public:
         outputFile.close();
     }
 
-    enum DatasetLocation {
-        DataAtNodes = 1,
-        DataAtElemen = 2,
-        DataAtNodeOnElement = 3,
-        DataAtPoint = 5,
-        DataOnElementAtNode = 6
-    };
-
-
+    // Partially extracted from: http://users.ices.utexas.edu
     // # beginning of dataset
     // # type of dataset: data at mesh entities
     // # R.  1: unique number of dataset (dataset_label)
@@ -142,47 +198,55 @@ public:
     // # R. 12: analysis-specific data (record_12)
     // # R. 13: analysis-specific data (record_13)
 
+    // Fordes
+
     void writeNodalResults() {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         const int dataSetNumberForResults = 2414;
-        std::string dataSetLabel = 1;                   // TimeStep?
-        std::string dataSetName = "NodalResults";
+        std::string dataSetLabel = 1;
+        std::string dataSetName = "NodalResults";   
         const int physicalPropertyTableNumber = 1;
         const int materialPropertyTableNumber = 1;
         const int color = 0;
 
-        outputFile << std::setw(6) << "-1" << "\n";
-        outputFile << std::setw(6) << dataSetNumberForResults << "\n";
+        outputFile << std::setw(6) << "-1" << "\n";                                                 // Begin block
+        outputFile << std::setw(6) << dataSetNumberForResults << "\n";                              // DatasetID
 
-        outputFile << std::setw(10) << dataSetLabel << "\n";
-        outputFile << std::setw(6) << dataSetName << "\n";
-        outputFile << std::setw(10) << DatasetLocation::DataAtNodes << "\n";
+        outputFile << std::setw(10) << dataSetLabel << "\n";                                        // Record 1
+        outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 2
+        outputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
 
-        outputFile << std::setw(6) << dataSetName << "\n";
-        outputFile << std::setw(6) << 'Double precision floating point' << "\n";
-        outputFile << std::setw(6) << 'NONE' << "\n";
-        outputFile << std::setw(6) << 'NONE' << "\n";
-        outputFile << std::setw(6) << 'NONE' << "\n";
+        outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 4
+        outputFile << std::setw(6) << 'None' << "\n";                                               // Record 5
+        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 6
+        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 7
+        outputFile << std::setw(6) << 'NONE' << "\n";                                               // Record 8
         
-        // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues
-        outputFile << std::setw(6) << 1 << 1 << 1 << 5 << 2 << 1 << "\n";
+        // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues    // Record 9
+        outputFile << std::setw(6);
+        outputFile << as_integer(ModelType::STRUCTURAL); 
+        outputFile << as_integer(AnalysisType::STATIC);
+        outputFile << as_integer(DataCharacteristics::SCALAR);
+        outputFile << 5;
+        outputFile << as_integer(DataType::SINGLE_PRECISION_FLOATING_POINT);
+        outputFile << 1; 
+        outputFile << "\n";
 
         // ????
-        outputFile << std::setw(6) << 'NONE' << "\n";   // 10
-        outputFile << std::setw(6) << 'NONE' << "\n";   // 11
-        outputFile << std::setw(6) << 'NONE' << "\n";   // 12
-        outputFile << std::setw(6) << 'NONE' << "\n";   // 13
+        outputFile << std::setw(6) << 0 << 0 << 0 << 0 << 0 << 1 << 0 << 0 << "\n";                 // Record 10
+        outputFile << std::setw(6) << 0 << 0 << "\n";                                               // Record 11
+        outputFile << std::setw(6) << 0 << "\n";                                                    // Record 12
+        outputFile << std::setw(6) << 0 << "\n";                                                    // Record 13
 
         // Data at nodes:
         for (auto &node_i : mrOutputModelPart.Nodes()) {
             int node_label = node_i.Id();
-            outputFile << std::setw(6) << node_label << "\n";   // 14 - Node Number
-            outputFile << std::setw(6) << node_i.FastGetSolutionStepValue(TEMPERATURE) << "\n";   // 15 - NumberOfDataValues' data of the node
+            outputFile << std::setw(6) << node_label << "\n";                                       // Record 14 - Node Number
+            outputFile << std::setw(6) << node_i.FastGetSolutionStepValue(TEMPERATURE) << "\n";     // Record 15 - NumberOfDataValues' data of the node
         }
-
-
+        
         outputFile << std::setw(6) << "-1" << "\n";
         outputFile.close();
     }
