@@ -91,7 +91,7 @@ double GetRayleighBeta(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double GetDensity(const Element& rElement)
+double GetDensityForMassMatrixComputation(const Element& rElement)
 {
     // Getting the properties of the element
     const auto& r_prop = rElement.GetProperties();
@@ -100,9 +100,13 @@ double GetDensity(const Element& rElement)
     const double density = r_prop[DENSITY];
 
     // Getting the mass factor
-    const double mass_factor = rElement.Has(MASS_FACTOR) ? rElement.GetValue(MASS_FACTOR) : r_prop.Has(MASS_FACTOR) ? r_prop.GetValue(MASS_FACTOR) : 1.0;
-
-    return mass_factor * density;
+    if (rElement.Has(MASS_FACTOR)) {
+        return rElement.GetValue(MASS_FACTOR) * density;
+    } else if (r_prop.Has(MASS_FACTOR)) {
+        return r_prop.GetValue(MASS_FACTOR) * density;
+    } else {
+        return density;
+    }
 }
 
 /***********************************************************************************/

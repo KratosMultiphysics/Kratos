@@ -2017,7 +2017,7 @@ void IsotropicShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, Process
     CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,v3,area);
 
     const double h = GetProperties()[THICKNESS];
-    const double density = StructuralMechanicsElementUtilities::GetDensity(*this);
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double node_mass = area * density * h / 3.00;
 
     //lumped

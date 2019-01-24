@@ -68,7 +68,7 @@ double GetRayleighBeta(
  * @param rElement The Element for which the mass-matrix should be computed
  * @return The density after apply the mass factor to the element
  */
-double GetDensity(const Element& rElement);
+double GetDensityForMassMatrixComputation(const Element& rElement);
 
 /**
  * @brief Method to calculate the rayleigh damping-matrix
