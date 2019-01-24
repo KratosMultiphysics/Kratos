@@ -7,6 +7,7 @@ import structural_response_function_factory
 # Additional imports
 import os
 from KratosMultiphysics.KratosUnittest import TestCase
+from KratosMultiphysics import kratos_utilities
 
 # ==============================================================================
 # Define parameters
@@ -164,12 +165,10 @@ print("-------------------------------------------------")
 
 # Cleaning
 original_directory = os.getcwd()
-Kratos.kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
-Kratos.kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
-Kratos.kratos_utilities.DeleteFileIfExisting("primal_results.post.bin")
-Kratos.kratos_utilities.DeleteFileIfExisting("adjoint_results.post.bin")
-Kratos.kratos_utilities.DeleteFileIfExisting("solid_cantilever-1.0000.h5")
-Kratos.kratos_utilities.DeleteFileIfExisting("solid_cantilever.h5")
-Kratos.kratos_utilities.DeleteFileIfExisting("ProjectParametersOutput.json")
+kratos_utilities.DeleteDirectoryIfExisting("__pycache__")
+kratos_utilities.DeleteFileIfExisting(os.path.basename(original_directory)+".post.lst")
+kratos_utilities.DeleteFileIfExisting("primal_results.post.bin")
+kratos_utilities.DeleteFileIfExisting("adjoint_results.post.bin")
+kratos_utilities.DeleteFileIfExisting("ProjectParametersOutput.json")
 
 # ==============================================================================

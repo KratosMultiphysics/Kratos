@@ -63,24 +63,6 @@
                 "constrained"     : false,
                 "direction"       : [0.0,-1,0.0]
             }
-        }],
-        "list_other_processes" :[{
-            "kratos_module" : "KratosMultiphysics.HDF5Application",
-            "python_module" : "single_mesh_primal_output_process",
-            "help"          : "",
-            "process_name"  : "",
-            "Parameters" : {
-                "model_part_name" : "solid_cantilever",
-                "file_settings" : {
-                    "file_access_mode" : "truncate"
-                },
-                "model_part_output_settings" : {
-                    "prefix" : "/ModelData"
-                },
-                "nodal_solution_step_data_settings" : {
-                    "list_of_variables": ["DISPLACEMENT"]
-                }
-            }
         }]
     },
     "output_processes" : {

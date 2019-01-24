@@ -269,6 +269,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
         with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
             ProjectParametersPrimal = Parameters( parameter_file.read() )
 
+        self.has_primal_model_part_rotation_dofs = ProjectParametersPrimal["solver_settings"]["rotation_dofs"].GetBool()
+
         self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
 
         self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
@@ -303,6 +305,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
             self.primal_analysis.end_time += 1
         self.primal_analysis.RunSolutionLoop()
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
+
+        # Put primal solution on adjoint model
+        for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+            values_to_transfer = primal_node.GetSolutionStepValue(DISPLACEMENT)
+            adjoint_node.SetSolutionStepValue(DISPLACEMENT, values_to_transfer)
+
+            if self.has_primal_model_part_rotation_dofs:
+                values_to_transfer = primal_node.GetSolutionStepValue(ROTATION)
+                adjoint_node.SetSolutionStepValue(ROTATION, values_to_transfer)
 
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
