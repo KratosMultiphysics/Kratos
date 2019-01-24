@@ -106,44 +106,17 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.neighbour_search.Execute()
 
         if ( self.complete_model.GetCommunicator().TotalProcesses() == 1 ):
-            ### for serial and OpenMP
-            serial_settings = KratosMultiphysics.Parameters("""
-            {
-                "linear_solver_settings"   : {
-                    "solver_type" : "AMGCL"
-                }
-            }
-            """)
-            import linear_solver_factory
-            self.linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
-            print("before  --------------------------------------------------------------------------------------------------- ")
+
             self.variational_distance_process = self._set_variational_distance_process_serial()
             # Adding the C++ constructor (here the sub-division of the model part is performed)
             self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
-            # self.inlet_model_part = Model.GetModelPart(settings["model_part_name"].GetString())
-            # print(self.inlet_model_part.GetRootModelPart().Properties[1].GetValue(KratosMultiphysics.DENSITY))
-            print("after  --------------------------------------------------------------------------------------------------- ")
 
+        elif ( self.complete_model.GetCommunicator().TotalProcesses() > 1 ):
 
-        # elif ( self.complete_model.GetCommunicator().TotalProcesses() > 1 ):
-        #     ### for MPI
-        #     trilinos_settings = KratosMultiphysics.Parameters("""
-        #     {
-        #         "linear_solver_settings"   : {
-        #             "solver_type" : "amgcl"
-        #         }
-        #     }
-        #     """)
-        #     import trilinos_linear_solver_factory
-        #     self.linear_solver = trilinos_linear_solver_factory.ConstructSolver( trilinos_settings["linear_solver_settings"] )
-        #     self.variational_distance_process = self._set_variational_distance_process_mpi()
+            self.variational_distance_process = self._set_variational_distance_process_mpi()
+            # Adding the C++ constructor (here the sub-division of the model part is performed)
+            self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
-        else:
-            raise Exception("Communication not possible..... only for test")
-
-
-        # Adding the C++ constructor (here the sub-division of the model part is performed)
-        # self.two_fluid_inlet_process = KratosFluid.TwoFluidsInletProcess( self.inlet_model_part, settings["interface_settings"], self.variational_distance_process )
 
         import assign_vector_by_direction_process
 
@@ -152,6 +125,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
 
         if ( self.inlet_model_part.GetSubModelPart("fluid_2_inlet").NumberOfNodes() > 0):
             self.aux_process_fluid_2 = assign_vector_by_direction_process.AssignVectorByDirectionProcess(Model, settings["fluid_2_settings"])
+
 
 
     def ExecuteInitializeSolutionStep(self):
@@ -167,6 +141,7 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.two_fluid_inlet_process.SmoothDistanceField()
 
 
+
     def ExecuteFinalizeSolutionStep(self):
         # Call the base process ExecuteFinalizeSolutionStep()
         if ( self.inlet_model_part.GetSubModelPart("fluid_1_inlet").NumberOfNodes() > 0):
@@ -177,32 +152,22 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
         self.two_fluid_inlet_process.SmoothDistanceField()
 
 
-    def _set_variational_distance_process_mpi(self):
-        # Construct the variational distance calculation process
-        self.EpetraCommunicator = self.complete_model.GetCommunicator()
-        maximum_iterations = 5
-
-        if self.complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
-                self.EpetraCommunicator,
-                self.complete_model,
-                self.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-        else:
-            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
-                self.EpetraCommunicator,
-                self.complete_model,
-                self.linear_solver,
-                maximum_iterations,
-                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE)
-
-        return variational_distance_process
-
 
     def _set_variational_distance_process_serial(self):
         # Construct the variational distance calculation process
         maximum_iterations = 5
+
+        ### for serial and OpenMP
+        serial_settings = KratosMultiphysics.Parameters("""
+        {
+            "linear_solver_settings"   : {
+                "solver_type" : "AMGCL"
+            }
+        }
+        """)
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
+
         if self.complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess2D(
                 self.complete_model,
@@ -212,6 +177,45 @@ class ApplyTwoFluidsInletProcess(KratosMultiphysics.Process):
                 "distance_from_inlet_2D")
         else:
             variational_distance_process = KratosMultiphysics.VariationalDistanceCalculationProcess3D(
+                self.complete_model,
+                self.linear_solver,
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess3D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                "distance_from_inlet_3D")
+
+        return variational_distance_process
+
+
+
+    def _set_variational_distance_process_mpi(self):
+        # Construct the variational distance calculation process
+        import KratosMultiphysics.TrilinosApplication as KratosTrilinos
+        self.EpetraCommunicator = KratosTrilinos.CreateCommunicator()
+        maximum_iterations = 5
+
+        ### for MPI
+        trilinos_settings = KratosMultiphysics.Parameters("""
+        {
+            "linear_solver_settings"   : {
+                "solver_type" : "amgcl"
+            }
+        }
+        """)
+
+        import trilinos_linear_solver_factory
+        self.linear_solver = trilinos_linear_solver_factory.ConstructSolver( trilinos_settings["linear_solver_settings"] )
+
+        if self.complete_model.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess2D(
+                self.EpetraCommunicator,
+                self.complete_model,
+                self.linear_solver,
+                maximum_iterations,
+                KratosMultiphysics.VariationalDistanceCalculationProcess2D.CALCULATE_EXACT_DISTANCES_TO_PLANE,
+                "distance_from_inlet_2D")
+        else:
+            variational_distance_process = KratosTrilinos.TrilinosVariationalDistanceCalculationProcess3D(
+                self.EpetraCommunicator,
                 self.complete_model,
                 self.linear_solver,
                 maximum_iterations,

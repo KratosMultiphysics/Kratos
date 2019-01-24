@@ -79,7 +79,7 @@ public:
     TwoFluidsInletProcess(
         ModelPart& rModelPart,
         Parameters& rParameters,
-        Process::Pointer dist_proc );
+        Process::Pointer p_dist_proc );
 
     /// Destructor.
     ~TwoFluidsInletProcess() override {}

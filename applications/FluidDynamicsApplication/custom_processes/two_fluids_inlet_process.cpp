@@ -35,7 +35,7 @@ namespace Kratos
 TwoFluidsInletProcess::TwoFluidsInletProcess(
     ModelPart& rModelPart,
     Parameters& rParameters,
-    Process::Pointer dist_proc )
+    Process::Pointer p_dist_proc )
     : Process(), mrInletModelPart(rModelPart) {
 
     KRATOS_CHECK_VARIABLE_KEY( DISTANCE )
@@ -142,9 +142,7 @@ TwoFluidsInletProcess::TwoFluidsInletProcess(
     }
 
     // Variational distance calculation process is executed to calculate distance from inlet
-    KRATOS_WATCH( "DITANCE from the inlet is being calcualted ")
-    dist_proc->Execute();
-    KRATOS_WATCH( "DITANCE from the inlet is being calcualted end ")
+    p_dist_proc->Execute();
 
     // scaling the distance values such that 1.0 is reached at the inlet
     const double scaling_factor = 1.0 / mInletRadius;
