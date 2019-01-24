@@ -9,8 +9,8 @@ except ModuleNotFoundError:
     print(cs_tools.bcolors.FAIL + 'Numpy is not available ! MVQN accelerator needs numpy !'+ cs_tools.bcolors.ENDC)
     exit()
 
-from base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
-import co_simulation_tools as cs_tools
+from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
 from copy import deepcopy

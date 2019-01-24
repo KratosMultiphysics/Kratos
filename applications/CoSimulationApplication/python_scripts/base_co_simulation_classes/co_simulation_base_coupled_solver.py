@@ -246,7 +246,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #  @param conv_acc_settings dict: setting of the convergence criteria to be make
     def _CreateConvergenceCriteria(self, conv_criteria_settings): # probably better in some utils file
         conv_criteria = []
-        import base_co_simulation_classes.co_simulation_base_convergence_criteria as criteria
+        import KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_convergence_criteria as criteria
         num_criteria = conv_criteria_settings.size()
         for i in range(num_criteria):
             criteria_setting = conv_criteria_settings[i]

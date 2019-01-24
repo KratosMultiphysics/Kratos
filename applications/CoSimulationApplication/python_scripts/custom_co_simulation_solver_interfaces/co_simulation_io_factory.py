@@ -17,7 +17,7 @@ def CreateIO(model, io_type, settings):
     New IOs have to be registered by adding them to "available_ios"
     """
     if io_type in available_ios:
-        module_full_name = 'custom_co_simulation_solver_interfaces.'+available_ios[io_type]
+        module_full_name = 'KratosMultiphysics.CoSimulationApplication.custom_co_simulation_solver_interfaces.'+available_ios[io_type]
         io_module = __import__(module_full_name,fromlist=[available_ios[io_type]])
         return io_module.Create(model, settings)
     else:

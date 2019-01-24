@@ -1,8 +1,7 @@
 from __future__ import print_function, absolute_import, division  # makes these scripts backward compatible with python 2.6 and 2.7
 
 # Other imports
-import numpy as np
-import co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 
 
 ##

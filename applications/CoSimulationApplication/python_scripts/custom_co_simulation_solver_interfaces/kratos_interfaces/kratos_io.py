@@ -6,8 +6,8 @@ except ModuleNotFoundError:
     print(tools.bcolors.FAIL + 'KRATOS is not available ! Please ensure that Kratos is available for usage !'+ tools.bcolors.ENDC)
     exit()
 
-from base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
-import co_simulation_tools as tools
+from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
 
 # Other imports
 import os
@@ -31,8 +31,7 @@ class KratosIo(CoSimulationBaseIO):
         self.mappers = {}
         self.mapper_flags = {
             "add_values" : MappingApp.Mapper.ADD_VALUES,
-            "swap_sign" : MappingApp.Mapper.SWAP_SIGN,
-            "conservative" : MappingApp.Mapper.CONSERVATIVE,
+            "swap_sign" : MappingApp.Mapper.SWAP_SIGN
         }
 
         super(KratosIo, self).__init__(model, self.settings)
