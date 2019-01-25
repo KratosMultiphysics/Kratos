@@ -10,7 +10,7 @@ import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsA
 import structural_mechanics_solver
 
 # Import common utilities
-import common_methods_solvers
+from KratosMultiphysics.StructuralMechanicsApplication import common_methods_solvers
 
 def CreateSolver(model, custom_settings):
     return ImplicitMechanicalSolver(model, custom_settings)
