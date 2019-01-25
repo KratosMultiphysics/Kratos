@@ -987,7 +987,7 @@ protected:
                 omp_unset_lock(&lock_array[i_global]);
 #endif
             }
-            //note that computation of reactions is not performed here!
+            // Note that computation of reactions is not performed here!
         }
     }
 
@@ -1006,68 +1006,77 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("MatrixStructure");
 
-        // Getting the elements from the model
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-
-        // Getting the array of the conditions
-        const int nconditions = static_cast<int>(rModelPart.Conditions().size());
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        auto el_begin = rModelPart.ElementsBegin();
-        auto cond_begin = rModelPart.ConditionsBegin();
-
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
-        std::vector<std::unordered_set<std::size_t> > indices(equation_size);
+        std::vector<std::unordered_set<IndexType> > indices(equation_size);
 
         #pragma omp parallel for firstprivate(equation_size)
-        for (int index = 0; index < static_cast<int>(equation_size); index++)
-        {
-            indices[index].reserve(40);
+        for (int iii = 0; iii < static_cast<int>(equation_size); iii++) {
+            indices[iii].reserve(40);
         }
 
-        EquationIdVectorType ids(3, 0);
+        Element::EquationIdVectorType ids(3, 0);
 
-        #pragma omp parallel for firstprivate(nelements, ids)
-        for (int i_elem = 0; i_elem<nelements; i_elem++) {
-            auto it_elem = el_begin + i_elem;
-            pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+        #pragma omp parallel firstprivate(ids)
+        {
+            // The process info
+            ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&mLockArray[ids[i]]);
-                #endif
-                    auto& row_indices = indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            row_indices.insert(*it);
+            // We repeat the same declaration for each thead
+            std::vector<std::unordered_set<IndexType> > temp_indexes(equation_size);
+
+            #pragma omp for
+            for (int index = 0; index < static_cast<int>(equation_size); ++index)
+                temp_indexes[index].reserve(30);
+
+            // Getting the size of the array of elements from the model
+            const int number_of_elements = static_cast<int>(rModelPart.Elements().size());
+
+            // Element initial iterator
+            const auto el_begin = rModelPart.ElementsBegin();
+
+            // We iterate over the elements
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_elem = 0; i_elem<number_of_elements; ++i_elem) {
+                auto it_elem = el_begin + i_elem;
+                pScheme->EquationId( *(it_elem.base()), ids, r_current_process_info);
+
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
                     }
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&mLockArray[ids[i]]);
-                #endif
                 }
             }
 
-        }
+            // Getting the size of the array of the conditions
+            const int number_of_conditions = static_cast<int>(rModelPart.Conditions().size());
 
-        #pragma omp parallel for firstprivate(nconditions, ids)
-        for (int i_cond = 0; i_cond<nconditions; ++i_cond) {
-            auto it_cond = cond_begin + i_cond;
-            pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
-            for (IndexType i = 0; i < ids.size(); ++i) {
-                if (ids[i] < BaseType::mEquationSystemSize) {
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_set_lock(&mLockArray[ids[i]]);
-                #endif
-                    auto& row_indices = indices[ids[i]];
-                    for (auto it = ids.begin(); it != ids.end(); ++it) {
-                        if (*it < BaseType::mEquationSystemSize)
-                            row_indices.insert(*it);
+            // Condition initial iterator
+            const auto cond_begin = rModelPart.ConditionsBegin();
+
+            // We iterate over the conditions
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i_cond = 0; i_cond<number_of_conditions; ++i_cond) {
+                auto it_cond = cond_begin + i_cond;
+                pScheme->Condition_EquationId( *(it_cond.base()), ids, r_current_process_info);
+                for (auto& id_i : ids) {
+                    if (id_i < BaseType::mEquationSystemSize) {
+                        auto& row_indices = temp_indexes[id_i];
+                        for (auto& id_j : ids)
+                            if (id_j < BaseType::mEquationSystemSize)
+                                row_indices.insert(id_j);
                     }
-                #ifdef USE_LOCKS_IN_ASSEMBLY
-                    omp_unset_lock(&mLockArray[ids[i]]);
-                #endif
+                }
+            }
+
+            // Merging all the temporal indexes
+            #pragma omp critical
+            {
+                for (int i = 0; i < static_cast<int>(temp_indexes.size()); ++i) {
+                    indices[i].insert(temp_indexes[i].begin(), temp_indexes[i].end());
                 }
             }
         }
@@ -1080,12 +1089,12 @@ protected:
         rA = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
         double* Avalues = rA.value_data().begin();
-        IndexType* Arow_indices = rA.index1_data().begin();
-        IndexType* Acol_indices = rA.index2_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
 
         // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
-        for (int i = 0; i < static_cast<int>(rA.size1()); ++i)
+        for (IndexType i = 0; i < rA.size1(); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
 
         #pragma omp parallel for
@@ -1119,13 +1128,13 @@ protected:
         EquationIdVectorType& rEquationId
         )
     {
-        SizeType local_size = rLHSContribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
 
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
-            IndexType i_global = rEquationId[i_local];
+            const IndexType i_global = rEquationId[i_local];
             if (i_global < BaseType::mEquationSystemSize) {
                 for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    IndexType j_global = rEquationId[j_local];
+                    const IndexType j_global = rEquationId[j_local];
                     if (j_global < BaseType::mEquationSystemSize)
                         rA(i_global, j_global) += rLHSContribution(i_local, j_local);
                 }
@@ -1330,12 +1339,12 @@ private:
         EquationIdVectorType& rEquationId
         )
     {
-        SizeType local_size = rLHSContribution.size1();
+        const SizeType local_size = rLHSContribution.size1();
         for (IndexType i_local = 0; i_local < local_size; ++i_local) {
-            IndexType i_global = rEquationId[i_local];
+            const IndexType i_global = rEquationId[i_local];
             if (i_global < BaseType::mEquationSystemSize) {
                 for (IndexType j_local = 0; j_local < local_size; ++j_local) {
-                    int j_global = rEquationId[j_local];
+                    const IndexType j_global = rEquationId[j_local];
                     rA(i_global, j_global) += rLHSContribution(i_local, j_local);
                 }
             }
