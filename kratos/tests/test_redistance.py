@@ -32,8 +32,8 @@ class TestRedistance(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,0, self._ExpectedDistance(node.X,node.Y,node.Z)  )
 
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "skyline_lu_factorization" } """ ) )
 
         model_part.CloneTimeStep(1.0)
 
@@ -71,8 +71,8 @@ class TestRedistance(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
 
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "skyline_lu_factorization" } """ ) )
 
         model_part.CloneTimeStep(1.0)
 
@@ -108,8 +108,8 @@ class TestRedistance(KratosUnittest.TestCase):
         for node in model_part.Nodes:
             node.SetSolutionStepValue(KratosMultiphysics.DISTANCE, node.Y - free_surface_level)
 
-        import new_linear_solver_factory
-        linear_solver = new_linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "SkylineLUFactorizationSolver" } """ ) )
+        from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+        linear_solver = linear_solver_factory.ConstructSolver( KratosMultiphysics.Parameters( """ { "solver_type" : "skyline_lu_factorization" } """ ) )
 
         model_part.CloneTimeStep(1.0)
 
