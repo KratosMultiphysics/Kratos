@@ -360,7 +360,7 @@ void Parameters::AddValue(
         (*mpValue)[rEntry] = *(rOtherValue.mpValue);
     } else {
         KRATOS_WARNING("Parameters") << "WARNING:: Entry " << rEntry << " already defined. Overriding it" << std::endl;
-        SetValue(rEntry, rEntry);
+        SetValue(rEntry, rOtherValue);
     }
 }
 
