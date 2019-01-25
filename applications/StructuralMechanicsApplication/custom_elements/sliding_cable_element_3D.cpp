@@ -607,6 +607,20 @@ void SlidingCableElement3D::AddExplicitContribution(
     KRATOS_CATCH("")
 }
 
+int SlidingCableElement3D::Check(const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF( this->Id() < 1 ) << "Element found with Id " << this->Id() << std::endl;
+
+    const double domain_size = this->GetCurrentLength();
+    KRATOS_ERROR_IF( domain_size <= 0.0 ) << "Element " << this->Id() << " has non-positive size " << domain_size << std::endl;
+
+    return 0;
+
+    KRATOS_CATCH("")
+}
+
 void SlidingCableElement3D::save(Serializer &rSerializer) const {
   KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
 }

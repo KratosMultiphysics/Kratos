@@ -158,6 +158,9 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo
             ) override;
 
+        int Check(const ProcessInfo& rCurrentProcessInfo) override;
+
+
     private:
 
         friend class Serializer;

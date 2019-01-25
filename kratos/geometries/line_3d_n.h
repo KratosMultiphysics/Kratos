@@ -166,14 +166,14 @@ public:
 //         BaseType::Points().push_back( typename PointType::Pointer( new PointType( ThirdPoint ) ) );
 //     }
 
-    Line3DN( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint,
+    /* Line3DN( typename PointType::Pointer pFirstPoint, typename PointType::Pointer pSecondPoint,
              typename PointType::Pointer pThirdPoint )
         : BaseType( PointsArrayType(), &msGeometryData )
     {
         BaseType::Points().push_back( pFirstPoint );
         BaseType::Points().push_back( pSecondPoint );
         BaseType::Points().push_back( pThirdPoint );
-    }
+    } */
 
     Line3DN( const PointsArrayType& ThisPoints )
         : BaseType( ThisPoints, &msGeometryData )
@@ -219,7 +219,7 @@ public:
 
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::Kratos_Line3D3;
+        return GeometryData::Kratos_Line3DN;
     }
 
     ///@}
@@ -286,11 +286,7 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     Vector& LumpingFactors( Vector& rResult ) const override
     {
-	if(rResult.size() != 3)
-           rResult.resize( 3, false );
-        rResult[0] = 1.0/6.0;
-        rResult[2] = 2.0/3.0;
-        rResult[1] = 1.0/6.0;
+        KRATOS_ERROR << "'LumpingFactors' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -312,15 +308,8 @@ public:
     */
     double Length() const override
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(2);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
-        const double lz = point0.Z() - point1.Z();
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return sqrt( length );
+        KRATOS_ERROR << "'Length' not available for arbitrarty noded line" << std::endl;
+        return 0.0;
     }
 
     /** This method calculate and return area or surface area of
@@ -352,15 +341,8 @@ public:
     */
     double DomainSize() const override
     {
-        const TPointType& point0 = BaseType::GetPoint(0);
-        const TPointType& point1 = BaseType::GetPoint(2);
-        const double lx = point0.X() - point1.X();
-        const double ly = point0.Y() - point1.Y();
-        const double lz = point0.Z() - point1.Z();
-
-        const double length = lx * lx + ly * ly + lz * lz;
-
-        return std::sqrt( length );
+        KRATOS_ERROR << "'DomainSize' not available for arbitrarty noded line" << std::endl;
+        return 0.0;
     }
 
     /**
@@ -377,11 +359,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
-        this->PointLocalCoordinates( rResult, rPoint );
-
-        if ( fabs( rResult[0] ) <= (1.0 + Tolerance) )
-            return true;
-
+        KRATOS_ERROR << "'IsInside' not available for arbitrarty noded line" << std::endl;
         return false;
     }
 
@@ -405,36 +383,7 @@ public:
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
-        //getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 1 );
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-            }
-
-            rResult[pnt] = jacobian;
-        }//end of loop over all integration points
-
+        KRATOS_ERROR << "'Jacobian' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -458,36 +407,7 @@ public:
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
     {
-        //getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 1 );
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() - DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-            }
-
-            rResult[pnt] = jacobian;
-        }//end of loop over all integration points
-
+        KRATOS_ERROR << "'Jacobian' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -509,28 +429,7 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 1, false );
-        //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
-        //values of shape functions in integration points
-        DenseVector<double> ShapeFunctionsValuesInIntegrationPoint = ZeroVector( 3 );
-        ShapeFunctionsValuesInIntegrationPoint = row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
-                                                IntegrationPointIndex );
-
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-        }
-
+        KRATOS_ERROR << "'Jacobian' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -547,21 +446,7 @@ public:
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 1, false );
-        //derivatives of shape functions
-        Matrix shape_functions_gradients;
-        shape_functions_gradients = ShapeFunctionsLocalGradients( shape_functions_gradients, rPoint );
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-
-        for ( unsigned  int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 0 ) );
-        }
-
+        KRATOS_ERROR << "'Jacobian' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -664,12 +549,14 @@ public:
     */
     SizeType EdgesNumber() const override
     {
-        return 2;
+        KRATOS_ERROR << "'EdgesNumber' not available for arbitrarty noded line" << std::endl;
+        return 0;
     }
 
     SizeType FacesNumber() const override
     {
-        return 2;
+        KRATOS_ERROR << "'EdgesNumber' not available for arbitrarty noded line" << std::endl;
+        return 0;
     }
 
     ///@}
@@ -679,19 +566,7 @@ public:
     double ShapeFunctionValue( IndexType ShapeFunctionIndex,
                                        const CoordinatesArrayType& rPoint ) const override
     {
-        switch ( ShapeFunctionIndex )
-        {
-        case 0:
-            return( 0.5*( rPoint[0] - 1.0 )*rPoint[0] );
-        case 1:
-            return( 0.5*( rPoint[0] + 1.0 )*rPoint[0] );
-        case 2:
-	    return( 1.0 -rPoint[0]*rPoint[0] );
-
-        default:
-            KRATOS_ERROR << "Wrong index of shape function!" << *this << std::endl;
-        }
-
+        KRATOS_ERROR << "'ShapeFunctionValue' not available for arbitrarty noded line" << std::endl;
         return 0;
     }
 
@@ -716,7 +591,7 @@ public:
     */
     std::string Info() const override
     {
-        return "1 dimensional line with 3 nodes in 3D space";
+        return "1 dimensional line with n nodes in 3D space";
     }
 
     /** Print information about this object.
@@ -727,7 +602,7 @@ public:
     */
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "1 dimensional line with 3 nodes in 3D space";
+        rOStream << "1 dimensional line with n nodes in 3D space";
     }
 
     /** Print geometry's data into given stream. Prints it's points
@@ -741,10 +616,6 @@ public:
     void PrintData( std::ostream& rOStream ) const override
     {
         BaseType::PrintData( rOStream );
-        std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian\t : " << jacobian;
     }
 
     /**
@@ -754,17 +625,8 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(
         IntegrationMethod ThisMethod )
     {
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Result[pnt] = localGradients[pnt];
-        }
-
+        KRATOS_ERROR << "'ShapeFunctionsLocalGradients' not available for arbitrarty noded line" << std::endl;
+        ShapeFunctionsGradientsType Result( 0 );
         return Result;
     }
 
@@ -774,18 +636,8 @@ public:
      */
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
-        IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients
-        = CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const int integration_points_number
-        = msGeometryData.IntegrationPointsNumber( ThisMethod );
-        ShapeFunctionsGradientsType Result( integration_points_number );
-
-        for ( int pnt = 0; pnt < integration_points_number; pnt++ )
-        {
-            Result[pnt] = localGradients[pnt];
-        }
-
+        KRATOS_ERROR << "'ShapeFunctionsLocalGradients' not available for arbitrarty noded line" << std::endl;
+        ShapeFunctionsGradientsType Result( 0 );
         return Result;
     }
 
@@ -800,12 +652,7 @@ public:
     Matrix& ShapeFunctionsLocalGradients( Matrix& rResult,
             const CoordinatesArrayType& rPoint ) const override
     {
-        //setting up result matrix
-        rResult.resize( 3, 1, false );
-        noalias( rResult ) = ZeroMatrix( 3, 1 );
-        rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 2, 0 ) = -2.0 * rPoint[0];
-        rResult( 1, 0 ) = rPoint[0] + 0.5;
+        KRATOS_ERROR << "'ShapeFunctionsLocalGradients' not available for arbitrarty noded line" << std::endl;
         return( rResult );
     }
 
@@ -816,11 +663,7 @@ public:
      */
     Matrix& PointsLocalCoordinates( Matrix& rResult ) const override
     {
-        rResult.resize( 3, 1, false );
-        noalias( rResult ) = ZeroMatrix( 3, 1 );
-        rResult( 0, 0 ) = -1.0;
-        rResult( 2, 0 ) =  0.0;
-        rResult( 1, 0 ) =  1.0;
+        KRATOS_ERROR << "'PointsLocalCoordinates' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -834,12 +677,7 @@ public:
      */
     virtual Matrix& ShapeFunctionsGradients( Matrix& rResult, CoordinatesArrayType& rPoint )
     {
-        rResult.resize( 3, 1, false);
-        noalias( rResult ) = ZeroMatrix( 3, 1 );
-
-        rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 2, 0 ) = -2.0 * rPoint[0];
-        rResult( 1, 0 ) = rPoint[0] + 0.5;
+        KRATOS_ERROR << "'ShapeFunctionsGradients' not available for arbitrarty noded line" << std::endl;
         return rResult;
     }
 
@@ -928,73 +766,37 @@ private:
 
     static Matrix CalculateShapeFunctionsIntegrationPointsValues( typename BaseType::IntegrationMethod ThisMethod )
     {
-        const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
-        int integration_points_number = IntegrationPoints.size();
-        Matrix N( integration_points_number, 3 );
-
-        for ( int it_gp = 0; it_gp < integration_points_number; it_gp++ )
-        {
-            double e = IntegrationPoints[it_gp].X();
-            N( it_gp, 0 ) = 0.5 * ( e - 1 ) * e;
-            N( it_gp, 2 ) = 1.0 - e * e;
-            N( it_gp, 1 ) = 0.5 * ( 1 + e ) * e;
-        }
-
+        KRATOS_ERROR << "'CalculateShapeFunctionsIntegrationPointsValues' not available for arbitrarty noded line" << std::endl;
+        Matrix N( 0, 3 );
         return N;
     }
 
     static ShapeFunctionsGradientsType CalculateShapeFunctionsIntegrationPointsLocalGradients(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        const IntegrationPointsContainerType& all_integration_points = AllIntegrationPoints();
-        const IntegrationPointsArrayType& IntegrationPoints = all_integration_points[ThisMethod];
-        ShapeFunctionsGradientsType DN_De( IntegrationPoints.size() );
-        std::fill( DN_De.begin(), DN_De.end(), Matrix( 3, 1 ) );
-
-        for ( unsigned int it_gp = 0; it_gp < IntegrationPoints.size(); it_gp++ )
-        {
-            Matrix aux_mat = ZeroMatrix(3,1);
-            const double e = IntegrationPoints[it_gp].X();
-            aux_mat(0,0) = e - 0.5;
-            aux_mat(2,0) = -2.0 * e;
-            aux_mat(1,0) = e + 0.5;
-            DN_De[it_gp] = aux_mat;
-        }
-
+        //KRATOS_ERROR << "'CalculateShapeFunctionsIntegrationPointsLocalGradients' not available for arbitrarty noded line" << std::endl;
+        ShapeFunctionsGradientsType DN_De( 0 );
         return DN_De;
     }
 
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
-        IntegrationPointsContainerType integration_points = {{
-                Quadrature<LineGaussLegendreIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
-            }
-        };
+        //KRATOS_ERROR << "'AllIntegrationPoints' not available for arbitrarty noded line" << std::endl;
+        IntegrationPointsContainerType integration_points;
         return integration_points;
     }
 
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
-        ShapeFunctionsValuesContainerType shape_functions_values = {{
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_1 ),
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_2 ),
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::GI_GAUSS_3 )
-            }
-        };
+        //KRATOS_ERROR << "'AllIntegrationPoints' not available for arbitrarty noded line" << std::endl;
+        ShapeFunctionsValuesContainerType shape_functions_values;
         return shape_functions_values;
     }
 
     static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
-        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients = {{
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_1 ),
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_2 ),
-                Line3DN<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::GI_GAUSS_3 )
-            }
-        };
+        //KRATOS_ERROR << "'AllShapeFunctionsLocalGradients' not available for arbitrarty noded line" << std::endl;
+        ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients;
         return shape_functions_local_gradients;
     }
 
