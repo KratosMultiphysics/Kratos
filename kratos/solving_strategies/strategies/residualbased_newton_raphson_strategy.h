@@ -260,12 +260,9 @@ class ResidualBasedNewtonRaphsonStrategy
         // MPI_Finalize has already been called and is an error. Resetting
         // the pointers here prevents Clear from operating with the
         // (now deallocated) vectors.
-        if (mpA != nullptr)
-            mpA.reset();
-        if (mpDx != nullptr)
-            mpDx.reset();
-        if (mpb != nullptr)
-            mpb.reset();
+        mpA.reset();
+        mpDx.reset();
+        mpb.reset();
 
         Clear();
     }
