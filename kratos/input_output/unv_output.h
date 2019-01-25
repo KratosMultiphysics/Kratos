@@ -1,5 +1,5 @@
-#ifndef KRATOSMULTIPHYSICS_UNV_WRITER_H_INCLUDED
-#define KRATOSMULTIPHYSICS_UNV_WRITER_H_INCLUDED
+#ifndef KRATOS_UNV_OUTPUT_H_INCLUDED
+#define KRATOS_UNV_OUTPUT_H_INCLUDED
 
 #include <iostream>
 #include <fstream>
@@ -9,7 +9,7 @@
 namespace Kratos {
 
 
-class UnvWriter {
+class UnvOutput {
 public:
     
     enum class DatasetLocation {
@@ -69,9 +69,9 @@ public:
         DOUBLE_PRECISION_COMPLEX = 6
     };
 
-    KRATOS_CLASS_POINTER_DEFINITION(UnvWriter);
+    KRATOS_CLASS_POINTER_DEFINITION(UnvOutput);
 
-    UnvWriter(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension)
+    UnvOutput(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension)
             : mrOutputModelPart(modelPart),
               mOutputFileName(outFileWithoutExtension + ".unv") {
     }
@@ -83,6 +83,8 @@ public:
         writeElements();
         writeNodalResults(dataSetLabel);
     }
+
+    void writeResult()
 
     template <typename Enumeration>
     auto as_integer(Enumeration const value)
@@ -200,8 +202,7 @@ public:
     // # R. 12: analysis-specific data (record_12)
     // # R. 13: analysis-specific data (record_13)
 
-    // Fordes
-
+    template<class TVariableble>
     void writeNodalResults(int dataSetLabel) {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
@@ -216,6 +217,7 @@ public:
         outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 2
         outputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
 
+        // String records, seems like you can put anything you want.
         outputFile << "" << "\n";                                                                   // Record 4
         outputFile << "NONE" << "\n";                                                               // Record 5
         outputFile << "NONE" << "\n";                                                               // Record 6
@@ -279,4 +281,4 @@ private:
 };
 }
 
-#endif //KRATOSMULTIPHYSICS_UNV_WRITER_H_INCLUDED
+#endif //KRATOS_UNV_OUTPUT_H_INCLUDED
