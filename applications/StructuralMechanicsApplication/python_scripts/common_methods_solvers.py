@@ -110,7 +110,7 @@ def ComputeDampingCoefficients(model, settings, damping_settings):
             # If not computed eigen values already
             if not existing_computation:
                 KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
-                import eigen_solver_factory
+                from KratosMultiphysics import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(damping_settings["determine_rayleigh_damping_settings"]["eigen_system_settings"])
                 builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(eigen_linear_solver)
                 eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
