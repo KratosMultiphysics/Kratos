@@ -4,6 +4,7 @@ import KratosMultiphysics
 KratosMultiphysics.CheckForPreviousImport()
 from python_solver import PythonSolver
 import time
+KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING) 
 
 
 
@@ -80,7 +81,7 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DENSITY, 1.225)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.WATER_PRESSURE,2)#n_parameter
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TEMPERATURE,self.settings["penalty"].GetDouble())# alpha penalty
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,100.0)#penalty kutta
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.INITIAL_PENALTY,0.0)#penalty kutta
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.MIU,5)#geometry angle
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.LAMBDA, 1.4)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.SOUND_VELOCITY, 340.0)
@@ -101,12 +102,9 @@ class PotentialSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE_GRADIENT)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y1)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.Y2)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.FLAG_VARIABLE)        
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)   
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.VELOCITY_INFINITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.WAKE_DISTANCE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CompressiblePotentialFlowApplication.LEVEL_SET_DISTANCE)
