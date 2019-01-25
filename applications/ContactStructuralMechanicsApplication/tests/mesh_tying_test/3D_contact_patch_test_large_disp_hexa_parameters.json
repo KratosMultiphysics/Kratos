@@ -36,7 +36,7 @@
         "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","Contact_Part"],
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver",
+            "solver_type" : "ExternalSolversApplication.SuperLUSolver",
             "scaling"     : false
         }
     },
