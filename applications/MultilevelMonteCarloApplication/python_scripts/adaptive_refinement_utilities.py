@@ -4,7 +4,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.MeshingApplication as KratosMeshing
 
 
 '''
@@ -38,14 +38,14 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     metric_param.AddEmptyValue("maximal_size")
     metric_param["maximal_size"].SetDouble(maximal_size_value)
     '''calculate the gradient of the variable'''
-    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess(simulation_coarse._GetSolver().main_model_part,local_gradient_variable,metric_param)
+    local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(simulation_coarse._GetSolver().main_model_part,local_gradient_variable,metric_param)
     local_gradient.Execute()
     '''add again the removed variable parameter'''
     metric_param.AddEmptyValue("local_gradient_variable")
     metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
 
     '''create the remeshing process'''
-    MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
+    MmgProcess = KratosMeshing.MmgProcess2D(simulation_coarse._GetSolver().main_model_part,remesh_param)
     MmgProcess.Execute()
 
     '''the refinement process empties the coarse model part object and fill it with the refined model part
