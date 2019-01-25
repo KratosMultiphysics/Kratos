@@ -18,6 +18,7 @@ set( KRATOS_COMPRESSIBLE_POTENTIAL_FLOW_APPLICATION_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_lift_response_function_coordinates_global.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_potential_response_function_coordinates.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_postprocess.cpp
 )
 ## define compressible potential application test sources
