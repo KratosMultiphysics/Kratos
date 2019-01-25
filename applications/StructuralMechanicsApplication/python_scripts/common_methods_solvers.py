@@ -57,7 +57,7 @@ def AuxiliarEigenSettings(solver_type):
 
 def ComputeDampingCoefficients(model, settings, damping_settings):
     import KratosMultiphysics.kratos_utilities as kratos_utils
-    if kratos_utils.IsApplicationAvailable("ExternalSolversApplication") or kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
+    if kratos_utils.AreApplicationsAvailable(["ExternalSolversApplication", "EigenSolversApplication"]):
         if kratos_utils.IsApplicationAvailable("ExternalSolversApplication"):
             from KratosMultiphysics import ExternalSolversApplication
         if kratos_utils.IsApplicationAvailable("EigenSolversApplication"):
