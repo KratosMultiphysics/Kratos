@@ -135,6 +135,8 @@ public:
 
     Vector ComputeNormal(Geometry<Node<3>>& rGeom);
 
+    Vector ComputeNormalPerturbed(Geometry<Node<3>>& rGeom, Vector normal_ini);
+
     Vector ComputeNormalCondition(Geometry<Node<3>>& rGeom);
 
     void GetElementCandidates(WeakPointerVector<Element> &ElementCandidates, GeometryType &rGeom);
