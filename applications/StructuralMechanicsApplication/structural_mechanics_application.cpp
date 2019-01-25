@@ -39,6 +39,7 @@
 #include "geometries/line_2d_3.h"
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/line_3d_n.h"
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
 #include "geometries/triangle_2d_3.h"
@@ -60,7 +61,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mTrussLinearElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mCableElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
-      mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mSlidingCableElement3D3N(0, Element::GeometryType::Pointer(new Line3DN<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the beam elements
       mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),

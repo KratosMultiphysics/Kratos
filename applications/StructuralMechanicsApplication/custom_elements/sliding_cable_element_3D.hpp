@@ -101,21 +101,6 @@ namespace Kratos
 
         void Initialize() override;
 
-
-        void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
-        {
-            KRATOS_TRY;
-            this->Set(ACTIVE,true);
-            KRATOS_CATCH("");
-        }
-
-        void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override
-        {
-            KRATOS_TRY;
-            this->Set(ACTIVE,false);
-            KRATOS_CATCH("");
-        }
-
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
             ProcessInfo& rCurrentProcessInfo) override;

@@ -32,6 +32,7 @@
 #include "utilities/math_utils.h"
 #include "includes/kratos_parameters.h"
 #include "geometries/line_3d_3.h"
+#include "geometries/line_3d_n.h"
 
 namespace Kratos
 {
@@ -123,7 +124,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
          << std::endl;
 
         // testing
-        KRATOS_ERROR_IF_NOT(number_nodes==3) << "only for 3 nodes right now" << std::endl;
+        //KRATOS_ERROR_IF_NOT(number_nodes==3) << "only for 3 nodes right now" << std::endl;
         // testing
 
         // get new element id
@@ -135,13 +136,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         {
             element_nodes[i] = master_model_part.pGetNode(mParameters["node_id_order"][i].GetInt());
         }
-        Line3D3 <NodeType> line_0 ( PointerVector<NodeType>{element_nodes} );
+        Line3DN <NodeType> line_t ( PointerVector<NodeType>{element_nodes} );
 
         // get properties
         Properties::Pointer p_elem_prop = master_model_part.pGetProperties(mParameters["property_id"].GetInt());
 
         // create element
-        master_model_part.CreateNewElement("SlidingCableElement3D3N", new_element_id, line_0, p_elem_prop);
+        const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
+        Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+        master_model_part.AddElement(pElem);
+
+        //master_model_part.CreateNewElement("SlidingCableElement3D3N", new_element_id, line_0, p_elem_prop);
 
         KRATOS_CATCH("");
     }

@@ -111,6 +111,7 @@ public:
         Kratos_Line2D3,
         Kratos_Line3D2,
         Kratos_Line3D3,
+        Kratos_Line3DN,
         Kratos_Point2D,
         Kratos_Point3D,
         Kratos_Sphere3D1
