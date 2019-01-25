@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestFormfinding(KratosUnittest.TestCase):
     def setUp(self):
         pass
-    
+
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)

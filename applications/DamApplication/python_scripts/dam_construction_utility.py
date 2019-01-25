@@ -114,3 +114,6 @@ class DamConstructionUtility:
 
     def AfterOutputStep(self):
         self.Construction.AfterOutputStep()
+
+    def ExecuteFinalize(self):
+        pass

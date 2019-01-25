@@ -16,8 +16,8 @@
 // System includes
 
 // External includes
+
 // Project includes
-#include "includes/define.h"
 #include "includes/condition.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -145,7 +145,6 @@ public:
      * @brief Creates a new condition pointer and clones the previous condition data
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
-     * @param pProperties the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
     Condition::Pointer Clone (
