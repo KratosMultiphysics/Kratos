@@ -297,10 +297,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
         self.adjoint_analysis.Initialize()
 
     def InitializeSolutionStep(self):
-        # synchronize the modelparts # TODO this should happen automatically
-        Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
-
-        self._SynchronizeAdjointFromPrimal()
 
         # Run the primal analysis.
         # TODO if primal_analysis.status==solved: return
@@ -315,12 +311,8 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
         self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
 
-        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
-        if self.response_settings["adjoint_settings"].GetString() == "auto":
-            Logger.PrintInfo("> Transfer primal state to adjoint model part.")
-            variable_utils = KratosMultiphysics.VariableUtils()
-            for variable in self.primal_state_variables:
-                variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
+        # synchronize the modelparts
+        self._SynchronizeAdjointFromPrimal()
 
         self.adjoint_analysis.InitializeSolutionStep()
 
@@ -367,9 +359,12 @@ class AdjointResponseFunction(ResponseFunctionBase):
 
 
     def _SynchronizeAdjointFromPrimal(self):
+        Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
+
         if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
             raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
 
+        # TODO this should happen automatically
         for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
             adjoint_node.X0 = primal_node.X0
             adjoint_node.Y0 = primal_node.Y0
@@ -377,6 +372,13 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.X = primal_node.X
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
+
+        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
+        if self.response_settings["adjoint_settings"].GetString() == "auto":
+            Logger.PrintInfo("> Transfer primal state to adjoint model part.")
+            variable_utils = KratosMultiphysics.VariableUtils()
+            for variable in self.primal_state_variables:
+                variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
     def _GetAdjointParameters(self):
 
