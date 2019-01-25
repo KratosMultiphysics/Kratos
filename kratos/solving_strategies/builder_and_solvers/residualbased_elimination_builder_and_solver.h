@@ -950,13 +950,14 @@ protected:
     * @param rRHSContribution The RHS local contribution
     * @param rEquationId The equation id
     * @param rLockArray The lock of the dof
+    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are not considered on the assembling
     */
     void Assemble(
         TSystemMatrixType& rA,
         TSystemVectorType& rb,
         const LocalSystemMatrixType& rLHSContribution,
         const LocalSystemVectorType& rRHSContribution,
-        const EquationIdVectorType& rEquationId
+        const Element::EquationIdVectorType& rEquationId
 #ifdef USE_LOCKS_IN_ASSEMBLY
         ,std::vector< omp_lock_t >& rLockArray
 #endif
@@ -964,30 +965,26 @@ protected:
     {
         SizeType local_size = rLHSContribution.size1();
 
-        for (IndexType i_local = 0; i_local < local_size; i_local++) {
-            IndexType i_global = rEquationId[i_local];
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
 
             if (i_global < BaseType::mEquationSystemSize) {
 #ifdef USE_LOCKS_IN_ASSEMBLY
                 omp_set_lock(&rLockArray[i_global]);
-#endif
-                rb[i_global] += rRHSContribution(i_local);
-                for (IndexType j_local = 0; j_local < local_size; j_local++) {
-                    IndexType j_global = rEquationId[j_local];
-                    if (j_global < BaseType::mEquationSystemSize) {
-                        rA(i_global, j_global) += rLHSContribution(i_local, j_local);
-                    }
-                }
-#ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_unset_lock(&rLockArray[i_global]);
+                rb[i_global] += RHS_Contribution(i_local);
+#else
+                double& r_a = rb[i_global];
+                const double& v_a = rRHSContribution(i_local);
+                #pragma omp atomic
+                r_a += v_a;
 #endif
                 AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
 
 #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_unset_lock(&lock_array[i_global]);
+                omp_unset_lock(&rLockArray[i_global]);
 #endif
             }
-            // Note that computation of reactions is not performed here!
+            //note that computation of reactions is not performed here!
         }
     }
 
