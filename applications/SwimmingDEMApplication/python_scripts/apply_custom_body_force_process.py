@@ -21,6 +21,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
                 "variable_name"        : "BODY_FORCE",
                 "benchmark_name"       : "vortex",
                 "benchmark_parameters" : {},
+                "compute_nodal_error"  : true,
                 "print_point_output"   : false,
                 "output_parameters"    : {}
             }
@@ -34,6 +35,8 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
 
         benchmark_module = __import__(settings["benchmark_name"].GetString(), fromlist=[None])
         self.benchmark = benchmark_module.CreateManufacturedSolution(settings["benchmark_parameters"])
+
+        self.compute_error = settings["compute_nodal_error"].GetBool()
 
         self.print_output = settings["print_point_output"].GetBool()
         if self.print_output:
@@ -58,12 +61,17 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         self._ComputeVelocityBenchmark()
 
     def ExecuteAfterOutputStep(self):
-        if self.print_output:
+        if self.compute_error:
             self._ComputeVelocityError()
+
+        if self.print_output:
             self._CopyVelocityAsNonHistorical()
             self.output_process.ExecuteFinalizeSolutionStep()
 
     def ExecuteFinalize(self):
+        if self.compute_error:
+            self._SumNodalError()
+
         if self.print_output:
             self.output_process.ExecuteFinalize
 
@@ -94,3 +102,10 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         for node in self.model_part.Nodes:
             vel = self.benchmark.Velocity(node.X, node.Y, node.Z, current_time)
             node.SetValue(KratosMultiphysics.Y, vel)
+
+    def _SumNodalError(self):
+        err_sum = 0.0
+        for node in self.model_part.Nodes:
+            err_sum = err_sum + node.GetValue(KratosMultiphysics.NODAL_ERROR)
+        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The sum of the nodal error is : ", err_sum)
+        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The mean of the nodal error is : ", err_sum / self.model_part.Nodes.__len__())
