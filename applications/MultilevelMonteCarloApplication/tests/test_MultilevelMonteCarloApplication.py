@@ -1,6 +1,6 @@
 # import Kratos
-from KratosMultiphysics import *
-from KratosMultiphysics.MultilevelMonteCarloApplication import *
+import KratosMultiphysics
+import KratosMultiphysics.MultilevelMonteCarloApplication as KratosMLMC
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest

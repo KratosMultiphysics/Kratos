@@ -96,7 +96,6 @@ def EvaluateQuantityOfInterest(simulation):
     Q = 0.0
     for node in simulation._GetSolver().main_model_part.Nodes:
         Q = Q + (node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)*node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE))
-        #print("NODAL AREA = ",node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA),"NODAL SOLUTION = ",node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE),"CURRENT Q = ",Q)
     return Q
 
 
@@ -214,7 +213,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     local_parameters = parameters
     model = KratosMultiphysics.Model()
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    fake_sample = 1.0
+    fake_sample = GenerateSample()
     simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
     serialized_model = KratosMultiphysics.StreamSerializer()
@@ -225,7 +224,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
     print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
-    return pickled_model, pickled_parameters
+    return pickled_model,pickled_parameters
 
 
 '''
@@ -243,6 +242,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 
 
 if __name__ == '__main__':
+
     '''set the ProjectParameters.json path'''
     parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
     '''create a serialization of the model and of the project parameters'''

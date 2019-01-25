@@ -4,7 +4,7 @@ from __future__ import absolute_import, division #makes KratosMultiphysics backw
 import KratosMultiphysics
 
 # Import applications
-import KratosMultiphysics.MeshingApplication as MeshingApplication
+import KratosMultiphysics.MeshingApplication as KratosMeshing
 
 
 '''
@@ -17,7 +17,7 @@ Kratos wiki: https://github.com/KratosMultiphysics/Kratos/wiki/MMG-Process
 function computing the refinement of the model based on the solution on the coarse mesh,
 exploiting the hessian metric of the solution
 '''
-def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maximal_size_value):
+def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maximal_size_value,metric_param,remesh_param):
 
     simulation_coarse._GetSolver().print_on_rank_zero("::[compute_refinement]:: ", "refinement started")
     '''set NODAL_AREA and NODAL_H as non historical variables'''
@@ -29,37 +29,23 @@ def compute_refinement_hessian_metric(simulation_coarse,minimal_size_value,maxim
     find_nodal_h = KratosMultiphysics.FindNodalHNonHistoricalProcess(simulation_coarse._GetSolver().main_model_part)
     find_nodal_h.Execute()
 
-    '''calculate the gradient of the distance variable'''
-    metric_param = KratosMultiphysics.Parameters(
-        """{
-            "hessian_strategy_parameters"              :{
-                    "metric_variable"                  : ["TEMPERATURE"],
-                    "estimate_interpolation_error"     : false,
-                    "interpolation_error"              : 0.004
-            },
-            "anisotropy_remeshing"              : true,
-            "anisotropy_parameters":{
-                "reference_variable_name"          : "TEMPERATURE",
-                "hmin_over_hmax_anisotropic_ratio" : 0.15,
-                "boundary_layer_max_distance"      : 1.0,
-                "interpolation"                    : "Linear"
-            }
-        }"""
-        )
+    '''prepare parameters to calculate the gradient of the designed variable'''
+    local_gradient_variable_string = metric_param["local_gradient_variable"].GetString()
+    local_gradient_variable = KratosMultiphysics.KratosGlobals.GetVariable(metric_param["local_gradient_variable"].GetString())
+    metric_param.RemoveValue("local_gradient_variable")
     metric_param.AddEmptyValue("minimal_size")
     metric_param["minimal_size"].SetDouble(minimal_size_value)
     metric_param.AddEmptyValue("maximal_size")
     metric_param["maximal_size"].SetDouble(maximal_size_value)
-
-    local_gradient = MeshingApplication.ComputeHessianSolMetricProcess2D(simulation_coarse._GetSolver().main_model_part, KratosMultiphysics.TEMPERATURE, metric_param)
+    '''calculate the gradient of the variable'''
+    local_gradient = KratosMeshing.ComputeHessianSolMetricProcess(simulation_coarse._GetSolver().main_model_part,local_gradient_variable,metric_param)
     local_gradient.Execute()
+    '''add again the removed variable parameter'''
+    metric_param.AddEmptyValue("local_gradient_variable")
+    metric_param["local_gradient_variable"].SetString(local_gradient_variable_string)
 
-    '''create the remeshing process: echo_level: 0 for no output at all, 3 for standard output'''
-    remesh_param = KratosMultiphysics.Parameters(
-        """{
-            "echo_level"                       : 0}"""
-            )
-    MmgProcess = MeshingApplication.MmgProcess2D(simulation_coarse._GetSolver().main_model_part, remesh_param)
+    '''create the remeshing process'''
+    MmgProcess = KratosMeshing.MmgProcess2D(simulation_coarse._GetSolver().main_model_part,remesh_param)
     MmgProcess.Execute()
 
     '''the refinement process empties the coarse model part object and fill it with the refined model part
