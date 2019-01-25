@@ -272,7 +272,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
 
         const double F = uniaxial_stress - threshold;
 
-        if (F >= 0.0) { // Elastic case
+        if (F >= 0.0) {
             const double characteristic_length = ConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
             TConstLawIntegratorType::IntegrateStressVector(
