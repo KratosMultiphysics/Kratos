@@ -20,8 +20,12 @@
 #include "includes/condition.h"
 #include "includes/constitutive_law.h"
 #include "includes/master_slave_constraint.h"
-#include "includes/linear_solver_factory.h"
-#include "includes/preconditioner_factory.h"
+#include "factories/linear_solver_factory.h"
+#include "factories/preconditioner_factory.h"
+#include "factories/strategy_factory.h"
+#include "factories/scheme_factory.h"
+#include "factories/convergence_criteria_factory.h"
+#include "factories/builder_and_solver_factory.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos {
@@ -161,10 +165,15 @@ using RealSparseSpace = UblasSpace<double, boost::numeric::ublas::compressed_mat
 using RealDenseSpace = UblasSpace<double, DenseMatrix<double>, DenseVector<double>>;
 using ComplexSparseSpace = UblasSpace<std::complex<double>, boost::numeric::ublas::compressed_matrix<std::complex<double>>, boost::numeric::ublas::vector<std::complex<double>>>;
 using ComplexDenseSpace = UblasSpace<std::complex<double>, DenseMatrix<std::complex<double>>, DenseVector<std::complex<double>>>;
+using LinearSolverType = LinearSolver<RealSparseSpace, RealDenseSpace>;
 
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<StrategyFactory<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
+template class KratosComponents<SchemeFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<ConvergenceCriteriaFactory<RealSparseSpace, RealDenseSpace>>;
+template class KratosComponents<BuilderAndSolverFactory<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
