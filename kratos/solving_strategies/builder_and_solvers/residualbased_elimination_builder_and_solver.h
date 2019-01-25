@@ -625,11 +625,7 @@ public:
         std::vector<set_type> dofs_aux_list(nthreads);
 
         for (int i = 0; i < static_cast<int>(nthreads); ++i) {
-#ifdef USE_GOOGLE_HASH
-            dofs_aux_list[i].set_empty_key(NodeType::DofType::Pointer());
-#else
             dofs_aux_list[i].reserve(nelements);
-#endif
         }
 
         #pragma omp parallel for firstprivate(nelements, elemental_dof_list)
@@ -1022,21 +1018,12 @@ protected:
 
         const SizeType equation_size = BaseType::mEquationSystemSize;
 
-    #ifdef USE_GOOGLE_HASH
-        std::vector<google::dense_hash_set<std::size_t> > indices(equation_size);
-        const std::size_t empty_key = 2 * equation_size + 10;
-    #else
         std::vector<std::unordered_set<std::size_t> > indices(equation_size);
-    #endif
 
         #pragma omp parallel for firstprivate(equation_size)
         for (int index = 0; index < static_cast<int>(equation_size); index++)
         {
-        #ifdef USE_GOOGLE_HASH
-            indices[index].set_empty_key(empty_key);
-        #else
             indices[index].reserve(40);
-        #endif
         }
 
         EquationIdVectorType ids(3, 0);
