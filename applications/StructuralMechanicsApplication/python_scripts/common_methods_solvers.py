@@ -107,8 +107,20 @@ def ComputeDampingCoefficients(model, settings, damping_settings):
         if len(precomputed_eigen_values) > 1:
             compute_damping_coefficients_settings["eigen_values_vector"].SetVector(precomputed_eigen_values)
         else:
+            # We check if BC defined in some node
+            has_bc = False
+            for node in part.Nodes:
+                if node.IsFixed(KratosMultiphysics.DISPLACEMENT_X):
+                    has_bc = True
+                    break
+                if node.IsFixed(KratosMultiphysics.DISPLACEMENT_Y):
+                    has_bc = True
+                    break
+                if node.IsFixed(KratosMultiphysics.DISPLACEMENT_Z):
+                    has_bc = True
+                    break
             # If not computed eigen values already
-            if not existing_computation:
+            if not existing_computation and has_bc:
                 KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]::", "EIGENVALUE_VECTOR not previously computed. Computing automatically, take care")
                 from KratosMultiphysics import eigen_solver_factory
                 eigen_linear_solver = eigen_solver_factory.ConstructSolver(damping_settings["determine_rayleigh_damping_settings"]["eigen_system_settings"])
@@ -116,9 +128,10 @@ def ComputeDampingCoefficients(model, settings, damping_settings):
                 eigen_scheme = StructuralMechanicsApplication.EigensolverDynamicScheme()
                 eigen_solver = StructuralMechanicsApplication.EigensolverStrategy(part, eigen_scheme, builder_and_solver)
                 eigen_solver.Solve()
-
-            eigenvalue_vector = current_process_info.GetValue(StructuralMechanicsApplication.EIGENVALUE_VECTOR)
-            compute_damping_coefficients_settings["eigen_values_vector"].SetVector(eigenvalue_vector)
+            
+            if has_bc:
+                eigenvalue_vector = current_process_info.GetValue(StructuralMechanicsApplication.EIGENVALUE_VECTOR)
+                compute_damping_coefficients_settings["eigen_values_vector"].SetVector(eigenvalue_vector)
 
         # We compute the coefficients
         coefficients_vector = StructuralMechanicsApplication.ComputeDampingCoefficients(compute_damping_coefficients_settings)
