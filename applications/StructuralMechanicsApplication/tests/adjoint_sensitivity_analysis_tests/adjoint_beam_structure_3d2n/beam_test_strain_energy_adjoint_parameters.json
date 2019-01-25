@@ -37,9 +37,6 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_support","ROTATION_support"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : true,
-        "linear_solver_settings"       : {
-            "solver_type"         : "Super_LU"
-        },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "Beam_structure"
