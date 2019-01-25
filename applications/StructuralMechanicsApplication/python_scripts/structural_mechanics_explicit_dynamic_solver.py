@@ -81,10 +81,6 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         else:
             self.delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
 
-    def InitializeSolutionStep(self):
-        # Using the base InitializeSolutionStep
-        super(ExplicitMechanicalSolver, self).InitializeSolutionStep()
-
     #### Specific internal functions ####
     def _create_solution_scheme(self):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
