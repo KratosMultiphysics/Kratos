@@ -137,6 +137,9 @@ void KratosContactStructuralMechanicsApplication::Register()
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
 
+    /* For mesh tying mortar condition */
+    KRATOS_REGISTER_VARIABLE( IMPACT_TIME_DURATION )                                  // The time that the impact will be considered
+
     // CONDITIONS
     // Mesh tying mortar condition
     KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangle", mMeshTyingMortarCondition2D2NTriangle );
