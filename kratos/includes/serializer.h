@@ -122,7 +122,7 @@ template <class TDataType> class Variable;
  *
  * @author Pooyan Dadvand
  */
-class KRATOS_API(KRATOS_CORE) Serializer : public Flags
+class KRATOS_API(KRATOS_CORE) Serializer
 {
 public:
     ///@name  Enum's
@@ -850,28 +850,36 @@ public:
         return msRegisteredObjectsName;
     }
 
+    void Set(Flags ThisFlag)
+    {
+        mFlags.Set(ThisFlag);
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    bool Is(Flags const & rOtherFlag) const
+    {
+        return mFlags.Is(rOtherFlag);
+    }
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    virtual std::string Info() const
     {
         return "Serializer";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    virtual void PrintInfo(std::ostream& rOStream) const
     {}
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    virtual void PrintData(std::ostream& rOStream) const
     {}
 
 
@@ -929,6 +937,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Flags mFlags;
 
     BufferType* mpBuffer;
     TraceType mTrace;
@@ -1347,11 +1357,6 @@ private:
 
     /// Copy constructor.
     Serializer(Serializer const& rOther);
-
-    /// Making base class methods private to silence a warning
-    // (Serializer::save and ::load technically hide these two)
-    using Flags::load;
-    using Flags::save;
 
     ///@}
 
