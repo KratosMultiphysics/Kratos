@@ -45,7 +45,7 @@ Vector RayleighDampingCoefficientsUtilities::ComputeDampingCoefficients(Paramete
 
     // We need at least 2 eigenvalues
     if (r_eigenvalue_vector.size() > 1) {
-        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\t" << r_eigenvalue_vector[0] << " Hz\t and " << r_eigenvalue_vector[1] << " Hz" << std::endl;
+        KRATOS_INFO_IF("ComputeRayleighDampingCoefficientsProcess", echo_level > 0) <<  "The two first eigen values of the structure are:\n" << r_eigenvalue_vector[0] << " Hz\t and " << r_eigenvalue_vector[1] << " Hz" << std::endl;
 
         // The main damping ration
         array_1d<double, 2> damping_ratios;
