@@ -64,7 +64,6 @@ class PotentialAdjointSolver(PotentialSolver):
 
         self.adjoint_postprocess = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPostprocess(self.main_model_part, self.response_function, self.sensitivity_settings)
         self.adjoint_postprocess.Initialize()
-        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part,2).Execute()
 
         scheme = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialStaticScheme(self.scheme_settings, self.response_function)
         move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
@@ -97,12 +96,6 @@ class PotentialAdjointSolver(PotentialSolver):
     def FinalizeSolutionStep(self):
         super(PotentialAdjointSolver, self).FinalizeSolutionStep()
         self.response_function.FinalizeSolutionStep()
-        # for node in self.main_model_part.Nodes:
-        #     if not (node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY)==0.0):
-        #         print(node.Id,node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.DISTANCE_SENSITIVITY))
-        #     gradient=node.GetSolutionStepValue(KratosMultiphysics.CompressiblePotentialFlowApplication.COORDINATES_SENSITIVITY)
-        #     if not ((abs(gradient[0])<1e-12) and (abs(gradient[1])<1e-12)) :
-        #         print(node.Id,gradient)
 
     def SolveSolutionStep(self):
         super(PotentialAdjointSolver, self).SolveSolutionStep()
