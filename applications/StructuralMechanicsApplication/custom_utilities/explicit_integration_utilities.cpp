@@ -115,7 +115,7 @@ double InnerCalculateDeltaTime(
     // Iterate over elements
     ElementsArrayType& r_elements = rModelPart.Elements();
     const auto it_elem_begin = r_elements.begin();
-    #pragma omp parallel for firstprivate(check_has_all_variables, E, nu, rho, alpha, beta)
+    #pragma omp parallel for firstprivate(check_has_all_variables, stable_delta_time, E, nu, rho, alpha, beta)
     for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
         auto it_elem = it_elem_begin + i;
 
