@@ -18,11 +18,10 @@
 
 // Project includes
 #include "includes/define_python.h"
-#include "includes/model_part.h"
 #include "includes/mesh.h"
-#include "includes/properties.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/properties.h"
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
 
@@ -695,12 +694,20 @@ void  AddMeshToPython(pybind11::module& m)
     py::class_<MeshType, MeshType::Pointer, DataValueContainer, Flags >(m,"Mesh")
     .def_property("Nodes", &MeshType::pNodes,&MeshType::SetNodes)
     .def("NodesArray", &MeshType::NodesArray, py::return_value_policy::reference_internal)
+    .def("NumberOfNodes", &MeshType::NumberOfNodes)
+
     .def_property("Elements", &MeshType::pElements,&MeshType::SetElements)
     .def("ElementsArray", &MeshType::ElementsArray, py::return_value_policy::reference_internal)
+    .def("NumberOfElements", &MeshType::NumberOfElements)
+
     .def_property("Conditions", &MeshType::pConditions,&MeshType::SetConditions)
     .def("ConditionsArray", &MeshType::ConditionsArray, py::return_value_policy::reference_internal)
+    .def("NumberOfConditions", &MeshType::NumberOfConditions)
+
     .def_property("Properties", &MeshType::pProperties,&MeshType::SetProperties)
     .def("PropertiesArray", &MeshType::PropertiesArray, py::return_value_policy::reference_internal)
+    .def("NumberOfProperties", &MeshType::NumberOfProperties)
+
     .def("HasNode", &MeshType::HasNode)
     .def("HasProperties", &MeshType::HasProperties)
     .def("HasElement", &MeshType::HasElement)
