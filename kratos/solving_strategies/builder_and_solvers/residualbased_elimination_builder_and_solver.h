@@ -194,13 +194,13 @@ public:
         #pragma omp parallel firstprivate(nelements, nconditions,  LHS_Contribution, RHS_Contribution, equation_id )
         {
             #pragma omp  for schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++) {
+            for (int k = 0; k < nelements; ++k) {
                 auto it_elem = el_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool element_is_active = true;
-                if ((it_elem)->IsDefined(ACTIVE))
-                    element_is_active = (it_elem)->Is(ACTIVE);
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
 
                 if (element_is_active) {
                     // Calculate elemental contribution
@@ -218,13 +218,13 @@ public:
             }
 
             #pragma omp  for schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++) {
+            for (int k = 0; k < nconditions; ++k) {
                 auto it_cond = cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool condition_is_active = true;
-                if ((it_cond)->IsDefined(ACTIVE))
-                    condition_is_active = (it_cond)->Is(ACTIVE);
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
 
                 if (condition_is_active) {
                     // Calculate elemental contribution
@@ -381,10 +381,11 @@ public:
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
+        if (TSparseSpace::Size(rb) != 0) {
             norm_b = TSparseSpace::TwoNorm(rb);
-        else
+        } else {
             norm_b = 0.0;
+        }
 
         if (norm_b != 0.0) {
             // Do solve
@@ -416,10 +417,11 @@ public:
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(rb) != 0)
+        if (TSparseSpace::Size(rb) != 0) {
             norm_b = TSparseSpace::TwoNorm(rb);
-        else
+        } else {
             norm_b = 0.0;
+        }
 
         if (norm_b != 0.0) {
             // Provide physical data as needed
@@ -547,10 +549,11 @@ public:
         // Assemble all elements
         #pragma omp parallel firstprivate( RHS_Contribution, equation_id)
         {
+            const auto it_elem_begin = r_elements_array.begin();
             const int nelements = static_cast<int>(r_elements_array.size());
             #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i<nelements; ++i) {
-                auto it_elem = r_elements_array.begin() + i;
+            for (int i = 0; i < nelements; ++i) {
+                auto it_elem = it_elem_begin + i;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool element_is_active = true;
@@ -567,10 +570,11 @@ public:
             }
 
             // Assemble all conditions
+            const auto it_cond_begin = r_conditions_array.begin();
             const int nconditions = static_cast<int>(r_conditions_array.size());
             #pragma omp  for schedule(guided, 512)
-            for (int i = 0; i<nconditions; ++i) {
-                auto it_cond = r_conditions_array.begin() + i;
+            for (int i = 0; i < nconditions; ++i) {
+                auto it_cond = it_cond_begin + i;
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
                 bool condition_is_active = true;
                 if (it_cond->IsDefined(ACTIVE))
@@ -1081,7 +1085,7 @@ protected:
             }
         }
 
-        //count the row sizes
+        // Count the row sizes
         SizeType nnz = 0;
         for (IndexType i = 0; i < indices.size(); ++i)
             nnz += indices[i].size();
@@ -1092,7 +1096,7 @@ protected:
         IndexType* Arow_indices = rA.index1_data().begin();
         IndexType* Acol_indices = rA.index2_data().begin();
 
-        //filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
+        // Filling the index1 vector - DO NOT MAKE PARALLEL THE FOLLOWING LOOP!
         Arow_indices[0] = 0;
         for (int i = 0; i < static_cast<int>(rA.size1()); ++i)
             Arow_indices[i + 1] = Arow_indices[i] + indices[i].size();
@@ -1105,7 +1109,7 @@ protected:
             for (auto it = indices[i].begin(); it != indices[i].end(); ++it) {
                 Acol_indices[k] = *it;
                 Avalues[k] = 0.0;
-                k++;
+                ++k;
             }
 
             std::sort(&Acol_indices[row_begin], &Acol_indices[row_end]);
@@ -1146,23 +1150,29 @@ protected:
     * @brief This function is equivalent to the AssembleRowContribution of the block builder and solver
     * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are skipped
     */
-    inline void AssembleRowContributionFreeDofs(TSystemMatrixType& A, const Matrix& Alocal, const std::size_t i, const std::size_t i_local, const Element::EquationIdVectorType& EquationId)
+    inline void AssembleRowContributionFreeDofs(
+        TSystemMatrixType& A, 
+        const Matrix& Alocal, 
+        const IndexType i, 
+        const IndexType i_local, 
+        const Element::EquationIdVectorType& EquationId
+        )
     {
         double* values_vector = A.value_data().begin();
-        std::size_t* index1_vector = A.index1_data().begin();
-        std::size_t* index2_vector = A.index2_data().begin();
+        IndexType* index1_vector = A.index1_data().begin();
+        IndexType* index2_vector = A.index2_data().begin();
 
-        const std::size_t left_limit = index1_vector[i];
+        const IndexType left_limit = index1_vector[i];
 
         // Find the first entry
         // We iterate over the equation ids until we find the first equation id to be considered
         // We count in which component we find an ID
-        std::size_t last_pos = 0;
-        std::size_t last_found = 0;
-        std::size_t counter = 0;
-        for(std::size_t j=0; j < EquationId.size(); ++j) {
+        IndexType last_pos = 0;
+        IndexType last_found = 0;
+        IndexType counter = 0;
+        for(IndexType j=0; j < EquationId.size(); ++j) {
             ++counter;
-            const std::size_t j_global = EquationId[j];
+            const IndexType j_global = EquationId[j];
             if (j_global < BaseType::mEquationSystemSize) {
                 last_pos = ForwardFind(j_global,left_limit,index2_vector);
                 last_found = j_global;
@@ -1181,9 +1191,9 @@ protected:
             values_vector[last_pos] += Alocal(i_local,counter - 1);
 #endif
             // Now find all of the other entries
-            std::size_t pos = 0;
-            for(std::size_t j = counter; j < EquationId.size(); ++j) {
-                std::size_t id_to_find = EquationId[j];
+            IndexType pos = 0;
+            for(IndexType j = counter; j < EquationId.size(); ++j) {
+                IndexType id_to_find = EquationId[j];
                 if (id_to_find < BaseType::mEquationSystemSize) {
                     if(id_to_find > last_found)
                         pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
@@ -1207,20 +1217,20 @@ protected:
         }
     }
 
-    inline std::size_t ForwardFind(const std::size_t id_to_find,
-                                   const std::size_t start,
-                                   const std::size_t* index_vector)
+    inline IndexType ForwardFind(const IndexType id_to_find,
+                                   const IndexType start,
+                                   const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos++;
         return pos;
     }
 
-    inline std::size_t BackwardFind(const std::size_t id_to_find,
-                                    const std::size_t start,
-                                    const std::size_t* index_vector)
+    inline IndexType BackwardFind(const IndexType id_to_find,
+                                    const IndexType start,
+                                    const IndexType* index_vector)
     {
-        std::size_t pos = start;
+        IndexType pos = start;
         while(id_to_find != index_vector[pos]) pos--;
         return pos;
     }
