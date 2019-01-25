@@ -163,6 +163,7 @@ namespace Kratos
         bool m_is_rational;
         std::vector<BrepBoundaryLoop> mTrimmingLoops;
         std::vector<BrepBoundaryLoop> mEmbeddedLoops;
+        std::vector<BrepTrimmingCurve> mEmbeddedEdges;
         std::vector<EmbeddedPoint> mEmbeddedPoints;
 
         //3d surface parameters

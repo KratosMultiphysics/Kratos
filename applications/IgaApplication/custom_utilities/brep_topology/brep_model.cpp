@@ -107,7 +107,8 @@ namespace Kratos
                     if (mBrepFaces[j].Id() == edge_topology.brep_id)
                     {
                         mBrepFaces[j].GetIntegrationBrepEdge(
-                            rModelPart, edge_topology.trim_index,
+                            rModelPart,
+                            edge_topology.trim_index,
                             rType, rName,
                             rShapeFunctionDerivativesOrder,
                             rVariables);
