@@ -46,7 +46,7 @@ namespace Kratos
         ComputeInitialLift();
         auto geom = rAdjointElement.GetGeometry();
         unsigned int NumNodes = geom.PointsNumber();
-        double epsilon=1e-9;
+        double epsilon=1e-6;
         double perturbated_lift=0.0;
 
         if (rAdjointElement.IsNot(MARKER)){
@@ -60,7 +60,7 @@ namespace Kratos
                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
                     ComputeLiftProcess(mrModelPart,resultForce).Execute();
                     perturbated_lift=resultForce(1);
-                    rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                    rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
                     mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
                 }else{
                     rResponseGradient(i) = 0.0;
@@ -80,7 +80,7 @@ namespace Kratos
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
-                        rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                        rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
 
                     }
@@ -90,7 +90,7 @@ namespace Kratos
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
         
-                        rResponseGradient(i) = (mInitialLift-perturbated_lift)/epsilon;
+                        rResponseGradient(i) = -(mInitialLift-perturbated_lift)/epsilon;
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
                     }
                     if(distances[i] < 0){
@@ -98,7 +98,7 @@ namespace Kratos
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
-                        rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
+                        rResponseGradient(i+NumNodes) = -(mInitialLift-perturbated_lift)/epsilon;
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(POSITIVE_POTENTIAL) = unperturbed_potential;
 
                     }
@@ -107,7 +107,7 @@ namespace Kratos
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential + epsilon ;
                         ComputeLiftProcess(mrModelPart,resultForce).Execute();
                         perturbated_lift=resultForce(1);
-                        rResponseGradient(i+NumNodes) = (mInitialLift-perturbated_lift)/epsilon;
+                        rResponseGradient(i+NumNodes) = -(mInitialLift-perturbated_lift)/epsilon;
                         mrModelPart.pGetNode(node_id,0)->FastGetSolutionStepValue(NEGATIVE_POTENTIAL) = unperturbed_potential;
                     }
                 }else{
@@ -193,7 +193,7 @@ namespace Kratos
             rSensitivityGradient.resize(NumNodes*Dim, false);
 
         if (rAdjointCondition.IsNot(BOUNDARY)){
-            double epsilon=1e-9;
+            double epsilon=1e-6;
             double perturbated_lift=0.0;
             for (unsigned int i_node=0;i_node<NumNodes;i_node++)
             {
