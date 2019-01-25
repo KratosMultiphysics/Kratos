@@ -251,13 +251,121 @@ namespace Kratos
     }
 
 
-    void EmbeddedIgaModeler::TestTriangle()
+    std::vector<std::vector<double>> EmbeddedIgaModeler::TestTriangle()
+    // void EmbeddedIgaModeler::TestTriangle()
     {
-        struct triangulateio inData;
-        struct triangulateio outData;
+        std::vector<array_1d<double,3>> polygon;
+        // CreateTessellationParameterCurve(polygon);
+
+
+        polygon.resize(8); 
+
+        polygon[0][0] = 0;
+        polygon[0][1] = 0;
+        polygon[0][2] = 0; 
+        polygon[1][0] = 10;
+        polygon[1][1] = 0;
+        polygon[1][2] = 0;
+        polygon[2][0] = 10;
+        polygon[2][1] = 5;
+        polygon[2][2] = 0;
+        polygon[3][0] = 7;
+        polygon[3][1] = 5;
+        polygon[3][2] = 0;
+        polygon[4][0] = 7;
+        polygon[4][1] = 3;
+        polygon[4][2] = 0;
+        polygon[5][0] = 3;
+        polygon[5][1] = 3;
+        polygon[5][2] = 0;
+        polygon[6][0] = 3;
+        polygon[6][1] = 5;
+        polygon[6][2] = 0;
+        polygon[7][0] = 0;
+        polygon[7][1] = 5;
+        polygon[7][2] = 0; 
+ 
+        // initializing the i/o containers
+        struct triangulateio in_data; 
+        struct triangulateio out_data; 
+        struct triangulateio vor_out_data;
+
+        InitTriangulationDataStructure(in_data); 
+        InitTriangulationDataStructure(out_data); 
+        InitTriangulationDataStructure(vor_out_data); 
+
+        in_data.numberofpoints = polygon.size(); 
+        
+        in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
+        in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
+        in_data.numberofholes = 0;
+
+        // in_data.numberofsegments = 0; 
+        // in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
+        // in_data.segmentmarkerlist = (int*) malloc(in_data.numberofsegments * sizeof(int));
+
+        // in_data.pointlist[0] = 0; 
+        // in_data.pointlist[1] = 0; 
+        // in_data.pointlist[2] = 10; 
+        // in_data.pointlist[3] = 0;
+        // in_data.pointlist[4] = 15;
+        // in_data.pointlist[5] = 2.5;
+        // in_data.pointlist[6] = 10; 
+        // in_data.pointlist[7] = 5;
+        // in_data.pointlist[8] = 0; 
+        // in_data.pointlist[9] = 5;
+
+        for (unsigned int i = 0; i < polygon.size(); ++i)
+        {
+            for (unsigned int j = 0; j < 2; ++j)    in_data.pointlist[i * 2 + j] = polygon[i][j]; 
+        }
+                
+        char trigenOptsVerbose[] = "cz"; 
+        char* trigenOpts = trigenOptsVerbose; 
+
+        triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
+
+        std::vector<std::vector<double>> tri_coords (out_data.numberoftriangles * 3 , std::vector<double>(2,0)); 
+        unsigned int id = 0; 
+        for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
+        {
+            for (unsigned int j = 0; j < 3; ++j)
+            {
+                tri_coords[id + j][0] = out_data.pointlist[out_data.trianglelist[id + j] * 2];
+                tri_coords[id + j][1] = out_data.pointlist[out_data.trianglelist[id + j] * 2 + 1]; 
+            }
+            id += 3; 
+        }
+
+        return tri_coords; 
     }
 
-    
+    void EmbeddedIgaModeler::InitTriangulationDataStructure(triangulateio& tr)
+{
+        tr.pointlist                  = (REAL*) NULL;
+        tr.pointattributelist         = (REAL*) NULL;
+        tr.pointmarkerlist            = (int*) NULL;
+        tr.numberofpoints             = 0;
+        tr.numberofpointattributes    = 0;
+        tr.trianglelist               = (int*) NULL;
+        tr.triangleattributelist      = (REAL*) NULL;
+        tr.trianglearealist           = (REAL*) NULL;
+        tr.neighborlist               = (int*) NULL;
+        tr.numberoftriangles          = 0;
+        tr.numberofcorners            = 3;
+        tr.numberoftriangleattributes = 0;
+        tr.segmentlist                = (int*) NULL;
+        tr.segmentmarkerlist          = (int*) NULL;
+        tr.numberofsegments           = 0;
+        tr.holelist                   = (REAL*) NULL;
+        tr.numberofholes              = 0;
+        tr.regionlist                 = (REAL*) NULL;
+        tr.numberofregions            = 0;
+        tr.edgelist                   = (int*) NULL;
+        tr.edgemarkerlist             = (int*) NULL;
+        tr.normlist                   = (REAL*) NULL;
+        tr.numberofedges              = 0;
+}    
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// Helper Functions
