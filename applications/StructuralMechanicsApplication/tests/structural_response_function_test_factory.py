@@ -10,8 +10,6 @@ import structural_response_function_factory
 
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import KratosMultiphysics.ExternalSolversApplication
-
 try:
     from KratosMultiphysics.EigenSolversApplication import *
     has_eigensolvers_application = True
