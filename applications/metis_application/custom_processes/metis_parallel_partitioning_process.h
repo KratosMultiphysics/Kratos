@@ -52,26 +52,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define  KRATOS_METIS_PARALLEL_PARTITIONING_PROCESS_INCLUDED
 
 
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 #include <parmetislib.h>
 
-
 // Project includes
-#include "includes/define.h"
 #include "processes/process.h"
-#include "includes/node.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
-
-
-
-
 
 namespace Kratos
 {

@@ -93,14 +93,14 @@ optimizer.Optimize()
 # Test results and clean directory
 # =======================================================================================================
 output_directory = parameters["optimization_settings"]["output"]["output_directory"].GetString()
-response_log_filename = parameters["optimization_settings"]["output"]["response_log_filename"].GetString() + ".csv"
+optimization_log_filename = parameters["optimization_settings"]["output"]["optimization_log_filename"].GetString() + ".csv"
 optimization_model_part_name = parameters["optimization_settings"]["model_settings"]["model_part_name"].GetString()
 
 # Testing
 original_directory = os.getcwd()
 os.chdir(output_directory)
 
-with open(response_log_filename, 'r') as csvfile:
+with open(optimization_log_filename, 'r') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     last_line = None
     for line in reader:
@@ -114,7 +114,7 @@ with open(response_log_filename, 'r') as csvfile:
 
     # Check against specifications
     TestCase().assertEqual(resulting_optimization_iterations, 124)
-    TestCase().assertAlmostEqual(resulting_improvement, -90.228425, 5)
+    TestCase().assertAlmostEqual(resulting_improvement, -90.2284, 4)
 
 os.chdir(original_directory)
 

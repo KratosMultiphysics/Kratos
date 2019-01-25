@@ -61,11 +61,8 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "response_log_filename"   : "response_log",
-            "design_history_filename" : "design_history",
-            "design_output_mode"      : "WriteOptimizationModelPart",
-            "nodal_results" : [ "SHAPE_CHANGE" ],
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid"
             }

@@ -12,13 +12,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 import KratosMultiphysics
 from python_solver import PythonSolver
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -236,8 +229,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
-        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
+        mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
+            "nodal")
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
@@ -287,7 +284,7 @@ class PartitionedFSIBaseSolver(PythonSolver):
         self._PrintInfoOnRankZero("::[PartitionedFSIBaseSolver]::", "Coupling strategy construction finished.")
         return convergence_accelerator
 
-    # This method finds the maximum buffer size between mesh, 
+    # This method finds the maximum buffer size between mesh,
     # fluid and structure solvers and sets it to all the solvers.
     def _GetAndSetMinimumBufferSize(self):
         fluid_buffer_size = self.fluid_solver.min_buffer_size
@@ -370,9 +367,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosFSI.PartitionedFSIUtilities2D()
+            return KratosFSI.PartitionedFSIUtilitiesArray2D()
         else:
-            return KratosFSI.PartitionedFSIUtilities3D()
+            return KratosFSI.PartitionedFSIUtilitiesArray3D()
 
     def _SetUpMapper(self):
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
@@ -456,9 +453,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
             if self.domain_size == 2:
                 for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:
                     aux_count+=1
-                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N", 
-                                                                            int(aux_count), 
-                                                                            [node.Id], 
+                    structure_computational_submodelpart.CreateNewCondition("PointLoadCondition2D1N",
+                                                                            int(aux_count),
+                                                                            [node.Id],
                                                                             self.structure_solver.main_model_part.Properties[0])
             elif self.domain_size == 3:
                 for node in interface_submodelpart_i.GetCommunicator().LocalMesh().Nodes:

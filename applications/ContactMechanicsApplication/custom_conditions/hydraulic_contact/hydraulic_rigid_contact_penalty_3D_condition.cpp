@@ -263,7 +263,7 @@ namespace Kratos
       KRATOS_TRY
 
       //Compute the neighbour distance, then a stress-"like" may be computed.
-      WeakPointerVector<Node<3> >& rN  = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+      NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
       array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
       array_1d<double,3> Neighb_Point;
 
@@ -272,15 +272,13 @@ namespace Kratos
 
       for(unsigned int i = 0; i < rN.size(); i++)
       {
-         if(rN[i].Is(BOUNDARY)){
+         if(rN[i]->Is(BOUNDARY)){
 
-            Neighb_Point[0] = rN[i].X();
-            Neighb_Point[1] = rN[i].Y();
-            Neighb_Point[2] = rN[i].Z();
+           Neighb_Point = rN[i]->Coordinates();
 
-            distance += norm_2(Contact_Point-Neighb_Point);
+           distance += norm_2(Contact_Point-Neighb_Point);
 
-            counter ++;
+           counter ++;
          }
       }
 
@@ -298,12 +296,12 @@ namespace Kratos
       if( GetProperties().Has(PENALTY_PARAMETER) )
          PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-      WeakPointerVector<Element >& rE = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
+      ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
       double ElasticModulus = 0;
       if( GetProperties().Has(YOUNG_MODULUS) )
          ElasticModulus = GetProperties()[YOUNG_MODULUS];
       else
-         ElasticModulus = rE.front().GetProperties()[YOUNG_MODULUS];
+         ElasticModulus = rE.front()->GetProperties()[YOUNG_MODULUS];
 
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
       if (ElasticModulus <= 1.0e-5) {
@@ -311,7 +309,7 @@ namespace Kratos
          ProcessInfo SomeProcessInfo;
          for ( unsigned int i = 0; i < rE.size(); i++)
          {
-            rE[i].CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
+            rE[i]->CalculateOnIntegrationPoints(EQUIVALENT_YOUNG_MODULUS, mModulus, SomeProcessInfo);
             ElasticModulus += mModulus[0];
          }
          ElasticModulus /= double(rE.size());

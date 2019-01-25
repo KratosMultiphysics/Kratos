@@ -9,13 +9,6 @@ import convergence_accelerator_factory         # Import the FSI convergence acce
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications(
-    "FSIApplication",
-    "MeshMovingApplication",
-    "FluidDynamicsApplication",
-    "StructuralMechanicsApplication")
-
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
 import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
@@ -193,10 +186,14 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosMultiphysics.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL,
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual
 
@@ -219,9 +216,13 @@ class PartitionedFSIDirichletNeumannSolver(partitioned_fsi_base_solver.Partition
         # Compute the fluid interface residual vector by means of the VECTOR_PROJECTED variable
         # Besides, its norm is stored within the ProcessInfo.
         disp_residual = KratosMultiphysics.Vector(self.partitioned_fsi_utilities.GetInterfaceResidualSize(self._GetFluidInterfaceSubmodelPart()))
-        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(self._GetFluidInterfaceSubmodelPart(),
-                                                                      KratosMultiphysics.MESH_DISPLACEMENT,
-                                                                      KratosFSI.VECTOR_PROJECTED,
-                                                                      disp_residual)
+        self.partitioned_fsi_utilities.ComputeInterfaceResidualVector(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.MESH_DISPLACEMENT,
+            KratosMultiphysics.VECTOR_PROJECTED,
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
+            disp_residual,
+            "nodal",
+            KratosMultiphysics.FSI_INTERFACE_RESIDUAL_NORM)
 
         return disp_residual

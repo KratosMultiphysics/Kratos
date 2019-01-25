@@ -256,7 +256,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
-        #checking consistent mass matrix
+        # Checking consistent mass matrix
         M = KratosMultiphysics.Matrix(0,0)
         mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
         Area = mp.Elements[1].GetGeometry().Area()
@@ -267,6 +267,16 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         coeff = Area/6.0
                     else:
                         coeff = Area/12.0
+                    self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
+        mp.Elements[1].SetValue(StructuralMechanicsApplication.MASS_FACTOR, 2.0)
+        mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
+        for i in range(3):
+            for j in range(3):
+                for k in range(dim):
+                    if(i==j):
+                        coeff = Area/3.0
+                    else:
+                        coeff = Area/6.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
 
         #self.__post_process(mp)

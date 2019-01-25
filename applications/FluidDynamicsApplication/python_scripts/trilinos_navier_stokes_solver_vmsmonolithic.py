@@ -4,9 +4,6 @@ from __future__ import absolute_import, division  # makes KratosMultiphysics bac
 import KratosMultiphysics
 import KratosMultiphysics.mpi as KratosMPI                          # MPI-python interface
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("FluidDynamicsApplication","MetisApplication","TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.MetisApplication as KratosMetis           # Partitioning
 import KratosMultiphysics.TrilinosApplication as KratosTrilinos     # MPI solvers
@@ -31,6 +28,9 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
             "model_import_settings": {
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
+            },
+            "material_import_settings": {
+                "materials_filename": "unknown_materials.json"
             },
             "formulation": {
                 "element_type": "vms"

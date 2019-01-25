@@ -5,9 +5,6 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 #import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def CreateMeshingDomain(main_model_part, custom_settings):
     return FluidMeshingDomain(main_model_part, custom_settings)

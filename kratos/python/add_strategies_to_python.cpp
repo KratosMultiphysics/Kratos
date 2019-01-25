@@ -57,6 +57,8 @@
 // Builder And Solver
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
@@ -409,6 +411,14 @@ namespace Kratos
             py::class_< ResidualBasedEliminationBuilderAndSolverType, ResidualBasedEliminationBuilderAndSolverType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolver")
             .def(py::init<LinearSolverType::Pointer, Parameters >() )
             .def(py::init< LinearSolverType::Pointer > ());
+
+            typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
+            py::class_< ResidualBasedEliminationBuilderAndSolverWithConstraintsType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolverWithConstraints")
+            .def(py::init< LinearSolverType::Pointer > ())
+            .def(py::init< LinearSolverType::Pointer, bool > ())
+            .def(py::init< LinearSolverType::Pointer, bool, bool > ())
+            .def(py::init< LinearSolverType::Pointer, Parameters > ())
+            ;
 
             typedef ResidualBasedBlockBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBlockBuilderAndSolverType;
             py::class_< ResidualBasedBlockBuilderAndSolverType, ResidualBasedBlockBuilderAndSolverType::Pointer,BuilderAndSolverType>(m,"ResidualBasedBlockBuilderAndSolver")

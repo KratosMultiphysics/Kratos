@@ -21,7 +21,7 @@ while fuser /var/lib/dpkg/lock >/dev/null 2>&1 ; do
 done
 
 # Download additional dependencies
-sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl
+sudo apt-get install -y unzip python3-h5py libhdf5-dev libio-socket-ssl-perl  libdigest-hmac-perl  libterm-readkey-perl libmime-lite-perl libfile-libmagic-perl libio-socket-inet6-perl python3-numpy python3-scipy
 
 # We move to home directory
 cd ${HOME}
@@ -33,9 +33,11 @@ wget https://bitbucket.org/eigen/eigen/get/dbed8786ceed.tar.gz -O eigen.tar.gz
 tar xzf eigen.tar.gz
 mv ${HOME}/eigen-eigen-dbed8786ceed ${HOME}/eigen
 # ANurbs library
-wget https://github.com/oberbichler/ANurbs/archive/master.tar.gz -O AnurbsLibrary.tar.gz
+# a specific commit is specified, this has to be tested before updating
+ANUBS_COMMIT_HASH=dada39e26909bee36f1fdee8f5a282ea563cf00a
+wget https://github.com/oberbichler/ANurbs/archive/${ANUBS_COMMIT_HASH}.tar.gz -O AnurbsLibrary.tar.gz
 tar xzf AnurbsLibrary.tar.gz
-mv ${HOME}/ANurbs-master ${HOME}/ANurbs
+mv ${HOME}/ANurbs-${ANUBS_COMMIT_HASH} ${HOME}/ANurbs
 
 ## Step1: Prepare
 wget http://www.logix.cz/michal/devel/smtp-cli/smtp-cli
