@@ -262,28 +262,30 @@ class AdjointResponseFunction(ResponseFunctionBase):
     primal_analysis : Primal analysis object of the response function
     adjoint_analysis : Adjoint analysis object of the response function
     """
-    def __init__(self, identifier, project_parameters, model):
+    def __init__(self, identifier, response_settings, model):
         self.identifier = identifier
+        self.response_settings = response_settings
 
         # Create the primal solver
-        with open(project_parameters["primal_settings"].GetString(),'r') as parameter_file:
-            ProjectParametersPrimal = Parameters( parameter_file.read() )
+        with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
+            primal_parameters = Parameters( parameter_file.read() )
 
-        self.primal_model_part = _GetModelPart(model, ProjectParametersPrimal["solver_settings"])
+        self.primal_model_part = _GetModelPart(model, primal_parameters["solver_settings"])
 
-        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParametersPrimal)
+        self.primal_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, primal_parameters)
 
         # Create the adjoint solver
-        with open(project_parameters["adjoint_settings"].GetString(),'r') as parameter_file:
-            ProjectParametersAdjoint = Parameters( parameter_file.read() )
-        ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
-
+        adjoint_parameters = self._GetAdjointParameters()
         adjoint_model = Model()
-
-        self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
+        self.adjoint_model_part = _GetModelPart(adjoint_model, adjoint_parameters["solver_settings"])
 
         # TODO find out why it is not possible to use the same model_part
-        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, ProjectParametersAdjoint)
+        self.adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_model, adjoint_parameters)
+
+        self.primal_state_variables = [DISPLACEMENT]
+        if primal_parameters["solver_settings"].Has("rotation_dofs"):
+            if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
+                self.primal_state_variables.append(ROTATION)
 
     def Initialize(self):
         self.primal_analysis.Initialize()
@@ -307,6 +309,15 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # TODO the response value calculation for stresses currently only works on the adjoint modelpart
         # this needs to be improved, also the response value should be calculated on the PRIMAL modelpart!!
         self.adjoint_analysis.time = self.adjoint_analysis._GetSolver().AdvanceInTime(self.adjoint_analysis.time)
+
+        # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
+        if self.response_settings["adjoint_settings"].GetString() == "auto":
+            Logger.PrintInfo("> Transfer primal state to adjoint model part.")
+            for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
+                for variable in self.primal_state_variables:
+                    values_to_transfer = primal_node.GetSolutionStepValue(variable)
+                    adjoint_node.SetSolutionStepValue(variable, values_to_transfer)
+
         self.adjoint_analysis.InitializeSolutionStep()
 
 
@@ -363,4 +374,121 @@ class AdjointResponseFunction(ResponseFunctionBase):
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
 
+    def _GetAdjointParameters(self):
 
+        adjoint_settings = self.response_settings["adjoint_settings"].GetString()
+
+        if adjoint_settings == "auto":
+            Logger.PrintInfo("\n> Automatic set up adjoint parameters for response:", self.identifier)
+
+            with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
+                primal_parameters = Parameters( parameter_file.read() )
+
+            # check if HDF5 process is there - if so remove it
+            if primal_parameters["processes"].Has("list_other_processes"):
+                for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
+                    process = primal_parameters["processes"]["list_other_processes"][i]
+                    raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
+
+            # HDF5 output (for primal):
+            # if not primal_parameters["processes"].Has("list_other_processes"):
+            #     primal_parameters.AddEmptyArray("list_other_processes")
+
+            # if primal_parameters["processes"]["list_other_processes"].size() == 0:
+            #     list_of_variables_string = "\"DISPLACEMENT\""
+            #     if primal_parameters["solver_settings"].Has("rotation_dofs"):
+            #         if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
+            #             list_of_variables_string += "\", ROTATION\""
+
+
+            #     hdf5_output_process = Parameters("""
+            #     {
+            #         "kratos_module" : "KratosMultiphysics.HDF5Application",
+            #         "python_module" : "single_mesh_primal_output_process",
+            #         "help"          : "",
+            #         "process_name"  : "",
+            #         "Parameters" : {
+            #             "model_part_name" : "rectangular_plate_structure",
+            #             "file_settings" : {
+            #                 "file_access_mode" : "truncate"
+            #             },
+            #             "model_part_output_settings" : {
+            #                 "prefix" : "/ModelData"
+            #             },
+            #             "nodal_solution_step_data_settings" : {
+            #                 "list_of_variables": ["""+list_of_variables_string+"""]
+            #             }
+            #         }
+            #     }
+            #     """)
+            #     primal_parameters["processes"]["list_other_processes"].AddValue(hdf5_output_process)
+
+            # else:
+            #     for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
+            #         process = primal_parameters["processes"]["list_other_processes"][i]
+            #         if process["python_module"].GetString() != "single_mesh_primal_output_process":
+            #             raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
+
+            # clone primal settings as base for adjoint
+            adjoint_parameters = primal_parameters.Clone()
+
+            # analysis settings
+            solver_settings = adjoint_parameters["solver_settings"]
+            primal_solver_type = solver_settings["solver_type"].GetString()
+            if primal_solver_type != "static":
+                raise Exception("Auto setup of adjoint parameters does not support {} solver_type. Only available for 'static'".format(primal_solver_type))
+            solver_settings["solver_type"].SetString("adjoint_"+primal_solver_type)
+
+            if not solver_settings.Has("compute_reactions"):
+                solver_settings.AddEmptyValue("compute_reactions")
+            solver_settings["compute_reactions"].SetBool(False)
+
+            if not solver_settings.Has("move_mesh_flag"):
+                solver_settings.AddEmptyValue("move_mesh_flag")
+            solver_settings["move_mesh_flag"].SetBool(False)
+
+            if not solver_settings.Has("scheme_settings"):
+                tmp = solver_settings.AddEmptyValue("scheme_settings")
+                if not tmp.Has("scheme_type"):
+                    tmp.AddEmptyValue("scheme_type")
+            solver_settings["scheme_settings"]["scheme_type"].SetString("adjoint_structural")
+
+            # Dirichlet conditions: change variables
+            for i in range(0,primal_parameters["processes"]["constraints_process_list"].size()):
+                process = adjoint_parameters["processes"]["constraints_process_list"][i]
+                variable_name = process["Parameters"]["variable_name"].GetString()
+            process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
+
+            # Neumann conditions:
+            if adjoint_parameters["processes"].Has("loads_process_list"):
+                adjoint_parameters["processes"].RemoveValue("loads_process_list")
+            adjoint_parameters["processes"].AddEmptyArray("loads_process_list")
+
+            # Output process:
+            # TODO how to add the output process? How find out about the variables?
+            if adjoint_parameters.Has("output_configuration"):
+                Logger.PrintInfo("> Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
+                adjoint_parameters.RemoveValue("output_configuration")
+
+            # HDF5 input
+            # for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
+            #     process = adjoint_parameters["processes"]["list_other_processes"][i]
+            #     if process["python_module"].GetString() == "single_mesh_primal_output_process":
+            #         process["python_module"].SetString("single_mesh_temporal_input_process")
+            #         process["Parameters"]["file_settings"]["file_access_mode"].SetString("read_only")
+            #         process["Parameters"].RemoveValue("model_part_output_settings")
+            #     else:
+            #         raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
+
+            # sensitivity settings
+            adjoint_parameters["solver_settings"].AddValue("sensitivity_settings", self.response_settings["sensitivity_settings"])
+            self.response_settings.RemoveValue("sensitivity_settings")
+
+            # response settings
+            adjoint_parameters["solver_settings"].AddValue("response_function_settings", self.response_settings)
+
+        else: # adjoint parameters file is explicitely given do not change it.
+            with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
+                adjoint_parameters = Parameters( parameter_file.read() )
+
+        return adjoint_parameters
