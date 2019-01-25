@@ -318,10 +318,9 @@ class AdjointResponseFunction(ResponseFunctionBase):
         # Put primal solution on adjoint model - for "auto" setting, else it has to be done by the user e.g. using hdf5 process
         if self.response_settings["adjoint_settings"].GetString() == "auto":
             Logger.PrintInfo("> Transfer primal state to adjoint model part.")
-            for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
-                for variable in self.primal_state_variables:
-                    values_to_transfer = primal_node.GetSolutionStepValue(variable)
-                    adjoint_node.SetSolutionStepValue(variable, values_to_transfer)
+            variable_utils = KratosMultiphysics.VariableUtils()
+            for variable in self.primal_state_variables:
+                variable_utils.CopyModelPartNodalVar(variable, self.primal_model_part, self.adjoint_model_part, 0)
 
         self.adjoint_analysis.InitializeSolutionStep()
 
