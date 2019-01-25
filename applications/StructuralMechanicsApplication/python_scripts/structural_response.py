@@ -384,7 +384,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             with open(self.response_settings["primal_settings"].GetString(),'r') as parameter_file:
                 primal_parameters = Parameters( parameter_file.read() )
 
-            # check if HDF5 process is there - if so remove it
+            # check that HDF5 process is not there
             if primal_parameters["processes"].Has("list_other_processes"):
                 for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
                     process = primal_parameters["processes"]["list_other_processes"][i]
@@ -420,10 +420,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
                 variable_name = process["Parameters"]["variable_name"].GetString()
             process["Parameters"]["variable_name"].SetString("ADJOINT_"+variable_name)
 
-            # Neumann conditions:
-            if adjoint_parameters["processes"].Has("loads_process_list"):
-                adjoint_parameters["processes"].RemoveValue("loads_process_list")
-            adjoint_parameters["processes"].AddEmptyArray("loads_process_list")
+            # Neumann conditions - do not modify to read the same load values as in primal:
 
             # Output process:
             # TODO how to add the output process? How find out about the variables?
@@ -438,7 +435,7 @@ class AdjointResponseFunction(ResponseFunctionBase):
             # response settings
             adjoint_parameters["solver_settings"].AddValue("response_function_settings", self.response_settings)
 
-        else: # adjoint parameters file is explicitely given do not change it.
+        else: # adjoint parameters file is explicitely given - do not change it.
             with open(self.response_settings["adjoint_settings"].GetString(),'r') as parameter_file:
                 adjoint_parameters = Parameters( parameter_file.read() )
 
