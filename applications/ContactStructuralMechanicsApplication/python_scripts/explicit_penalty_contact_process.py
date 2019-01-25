@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # Importing the Kratos Library
 import KratosMultiphysics as KM
 
+import KratosMultiphysics.StructuralMechanicsApplication as SMA
 import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 
 def Factory(settings, Model):
@@ -64,15 +65,23 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
                 "bucket_size"                         : 4,
                 "dynamic_search"                      : false,
                 "static_check_movement"               : false,
-                "database_step_update"                : 1,
+                "database_step_update"                : 100,
                 "consider_gap_threshold"              : false,
                 "debug_mode"                          : false,
+                "predict_correct_lagrange_multiplier" : false,
                 "check_gap"                           : "check_mapping"
+            },
+            "advance_explicit_parameters" : {
+                "manual_impact_time_duration" : true,
+                "impact_time_duration"        : 1.0e-6
             },
             "advance_ALM_parameters" : {
                 "manual_ALM"                  : false,
                 "stiffness_factor"            : 1.0,
+                "penalty_scale_factor"        : 1.0,
+                "use_scale_factor"            : true,
                 "penalty"                     : 1.0e16,
+                "scale_factor"                : 1.0e0,
                 "adapt_penalty"               : false,
                 "max_gap_factor"              : 1.0e-3
             },
@@ -82,12 +91,12 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         }
         """)
 
+        # Construct the base process.
+        super(ExplicitPenaltyContactProcess, self).__init__(Model, settings)
+
         # Overwrite the default settings with user-provided parameters
         self.contact_settings = settings
         self.contact_settings.RecursivelyValidateAndAssignDefaults(default_parameters)
-
-        # Construct the base process.
-        super(ExplicitPenaltyContactProcess, self).__init__(Model, self.contact_settings)
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -103,8 +112,17 @@ class ExplicitPenaltyContactProcess(penalty_contact_process.PenaltyContactProces
         process_info = self.main_model_part.ProcessInfo
         process_info[KM.NL_ITERATION_NUMBER] = 1
 
+        # Setting the impact time duration
+        if self.contact_settings["advance_explicit_parameters"]["manual_impact_time_duration"].GetBool():
+            process_info[CSMA.IMPACT_TIME_DURATION] = self.contact_settings["advance_explicit_parameters"]["impact_time_duration"].GetDouble()
+        else:
+            empty_settings = KM.Parameters("""{}""")
+            max_delta_time = SMA.CalculateDeltaTime(self.computing_model_part, empty_settings)
+            process_info[CSMA.IMPACT_TIME_DURATION] = max_delta_time
+
         # Create the dynamic factor process
         self.dynamic_factor_process = CSMA.ComputeDynamicFactorProcess(self.main_model_part)
+        self.dynamic_factor_process.ExecuteInitialize()
 
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
