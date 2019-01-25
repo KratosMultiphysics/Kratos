@@ -35,7 +35,7 @@ class DesignLoggerGID( DesignLogger ):
         }""")
 
         self.output_settings["output_format"].ValidateAndAssignDefaults(minimal_gid_parameters)
-        self.output_settings["output_format"]["gid_parameters"].ValidateAndAssignDefaults(GiDOutputProcess.defaults)
+        self.output_settings["output_format"]["gid_parameters"].RecursivelyValidateAndAssignDefaults(GiDOutputProcess.defaults)
 
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.design_surface = model_part_controller.GetDesignSurface()
