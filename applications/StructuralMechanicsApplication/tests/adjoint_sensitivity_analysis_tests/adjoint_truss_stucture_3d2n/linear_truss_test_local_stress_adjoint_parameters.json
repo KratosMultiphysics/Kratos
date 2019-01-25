@@ -41,6 +41,9 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_BC_DIRICHLET_X_Y_Z","DISPLACEMENT_BC_DIRICHLET_Z","PointLoad3D_BC_NEUMANN"],
         "computing_model_part_name" : "computing_domain",
         "rotation_dofs"                      : false,
+        "linear_solver_settings"       : {
+            "solver_type"         : "Super_LU"
+        },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "linear_truss_structure"
