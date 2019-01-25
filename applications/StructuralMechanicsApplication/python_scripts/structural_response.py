@@ -390,45 +390,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
                     process = primal_parameters["processes"]["list_other_processes"][i]
                     raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
 
-            # HDF5 output (for primal):
-            # if not primal_parameters["processes"].Has("list_other_processes"):
-            #     primal_parameters.AddEmptyArray("list_other_processes")
-
-            # if primal_parameters["processes"]["list_other_processes"].size() == 0:
-            #     list_of_variables_string = "\"DISPLACEMENT\""
-            #     if primal_parameters["solver_settings"].Has("rotation_dofs"):
-            #         if primal_parameters["solver_settings"]["rotation_dofs"].GetBool():
-            #             list_of_variables_string += "\", ROTATION\""
-
-
-            #     hdf5_output_process = Parameters("""
-            #     {
-            #         "kratos_module" : "KratosMultiphysics.HDF5Application",
-            #         "python_module" : "single_mesh_primal_output_process",
-            #         "help"          : "",
-            #         "process_name"  : "",
-            #         "Parameters" : {
-            #             "model_part_name" : "rectangular_plate_structure",
-            #             "file_settings" : {
-            #                 "file_access_mode" : "truncate"
-            #             },
-            #             "model_part_output_settings" : {
-            #                 "prefix" : "/ModelData"
-            #             },
-            #             "nodal_solution_step_data_settings" : {
-            #                 "list_of_variables": ["""+list_of_variables_string+"""]
-            #             }
-            #         }
-            #     }
-            #     """)
-            #     primal_parameters["processes"]["list_other_processes"].AddValue(hdf5_output_process)
-
-            # else:
-            #     for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
-            #         process = primal_parameters["processes"]["list_other_processes"][i]
-            #         if process["python_module"].GetString() != "single_mesh_primal_output_process":
-            #             raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
-
             # clone primal settings as base for adjoint
             adjoint_parameters = primal_parameters.Clone()
 
@@ -469,16 +430,6 @@ class AdjointResponseFunction(ResponseFunctionBase):
             if adjoint_parameters.Has("output_configuration"):
                 Logger.PrintInfo("> Output process is removed for adjoint analysis. To enable it define adjoint_parameters yourself.")
                 adjoint_parameters.RemoveValue("output_configuration")
-
-            # HDF5 input
-            # for i in range(0,primal_parameters["processes"]["list_other_processes"].size()):
-            #     process = adjoint_parameters["processes"]["list_other_processes"][i]
-            #     if process["python_module"].GetString() == "single_mesh_primal_output_process":
-            #         process["python_module"].SetString("single_mesh_temporal_input_process")
-            #         process["Parameters"]["file_settings"]["file_access_mode"].SetString("read_only")
-            #         process["Parameters"].RemoveValue("model_part_output_settings")
-            #     else:
-            #         raise Exception("Auto setup of adjoint parameters does not support {} in list_other_processes".format(process["python_module"].GetString()))
 
             # sensitivity settings
             adjoint_parameters["solver_settings"].AddValue("sensitivity_settings", self.response_settings["sensitivity_settings"])
