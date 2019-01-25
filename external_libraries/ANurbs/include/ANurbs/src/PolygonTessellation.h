@@ -6,7 +6,7 @@
 #include "CurveBase.h"
 #include "TrimmedSurfaceClipping.h"
 
-#include <Mapbox/Earcut.hpp>
+#include <mapbox/earcut.hpp>
 
 #include <vector>
 

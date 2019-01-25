@@ -4,6 +4,8 @@
 #include "Pointer.h"
 #include "VectorTraits.h"
 
+#include <nanoflann.hpp>
+
 namespace ANurbs {
 
 template <typename TVector>
@@ -23,6 +25,41 @@ private:
         VectorType point;
     };
 
+    struct PointCloudAdaptor
+    {
+        const std::vector<ParameterPoint>& m_points;
+
+        PointCloudAdaptor(
+            const std::vector<ParameterPoint>& points)
+        : m_points(points)
+        { }
+
+        inline size_t
+        kdtree_get_point_count() const
+        { 
+            return m_points.size();
+        }
+
+        inline ScalarType
+        kdtree_get_pt(
+            const size_t idx,
+            const size_t dim) const
+        {
+            return Nth(m_points[idx].point, static_cast<int>(dim));
+        }
+
+        template <typename BBOX>
+        bool kdtree_get_bbox(
+            BBOX&) const
+        { 
+            return false;
+        }
+    };
+
+    using KDTreeType = nanoflann::KDTreeSingleIndexAdaptor<
+        nanoflann::L2_Simple_Adaptor<ScalarType, PointCloudAdaptor>,
+        PointCloudAdaptor, 3>;
+
 private:
     Pointer<SurfaceBaseType> m_surface;
     ParameterPoint m_closestPoint;
@@ -31,11 +68,14 @@ private:
     ScalarType m_distance;
     int m_gridU;
     int m_gridV;
+    Unique<KDTreeType> m_index;
+    const PointCloudAdaptor m_pointCloudAdaptor;
 
 public:
     PointOnSurfaceProjection(
         Pointer<SurfaceBaseType> surface)
     : m_surface(surface)
+    , m_pointCloudAdaptor(m_tessellation)
     {
         std::vector<ScalarType> us;
 
@@ -79,6 +119,11 @@ public:
                 m_tessellation.push_back({u, v, point});
             }
         }
+
+        m_index = New<KDTreeType>(3, m_pointCloudAdaptor,
+            nanoflann::KDTreeSingleIndexAdaptorParams(10));
+
+        m_index->buildIndex();
 
         m_gridU = static_cast<int>(us.size()) - 1;
         m_gridV = static_cast<int>(vs.size()) - 1;
@@ -131,25 +176,18 @@ public:
     Compute(
         const VectorType& sample)
     {
-        int minIndex = -1;
-        ScalarType minDistance = std::numeric_limits<ScalarType>::max();
+        size_t minIndex;
+        ScalarType minDistance;
 
-        for (int i = 0; i < m_tessellation.size(); i++) {
-            const auto pt = m_tessellation[i].point;
-
-            const VectorType v = sample - pt;
-            const auto distance = SquaredNorm(v);
-
-            if (distance < minDistance) {
-                minDistance = distance;
-                minIndex = i;
-            }
-        }
+        nanoflann::KNNResultSet<ScalarType> resultSet(1);
+        resultSet.init(&minIndex, &minDistance);
+        m_index->findNeighbors(resultSet, &sample[0],
+            nanoflann::SearchParams(10));
 
         // ---
 
-        const int p = minIndex % (m_gridV + 1);
-        const int o = minIndex / (m_gridV + 1);
+        const size_t p = minIndex % (m_gridV + 1);
+        const size_t o = minIndex / (m_gridV + 1);
 
         m_closestPoint = m_tessellation[minIndex];
 
@@ -204,6 +242,23 @@ public:
         // ---
 
         m_closestPoint = Newton(sample, m_closestPoint.parameterU, m_closestPoint.parameterV);
+    }
+
+    std::vector<ScalarType>
+    BoundingBox() const
+    {
+        const int dimension = DimensionOf<VectorType>();
+
+        std::vector<ScalarType> values(dimension * 2);
+
+        const auto& boundingBox = m_index->root_bbox;
+
+        for (int axis = 0; axis < dimension; axis++) {
+            values[axis] = boundingBox[axis].low;
+            values[dimension + axis] = boundingBox[axis].high;
+        }
+
+        return values;
     }
 
     ParameterPoint

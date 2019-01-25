@@ -18,6 +18,27 @@
 
 namespace Kratos
 {
+    void BrepEdge::GetGeometryNodes(
+        ModelPart& rModelPart,
+        const int& rT)
+    {
+        int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+
+        int t_start = 0;
+        int t_end = number_of_cps;
+
+        if (rT >= 0)
+        {
+            t_start = rT * (number_of_cps - 1);
+            t_end = rT * (number_of_cps - 1) + 1;
+        }
+
+        for (int i = t_start; i < t_end; ++i)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(i));
+        }
+    }
+
     bool BrepEdge::IsCouplingEdge()
     {
         return (mBrepEdgeTopologyVector.size() > 1);

@@ -27,8 +27,7 @@ namespace Kratos
         bool GetNodesGeometry(
             ModelPart& rModelPart,
             const int brep_id,
-            const int rU,
-            const int rV);
+            const Vector& rLocalParameter);
 
         bool GetIntegrationDomainGeometry(
             ModelPart& rModelPart,

@@ -104,6 +104,10 @@ namespace Kratos
         */
         bool IsCouplingEdge();
 
+        void GetGeometryNodes(
+            ModelPart& rModelPart,
+            const int& rT);
+
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
             const std::string& rType,

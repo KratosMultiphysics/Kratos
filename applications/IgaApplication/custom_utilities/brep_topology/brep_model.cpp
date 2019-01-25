@@ -21,17 +21,18 @@ namespace Kratos
     bool BrepModel::GetNodesGeometry(
         ModelPart& rModelPart,
         const int brep_id,
-        const int rU,
-        const int rV)
+        const Vector& rLocalParameter)
     {
-        bool success = false;
-
         for (int i = 0; i < mBrepFaces.size(); ++i)
         {
             if (mBrepFaces[i].Id() == brep_id)
             {
+                if (rLocalParameter.size() != 2)
+                    return false;
                 mBrepFaces[i].GetGeometryNodes(
-                    rModelPart, rU, rV);
+                    rModelPart,
+                    rLocalParameter[0],
+                    rLocalParameter[1]);
                 return true;
             }
         }
@@ -40,12 +41,16 @@ namespace Kratos
         {
             if (mBrepEdges[i].Id() == brep_id)
             {
-                KRATOS_ERROR << "Strong application for edges not implemented yet." << std::endl;
+                if (rLocalParameter.size() != 1)
+                    return false;
+                mBrepEdges[i].GetGeometryNodes(
+                    rModelPart,
+                    rLocalParameter[0]);
                 return true;
             }
         }
 
-        return success;
+        return false;
     }
 
     bool BrepModel::GetIntegrationDomainGeometry(

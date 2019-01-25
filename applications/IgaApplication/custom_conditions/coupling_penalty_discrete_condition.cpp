@@ -642,7 +642,7 @@ namespace Kratos
         MappingGeometricToParameterMasterElement(ShapeFunctionDerivativesMaster, localTrimTangentsMaster, JGeometrictoParameter);
 
         noalias(rLeftHandSideMatrix) += prod(trans(Hcomplete), Hcomplete);
-        noalias(rRightHandSideVector) += prod(prod(trans(Hcomplete), Hcomplete), TDisplacements);
+        noalias(rRightHandSideVector) -= prod(prod(trans(Hcomplete), Hcomplete), TDisplacements);
 
         //Mapping:
         rLeftHandSideMatrix  *= (Weighting * JGeometrictoParameter * Penalty);

@@ -50,10 +50,9 @@ namespace Kratos
                 {
                     int brep_id = element_parameter["brep_ids"][j].GetInt();
                     KRATOS_INFO("Nurbs Brep Modeler") << "brep id: " << brep_id << std::endl;
-                    int parameter_1 = element_parameter["parameters"]["local_parameters"][0].GetInt();
-                    int parameter_2 = element_parameter["parameters"]["local_parameters"][1].GetInt();
+                    Vector parameter = element_parameter["parameters"]["local_parameters"].GetVector();
                     success = m_brep_model_vector[0].GetNodesGeometry(
-                        sub_model_part, brep_id, parameter_1, parameter_2);
+                        sub_model_part, brep_id, parameter);
                 }
                 continue;
             }
