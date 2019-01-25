@@ -93,11 +93,7 @@ void GenericSmallStrainViscoplasticity3D::FinalizeSolutionStep(
     const Vector &rShapeFunctionsValues,
     const ProcessInfo &rCurrentProcessInfo)
 {
-    // Update the int vars of each SubConstitutiveLaw
-    mpPlasticityConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
-                                                      rShapeFunctionsValues, rCurrentProcessInfo);
-    mpViscousConstitutiveLaw->FinalizeSolutionStep(rMaterialProperties, rElementGeometry,
-                                                   rShapeFunctionsValues, rCurrentProcessInfo);
+    // Deprecated
 }
 
 /***********************************************************************************/

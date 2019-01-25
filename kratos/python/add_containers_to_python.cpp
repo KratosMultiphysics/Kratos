@@ -97,7 +97,7 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
         binder.def("Has", [](const TContainerType& container, const TVariableType& rV){return container.Has(rV);} );
         binder.def("SetValue",  [](TContainerType& container, const TVariableType& rV, const typename TVariableType::Type rValue){container.SetValue(rV, rValue);} );
         binder.def("GetValue", [](TContainerType& container, const TVariableType& rV){return container.GetValue(rV);} );
-
+        binder.def("Clear", [](TContainerType& container){container.Clear();} );
     }
 
 //     template< typename TVariableType > void RegisterInPythonVariables(pybind11::module& m)

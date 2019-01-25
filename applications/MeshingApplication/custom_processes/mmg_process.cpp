@@ -126,7 +126,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "buffer_size"                          : 0
     })" );
 
-    mThisParameters.ValidateAndAssignDefaults(DefaultParameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
 
     mStdStringFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -385,7 +385,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (Dimension == 3 && blocked)
+            if (blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -402,7 +402,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
             bool blocked = false;
             if (it_node->IsDefined(BLOCKED))
                 blocked = it_node->Is(BLOCKED);
-            if (Dimension == 3 && blocked)
+            if (blocked)
                 BlockNode(i + 1);
 
             // RESETING THE ID OF THE NODES (important for non consecutive meshes)
@@ -414,14 +414,34 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     #pragma omp parallel for firstprivate(cond_colors)
     for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)  {
         auto it_cond = conditions_array.begin() + i;
+
         SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_cond->IsDefined(BLOCKED))
+            blocked = it_cond->Is(BLOCKED);
+        if (blocked)
+            BlockCondition(i + 1);
+
+        // RESETING THE ID OF THE CONDITIONS (important for non consecutive meshes)
+        it_cond->SetId(i + 1);
     }
 
     /* Elements */
     #pragma omp parallel for firstprivate(elem_colors)
     for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
         auto it_elem = elements_array.begin() + i;
+
         SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
+
+        bool blocked = false;
+        if (it_elem->IsDefined(BLOCKED))
+            blocked = it_elem->Is(BLOCKED);
+        if (blocked)
+            BlockElement(i + 1);
+
+        // RESETING THE ID OF THE ELEMENTS (important for non consecutive meshes)
+        it_elem->SetId(i + 1);
     }
 
     // Create auxiliar colors maps
@@ -1266,6 +1286,68 @@ template<>
 void MmgProcess<MMGLibray::MMGS>::BlockNode(IndexType iNode)
 {
     if (MMGS_Set_requiredVertex(mmgMesh, iNode) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::BlockCondition(IndexType iCondition)
+{
+    if (MMG2D_Set_requiredEdge(mmgMesh, iCondition) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+template<>
+void MmgProcess<MMGLibray::MMG3D>::BlockCondition(IndexType iCondition)
+{
+    if (MMG3D_Set_requiredTriangle(mmgMesh, iCondition) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMGS>::BlockCondition(IndexType iCondition)
+{
+    if (MMGS_Set_requiredEdge(mmgMesh, iCondition) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG2D>::BlockElement(IndexType iElement)
+{
+    if (MMG2D_Set_requiredTriangle(mmgMesh, iElement) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
+template<>
+void MmgProcess<MMGLibray::MMG3D>::BlockElement(IndexType iElement)
+{
+    if (MMG3D_Set_requiredTetrahedron(mmgMesh, iElement) != 1 )
+        exit(EXIT_FAILURE);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMGS>::BlockElement(IndexType iElement)
+{
+    if (MMGS_Set_requiredTriangle(mmgMesh, iElement) != 1 )
         exit(EXIT_FAILURE);
 }
 
