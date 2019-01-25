@@ -65,7 +65,7 @@ double CalculateDeltaTime(
             while (iteration < max_number_of_iterations) {
                 mass_factor *= std::pow(desired_delta_time/stable_delta_time, 2);
                 stable_delta_time = InnerCalculateDeltaTime(rModelPart, time_step_prediction_level, max_delta_time, safety_factor, mass_factor);
-                KRATOS_INFO("ExplicitIntegrationUtilities") << "ITERATION NUMBER: " << iteration << "\tMass factor: " << mass_factor << "\tCurrent delta time: " << stable_delta_time << "\tDesired delta time:" << desired_delta_time << "\t RATIO: " << stable_delta_time/desired_delta_time << std::endl;
+                KRATOS_INFO("ExplicitIntegrationUtilities") << "ITERATION NUMBER: " << iteration << "\tMass factor: " << mass_factor << "\nCurrent delta time: " << stable_delta_time << "\nDesired delta time:" << desired_delta_time << "\n RATIO: " << stable_delta_time/desired_delta_time << std::endl;
                 if (stable_delta_time > desired_delta_time) {
                     break;
                 }
