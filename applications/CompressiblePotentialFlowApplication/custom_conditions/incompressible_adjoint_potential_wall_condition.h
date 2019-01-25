@@ -240,8 +240,25 @@ public:
   
         if(rValues.size() != TNumNodes)
             rValues.resize(TNumNodes, false);
-        for (unsigned int i = 0; i < TNumNodes; i++)
-            rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+
+        bool is_kutta=false;
+        for(unsigned int i=0; i<TNumNodes; i++){
+            if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+                is_kutta=true;
+                break;
+            }
+        }
+        for(unsigned int i=0; i<TNumNodes; i++){
+            if(is_kutta){
+                if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+                else
+                    rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
+            }
+            else
+                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+        }
+
         KRATOS_CATCH("");
    
     }
@@ -251,8 +268,17 @@ public:
     {
         VectorType RHS;
         this->CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
+        rLeftHandSideMatrix.clear();
     }
 
+    void CalculateSensitivityMatrix(const Variable<array_1d<double,3> >& rDesignVariable,
+                                            Matrix& rOutput,
+                                            const ProcessInfo& rCurrentProcessInfo) override
+    {
+        if (rOutput.size1() != TNumNodes)
+            rOutput.resize(TDim*TNumNodes, TNumNodes, false);
+        rOutput.clear();
+    }
     /// Calculate wall stress term for all nodes with IS_STRUCTURE != 0.0
     /**
       @param rDampingMatrix Left-hand side matrix
@@ -320,8 +346,23 @@ public:
             if (rResult.size() != TNumNodes)
                 rResult.resize(TNumNodes, false);
 
-            for (unsigned int i = 0; i < TNumNodes; i++)
-                rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+            bool is_kutta=false;
+            for(unsigned int i=0; i<TNumNodes; i++){
+                if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+                    is_kutta=true;
+                    break;
+                }
+            }
+            for(unsigned int i=0; i<TNumNodes; i++){
+                if(is_kutta){
+                    if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+                    else
+                        rResult[i] = GetGeometry()[i].GetDof(ADJOINT_NEGATIVE_POTENTIAL).EquationId();
+                }
+                else
+                    rResult[i] = GetGeometry()[i].GetDof(ADJOINT_POSITIVE_POTENTIAL).EquationId();
+            }
         }
 
 
@@ -336,8 +377,23 @@ public:
             if (ConditionDofList.size() != TNumNodes)
             ConditionDofList.resize(TNumNodes);
 
-            for (unsigned int i = 0; i < TNumNodes; i++)
-                ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+            bool is_kutta=false;
+            for(unsigned int i=0; i<TNumNodes; i++){
+                if (GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0){
+                    is_kutta=true;
+                    break;
+                }
+            }
+            for(unsigned int i=0; i<TNumNodes; i++){
+                if(is_kutta){
+                    if(GetGeometry()[i].FastGetSolutionStepValue(WAKE_DISTANCE)<0.0)
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+                    else
+                        ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_NEGATIVE_POTENTIAL);
+                }
+                else
+                    ConditionDofList[i] = GetGeometry()[i].pGetDof(ADJOINT_POSITIVE_POTENTIAL);
+            }
         }
 
         void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override

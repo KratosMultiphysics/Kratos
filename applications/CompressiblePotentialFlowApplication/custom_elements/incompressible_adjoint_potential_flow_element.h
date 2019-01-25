@@ -389,7 +389,6 @@ public:
     void GetValuesVector(Vector& rValues, int Step=0) override
     {
         KRATOS_TRY
-        // const SizeType NumNodes = GetGeometry().PointsNumber();
 
         if (this->Is(MARKER)){
             if(rValues.size() != 2*NumNodes)
@@ -402,8 +401,18 @@ public:
         }else{
             if(rValues.size() != NumNodes)
                 rValues.resize(NumNodes, false);
-            for (unsigned int i = 0; i < NumNodes; i++)
-                rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+
+            if (this->IsNot(STRUCTURE)){
+                for(unsigned int i=0; i<NumNodes; i++)
+                    rValues[i] =GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+            }else{
+                for(unsigned int i=0; i<NumNodes; i++){
+                    if (GetGeometry()[i].IsNot(STRUCTURE))
+                        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_POSITIVE_POTENTIAL);
+                    else
+                        rValues[i] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_NEGATIVE_POTENTIAL);
+                }
+            }
         }
         KRATOS_CATCH("")
     }
@@ -442,7 +451,7 @@ public:
                                             const ProcessInfo& rCurrentProcessInfo) override
     {
         KRATOS_TRY;
-        const double delta = 1e-9;//this->GetPerturbationSize(rDesignVariable);
+        const double delta = 1e-6;//this->GetPerturbationSize(rDesignVariable);
         ProcessInfo process_info = rCurrentProcessInfo;
 
         Vector RHS;
@@ -452,28 +461,43 @@ public:
 
         if (rOutput.size1() != NumNodes)
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
-
+        bool compute_sensitivity=true;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-            for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                if (GetGeometry()[i_node].Is(SOLID) && GetGeometry()[i_node].IsNot(STRUCTURE)){
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
+            if(GetGeometry()[i_node].Is(STRUCTURE)){
+                compute_sensitivity=false;
+                break;
+            }
+        }
+        if (compute_sensitivity){
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+                for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
+                    if (GetGeometry()[i_node].Is(SOLID)){
+                        pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
+                        pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
-                    // compute LHS after perturbation
-                    pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
+                        // compute LHS after perturbation
+                        pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
 
-                    //compute derivative of RHS w.r.t. design variable with finite differences
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
+                        //compute derivative of RHS w.r.t. design variable with finite differences
+                        for(unsigned int i = 0; i < RHS.size(); ++i)
+                            rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
 
-                    // unperturb the design variable
-                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
-                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
-                }else{
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
-                        rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                        // unperturb the design variable
+                        pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
+                        pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
+                    }else{
+                        for(unsigned int i = 0; i < RHS.size(); ++i)
+                            rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                    }
                 }
             }
+        }else{
+            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+                for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
+                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                            rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                }
+            }  
         }
         KRATOS_CATCH("")
     }
