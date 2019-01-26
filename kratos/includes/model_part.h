@@ -815,7 +815,7 @@ public:
             return true;
         } else {
             if(IsSubModelPart()) {
-                return mpParentModelPart->HasProperties(PropertiesId, MeshIndex);
+                return mpParentModelPart->RecursivelyHasProperties(PropertiesId, MeshIndex);
             } else {
                 return false;
             }
