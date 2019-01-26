@@ -168,7 +168,7 @@ namespace Kratos
 	void StructuredMeshGeneratorProcess::GenerateTriangularElements() {
 		std::size_t element_id = mStartElementId;
 
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 		std::vector<ModelPart::IndexType> element_connectivity(3);
 
 		for (std::size_t j = 0; j < mNumberOfDivisions; j++) {
@@ -183,7 +183,7 @@ namespace Kratos
 	}
 
 	void StructuredMeshGeneratorProcess::GenerateTetrahedraElements() {
-		Properties::Pointer p_properties = mrOutputModelPart.pGetProperties(mElementPropertiesId);
+		Properties::Pointer p_properties = mrOutputModelPart.CreateNewProperties(mElementPropertiesId);
 
 		for (std::size_t k = 0; k < mNumberOfDivisions; k++) {
 			for (std::size_t j = 0; j < mNumberOfDivisions; j++) {

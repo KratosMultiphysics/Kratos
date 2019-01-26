@@ -126,6 +126,18 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+
+    /**
      * @brief Creates a new element
      * @param NewId The Id of the new created element
      * @param pGeom The pointer to the geometry of the element
@@ -251,13 +263,25 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    //      virtual String Info() const;
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
 
     /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id() << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+    }
 
     /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -282,6 +306,23 @@ protected:
 
     UpdatedLagrangian() : BaseSolidElement()
     {
+    }
+
+    /**
+     * @brief This method clones the element database
+     * @param rF0Computed To avoid computing more than once the historical total elastic deformation measure
+     * @param rDetF0 The historical total elastic deformation measure determinant
+     * @param rF0 The historical total elastic deformation measure
+     */
+    void CloneUpdatedLagrangianDatabase(
+        const bool rF0Computed,
+        const std::vector<double>& rDetF0,
+        const std::vector<Matrix>& rF0
+        )
+    {
+        mF0Computed = rF0Computed;
+        mDetF0 = rDetF0;
+        mF0 = rF0;
     }
 
     /**

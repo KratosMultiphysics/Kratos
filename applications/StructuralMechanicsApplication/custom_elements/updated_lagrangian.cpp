@@ -152,6 +152,34 @@ void UpdatedLagrangian::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer UpdatedLagrangian::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    UpdatedLagrangian::Pointer p_new_elem = Kratos::make_shared<UpdatedLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    // Cloning updated lagrangian database
+    p_new_elem->CloneUpdatedLagrangianDatabase(mF0Computed, mDetF0, mF0);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 ConstitutiveLaw::StressMeasure UpdatedLagrangian::GetStressMeasure() const
 {
     return ConstitutiveLaw::StressMeasure_Cauchy;

@@ -10,7 +10,7 @@ def ImportApplication(application, application_name, application_folder, caller,
     Kernel = Globals.Kernel
     applications_root = Globals.ApplicationsRoot
 
-    Logger.PrintInfo("", "Importing    " + application_name)
+    Logger.PrintInfo("", "Importing  " + application_name)
 
     # Add python scrips folder to path
     application_path = os.path.join(applications_root, application_folder)
@@ -32,4 +32,3 @@ def ImportApplication(application, application_name, application_folder, caller,
 
     # Add application to kernel
     Kernel.ImportApplication(application)
-

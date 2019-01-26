@@ -248,6 +248,33 @@ void BaseSolidElement::ResetConstitutiveLaw()
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer BaseSolidElement::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
+
+    BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
@@ -540,7 +567,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
-        const double density = r_prop[DENSITY];
+        const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
         const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
         Matrix J0(dimension, dimension);
@@ -1473,7 +1500,7 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Getting density
-    const double density = r_prop[DENSITY];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
@@ -1760,7 +1787,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
     if (rMassVector.size() != mat_size)
         rMassVector.resize( mat_size, false );
 
-    const double density = r_prop[DENSITY];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     // LUMPED MASS MATRIX

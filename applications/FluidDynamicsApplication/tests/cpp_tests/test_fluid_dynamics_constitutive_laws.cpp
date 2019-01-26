@@ -31,6 +31,8 @@
 #include "custom_constitutive/newtonian_2d_law.h"
 #include "custom_constitutive/newtonian_3d_law.h"
 #include "custom_constitutive/newtonian_two_fluid_3d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
+#include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
 namespace Kratos {
 	namespace Testing {
@@ -54,7 +56,7 @@ namespace Kratos {
 
         /**
          * @brief Set the Table Properties object
-         * This function sets a temperature dependent viscosity table 
+         * This function sets a temperature dependent viscosity table
          * and a constitutive law pointer for a properties container
          * @param rModelPart model part owning the properties
          * @param pConstitutiveLaw pointer to the constitutive law to be set
@@ -193,7 +195,7 @@ namespace Kratos {
 		{
             // Declare the constitutive law pointer as well as its required arrays
             const unsigned int strain_size = 3;
-            Newtonian2DLaw::Pointer p_cons_law(new Newtonian2DLaw());
+            Newtonian2DLaw::Pointer p_cons_law(new NewtonianTemperatureDependent2DLaw());
             Vector stress_vector = ZeroVector(strain_size);
             Vector strain_vector = ZeroVector(strain_size);
             Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
@@ -253,6 +255,75 @@ namespace Kratos {
                 for (unsigned int j = 0; j < 3; ++j) {
                     KRATOS_CHECK_NEAR(c_matrix(i,j), expected_c_2[i*3 + j], tolerance);
                 }
+            }
+	    }
+
+	    /**
+	     * Checks the Newtonian fluid temperature dependent viscosity 3D constitutive law.
+	     */
+	    KRATOS_TEST_CASE_IN_SUITE(NewtonianTemperatureDependent3DConstitutiveLaw, FluidDynamicsApplicationFastSuite)
+		{
+            // Declare the constitutive law pointer as well as its required arrays
+            const unsigned int strain_size = 6;
+            Newtonian3DLaw::Pointer p_cons_law(new NewtonianTemperatureDependent3DLaw());
+            Vector stress_vector = ZeroVector(strain_size);
+            Vector strain_vector = ZeroVector(strain_size);
+            Matrix c_matrix = ZeroMatrix(strain_size, strain_size);
+
+            // Get the trial element
+            Model model;
+            ModelPart& model_part = model.CreateModelPart("Main", 3);
+            GenerateTetrahedron(model_part, p_cons_law, SetTableProperties);
+            Element::Pointer p_element = model_part.pGetElement(1);
+
+            // Set the constitutive law values
+            ConstitutiveLaw::Parameters cons_law_values(
+                p_element->GetGeometry(),
+                p_element->GetProperties(),
+                model_part.GetProcessInfo());
+
+            // Set constitutive law flags:
+            Flags& constitutive_law_options = cons_law_values.GetOptions();
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+
+            // Set the constitutive arrays
+            strain_vector(0) =  3.0;
+            strain_vector(1) =  6.0;
+            strain_vector(2) =  1.0;
+            strain_vector(3) = -1.0;
+            strain_vector(4) = -6.0;
+            strain_vector(5) = -3.0;
+            cons_law_values.SetStrainVector(strain_vector);  // Input strain values
+            cons_law_values.SetStressVector(stress_vector);  // Output stress values
+            cons_law_values.SetConstitutiveMatrix(c_matrix); // Output constitutive tensor
+            cons_law_values.SetShapeFunctionsValues(row((p_element->GetGeometry()).ShapeFunctionsValues(),0)); // Centered Gauss pt. shape functions
+
+            // Check first temperature field
+            const double tolerance = 1e-8;
+            for (auto &r_node : model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = r_node.Id() * 5.0;
+            }
+            p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+            std::vector<double> expected_c_1_diag = {0.00169048,0.00169048,0.00169048,0.00126786,0.00126786,0.00126786};
+            std::vector<double> expected_stress_1 = {-0.000845242,0.00676193,-0.00591669,-0.00126786,-0.00760717,-0.00380359};
+            for (unsigned int i = 0; i < strain_size; ++i) {
+                KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_1_diag[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_1[i], tolerance);
+            }
+
+            // Set second temperature field
+            for (auto &r_node : model_part.Nodes()) {
+                r_node.FastGetSolutionStepValue(TEMPERATURE) = r_node.Id() * 10.0;
+            }
+            p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+
+            std::vector<double> expected_c_2_diag = {0.00126734,0.00126734,0.00126734,0.000950505,0.000950505,0.000950505};
+            std::vector<double> expected_stress_2 = {-0.00063367,0.00506936,-0.00443569,-0.000950505,-0.00570303,-0.00285152};
+            for (unsigned int i = 0; i < strain_size; ++i) {
+                KRATOS_CHECK_NEAR(c_matrix(i,i), expected_c_2_diag[i], tolerance);
+                KRATOS_CHECK_NEAR(stress_vector(i), expected_stress_2[i], tolerance);
             }
 	    }
 
