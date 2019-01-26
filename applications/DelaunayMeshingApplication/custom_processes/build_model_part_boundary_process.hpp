@@ -316,7 +316,7 @@ class BuildModelPartBoundaryProcess
                     }
                     else{
                       if(mEchoLevel >= 1)
-                        std::cout<<" First Assignment of Master Elements "<<Id<<std::endl;
+                        std::cout<<" First Assignment of Master Elements "<<i_cond.Id()<<std::endl;
                     }
 
                     MasterElements.push_back(*i_nelem.base());
@@ -347,7 +347,7 @@ class BuildModelPartBoundaryProcess
                       }
                       else{
                         if(mEchoLevel >= 1)
-                          std::cout<<" First Assignment of Master Nodes "<<Id<<std::endl;
+                          std::cout<<" First Assignment of Master Nodes "<<i_cond.Id()<<std::endl;
                       }
 
                       MasterNodes.push_back(eGeometry(lpofa(0,node)));
@@ -391,7 +391,7 @@ class BuildModelPartBoundaryProcess
                           }
                           else{
                             if(mEchoLevel >= 1)
-                              std::cout<<" First Assignment of Master Elements "<<Id<<std::endl;
+                              std::cout<<" First Assignment of Master Elements "<<i_cond.Id()<<std::endl;
                           }
 
                           MasterElements.push_back(*i_nelem.base());
@@ -423,7 +423,7 @@ class BuildModelPartBoundaryProcess
                             }
                             else{
                               if(mEchoLevel >= 1)
-                                std::cout<<" First Assignment of Master Nodes "<<Id<<std::endl;
+                                std::cout<<" First Assignment of Master Nodes "<<i_cond.Id()<<std::endl;
                             }
 
                             MasterNodes.push_back(eGeometry(lpofa(0,node)));
