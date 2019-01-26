@@ -42,7 +42,7 @@ std::ostream& operator<<(std::ostream& rOStream, const std::vector<T>& rVec) {
 }
 
 template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rVec) {
+std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rSet) {
 
   const std::size_t set_size = rSet.size();
 
