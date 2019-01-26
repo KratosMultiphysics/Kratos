@@ -338,10 +338,10 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		this->IntegrateStressPlasticity(integrated_steel_stress_vector, steel_stress_vector, constitutive_matrix_steel);
 		this->SetValue(STEEL_STRESS_VECTOR, integrated_steel_stress_vector);
 
+		const double k = r_properties[STEEL_VOLUMETRIC_PART];
 		const Vector& composite_stress_vector = k * integrated_steel_stress_vector + (1.0 - k) * integrated_stress_concrete;
 		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), composite_stress_vector);
 
-		const double k = r_properties[STEEL_VOLUMETRIC_PART];
 		this->CalculateDeformationMatrix(B, DN_DX);
 		const Matrix& composite_constitutive_matrix = k * constitutive_matrix_steel + (1.0 - k) * (1.0 - damage_element) * constitutive_matrix_concrete;
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(composite_constitutive_matrix, B))); // LHS
