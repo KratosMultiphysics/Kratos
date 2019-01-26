@@ -110,6 +110,8 @@ class AnalysisStage(object):
 
         self._GetSolver().Finalize()
 
+        self._GetSolver().Clear()
+
         if self.is_printing_rank:
             KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -END- ")
 
