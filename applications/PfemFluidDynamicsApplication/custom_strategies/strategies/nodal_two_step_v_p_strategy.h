@@ -113,7 +113,7 @@ namespace Kratos {
 
       typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionDerivativesArrayType;
 
-      typedef  std::vector<Node<3>*>             NodePointerVectorType;
+      typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
       ///@}
       ///@name Life Cycle
       ///@{
@@ -351,7 +351,7 @@ namespace Kratos {
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
-	      NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size();
 	      unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 
@@ -506,7 +506,7 @@ namespace Kratos {
 		InitializeNodalVariablesForRemeshedDomain(itNode);
 	      }
 
-	      NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 
 	      Vector& rNodeOrderedNeighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS_ORDER);
@@ -516,7 +516,7 @@ namespace Kratos {
 	      rNodeOrderedNeighbours[0]=itNode->Id();
 	      if(neighbourNodes>1){
 		for(unsigned int k = 0; k< neighbourNodes-1; k++){
-		  rNodeOrderedNeighbours[k+1]=neighb_nodes[k]->Id();
+		  rNodeOrderedNeighbours[k+1]=neighb_nodes[k].Id();
 		}
 	      }
 
@@ -617,7 +617,7 @@ namespace Kratos {
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
-	      NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	      NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	      unsigned int neighbourNodes=neighb_nodes.size()+1;
 	      unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 	      if(itNode->SolutionStepsDataHas(NODAL_VOLUME)){
@@ -698,7 +698,7 @@ namespace Kratos {
 
 	  for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
 	    {
-	      unsigned int neighbourNodes=itNode->GetValue(NEIGHBOR_NODES).size()+1;
+	      unsigned int neighbourNodes=itNode->GetValue(NEIGHBOUR_NODES).size()+1;
 	      unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 
 	      Vector& rNodalSFDneighbours=itNode->FastGetSolutionStepValue(NODAL_SFD_NEIGHBOURS);
@@ -732,7 +732,7 @@ namespace Kratos {
 	ModelPart& rModelPart = BaseType::GetModelPart();
 	const unsigned int dimension =  rModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
 	unsigned int sizeStrains=3*(dimension-1);
-	NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+	NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 	unsigned int neighbourNodes=neighb_nodes.size()+1;
 	unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 
@@ -1219,7 +1219,7 @@ namespace Kratos {
     const unsigned int neighSize = nodalSFDneighboursId.size();
     Matrix Fgrad=ZeroMatrix(dimension,dimension);
     Matrix FgradVel=ZeroMatrix(dimension,dimension);
-    NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
+    NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
 
     if(dimension==2){
 
@@ -1247,13 +1247,13 @@ namespace Kratos {
 	    dNdXi=rNodalSFDneigh[firstRow];
 	    dNdYi=rNodalSFDneigh[firstRow+1];
 
-	    VelocityX = neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_X,0)*theta + neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_X,1)*(1-theta);
-	    VelocityY = neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y,0)*theta + neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
+	    VelocityX = neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_X,0)*theta + neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_X,1)*(1-theta);
+	    VelocityY = neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Y,0)*theta + neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
 
-	    Fgrad(0,0)+=dNdXi*neighb_nodes[i]->X();
-	    Fgrad(0,1)+=dNdYi*neighb_nodes[i]->X();
-	    Fgrad(1,0)+=dNdXi*neighb_nodes[i]->Y();
-	    Fgrad(1,1)+=dNdYi*neighb_nodes[i]->Y();
+	    Fgrad(0,0)+=dNdXi*neighb_nodes[i].X();
+	    Fgrad(0,1)+=dNdYi*neighb_nodes[i].X();
+	    Fgrad(1,0)+=dNdXi*neighb_nodes[i].Y();
+	    Fgrad(1,1)+=dNdYi*neighb_nodes[i].Y();
 
 	    FgradVel(0,0)+=dNdXi*VelocityX;
 	    FgradVel(0,1)+=dNdYi*VelocityX;
@@ -1311,21 +1311,21 @@ namespace Kratos {
 	    dNdYi=rNodalSFDneigh[firstRow+1];
 	    dNdZi=rNodalSFDneigh[firstRow+2];
 
-	    VelocityX = neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_X,0)*theta + neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_X,1)*(1-theta);
-	    VelocityY = neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y,0)*theta + neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
-	    VelocityZ = neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Z,0)*theta + neighb_nodes[i]->FastGetSolutionStepValue(VELOCITY_Z,1)*(1-theta);
+	    VelocityX = neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_X,0)*theta + neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_X,1)*(1-theta);
+	    VelocityY = neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Y,0)*theta + neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Y,1)*(1-theta);
+	    VelocityZ = neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Z,0)*theta + neighb_nodes[i].FastGetSolutionStepValue(VELOCITY_Z,1)*(1-theta);
 
-	    Fgrad(0,0)+=dNdXi*neighb_nodes[i]->X();
-	    Fgrad(0,1)+=dNdYi*neighb_nodes[i]->X();
-	    Fgrad(0,2)+=dNdZi*neighb_nodes[i]->X();
+	    Fgrad(0,0)+=dNdXi*neighb_nodes[i].X();
+	    Fgrad(0,1)+=dNdYi*neighb_nodes[i].X();
+	    Fgrad(0,2)+=dNdZi*neighb_nodes[i].X();
 
-	    Fgrad(1,0)+=dNdXi*neighb_nodes[i]->Y();
-	    Fgrad(1,1)+=dNdYi*neighb_nodes[i]->Y();
-	    Fgrad(1,2)+=dNdZi*neighb_nodes[i]->Y();
+	    Fgrad(1,0)+=dNdXi*neighb_nodes[i].Y();
+	    Fgrad(1,1)+=dNdYi*neighb_nodes[i].Y();
+	    Fgrad(1,2)+=dNdZi*neighb_nodes[i].Y();
 
-	    Fgrad(2,0)+=dNdXi*neighb_nodes[i]->Z();
-	    Fgrad(2,1)+=dNdYi*neighb_nodes[i]->Z();
-	    Fgrad(2,2)+=dNdZi*neighb_nodes[i]->Z();
+	    Fgrad(2,0)+=dNdXi*neighb_nodes[i].Z();
+	    Fgrad(2,1)+=dNdYi*neighb_nodes[i].Z();
+	    Fgrad(2,2)+=dNdZi*neighb_nodes[i].Z();
 
 
 	    FgradVel(0,0)+=dNdXi*VelocityX;
@@ -1535,7 +1535,7 @@ namespace Kratos {
 	    }
 
 	    ///// reset Nodal variables //////
-	    unsigned int neighbourNodes=i->GetValue(NEIGHBOR_NODES).size()+1;
+	    unsigned int neighbourNodes=i->GetValue(NEIGHBOUR_NODES).size()+1;
 	    unsigned int sizeSDFNeigh=neighbourNodes*dimension;
 	    i->FastGetSolutionStepValue(NODAL_VOLUME)=0;
 
