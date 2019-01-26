@@ -102,7 +102,7 @@ class ParticleMPMSolver(PythonSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):
             self.block_builder = True
         else:
