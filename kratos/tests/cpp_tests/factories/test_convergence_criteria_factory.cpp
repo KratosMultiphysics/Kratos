@@ -25,21 +25,22 @@
 #include "factories/convergence_criteria_factory.h"
 #include "spaces/ublas_space.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /// Tests
-       
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        
+
+        // Spaces
+        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
         /// The definition of the custom class
-        typedef ConvergenceCriteriaFactory<SparseSpaceType,LocalSpaceType> FactoryType;
+        using FactoryType = ConvergenceCriteriaFactory<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the convergence criteria
-        typedef ConvergenceCriteria<SparseSpaceType,LocalSpaceType> ConvergenceCriteriaType;
-     
+        using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType,LocalSpaceType>;
+
         /**
          * Checks if the DisplacementCriteria performs correctly the Factory
          */
@@ -79,7 +80,7 @@ namespace Kratos
             ConvergenceCriteriaType::Pointer p_conv_criteria = FactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "Or_Criteria");
         }
-        
+
     } // namespace Testing
 }  // namespace Kratos.
 

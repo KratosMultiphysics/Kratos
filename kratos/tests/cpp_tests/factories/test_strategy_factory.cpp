@@ -25,22 +25,23 @@
 #include "factories/strategy_factory.h"
 #include "spaces/ublas_space.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /// Tests
-       
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
-        
+
+        // Spaces
+        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+        using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
+
         /// The definition of the strategy
-        typedef SolvingStrategy<SparseSpaceType,LocalSpaceType, LinearSolverType> StrategyType;
+        using StrategyType = SolvingStrategy<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        typedef StrategyFactory<SparseSpaceType,LocalSpaceType, LinearSolverType> FactoryType;
-     
+        using FactoryType = StrategyFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>;
+
         /**
          * Checks if the ResidualBasedLinearStrategy performs correctly the Factory
          */
@@ -165,7 +166,7 @@ namespace Kratos
             StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "ExplicitStrategy");
         }
-        
+
     } // namespace Testing
 }  // namespace Kratos.
 

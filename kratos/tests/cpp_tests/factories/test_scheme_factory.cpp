@@ -25,21 +25,22 @@
 #include "factories/scheme_factory.h"
 #include "spaces/ublas_space.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         /// Tests
-       
-        typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-        typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-        
+
+        // Spaces
+        using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+        using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
         /// The definition of the scheme
-        typedef Scheme<SparseSpaceType,LocalSpaceType> SchemeType;
+        using SchemeType = Scheme<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        typedef SchemeFactory<SparseSpaceType,LocalSpaceType> FactoryType;
-     
+        using FactoryType = SchemeFactory<SparseSpaceType,LocalSpaceType>;
+
         /**
          * Checks if the ResidualBasedIncrementalUpdateStaticScheme performs correctly the Factory
          */
@@ -109,7 +110,7 @@ namespace Kratos
             SchemeType::Pointer p_scheme = FactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBDFCustomScheme");
         }
-        
+
     } // namespace Testing
 }  // namespace Kratos.
 
