@@ -81,6 +81,7 @@ class GiDOutputProcessMPI(gid_output_process.GiDOutputProcess):
             raise Exception(msg)
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         self.__initialize_list_files()
 
