@@ -142,7 +142,7 @@ class GiDOutputProcess(Process):
         # Generate the cuts and store them in self.cut_model_part
         if self.skin_output or self.num_planes > 0:
             self.cut_model_part = ModelPart("CutPart")
-            self.cut_manager = CuttingUtility()
+            self.cut_manager = self._CreateCuttingUtility()
             self._initialize_cut_output(plane_output_configuration)
 
         # Retrieve gidpost flags and setup GiD output tool
@@ -192,28 +192,11 @@ class GiDOutputProcess(Process):
 
 
         # Set current time parameters
-        if(  self.model_part.ProcessInfo[IS_RESTARTED] == True ):
-            self.step_count = self.model_part.ProcessInfo[STEP]
-            self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
-
-            if self.output_control_is_time:
-                self.next_output = self.model_part.ProcessInfo[TIME]
-            else:
-                self.next_output = self.model_part.ProcessInfo[STEP]
-
-                # Remove post results
-            if self.output_label_is_time:
-                label = self.model_part.ProcessInfo[TIME]
-            else:
-                label = self.printed_step_count
-
-            self.__remove_post_results_files(label)
-
-            # Restart .post.lst files
-            self.__restart_list_files(additional_list_files) # FIXME
+        if self.model_part.ProcessInfo[IS_RESTARTED]:
+            self._SetCurrentTimeParameters(additional_list_files)
         else:
             # Create .post.lst files
-            self.__initialize_list_files(additional_list_files)
+            self._InitializeListFiles(additional_list_files)
 
         # Process point recording data
         if self.point_output_process is not None:
@@ -399,7 +382,7 @@ class GiDOutputProcess(Process):
 
             self.__define_output_plane(cut_data)
 
-    def __initialize_list_files(self,additional_frequencies):
+    def _InitializeListFiles(self,additional_frequencies):
         '''Set up .post.lst files for global and cut results.
         If we have only one tipe of output (volume or cut), the
         list file is called <gid_model_name>.post.lst. When we have
@@ -630,7 +613,7 @@ class GiDOutputProcess(Process):
 
         self.__remove_list_files()
 
-        self.__initialize_list_files(additional_frequencies)
+        self._InitializeListFiles(additional_frequencies)
 
         if self.post_mode == GiDPostMode.GiD_PostBinary:
             ext = ".post.bin"
@@ -752,3 +735,26 @@ class GiDOutputProcess(Process):
                         os.remove(f)
                     except OSError:
                         pass
+
+    def _CreateCuttingUtility(self):
+        return CuttingUtility()
+
+    def _SetCurrentTimeParameters(self, additional_list_files):
+        self.step_count = self.model_part.ProcessInfo[STEP]
+        self.printed_step_count = self.model_part.ProcessInfo[PRINTED_STEP]
+
+        if self.output_control_is_time:
+            self.next_output = self.model_part.ProcessInfo[TIME]
+        else:
+            self.next_output = self.model_part.ProcessInfo[STEP]
+
+            # Remove post results
+        if self.output_label_is_time:
+            label = self.model_part.ProcessInfo[TIME]
+        else:
+            label = self.printed_step_count
+
+        self.__remove_post_results_files(label)
+
+        # Restart .post.lst files
+        self.__restart_list_files(additional_list_files) # FIXME
