@@ -120,7 +120,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     const IndexType property_id = Data["properties_id"].GetInt();
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = nullptr;
-    if (r_model_part.HasProperties(property_id, mesh_id)) {
+    if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
     } else {
         p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
