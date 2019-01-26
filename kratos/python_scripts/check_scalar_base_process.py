@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import sys
-from math import *
+from math import * # without * the test cannot be run with mathematical functions
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
