@@ -1,6 +1,6 @@
 import KratosMultiphysics
 import sys
-import math
+from math import *
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
