@@ -214,9 +214,7 @@ class BuildModelPartBoundaryProcess
         std::cout<<"Condition "<<Id<<" WARNING: master elements (expired != "<<new_nelem.lock().get()->Id()<<")"<<std::endl;
       }
     }
-    else{
-      std::cout<<" First Assignment of Master Elements "<<Id<<std::endl;
-    }
+
   }
 
 
@@ -231,9 +229,7 @@ class BuildModelPartBoundaryProcess
         std::cout<<"Condition "<<Id<<" WARNING: master nodes (expired != "<<new_nnode.lock().get()->Id()<<")"<<std::endl;
       }
     }
-    else{
-      std::cout<<" First Assignment of Master Nodes "<<Id<<std::endl;
-    }
+
   }
 
 
@@ -315,8 +311,13 @@ class BuildModelPartBoundaryProcess
 
                     ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
 
-                    if(MasterElements.size())
+                    if(MasterElements.size()){
                       this->CheckMasterElement(i_cond.Id(),MasterElements(0),*i_nelem.base());
+                    }
+                    else{
+                      if(mEchoLevel >= 1)
+                        std::cout<<" First Assignment of Master Elements "<<Id<<std::endl;
+                    }
 
                     MasterElements.push_back(*i_nelem.base());
 
@@ -341,8 +342,13 @@ class BuildModelPartBoundaryProcess
                     if(found){
                       NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
 
-                      if(MasterNodes.size())
+                      if(MasterNodes.size()){
                         this->CheckMasterNode(i_cond.Id(),MasterNodes(0),eGeometry(lpofa(0,node)));
+                      }
+                      else{
+                        if(mEchoLevel >= 1)
+                          std::cout<<" First Assignment of Master Nodes "<<Id<<std::endl;
+                      }
 
                       MasterNodes.push_back(eGeometry(lpofa(0,node)));
                     }
@@ -380,8 +386,13 @@ class BuildModelPartBoundaryProcess
                         {
                           ElementWeakPtrVectorType& MasterElements = i_cond.GetValue(MASTER_ELEMENTS);
 
-                          if(MasterElements.size())
+                          if(MasterElements.size()){
                             this->CheckMasterElement(i_cond.Id(),MasterElements(0),*i_nelem.base());
+                          }
+                          else{
+                            if(mEchoLevel >= 1)
+                              std::cout<<" First Assignment of Master Elements "<<Id<<std::endl;
+                          }
 
                           MasterElements.push_back(*i_nelem.base());
 
@@ -407,8 +418,13 @@ class BuildModelPartBoundaryProcess
 
                             NodeWeakPtrVectorType& MasterNodes = i_cond.GetValue(MASTER_NODES);
 
-                            if(MasterNodes.size())
+                            if(MasterNodes.size()){
                               this->CheckMasterNode(i_cond.Id(),MasterNodes(0),eGeometry(lpofa(0,node)));
+                            }
+                            else{
+                              if(mEchoLevel >= 1)
+                                std::cout<<" First Assignment of Master Nodes "<<Id<<std::endl;
+                            }
 
                             MasterNodes.push_back(eGeometry(lpofa(0,node)));
 
