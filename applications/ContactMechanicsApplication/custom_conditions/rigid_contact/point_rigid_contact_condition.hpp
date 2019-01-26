@@ -57,10 +57,10 @@ public:
 
     ///Tensor order 1 definition
     //typedef BoundedVector<double, 3>                PointType;
-    typedef array_1d<double, 3>                      PointType;
-    typedef std::vector<Node<3>*>        NodePointerVectorType;
-    typedef std::vector<Element*>     ElementPointerVectorType;
-    typedef std::vector<Condition*> ConditionPointerVectorType;
+    typedef array_1d<double, 3>                           PointType;
+    typedef WeakPointerVector<Node<3> >       NodeWeakPtrVectorType;
+    typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+    typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
     ///@{
     // Counted pointer of PointRigidContactCondition
     KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactCondition );

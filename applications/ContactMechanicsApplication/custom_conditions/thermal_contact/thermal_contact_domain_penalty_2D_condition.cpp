@@ -90,10 +90,10 @@ void ThermalContactDomainPenalty2DCondition::SetMasterGeometry()
 {
     KRATOS_TRY
     // std::cout<<" MASTER_ELEMENTS "<<GetValue(MASTER_ELEMENTS).size()<<" MASTER_NODES "<<GetValue(MASTER_NODES).size()<<std::endl;
-    Element::ElementType& MasterElement = *GetValue(MASTER_ELEMENTS).back();
+    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
-    Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
     int  slave=-1;
