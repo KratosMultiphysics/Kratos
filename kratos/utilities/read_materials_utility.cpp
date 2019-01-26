@@ -135,9 +135,6 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     KRATOS_WARNING_IF("Read materials", tables_size > 0 && p_prop->HasTables())
         << "Property " << std::to_string(property_id) << " already has tables." << std::endl;
 
-    // Assign the property to the model part
-    r_model_part.AddProperties(p_prop);
-
     // Assign the p_properties to the model part's elements and conditions.
     auto& r_elements_array = r_model_part.Elements();
     auto& r_conditions_array = r_model_part.Conditions();
