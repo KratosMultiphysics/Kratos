@@ -802,9 +802,13 @@ public:
         auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
         if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
             return true;
+        } else {
+            if(IsSubModelPart()) {
+                return mpParentModelPart->HasProperties(PropertiesId, MeshIndex);
+            } else {
+                return false;
+            }
         }
-
-        return false;
     }
 
     /**
