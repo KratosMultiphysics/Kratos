@@ -53,42 +53,42 @@ class GiDOutputProcess(KM.Process):
 
     __post_mode = {
                     # JSON input
-                    "GiD_PostAscii":        GiDPostMode.GiD_PostAscii,
-                    "GiD_PostAsciiZipped":  GiDPostMode.GiD_PostAsciiZipped,
-                    "GiD_PostBinary":       GiDPostMode.GiD_PostBinary,
-                    "GiD_PostHDF5":         GiDPostMode.GiD_PostHDF5,
+                    "GiD_PostAscii":        KM.GiDPostMode.GiD_PostAscii,
+                    "GiD_PostAsciiZipped":  KM.GiDPostMode.GiD_PostAsciiZipped,
+                    "GiD_PostBinary":       KM.GiDPostMode.GiD_PostBinary,
+                    "GiD_PostHDF5":         KM.GiDPostMode.GiD_PostHDF5,
                     # Legacy
-                    "Binary":               GiDPostMode.GiD_PostBinary,
-                    "Ascii":                GiDPostMode.GiD_PostAscii,
-                    "AsciiZipped":          GiDPostMode.GiD_PostAsciiZipped,
+                    "Binary":               KM.GiDPostMode.GiD_PostBinary,
+                    "Ascii":                KM.GiDPostMode.GiD_PostAscii,
+                    "AsciiZipped":          KM.GiDPostMode.GiD_PostAsciiZipped,
                     }
 
     __write_deformed_mesh = {
                     # JSON input
-                    "WriteDeformed":        WriteDeformedMeshFlag.WriteDeformed,
-                    "WriteUndeformed":      WriteDeformedMeshFlag.WriteUndeformed,
+                    "WriteDeformed":        KM.WriteDeformedMeshFlag.WriteDeformed,
+                    "WriteUndeformed":      KM.WriteDeformedMeshFlag.WriteUndeformed,
                     # Legacy
-                    True:                   WriteDeformedMeshFlag.WriteDeformed,
-                    False:                  WriteDeformedMeshFlag.WriteUndeformed,
+                    True:                   KM.WriteDeformedMeshFlag.WriteDeformed,
+                    False:                  KM.WriteDeformedMeshFlag.WriteUndeformed,
                     }
 
     __write_conditions = {
                     # JSON input
-                    "WriteConditions":      WriteConditionsFlag.WriteConditions,
-                    "WriteElementsOnly":    WriteConditionsFlag.WriteElementsOnly,
-                    "WriteConditionsOnly":  WriteConditionsFlag.WriteConditionsOnly,
+                    "WriteConditions":      KM.WriteConditionsFlag.WriteConditions,
+                    "WriteElementsOnly":    KM.WriteConditionsFlag.WriteElementsOnly,
+                    "WriteConditionsOnly":  KM.WriteConditionsFlag.WriteConditionsOnly,
                     # Legacy
-                    True:                   WriteConditionsFlag.WriteConditions,
-                    False:                  WriteConditionsFlag.WriteElementsOnly,
+                    True:                   KM.WriteConditionsFlag.WriteConditions,
+                    False:                  KM.WriteConditionsFlag.WriteElementsOnly,
                     }
 
     __multi_file_flag = {
                     # JSON input
-                    "SingleFile":           MultiFileFlag.SingleFile,
-                    "MultipleFiles":        MultiFileFlag.MultipleFiles,
+                    "SingleFile":           KM.MultiFileFlag.SingleFile,
+                    "MultipleFiles":        KM.MultiFileFlag.MultipleFiles,
                     # Legacy
-                    "Multiples":            MultiFileFlag.MultipleFiles,
-                    "Single":               MultiFileFlag.SingleFile,
+                    "Multiples":            KM.MultiFileFlag.MultipleFiles,
+                    "Single":               KM.MultiFileFlag.SingleFile,
                     }
 
     def __init__(self,model_part,file_name,param = None):
@@ -191,7 +191,7 @@ class GiDOutputProcess(KM.Process):
         additional_list_files = [ additional_list_file_data[i].GetInt() for i in range(0,additional_list_file_data.size()) ]
 
         # Set current time parameters
-        if self.model_part.ProcessInfo[IS_RESTARTED]:
+        if self.model_part.ProcessInfo[KM.IS_RESTARTED]:
             self._SetCurrentTimeParameters(additional_list_files)
         else:
             # Create .post.lst files
