@@ -119,7 +119,12 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     ModelPart& r_model_part = mrModel.GetModelPart(Data["model_part_name"].GetString());
     const IndexType property_id = Data["properties_id"].GetInt();
     const IndexType mesh_id = 0;
-    Properties::Pointer p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    Properties::Pointer p_prop = nullptr;
+    if (r_model_part.HasProperties(property_id, mesh_id)) {
+        p_prop = r_model_part.pGetProperties(property_id, mesh_id);
+    } else {
+        p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
+    }
 
     // Compute the size using the iterators
     std::size_t variables_size = 0;
@@ -151,7 +156,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
         it_cond->SetProperties(p_prop);
     }
 
-    //Set the CONSTITUTIVE_LAW for the current p_properties.
+    // Set the CONSTITUTIVE_LAW for the current p_properties.
     if (Data["Material"].Has("constitutive_law")) {
         Parameters cl_parameters = Data["Material"]["constitutive_law"];
         std::string constitutive_law_name = cl_parameters["name"].GetString();
