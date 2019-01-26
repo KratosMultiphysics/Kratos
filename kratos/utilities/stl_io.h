@@ -17,6 +17,8 @@
 // System includes
 #include <iostream>
 #include <vector>
+#include <set>
+#include <memory>
 
 // Project includes
 #include "includes/define.h"
@@ -38,6 +40,34 @@ std::ostream& operator<<(std::ostream& rOStream, const std::vector<T>& rVec) {
 
     return rOStream;
 }
+
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rVec) {
+
+  std::size_t vector_size = rVec.size();
+
+  rOStream << "[";
+  if(vector_size>0) rOStream << *(rVec.begin());
+  if(vector_size>1) {
+    for(auto it(std::next(rVec.begin(),1)); it!=rVec.end(); ++it)
+      rOStream<<", "<<*it;
+  }
+  rOStream << "]";
+
+  return rOStream;
+}
+
+template<class T>
+std::ostream& operator <<(std::ostream& rOStream, const std::weak_ptr<T>& rData) {
+
+  if(!rData.expired())
+    rOStream << *rData.lock().get() << std::endl;
+  else
+    rOStream <<" expired weak_ptr "<<std::endl;
+
+  return rOStream;
+}
+
 
 } //namespace Kratos
 
