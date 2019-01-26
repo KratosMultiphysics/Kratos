@@ -47,9 +47,9 @@ std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rSet) {
   const std::size_t set_size = rSet.size();
 
   rOStream << "[";
-  if(vector_size>0) rOStream << *(rVec.begin());
-  if(vector_size>1) {
-    for(auto it(std::next(rVec.begin(),1)); it!=rVec.end(); ++it)
+  if(set_size>0) rOStream << *(rSet.begin());
+  if(set_size>1) {
+    for(auto it(std::next(rSet.begin(),1)); it!=rSet.end(); ++it)
       rOStream<<", "<<*it;
   }
   rOStream << "]";
