@@ -8,7 +8,7 @@ from KratosMultiphysics.gid_output_process import GiDOutputProcess
 import os
 
 def Factory(settings, Model):
-    if(type(settings) != Parameters):
+    if not isinstance(settings, KM.Parameters):
         raise Exception("Expected input shall be a Parameters object, encapsulating a json string")
     model_part = Model[settings["Parameters"]["model_part_name"].GetString()]
     output_name = settings["Parameters"]["output_name"].GetString()
