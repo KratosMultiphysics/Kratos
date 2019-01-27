@@ -36,7 +36,7 @@ namespace Kratos
         using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
         /// The definition of the custom class
-        using FactoryType = ConvergenceCriteriaFactory<SparseSpaceType,LocalSpaceType>;
+        using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the convergence criteria
         using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType,LocalSpaceType>;
@@ -47,7 +47,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(DisplacementCriteriaFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"convergence_criterion" : "DisplacementCriteria"})");
-            ConvergenceCriteriaType::Pointer p_conv_criteria = FactoryType().Create(this_parameters);
+            ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "DisplacementCriteria");
         }
 
@@ -57,7 +57,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(ResidualCriteriaFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"convergence_criterion" : "ResidualCriteria"})");
-            ConvergenceCriteriaType::Pointer p_conv_criteria = FactoryType().Create(this_parameters);
+            ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "ResidualCriteria");
         }
 
@@ -67,7 +67,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(And_CriteriaFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"convergence_criterion" : "And_Criteria"})");
-            ConvergenceCriteriaType::Pointer p_conv_criteria = FactoryType().Create(this_parameters);
+            ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "And_Criteria");
         }
 
@@ -77,7 +77,7 @@ namespace Kratos
         KRATOS_TEST_CASE_IN_SUITE(Or_CriteriaFactory, KratosCoreFastSuite)
         {
             Parameters this_parameters = Parameters(R"({"convergence_criterion" : "Or_Criteria"})");
-            ConvergenceCriteriaType::Pointer p_conv_criteria = FactoryType().Create(this_parameters);
+            ConvergenceCriteriaType::Pointer p_conv_criteria = ConvergenceCriteriaFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_conv_criteria->Info()).c_str(), "Or_Criteria");
         }
 

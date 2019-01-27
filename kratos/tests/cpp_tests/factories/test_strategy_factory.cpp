@@ -40,7 +40,7 @@ namespace Kratos
         using StrategyType = SolvingStrategy<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        using FactoryType = StrategyFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>;
+        using StrategyFactoryType = StrategyFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /**
          * Checks if the ResidualBasedLinearStrategy performs correctly the Factory
@@ -63,7 +63,7 @@ namespace Kratos
                                                             "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
-            StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
+            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "ResidualBasedLinearStrategy");
         }
 
@@ -88,7 +88,7 @@ namespace Kratos
                                                             "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
-            StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
+            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "ResidualBasedNewtonRaphsonStrategy");
         }
 
@@ -113,7 +113,7 @@ namespace Kratos
                                                             "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
-            StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
+            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "AdaptiveResidualBasedNewtonRaphsonStrategy");
         }
 
@@ -138,7 +138,7 @@ namespace Kratos
                                                             "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
-            StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
+            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "LineSearchStrategy");
         }
 
@@ -163,7 +163,7 @@ namespace Kratos
                                                             "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
-            StrategyType::Pointer p_strategy = FactoryType().Create(r_model_part, this_parameters);
+            StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_strategy->Info()).c_str(), "ExplicitStrategy");
         }
 
