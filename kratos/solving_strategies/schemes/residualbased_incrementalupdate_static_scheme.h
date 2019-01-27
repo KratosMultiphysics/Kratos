@@ -101,6 +101,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }

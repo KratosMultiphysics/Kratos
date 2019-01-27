@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    
+//  Main authors:
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_BOSSAK_SCHEME_H_INCLUDED)
@@ -40,7 +40,7 @@ namespace Kratos
 /**
  * It can be used for either first- or second-order time derivatives. Elements
  * and conditions must provide a specialization of AdjointExtensions via their
- * data value container, which allows the scheme to operate independently of 
+ * data value container, which allows the scheme to operate independently of
  * the variable arrangements in the element or condition.
  */
 template <class TSparseSpace, class TDenseSpace>
@@ -73,7 +73,8 @@ public:
         : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "scheme_type": "bossak",
+            "scheme_type" : "ResidualBasedAdjointBossakScheme",
+            "scheme_type" : "bossak",
             "alpha_bossak": -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);

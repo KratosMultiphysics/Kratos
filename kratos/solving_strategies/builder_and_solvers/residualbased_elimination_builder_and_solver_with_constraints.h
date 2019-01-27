@@ -155,8 +155,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "reassemble_lhs"     : false,
-            "rebuild_fixed_dofs" : false
+            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolverWithConstraints",
+            "reassemble_lhs"          : false,
+            "rebuild_fixed_dofs"      : false
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
