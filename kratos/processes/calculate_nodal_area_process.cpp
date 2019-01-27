@@ -71,8 +71,12 @@ void CalculateNodalAreaProcess<THistorical>::Execute()
 
         for ( IndexType point_number = 0; point_number < number_of_integration_points; ++point_number ) {
             // Getting the shape functions
-            for (IndexType i_component = 0; i_component < number_of_nodes; ++i_component)
-                N[i_component] = rNcontainer(point_number, i_component);
+            #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
+                for (IndexType i_component = 0; i_component < number_of_nodes; ++i_component)
+                    N[i_component] = rNcontainer(point_number, i_component);
+            #else
+                noalias(N) = row(rNcontainer, point_number);
+            #endif // KRATOS_USE_AMATRIX
 
             // Getting the jacobians and local gradients
             GeometryUtils::JacobianOnInitialConfiguration(r_geometry, integration_points[point_number], J0);
