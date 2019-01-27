@@ -86,7 +86,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedPseudoStaticDisplacementSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedPseudoStaticDisplacementScheme"})");
+            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedPseudoStaticDisplacementScheme", "rayleigh_beta_variable" : "PRESSURE"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedPseudoStaticDisplacementScheme");
         }
