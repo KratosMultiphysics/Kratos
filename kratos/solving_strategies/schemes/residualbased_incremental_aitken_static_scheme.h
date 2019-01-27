@@ -83,6 +83,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "scheme_type"   : "ResidualBasedIncrementalAitkenStaticScheme",
             "default_omega" : 0.0
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

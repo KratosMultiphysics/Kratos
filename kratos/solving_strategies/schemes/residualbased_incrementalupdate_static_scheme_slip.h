@@ -104,8 +104,9 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
+            "scheme_type" : "ResidualBasedIncrementalUpdateStaticSchemeSlip",
             "domain_size" : 3,
-            "block_size" : 3
+            "block_size"  : 3
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 

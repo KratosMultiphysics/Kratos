@@ -106,7 +106,7 @@ public:
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
         // Now here call the base class constructor
-        BDFBaseType( ThisParameters["order"].GetInt());
+        BDFBaseType( ThisParameters["integration_order"].GetInt());
 
         // Creating variables list
         CreateVariablesList(ThisParameters);
