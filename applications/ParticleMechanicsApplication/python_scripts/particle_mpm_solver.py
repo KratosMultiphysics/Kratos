@@ -351,7 +351,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specify domain size
         self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-         # Read material property
+        # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
             self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
