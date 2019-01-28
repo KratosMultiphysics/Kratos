@@ -35,13 +35,16 @@ class TestVariables(KratosUnittest.TestCase):
         current_model = KratosMultiphysics.Model()
         model_part = current_model.CreateModelPart("for_test")
 
-        new_variable = KratosMultiphysics.DoubleVariable("NEW_DOUBLE_VARIABLE")
+        new_double_variable = KratosMultiphysics.DoubleVariable("NEW_DOUBLE_VARIABLE")
+        new_array_3_variable = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE")
 
-        model_part.AddNodalSolutionStepVariable(new_variable)
+        model_part.AddNodalSolutionStepVariable(new_double_variable)
+        model_part.AddNodalSolutionStepVariable(new_array_3_variable)
 
         new_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
 
-        new_node.SetSolutionStepValue(new_variable, 0, 1.5)
+        new_node.SetSolutionStepValue(new_double_variable, 0, 1.5)
+        new_node.SetSolutionStepValue(new_array_3_variable, 0, [1.50, 0.8, -9.147])
 
 
 if __name__ == '__main__':
