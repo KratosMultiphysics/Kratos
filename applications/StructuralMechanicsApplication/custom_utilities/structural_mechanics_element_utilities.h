@@ -64,9 +64,16 @@ double GetRayleighBeta(
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
- * @brief Method to claculate the rayleigh damping-matrix
+ * @brief Method to returns the density to be consider for the mass-matrix computation
+ * @param rElement The Element for which the mass-matrix should be computed
+ * @return The density after apply the mass factor to the element
+ */
+double GetDensityForMassMatrixComputation(const Element& rElement);
+
+/**
+ * @brief Method to calculate the rayleigh damping-matrix
  * @param rElement The Element for which the damping-matrix should be computed
- * @param rDampingMatrix The current ProcessInfo
+ * @param rDampingMatrix The damping-matrix of the element
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @param MatrixSize The size of the damping-matrix
  */
