@@ -194,7 +194,3 @@ class TrilinosNavierStokesSolverFractionalStep(navier_stokes_solver_fractionalst
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.PrintInfo("TrilinosNavierStokesSolverFractionalStep","Initialization TrilinosNavierStokesSolverFractionalStep finished")
-
-    def Finalize(self):
-        self.solver.Clear()
-
