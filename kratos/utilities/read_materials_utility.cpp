@@ -121,6 +121,7 @@ void ReadMaterialsUtility::AssignPropertyBlock(Parameters Data)
     const IndexType mesh_id = 0;
     Properties::Pointer p_prop = nullptr;
     if (r_model_part.RecursivelyHasProperties(property_id, mesh_id)) {
+        KRATOS_WARNING("ReadMaterialsUtility") << "WARNING:: The properties ID: " << property_id << " in mesh ID: " << mesh_id << " is already defined. This will overwrite the existing values" << std::endl;
         p_prop = r_model_part.pGetProperties(property_id, mesh_id);
     } else {
         p_prop = r_model_part.CreateNewProperties(property_id, mesh_id);
