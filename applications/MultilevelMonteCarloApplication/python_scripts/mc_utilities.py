@@ -183,7 +183,7 @@ class MonteCarlo(object):
         level = 0 # level = 0 (Monte Carlo algorithm)
         '''update statistics of the QoI'''
         for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
-            self.QoI.UpdateOnepassMeanVariance(level,i_sample)
+            self.QoI.UpdateOnePassMomentsVariance(level,i_sample)
             self.QoI.UpdateOnePassPowerSums(level,i_sample)
         '''compute the central moments we can't derive from the unbiased h statistics
         we compute expensively the absolute central moment because we can't retrieve it from the h statistics'''
