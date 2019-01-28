@@ -71,21 +71,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(UnvOutput);
 
-    UnvOutput(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension)
-            : mrOutputModelPart(modelPart),
-              mOutputFileName(outFileWithoutExtension + ".unv") {
-    }
-
-
-    void writeMesh(int dataSetLabel) {
-        initializeOutputFile();
-        writeNodes();
-        writeElements();
-        writeNodalResults(dataSetLabel);
-    }
-
-    void writeResult()
-
     template <typename Enumeration>
     auto as_integer(Enumeration const value)
         -> typename std::underlying_type<Enumeration>::type
@@ -93,94 +78,22 @@ public:
         return static_cast<typename std::underlying_type<Enumeration>::type>(value);
     }
 
-    void initializeOutputFile() {
-        std::ofstream outputFile;
-        outputFile.open(mOutputFileName, std::ios::out | std::ios::trunc);
-        outputFile.close();
-    }
-
-    void writeNodes() {
-        std::ofstream outputFile;
-        outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
-
-        outputFile << std::scientific;
-        outputFile << std::setprecision(15);
-
-        const int dataSetNumberForNodes = 2411;
-        const int exportCoordinateSystemNumber = 0;
-        const int displacementCoordinateSystemNumber = 0;
-        const int color = 0;
+    UnvOutput(Kratos::ModelPart &modelPart, const std::string &outFileWithoutExtension);
 
 
-        outputFile << std::setw(6) << "-1" << "\n";
-        outputFile << std::setw(6) << dataSetNumberForNodes << "\n";
+    void InitializeOutputFile();
 
+    void WriteMesh();
+    void WriteNodes();
+    void WriteElements();
+    void WriteResult();
 
-        for (auto &node_i : mrOutputModelPart.Nodes()) {
-            int node_label = node_i.Id();
-            double x_coordinate = node_i.X();
-            double y_coordinate = node_i.Y();
-            double z_coordinate = node_i.Z();
-            outputFile << std::setw(10) << node_label << std::setw(10) << exportCoordinateSystemNumber
-                       << std::setw(10)
-                       << displacementCoordinateSystemNumber << std::setw(10) << color << "\n";
-            outputFile << std::setw(25) << x_coordinate << std::setw(25) << y_coordinate << std::setw(25)
-                       << z_coordinate << "\n";
-        }
-        outputFile << std::setw(6) << "-1" << "\n";
-
-        outputFile.close();
-    }
-
-
-    void writeElements() {
-        std::ofstream outputFile;
-        outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
-
-        const int dataSetNumberForElements = 2412;
-        const int physicalPropertyTableNumber = 1;
-        const int materialPropertyTableNumber = 1;
-        const int color = 0;
-
-        outputFile << std::setw(6) << "-1" << "\n";
-        outputFile << std::setw(6) << dataSetNumberForElements << "\n";
-
-        for (auto &element : mrOutputModelPart.Elements()) {
-            const int elementLabel = element.Id();
-            Kratos::ModelPart::ConditionType::GeometryType elementGeometry = element.GetGeometry();
-            // Write triangles
-            if (elementGeometry.size() == 3 && elementGeometry.Dimension() == 2) {
-                const int feDescriptorId = 41; // Plane Stress Linear Triangle
-                const int numberOfNodes = 3;
-                outputFile << std::setw(10) << elementLabel;
-                outputFile << std::setw(10) << feDescriptorId;
-                outputFile << std::setw(10) << physicalPropertyTableNumber;
-                outputFile << std::setw(10) << materialPropertyTableNumber;
-                outputFile << std::setw(10) << color;
-                outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << elementGeometry[0].Id();
-                outputFile << std::setw(10) << elementGeometry[1].Id();
-                outputFile << std::setw(10) << elementGeometry[2].Id() << "\n";
-            }
-                // Write tetrahedras
-            else if (elementGeometry.size() == 4 && elementGeometry.Dimension() == 3) {
-                const int feDescriptorId = 111; // Solid linear tetrahedron
-                const int numberOfNodes = 4;
-                outputFile << std::setw(10) << elementLabel;
-                outputFile << std::setw(10) << feDescriptorId;
-                outputFile << std::setw(10) << physicalPropertyTableNumber;
-                outputFile << std::setw(10) << materialPropertyTableNumber;
-                outputFile << std::setw(10) << color;
-                outputFile << std::setw(10) << numberOfNodes << "\n";
-                outputFile << std::setw(10) << elementGeometry[0].Id();
-                outputFile << std::setw(10) << elementGeometry[1].Id();
-                outputFile << std::setw(10) << elementGeometry[2].Id();
-                outputFile << std::setw(10) << elementGeometry[3].Id() << "\n";
-            }
-        }
-        outputFile << std::setw(6) << "-1" << "\n";
-        outputFile.close();
-    }
+    void WriteNodalResults(const Variable<bool>& rVariable);
+    void WriteNodalResults(const Variable<int>& rVariable);
+    void WriteNodalResults(const Variable<double>& rVariable);
+    void WriteNodalResults(const Variable<array_1d<double,3>>& rVariable);
+    void WriteNodalResults(const Variable<Vector>& rVariable);
+    void WriteNodalResults(const Variable<Matrix>& rVariable);
 
     // Partially extracted from: http://users.ices.utexas.edu
     // # beginning of dataset
@@ -202,19 +115,27 @@ public:
     // # R. 12: analysis-specific data (record_12)
     // # R. 13: analysis-specific data (record_13)
 
-    template<class TVariableble>
-    void writeNodalResults(int dataSetLabel) {
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable);
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
+    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
+
+    template<class TVariablebleType>
+    void WriteNodalResults(const TVariablebleType rVariable, const int numComponents, const int timeStep) {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         const int dataSetNumberForResults = 2414;
         std::string dataSetName = "NodalResults";
+        std::string dataSetLabel = rVariable.Name() + timeStep;
 
-        outputFile << std::setw(6) << "-1" << "\n";                                                 // Begin block
-        outputFile << std::setw(6) << dataSetNumberForResults << "\n";                              // DatasetID
+        outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
+        outputFile << std::setw(6)  << dataSetNumberForResults << "\n";                             // DatasetID
 
-        outputFile << std::setw(10) << dataSetLabel << "\n";                                        // Record 1
-        outputFile << std::setw(6) << dataSetName << "\n";                                          // Record 2
+        outputFile << std::setw(10) << dataSetLabel << "\n";                                        // Record 1 - Label
+        outputFile << std::setw(6)  << dataSetName << "\n";                                         // Record 2 - Name
         outputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
 
         // String records, seems like you can put anything you want.
@@ -230,7 +151,7 @@ public:
         outputFile << std::setw(10) << as_integer(DataCharacteristics::SCALAR);
         outputFile << std::setw(10) << 5;
         outputFile << std::setw(10) << as_integer(DataType::SINGLE_PRECISION_FLOATING_POINT);
-        outputFile << std::setw(10) << 1; 
+        outputFile << std::setw(10) << numComponents; 
         outputFile << "\n";
 
         // ????
