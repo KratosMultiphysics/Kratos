@@ -29,11 +29,7 @@
                     }
                 }
             ],
-            "output_data_list": [
-                {
-                    "data_name"   : "REACTION"
-                }
-            ]
+            "output_data_list": []
         },
         {
             "name": "structure",
@@ -50,11 +46,7 @@
                     }
                 }
             ],
-            "output_data_list": [
-                {
-                    "data_name"   : "DISPLACEMENT"
-                }
-            ]
+            "output_data_list": []
         }
         ]
     },

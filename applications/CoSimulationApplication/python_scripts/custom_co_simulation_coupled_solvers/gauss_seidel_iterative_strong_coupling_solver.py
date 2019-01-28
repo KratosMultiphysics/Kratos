@@ -96,7 +96,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     accelerator.FinalizeNonLinearIteration()
         else:
             for solver_name, solver in self.participating_solvers.items():
-                cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
+                cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + "SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
                 solver.SolveSolutionStep()
 
     def _Name(self):

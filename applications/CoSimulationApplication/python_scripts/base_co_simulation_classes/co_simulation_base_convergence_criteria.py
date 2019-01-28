@@ -102,18 +102,17 @@ class CoSimulationConvergenceCriteria(object):
 
         is_converged = abs_residual_norm < self.abs_tolerance or rel_residual_norm < self.rel_tolerance
         if self.echo_level > 1:
-            info_msg = cs_tools.bcolors.HEADER + '\tConvergence for "' + cs_tools.bcolors.BOLD + self.data_name,
             if is_converged:
-                info_msg += cs_tools.bcolors.GREEN+ "ACHIEVED"
+                info_msg = cs_tools.bcolors.GREEN+ "ACHIEVED"
             else:
-                info_msg += cs_tools.bcolors.FAIL + "NOT ACHIEVED"
+                info_msg = cs_tools.bcolors.FAIL + "NOT ACHIEVED"
             info_msg += cs_tools.bcolors.ENDC
-            cs_tools.PrintInfo(info_msg)
+            cs_tools.PrintInfo(cs_tools.bcolors.HEADER + '\tConvergence for "' + cs_tools.bcolors.BOLD + self.data_name +'"', info_msg)
         if self.echo_level > 2:
             info_msg  = cs_tools.bcolors.HEADER + "\tabs_norm" + " = " + cs_tools.bcolors.BOLD + str(abs_residual_norm) + " | "
             info_msg += "abs_tol" + " = " + cs_tools.bcolors.BOLD + str(self.abs_tolerance)
             info_msg += " || " + "rel_norm" + " = " + cs_tools.bcolors.BOLD + str(rel_residual_norm) + " | "
-            info_msg += "rel_tol = " + cs_tools.bcolors.BOLD + str(self.rel_tolerance)
+            info_msg += "rel_tol = " + cs_tools.bcolors.BOLD + str(self.rel_tolerance) + cs_tools.bcolors.ENDC
             cs_tools.PrintInfo(info_msg)
 
         return is_converged
