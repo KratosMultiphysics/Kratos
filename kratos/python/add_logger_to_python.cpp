@@ -23,7 +23,18 @@
 namespace Kratos {
 namespace Python {
 
-    namespace py = pybind11;
+namespace py = pybind11;
+
+const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
+    if (kwargs.contains("data_communicator")) {
+        DataCommunicator::Pointer p_data_communicator = py::cast<DataCommunicator::Pointer>(kwargs("data_communicator"));
+        return *p_data_communicator;
+    }
+    else {
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }
+}
+
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Implementation
  * @args tuple  representing the arguments of the function The first argument is the label
@@ -31,14 +42,19 @@ namespace Python {
  * @severity Logger::Severity The message level of severity @see Logger::Severity
  * @useKwargLabel bool Indicates if the label must be gather from kwargs (true) or is the first argument of the call (false)
  * name arguments
+ * @printRank bool record the MPI rank in the output message.
  **/
-void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel) {
+void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel, bool printRank) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
 
     std::stringstream buffer;
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
+
+    if (printRank) {
+        buffer << getDataCommunicator(kwargs).Rank() << ": ";
+    }
 
     std::string label;
 //     const char* label;
@@ -84,16 +100,6 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
 
 }
 
-const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
-    if (kwargs.contains("data_communicator")) {
-        DataCommunicator::Pointer p_data_communicator = py::cast<DataCommunicator::Pointer>(kwargs("data_communicator"));
-        return *p_data_communicator;
-    }
-    else {
-        return ParallelEnvironment::GetDefaultDataCommunicator();
-    }
-}
-
 bool isPrintingRank(pybind11::kwargs kwargs) {
     const DataCommunicator& r_data_communicator = getDataCommunicator(kwargs);
     return r_data_communicator.Rank() == 0;
@@ -107,7 +113,7 @@ bool isPrintingRank(pybind11::kwargs kwargs) {
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::INFO, true);
+        printImpl(args, kwargs, Logger::Severity::INFO, true, false);
 }
 
 /**
@@ -118,7 +124,7 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::INFO, false);
+        printImpl(args, kwargs, Logger::Severity::INFO, false, false);
 }
 
 /**
@@ -129,7 +135,19 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::WARNING, false);
+        printImpl(args, kwargs, Logger::Severity::WARNING, false, false);
+}
+
+void printDefaultOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::INFO, true, true);
+}
+
+void printInfoOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::INFO, false, true);
+}
+
+void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
+    printImpl(args, kwargs, Logger::Severity::WARNING, false, true);
 }
 
 void  AddLoggerToPython(pybind11::module& m) {
@@ -148,6 +166,9 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("Print", printDefault); // raw_function(printDefault,1))
     logger_scope.def_static("PrintInfo",printInfo); // raw_function(printInfo,1))
     logger_scope.def_static("PrintWarning", printWarning); //raw_function(printWarning,1))
+    logger_scope.def_static("PrintOnAllRanks", printDefaultOnAllRanks);
+    logger_scope.def_static("PrintInfoOnAllRanks",printInfoOnAllRanks);
+    logger_scope.def_static("PrintWarningOnAllRanks", printWarningOnAllRanks);
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
     ;
