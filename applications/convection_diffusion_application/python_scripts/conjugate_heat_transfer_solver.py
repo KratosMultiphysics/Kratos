@@ -217,6 +217,10 @@ class ConjugateHeatTransferSolver(PythonSolver):
         return max(buffer_size_fluid, buffer_size_thermal_fluid, buffer_size_thermal_solid)
 
     def Initialize(self):
+        # Check that the reactions are computed in the Dirichlet side
+        if not (self.fluid_thermal_solver).settings["compute_reactions"].GetBool():
+            (self.fluid_thermal_solver).settings["compute_reactions"].SetBool(True)
+
         # Initialize the fluid and solid solvers
         (self.fluid_solver).Initialize()
         (self.fluid_thermal_solver).Initialize()

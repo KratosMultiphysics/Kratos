@@ -57,7 +57,7 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -128,7 +128,7 @@ namespace Kratos
             
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;

@@ -102,9 +102,9 @@ public:
 
         mParam.RecursivelyValidateAndAssignDefaults(default_params);
 
-        if (mParam.GetValue("linear_solver_settings")["solver_type"].GetString() != "skyline_lu")
-            KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
-
+        const std::string& solver_type = mParam.GetValue("linear_solver_settings")["solver_type"].GetString();
+        KRATOS_ERROR_IF(solver_type != "complex_skyline_lu_solver" || solver_type != "skyline_lu") << "Built-in solver type must be used with this constructor" << std::endl;
+            
         mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
     }
 
