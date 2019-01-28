@@ -1157,6 +1157,9 @@ class DataCommunicator
     ///@name Access
     ///@{
 
+    /// Convenience function to retireve the current default DataCommunicator.
+    /** @return A reference to the DataCommunicator instance registered as default in ParallelEnvironment.
+     */
     static DataCommunicator& GetDefault();
 
     ///@}
