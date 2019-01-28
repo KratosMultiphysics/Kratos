@@ -103,3 +103,17 @@ def ApplyUpdateToData(solver, data_name, updated_data):
             updated_value.append(updated_data[index])
             index = index + 1
         node.SetSolutionStepValue(data_variable, updated_value)
+
+## PrintInfo : Printing information with a label
+#
+#  @param label         The label for the print
+#  @param args          The arguments to be printed
+def PrintInfo(label, *args):
+    cs_data_structure.Logger.PrintInfo(label, " ".join(map(str,args)))
+
+## PrintInfo : Printing a warning with a label
+#
+#  @param label         The label for the print
+#  @param args          The arguments to be printed
+def PrintWarning(label, *args):
+    cs_data_structure.Logger.PrintWarning(label, " ".join(map(str,args)))
