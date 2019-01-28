@@ -41,7 +41,7 @@ namespace Kratos
             ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
             ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
-            Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = origin_model_part.CreateNewProperties(0);
 
             auto& process_info = origin_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -101,7 +101,7 @@ namespace Kratos
             ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
             ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
-            Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = origin_model_part.CreateNewProperties(0);
 
             auto& process_info = origin_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -183,7 +183,7 @@ namespace Kratos
             ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
             ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
 
-            Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = origin_model_part.CreateNewProperties(0);
 
             auto& process_info = origin_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -243,7 +243,7 @@ namespace Kratos
             ModelPart& origin_model_part = current_model.CreateModelPart("Origin");
             ModelPart& destination_model_part = current_model.CreateModelPart("Destination");
             
-            Properties::Pointer p_cond_prop = origin_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = origin_model_part.CreateNewProperties(0);
             
             auto& process_info = origin_model_part.GetProcessInfo();
             process_info[STEP] = 1;

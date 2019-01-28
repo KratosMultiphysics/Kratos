@@ -410,14 +410,8 @@ class MechanicalSolver(PythonSolver):
     def _create_linear_solver(self):
         linear_solver_configuration = self.settings["linear_solver_settings"]
         if linear_solver_configuration.Has("solver_type"): # user specified a linear solver
-            if KratosMultiphysics.ComplexLinearSolverFactory().Has(linear_solver_configuration["solver_type"].GetString()):
-                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
-                    "Constructing a complex linear solver")
-                return KratosMultiphysics.ComplexLinearSolverFactory().Create(linear_solver_configuration)
-            else:
-                self.print_on_rank_zero("::[MechanicalSolver]:: ",\
-                    "Constructing a regular (non-complex) linear solver")
-                return KratosMultiphysics.LinearSolverFactory().Create(linear_solver_configuration)
+            from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
+            return linear_solver_factory.ConstructSolver(linear_solver_configuration)
         else:
             # using a default linear solver (selecting the fastest one available)
             import KratosMultiphysics.kratos_utilities as kratos_utils
