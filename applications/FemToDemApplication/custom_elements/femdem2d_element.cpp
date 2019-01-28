@@ -114,7 +114,7 @@ void FemDem2DElement::UpdateDataBase()
 	converged_damage = this->CalculateElementalDamage(mDamages);
 	if (converged_damage > mDamage) mDamage = converged_damage;
 	converged_threshold = this->CalculateElementalDamage(mThresholds);
-	if (converged_damage > mThreshold) mThreshold = converged_threshold;
+	if (converged_threshold > mThreshold) mThreshold = converged_threshold;
 }
 
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
