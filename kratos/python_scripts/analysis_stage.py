@@ -110,6 +110,8 @@ class AnalysisStage(object):
 
         self._GetSolver().Finalize()
 
+        # clearing the solver to avoid deallocation-problems in MPI
+        # and to free memory
         self._GetSolver().Clear()
 
         if self.is_printing_rank:
