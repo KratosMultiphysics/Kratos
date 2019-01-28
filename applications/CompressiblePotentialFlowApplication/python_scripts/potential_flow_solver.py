@@ -152,7 +152,7 @@ class LaplacianSolver(PythonSolver):
         return self.main_model_part
 
     def InitializeSolutionStep(self):
-        (self.incompressible_solution_stratety).InitializeSolutionStep()
+         self.incompressible_solution_stratety.InitializeSolutionStep()
 
     def Predict(self):
         (self.incompressible_solution_stratety).Predict()
