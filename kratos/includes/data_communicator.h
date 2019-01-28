@@ -34,7 +34,7 @@ namespace Kratos
 /// Serial (do-nothing) version of a wrapper class for MPI communication.
 /** @see MPIDataCommunicator for a working distributed memory implementation.
   */
-class DataCommunicator
+class KRATOS_API(KRATOS_CORE) DataCommunicator
 {
   public:
     ///@name Type Definitions
