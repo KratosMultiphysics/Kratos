@@ -170,54 +170,6 @@ public:
 			double y1=ic->GetGeometry()[1].Y();
 			double edge01=sqrt((x0-x1)*(x0-x1)+(y0-y1)*(y0-y1));
 			
-			//ajarauta: position correction of the middle node -> CHECK WHAT HAPPENS FOR TRIPLE POINT!!
-			// NORMAL is set to 0 in triple_point in the monolithic_embedded_solver right now...
-			/*
-			double n0x, n0y, n0norm, n0xunit,n0yunit,n1x,n1y,n1norm,n1xunit,n1yunit, x01, y01, xM, yM;
-			double v01norm, scprod, costh, delt_dist, ndx, ndy, ndx_d, ndy_d, ndxnorm;
-			double curv0 = ic->GetGeometry()[0].FastGetSolutionStepValue(CURVATURE);
-			double curv1 = ic->GetGeometry()[1].FastGetSolutionStepValue(CURVATURE);
-			double mean_curv = 0.5*(curv0 + curv1);
-			double is_flat = 0.0;
-			double xp = 0.0;
-			double yp = 0.0;
-			double n_struct = 0.0;
-			n_struct += ic->GetGeometry()[0].FastGetSolutionStepValue(IS_STRUCTURE);			
-			n_struct += ic->GetGeometry()[1].FastGetSolutionStepValue(IS_STRUCTURE);
-			if (mean_curv == 0.0 || n_struct > 1.0)
-			    is_flat = 1.0;
-			if (mean_curv != 0.0 && n_struct > 1.0) //avoid cases when alpha shape deletes an element with two IS_STRUCTURE nodes
-			{
-			    n0x = ic->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_X);
-			    n0y = ic->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_Y);
-			    n0norm = sqrt(n0x*n0x + n0y*n0y);
-			    n0xunit = n0x/n0norm;
-			    n0yunit = n0y/n0norm;
-			    n1x = ic->GetGeometry()[1].FastGetSolutionStepValue(NORMAL_X);
-			    n1y = ic->GetGeometry()[1].FastGetSolutionStepValue(NORMAL_Y);
-			    n1norm = sqrt(n1x*n1x + n1y*n1y);
-			    n1xunit = n1x/n1norm;
-			    n1yunit = n1y/n1norm;
-			    x01 = x1-x0;
-			    y01 = y1-y0;
-			    v01norm = sqrt(x01*x01 + y01*y01);
-			    scprod = (-n1yunit)*x01 + n1xunit*y01;
-			    if (scprod < 0.0)
-				costh = scprod/v01norm;
-			    else
-				costh = -scprod/v01norm;
-			    delt_dist = (1.0 + costh)/mean_curv;
-			    ndx = 0.5*(n0xunit+n1xunit);
-			    ndy = 0.5*(n0yunit+n1yunit);
-			    ndxnorm = sqrt(ndx*ndx+ndy*ndy);
-			    ndx_d = ndx*delt_dist/ndxnorm;
-			    ndy_d = ndy*delt_dist/ndxnorm;
-			    xM = 0.5*(x0+x1);
-			    yM = 0.5*(y0+y1);
-			    xp = xM + ndx_d;
-			    yp = yM + ndy_d;
-			}
-			*/
 			
 			//////////////////////////////////////////////////////////////////////////////////////////////////////////
 			// IMPORTANT!!
@@ -265,7 +217,7 @@ public:
 		    }
 		    
 		    
-                    if (n_struct==ic->GetGeometry().size())
+                    if (n_struct==ic->GetGeometry().size() || n_sum ==ic->GetGeometry().size())
 		    {
 			double x0=ic->GetGeometry()[0].X();
 			double y0=ic->GetGeometry()[0].Y();

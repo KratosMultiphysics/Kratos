@@ -172,7 +172,7 @@ namespace Kratos
 		  {
 		    if (neighb_els[i].GetGeometry()[j].FastGetSolutionStepValue(IS_INTERFACE) != 0.0 || neighb_els[i].GetGeometry()[j].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 		      intf_nodes++;
-		    if (neighb_els[i].GetGeometry()[j].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+		    if (neighb_els[i].GetGeometry()[j].FastGetSolutionStepValue(IS_WALL) != 0.0)
 		      struct_nodes++;
 		  }
 		  if (intf_nodes > 0)
@@ -249,7 +249,7 @@ namespace Kratos
 			  n0[0] = cos_t;
 // 			  n0[0] = -sin_t;
 		  }
-		  if (neighb[i].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+		  if (neighb[i].FastGetSolutionStepValue(IS_WALL) != 0.0)
 		  {
 		      x2 = neighb[i].X();
 		      y2 = neighb[i].Y();
@@ -272,8 +272,8 @@ namespace Kratos
 		im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = curv_tp;			
 	      }
 	      
- 	      if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 == 0.0)
-              //if(im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 < 1e-15)
+ 	      if(im->FastGetSolutionStepValue(IS_WALL) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 == 0.0)
+              //if(im->FastGetSolutionStepValue(IS_WALL) != 0.0 && im->FastGetSolutionStepValue(TRIPLE_POINT)*1.0E8 < 1e-15)
 		  im->FastGetSolutionStepValue(MEAN_CURVATURE_2D) = 0.0;
 	    }
 	    
@@ -462,8 +462,8 @@ namespace Kratos
 		  im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = mean_curv/neigh_fs;
 	      }
 	      
- 	      if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
-             // if ((im->FastGetSolutionStepValue(IS_STRUCTURE) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
+ 	      if ((im->FastGetSolutionStepValue(IS_WALL) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) == 0.0))
+             // if ((im->FastGetSolutionStepValue(IS_WALL) != 0.0) && (im->FastGetSolutionStepValue(TRIPLE_POINT) < 1e-15))
 		im->FastGetSolutionStepValue(MEAN_CURVATURE_3D) = 0.0;
 	    }
 	KRATOS_CATCH("")
@@ -1217,7 +1217,7 @@ namespace Kratos
       for (unsigned int i = 0; i < neighb.size(); i++)
       {
 	n_vec = neighb[i].FastGetSolutionStepValue(NORMAL);
-	if (neighb[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)// || neighb[i].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0 || neighb[i].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0)
+	if (neighb[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)// || neighb[i].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0 || neighb[i].FastGetSolutionStepValue(IS_WALL) != 0.0)
 	{
 	  theta = Angle2vecs2D(n_node,n_vec);
 	  if (theta > 2.8 || theta < -2.8)

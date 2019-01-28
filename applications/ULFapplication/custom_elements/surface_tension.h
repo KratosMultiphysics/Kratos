@@ -1431,9 +1431,9 @@ protected:
 	flag_trip += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
 	flag_trip += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
 	double flag_struct = 0.0;
-	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
-	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
-	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_WALL) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_WALL) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_WALL) != 0.0);
 	
 	int ii = 5;
 	int jj = 6;
@@ -1445,7 +1445,7 @@ protected:
 	// node "ii" -> triple point, if the element has one
 	// node "jj" -> node with flag IS_FREE_SURFACE
 	// node "kk" -> in elements with 3 nodes at the boundary:
-	//		- if "ii" is TRIPLE_POINT, "kk" has flag IS_STRUCTURE (besides IS_FREE_SURFACE)
+	//		- if "ii" is TRIPLE_POINT, "kk" has flag IS_WALL (besides IS_FREE_SURFACE)
 	//		- if there is no TRIPLE_POINT, "kk" is another IS_FREE_SURFACE node
 	//////////////////////////////////////////////////////////////////////////////////////////
 	if(k < 3) //General element with two nodes at the interface
@@ -1498,12 +1498,12 @@ protected:
 		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[1]; //TRIPLE_POINT
-		  kk = node_indx[2]; //IS_STRUCTURE
+		  kk = node_indx[2]; //IS_WALL
 		}
 		else
 		{
 		  ii = node_indx[2]; //TRIPLE_POINT
-		  kk = node_indx[1]; //IS_STRUCTURE
+		  kk = node_indx[1]; //IS_WALL
 		}
 	      }
 	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
@@ -1512,12 +1512,12 @@ protected:
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[0]; //TRIPLE_POINT
-		  kk = node_indx[2]; //IS_STRUCTURE
+		  kk = node_indx[2]; //IS_WALL
 		}
 		else
 		{
 		  ii = node_indx[2]; //TRIPLE_POINT
-		  kk = node_indx[0]; //IS_STRUCTURE
+		  kk = node_indx[0]; //IS_WALL
 		}
 	      }
 	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
@@ -1526,12 +1526,12 @@ protected:
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_2D) > 1.0)
 		{
 		  ii = node_indx[0]; //TRIPLE_POINT
-		  kk = node_indx[1]; //IS_STRUCTURE
+		  kk = node_indx[1]; //IS_WALL
 		}
 		else
 		{
 		  ii = node_indx[1]; //TRIPLE_POINT
-		  kk = node_indx[0]; //IS_STRUCTURE
+		  kk = node_indx[0]; //IS_WALL
 		}
 	      }
 	    }
@@ -1544,12 +1544,12 @@ protected:
 	      if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
 		jj = node_indx[1];
-		kk = node_indx[2]; //IS_STRUCTURE
+		kk = node_indx[2]; //IS_WALL
 	      }
 	      else
 	      {
 		jj = node_indx[2];
-		kk = node_indx[1]; //IS_STRUCTURE
+		kk = node_indx[1]; //IS_WALL
 	      }
 	    }
 	    if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -1558,12 +1558,12 @@ protected:
 	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 	      {
 		jj = node_indx[0];
-		kk = node_indx[2]; //IS_STRUCTURE
+		kk = node_indx[2]; //IS_WALL
 	      }
 	      else
 	      {
 		jj = node_indx[2];
-		kk = node_indx[0]; //IS_STRUCTURE
+		kk = node_indx[0]; //IS_WALL
 	      }
 	    }
 	    if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -1626,7 +1626,7 @@ protected:
 	
 	if(flag_trip == 0)
 	{
-	  if(this->GetGeometry()[ii].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+	  if(this->GetGeometry()[ii].FastGetSolutionStepValue(IS_WALL) == 0.0)
 	  {
 	    //CSF:
 	    rRightHandSideVector[3*ii]   -= 0.5*gamma*curv1*An1[0]*dl;
@@ -1743,7 +1743,7 @@ protected:
 	rDampingMatrix(3*jj+1,3*jj+1) += msWorkMatrix(jj,jj);
 	
 	
-	if(k > 2 && this->GetGeometry()[kk].FastGetSolutionStepValue(IS_STRUCTURE) == 0.0)
+	if(k > 2 && this->GetGeometry()[kk].FastGetSolutionStepValue(IS_WALL) == 0.0)
 	{	   
 	    array_1d<double,2> An3;
 	    An3[0] = this->GetGeometry()[kk].FastGetSolutionStepValue(NORMAL_X);
@@ -1832,10 +1832,10 @@ protected:
 	flag_trip += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
 	flag_trip += (this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0);
 	double flag_struct = 0.0;
-	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
-	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
-	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
-	flag_struct += (this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(IS_STRUCTURE) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_WALL) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_WALL) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_WALL) != 0.0);
+	flag_struct += (this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(IS_WALL) != 0.0);
 	
 	int ii = 5;
 	int jj = 6;
@@ -1848,7 +1848,7 @@ protected:
 	// node "ii" and "jj" -> triple point, if the element has (at least) two (those with one are not taken into account)
 	// node "kk" -> node with flag either TRIPLE_POINT (corner element) or IS_FREE_SURFACE
 	// node "ll" -> in elements with 4 nodes at the boundary:
-	//		- if "ii" and "jj" are TRIPLE_POINT, "ll" has flag IS_STRUCTURE (besides IS_FREE_SURFACE)
+	//		- if "ii" and "jj" are TRIPLE_POINT, "ll" has flag IS_WALL (besides IS_FREE_SURFACE)
 	//		- if there is no TRIPLE_POINT, "ll" is another IS_FREE_SURFACE node
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	if(k == 3) //General element with three nodes at the interface
@@ -1935,7 +1935,7 @@ protected:
 		ll = node_indx[2];
 	      }	      
 	    }
-	    else //first time step, TRIPLE_POINT has not been set yet, but the element has three IS_STRUCTURE nodes
+	    else //first time step, TRIPLE_POINT has not been set yet, but the element has three IS_WALL nodes
 	    {
 	      //OPTION 1
 	      if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
@@ -1947,12 +1947,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -1961,12 +1961,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -1975,12 +1975,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}		
 	      }
@@ -1995,12 +1995,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2009,12 +2009,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2023,12 +2023,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }		  
 		}		
 	      }
@@ -2043,12 +2043,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2057,12 +2057,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[3]; //IS_STRUCTURE
+		    ll = node_indx[3]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[3]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2071,12 +2071,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}		
 	      }
@@ -2091,12 +2091,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2105,12 +2105,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[0]; //IS_STRUCTURE
+		    ll = node_indx[0]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[0]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
@@ -2119,12 +2119,12 @@ protected:
 		  if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[1]; //TRIPLE_POINT
-		    ll = node_indx[2]; //IS_STRUCTURE
+		    ll = node_indx[2]; //IS_WALL
 		  }
 		  if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(MEAN_CURVATURE_3D) > 1.0)
 		  {
 		    jj = node_indx[2]; //TRIPLE_POINT
-		    ll = node_indx[1]; //IS_STRUCTURE
+		    ll = node_indx[1]; //IS_WALL
 		  }		  
 		}		
 	      }	      
@@ -2143,12 +2143,12 @@ protected:
 		if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[2]; //IS_FREE_SURFACE
-		  ll = node_indx[3]; //IS_STRUCTURE
+		  ll = node_indx[3]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[3]; //IS_FREE_SURFACE
-		  ll = node_indx[2]; //IS_STRUCTURE		  
+		  ll = node_indx[2]; //IS_WALL		  
 		}
 	      }
 	      if(this->GetGeometry()[node_indx[2]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -2157,12 +2157,12 @@ protected:
 		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[1]; //IS_FREE_SURFACE
-		  ll = node_indx[3]; //IS_STRUCTURE
+		  ll = node_indx[3]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[3]; //IS_FREE_SURFACE
-		  ll = node_indx[1]; //IS_STRUCTURE		  
+		  ll = node_indx[1]; //IS_WALL		  
 		}
 	      }	      
 	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -2171,12 +2171,12 @@ protected:
 		if(this->GetGeometry()[node_indx[1]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[1]; //IS_FREE_SURFACE
-		  ll = node_indx[2]; //IS_STRUCTURE
+		  ll = node_indx[2]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[2]; //IS_FREE_SURFACE
-		  ll = node_indx[1]; //IS_STRUCTURE		  
+		  ll = node_indx[1]; //IS_WALL		  
 		}
 	      }	      	      
 	    }
@@ -2190,12 +2190,12 @@ protected:
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[0]; //IS_FREE_SURFACE
-		  ll = node_indx[3]; //IS_STRUCTURE
+		  ll = node_indx[3]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[3]; //IS_FREE_SURFACE
-		  ll = node_indx[0]; //IS_STRUCTURE		  
+		  ll = node_indx[0]; //IS_WALL		  
 		}
 	      }
 	      if(this->GetGeometry()[node_indx[3]].FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
@@ -2204,12 +2204,12 @@ protected:
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[0]; //IS_FREE_SURFACE
-		  ll = node_indx[2]; //IS_STRUCTURE
+		  ll = node_indx[2]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[2]; //IS_FREE_SURFACE
-		  ll = node_indx[0]; //IS_STRUCTURE		  
+		  ll = node_indx[0]; //IS_WALL		  
 		}
 	      }	      	      	      
 	    }
@@ -2223,12 +2223,12 @@ protected:
 		if(this->GetGeometry()[node_indx[0]].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 		{
 		  kk = node_indx[0]; //IS_FREE_SURFACE
-		  ll = node_indx[1]; //IS_STRUCTURE
+		  ll = node_indx[1]; //IS_WALL
 		}
 		else
 		{
 		  kk = node_indx[1]; //IS_FREE_SURFACE
-		  ll = node_indx[0]; //IS_STRUCTURE		  
+		  ll = node_indx[0]; //IS_WALL		  
 		}
 	      }	      	      
 	    }	    
