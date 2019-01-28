@@ -16,7 +16,8 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters("""{
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "output_frequency"                   : 1.0,
-            "output_control_type"                : "step"
+            "output_control_type"                : "step",
+            "nodal_results"                      : [],
         }""")
 
         model_part_name = settings["model_part_name"].GetString()
@@ -37,6 +38,8 @@ class UnvOutputProcess(KratosMultiphysics.Process):
 
         # self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, self.settings)
         self.unv_io = KratosMultiphysics.UnvOutput(self.model_part, "nxout")
+        self.unv_io.InitializeMesh()
+        self.unv_io.WriteMesh()
 
         self.output_frequency = self.settings["output_frequency"].GetDouble()
         self.output_control = self.settings["output_control_type"].GetString()
@@ -49,11 +52,15 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         else:
             self.next_output = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
 
+        self.nodal_variables = self._GenerateVariableListFromInput(self.settings["nodal_results"])
+
     def ExecuteInitializeSolutionStep(self):
         self.step_count += 1
 
     def PrintOutput(self):
-        self.unv_io.PrintOutput(self.step_count)
+
+        for variable in self.nodal_variables:
+            self.unv_io.WriteNodalResults(self.nodal_variables[variable], self.next_output)
 
         # Schedule next output
         time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
@@ -71,6 +78,15 @@ class UnvOutputProcess(KratosMultiphysics.Process):
             return (time >= GetPrettyTime(self.next_output))
         else:
             return ( self.step_count >= self.next_output )
+
+    def _GenerateVariableListFromInput(self, param):
+        '''Parse a list of variables from input.'''
+        # At least verify that the input is a string
+        if not param.IsArray():
+            raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
+
+        # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
+        return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
 
 def GetPrettyTime(time):
