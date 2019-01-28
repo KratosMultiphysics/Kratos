@@ -32,6 +32,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
 
         elif (solver_type == "TimeAveraged"):
             solver_module_name = "navier_stokes_time_averaged_solver"
+            
+        elif (solver_type == "TimeAveragedNested"):
+            solver_module_name = "navier_stokes_time_averaged_nested_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
