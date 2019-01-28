@@ -173,6 +173,7 @@ double InnerCalculateDeltaTime(
                 const double aux_value = norm_2(aux_vector);
                 if(aux_value > length)
                     length = aux_value;
+            length = r_geometry.Length();
             }
 
             // Compute courant criterion
@@ -182,6 +183,12 @@ double InnerCalculateDeltaTime(
 
             const double psi = 0.5 * (alpha / w + beta * w); // Critical ratio;
             stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
+
+            // for trusses
+            stable_delta_time = 1.0 / (std::sqrt(E/(rho*0.5*length*length)) / (2.0*3.141592654));
+            stable_delta_time /= 10.0;
+
+            KRATOS_WATCH(stable_delta_time);
 
             if (stable_delta_time > 0.0) {
                 #pragma omp critical

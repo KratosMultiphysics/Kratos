@@ -308,8 +308,16 @@ public:
     */
     double Length() const override
     {
-        KRATOS_ERROR << "'Length' not available for arbitrarty noded line" << std::endl;
-        return 0.0;
+        const int number_points  = BaseType::PointsNumber();
+        const TPointType& point0 = BaseType::GetPoint(0);
+        const TPointType& point1 = BaseType::GetPoint(number_points-1);
+        const double lx = point0.X() - point1.X();
+        const double ly = point0.Y() - point1.Y();
+        const double lz = point0.Z() - point1.Z();
+
+        const double length = lx * lx + ly * ly + lz * lz;
+
+        return sqrt( length );
     }
 
     /** This method calculate and return area or surface area of
