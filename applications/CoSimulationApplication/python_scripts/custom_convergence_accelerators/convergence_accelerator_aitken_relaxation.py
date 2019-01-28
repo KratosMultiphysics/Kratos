@@ -3,14 +3,15 @@
 # Author: Wei He
 # Updated : Aditya Ghantasala
 # Date: Feb. 20, 2017
-try :
-    import numpy as np
-except ModuleNotFoundError:
-    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
 from base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
+
+try :
+    import numpy as np
+except ModuleNotFoundError:
+    cs_tools.PrintWarning(cs_tools.bcolors.FAIL + 'Numpy is not available', 'Using python default lists for computation!' + cs_tools.bcolors.ENDC)
 
 from copy import deepcopy
 from collections import deque
@@ -74,26 +75,26 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
         ## For the first iteration, do relaxation only
         if self.iteration == 0:
             alpha = self.initial_alpha
-            print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation in the first iteration with initial factor = " , alpha, cs_tools.bcolors.ENDC)
+            cs_tools.PrintInfo( cs_tools.bcolors.BLUE + "\tAitken", "Doing relaxation in the first iteration with initial factor = " , alpha, cs_tools.bcolors.ENDC)
             self.current_alpha = alpha
         else:
             r_diff = self._Difference(self.ResidualStorage[0] , self.ResidualStorage[1])
             numerator = cs_tools.InnerProduct( self.ResidualStorage[1], r_diff )
             denominator = cs_tools.InnerProduct( r_diff, r_diff )
-            print("#############################")
-            print("Numerator :: ", numerator)
-            print("Denominator :: ", denominator)
-            print("#############################")
+            # print("#############################")
+            # print("Numerator :: ", numerator)
+            # print("Denominator :: ", denominator)
+            # print("#############################")
             if(abs(denominator)<1E-15):
                 denominator = 1.0
             self.current_alpha = -self.alpha_old * numerator/denominator
-            print( cs_tools.bcolors.BLUE + "\tAitken: Doing relaxation with factor = " + cs_tools.bcolors.ENDC, self.current_alpha )
+            cs_tools.PrintInfo( cs_tools.bcolors.BLUE + "\tAitken", "Doing relaxation with factor = " + cs_tools.bcolors.ENDC, self.current_alpha )
             if self.current_alpha > self.alpha_max:
                 self.current_alpha = self.alpha_max
-                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches upper bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
+                cs_tools.PrintWarning(cs_tools.bcolors.WARNING + "WARNING", "dynamic relaxation factor reaches upper bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
             elif self.current_alpha < -self.alpha_max:
                 self.current_alpha = -self.alpha_max
-                print(cs_tools.bcolors.WARNING + "WARNING: dynamic relaxation factor reaches lower bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
+                cs_tools.PrintWarning(cs_tools.bcolors.WARNING + "WARNING", "dynamic relaxation factor reaches lower bound: "+ self.alpha_max + cs_tools.bcolors.ENDC)
             self.alpha_old = self.current_alpha
 
     ## InitializeSolutionStep : Called once at the beginning of the solution step
@@ -133,7 +134,7 @@ class AitkenAccelerator(CoSimulationBaseConvergenceAccelerator):
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
     def PrintInfo(self):
-        print(cs_tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator. Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+cs_tools.bcolors.ENDC )
+        cs_tools.PrintInfo(cs_tools.bcolors.HEADER + "This is an object of Aitken relaxation accelerator", "Initial alpha is ", self.init_alpha_max, ", current alpha is : ", self.alpha_old,""+cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #

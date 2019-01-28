@@ -102,19 +102,19 @@ class CoSimulationConvergenceCriteria(object):
 
         is_converged = abs_residual_norm < self.abs_tolerance or rel_residual_norm < self.rel_tolerance
         if self.echo_level > 1:
-            info_msg  = cs_tools.bcolors.HEADER + '\tConvergence for "'+cs_tools.bcolors.BOLD + self.data_name+'": '
+            info_msg = cs_tools.bcolors.HEADER + '\tConvergence for "' + cs_tools.bcolors.BOLD + self.data_name,
             if is_converged:
                 info_msg += cs_tools.bcolors.GREEN+ "ACHIEVED"
             else:
                 info_msg += cs_tools.bcolors.FAIL + "NOT ACHIEVED"
             info_msg += cs_tools.bcolors.ENDC
-            print(info_msg)
+            cs_tools.PrintInfo(info_msg)
         if self.echo_level > 2:
             info_msg  = cs_tools.bcolors.HEADER + "\tabs_norm" + " = " + cs_tools.bcolors.BOLD + str(abs_residual_norm) + " | "
             info_msg += "abs_tol" + " = " + cs_tools.bcolors.BOLD + str(self.abs_tolerance)
             info_msg += " || " + "rel_norm" + " = " + cs_tools.bcolors.BOLD + str(rel_residual_norm) + " | "
             info_msg += "rel_tol = " + cs_tools.bcolors.BOLD + str(self.rel_tolerance)
-            print(info_msg)
+            cs_tools.PrintInfo(info_msg)
 
         return is_converged
 
@@ -123,13 +123,13 @@ class CoSimulationConvergenceCriteria(object):
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
-        print("Convergence criteria for data : ", self.data_name, " from solver : ", self.solver.name)
+        cs_tools.PrintInfo("Convergence criteria for data", self.data_name, " from solver : ", self.solver.name)
 
     ## Check : Check function of the class.
     #
     #  @param self            The object pointer.
     def Check(self):
-        print("Check from Base Convergence Criteria")
+        cs_tools.PrintInfo("Check from Base Convergence Criteria")
 
 
     ## SetEchoLevel : Function to set the echo level of this class.

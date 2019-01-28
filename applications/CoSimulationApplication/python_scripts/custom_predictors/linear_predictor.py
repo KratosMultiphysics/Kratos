@@ -3,15 +3,15 @@
 # Author: Wei He
 # Updated : Aditya Ghantasala
 # Date: Feb. 20, 2017
-try :
-    import numpy as np
-except ModuleNotFoundError:
-    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
 from base_co_simulation_classes.co_simulation_base_predictor import CoSimulationBasePredictor
 import co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
 
+try :
+    import numpy as np
+except ModuleNotFoundError:
+    cs_tools.PrintWarning(cs_tools.bcolors.FAIL + 'Numpy is not available', 'Using python default lists for computation'+ cs_tools.bcolors.ENDC)
 
 def Create(settings, solver):
     predictor = LinearPredictor(settings, solver)
@@ -70,7 +70,7 @@ class LinearPredictor(CoSimulationBasePredictor):
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
     def PrintInfo(self):
-        print(cs_tools.bcolors.HEADER + "This is an object of linear predictor." +cs_tools.bcolors.ENDC )
+        cs_tools.PrintInfo(cs_tools.bcolors.HEADER + "This is an object of linear predictor." +cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #

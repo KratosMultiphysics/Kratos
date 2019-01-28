@@ -1,12 +1,11 @@
 from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing Kratos StructuralMechanicsAPplication
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 try :
     from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 except ModuleNotFoundError:
-    print(tools.bcolors.FAIL + 'KRATOS_STRUCTURAL_MECHANICS is not available ! Please ensure that it is available for usage !'+ tools.bcolors.ENDC)
-    exit()
+    raise ModuleNotFoundError(cs_tools.bcolors.FAIL + 'KRATOS_STRUCTURAL_MECHANICS is not available! Please ensure that it is available for usage!'+ cs_tools.bcolors.ENDC)
 
 # Importing the base class
 from . import kratos_base_field_solver

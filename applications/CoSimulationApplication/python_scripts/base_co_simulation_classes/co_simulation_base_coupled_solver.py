@@ -1,5 +1,5 @@
 # co simulation imports
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
 # Other imports
 import KratosMultiphysics.CoSimulationApplication.co_simulation_data_structure as data_str
@@ -124,7 +124,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     def SolveSolutionStep(self):
         err_msg  = 'Calling "SolveSolutionStep" of the "CoSimulationBaseCouplingSolver"!\n'
         err_msg += 'This function has to be implemented in the derived class!'
-        raise Exception(err_msg)
+        raise NotImplementedError(err_msg)
 
     ## Check : Called once at the beginning of simulation.
     #          Necessary setup of the solver can be verified here.
@@ -141,7 +141,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
 
     def PrintInfo(self):
-        print("The class", self.__class__.__name__," has the following participants:")
+        cs_tools.PrintInfo("The class", self.__class__.__name__," has the following participants")
         for solver_name, solver in self.participating_solvers.items():
             solver.PrintInfo()
 

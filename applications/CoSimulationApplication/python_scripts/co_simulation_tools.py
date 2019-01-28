@@ -5,16 +5,16 @@ import math
 ## Class contains definition of colors. This is to be used as a struct
 #
 # Example usage print(bcolors.HEADER + "This is a header in header color" + bcolor.ENDC)
-# IMPORTANT : The end of the print statement should always containt bcolor.ENDC
+# IMPORTANT : The end of the print statement should always contain bcolor.ENDC
 class bcolors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    MEGENTA = '\033[96m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
+    HEADER    = '\033[95m'
+    BLUE      = '\033[94m'
+    GREEN     = '\033[92m'
+    MEGENTA   = '\033[96m'
+    WARNING   = '\033[93m'
+    FAIL      = '\033[91m'
+    ENDC      = '\033[0m'
+    BOLD      = '\033[1m'
     UNDERLINE = '\033[4m'
 
 

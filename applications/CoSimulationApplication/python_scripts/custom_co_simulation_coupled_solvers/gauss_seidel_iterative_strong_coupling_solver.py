@@ -1,6 +1,6 @@
 # co simulation imports
 from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_coupled_solver import CoSimulationBaseCoupledSolver
-import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as tools
+import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 
 # Other imports
 import os
@@ -14,7 +14,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
     def __init__(self, custom_settings):
         super(GaussSeidelIterativeStrongCouplingSolver, self).__init__(custom_settings)
         if not self.number_of_participants == 2:
-            raise Exception(tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
+            raise Exception(cs_tools.bcolors.FAIL + "Exactly two solvers have to be specified for the " + self.__class__.__name__ + "!")
 
         ### Importing the Participant modules
         self.participants_setting_dict = self.full_settings["coupled_solver_settings"]["participants"]
@@ -63,9 +63,9 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
         if self.coupling_started:
             for iteration in range(self.num_coupling_iterations):
                 if self.echo_level > 0:
-                    print("\t"+ tools.bcolors.HEADER + str(self._Name()) + " : "+
-                                        tools.bcolors.MEGENTA + "Coupling iteration: ", tools.bcolors.BOLD + str(iteration+1) +
-                                        " / " + tools.bcolors.BLUE + str(self.num_coupling_iterations) + tools.bcolors.ENDC)
+                    cs_tools.PrintInfo("\t"+ cs_tools.bcolors.HEADER + str(self._Name()) ,
+                                        cs_tools.bcolors.MEGENTA + "Coupling iteration: ", cs_tools.bcolors.BOLD + str(iteration+1) +
+                                        " / " + cs_tools.bcolors.BLUE + str(self.num_coupling_iterations) + cs_tools.bcolors.ENDC)
 
                 for accelerator in self.convergence_accelerators_list:
                     accelerator.InitializeNonLinearIteration()
@@ -74,7 +74,7 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
 
                 for solver_name, solver in self.participating_solvers.items():
                     self._SynchronizeInputData(solver_name)
-                    print("\t"+tools.bcolors.GREEN + tools.bcolors.BOLD + "### SolveSolutionStep for Solver : ", solver_name + tools.bcolors.ENDC)
+                    cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + "SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
                     solver.SolveSolutionStep()
                     self._SynchronizeOutputData(solver_name)
 
@@ -86,17 +86,17 @@ class GaussSeidelIterativeStrongCouplingSolver(CoSimulationBaseCoupledSolver):
                     is_converged = is_converged and conv_criteria.IsConverged()
                 if is_converged:
                     if self.echo_level > 0:
-                        print(tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + tools.bcolors.ENDC )
+                        cs_tools.PrintInfo(cs_tools.bcolors.GREEN + "### CONVERGENCE WAS ACHIEVED ###" + cs_tools.bcolors.ENDC )
                     break
 
                 if iteration+1 >= self.num_coupling_iterations and self.echo_level > 0:
-                    print("\t"+tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + tools.bcolors.ENDC)
+                    cs_tools.PrintWarning("\t"+cs_tools.bcolors.FAIL + "### CONVERGENCE NOT ACHIEVED IN STRONG COUPLING ITERATIONS ###" + cs_tools.bcolors.ENDC)
 
                 for accelerator in self.convergence_accelerators_list:
                     accelerator.FinalizeNonLinearIteration()
         else:
             for solver_name, solver in self.participating_solvers.items():
-                print("\t"+tools.bcolors.GREEN + tools.bcolors.BOLD + "### SolveSolutionStep for Solver : ", solver_name + tools.bcolors.ENDC)
+                cs_tools.PrintInfo("\t"+cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD + SolveSolutionStep for Solver", solver_name + cs_tools.bcolors.ENDC)
                 solver.SolveSolutionStep()
 
     def _Name(self):

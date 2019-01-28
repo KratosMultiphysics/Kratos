@@ -1,10 +1,10 @@
 # co simulation imports
 from ... base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
-from ... import co_simulation_tools as tools
-data_structure = tools.cs_data_structure
+from ... import co_simulation_tools as cs_tools
+data_structure = cs_tools.cs_data_structure
 import random
 
-
+raise ModuleNotFoundError("eerererte")
 def Create(name, cosim_solver_settings):
     return DummyCoSimulationSolver(name, cosim_solver_settings)
 
@@ -14,14 +14,14 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
     def __init__(self, name, custom_settings):
         super(DummyCoSimulationSolver, self).__init__(name, custom_settings)
         self.name = name
-        print("########################### constructor of :: ", self.name)
+        cs_tools.PrintInfo("########################### constructor of", self.name)
         self.dummy_model_part = self.model.CreateModelPart('dummy_model_part')
         for variable_name in self.data_list.keys():
             if(not data_structure.KratosGlobals.HasVariable(variable_name)):
                 self.variable_obj = data_structure.Array1DVariable3(variable_name)
                 self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
-                print("################### :: ", variable_name, " ########## :: ", self.variable_obj)
-                print("################### :: ", data_structure.KratosGlobals.HasVariable(variable_name))
+                cs_tools.PrintInfo("###################", variable_name, " ########## :: ", self.variable_obj)
+                cs_tools.PrintInfo("###################", data_structure.KratosGlobals.HasVariable(variable_name))
             else:
                 self.variable_obj = data_structure.KratosGlobals.GetVariable(variable_name)
                 self.dummy_model_part.AddNodalSolutionStepVariable(self.variable_obj)
@@ -39,8 +39,8 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
                 node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
 
     def PrintInfo(self):
-        #print( self.data_list.keys() )
-        print(tools.bcolors.BLUE+"This is an object of DummyCoSimulationSolver with name : ", self.name + tools.bcolors.ENDC)
+        #cs_tools.PrintInfo( self.data_list.keys() )
+        cs_tools.PrintInfo(cs_tools.bcolors.BLUE+"This is an object of DummyCoSimulationSolver with name", self.name + cs_tools.bcolors.ENDC)
 
     def AdvanceInTime(self, current_time):
         self.PrintInfo()
@@ -57,7 +57,7 @@ class DummyCoSimulationSolver(CoSimulationBaseSolver):
                 data_obj = data_structure.KratosGlobals.GetVariable(data_name)
                 node.SetSolutionStepValue(data_obj, [data+random.uniform(0,0.99) for data in data_value])
     def Check(self):
-        print(tools.bcolors.GREEN+"Check from dummy co simulation solver : CHECKED !"+tools.bcolors.ENDC)
+        cs_tools.PrintInfo(cs_tools.bcolors.GREEN+"Check from dummy co simulation solver", "CHECKED !"+cs_tools.bcolors.ENDC)
 
     def _GetIOName(self):
         return "dummy"

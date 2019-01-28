@@ -3,15 +3,15 @@
 # Author: Wei He
 # Date: Feb. 20, 2017
 
-try :
-    import numpy as np
-except ModuleNotFoundError:
-    print(cs_tools.bcolors.FAIL + 'Numpy is not available ! MVQN accelerator needs numpy !'+ cs_tools.bcolors.ENDC)
-    exit()
 
 from KratosMultiphysics.CoSimulationApplication.base_co_simulation_classes.co_simulation_base_convergence_accelerator import CoSimulationBaseConvergenceAccelerator
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
 data_structure = cs_tools.cs_data_structure
+
+try :
+    import numpy as np
+except ModuleNotFoundError:
+    raise ModuleNotFoundError(cs_tools.bcolors.FAIL + 'Numpy is not available! MVQN accelerator needs numpy !'+ cs_tools.bcolors.ENDC)
 
 from copy import deepcopy
 from collections import deque
@@ -150,7 +150,7 @@ class MultiVectorQuasiNewtonAccelerator(CoSimulationBaseConvergenceAccelerator):
     ## PrintInfo : Function to print the information of the convergence accelerator
     #
     def PrintInfo(self):
-        print(cs_tools.bcolors.HEADER + "This is an object of Multi-Vector Quasi Newton relaxation accelerator. Horizon alpha is ", self.horizon, ", alpha is : ", self.alpha,""+cs_tools.bcolors.ENDC )
+        cs_tools.PrintInfo(cs_tools.bcolors.HEADER + "This is an object of Multi-Vector Quasi Newton relaxation accelerator", "Horizon alpha is ", self.horizon, ", alpha is : ", self.alpha,""+cs_tools.bcolors.ENDC )
 
     ## Check : Function to Check the setup of the convergence accelerator
     #

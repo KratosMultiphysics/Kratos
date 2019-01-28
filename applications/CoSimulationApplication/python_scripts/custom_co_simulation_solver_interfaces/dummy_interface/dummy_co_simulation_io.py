@@ -1,6 +1,6 @@
 # co simulation imports
 from ... base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
-from ... import co_simulation_tools as tools
+from ... import co_simulation_tools as cs_tools
 
 
 def Create(model, custom_settings):
@@ -80,16 +80,4 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param self            The object pointer.
     #  @param level           int : echo level
     def SetEchoLevel(self, level):
-        self.echo_level = level
-
-    ## Prints the information about the current IO. The derived classes should implement it.
-    #
-    #  @param self            The object pointer.
-    def PrintInfo(self):
-        print(tools.bcolors.WARNING + "!!!WARNING!!! Calling PrintInfo from base IO class!" + tools.bcolors.ENDC)
-
-    ## Check : Checks the current IO against faulty settings. Derived classes may implement this function.
-    #
-    #  @param self            The object pointer.
-    def Check(self):
-        print(tools.bcolors.WARNING + "!!!WARNING!!! Calling Check from base IO class!" + tools.bcolors.ENDC)
+        self.echo_level = SetEchoLevel

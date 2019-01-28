@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division  # makes these 
 #@Aditya we cannot import this here, this will not work with only python
 import KratosMultiphysics.CoSimulationApplication as CoSimulationApplication
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
- 
+
 import sys
 
 class CoSimulationAnalysis(object):
@@ -24,9 +24,9 @@ class CoSimulationAnalysis(object):
         self.Finalize()
 
     def RunSolutionLoop(self):
-        print("")
+        cs_tools.PrintInfo("")
         while self.time < self.end_time:
-            print("")
+            cs_tools.PrintInfo("")
             self.step += 1
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.InitializeSolutionStep()
@@ -57,7 +57,9 @@ class CoSimulationAnalysis(object):
         self._GetSolver().PrintInfo()
 
     def InitializeSolutionStep(self):
-        print( cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD +"Time = {0:.10f}".format(self.time) + " | Step = " + str(self.step) + cs_tools.bcolors.ENDC )
+        cs_tools.PrintInfo( cs_tools.bcolors.GREEN + cs_tools.bcolors.BOLD +\
+            "CoSimulationAnalysis", "Time = {0:.10f}".format(self.time) +\
+            " | Step = " + str(self.step) + cs_tools.bcolors.ENDC )
         self._GetSolver().InitializeSolutionStep()
 
     def FinalizeSolutionStep(self):
@@ -79,7 +81,7 @@ class CoSimulationAnalysis(object):
         elif ("solvers" in self.cosim_settings.keys()):
             num_solvers = len(self.cosim_settings["solvers"])
             if(num_solvers > 1 or num_solvers == 0):
-                Exception("More than one or no solvers defined with out coupled solver !")
+                Exception("More than one or no solvers defined without coupled solver !")
             else:
                 import co_simulation_solver_factory as solver_factory
                 self._solver = solver_factory.CreateSolverInterface(self.cosim_settings["solvers"][0])
@@ -91,7 +93,7 @@ if __name__ == '__main__':
     from sys import argv
 
     if len(argv) != 2:
-        err_msg =  'Wrong number of input arguments!\n'
+        err_msg  = 'Wrong number of input arguments!\n'
         err_msg += 'Use this script in the following way:\n'
         err_msg += '    "python co_simulation_analysis.py <cosim-parameter-file>.json"\n'
         raise Exception(err_msg)

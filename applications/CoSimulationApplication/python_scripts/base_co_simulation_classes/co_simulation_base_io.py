@@ -90,10 +90,10 @@ class CoSimulationBaseIO(object):
     #
     #  @param self            The object pointer.
     def PrintInfo(self):
-        print(tools.bcolors.WARNING + "!!!WARNING!!! Calling PrintInfo from base IO class!" + tools.bcolors.ENDC)
+        cs_tools.PrintWarning(cs_tools.bcolors.WARNING + "WARNING", "Calling PrintInfo from base IO class!" + cs_tools.bcolors.ENDC)
 
     ## Check : Checks the current IO against faulty settings. Derived classes may implement this function.
     #
     #  @param self            The object pointer.
     def Check(self):
-        print(tools.bcolors.WARNING + "!!!WARNING!!! Calling Check from base IO class!" + tools.bcolors.ENDC)
+        cs_tools.PrintWarning(cs_tools.bcolors.WARNING + "WARNING", "Calling Check from base IO class!" + cs_tools.bcolors.ENDC)

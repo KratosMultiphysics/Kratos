@@ -3,7 +3,7 @@
 # Author: Wei He
 # Date: Feb. 20, 2017
 
-import numpy as np 
+import numpy as np
 from copy import deepcopy
 from collections import deque
 
@@ -26,10 +26,10 @@ class IQNILS:
             self.W_new = []
             self.V_old = []
             self.W_old = []
-            print("Quasi-Newton method: IQN-ILS")
+            # print("Quasi-Newton method: IQN-ILS")
 
     ## ComputeUpdate(r, x)
-    # @param r residual r_k 
+    # @param r residual r_k
     # @param x solution x_k
     # Computes the approximated update in each iteration.
     def ComputeUpdate( self, r, x ):
@@ -37,46 +37,44 @@ class IQNILS:
             self.X.appendleft(    x + r    )  # r = x~ - x
             row = len(r)
             col = len( self.R ) - 1
-            k = col            
+            k = col
             num_old_matrices = len( self.v_old_matrices )
-            
+
             if self.V_old == [] and self.W_old == []: # No previous vectors to reuse
               if k == 0:
                 ## For the first iteration in the first time step, do relaxation only
-                print( "IQN-ILS: Doing relaxation in the first iteration with factor = ", self.alpha )
+                cs_tools.PrintInfo("IQN-ILS", "Doing relaxation in the first iteration with factor = ", self.alpha )
                 return self.alpha * r
               else:
-                print( "IQN-ILS: Doing multi-vector extrapolation...." ) 
-                print( "Number of new modes: ", col )
+                cs_tools.PrintInfo("IQN-ILS: Doing multi-vector extrapolation...\n", "Number of new modes:", col)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
-                self.V_new = self.V_new.T      
+                self.V_new = self.V_new.T
                 V = self.V_new
-                
+
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ):
-                   print("WARNING: column number larger than row number!")  
-      
+                   cs_tools.PrintWarning("IQN-ILS", "WARNING: column number larger than row number!")
+
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.W_new[i] = self.X[i] - self.X[i + 1]
                 self.W_new = self.W_new.T
                 W = self.W_new
-                
+
                 ## Solve least-squares problem
                 delta_r = -self.R[0]
                 c = np.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r           
-            
+                delta_x = np.dot(W, c) - delta_r
+
                 return delta_x
             else:  # previous vectors can be reused
               if k == 0: # first iteration
-                print( "IQN-ILS: Using matrices from previous time steps" ) 
-                print( "Number of previous matrices: ", num_old_matrices  )
+                cs_tools.PrintInfo( "IQN-ILS", "Using matrices from previous time steps,", "Number of previous matrices:", num_old_matrices)
                 V = self.V_old
                 W = self.W_old
                 ## Solve least-squares problem
@@ -84,43 +82,41 @@ class IQNILS:
                 c = np.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r 
+                delta_x = np.dot(W, c) - delta_r
                 return delta_x
               else:
-                ## For other iterations, construct new V and W matrices and combine them with old ones 
-                print( "IQN-ILS: Doing multi-vector extrapolation...." ) 
-                print( "Number of new modes: ", col )
-                print( "Number of previous matrices: ", num_old_matrices  )
+                ## For other iterations, construct new V and W matrices and combine them with old ones
+                cs_tools.PrintInfo("IQN-ILS", "Doing multi-vector extrapolation...\n", "Number of new modes:", col, "Number of previous matrices:", num_old_matrices)
                 ## Construct matrix V (differences of residuals)
                 self.V_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.V_new[i] = self.R[i] - self.R[i + 1]
-                self.V_new = self.V_new.T      
+                self.V_new = self.V_new.T
                 V = np.hstack( (self.V_new, self.V_old) )
                 ## Check the dimension of the newly constructed matrix
                 if ( V.shape[0] < V.shape[1] ):
-                   print("WARNING: column number larger than row number!")  
-      
+                   cs_tools.PrintWarning("IQN-ILS", "WARNING: column number larger than row number!")
+
                 ## Construct matrix W(differences of predictions)
                 self.W_new = np.empty( shape = (col, row) ) # will be transposed later
                 for i in range(0, col):
                     self.W_new[i] = self.X[i] - self.X[i + 1]
                 self.W_new = self.W_new.T
                 W = np.hstack( (self.W_new, self.W_old) )
-            
+
                 ## Solve least-squares problem
                 delta_r = -self.R[0]
                 c = np.linalg.lstsq(V, delta_r)[0]
 
                 ## Compute the update
-                delta_x = np.dot(W, c) - delta_r           
-            
+                delta_x = np.dot(W, c) - delta_r
+
                 return delta_x
-    
+
     ## AdvanceTimeStep()
     # Finalizes the current time step and initializes the next time step.
     def AdvanceTimeStep( self ):
-            if self.V_new != [] and self.W_new != []:               
+            if self.V_new != [] and self.W_new != []:
                self.v_old_matrices.appendleft( self.V_new )
                self.w_old_matrices.appendleft( self.W_new )
             if self.v_old_matrices and self.w_old_matrices:
@@ -128,7 +124,7 @@ class IQNILS:
                self.W_old = np.concatenate( self.w_old_matrices, 1 )
             ## Clear the buffer
             if self.R and self.X:
-               print( "IQN-ILS: Cleaning...." )
+               cs_tools.PrintInfo("IQN-ILS", "Cleaning...")
                self.R.clear()
                self.X.clear()
             self.V_new = []
