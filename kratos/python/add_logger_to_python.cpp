@@ -15,8 +15,9 @@
 
 // Project includes
 #include "includes/define_python.h"
+#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
-
 
 
 namespace Kratos {
@@ -83,6 +84,21 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
 
 }
 
+const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
+    if (kwargs.contains("data_communicator")) {
+        DataCommunicator::Pointer p_data_communicator = py::cast<DataCommunicator::Pointer>(kwargs("data_communicator"));
+        return *p_data_communicator;
+    }
+    else {
+        return ParallelEnvironment::GetDefaultDataCommunicator();
+    }
+}
+
+bool isPrintingRank(pybind11::kwargs kwargs) {
+    const DataCommunicator& r_data_communicator = getDataCommunicator(kwargs);
+    return r_data_communicator.Rank() == 0;
+}
+
 /**
  * Prints the arguments from the python script using the Kratos Logger class. Default function uses INFO severity.
  * @args pybind11::args pybind11::object representing the arguments of the function The first argument is the label
@@ -90,7 +106,8 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
  * name arguments
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, true);
+    if (isPrintingRank(kwargs))
+        printImpl(args, kwargs, Logger::Severity::INFO, true);
 }
 
 /**
@@ -100,7 +117,8 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, false);
+    if (isPrintingRank(kwargs))
+        printImpl(args, kwargs, Logger::Severity::INFO, false);
 }
 
 /**
@@ -110,7 +128,8 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  * name arguments
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::WARNING, false);
+    if (isPrintingRank(kwargs))
+        printImpl(args, kwargs, Logger::Severity::WARNING, false);
 }
 
 void  AddLoggerToPython(pybind11::module& m) {
