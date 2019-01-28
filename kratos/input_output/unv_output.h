@@ -89,8 +89,6 @@ public:
     void WriteNodes();
     void WriteElements();
 
-    void WriteResult(const Variable<bool>& rVariable, const double timeStep);
-
     void WriteNodalResults(const Variable<bool>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<int>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<double>& rVariable, const double timeStep);

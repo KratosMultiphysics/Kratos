@@ -15,13 +15,8 @@ UnvOutput::UnvOutput(Kratos::ModelPart &modelPart, const std::string &outFileWit
 
 
 void UnvOutput::WriteMesh() {
-    InitializeOutputFile();
     WriteNodes();
     WriteElements();
-}
-
-void UnvOutput::WriteResult(const Variable<bool>& rVariable, const double timeStep) {
-    WriteNodalResults(rVariable, timeStep);
 }
 
 template <typename Enumeration>
