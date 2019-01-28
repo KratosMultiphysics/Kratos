@@ -87,8 +87,8 @@ void FemDem2DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 
 void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 {
-	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	const double element_threshold = this->GetValue(STRESS_THRESHOLD);
+	// After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
+	const double element_threshold = mThreshold;
 	if (mThresholds[0] + mThresholds[1] + mThresholds[2] < std::numeric_limits<double>::epsilon()) {
 		mThresholds[0] = element_threshold;
 		mThresholds[1] = element_threshold;
@@ -96,7 +96,7 @@ void FemDem2DElement::InitializeInternalVariablesAfterMapping()
 	}
 
 	// IDEM with the edge damages
-	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
+	const double damage_element = mDamage;
 	if (mDamages[0] + mDamages[1] + mDamages[2] < std::numeric_limits<double>::epsilon()) {
 		mDamages[0] = damage_element;
 		mDamages[1] = damage_element;
@@ -110,12 +110,11 @@ void FemDem2DElement::UpdateDataBase()
 		mDamages[edge] = mNonConvergedDamages[edge];
 		mThresholds[edge] = mNonConvergedThresholds[edge];
 	}
-
-	mDamage = this->CalculateElementalDamage(mDamages);
-	mThreshold = this->CalculateElementalDamage(mThresholds);
-
-	this->SetValue(DAMAGE_ELEMENT, mDamage);
-	this->SetValue(STRESS_THRESHOLD, mThreshold);
+	double converged_damage, converged_threshold;
+	converged_damage = this->CalculateElementalDamage(mDamages);
+	if (converged_damage > mDamage) mDamage = converged_damage;
+	converged_threshold = this->CalculateElementalDamage(mThresholds);
+	if (converged_damage > mThreshold) mThreshold = converged_threshold;
 }
 
 void FemDem2DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
