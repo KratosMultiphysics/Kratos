@@ -155,6 +155,28 @@
                 "model_part_name"  : "domain",
                 "time_frequency"   : 0.2
             }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "laplacian_fract_step_results_reac_rect.json",
+                "model_part_name"  : "FluidModelPart.rect_inner",
+                "time_frequency"   : 0.05
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "laplacian_fract_step_results_react_circ.json",
+                "model_part_name"  : "FluidModelPart.circ_inner",
+                "time_frequency"   : 0.05
+            }
         }]
     }
 }

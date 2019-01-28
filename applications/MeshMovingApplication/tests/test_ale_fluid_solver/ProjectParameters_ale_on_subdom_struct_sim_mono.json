@@ -131,8 +131,30 @@
                                      "VELOCITY_Y",
                                      "PRESSURE"],
                 "input_file_name" : "ale_on_subdom_struct_sim_mono_results.json",
-                "model_part_name"  : "domain",
+                "model_part_name"  : "FluidModelPart.domain",
                 "time_frequency"   : 0.2
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results.json",
+                "model_part_name"  : "FluidModelPart.rect_inner",
+                "time_frequency"   : 0.05
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "FluidModelPart.ale_on_subdom_struct_sim_mono_results.json",
+                "model_part_name"  : "FluidModelPart.circ_inner",
+                "time_frequency"   : 0.05
             }
         }]
     }
