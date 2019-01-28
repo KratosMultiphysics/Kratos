@@ -180,8 +180,7 @@ void FemDem2DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 		double detJ = 0;
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
-		if (detJ < 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+		KRATOS_ERROR_IF(detJ < 0.0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0" << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
 		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
