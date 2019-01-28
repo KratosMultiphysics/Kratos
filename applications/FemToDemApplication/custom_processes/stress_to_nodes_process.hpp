@@ -44,10 +44,10 @@ class StressToNodesProcess : public Process
     typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Constructor
-    StressToNodesProcess(ModelPart &r_model_part, int Dimension) : mr_model_part(r_model_part)
+    StressToNodesProcess(ModelPart &r_model_part, int Dimension) : mrModelPart(r_model_part)
     {
-        mNNodes = mr_model_part.NumberOfNodes();
-        mNElements = mr_model_part.NumberOfElements();
+        mNNodes = mrModelPart.NumberOfNodes();
+        mNElements = mrModelPart.NumberOfElements();
         mDimension = Dimension;
     }
 
@@ -68,7 +68,7 @@ class StressToNodesProcess : public Process
         Vector gauss_point_stress;
         double gauss_point_damage;
         // Loop over elements to extrapolate the stress to the nodes
-        for (ElementsArrayType::ptr_iterator it = mr_model_part.Elements().ptr_begin(); it != mr_model_part.Elements().ptr_end(); ++it) {
+        for (ElementsArrayType::ptr_iterator it = mrModelPart.Elements().ptr_begin(); it != mrModelPart.Elements().ptr_end(); ++it) {
             auto& r_geometry = (*it)->GetGeometry();
             gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
             gauss_point_damage = (*it)->GetValue(DAMAGE_ELEMENT);
@@ -104,7 +104,7 @@ class StressToNodesProcess : public Process
         }
 
         // Loop to compute the equivalent streses at each node
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             int Id = (*it).Id();
             const Vector& r_nodal_stress = pNodeStressesVector[Id - 1].EffectiveStressVector;
 
@@ -115,13 +115,13 @@ class StressToNodesProcess : public Process
 
         // Loop to compute the max eq. stress to normalize the inidicator
         double max_equivalent_stress = 0.0;
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             const double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
             if (norm > max_equivalent_stress)
                 max_equivalent_stress = norm;
         }
 
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
             int Id = (*it).Id();
             double nodal_damage = pNodeStressesVector[Id - 1].Damage;
@@ -152,7 +152,7 @@ class StressToNodesProcess : public Process
         int aux = 0;
         int id;
 
-        for (ModelPart::NodeIterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); ++it) {
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
             id = (*it).Id();
             if (id > aux)
                 aux = id;
@@ -162,7 +162,7 @@ class StressToNodesProcess : public Process
 
   protected:
     // Member Variables
-    ModelPart& mr_model_part;
+    ModelPart& mrModelPart;
     unsigned int mNNodes, mNElements, mDimension;
 
 }; // Class StressToNodesProcess
