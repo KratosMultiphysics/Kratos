@@ -20,7 +20,6 @@ class TestVariables(KratosUnittest.TestCase):
         NEW_DOUBLE_VECTOR_VARIABLE = KratosMultiphysics.VectorVariable("NEW_DOUBLE_VECTOR_VARIABLE")
         NEW_VARIABLE = KratosMultiphysics.Array1DVariable3("NEW_VARIABLE")
 
-
     def test_CreateDuplicateVariableFail(self):
         #This test is to show that the test should not fail when creating a variable with same name.
         NEW_STRING_VARIABLE_TWO = KratosMultiphysics.StringVariable("NEW_STRING_VARIABLE_TWO")
@@ -31,6 +30,18 @@ class TestVariables(KratosUnittest.TestCase):
         NEW_DOUBLE_VECTOR_VARIABLE_TWO = KratosMultiphysics.Array1DVariable3("NEW_DOUBLE_VECTOR_VARIABLE_TWO")
         NEW_DOUBLE_VECTOR_VARIABLE_TWO_X = KratosMultiphysics.Array1DComponentVariable("NEW_DOUBLE_VECTOR_VARIABLE_TWO_X", "NEW_DOUBLE_VECTOR_VARIABLE_TWO", 0)
 
+    def test_CreateNodesWithCreatedVariable(self):
+        #This test is to show that the test should not fail when using new variables in a ModelPart
+        current_model = KratosMultiphysics.Model()
+        model_part = current_model.CreateModelPart("for_test")
+
+        new_variable = KratosMultiphysics.DoubleVariable("NEW_DOUBLE_VARIABLE")
+
+        model_part.AddNodalSolutionStepVariable(new_variable)
+
+        new_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+
+        new_node.SetSolutionStepValue(new_variable, 0, 1.5)
 
 
 if __name__ == '__main__':
