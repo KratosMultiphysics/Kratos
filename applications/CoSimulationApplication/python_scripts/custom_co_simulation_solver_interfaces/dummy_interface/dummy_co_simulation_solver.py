@@ -1,6 +1,6 @@
 # co simulation imports
-from base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
-import co_simulation_tools as tools
+from ... base_co_simulation_classes.co_simulation_base_solver import CoSimulationBaseSolver
+from ... import co_simulation_tools as tools
 data_structure = tools.cs_data_structure
 import random
 
