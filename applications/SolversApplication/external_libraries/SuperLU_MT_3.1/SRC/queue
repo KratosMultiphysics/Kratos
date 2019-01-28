@@ -1,0 +1,70 @@
+pcgstrf_scheduler.c:		if ( taskq->count <= 0 ) {
+pcgstrf_scheduler.c:		    jcol = taskq->queue[taskq->head++];
+pcgstrf_scheduler.c:		    --taskq->count;
+pcgstrf_scheduler.c:	    if ( taskq->count <= 0 ) {
+pcgstrf_scheduler.c:		jcol = taskq->queue[taskq->head++];
+pcgstrf_scheduler.c:		--taskq->count;
+pcgstrf_scheduler.c:	    *bcol = taskq->queue[taskq->head++];
+pcgstrf_scheduler.c:	    --taskq->count;
+pcgstrf_scheduler.c:		taskq->queue[taskq->tail++] = dad;
+pcgstrf_scheduler.c:		++taskq->count;
+pcgstrf_scheduler.c:	    taskq->queue[taskq->tail++] = dad;
+pcgstrf_scheduler.c:	    ++taskq->count;
+pcgstrf_scheduler.c:    *cur_pan = taskq->queue[taskq->head++];
+pcgstrf_scheduler.c:    --taskq->count;
+pdgstrf_scheduler.c:		if ( taskq->count <= 0 ) {
+pdgstrf_scheduler.c:		    jcol = taskq->queue[taskq->head++];
+pdgstrf_scheduler.c:		    --taskq->count;
+pdgstrf_scheduler.c:	    if ( taskq->count <= 0 ) {
+pdgstrf_scheduler.c:		jcol = taskq->queue[taskq->head++];
+pdgstrf_scheduler.c:		--taskq->count;
+pdgstrf_scheduler.c:	    *bcol = taskq->queue[taskq->head++];
+pdgstrf_scheduler.c:	    --taskq->count;
+pdgstrf_scheduler.c:		taskq->queue[taskq->tail++] = dad;
+pdgstrf_scheduler.c:		++taskq->count;
+pdgstrf_scheduler.c:	    taskq->queue[taskq->tail++] = dad;
+pdgstrf_scheduler.c:	    ++taskq->count;
+pdgstrf_scheduler.c:    *cur_pan = taskq->queue[taskq->head++];
+pdgstrf_scheduler.c:    --taskq->count;
+psgstrf_scheduler.c:		if ( taskq->count <= 0 ) {
+psgstrf_scheduler.c:		    jcol = taskq->queue[taskq->head++];
+psgstrf_scheduler.c:		    --taskq->count;
+psgstrf_scheduler.c:	    if ( taskq->count <= 0 ) {
+psgstrf_scheduler.c:		jcol = taskq->queue[taskq->head++];
+psgstrf_scheduler.c:		--taskq->count;
+psgstrf_scheduler.c:	    *bcol = taskq->queue[taskq->head++];
+psgstrf_scheduler.c:	    --taskq->count;
+psgstrf_scheduler.c:		taskq->queue[taskq->tail++] = dad;
+psgstrf_scheduler.c:		++taskq->count;
+psgstrf_scheduler.c:	    taskq->queue[taskq->tail++] = dad;
+psgstrf_scheduler.c:	    ++taskq->count;
+psgstrf_scheduler.c:    *cur_pan = taskq->queue[taskq->head++];
+psgstrf_scheduler.c:    --taskq->count;
+pxgstrf_scheduler.c:		if ( taskq->count <= 0 ) {
+pxgstrf_scheduler.c:		    jcol = taskq->queue[taskq->head++];
+pxgstrf_scheduler.c:		    --taskq->count;
+pxgstrf_scheduler.c:	    if ( taskq->count <= 0 ) {
+pxgstrf_scheduler.c:		jcol = taskq->queue[taskq->head++];
+pxgstrf_scheduler.c:		--taskq->count;
+pxgstrf_scheduler.c:	    *bcol = taskq->queue[taskq->head++];
+pxgstrf_scheduler.c:	    --taskq->count;
+pxgstrf_scheduler.c:		taskq->queue[taskq->tail++] = dad;
+pxgstrf_scheduler.c:		++taskq->count;
+pxgstrf_scheduler.c:	    taskq->queue[taskq->tail++] = dad;
+pxgstrf_scheduler.c:	    ++taskq->count;
+pxgstrf_scheduler.c:    *cur_pan = taskq->queue[taskq->head++];
+pxgstrf_scheduler.c:    --taskq->count;
+pzgstrf_scheduler.c:		if ( taskq->count <= 0 ) {
+pzgstrf_scheduler.c:		    jcol = taskq->queue[taskq->head++];
+pzgstrf_scheduler.c:		    --taskq->count;
+pzgstrf_scheduler.c:	    if ( taskq->count <= 0 ) {
+pzgstrf_scheduler.c:		jcol = taskq->queue[taskq->head++];
+pzgstrf_scheduler.c:		--taskq->count;
+pzgstrf_scheduler.c:	    *bcol = taskq->queue[taskq->head++];
+pzgstrf_scheduler.c:	    --taskq->count;
+pzgstrf_scheduler.c:		taskq->queue[taskq->tail++] = dad;
+pzgstrf_scheduler.c:		++taskq->count;
+pzgstrf_scheduler.c:	    taskq->queue[taskq->tail++] = dad;
+pzgstrf_scheduler.c:	    ++taskq->count;
+pzgstrf_scheduler.c:    *cur_pan = taskq->queue[taskq->head++];
+pzgstrf_scheduler.c:    --taskq->count;

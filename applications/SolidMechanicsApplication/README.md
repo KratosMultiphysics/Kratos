@@ -13,8 +13,8 @@ This application is part of the Kratos Multiphysics Platform. Instructions on ho
 Build [Kratos](https://github.com/KratosMultiphysics/Kratos/wiki) and make sure that you put
 
 ``` cmake
+-DADD_DEPENDENT_APPLICATIONS=ON
 -DSOLID_MECHANICS_APPLICATION=ON
--DCONSTITUTIVE_MODELS_APPLICATION=ON
 ```
 
 between the compilation options, so the Solid Mechanics Application, and Constitutive Models Application are compiled.

@@ -24,14 +24,10 @@
 #include "custom_processes/assign_vector_field_to_entities_process.hpp"
 #include "custom_processes/fix_scalar_dof_process.hpp"
 #include "custom_processes/free_scalar_dof_process.hpp"
-#include "custom_processes/add_dofs_process.hpp"
 #include "custom_processes/assign_rotation_field_about_an_axis_to_nodes_process.hpp"
 #include "custom_processes/assign_torque_field_about_an_axis_to_conditions_process.hpp"
 #include "custom_processes/build_string_skin_process.hpp"
 
-
-// Solver Processes
-#include "custom_processes/solver_process.hpp"
 
 namespace Kratos
 {
@@ -66,6 +62,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
   py::class_<TransferSolvingModelPartEntitiesProcess, TransferSolvingModelPartEntitiesProcess::Pointer, Process>(m,"TransferSolvingModelPartProcess")
       .def(py::init<ModelPart&, Parameters>())
       .def(py::init<ModelPart&, Parameters& >())
+      .def("Execute", &TransferSolvingModelPartEntitiesProcess::Execute)
+      .def("ExecuteFinalizeSolutionStep", &TransferSolvingModelPartEntitiesProcess::ExecuteFinalizeSolutionStep)
       ;
 
 
@@ -122,17 +120,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       ;
 
 
-  //**********ADD DOFS PROCESS*********//
-
-  py::class_<AddDofsProcess, AddDofsProcess::Pointer, Process>(m,"AddDofsProcess")
-      .def(py::init<ModelPart&, Parameters>())
-      .def(py::init<ModelPart&, Parameters&>())
-      .def(py::init<ModelPart&, const pybind11::list&, const pybind11::list&>())
-      .def("Execute", &AddDofsProcess::Execute)
-
-      ;
-
-
   //**********ASSIGN ROTATION ABOUT AND AXIS*********//
 
   py::class_<AssignRotationAboutAnAxisToNodesProcess, AssignRotationAboutAnAxisToNodesProcess::Pointer, Process>(m,"AssignRotationAboutAnAxisToNodesProcess")
@@ -177,16 +164,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
       .def("ExecuteBeforeOutputStep", &BuildStringSkinProcess::ExecuteBeforeOutputStep)
       .def("ExecuteAfterOutputStep", &BuildStringSkinProcess::ExecuteAfterOutputStep)
       ;
-
-
-
-  //**********SOLVER PROCESS*********//
-
-  py::class_<SolverProcess, SolverProcess::Pointer, Process>(m,"SolverProcess")
-      .def(py::init<>())
-      ;
-
-
 
 }
 

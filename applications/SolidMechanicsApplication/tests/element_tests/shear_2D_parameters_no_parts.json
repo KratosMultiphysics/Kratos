@@ -9,10 +9,6 @@
                 "solution_type"      : "Quasi-static",
                 "analysis_type"      : "Non-linear",
 		"integration_method" : "Static"
-            },
-            "linear_solver_settings"    : {
-		"solver_type" : "SuperLUSolver",
-		"scaling"     : false
             }
         }
     },

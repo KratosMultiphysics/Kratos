@@ -6,6 +6,7 @@ message("**** configuring KratosPfemSolidMechanicsApplication ****")
 include(pybind11Tools)
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolversApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DelaunayMeshingApplication )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../ContactMechanicsApplication )

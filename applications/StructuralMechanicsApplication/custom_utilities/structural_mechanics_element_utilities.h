@@ -64,9 +64,16 @@ double GetRayleighBeta(
     const ProcessInfo& rCurrentProcessInfo);
 
 /**
- * @brief Method to claculate the rayleigh damping-matrix
+ * @brief Method to returns the density to be consider for the mass-matrix computation
+ * @param rElement The Element for which the mass-matrix should be computed
+ * @return The density after apply the mass factor to the element
+ */
+double GetDensityForMassMatrixComputation(const Element& rElement);
+
+/**
+ * @brief Method to calculate the rayleigh damping-matrix
  * @param rElement The Element for which the damping-matrix should be computed
- * @param rDampingMatrix The current ProcessInfo
+ * @param rDampingMatrix The damping-matrix of the element
  * @param rCurrentProcessInfo The ProcessInfo where it is specified
  * @param MatrixSize The size of the damping-matrix
  */
@@ -75,6 +82,34 @@ void CalculateRayleighDampingMatrix(
     Element::MatrixType& rDampingMatrix,
     /*const*/ ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize);
+
+/**
+ * @brief This function calculates the reference length for 2D2N elements
+ * @param rElement The Element for which the reference length should be computed
+ * @return reference length
+ */
+double CalculateReferenceLength2D2N(const Element& rElement);
+
+/**
+ * @brief This function calculates the current length for 2D2N elements
+ * @param rElement The Element for which the current length should be computed
+ * @return current length
+ */
+double CalculateCurrentLength2D2N(const Element& rElement);
+
+/**
+ * @brief This function calculates the reference length for 3D2N elements
+ * @param rElement The Element for which the reference length should be computed
+ * @return reference length
+ */
+double CalculateReferenceLength3D2N(const Element& rElement);
+
+/**
+ * @brief This function calculates the current length for 3D2N elements
+ * @param rElement The Element for which the current length should be computed
+ * @return current length
+ */
+double CalculateCurrentLength3D2N(const Element& rElement);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

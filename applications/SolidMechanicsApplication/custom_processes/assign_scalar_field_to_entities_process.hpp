@@ -57,7 +57,8 @@ public:
                 "variable_name": "VARIABLE_NAME",
                 "entity_type": "NODES",
                 "local_axes" : {},
-                "compound_assignment": "direct"
+                "compound_assignment": "direct",
+                "flags_list": []
             }  )" );
 
 
@@ -144,6 +145,11 @@ public:
         }
 
         this->SetAssignmentType(rParameters["compound_assignment"].GetString(), mAssignment);
+
+        for(unsigned int i=0; i<rParameters["flags_list"].size(); ++i)
+        {
+          mflags_list.push_back(KratosComponents< Flags >::Get( rParameters["flags_list"][i].GetString() ));
+        }
 
         KRATOS_CATCH("")
     }
@@ -495,7 +501,8 @@ protected:
 
 		this->CallFunction(*(it.base()), rTime, Value);
 
-		(this->*AssignmentMethod)(*it, rVariable, Value);
+    if (this->MatchTransferFlags(*(it.base())))
+		  (this->*AssignmentMethod)(*it, rVariable, Value);
             }
         }
 
@@ -526,7 +533,8 @@ protected:
 
             this->CallFunction(*(it.base()), rTime, Value);
 
-            (this->*AssignmentMethod)(*it, rVariable, Value);
+            if (this->MatchTransferFlags(*(it.base())))
+              (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 
@@ -553,7 +561,8 @@ protected:
           {
             ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-            (this->*AssignmentMethod)(*it, rVariable, Value);
+            if (this->MatchTransferFlags(*(it.base())))
+              (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 
@@ -586,7 +595,8 @@ protected:
 
             this->CallFunction(*(it.base()), rTime, Value);
 
-            (this->*AssignmentMethod)(*it, rVariable, Value);
+            if (this->MatchTransferFlags(*(it.base())))
+              (this->*AssignmentMethod)(*it, rVariable, Value);
           }
         }
 

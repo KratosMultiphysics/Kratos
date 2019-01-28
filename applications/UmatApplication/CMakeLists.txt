@@ -12,6 +12,9 @@ if(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
     message(SEND_ERROR "The ConsitutiveModels Application must be compiled before this one. Set CONSTITUTIVE_MODELS_APPLICATION=ON in the configure file.")
 endif(NOT (${CONSTITUTIVE_MODELS_APPLICATION} MATCHES "ON"))
 
+# Enable Fortran compilation
+enable_language(Fortran)
+
 # Generate variables with the sources
 set( KRATOS_UMAT_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/umat_application.cpp

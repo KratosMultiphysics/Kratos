@@ -35,7 +35,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToNodes(const TVarType& r
     {
       ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-      (this->*AssignmentMethod)(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        (this->*AssignmentMethod)(*it, rVariable, value);
     }
   }
 
@@ -59,7 +60,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToConditions(const TVarTy
     {
       ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-      (this->*AssignmentMethod)(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        (this->*AssignmentMethod)(*it, rVariable, value);
     }
   }
 }
@@ -82,7 +84,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToElements(const TVarType
     {
       ModelPart::ElementsContainerType::iterator it = it_begin + i;
 
-      (this->*AssignmentMethod)(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        (this->*AssignmentMethod)(*it, rVariable, value);
     }
   }
 }
@@ -102,7 +105,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToNodes<Variable<bool>, b
     {
       ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-      this->DirectAssignValue(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        this->DirectAssignValue(*it, rVariable, value);
     }
   }
 }
@@ -121,7 +125,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToConditions<Variable<boo
     {
       ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-      this->DirectAssignValue(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        this->DirectAssignValue(*it, rVariable, value);
     }
   }
 }
@@ -140,7 +145,8 @@ void AssignScalarVariableToEntitiesProcess::AssignValueToElements<Variable<bool>
     {
       ModelPart::ElementsContainerType::iterator it = it_begin + i;
 
-      this->DirectAssignValue(*it, rVariable, value);
+      if (this->MatchTransferFlags(*(it.base())))
+        this->DirectAssignValue(*it, rVariable, value);
     }
   }
 }

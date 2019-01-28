@@ -2,9 +2,6 @@
 import sys
 
 import KratosMultiphysics
-import KratosMultiphysics.ConstitutiveModelsApplication
-import KratosMultiphysics.SolidMechanicsApplication
-import KratosMultiphysics.DelaunayMeshingApplication
 import KratosMultiphysics.PfemApplication
 
 # Import Kratos "wrapper" for unittests

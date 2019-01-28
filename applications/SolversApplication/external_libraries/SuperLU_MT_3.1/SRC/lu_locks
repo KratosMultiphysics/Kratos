@@ -1,0 +1,442 @@
+pcgstrf_column_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;   /* modified */
+pcgstrf_column_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pcgstrf_column_dfs.c:	nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK], 
+pcgstrf_copy_to_ucol.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pcgstrf_factor_snode.c:    GlobalLU_t   *Glu = pxgstrf_shared->Glu;
+pcgstrf_factor_snode.c:    kcol = jcol + pxgstrf_shared->pan_status[jcol].size;
+pcgstrf_factor_snode.c:			   Glu, pxgstrf_shared->Gstat);
+pcgstrf_factor_snode.c:			  Glu, pxgstrf_shared->Gstat)) )
+pcgstrf_panel_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;  /* modified */
+pcgstrf_panel_bmod.c:    Gstat_t *Gstat = pxgstrf_shared->Gstat; /* modified */
+pcgstrf_panel_bmod.c:	if ( pxgstrf_shared->spin_locks[kcol] ) {
+pcgstrf_panel_bmod.c:	    await( &pxgstrf_shared->spin_locks[kcol] );
+pcgstrf_panel_bmod.c:	    if ( pxgstrf_shared->spin_locks[kcol] ) {
+pcgstrf_panel_bmod.c:		await ( &pxgstrf_shared->spin_locks[kcol] );
+pcgstrf_panel_bmod.c:	kid = (pxgstrf_shared->pan_status[krep].size > 0) ?
+pcgstrf_panel_bmod.c:	       krep : (krep + pxgstrf_shared->pan_status[krep].size);
+pcgstrf_panel_bmod.c:	    kid = (pxgstrf_shared->pan_status[j].size > 0) ? 
+pcgstrf_panel_bmod.c:			j : (j + pxgstrf_shared->pan_status[j].size);
+pcgstrf_snode_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pcgstrf_snode_dfs.c:    nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK],
+pcgstrf_synch.c:    int      *panel_histo = pxgstrf_shared->Gstat->panel_histo;
+pcgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) 
+pcgstrf_synch.c:	mutex_init(&pxgstrf_shared->lu_locks[i], sync_type, 0);
+pcgstrf_synch.c:    pxgstrf_shared->lu_locks = (pthread_mutex_t *) 
+pcgstrf_synch.c:	pthread_mutex_init(&pxgstrf_shared->lu_locks[i], NULL);
+pcgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) SUPERLU_MALLOC(NO_GLU_LOCKS * sizeof(mutex_t));
+pcgstrf_synch.c:    pxgstrf_shared->spin_locks = intCalloc(n);
+pcgstrf_synch.c:    pxgstrf_shared->pan_status = 
+pcgstrf_synch.c:    pxgstrf_shared->fb_cols    = intMalloc(n+1);
+pcgstrf_synch.c:    pxgstrf_shared->num_splits = 0;
+pcgstrf_synch.c:    if ( (info = queue_init(&pxgstrf_shared->taskq, n)) ) {
+pcgstrf_synch.c:    for (i = 0; i <= n; ++i) pxgstrf_shared->pan_status[i].ukids = 0;
+pcgstrf_synch.c:	++pxgstrf_shared->pan_status[dad].ukids;
+pcgstrf_synch.c:    pxgstrf_shared->tasks_remain = 0;
+pcgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = CANGO;
+pcgstrf_synch.c:	    	++pxgstrf_shared->num_splits;
+pcgstrf_synch.c:		if ( pxgstrf_shared->pan_status[j].ukids > 1 ) break;
+pcgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = UNREADY;
+pcgstrf_synch.c:	    ++pxgstrf_shared->tasks_remain;
+pcgstrf_synch.c:	    pxgstrf_shared->pan_status[j].size = k--;
+pcgstrf_synch.c:	    pxgstrf_shared->pan_status[j].type = panel_type;
+pcgstrf_synch.c:	    ukids += pxgstrf_shared->pan_status[j].ukids;
+pcgstrf_synch.c:	pxgstrf_shared->pan_status[i].size = w; /* leading column */
+pcgstrf_synch.c:	pxgstrf_shared->pan_status[i].ukids = ukids - (w-1);
+pcgstrf_synch.c:	pxgstrf_shared->fb_cols[i] = i;
+pcgstrf_synch.c:    pxgstrf_shared->pan_status[n].size = 1;
+pcgstrf_synch.c:    pxgstrf_shared->pan_status[n].state = UNREADY;
+pcgstrf_synch.c:    printf(".. Split: P %d, #nondomain panels %d\n", P, pxgstrf_shared->tasks_remain);
+pcgstrf_synch.c:    EnqueueDomains(&pxgstrf_shared->taskq, list_head, pxgstrf_shared);
+pcgstrf_synch.c:    EnqueueRelaxSnode(&pxgstrf_shared->taskq, n, pxgstrf_relax, pxgstrf_shared);
+pcgstrf_synch.c:    printf(".. # tasks %d\n", pxgstrf_shared->tasks_remain);
+pcgstrf_thread.c:    int         *inv_perm_c= pxgstrf_shared->inv_perm_c;
+pcgstrf_thread.c:    int         *inv_perm_r= pxgstrf_shared->inv_perm_r;
+pcgstrf_thread.c:    int	        *xprune    = pxgstrf_shared->xprune;
+pcgstrf_thread.c:    int	        *ispruned  = pxgstrf_shared->ispruned;
+pcgstrf_thread.c:    SuperMatrix *A         = pxgstrf_shared->A;
+pcgstrf_thread.c:    GlobalLU_t  *Glu       = pxgstrf_shared->Glu;
+pcgstrf_thread.c:    Gstat_t 	*Gstat     = pxgstrf_shared->Gstat;
+pcgstrf_thread.c:    while ( pxgstrf_shared->tasks_remain > 0 ) {
+pcgstrf_thread.c:	       pnum, jcol, bcol, pxgstrf_shared->tasks_remain);
+pcgstrf_thread.c:	    w = pxgstrf_shared->pan_status[jcol].size;
+pcgstrf_thread.c:		   pxgstrf_shared->tasks_remain);
+pcgstrf_thread.c:	    if ( pxgstrf_shared->pan_status[jcol].type == RELAXED_SNODE ) {
+pcgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pcgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pcgstrf_thread_finalize.c:    Glu = pxgstrf_shared->Glu;
+pcgstrf_thread_finalize.c:    countnz(n, pxgstrf_shared->xprune, &nnzL, &nnzU, Glu);
+pcgstrf_thread_finalize.c:    compressSUP(n, pxgstrf_shared->Glu);
+pcgstrf_thread_finalize.c:    *pxgstrf_shared->info = iinfo;
+pcgstrf_thread_finalize.c:    QueryQueue(&pxgstrf_shared->taskq);
+pcgstrf_thread_finalize.c:    PrintGLGU(n, pxgstrf_shared->xprune, Glu);
+pcgstrf_thread_finalize.c:    PrintInt10("inv_perm_r", n, pxgstrf_shared->inv_perm_r);
+pcgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_r);
+pcgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_c);
+pcgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->xprune);
+pcgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->ispruned);
+pcgstrf_thread_init.c:    pxgstrf_shared->inv_perm_r   = inv_perm_r;
+pcgstrf_thread_init.c:    pxgstrf_shared->inv_perm_c   = inv_perm_c;
+pcgstrf_thread_init.c:    pxgstrf_shared->xprune       = xprune;
+pcgstrf_thread_init.c:    pxgstrf_shared->ispruned     = ispruned;
+pcgstrf_thread_init.c:    pxgstrf_shared->A            = A;
+pcgstrf_thread_init.c:    pxgstrf_shared->Glu          = &Glu;
+pcgstrf_thread_init.c:    pxgstrf_shared->Gstat        = Gstat;
+pcgstrf_thread_init.c:    pxgstrf_shared->info         = info;
+pcsp_defs.h:#define STATE(j)        ( pxgstrf_shared->pan_status[j].state )
+pcsp_defs.h:#define DADPANEL(j)     ( etree[j + pxgstrf_shared->pan_status[j].size-1] )
+pdgstrf_column_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;   /* modified */
+pdgstrf_column_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pdgstrf_column_dfs.c:	nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK], 
+pdgstrf_copy_to_ucol.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pdgstrf_factor_snode.c:    GlobalLU_t   *Glu = pxgstrf_shared->Glu;
+pdgstrf_factor_snode.c:    kcol = jcol + pxgstrf_shared->pan_status[jcol].size;
+pdgstrf_factor_snode.c:			   Glu, pxgstrf_shared->Gstat);
+pdgstrf_factor_snode.c:			  Glu, pxgstrf_shared->Gstat)) )
+pdgstrf_panel_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;  /* modified */
+pdgstrf_panel_bmod.c:    Gstat_t *Gstat = pxgstrf_shared->Gstat; /* modified */
+pdgstrf_panel_bmod.c:	if ( pxgstrf_shared->spin_locks[kcol] ) {
+pdgstrf_panel_bmod.c:	    await( &pxgstrf_shared->spin_locks[kcol] );
+pdgstrf_panel_bmod.c:	    if ( pxgstrf_shared->spin_locks[kcol] ) {
+pdgstrf_panel_bmod.c:		await ( &pxgstrf_shared->spin_locks[kcol] );
+pdgstrf_panel_bmod.c:	kid = (pxgstrf_shared->pan_status[krep].size > 0) ?
+pdgstrf_panel_bmod.c:	       krep : (krep + pxgstrf_shared->pan_status[krep].size);
+pdgstrf_panel_bmod.c:	    kid = (pxgstrf_shared->pan_status[j].size > 0) ? 
+pdgstrf_panel_bmod.c:			j : (j + pxgstrf_shared->pan_status[j].size);
+pdgstrf_snode_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pdgstrf_snode_dfs.c:    nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK],
+pdgstrf_synch.c:    int      *panel_histo = pxgstrf_shared->Gstat->panel_histo;
+pdgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) 
+pdgstrf_synch.c:	mutex_init(&pxgstrf_shared->lu_locks[i], sync_type, 0);
+pdgstrf_synch.c:    pxgstrf_shared->lu_locks = (pthread_mutex_t *) 
+pdgstrf_synch.c:	pthread_mutex_init(&pxgstrf_shared->lu_locks[i], NULL);
+pdgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) SUPERLU_MALLOC(NO_GLU_LOCKS * sizeof(mutex_t));
+pdgstrf_synch.c:    pxgstrf_shared->spin_locks = intCalloc(n);
+pdgstrf_synch.c:    pxgstrf_shared->pan_status = 
+pdgstrf_synch.c:    pxgstrf_shared->fb_cols    = intMalloc(n+1);
+pdgstrf_synch.c:    pxgstrf_shared->num_splits = 0;
+pdgstrf_synch.c:    if ( (info = queue_init(&pxgstrf_shared->taskq, n)) ) {
+pdgstrf_synch.c:    for (i = 0; i <= n; ++i) pxgstrf_shared->pan_status[i].ukids = 0;
+pdgstrf_synch.c:	++pxgstrf_shared->pan_status[dad].ukids;
+pdgstrf_synch.c:    pxgstrf_shared->tasks_remain = 0;
+pdgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = CANGO;
+pdgstrf_synch.c:	    	++pxgstrf_shared->num_splits;
+pdgstrf_synch.c:		if ( pxgstrf_shared->pan_status[j].ukids > 1 ) break;
+pdgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = UNREADY;
+pdgstrf_synch.c:	    ++pxgstrf_shared->tasks_remain;
+pdgstrf_synch.c:	    pxgstrf_shared->pan_status[j].size = k--;
+pdgstrf_synch.c:	    pxgstrf_shared->pan_status[j].type = panel_type;
+pdgstrf_synch.c:	    ukids += pxgstrf_shared->pan_status[j].ukids;
+pdgstrf_synch.c:	pxgstrf_shared->pan_status[i].size = w; /* leading column */
+pdgstrf_synch.c:	pxgstrf_shared->pan_status[i].ukids = ukids - (w-1);
+pdgstrf_synch.c:	pxgstrf_shared->fb_cols[i] = i;
+pdgstrf_synch.c:    pxgstrf_shared->pan_status[n].size = 1;
+pdgstrf_synch.c:    pxgstrf_shared->pan_status[n].state = UNREADY;
+pdgstrf_synch.c:    printf(".. Split: P %d, #nondomain panels %d\n", P, pxgstrf_shared->tasks_remain);
+pdgstrf_synch.c:    EnqueueDomains(&pxgstrf_shared->taskq, list_head, pxgstrf_shared);
+pdgstrf_synch.c:    EnqueueRelaxSnode(&pxgstrf_shared->taskq, n, pxgstrf_relax, pxgstrf_shared);
+pdgstrf_synch.c:    printf(".. # tasks %d\n", pxgstrf_shared->tasks_remain);
+pdgstrf_thread.c:    int         *inv_perm_c= pxgstrf_shared->inv_perm_c;
+pdgstrf_thread.c:    int         *inv_perm_r= pxgstrf_shared->inv_perm_r;
+pdgstrf_thread.c:    int	        *xprune    = pxgstrf_shared->xprune;
+pdgstrf_thread.c:    int	        *ispruned  = pxgstrf_shared->ispruned;
+pdgstrf_thread.c:    SuperMatrix *A         = pxgstrf_shared->A;
+pdgstrf_thread.c:    GlobalLU_t  *Glu       = pxgstrf_shared->Glu;
+pdgstrf_thread.c:    Gstat_t 	*Gstat     = pxgstrf_shared->Gstat;
+pdgstrf_thread.c:    while ( pxgstrf_shared->tasks_remain > 0 ) {
+pdgstrf_thread.c:	       pnum, jcol, bcol, pxgstrf_shared->tasks_remain);
+pdgstrf_thread.c:	    w = pxgstrf_shared->pan_status[jcol].size;
+pdgstrf_thread.c:		   pxgstrf_shared->tasks_remain);
+pdgstrf_thread.c:	    if ( pxgstrf_shared->pan_status[jcol].type == RELAXED_SNODE ) {
+pdgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pdgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pdgstrf_thread_finalize.c:    Glu = pxgstrf_shared->Glu;
+pdgstrf_thread_finalize.c:    countnz(n, pxgstrf_shared->xprune, &nnzL, &nnzU, Glu);
+pdgstrf_thread_finalize.c:    compressSUP(n, pxgstrf_shared->Glu);
+pdgstrf_thread_finalize.c:    *pxgstrf_shared->info = iinfo;
+pdgstrf_thread_finalize.c:    QueryQueue(&pxgstrf_shared->taskq);
+pdgstrf_thread_finalize.c:    PrintGLGU(n, pxgstrf_shared->xprune, Glu);
+pdgstrf_thread_finalize.c:    PrintInt10("inv_perm_r", n, pxgstrf_shared->inv_perm_r);
+pdgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_r);
+pdgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_c);
+pdgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->xprune);
+pdgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->ispruned);
+pdgstrf_thread_init.c:    pxgstrf_shared->inv_perm_r   = inv_perm_r;
+pdgstrf_thread_init.c:    pxgstrf_shared->inv_perm_c   = inv_perm_c;
+pdgstrf_thread_init.c:    pxgstrf_shared->xprune       = xprune;
+pdgstrf_thread_init.c:    pxgstrf_shared->ispruned     = ispruned;
+pdgstrf_thread_init.c:    pxgstrf_shared->A            = A;
+pdgstrf_thread_init.c:    pxgstrf_shared->Glu          = &Glu;
+pdgstrf_thread_init.c:    pxgstrf_shared->Gstat        = Gstat;
+pdgstrf_thread_init.c:    pxgstrf_shared->info         = info;
+pdsp_defs.h:#define STATE(j)        ( pxgstrf_shared->pan_status[j].state )
+pdsp_defs.h:#define DADPANEL(j)     ( etree[j + pxgstrf_shared->pan_status[j].size-1] )
+pmemory.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pmemory.c:	mutex_lock( &pxgstrf_shared->lu_locks[ULOCK] );
+pmemory.c:	pthread_mutex_lock( &pxgstrf_shared->lu_locks[ULOCK] );
+pmemory.c:#pragma critical lock( pxgstrf_shared->lu_locks[ULOCK] )
+pmemory.c:	mutex_unlock( &pxgstrf_shared->lu_locks[ULOCK] );
+pmemory.c:	pthread_mutex_unlock( &pxgstrf_shared->lu_locks[ULOCK] );
+pmemory.c:	mutex_lock( &pxgstrf_shared->lu_locks[LLOCK] );
+pmemory.c:	pthread_mutex_lock( &pxgstrf_shared->lu_locks[LLOCK] );
+pmemory.c:#pragma critical lock( pxgstrf_shared->lu_locks[LLOCK] )
+pmemory.c:	mutex_unlock( &pxgstrf_shared->lu_locks[LLOCK] );
+pmemory.c:	pthread_mutex_unlock( &pxgstrf_shared->lu_locks[LLOCK]);
+pmemory.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pmemory.c:    mutex_lock( &pxgstrf_shared->lu_locks[LULOCK] );
+pmemory.c:    pthread_mutex_lock( &pxgstrf_shared->lu_locks[LULOCK] );
+pmemory.c:#pragma critical lock ( pxgstrf_shared->lu_locks[LULOCK] )
+pmemory.c:    mutex_unlock( &pxgstrf_shared->lu_locks[LULOCK] );
+pmemory.c:    pthread_mutex_unlock( &pxgstrf_shared->lu_locks[LULOCK] );
+psgstrf_column_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;   /* modified */
+psgstrf_column_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+psgstrf_column_dfs.c:	nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK], 
+psgstrf_copy_to_ucol.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+psgstrf_factor_snode.c:    GlobalLU_t   *Glu = pxgstrf_shared->Glu;
+psgstrf_factor_snode.c:    kcol = jcol + pxgstrf_shared->pan_status[jcol].size;
+psgstrf_factor_snode.c:			   Glu, pxgstrf_shared->Gstat);
+psgstrf_factor_snode.c:			  Glu, pxgstrf_shared->Gstat)) )
+psgstrf_panel_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;  /* modified */
+psgstrf_panel_bmod.c:    Gstat_t *Gstat = pxgstrf_shared->Gstat; /* modified */
+psgstrf_panel_bmod.c:	if ( pxgstrf_shared->spin_locks[kcol] ) {
+psgstrf_panel_bmod.c:	    await( &pxgstrf_shared->spin_locks[kcol] );
+psgstrf_panel_bmod.c:	    if ( pxgstrf_shared->spin_locks[kcol] ) {
+psgstrf_panel_bmod.c:		await ( &pxgstrf_shared->spin_locks[kcol] );
+psgstrf_panel_bmod.c:	kid = (pxgstrf_shared->pan_status[krep].size > 0) ?
+psgstrf_panel_bmod.c:	       krep : (krep + pxgstrf_shared->pan_status[krep].size);
+psgstrf_panel_bmod.c:	    kid = (pxgstrf_shared->pan_status[j].size > 0) ? 
+psgstrf_panel_bmod.c:			j : (j + pxgstrf_shared->pan_status[j].size);
+psgstrf_snode_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+psgstrf_snode_dfs.c:    nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK],
+psgstrf_synch.c:    int      *panel_histo = pxgstrf_shared->Gstat->panel_histo;
+psgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) 
+psgstrf_synch.c:	mutex_init(&pxgstrf_shared->lu_locks[i], sync_type, 0);
+psgstrf_synch.c:    pxgstrf_shared->lu_locks = (pthread_mutex_t *) 
+psgstrf_synch.c:	pthread_mutex_init(&pxgstrf_shared->lu_locks[i], NULL);
+psgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) SUPERLU_MALLOC(NO_GLU_LOCKS * sizeof(mutex_t));
+psgstrf_synch.c:    pxgstrf_shared->spin_locks = intCalloc(n);
+psgstrf_synch.c:    pxgstrf_shared->pan_status = 
+psgstrf_synch.c:    pxgstrf_shared->fb_cols    = intMalloc(n+1);
+psgstrf_synch.c:    pxgstrf_shared->num_splits = 0;
+psgstrf_synch.c:    if ( (info = queue_init(&pxgstrf_shared->taskq, n)) ) {
+psgstrf_synch.c:    for (i = 0; i <= n; ++i) pxgstrf_shared->pan_status[i].ukids = 0;
+psgstrf_synch.c:	++pxgstrf_shared->pan_status[dad].ukids;
+psgstrf_synch.c:    pxgstrf_shared->tasks_remain = 0;
+psgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = CANGO;
+psgstrf_synch.c:	    	++pxgstrf_shared->num_splits;
+psgstrf_synch.c:		if ( pxgstrf_shared->pan_status[j].ukids > 1 ) break;
+psgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = UNREADY;
+psgstrf_synch.c:	    ++pxgstrf_shared->tasks_remain;
+psgstrf_synch.c:	    pxgstrf_shared->pan_status[j].size = k--;
+psgstrf_synch.c:	    pxgstrf_shared->pan_status[j].type = panel_type;
+psgstrf_synch.c:	    ukids += pxgstrf_shared->pan_status[j].ukids;
+psgstrf_synch.c:	pxgstrf_shared->pan_status[i].size = w; /* leading column */
+psgstrf_synch.c:	pxgstrf_shared->pan_status[i].ukids = ukids - (w-1);
+psgstrf_synch.c:	pxgstrf_shared->fb_cols[i] = i;
+psgstrf_synch.c:    pxgstrf_shared->pan_status[n].size = 1;
+psgstrf_synch.c:    pxgstrf_shared->pan_status[n].state = UNREADY;
+psgstrf_synch.c:    printf(".. Split: P %d, #nondomain panels %d\n", P, pxgstrf_shared->tasks_remain);
+psgstrf_synch.c:    EnqueueDomains(&pxgstrf_shared->taskq, list_head, pxgstrf_shared);
+psgstrf_synch.c:    EnqueueRelaxSnode(&pxgstrf_shared->taskq, n, pxgstrf_relax, pxgstrf_shared);
+psgstrf_synch.c:    printf(".. # tasks %d\n", pxgstrf_shared->tasks_remain);
+psgstrf_thread.c:    int         *inv_perm_c= pxgstrf_shared->inv_perm_c;
+psgstrf_thread.c:    int         *inv_perm_r= pxgstrf_shared->inv_perm_r;
+psgstrf_thread.c:    int	        *xprune    = pxgstrf_shared->xprune;
+psgstrf_thread.c:    int	        *ispruned  = pxgstrf_shared->ispruned;
+psgstrf_thread.c:    SuperMatrix *A         = pxgstrf_shared->A;
+psgstrf_thread.c:    GlobalLU_t  *Glu       = pxgstrf_shared->Glu;
+psgstrf_thread.c:    Gstat_t 	*Gstat     = pxgstrf_shared->Gstat;
+psgstrf_thread.c:    while ( pxgstrf_shared->tasks_remain > 0 ) {
+psgstrf_thread.c:	       pnum, jcol, bcol, pxgstrf_shared->tasks_remain);
+psgstrf_thread.c:	    w = pxgstrf_shared->pan_status[jcol].size;
+psgstrf_thread.c:		   pxgstrf_shared->tasks_remain);
+psgstrf_thread.c:	    if ( pxgstrf_shared->pan_status[jcol].type == RELAXED_SNODE ) {
+psgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+psgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+psgstrf_thread_finalize.c:    Glu = pxgstrf_shared->Glu;
+psgstrf_thread_finalize.c:    countnz(n, pxgstrf_shared->xprune, &nnzL, &nnzU, Glu);
+psgstrf_thread_finalize.c:    compressSUP(n, pxgstrf_shared->Glu);
+psgstrf_thread_finalize.c:    *pxgstrf_shared->info = iinfo;
+psgstrf_thread_finalize.c:    QueryQueue(&pxgstrf_shared->taskq);
+psgstrf_thread_finalize.c:    PrintGLGU(n, pxgstrf_shared->xprune, Glu);
+psgstrf_thread_finalize.c:    PrintInt10("inv_perm_r", n, pxgstrf_shared->inv_perm_r);
+psgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_r);
+psgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_c);
+psgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->xprune);
+psgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->ispruned);
+psgstrf_thread_init.c:    pxgstrf_shared->inv_perm_r   = inv_perm_r;
+psgstrf_thread_init.c:    pxgstrf_shared->inv_perm_c   = inv_perm_c;
+psgstrf_thread_init.c:    pxgstrf_shared->xprune       = xprune;
+psgstrf_thread_init.c:    pxgstrf_shared->ispruned     = ispruned;
+psgstrf_thread_init.c:    pxgstrf_shared->A            = A;
+psgstrf_thread_init.c:    pxgstrf_shared->Glu          = &Glu;
+psgstrf_thread_init.c:    pxgstrf_shared->Gstat        = Gstat;
+psgstrf_thread_init.c:    pxgstrf_shared->info         = info;
+pssp_defs.h:#define STATE(j)        ( pxgstrf_shared->pan_status[j].state )
+pssp_defs.h:#define DADPANEL(j)     ( etree[j + pxgstrf_shared->pan_status[j].size-1] )
+pxgstrf_mark_busy_descends.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pxgstrf_mark_busy_descends.c:	if (pxgstrf_shared->pan_status[bcol_reg].type == RELAXED_SNODE) {
+pxgstrf_mark_busy_descends.c:	    if ( pxgstrf_shared->pan_status[bcol_reg].size < 0 )
+pxgstrf_mark_busy_descends.c:	  	fsupc = bcol_reg + pxgstrf_shared->pan_status[bcol_reg].size;
+pxgstrf_mark_busy_descends.c:	    w = pxgstrf_shared->pan_status[fsupc].size;
+pxgstrf_mark_busy_descends.c:	    if ( pxgstrf_shared->spin_locks[bcol_reg] ) /* WORSE PERFORMANCE!! */
+pxgstrf_mark_busy_descends.c:		await( &pxgstrf_shared->spin_locks[bcol_reg] );
+pxgstrf_scheduler.c:    int *fb_cols = pxgstrf_shared->fb_cols;
+pxgstrf_scheduler.c:    queue_t *taskq = &pxgstrf_shared->taskq;
+pxgstrf_scheduler.c:    mutex_lock( &pxgstrf_shared->lu_locks[SCHED_LOCK] );
+pxgstrf_scheduler.c:    pthread_mutex_lock( &pxgstrf_shared->lu_locks[SCHED_LOCK] );
+pxgstrf_scheduler.c:#pragma critical lock(pxgstrf_shared->lu_locks[SCHED_LOCK])
+pxgstrf_scheduler.c:	dad_ukids = --pxgstrf_shared->pan_status[dad].ukids;
+pxgstrf_scheduler.c:	    --pxgstrf_shared->tasks_remain;
+pxgstrf_scheduler.c:	    w = pxgstrf_shared->pan_status[jcol].size;
+pxgstrf_scheduler.c:	    for (j = jcol; j < jcol+w; ++j) pxgstrf_shared->spin_locks[j] = 1;
+pxgstrf_scheduler.c:	    if ( dad < n && pxgstrf_shared->pan_status[dad].ukids == 1 ) {
+pxgstrf_scheduler.c:	   pnum, pxgstrf_shared->tasks_remain, jcol);
+pxgstrf_scheduler.c:    mutex_unlock( &pxgstrf_shared->lu_locks[SCHED_LOCK] );
+pxgstrf_scheduler.c:    pthread_mutex_unlock( &pxgstrf_shared->lu_locks[SCHED_LOCK] );
+pxgstrf_scheduler.c:	w = pxgstrf_shared->pan_status[*cur_pan].size;
+pxgstrf_scheduler.c:	dad_ukids = --pxgstrf_shared->pan_status[dad].ukids;
+pxgstrf_scheduler.c:    --pxgstrf_shared->tasks_remain;
+pxgstrf_super_bnd_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */	      
+pxgstrf_synch.c:    int      *panel_histo = pxgstrf_shared->Gstat->panel_histo;
+pxgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) 
+pxgstrf_synch.c:	mutex_init(&pxgstrf_shared->lu_locks[i], sync_type, 0);
+pxgstrf_synch.c:    pxgstrf_shared->lu_locks = (pthread_mutex_t *) 
+pxgstrf_synch.c:	pthread_mutex_init(&pxgstrf_shared->lu_locks[i], NULL);
+pxgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) SUPERLU_MALLOC(NO_GLU_LOCKS * sizeof(mutex_t));
+pxgstrf_synch.c:    pxgstrf_shared->spin_locks = intCalloc(n);
+pxgstrf_synch.c:    pxgstrf_shared->pan_status = 
+pxgstrf_synch.c:    pxgstrf_shared->fb_cols    = intMalloc(n+1);
+pxgstrf_synch.c:    pxgstrf_shared->num_splits = 0;
+pxgstrf_synch.c:    if ( (info = queue_init(&pxgstrf_shared->taskq, n)) ) {
+pxgstrf_synch.c:    for (i = 0; i <= n; ++i) pxgstrf_shared->pan_status[i].ukids = 0;
+pxgstrf_synch.c:	++pxgstrf_shared->pan_status[dad].ukids;
+pxgstrf_synch.c:    pxgstrf_shared->tasks_remain = 0;
+pxgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = CANGO;
+pxgstrf_synch.c:	    	++pxgstrf_shared->num_splits;
+pxgstrf_synch.c:		if ( pxgstrf_shared->pan_status[j].ukids > 1 ) break;
+pxgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = UNREADY;
+pxgstrf_synch.c:	    ++pxgstrf_shared->tasks_remain;
+pxgstrf_synch.c:	    pxgstrf_shared->pan_status[j].size = k--;
+pxgstrf_synch.c:	    pxgstrf_shared->pan_status[j].type = panel_type;
+pxgstrf_synch.c:	    ukids += pxgstrf_shared->pan_status[j].ukids;
+pxgstrf_synch.c:	pxgstrf_shared->pan_status[i].size = w; /* leading column */
+pxgstrf_synch.c:	pxgstrf_shared->pan_status[i].ukids = ukids - (w-1);
+pxgstrf_synch.c:	pxgstrf_shared->fb_cols[i] = i;
+pxgstrf_synch.c:    pxgstrf_shared->pan_status[n].size = 1;
+pxgstrf_synch.c:    pxgstrf_shared->pan_status[n].state = UNREADY;
+pxgstrf_synch.c:    printf(".. Split: P %d, #nondomain panels %d\n", P, pxgstrf_shared->tasks_remain);
+pxgstrf_synch.c:    EnqueueDomains(&pxgstrf_shared->taskq, list_head, pxgstrf_shared);
+pxgstrf_synch.c:    EnqueueRelaxSnode(&pxgstrf_shared->taskq, n, pxgstrf_relax, pxgstrf_shared);
+pxgstrf_synch.c:    printf(".. # tasks %d\n", pxgstrf_shared->tasks_remain);
+pxgstrf_synch.c:        mutex_destroy( &pxgstrf_shared->lu_locks[i] );
+pxgstrf_synch.c:        pthread_mutex_destroy( &pxgstrf_shared->lu_locks[i] );
+pxgstrf_synch.c:    SUPERLU_FREE ((void*)pxgstrf_shared->lu_locks);
+pxgstrf_synch.c:    SUPERLU_FREE ((int*)pxgstrf_shared->spin_locks);
+pxgstrf_synch.c:    SUPERLU_FREE (pxgstrf_shared->pan_status);
+pxgstrf_synch.c:    SUPERLU_FREE (pxgstrf_shared->fb_cols);
+pxgstrf_synch.c:    SUPERLU_FREE (pxgstrf_shared->Glu->map_in_sup);
+pxgstrf_synch.c:    queue_destroy(&pxgstrf_shared->taskq);
+pxgstrf_synch.c:    printf(".. # panel splittings %d\n", pxgstrf_shared->num_splits);
+pxgstrf_synch.c:	++pxgstrf_shared->tasks_remain;
+pxgstrf_synch.c:	++pxgstrf_shared->tasks_remain;
+pzgstrf_column_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;   /* modified */
+pzgstrf_column_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pzgstrf_column_dfs.c:	nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK], 
+pzgstrf_copy_to_ucol.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu; /* modified */
+pzgstrf_factor_snode.c:    GlobalLU_t   *Glu = pxgstrf_shared->Glu;
+pzgstrf_factor_snode.c:    kcol = jcol + pxgstrf_shared->pan_status[jcol].size;
+pzgstrf_factor_snode.c:			   Glu, pxgstrf_shared->Gstat);
+pzgstrf_factor_snode.c:			  Glu, pxgstrf_shared->Gstat)) )
+pzgstrf_panel_bmod.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;  /* modified */
+pzgstrf_panel_bmod.c:    Gstat_t *Gstat = pxgstrf_shared->Gstat; /* modified */
+pzgstrf_panel_bmod.c:	if ( pxgstrf_shared->spin_locks[kcol] ) {
+pzgstrf_panel_bmod.c:	    await( &pxgstrf_shared->spin_locks[kcol] );
+pzgstrf_panel_bmod.c:	    if ( pxgstrf_shared->spin_locks[kcol] ) {
+pzgstrf_panel_bmod.c:		await ( &pxgstrf_shared->spin_locks[kcol] );
+pzgstrf_panel_bmod.c:	kid = (pxgstrf_shared->pan_status[krep].size > 0) ?
+pzgstrf_panel_bmod.c:	       krep : (krep + pxgstrf_shared->pan_status[krep].size);
+pzgstrf_panel_bmod.c:	    kid = (pxgstrf_shared->pan_status[j].size > 0) ? 
+pzgstrf_panel_bmod.c:			j : (j + pxgstrf_shared->pan_status[j].size);
+pzgstrf_snode_dfs.c:    GlobalLU_t *Glu = pxgstrf_shared->Glu;
+pzgstrf_snode_dfs.c:    nsuper = NewNsuper(pnum, &pxgstrf_shared->lu_locks[NSUPER_LOCK],
+pzgstrf_synch.c:    int      *panel_histo = pxgstrf_shared->Gstat->panel_histo;
+pzgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) 
+pzgstrf_synch.c:	mutex_init(&pxgstrf_shared->lu_locks[i], sync_type, 0);
+pzgstrf_synch.c:    pxgstrf_shared->lu_locks = (pthread_mutex_t *) 
+pzgstrf_synch.c:	pthread_mutex_init(&pxgstrf_shared->lu_locks[i], NULL);
+pzgstrf_synch.c:    pxgstrf_shared->lu_locks = (mutex_t *) SUPERLU_MALLOC(NO_GLU_LOCKS * sizeof(mutex_t));
+pzgstrf_synch.c:    pxgstrf_shared->spin_locks = intCalloc(n);
+pzgstrf_synch.c:    pxgstrf_shared->pan_status = 
+pzgstrf_synch.c:    pxgstrf_shared->fb_cols    = intMalloc(n+1);
+pzgstrf_synch.c:    pxgstrf_shared->num_splits = 0;
+pzgstrf_synch.c:    if ( (info = queue_init(&pxgstrf_shared->taskq, n)) ) {
+pzgstrf_synch.c:    for (i = 0; i <= n; ++i) pxgstrf_shared->pan_status[i].ukids = 0;
+pzgstrf_synch.c:	++pxgstrf_shared->pan_status[dad].ukids;
+pzgstrf_synch.c:    pxgstrf_shared->tasks_remain = 0;
+pzgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = CANGO;
+pzgstrf_synch.c:	    	++pxgstrf_shared->num_splits;
+pzgstrf_synch.c:		if ( pxgstrf_shared->pan_status[j].ukids > 1 ) break;
+pzgstrf_synch.c:	    pxgstrf_shared->pan_status[i].state = UNREADY;
+pzgstrf_synch.c:	    ++pxgstrf_shared->tasks_remain;
+pzgstrf_synch.c:	    pxgstrf_shared->pan_status[j].size = k--;
+pzgstrf_synch.c:	    pxgstrf_shared->pan_status[j].type = panel_type;
+pzgstrf_synch.c:	    ukids += pxgstrf_shared->pan_status[j].ukids;
+pzgstrf_synch.c:	pxgstrf_shared->pan_status[i].size = w; /* leading column */
+pzgstrf_synch.c:	pxgstrf_shared->pan_status[i].ukids = ukids - (w-1);
+pzgstrf_synch.c:	pxgstrf_shared->fb_cols[i] = i;
+pzgstrf_synch.c:    pxgstrf_shared->pan_status[n].size = 1;
+pzgstrf_synch.c:    pxgstrf_shared->pan_status[n].state = UNREADY;
+pzgstrf_synch.c:    printf(".. Split: P %d, #nondomain panels %d\n", P, pxgstrf_shared->tasks_remain);
+pzgstrf_synch.c:    EnqueueDomains(&pxgstrf_shared->taskq, list_head, pxgstrf_shared);
+pzgstrf_synch.c:    EnqueueRelaxSnode(&pxgstrf_shared->taskq, n, pxgstrf_relax, pxgstrf_shared);
+pzgstrf_synch.c:    printf(".. # tasks %d\n", pxgstrf_shared->tasks_remain);
+pzgstrf_thread.c:    int         *inv_perm_c= pxgstrf_shared->inv_perm_c;
+pzgstrf_thread.c:    int         *inv_perm_r= pxgstrf_shared->inv_perm_r;
+pzgstrf_thread.c:    int	        *xprune    = pxgstrf_shared->xprune;
+pzgstrf_thread.c:    int	        *ispruned  = pxgstrf_shared->ispruned;
+pzgstrf_thread.c:    SuperMatrix *A         = pxgstrf_shared->A;
+pzgstrf_thread.c:    GlobalLU_t  *Glu       = pxgstrf_shared->Glu;
+pzgstrf_thread.c:    Gstat_t 	*Gstat     = pxgstrf_shared->Gstat;
+pzgstrf_thread.c:    while ( pxgstrf_shared->tasks_remain > 0 ) {
+pzgstrf_thread.c:	       pnum, jcol, bcol, pxgstrf_shared->tasks_remain);
+pzgstrf_thread.c:	    w = pxgstrf_shared->pan_status[jcol].size;
+pzgstrf_thread.c:		   pxgstrf_shared->tasks_remain);
+pzgstrf_thread.c:	    if ( pxgstrf_shared->pan_status[jcol].type == RELAXED_SNODE ) {
+pzgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pzgstrf_thread.c:		    pxgstrf_shared->spin_locks[jj] = 0;
+pzgstrf_thread_finalize.c:    Glu = pxgstrf_shared->Glu;
+pzgstrf_thread_finalize.c:    countnz(n, pxgstrf_shared->xprune, &nnzL, &nnzU, Glu);
+pzgstrf_thread_finalize.c:    compressSUP(n, pxgstrf_shared->Glu);
+pzgstrf_thread_finalize.c:    *pxgstrf_shared->info = iinfo;
+pzgstrf_thread_finalize.c:    QueryQueue(&pxgstrf_shared->taskq);
+pzgstrf_thread_finalize.c:    PrintGLGU(n, pxgstrf_shared->xprune, Glu);
+pzgstrf_thread_finalize.c:    PrintInt10("inv_perm_r", n, pxgstrf_shared->inv_perm_r);
+pzgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_r);
+pzgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->inv_perm_c);
+pzgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->xprune);
+pzgstrf_thread_finalize.c:    SUPERLU_FREE(pxgstrf_shared->ispruned);
+pzgstrf_thread_init.c:    pxgstrf_shared->inv_perm_r   = inv_perm_r;
+pzgstrf_thread_init.c:    pxgstrf_shared->inv_perm_c   = inv_perm_c;
+pzgstrf_thread_init.c:    pxgstrf_shared->xprune       = xprune;
+pzgstrf_thread_init.c:    pxgstrf_shared->ispruned     = ispruned;
+pzgstrf_thread_init.c:    pxgstrf_shared->A            = A;
+pzgstrf_thread_init.c:    pxgstrf_shared->Glu          = &Glu;
+pzgstrf_thread_init.c:    pxgstrf_shared->Gstat        = Gstat;
+pzgstrf_thread_init.c:    pxgstrf_shared->info         = info;
+pzsp_defs.h:#define STATE(j)        ( pxgstrf_shared->pan_status[j].state )
+pzsp_defs.h:#define DADPANEL(j)     ( etree[j + pxgstrf_shared->pan_status[j].size-1] )
+util.c:    Gstat_t *Gstat = pxgstrf_shared->Gstat;
+util.c:	j = (pxgstrf_shared->pan_status[i].size > 0) ? 
+util.c:	  i : (i + pxgstrf_shared->pan_status[i].size);
+util.c:    for (i = 0; i < n; i += pxgstrf_shared->pan_status[i].size)
+util.c:        mutex_destroy( &pxgstrf_shared->lu_locks[i] );
+util.c:        pthread_mutex_destroy( &pxgstrf_shared->lu_locks[i] );
+util.c:    SUPERLU_FREE ((void*)pxgstrf_shared->lu_locks);
+util.c:    SUPERLU_FREE ((int*)pxgstrf_shared->spin_locks);
+util.c:    SUPERLU_FREE (pxgstrf_shared->pan_status);
+util.c:    SUPERLU_FREE (pxgstrf_shared->fb_cols);
+util.c:    SUPERLU_FREE (pxgstrf_shared->Glu->map_in_sup);
+util.c:    queue_destroy(&pxgstrf_shared->taskq);
+util.c:    printf(".. # panel splittings %d\n", pxgstrf_shared->num_splits);
+util.c:	++pxgstrf_shared->tasks_remain;
+util.c:	++pxgstrf_shared->tasks_remain;

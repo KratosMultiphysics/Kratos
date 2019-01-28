@@ -1,0 +1,138 @@
+include ../make.inc
+
+#######################################################################
+#  This makefile creates the example programs for the linear equation
+#  routines in SuperLU.  The files are grouped as follows:
+#
+#       SLINEXM -- Single precision real example routines
+#       DLINEXM -- Double precision real example routines
+#       CLINEXM -- Double precision complex example routines
+#       ZLINEXM -- Double precision complex example routines
+#
+#  Example programs can be generated for all or some of the four different
+#  precisions.  Enter make followed by one or more of the data types
+#  desired.  Some examples:
+#       make single
+#       make single double
+#  Alternatively, the command
+#       make
+#  without any arguments creates all four example programs.
+#  The executable files are called
+#       pslinsol	pslinsolx
+#       pdlinsol	pdlinsolx
+#       pclinsol	pclinsolx
+#       pzlinsol	pzlinsolx
+#	psrepeat	psspmd
+#	pdrepeat	pdspmd
+#	pcrepeat	pcspmd
+#	pzrepeat	pzspmd
+#
+#  To remove the object files after the executable files have been
+#  created, enter
+#       make clean
+#  On some systems, you can force the source files to be recompiled by
+#  entering (for example)
+#       make single FRC=FRC
+#
+#######################################################################
+
+HEADER   = ../SRC
+LIBS	= ../$(SUPERLULIB) $(BLASLIB) -lm
+
+SLINOBJS        = pslinsol.o
+SLINXOBJS       = pslinsolx.o
+SREPOBJS        = psrepeat.o
+SSPMDOBJS       = psspmd.o
+
+DLINOBJS        = pdlinsol.o
+DLINXOBJS       = pdlinsolx.o
+DREPOBJS        = pdrepeat.o
+DSPMDOBJS       = pdspmd.o
+
+SUPERLUEXM 	= superlu.o sp_ienv.o
+
+CLINOBJS        = pclinsol.o
+CLINXOBJS       = pclinsolx.o
+CREPOBJS        = pcrepeat.o
+CSPMDOBJS       = pcspmd.o
+
+ZLINOBJS        = pzlinsol.o
+ZLINXOBJS       = pzlinsolx.o
+ZREPOBJS        = pzrepeat.o
+ZSPMDOBJS       = pzspmd.o
+
+all:    single double complex complex16
+
+single:    slinsol slinsol1 slinsolx slinsolx1 slinsolx2
+double:    dlinsol dlinsol1 dlinsolx dlinsolx1 dlinsolx2
+complex:   clinsol clinsol1 clinsolx clinsolx1 clinsolx2
+complex16: zlinsol zlinsol1 zlinsolx zlinsolx1 zlinsolx2
+
+pslinsol: $(SLINEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(SLINEXM) $(LIBS) -o $@
+
+pslinsol1: $(SLINEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(SLINEXM1) $(LIBS) -o $@
+
+pslinsolx: $(SLINXEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(SLINXEXM) $(LIBS) -o $@
+
+pslinsolx1: $(SLINXEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(SLINXEXM1) $(LIBS) -o $@
+
+pslinsolx2: $(SLINXEXM2) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(SLINXEXM2) $(LIBS) -o $@
+
+pdlinsol: $(DLINEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(DLINEXM) $(LIBS) -o $@
+
+pdlinsol1: $(DLINEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(DLINEXM1) $(LIBS) -o $@
+
+pdlinsolx: $(DLINXEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(DLINXEXM) $(LIBS) -o $@
+
+pdlinsolx1: $(DLINXEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(DLINXEXM1) $(LIBS) -o $@
+
+pdlinsolx2: $(DLINXEXM2) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(DLINXEXM2) $(LIBS) -o $@
+
+pclinsol: $(CLINEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(CLINEXM) $(LIBS) -o $@
+
+pclinsol1: $(CLINEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(CLINEXM1) $(LIBS) -o $@
+
+pclinsolx: $(CLINXEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(CLINXEXM) $(LIBS) -o $@
+
+pclinsolx1: $(CLINXEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(CLINXEXM1) $(LIBS) -o $@
+
+pclinsolx2: $(CLINXEXM2) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(CLINXEXM2) $(LIBS) -o $@
+
+pzlinsol: $(ZLINEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(ZLINEXM) $(LIBS) -o $@
+
+pzlinsol1: $(ZLINEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(ZLINEXM1) $(LIBS) -o $@
+
+pzlinsolx: $(ZLINXEXM) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(ZLINXEXM) $(LIBS) -o $@
+
+pzlinsolx1: $(ZLINXEXM1) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(ZLINXEXM1) $(LIBS) -o $@
+
+pzlinsolx2: $(ZLINXEXM2) ../$(SUPERLULIB)
+	$(LOADER) $(LOADOPTS) $(ZLINXEXM2) $(LIBS) -o $@
+
+.c.o:
+	$(CC) $(CFLAGS) $(CDEFS) -I$(HEADER) -c $< $(VERBOSE)
+
+.f.o:
+	$(FORTRAN) $(FFLAGS) -c $< $(VERBOSE)
+
+clean:	
+	rm -f *.o *linsol *linsol1 *linsolx *linsolx1 *linsolx2 superlu

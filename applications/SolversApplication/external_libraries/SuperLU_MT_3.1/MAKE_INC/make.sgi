@@ -1,0 +1,71 @@
+############################################################################
+#
+#  Program:         SuperLU_MT
+#
+#  Module:          make.inc
+#
+#  Purpose:         Top-level Definitions
+#
+#  Creation date:   August 15, 1997
+#
+#  Modified:	    September 1, 1999 version 1.0
+#
+############################################################################
+#
+#  The machine (platform) identifier to append to the library names
+#
+PLAT = _SGI
+
+# Common Libraries
+TMGLIB       	= tmglib$(PLAT).a
+SUPERLULIB   	= libsuperlu_mt$(PLAT).a
+# BLASLIB     	= ../blas$(PLAT).a
+#
+#####################
+# OUTSTANDING ISSUE #
+#####################
+# The BLAS routine DTRSV in the vendor library has some bug
+# when solving a trsnaposed upper triangular system!
+BLASDEF		= -DUSE_VENDOR_BLAS
+BLASLIB      	= -lblas
+MATHLIB		= -lm
+#
+#  The archiver and the flag(s) to use when building archive (library)
+#  If you system has no ranlib, set RANLIB = echo.
+#
+ARCH         	= ar
+ARCHFLAGS    	= cr
+RANLIB       	= echo
+
+############################################################################
+CC	     	= cc
+#
+# Definitions used by CPP:
+PREDEFS      	= -D__SGI #-DGEMV2
+CFLAGS       	= $(PREDEFS) -O3 -mp -mips4 -64
+
+#
+# There are a few files that should NOT be optimized, which appear in the
+# end of SRC/Makefile, taking the flag $(NOOPTS)
+# NOOPTS should be defined to explicitly turn off any optimization.
+NOOPTS	     	= -O0 -mips4 -64
+
+BLASOPTS     	= -OPT:alias=restrict
+
+############################################################################
+
+FORTRAN		= f77
+FFLAGS		= -O -64
+
+############################################################################
+
+LOADER       	= cc
+LOADOPTS     	= -O -mp -mips4 -64
+PROFFLAG     	= #-p
+
+############################################################################
+#
+#  C preprocessor defs for compilation (-DNoChange, -DAdd_, or -DUpCase)
+#
+CDEFS        	= -DAdd_
+

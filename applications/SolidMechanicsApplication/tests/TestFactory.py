@@ -7,6 +7,9 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import MainSolid
 
+# Set threads
+KratosMultiphysics.OpenMPUtils().SetNumThreads(1)
+
 # This utility will control the execution scope
 class controlledExecutionScope:
     def __init__(self, scope):

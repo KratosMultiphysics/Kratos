@@ -145,7 +145,25 @@ public:
       KRATOS_CATCH("")
     }
 
+    /// this function will be executed at every time step AFTER performing the solve phase
+    void ExecuteFinalizeSolutionStep() override
+    {
+      KRATOS_TRY
 
+      ModelPart& SolvingModelPart = mrModelPart.GetSubModelPart(mSolvingModelPartName);
+
+
+      for(ModelPart::ElementsContainerType::iterator i_elem = SolvingModelPart.ElementsBegin(); i_elem != SolvingModelPart.ElementsEnd(); ++i_elem)
+      {
+        //set the element itself as pointer
+        //i_elem->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
+
+        //set the element pointer nullptr
+        i_elem->SetValue(MASTER_ELEMENT, Kratos::weak_ptr<Element>());
+      }
+
+      KRATOS_CATCH("")
+    }
     ///@}
     ///@name Access
     ///@{
@@ -416,7 +434,7 @@ private:
                 Element::Pointer pElement = i_entity->GetEntityType().Create(i_elem->Id(), i_elem->GetGeometry(), pProperties);
 
                 //set origin element as pointer
-                pElement->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
+                pElement->SetValue(MASTER_ELEMENT,*i_elem.base());
 
                 rDestinationModelPart.Elements().push_back(pElement);
               }

@@ -1,0 +1,66 @@
+############################################################################
+#
+#  Program:         SuperLU_MT
+#
+#  Module:          make.inc
+#
+#  Purpose:         Top-level Definitions
+#
+#  Creation date:   August 15, 1997
+#
+#  Modified:	    September 1, 1999 version 1.0
+#
+############################################################################
+#
+#  The machine (platform) identifier to append to the library names
+#
+PLAT = _examplar
+
+#
+#  The name of the libraries to be created/linked to
+#
+TMGLIB       	= tmglib$(PLAT).a
+SUPERLULIB   	= libsuperlu_mt$(PLAT).a
+BLASDEF	        = -DUSE_VENDOR_BLAS
+#BLASLIB     	= -Wl,-L/opt/mlib/lib/pa2.0parallel -lveclib 
+BLASLIB     	= -lveclib
+MATHLIB		= -lm 
+MPLIB		= -lpthread -lcps -lail
+
+#
+#  The archiver and the flag(s) to use when building archive (library)
+#  If your system has no ranlib, set RANLIB = echo.
+#
+ARCH          	= ar
+ARCHFLAGS     	= cr
+RANLIB       	= ranlib
+
+############################################################################
+# Definitions used by CPP:
+PREDEFS      	= -D__PTHREAD
+#
+CC           	= cc
+CFLAGS       	= $(PREDEFS) -Ae +O2 +Odataprefetch +Onolimit
+
+#
+# There are a few files that should NOT be optimized, which appear in the
+# end of SRC/Makefile, taking the flag $(NOOPTS)
+# NOOPTS should be defined to explicitly turn off any optimization.
+NOOPTS	     	=
+
+############################################################################
+
+FORTRAN		= f90
+FFLAGS		= -O
+
+############################################################################
+
+LOADER       	= f90
+LOADOPTS     	= -Wl,+tm,s2000,+parallel
+#LOADOPTS     	= -Wl,+FPD -Wl,-a,archive_shared 
+
+############################################################################
+#
+#  C preprocessor defs for compilation (-DNoChange, -DAdd_, or -DUpCase)
+#
+CDEFS        	= -DNoChange

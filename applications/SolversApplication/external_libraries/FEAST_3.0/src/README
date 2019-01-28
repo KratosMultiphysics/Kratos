@@ -1,0 +1,60 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////  The  FEAST Eigenvalue Solver     ///////////////////////////
+//////////// ///////////////////////////////////////////////////////////////////////////////
+web   : http://www.feast-solver.org  
+E-mail: feastsolver@gmail.com              
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+Compilation of the FEAST library source code:
+----------------------------------------------
+
+- In order to proceed to compilation: Edit the "make.inc" file and follow the directions to change appropriately the name/path 
+of the Fortran90 and C compilers, and/or MPI (you can also consult the documentation)
+
+- Execute: "make ARCH=<arch> LIB=<feast,pfeast> all
+ where <arch> is your selected name for your architecture; your FEAST libraries (feast or pfeast for MPI version)
+will then be created in directory $FEASTROOT/lib/<arch>
+
+
+- This directory $FEASTROOT/src contains the following directories and associated files:
+
+
+Makefile                   ! Generic Makefile
+make.inc                   ! User specification options for Makefile
+LICENSE                    ! FEAST BSD License file
+README                     ! this file
+kernel                     ! FEAST-RCI    interfaces (FEAST-kernel)
+dense                      ! FEAST-DENSE  interfaces
+banded                     ! FEAST-BANDED interfaces
+sparse                     ! FEAST-SPARSE interfaces
+
+
+******./kernel ***********
+dzfeast.f90                ! FEAST_RCI interfaces (FEAST-kernel)- double precision  
+scfeast.f90                ! FEAST_RCI interfaces (FEAST-kernel)- single precision  
+feast_tool.f90             ! Various FEAST utility routines (documented)
+feast_aux.f90              ! Various FEAST auxiliary routines (undocumented)
+f90_noruntime_interface.fi ! F90 interface wrapper to certain F90 runtime dependent intrinsic functions 
+f90_functions_wrapper.f90  ! Corresponding intrinsic functions in F90
+c_functions_wrapper.c      ! Corresponding intrinsic functions in C
+c_functions_wrapper.h      ! Header file for c_functions_wrapper.c 
+
+******./dense ************
+dzfeast_dense.f90          ! FEAST_DENSE interfaces- double precision
+scfeast_dense.f90          ! FEAST_DENSE interfaces- single precision
+f90_noruntime_interface.fi ! F90 interface wrapper to certain F90 runtime dependent intrinsic functions 
+
+****./banded ************
+dzfeast_banded.f90          ! FEAST_BANDED interfaces- double precision
+scfeast_banded.f90          ! FEAST_BANDED interfaces- single precision
+f90_noruntime_interface.fi  ! F90 interface wrapper to certain F90 runtime dependent intrinsic functions 
+./spike_smp                 ! directory - contains files of the SPIKE-SMP source code
+
+*****./sparse ************
+dzfeast_sparse.f90          ! FEAST_SPARSE interfaces- double precision
+scfeast_sparse.f90          ! FEAST_SPARSE interfaces- single precision
+f90_noruntime_interface.fi  ! F90 interface wrapper to certain F90 runtime dependent intrinsic functions 
+dzlsprim.f90                ! sparse primitives used by FEAST_SPARSE- double precision
+sclsprim.f90                ! sparse primitives used by FEAST_SPARSE- single precision
+
+

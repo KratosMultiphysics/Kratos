@@ -17,11 +17,7 @@
 	    },
 	    "convergence_criterion_settings" : {
 		"convergence_criterion" : "And_criterion"
-	    },
-            "linear_solver_settings"    : {
-		"solver_type" : "SuperLUSolver",
-		"scaling"     : false
-            }
+	    }
         }
     },
     "constraints_process_list" : [{

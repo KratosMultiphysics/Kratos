@@ -8,7 +8,6 @@ import os
 
 # Import kratos core and applications
 import KratosMultiphysics
-import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
 
@@ -351,7 +350,13 @@ class Solution(object):
         return model_manager.ModelManager(Model, self.ProjectParameters["model_settings"])
 
     def _get_solver(self):
-        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString())
+
+        if self.ProjectParameters["solver_settings"].Has("kratos_module"):
+            kratos_module = __import__(self.ProjectParameters["solver_settings"]["kratos_module"].GetString())
+        else:
+            import KratosMultiphysics.SolversApplication
+
+        solver_module = __import__(self.ProjectParameters["solver_settings"]["solver_type"].GetString().split("solid_mechanics_",1)[1])
         return solver_module.CreateSolver(self.ProjectParameters["solver_settings"]["Parameters"], self.model.GetModel())
 
     def _get_time_settings(self):

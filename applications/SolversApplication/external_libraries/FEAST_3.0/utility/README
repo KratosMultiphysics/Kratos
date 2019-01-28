@@ -1,0 +1,59 @@
+////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////  The  FEAST Eigenvalue Solver     ///////////////////////////
+//////////// ///////////////////////////////////////////////////////////////////////////////
+web   : http://www.feast-solver.org  
+E-mail: feastsolver@gmail.com              
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+FEAST UTILITY:     this directory offers a quick test on the efficiency/reliability of FEAST (and all its options) 
+                   if a sparse matrix can be provided by the user (in coordinate matrix market format)
+                   - Two general drivers "(p)driver_feast_sparse" are provided for FEAST-SMP and FEAST-MPI (SMP and MPI directories)
+    
+  !!!!Before compilation please correct accordingly f90 compiler, options and libraries paths, by editing the local "make.inc" file !!!!
+ 
+**********************************************************************           
+************** How does this work ? **********************************
+**** (look also at the FEAST documentation section FEAST applications) 
+***********************************************************************
+
+
+ As example let us denote "mytest" a generic name for the user's eigenvalue system test AX=eX or AX=eBX:
+
+                     *the file "mytest_A.mtx" must contain the matrix A in coordinate/matrix market format 
+                     *the file "mytest_B.mtx" must contain the matrix B in coordinate/matrix market  format (if B is needed)
+                     *the file "mytest.in" must contain the search interval, selected FEAST parameters, etc.                 
+  users can run: 
+                * in SMP directory:
+                                  ./driver_feast_sparse "PATH_TO_MYTEST"/mytest 
+                * in MPI directory (example):         
+                                   mpirun -ppn 1 -n 2 ./pdriver_feast_sparse "PATH_TO_MYTEST"/mytest 
+
+
+
+ *******In the directory "data", various examples are provided (look at the local README file)*******
+ 
+=================================================================================================
+
+
+ -------> Matrix market format is defined in: http://math.nist.gov/MatrixMarket/formats.html
+if m=size of square matrix, and nnz number of non-zero elements, we get:
+----------------------------------------------------------------------------------------   
+      m       m       nnz
+      .       .       .             .
+     {i}     {j}      {valj-real} {valj-img}
+      .       .       .             .
+-----------------------------------------------------------------------------------------
+
+                   
+  ------>  Via creating/editing the files: "*.in"  
+           Users can get a detailed description of the input fields,
+           and modify options for search interval, subspace sise,  and the fpm input array parameters for FEAST 
+
+           Remark: *if the UPLO parameter in the "*.in" files is set to "F" all the elements of 
+                            the matrices A, B need to be declared in the coordinate formats, 
+                   *if UPLO="L" the coordinate format may contain only the entries below the main 
+                            diagonal (diagonal included)  
+                   *if UPLO="U" the coordinate format may contain only the entries above the main 
+                            diagonal (diagonal included)  
+
+ 

@@ -128,6 +128,31 @@ TotalLagrangian::~TotalLagrangian()
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer TotalLagrangian::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    TotalLagrangian::Pointer p_new_elem = Kratos::make_shared<TotalLagrangian>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void TotalLagrangian::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
