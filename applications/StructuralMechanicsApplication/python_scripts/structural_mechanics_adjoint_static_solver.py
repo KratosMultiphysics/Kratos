@@ -39,6 +39,9 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
         if self.settings["rotation_dofs"].GetBool():
             self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
+        if self.response_function_settings["response_type"].GetString() == "adjoint_external_function":
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DFDX)
+            self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.DFDU)
         # TODO evaluate if these variables should be historical
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.SHAPE_SENSITIVITY)
         self.print_on_rank_zero("::[AdjointMechanicalSolver]:: ", "Variables ADDED")
@@ -69,6 +72,8 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_external_function":
+            self.response_function = StructuralMechanicsApplication.AdjointExternalResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 

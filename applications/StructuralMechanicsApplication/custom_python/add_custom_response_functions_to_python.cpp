@@ -29,6 +29,7 @@
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
+#include "custom_response_functions/response_utilities/adjoint_external_response_function.h"
 
 // Adjoint postprocessing
 #include "custom_response_functions/response_utilities/adjoint_postprocess.h"
@@ -78,6 +79,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLinearStrainEnergyResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<AdjointExternalResponseFunction, AdjointExternalResponseFunction::Pointer, AdjointResponseFunction>
+        (m, "AdjointExternalResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
 
     // Adjoint postprocess

@@ -316,7 +316,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             rOutput.resize(dimension * number_of_nodes, local_size);
 
         IndexType index = 0;
-        
+
         Vector RHS;
         pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
         for(auto& node_i : mpPrimalElement->GetGeometry())
@@ -577,18 +577,19 @@ double AdjointFiniteDifferencingBaseElement::GetPerturbationSizeModificationFact
 {
     KRATOS_TRY;
 
-    // For shape derivatives the size of the element (length, area, ...) is used as default perturbation size modification factor.
-    // Later on this value is multiplied with a user defined factor. This product is then used as final perturbation size for computing
-    // derivatives with finite differences.
-    if(rDesignVariable == SHAPE)
-    {
-        const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
-        KRATOS_DEBUG_ERROR_IF(domain_size <= 0.0)
-            << "Pertubation size for shape derivatives of element" << this->Id() << "<= 0.0" << std::endl;
-        return domain_size;
-    }
-    else
-        return 1.0;
+    // // For shape derivatives the size of the element (length, area, ...) is used as default perturbation size modification factor.
+    // // Later on this value is multiplied with a user defined factor. This product is then used as final perturbation size for computing
+    // // derivatives with finite differences.
+    // if(rDesignVariable == SHAPE)
+    // {
+    //     const double domain_size = mpPrimalElement->GetGeometry().DomainSize();
+    //     KRATOS_DEBUG_ERROR_IF(domain_size <= 0.0)
+    //         << "Pertubation size for shape derivatives of element" << this->Id() << "<= 0.0" << std::endl;
+    //     return domain_size;
+    // }
+    // else
+
+    return 1.0;
 
     KRATOS_CATCH("")
 }
