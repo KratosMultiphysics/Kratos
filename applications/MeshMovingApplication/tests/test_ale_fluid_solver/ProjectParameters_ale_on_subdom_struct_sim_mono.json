@@ -141,7 +141,7 @@
             "Parameters"            : {
                 "check_variables" : ["REACTION_X",
                                      "REACTION_Y"],
-                "input_file_name" : "ale_on_subdom_struct_sim_mono_results.json",
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results_reac_rect.json",
                 "model_part_name"  : "FluidModelPart.rect_inner",
                 "time_frequency"   : 0.05
             }
@@ -152,7 +152,7 @@
             "Parameters"            : {
                 "check_variables" : ["REACTION_X",
                                      "REACTION_Y"],
-                "input_file_name" : "FluidModelPart.ale_on_subdom_struct_sim_mono_results.json",
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results_react_circ.json",
                 "model_part_name"  : "FluidModelPart.circ_inner",
                 "time_frequency"   : 0.05
             }
