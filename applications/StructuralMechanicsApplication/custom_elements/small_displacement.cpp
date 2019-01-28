@@ -65,7 +65,32 @@ SmallDisplacement::~SmallDisplacement()
 /***********************************************************************************/
 /***********************************************************************************/
 
-bool SmallDisplacement::UseElementProvidedStrain()
+Element::Pointer SmallDisplacement::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    SmallDisplacement::Pointer p_new_elem = Kratos::make_shared<SmallDisplacement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(BaseType::mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(BaseType::mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool SmallDisplacement::UseElementProvidedStrain() const
 {
     return true;
 }
@@ -235,7 +260,7 @@ void SmallDisplacement::CalculateB(
     const Matrix& rDN_DX,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
-    )
+    ) const
 {
     KRATOS_TRY;
 
@@ -271,7 +296,7 @@ void SmallDisplacement::CalculateB(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor)
+Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
 {
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     Matrix F(dim,dim);

@@ -949,7 +949,7 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeMappedGa
         SwitchFlagNodes(r_nodes_array);
 
     // We set the mapper parameters
-    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
+    Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "remove_isolated_conditions" : true, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     if (r_process_info.Has(DISTANCE_THRESHOLD)) {
         mapping_parameters["distance_threshold"].SetDouble(r_process_info[DISTANCE_THRESHOLD]);
     }
@@ -1107,17 +1107,12 @@ inline void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ComputeWeighted
             VariableUtils().SetVectorVar(WEIGHTED_SLIP, zero_array, r_nodes_array);
             break;
     }
+
+    // Compute explicit contibution of the conditions
     const std::string sub_computing_model_part_name = "ComputingContactSub" + mThisParameters["id_name"].GetString();
     ModelPart& r_computing_contact_model_part = mrMainModelPart.GetSubModelPart("ComputingContact");
     ModelPart& r_sub_computing_contact_model_part = !mMultipleSearchs ? r_computing_contact_model_part : r_computing_contact_model_part.GetSubModelPart(sub_computing_model_part_name);
-    ConditionsArrayType& r_computing_conditions_array = r_sub_computing_contact_model_part.Conditions();
-    const auto it_cond_begin = r_computing_conditions_array.begin();
-    auto process_info = mrMainModelPart.GetProcessInfo();
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(r_computing_conditions_array.size()); ++i) {
-        auto it_cond = it_cond_begin + i;
-        it_cond->AddExplicitContribution(process_info);
-    }
+    ContactUtilities::ComputeExplicitContributionConditions(r_sub_computing_contact_model_part);
 }
 
 /***********************************************************************************/
@@ -1249,7 +1244,7 @@ void BaseContactSearch<TDim, TNumNodes, TNumNodesMaster>::ResetContactOperators(
                         }
                     }
                     for (auto& i_to_remove : inactive_conditions_ids) {
-                        p_indexes_pairs->RemoveId(inactive_conditions_ids[i_to_remove]);
+                        p_indexes_pairs->RemoveId(i_to_remove);
                     }
                 }
             }

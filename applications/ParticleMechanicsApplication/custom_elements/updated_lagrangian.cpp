@@ -68,9 +68,6 @@ UpdatedLagrangian::UpdatedLagrangian( UpdatedLagrangian const& rOther)
     :Element(rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
-    ,mInverseJ0(rOther.mInverseJ0)
-    ,mInverseJ(rOther.mInverseJ)
-    ,mDeterminantJ0(rOther.mDeterminantJ0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
     ,mFinalizedStep(rOther.mFinalizedStep)
 {
@@ -86,13 +83,7 @@ UpdatedLagrangian&  UpdatedLagrangian::operator=(UpdatedLagrangian const& rOther
     mDeformationGradientF0.clear();
     mDeformationGradientF0 = rOther.mDeformationGradientF0;
 
-    mInverseJ0.clear();
-    mInverseJ0 = rOther.mInverseJ0;
-    mInverseJ.clear();
-    mInverseJ = rOther.mInverseJ;
-
     mDeterminantF0 = rOther.mDeterminantF0;
-    mDeterminantJ0 = rOther.mDeterminantJ0;
     mConstitutiveLawVector = rOther.mConstitutiveLawVector;
 
     return *this;
@@ -117,11 +108,7 @@ Element::Pointer UpdatedLagrangian::Clone( IndexType NewId, NodesArrayType const
 
     NewElement.mDeformationGradientF0 = mDeformationGradientF0;
 
-    NewElement.mInverseJ0 = mInverseJ0;
-    NewElement.mInverseJ = mInverseJ;
-
     NewElement.mDeterminantF0 = mDeterminantF0;
-    NewElement.mDeterminantJ0 = mDeterminantJ0;
 
     return Element::Pointer( new UpdatedLagrangian(NewElement) );
 }
@@ -140,24 +127,10 @@ void UpdatedLagrangian::Initialize()
 {
     KRATOS_TRY
 
-    // Initial position of the particle
-    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
-
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     mDeterminantF0 = 1;
     mDeformationGradientF0 = IdentityMatrix(dimension);
-
-    // Compute initial jacobian matrix and inverses
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
-
-    // Compute current jacobian matrix and inverses
-    Matrix j = ZeroMatrix(dimension, dimension);
-    j = this->MPMJacobian(j,xg);
-    double detj;
-    MathUtils<double>::InvertMatrix( j, mInverseJ, detj );
 
     // Initialize constitutive law and materials
     InitializeMaterial();
@@ -183,8 +156,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
     rVariables.detF0 = 1;
 
     rVariables.detFT = 1;
-
-    rVariables.detJ = 1;
 
     rVariables.B.resize( voigtsize, number_of_nodes * dimension, false );
 
@@ -212,12 +183,6 @@ void UpdatedLagrangian::InitializeGeneralVariables (GeneralVariables& rVariables
 
     // CurrentDisp is the unknown variable. It represents the nodal delta displacement. When it is predicted is equal to zero.
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
-    rVariables.j = this->MPMJacobianDelta( rVariables.j, xg, rVariables.CurrentDisp);
-
-    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
-    rVariables.J = this->MPMJacobian( rVariables.J, xg);
 }
 //************************************************************************************
 //************************************************************************************
@@ -382,13 +347,23 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     // Define the stress measure
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
+    // Calculating the reference jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n/d£]
+    const array_1d<double,3>& xg = this->GetValue(MP_COORD);
+    Matrix Jacobian;
+    Jacobian = this->MPMJacobian( Jacobian, xg);
+
     // Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( rVariables.J, InvJ, rVariables.detJ);
+    double detJ;
+    MathUtils<double>::InvertMatrix( Jacobian, InvJ, detJ);
+
+    // Calculating the current jacobian from cartesian coordinates to parent coordinates for the MP element [dx_n+1/d£]
+    Matrix jacobian;
+    jacobian = this->MPMJacobianDelta( jacobian, xg, rVariables.CurrentDisp);
 
     // Calculating the inverse of the jacobian and the parameters needed [d£/(dx_n+1)]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j, Invj, rVariables.detJ ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( jacobian, Invj, detJ); //overwrites detJ
 
     // Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( rVariables.DN_De, Invj); //overwrites DX now is the current position dx
@@ -396,13 +371,13 @@ void UpdatedLagrangian::CalculateKinematics(GeneralVariables& rVariables, Proces
     /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
-    1. By: noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
     2. By means of the gradient of nodal displacement: using this second expression quadratic convergence is not guarantee
 
     (NOTICE: Here, we are using method no. 2)*/
 
     // METHOD 1: Update Deformation gradient: F [dx_n+1/dx_n] = [dx_n+1/d£] [d£/dx_n]
-    // noalias( rVariables.F ) = prod( rVariables.j, InvJ);
+    // noalias( rVariables.F ) = prod( jacobian, InvJ);
 
     // METHOD 2: Update Deformation gradient: F_ij = δ_ij + u_i,j
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -828,16 +803,9 @@ void UpdatedLagrangian::Calculate(const Variable<double>& rVariable,
     if (rVariable == DENSITY)
     {
         GeometryType& rGeom = GetGeometry();
-        const unsigned int dimension = rGeom.WorkingSpaceDimension();
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
-
-        //calculating and storing inverse and the determinant of the jacobian
-        MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const double & MP_Mass = this->GetValue(MP_MASS);
@@ -867,12 +835,6 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
-
-        // Calculating and storing inverse and the determinant of the jacobian
-        MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const array_1d<double,3>& MP_Velocity = this->GetValue(MP_VELOCITY);
@@ -899,12 +861,6 @@ void UpdatedLagrangian::Calculate(const Variable<array_1d<double, 3 > >& rVariab
         const unsigned int number_of_nodes = rGeom.PointsNumber();
         const array_1d<double,3>& xg = this->GetValue(MP_COORD);
         GeneralVariables Variables;
-        Matrix J0 = ZeroMatrix(dimension, dimension);
-
-        J0 = this->MPMJacobian(J0, xg);
-
-        //calculating and storing inverse and the determinant of the jacobian
-        MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
         Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
         const array_1d<double,3>& MP_Acceleration = this->GetValue(MP_ACCELERATION);
@@ -939,11 +895,6 @@ void UpdatedLagrangian::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo
     const unsigned int number_of_nodes = rGeom.PointsNumber();
     const array_1d<double,3> & xg = this->GetValue(MP_COORD);
     GeneralVariables Variables;
-
-    // Calculating and storing inverse and the determinant of the jacobian
-    Matrix J0 = ZeroMatrix(dimension, dimension);
-    J0 = this->MPMJacobian(J0, xg);
-    MathUtils<double>::InvertMatrix( J0, mInverseJ0, mDeterminantJ0 );
 
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg);
@@ -1080,8 +1031,6 @@ void UpdatedLagrangian::FinalizeStepVariables( GeneralVariables & rVariables, co
 
     double AccumulatedPlasticDeviatoricStrain = mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
     this->SetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, AccumulatedPlasticDeviatoricStrain);
-
-    MathUtils<double>::InvertMatrix( rVariables.j, mInverseJ, rVariables.detJ );
 
     this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 
@@ -1642,39 +1591,6 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
 }
 
 
-Vector& UpdatedLagrangian::MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint)
-{
-    KRATOS_TRY
-
-    GeometryType& rGeom = GetGeometry();
-
-    // Only local coordinated of a point in a tetrahedron is computed
-    rResult.resize(4,false);
-
-    double x10 = rGeom[1].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double x20 = rGeom[2].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double x30 = rGeom[3].Coordinates()[0]-rGeom[0].Coordinates()[0];
-    double y10 = rGeom[1].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double y20 = rGeom[2].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double y30 = rGeom[3].Coordinates()[1]-rGeom[0].Coordinates()[1];
-    double z10 = rGeom[1].Coordinates()[2]-rGeom[0].Coordinates()[2];
-    double z20 = rGeom[2].Coordinates()[2]-rGeom[0].Coordinates()[2];
-    double z30 = rGeom[3].Coordinates()[2]-rGeom[0].Coordinates()[2];
-
-    rResult[3] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y10*z20 - z10*y20) - (rPoint[1] - rGeom[0].Coordinates()[1])*(x10*z20-x20*z10) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y20*x10 - y10*x20)/mDeterminantJ0;
-
-    rResult[2] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y30*z10-y10*z30) + (rPoint[1] - rGeom[0].Coordinates()[1])*(x10*z30-x30*z10) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y10*x30 - y30*x10)/mDeterminantJ0;
-
-    rResult[1] = (rPoint[0] - rGeom[0].Coordinates()[0])*(y20*z30-y30*z20) + (rPoint[1] - rGeom[0].Coordinates()[1])*(x30*z20-x20*z30) + (rPoint[2] - rGeom[0].Coordinates()[2])*(y30*x20 - x30*y20)/mDeterminantJ0;
-
-    rResult[0] = 1 - rResult[1] - rResult[2] -rResult[3];
-
-    return rResult;
-
-    KRATOS_CATCH( "" )
-}
-
-
 // Function which return dN/de
 Matrix& UpdatedLagrangian::MPMShapeFunctionsLocalGradients( Matrix& rResult )
 {
@@ -1888,9 +1804,6 @@ void UpdatedLagrangian::save( Serializer& rSerializer ) const
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
-    rSerializer.save("InverseJ0",mInverseJ0);
-    rSerializer.save("DeterminantJ0",mDeterminantJ0);
-
 }
 
 void UpdatedLagrangian::load( Serializer& rSerializer )
@@ -1899,8 +1812,6 @@ void UpdatedLagrangian::load( Serializer& rSerializer )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
-    rSerializer.load("InverseJ0",mInverseJ0);
-    rSerializer.load("DeterminantJ0",mDeterminantJ0);
 }
 
 

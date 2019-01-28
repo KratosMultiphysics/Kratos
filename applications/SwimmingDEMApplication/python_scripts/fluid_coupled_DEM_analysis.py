@@ -13,7 +13,7 @@ class FluidCoupledDEMAnalysisStage(BaseAnalysis):
         super(FluidCoupledDEMAnalysisStage, self).__init__(model, pp)
 
     def LoadParametersFile(self):
-        self.DEM_parameters = self.pp.CFD_DEM
+        self.DEM_parameters = self.pp.CFD_DEM['dem_parameters']
 
     def GetDefaultInputParameters(self):
         import dem_default_input_parameters

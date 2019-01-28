@@ -16,6 +16,7 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
     def __init__(self, model, varying_parameters = Parameters("{}")):
         super(CandelierBenchmarkAnalysis, self).__init__(model, varying_parameters)
         self._GetSolver().is_rotating_frame = self.pp.CFD_DEM["frame_of_reference_type"].GetInt()
+        self.disperse_phase_solution.mdpas_folder_path = os.path.join(self.disperse_phase_solution.main_path, 'candelier_tests')
 
     def GetFluidSolveCounter(self):
         return SDP.Counter(is_dead = True)
@@ -61,19 +62,6 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Y, v0[1])
             node.SetSolutionStepValue(FLUID_VEL_PROJECTED_Z, v0[2])
 
-    def PerformFinalOperations(self, time = None):
-        self.results_database.WriteToHDF5()
-        os.chdir(self.main_path)
-        import shutil
-        folder_name = self.post_path + '_FINISHED_AT_t=' + str(round(time, 1))
-        try:
-            shutil.rmtree(folder_name)
-        except OSError:
-            pass
-
-    def GetReturnValue(self):
-        return self.radial_error
-
     def _CreateSolver(self):
         import candelier_scripts.candelier_dem_solver as sdem_solver
         self.pp.field_utility = self.GetFieldUtility()
@@ -85,17 +73,18 @@ class CandelierBenchmarkAnalysis(SwimmingDEMAnalysis):
 
     def FinalizeSolutionStep(self):
         super(CandelierBenchmarkAnalysis, self).FinalizeSolutionStep()
-        for node in self.spheres_model_part.Nodes:
-            r = Vector([node.X, node.Y, node.Z])
-            self.results_database.MakeReading(self.time, r)
+        if self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            for node in self.spheres_model_part.Nodes:
+                r = Vector([node.X, node.Y, node.Z])
+                self.results_database.MakeReading(self.time, r)
 
-            coor_calculated = [node.X, node.Y, node.Z]
+                coor_calculated = [node.X, node.Y, node.Z]
 
-            if self._GetSolver().is_rotating_frame:
-                sin = math.sin(self._GetSolver().omega * self.time)
-                cos = math.cos(self._GetSolver().omega * self.time)
-                coor_calculated[0] = node.X * cos - node.Y * sin
-                coor_calculated[1] = node.X * sin + node.Y * cos
+                if self._GetSolver().is_rotating_frame:
+                    sin = math.sin(self._GetSolver().omega * self.time)
+                    cos = math.cos(self._GetSolver().omega * self.time)
+                    coor_calculated[0] = node.X * cos - node.Y * sin
+                    coor_calculated[1] = node.X * sin + node.Y * cos
 
-            self.radial_error = self.results_database.CalculateError(self.time, coor_calculated)
-            self.error_time = self.time
+                self.radial_error = self.results_database.CalculateError(self.time, coor_calculated)
+                self.error_time = self.time

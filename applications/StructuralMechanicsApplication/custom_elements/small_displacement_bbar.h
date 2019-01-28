@@ -198,7 +198,7 @@ protected:
     /**
     * @brief This method returns if the element provides the strain
     */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
     * This functions updates the kinematics variables
@@ -221,7 +221,7 @@ protected:
             const Vector& rBodyForce,
             const Vector& rStressVector,
             const double IntegrationWeight
-            ) override ;
+            ) const override;
 
     /**
      * This functions updates the data structure passed to the CL
