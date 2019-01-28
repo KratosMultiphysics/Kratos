@@ -89,3 +89,7 @@ applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinde
 applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/line_output/*
 
 debug/
+
+applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/re1000__log\.txt
+
+applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/cylinder/cylinder_2d_water_initial_re1000\.mdpa
