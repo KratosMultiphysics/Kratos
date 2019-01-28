@@ -159,7 +159,7 @@ public:
         //i_elem->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
 
         //set the element pointer nullptr
-        i_elem->SetValue(MASTER_ELEMENT, nullptr);
+        i_elem->SetValue(MASTER_ELEMENT, Kratos::weak_ptr<Element>());
       }
 
       KRATOS_CATCH("")

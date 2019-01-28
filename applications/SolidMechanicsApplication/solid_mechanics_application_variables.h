@@ -36,9 +36,7 @@ namespace Kratos
   typedef array_1d<double,3> Vector3;
   typedef array_1d<double,6> Vector6;
 
-  typedef std::vector<Node<3>*>                                                          NodePointerVectorType;
-  typedef std::vector<Element*>                                                       ElementPointerVectorType;
-
+  typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
   ///@}
 
   ///@name Kratos Globals
