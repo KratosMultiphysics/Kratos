@@ -6,12 +6,6 @@
         "start_time"      : 0.0,
         "end_time"        : 1
     },
-    "restart_options"                  : {
-        "SaveRestart"      : "False",
-        "RestartFrequency" : 0,
-        "LoadRestart"      : "False",
-        "Restart_Step"     : 0
-    },
     "solver_settings"                  : {
         "solver_type"            : "Potential_flow",
         "domain_size"     : 2,
