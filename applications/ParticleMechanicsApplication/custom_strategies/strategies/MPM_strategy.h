@@ -422,12 +422,12 @@ public:
         for (ModelPart::SubModelPartIterator submodelpart_it = mr_initial_model_part.SubModelPartsBegin();
                 submodelpart_it != mr_initial_model_part.SubModelPartsEnd(); submodelpart_it++)
         {
-            ModelPart& submodelpart = *submodelpart_it;
+            ModelPart&  submodelpart = *submodelpart_it;
             std::string submodelpart_name = submodelpart.Name();
 
             mr_mpm_model_part.CreateSubModelPart(submodelpart_name);
 
-            // Loop over the element of submodelpart's submodelpart and generate mpm element to be appended to the mr_mpm_model_part
+            // Loop over the element of submodelpart and generate mpm element to be appended to the mr_mpm_model_part
             for (ModelPart::ElementIterator i = submodelpart.ElementsBegin();
                     i != submodelpart.ElementsEnd(); i++)
             {
@@ -449,7 +449,7 @@ public:
                         particles_per_element = 1;
                     }
 
-                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's connectivity
+                    const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current element's geometry
                     const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                     Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                     if (rGeoType == GeometryData::Kratos_Tetrahedra3D4  || rGeoType == GeometryData::Kratos_Triangle2D3)
@@ -581,10 +581,7 @@ public:
                     last_element_id += integration_point_per_elements;
 
                 }
-
-
             }
-
         }
     }
 
