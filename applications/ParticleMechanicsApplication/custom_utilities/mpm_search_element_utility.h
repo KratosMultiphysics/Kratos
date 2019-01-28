@@ -70,6 +70,7 @@ namespace MPMSearchElementUtility
 
             typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_result);
 
+            // Element search and assign background grid
             #pragma omp for
             for(int i = 0; i < static_cast<int>(rMPMModelPart.Elements().size()); ++i){
 
@@ -80,7 +81,7 @@ namespace MPMSearchElementUtility
 
                 Element::Pointer pelem;
 
-                // FindPointOnMesh find the element in which a given point falls and the relative shape functions
+                // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                 bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
 
                 if (is_found == true) {
@@ -98,6 +99,40 @@ namespace MPMSearchElementUtility
                         element_itr->GetGeometry().clear();
                         element_itr->Reset(ACTIVE);
                         element_itr->Set(TO_ERASE);
+                }
+            }
+
+            // Condition search and assign background grid
+            #pragma omp for
+            for(int i = 0; i < static_cast<int>(rMPMModelPart.Conditions().size()); ++i){
+
+                auto condition_itr = rMPMModelPart.Conditions().begin() + i;
+
+                if (condition_itr->Has(MPC_COORD)){
+                    const array_1d<double,3>& xg = condition_itr->GetValue(MPC_COORD);
+                    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+
+                    Element::Pointer pelem;
+
+                    // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
+                    bool is_found = SearchStructure.FindPointOnMesh(xg, N, pelem, result_begin, MaxNumberOfResults, Tolerance);
+
+                    if (is_found == true) {
+                            pelem->Set(ACTIVE);
+                            condition_itr->GetGeometry() = pelem->GetGeometry();
+                            auto& rGeom = condition_itr->GetGeometry();
+
+                            for (IndexType j=0; j < rGeom.PointsNumber(); ++j)
+                                rGeom[j].Set(ACTIVE);
+                    }
+                    else{
+                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << condition_itr->Id()
+                                << " is failed. Geometry is cleared." << std::endl;
+
+                            condition_itr->GetGeometry().clear();
+                            condition_itr->Reset(ACTIVE);
+                            condition_itr->Set(TO_ERASE);
+                    }
                 }
             }
         }
