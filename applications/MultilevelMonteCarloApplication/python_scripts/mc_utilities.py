@@ -115,27 +115,8 @@ class MonteCarlo(object):
         self.TErr = None
         '''QoI : Quantity of Interest of the considered problem'''
         self.QoI = StatisticalVariable(self.current_number_levels)
-        '''initialize properly all the variables of the StatisticalVariable class: MC has only one level (level 0)'''
-        self.QoI.values = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.mean = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.second_moment = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_variance = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.power_sum_1 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.power_sum_2 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.power_sum_3 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.power_sum_3_absolute = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.power_sum_4 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.h_statistics_1 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.h_statistics_2 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.h_statistics_3 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.h_statistics_4 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.skewness = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.kurtosis = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_central_moment_1 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_central_moment_2 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_central_moment_3 = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_central_moment_3_absolute = [[] for _ in range (self.current_number_levels+1)]
-        self.QoI.sample_central_moment_4 = [[] for _ in range (self.current_number_levels+1)]
+        '''initialize all the variables of the StatisticalVariable class: MC has only one level, i.e. level 0'''
+        self.QoI.InitializeStatisticalVariableVariables(self.current_number_levels+1)
         '''number_samples : total number of samples of current iteration'''
         self.number_samples = [self.settings["batch_size"].GetInt() for _ in range (self.current_number_levels+1)]
         '''difference_number_samples : difference between number of samples of current and previous iterations'''

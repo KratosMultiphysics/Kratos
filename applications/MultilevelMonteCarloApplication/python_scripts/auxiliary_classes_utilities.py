@@ -161,6 +161,31 @@ class StatisticalVariable(object):
         self.convergence_criteria = None
 
     '''
+    function initializing variables of the Statistical Variable class given number of levels
+    '''
+    def InitializeStatisticalVariableVariables(self,number_levels):
+        self.values = [[] for _ in range (number_levels)]
+        self.mean = [[] for _ in range (number_levels)]
+        self.second_moment = [[] for _ in range (number_levels)]
+        self.sample_variance = [[] for _ in range (number_levels)]
+        self.power_sum_1 = [[] for _ in range (number_levels)]
+        self.power_sum_2 = [[] for _ in range (number_levels)]
+        self.power_sum_3 = [[] for _ in range (number_levels)]
+        self.power_sum_3_absolute = [[] for _ in range (number_levels)]
+        self.power_sum_4 = [[] for _ in range (number_levels)]
+        self.h_statistics_1 = [[] for _ in range (number_levels)]
+        self.h_statistics_2 = [[] for _ in range (number_levels)]
+        self.h_statistics_3 = [[] for _ in range (number_levels)]
+        self.h_statistics_4 = [[] for _ in range (number_levels)]
+        self.skewness = [[] for _ in range (number_levels)]
+        self.kurtosis = [[] for _ in range (number_levels)]
+        self.sample_central_moment_1 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_2 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_3 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_3_absolute = [[] for _ in range (number_levels)]
+        self.sample_central_moment_4 = [[] for _ in range (number_levels)]
+
+    '''
     function updating mean and second moment values and computing the sample variance
     M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
     M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
