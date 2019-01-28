@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
+
 #include <includes/model_part.h>
 #include "includes/exception.h"
 
@@ -86,14 +88,15 @@ public:
     void WriteMesh();
     void WriteNodes();
     void WriteElements();
-    void WriteResult();
 
-    void WriteNodalResults(const Variable<bool>& rVariable);
-    void WriteNodalResults(const Variable<int>& rVariable);
-    void WriteNodalResults(const Variable<double>& rVariable);
-    void WriteNodalResults(const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalResults(const Variable<Vector>& rVariable);
-    void WriteNodalResults(const Variable<Matrix>& rVariable);
+    void WriteResult(const Variable<bool>& rVariable, const double timeStep);
+
+    void WriteNodalResults(const Variable<bool>& rVariable, const double timeStep);
+    void WriteNodalResults(const Variable<int>& rVariable, const double timeStep);
+    void WriteNodalResults(const Variable<double>& rVariable, const double timeStep);
+    void WriteNodalResults(const Variable<array_1d<double,3>>& rVariable, const double timeStep);
+    void WriteNodalResults(const Variable<Vector>& rVariable, const double timeStep);
+    void WriteNodalResults(const Variable<Matrix>& rVariable, const double timeStep);
 
     // Partially extracted from: http://users.ices.utexas.edu
     // # beginning of dataset
@@ -115,21 +118,21 @@ public:
     // # R. 12: analysis-specific data (record_12)
     // # R. 13: analysis-specific data (record_13)
 
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable);
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
-    void WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
+    void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
 
     template<class TVariablebleType>
-    void WriteNodalResults(const TVariablebleType rVariable, const int numComponents, const int timeStep) {
+    void WriteNodalResults(const TVariablebleType rVariable, const int numComponents, const double timeStep) {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
         const int dataSetNumberForResults = 2414;
         std::string dataSetName = "NodalResults";
-        std::string dataSetLabel = rVariable.Name() + timeStep;
+        std::string dataSetLabel = rVariable.Name() + "_" + std::to_string(timeStep);
 
         outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
         outputFile << std::setw(6)  << dataSetNumberForResults << "\n";                             // DatasetID

@@ -14,15 +14,14 @@ UnvOutput::UnvOutput(Kratos::ModelPart &modelPart, const std::string &outFileWit
 }
 
 
-void UnvOutput::writeMesh(int dataSetLabel) {
-    initializeOutputFile();
-    writeNodes();
-    writeElements();
-    writeNodalResults(dataSetLabel);
+void UnvOutput::WriteMesh() {
+    InitializeOutputFile();
+    WriteNodes();
+    WriteElements();
 }
 
-void UnvOutput::writeResult() {
-
+void UnvOutput::WriteResult(const Variable<bool>& rVariable, const double timeStep) {
+    WriteNodalResults(rVariable, timeStep);
 }
 
 template <typename Enumeration>
@@ -141,45 +140,45 @@ void UnvOutput::WriteElements() {
 // # R. 12: analysis-specific data (record_12)
 // # R. 13: analysis-specific data (record_13)
 
-void UnvOutput::WriteNodalResults(const Variable<bool>& rVariable) {
-    WriteNodalResults(rVariable, 1);
+void UnvOutput::WriteNodalResults(const Variable<bool>& rVariable, const double timeStep) {
+    WriteNodalResults(rVariable, 1, timeStep);
 }
 
-void UnvOutput::WriteNodalResults(const Variable<int>& rVariable) {
-    WriteNodalResults(rVariable, 1);
+void UnvOutput::WriteNodalResults(const Variable<int>& rVariable, const double timeStep) {
+    WriteNodalResults(rVariable, 1, timeStep);
 }   
 
-void UnvOutput::WriteNodalResults(const Variable<double>& rVariable) {
-    WriteNodalResults(rVariable, 1);
+void UnvOutput::WriteNodalResults(const Variable<double>& rVariable, const double timeStep) {
+    WriteNodalResults(rVariable, 1, timeStep);
 } 
 
-void UnvOutput::WriteNodalResults(const Variable<array_1d<double,3>>& rVariable) {
-    WriteNodalResults(rVariable, 2);
+void UnvOutput::WriteNodalResults(const Variable<array_1d<double,3>>& rVariable, const double timeStep) {
+    WriteNodalResults(rVariable, 2, timeStep);
 }
 
-void UnvOutput::WriteNodalResults(const Variable<Vector>& rVariable) {
+void UnvOutput::WriteNodalResults(const Variable<Vector>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported by in UNV" << std::endl;
     // WriteNodalResults(rVariable, -1);
 }
 
-void UnvOutput::WriteNodalResults(const Variable<Matrix>& rVariable) {
+void UnvOutput::WriteNodalResults(const Variable<Matrix>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Matrix results are not yet supported by in UNV" << std::endl;
     // WriteNodalResults(rVariable, -1);
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
     outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable) {
     outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable) {
     outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable) {
     auto & temp = node.FastGetSolutionStepValue(rVariable);
 
     outputFile << std::setw(6) << temp[0];
@@ -188,11 +187,11 @@ void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const No
     outputFile << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Variable<Vector>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported by in UNV" << std::endl;
 }
 
-void UnvOutput::WriteNodalResultValues(const std::ofstream &outputFile, const Variable<Matrix>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable) {
     KRATOS_ERROR << "Matrix results are not yet supported by in UNV" << std::endl;
 }
 
