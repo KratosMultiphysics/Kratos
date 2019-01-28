@@ -434,6 +434,7 @@ public:
         GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+	mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }
