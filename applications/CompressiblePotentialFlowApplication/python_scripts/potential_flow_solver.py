@@ -17,7 +17,7 @@ def CreateSolver(model, custom_settings):
 class LaplacianSolver(PythonSolver):
     def __init__(self, model, custom_settings):
         super(LaplacianSolver, self).__init__(model, custom_settings)
-        self.MoveMeshFlag = False
+         self.move_mesh_flag = False
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
