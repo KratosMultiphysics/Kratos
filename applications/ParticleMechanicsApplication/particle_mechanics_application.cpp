@@ -177,6 +177,7 @@ namespace Kratos
 
         // Registering MP condition variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( MPC_COORD )
+        KRATOS_REGISTER_VARIABLE( PARTICLES_PER_CONDITION )
 
         // Registering grid node variable
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( NODAL_MOMENTUM )
