@@ -74,7 +74,6 @@ public:
     {
         Parameters default_parameters(R"({
             "scheme_type" : "ResidualBasedAdjointBossakScheme",
-            "scheme_type" : "bossak",
             "alpha_bossak": -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
