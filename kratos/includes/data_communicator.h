@@ -677,36 +677,42 @@ class DataCommunicator
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues Values to send to rank SendDestination.
      *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received values from rank RecvSource.
      *  @param[in] RecvSource Rank values are expected from.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
-        const std::vector<int>& rSendValues, const int SendDestination,
-        std::vector<int>& rRecvValues, const int RecvSource) const
+        const std::vector<int>& rSendValues, const int SendDestination, const int SendTag,
+        std::vector<int>& rRecvValues, const int RecvSource, const int RecvTag) const
     {}
 
     /// Exchange data with other ranks (double version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues Values to send to rank SendDestination.
      *  @param[in] SendDestination Rank the values will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received values from rank RecvSource.
      *  @param[in] RecvSource Rank values are expected from.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
-        const std::vector<double>& rSendValues, const int SendDestination,
-        std::vector<double>& rRecvValues, const int RecvSource) const
+        const std::vector<double>& rSendValues, const int SendDestination, const int SendTag,
+        std::vector<double>& rRecvValues, const int RecvSource, const int RecvTag) const
     {}
 
     /// Exchange data with other ranks (string version).
     /** This is a wrapper for MPI_Sendrecv.
      *  @param[in] rSendValues String to send to rank SendDestination.
      *  @param[in] SendDestination Rank the string will be sent to.
+     *  @param[in] SendTag Message tag for sent values.
      *  @param[out] rRecvValues Received string from rank RecvSource.
      *  @param[in] RecvSource Rank the string is expected from.
+     *  @param[in] RecvTag Message tag for received values.
      */
     virtual void SendRecv(
-        const std::string& rSendValues, const int SendDestination,
-        std::string& rRecvValues, const int RecvSource) const
+        const std::string& rSendValues, const int SendDestination, const int SendTag,
+        std::string& rRecvValues, const int RecvSource, const int RecvTag) const
     {}
 
     // Broadcast
