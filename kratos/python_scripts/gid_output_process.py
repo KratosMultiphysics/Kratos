@@ -28,6 +28,7 @@ class GiDOutputProcess(Process):
             "file_label": "time",
             "output_control_type": "step",
             "output_frequency": 1.0,
+            "flush_after_output": false,
             "body_output": true,
             "node_output": false,
             "skin_output": false,
@@ -183,6 +184,7 @@ class GiDOutputProcess(Process):
             raise Exception(msg)
 
         self.output_frequency = result_file_configuration["output_frequency"].GetDouble()
+        self.flush_after_output = result_file_configuration["flush_after_output"].GetBool()
 
         # get .post.lst files
         additional_list_file_data = result_file_configuration["additional_list_files"]
@@ -287,6 +289,12 @@ class GiDOutputProcess(Process):
         self.__write_nonhistorical_nodal_results(time)
         self.__write_nodal_flags(time)
         self.__write_elemental_conditional_flags(time)
+
+        if self.flush_after_output and self.multifile_flag != MultiFileFlag.MultipleFiles:
+            if self.body_io is not None:
+                self.body_io.Flush()
+            if self.cut_io is not None:
+                self.cut_io.Flush()
 
         if self.multifile_flag == MultiFileFlag.MultipleFiles:
             self.__finalize_results()

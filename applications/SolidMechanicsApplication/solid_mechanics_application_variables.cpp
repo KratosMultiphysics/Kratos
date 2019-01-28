@@ -115,9 +115,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE( double, SHEARxPOLAR_INERTIA )
 
   //boundary definition
-  KRATOS_CREATE_VARIABLE( Element*, MASTER_ELEMENT )
-  KRATOS_CREATE_VARIABLE( NodePointerVectorType, NEIGHBOR_NODES )
-  KRATOS_CREATE_VARIABLE( ElementPointerVectorType, NEIGHBOR_ELEMENTS )
+  KRATOS_CREATE_VARIABLE( ElementWeakPtrType, MASTER_ELEMENT )
 
   //thermal properties
   KRATOS_CREATE_VARIABLE( double, HEAT_CAPACITY )
