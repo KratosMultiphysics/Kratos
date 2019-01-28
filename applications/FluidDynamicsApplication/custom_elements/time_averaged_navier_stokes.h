@@ -1,15 +1,3 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
-//
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
-//
-//  Main authors:    Ruben Zorrilla, Mengjie Zhao
-//
-
 #if !defined(KRATOS_TIME_AVERAGED_NAVIER_STOKES)
 #define  KRATOS_TIME_AVERAGED_NAVIER_STOKES
 
@@ -28,6 +16,7 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
+#include "processes/compute_bdfcoefficients_process.h"
 
 namespace Kratos
 {
@@ -140,14 +129,14 @@ public:
     {
         KRATOS_TRY
         return Kratos::make_shared< TimeAveragedNavierStokes < TDim, TNumNodes > >(NewId, this->GetGeometry().Create(rThisNodes), pProperties);
-        KRATOS_CATCH("");
+        KRATOS_CATCH("TimeAveragedNavierStokesElement::Create: Error creating TimeAveragedNavierStokes Element");
     }
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override
     {
         KRATOS_TRY
         return Kratos::make_shared< TimeAveragedNavierStokes < TDim, TNumNodes > >(NewId, pGeom, pProperties);
-        KRATOS_CATCH("");
+        KRATOS_CATCH("TimeAveragedNavierStokesElement::Create: Error creating TimeAveragedNavierStokes Element");
     }
 
 
@@ -198,7 +187,7 @@ public:
         rLeftHandSideMatrix  *= data.volume/static_cast<double>(TNumNodes);
         rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
 
-        KRATOS_CATCH("Error in Time Averaged Navier Stokes Element Symbolic")
+        KRATOS_CATCH("TimeAveragedNavierStokesElement::CalculateLocalSystem: Error in Time Averaged Navier Stokes Element Symbolic")
     }
 
 
@@ -240,7 +229,7 @@ public:
         // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
         rRightHandSideVector *= data.volume/static_cast<double>(TNumNodes);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH("TimeAveragedNavierStokesElement::CalculateRightHandSide: Error in constructing RHS of TimeAveragedNavierStokesElement")
 
     }
 
@@ -338,13 +327,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "TimeAveragedNavierStokes #";
+        return "TimeAveragedNavierStokesElement";
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << Info() << Id();
+        rOStream << Info() << Id() << "\n";
     }
 
     /// Print object's data.
@@ -397,13 +386,13 @@ protected:
 
         mpConstitutiveLaw = GetProperties()[CONSTITUTIVE_LAW]->Clone();
         mpConstitutiveLaw->InitializeMaterial( GetProperties(), this->GetGeometry(), row( this->GetGeometry().ShapeFunctionsValues(), 0 ) );
-
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH( "TimeAveragedNavierStokesElement::Initialize: Error initializing the Element" )
     }
 
     // Auxiliar function to fill the element data structure
     void FillElementData(ElementDataStruct& rData, const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_TRY
         // Getting data for the given geometry
         // double Volume; // In 2D cases Volume variable contains the element area
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), rData.DN_DX, rData.N, rData.volume);
@@ -415,32 +404,49 @@ protected:
         rData.dyn_tau = rCurrentProcessInfo[DYNAMIC_TAU];     // Only, needed if the temporal dependent term is considered in the subscales
         rData.dt = rCurrentProcessInfo[DELTA_TIME];  // Only, needed if the temporal dependent term is considered in the subscales
         rData.t = rCurrentProcessInfo[TIME];
+        // KRATOS_WATCH(rData.dt)
+        // KRATOS_WATCH(rData.t)
 
         //previous step data
         const ProcessInfo& rPreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(1);
         rData.dtn = rPreviousProcessInfo[DELTA_TIME];
         rData.tn = rPreviousProcessInfo[TIME];
-
+        // KRATOS_WATCH(rData.dtn)
+        // KRATOS_WATCH(rData.tn)
+        
         // 2 previous step data
         const ProcessInfo& r2PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(2);
         rData.dtnn = r2PreviousProcessInfo[DELTA_TIME];
         rData.tnn = r2PreviousProcessInfo[TIME];
+        // KRATOS_WATCH(rData.dtnn)
+        // KRATOS_WATCH(rData.tnn)
 
         // 3 previous step data
 		const ProcessInfo& r3PreviousProcessInfo = rCurrentProcessInfo.GetPreviousSolutionStepInfo(3);
         rData.dtnnn = r3PreviousProcessInfo[DELTA_TIME]; //cannot use GetPreviousSolutionStepInfo() because 1 more buffer is needed otherwise
         rData.tnnn = r3PreviousProcessInfo[TIME];
+        // KRATOS_WATCH(rData.dtnnn)
+        // KRATOS_WATCH(rData.tnnn)
 
+        KRATOS_CATCH("TimeAveragedNavierStokesElement::FillElementData: Error in Assigning Previous Time Step Information")
         // BDF coefficients -> time dependent
-        // Define time step size ratios
-        double r = rData.dt / rData.dtn;
+        // const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        // rData.bdf0 = BDFVector[0];
+        // rData.bdf1 = BDFVector[1];
+        // rData.bdf2 = BDFVector[2];
         
+        // Define time step size ratios        
+        double r = rData.dt / rData.dtn;
         rData.bdf0 =  1/rData.dt * (1 + 2.0*r) / (1 + r);
         rData.bdf1 = -1/rData.dt * (1 + r);
         rData.bdf2 =  1/rData.dt * (r * r) / (1 + r);
+        
+        // KRATOS_WATCH(rData.bdf0)
+        // KRATOS_WATCH(rData.bdf1)
+        // KRATOS_WATCH(rData.bdf2)
 
         // time period considered in the averaging scheme
-        // TO DO --> find the way to define the restart time regardless of the problem itself
+        // TODO --> find the way to define the restart time regardless of the problem itself
         // now it takes user input
         rData.dts = rCurrentProcessInfo[AVERAGING_TIME_LENGTH];
 
