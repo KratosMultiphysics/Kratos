@@ -96,7 +96,6 @@ class LaplacianSolver(PythonSolver):
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        move_mesh_flag = False #USER SHOULD NOT CHANGE THIS
 
         self.incompressible_solution_stratety = KratosMultiphysics.ResidualBasedLinearStrategy(
             self.main_model_part,
@@ -105,7 +104,7 @@ class LaplacianSolver(PythonSolver):
             self.settings["compute_reactions"].GetBool(),
             self.settings["reform_dofs_at_each_step"].GetBool(),
             self.settings["calculate_solution_norm"].GetBool(),
-            move_mesh_flag)
+            self.move_mesh_flag)
 
         (self.incompressible_solution_stratety).SetEchoLevel(self.settings["echo_level"].GetInt())
         self.incompressible_solution_stratety.Initialize()
