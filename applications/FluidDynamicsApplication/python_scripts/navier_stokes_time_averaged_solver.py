@@ -78,7 +78,9 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.element_name = "TimeAveragedNavierStokes"
         self.condition_name = "TimeAveragedNavierStokesWallCondition"
         self.min_buffer_size = 5
-        
+
+        self.model = model
+
         # Get domain size
         self.domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
@@ -132,11 +134,10 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self._set_physical_properties()
             ## Sets the constitutive law
             self._set_constitutive_law()
-            ## Sets averaging time length
-            self._set_averaging_time_length()
-
+            
 
     def Initialize(self):
+
         self.computing_model_part = self.GetComputingModelPart()
 
         # If needed, create the estimate time step utility
@@ -151,8 +152,11 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         (self.conv_criteria).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
-                                                                            self.settings["time_order"].GetInt())
+        # TODO -> move bdf coefficients calculation to ComputeBDFCoefficientsProcess
+        # ComputeBDFCoefficientsProcess is only suitable for constant time steps -> bdf coefficients are now calculated within the
+        # time_averaged_navier_stokes element 
+        # self.bdf_process = KratosMultiphysics.ComputeBDFCoefficientsProcess(self.computing_model_part,
+        #                                                                     self.settings["time_order"].GetInt())
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(self.domain_size,   # Domain size (2,3)
                                                                                         self.domain_size+1) # DOFs (3,4)
@@ -171,28 +175,33 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         (self.solver).SetEchoLevel(self.settings["echo_level"].GetInt())
 
-        (self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
-        (self.solver).Check()
+        #(self.solver).Initialize() # Initialize the solver. Otherwise the constitutive law is not initializated.
+        self._set_constitutive_law()
+        #(self.solver).Check()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, self.settings["dynamic_tau"].GetDouble())
 
         # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
-        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, 
-                                                     self.domain_size).Execute()
-
+        KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size).Execute()
         # parameters for sample length calculation
         self.initial_averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
         self.averaging_time_length = self.initial_averaging_time_length
         self.restart_time = self.initial_averaging_time_length 
         self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
+
         # parameters for dt accleration
         self.start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
         self.end_acceleration_time = self.settings["time_averaging_acceleration"]["end_acceleration_time"].GetDouble()
+
+        # Sets initial averaging time length
+        self._set_averaging_time_length(self.initial_averaging_time_length)
+
+        # Initializing STEP
+        self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
         
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
 
 
-    def AdvanceInTime(self, current_time):
-        # dt = self._ComputeDeltaTime()        
+    def AdvanceInTime(self, current_time):   
         self._check_steady_state()
         
         dt = self._compute_increased_delta_time(current_time)
@@ -206,16 +215,9 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         return new_time
 
 
-    def Solve(self):
-        self.InitializeSolutionStep()
-        self.Predict()
-        self.SolveSolutionStep()
-        self.FinalizeSolutionStep()
-
-
     def InitializeSolutionStep(self):
         if self._TimeBufferIsInitialized():
-            (self.bdf_process).Execute()
+            #(self.bdf_process).Execute()
             (self.solver).InitializeSolutionStep()
 
 
@@ -268,13 +270,19 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def _compute_averaging_time_length(self, current_time, dt):
-        if (current_time > self.initial_averaging_time_length):
+        if (current_time > self.initial_averaging_time_length): # start restarting after initial averaging time length
             if ( current_time > self.restart_time):
+                # RESTART -> reset averaging time length to the initial averaging time length
                 self.averaging_time_length = self.initial_averaging_time_length
                 self.restart_time += self.restart_time
+                # At restart, all the previous averaged velocity and pressure should be set to the current one
+                self.main_model_part.CloneSolutionStep()
+                self.main_model_part.CloneSolutionStep()
+                self.main_model_part.CloneSolutionStep()
+                print("############### RESTART at " + str(current_time) + "###############")
             else: 
                 self.averaging_time_length += dt
-            print("Averaging time length set to ", self.averaging_time_length, ", droping previous time infomation")
+            print("Averaging time length set to ", self.averaging_time_length)
 
 
     def _set_averaging_time_length(self, new_averaging_time_length=0.0):
@@ -286,7 +294,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def _check_steady_state(self):
-        SteadyStateIndicatorUtility = KratosCFD.SteadyStateIndicatorUtility(self.computing_model_part)
+        SteadyStateIndicatorUtility = KratosCFD.SteadyStateIndicatorUtility(self.main_model_part)
         SteadyStateIndicatorUtility.EstimateQuantityChangesInTime()
         change_in_velocity = SteadyStateIndicatorUtility.GetVelocityChange()
         change_in_pressure = SteadyStateIndicatorUtility.GetPressureChange()
@@ -300,3 +308,4 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian3DLaw()
         elif(self.domain_size == 2):
             self.main_model_part.Properties[1][KratosMultiphysics.CONSTITUTIVE_LAW] = KratosCFD.Newtonian2DLaw()
+
