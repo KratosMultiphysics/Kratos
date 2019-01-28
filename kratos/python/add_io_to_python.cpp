@@ -310,11 +310,11 @@ void  AddIOToPython(pybind11::module& m)
         .def("PrintOutput", &VtkOutput::PrintOutput)
         ;
 
-    py::class_<UnvWriter, UnvWriter::Pointer>(m, "UnvOutput")
+    py::class_<UnvOutput, UnvOutput::Pointer>(m, "UnvOutput")
         .def(py::init<ModelPart&, const std::string &>())
-        .def("InitializeMesh", &UnvWriter::InitializeOutputFile)
-        .def("WriteMesh", &UnvWriter::WriteMesh)
-        .def("PrintOutput", &UnvWriter::WriteNodalResults)
+        .def("InitializeMesh", &UnvOutput::InitializeOutputFile)
+        .def("WriteMesh", &UnvOutput::WriteMesh)
+        .def("PrintOutput", &UnvOutput::WriteNodalResults)
         ;
 }
 }  // namespace Python.
