@@ -174,7 +174,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new PotentialWallCondition(
+         return Condition::Pointer(make::shared<PotentialWallCondition>
             NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
