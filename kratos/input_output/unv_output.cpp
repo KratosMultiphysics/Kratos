@@ -136,49 +136,65 @@ void UnvOutput::WriteElements() {
 // # R. 13: analysis-specific data (record_13)
 
 void UnvOutput::WriteNodalResults(const Variable<bool>& rVariable, const double timeStep) {
-    WriteNodalResults(rVariable, 1, timeStep);
+    WriteNodalResultRecords(rVariable, 1, timeStep);
 }
 
 void UnvOutput::WriteNodalResults(const Variable<int>& rVariable, const double timeStep) {
-    WriteNodalResults(rVariable, 1, timeStep);
+    WriteNodalResultRecords(rVariable, 1, timeStep);
 }   
 
 void UnvOutput::WriteNodalResults(const Variable<double>& rVariable, const double timeStep) {
-    WriteNodalResults(rVariable, 1, timeStep);
+    WriteNodalResultRecords(rVariable, 1, timeStep);
 } 
 
 void UnvOutput::WriteNodalResults(const Variable<array_1d<double,3>>& rVariable, const double timeStep) {
-    WriteNodalResults(rVariable, 2, timeStep);
+    WriteNodalResultRecords(rVariable, 3, timeStep);
 }
 
 void UnvOutput::WriteNodalResults(const Variable<Vector>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported by in UNV" << std::endl;
-    // WriteNodalResults(rVariable, -1);
+    // WriteNodalResultRecords(rVariable, -1);
 }
 
 void UnvOutput::WriteNodalResults(const Variable<Matrix>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Matrix results are not yet supported by in UNV" << std::endl;
-    // WriteNodalResults(rVariable, -1);
+    // WriteNodalResultRecords(rVariable, -1);
+}
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<bool>& rVariable) {
+    return UnvOutput::DataCharacteristics::SCALAR;
+}
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<int>& rVariable) {
+    return UnvOutput::DataCharacteristics::SCALAR;
+}   
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<double>& rVariable) {
+    return UnvOutput::DataCharacteristics::SCALAR;
+} 
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<array_1d<double,3>>& rVariable) {
+    return UnvOutput::DataCharacteristics::D3_DOF_GLOBAL_TRANSLATION_VECTOR;
 }
 
 void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
-    outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
+    outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
 void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable) {
-    outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
+    outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
 void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable) {
-    outputFile << std::setw(6) << node.FastGetSolutionStepValue(rVariable) << "\n";
+    outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
 void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable) {
     auto & temp = node.FastGetSolutionStepValue(rVariable);
 
-    outputFile << std::setw(6) << temp[0];
-    outputFile << std::setw(6) << temp[1];
-    outputFile << std::setw(6) << temp[2];
+    outputFile << std::setw(13) << temp[0];
+    outputFile << std::setw(13) << temp[1];
+    outputFile << std::setw(13) << temp[2];
     outputFile << "\n";
 }
 

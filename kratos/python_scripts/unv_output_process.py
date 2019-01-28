@@ -17,7 +17,7 @@ class UnvOutputProcess(KratosMultiphysics.Process):
             "model_part_name"                    : "PLEASE_SPECIFY_MODEL_PART_NAME",
             "output_frequency"                   : 1.0,
             "output_control_type"                : "step",
-            "nodal_results"                      : [],
+            "nodal_results"                      : []
         }""")
 
         model_part_name = settings["model_part_name"].GetString()
@@ -58,9 +58,8 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         self.step_count += 1
 
     def PrintOutput(self):
-
         for variable in self.nodal_variables:
-            self.unv_io.WriteNodalResults(self.nodal_variables[variable], self.next_output)
+            self.unv_io.PrintOutput(variable, self.next_output)
 
         # Schedule next output
         time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
@@ -86,7 +85,7 @@ class UnvOutputProcess(KratosMultiphysics.Process):
             raise Exception("{0} Error: Variable list is unreadable".format(self.__class__.__name__))
 
         # Retrieve variable name from input (a string) and request the corresponding C++ object to the kernel
-        return [ KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
+        return [ KratosMultiphysics.KratosGlobals.GetVariable( param[i].GetString() ) for i in range( 0,param.size() ) ]
 
 
 def GetPrettyTime(time):
