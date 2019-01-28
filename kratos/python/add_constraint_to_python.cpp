@@ -44,7 +44,7 @@ typename TVariableType::Type GetValueHelperFunctionMasterSlaveConstraint(MasterS
 
 void AddConstraintToPython(pybind11::module &m)
 {
-    pybind11::class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType>(m, "MasterSlaveConstraint")
+    pybind11::class_<MasterSlaveConstraint, MasterSlaveConstraint::Pointer, MasterSlaveConstraint::BaseType, Flags>(m, "MasterSlaveConstraint")
     .def(pybind11::init<>())
     .def(pybind11::init<int>())
 

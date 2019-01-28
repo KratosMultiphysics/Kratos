@@ -219,9 +219,24 @@ bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int
     return rModelPart.HasProperties(PropertiesId, 0);
 }
 
-Properties::Pointer ModelPartGetPropertiesById(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+Properties::Pointer ModelPartCreateNewPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
+{
+    return rModelPart.CreateNewProperties(PropertiesId, MeshId);
+}
+
+Properties::Pointer ModelPartCreateNewPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+{
+    return rModelPart.CreateNewProperties(PropertiesId, 0);
+}
+
+Properties::Pointer ModelPartGetPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.pGetProperties(PropertiesId, MeshId);
+}
+
+Properties::Pointer ModelPartGetPropertiesById2(ModelPart& rModelPart, unsigned int PropertiesId)
+{
+    return rModelPart.pGetProperties(PropertiesId);
 }
 
 ModelPart::PropertiesContainerType::Pointer ModelPartGetProperties1(ModelPart& rModelPart)
@@ -819,7 +834,10 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetTable", &ModelPart::pGetTable)
         .def("HasProperties", ModelPartHasPropertiesById1)
         .def("HasProperties", ModelPartHasPropertiesById2)
-        .def("GetProperties", ModelPartGetPropertiesById) //new method where one asks for one specific property on one given mesh
+        .def("CreateNewProperties", ModelPartCreateNewPropertiesById1)
+        .def("CreateNewProperties", ModelPartCreateNewPropertiesById2)
+        .def("GetProperties", ModelPartGetPropertiesById1)
+//         .def("GetProperties", ModelPartGetPropertiesById2) // NOTE: This method conflicts with the other GetProperties methods
         .def_property("Properties", ModelPartGetProperties1, ModelPartSetProperties1)
         .def("AddProperties", ModelPartAddProperties1)
         .def("AddProperties", ModelPartAddProperties2)
