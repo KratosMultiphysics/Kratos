@@ -229,15 +229,15 @@ def SetTestSuite(suites):
     )
 
     if (missing_external_dependencies == False):
-        if( hasattr(KratosMultiphysics.SolversApplication,  "FEAST_EigenValueSolver") ):
-            small_suite.addTests(
-                KratosUnittest.TestLoader().loadTestsFromTestCases([
-                    EigenQ4Thick2x2PlateTests,
-                    EigenTL3D8NCubeTests,
-                    Eigen3D3NThinCircleTests
-                ])
-            )
-        else:
-            print("EigenValueTests OFF : FEAST is not included in the compilation of the Solvers Application")
+      if( hasattr(KratosMultiphysics.SolversApplication,"feast_eigen") ):
+        small_suite.addTests(
+          KratosUnittest.TestLoader().loadTestsFromTestCases([
+            EigenQ4Thick2x2PlateTests,
+            EigenTL3D8NCubeTests,
+            Eigen3D3NThinCircleTests
+          ])
+        )
+      else:
+        print("EigenValueTests OFF : FEAST is not included in the compilation of the Solvers Application")
 
     return small_suite

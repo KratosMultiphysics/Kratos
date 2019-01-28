@@ -79,7 +79,7 @@ class FEASTEigenValueSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceT
   {
     Parameters default_params(R"(
         {
-            "solver_type": "FEAST",
+            "solver_type": "feast_eigenvalue",
             "print_feast_output": false,
             "perform_stochastic_estimate": true,
             "solve_eigenvalue_problem": true,
@@ -94,8 +94,8 @@ class FEASTEigenValueSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceT
 
     mParameters.RecursivelyValidateAndAssignDefaults(default_params);
 
-    if (mParameters.GetValue("linear_solver_settings")["solver_type"].GetString() != "complex_skyline_lu_solver")
-      KRATOS_ERROR << "built-in solver type must be used with this constructor" << std::endl;
+    const std::string& solver_type = mParameters.GetValue("linear_solver_settings")["solver_type"].GetString();
+    KRATOS_ERROR_IF(solver_type != "complex_skyline_lu_solver" && solver_type != "skyline_lu") << "Built-in solver type must be used with this constructor" << std::endl;
 
     mpLinearSolver = Kratos::make_shared<SkylineLUCustomScalarSolver<ComplexSparseSpaceType, ComplexDenseSpaceType>>();
 

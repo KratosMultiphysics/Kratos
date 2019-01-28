@@ -71,7 +71,7 @@ class SuperLUmtDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpace
 
     Parameters default_parameters( R"(
     {
-        "solver_type"         : "SuperLU_MT_DirectSolver",
+        "solver_type"         : "superlu_direct",
         "tolerance"           : 1e-7,
 	"max_iteration"       : 5000,
         "scaling"             : false,

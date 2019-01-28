@@ -172,8 +172,8 @@ class KratosSolversApplication : public KratosApplication {
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
 #else
   typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
-  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
+  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
   //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUIterativeSolverType> mSuperLUIterativeSolverFactory;
 #endif
 

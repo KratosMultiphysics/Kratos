@@ -106,14 +106,14 @@ void KratosSolversApplication::Register()
   //Register Solver Factories
 
 #ifdef INCLUDE_SUPERLU_MT
-  KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_DirectSolver", mSuperLUmtDirectSolverFactory);
+  KRATOS_REGISTER_LINEAR_SOLVER("superlu_direct", mSuperLUmtDirectSolverFactory);
 #else
-  KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_DirectSolver", mSuperLUDirectSolverFactory);
-  //KRATOS_REGISTER_LINEAR_SOLVER("SuperLU_IterativeSolver", mSuperLUIterativeSolverFactory);
+  KRATOS_REGISTER_LINEAR_SOLVER("superlu_direct", mSuperLUDirectSolverFactory);
+  //KRATOS_REGISTER_LINEAR_SOLVER("super_lu_iterative", mSuperLUIterativeSolverFactory);
 #endif
 
 #ifdef INCLUDE_FEAST
-  KRATOS_REGISTER_LINEAR_SOLVER("FEAST_EigenValueSolver", mFEASTEigenValueSolverFactory);
+  KRATOS_REGISTER_LINEAR_SOLVER("feast_eigen", mFEASTEigenValueSolverFactory);
 #endif
 
 }
