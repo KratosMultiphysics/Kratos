@@ -21,7 +21,7 @@ import embedded
 import variables_management as vars_man
 
 def Say(*args):
-    Logger.PrintInfo("DEM-FLUID", *args)
+    Logger.PrintInfo("SwimmingDEM", *args)
     Logger.Flush()
 
 # Import MPI modules if needed. This way to do this is only valid when using OpenMPI.
@@ -127,11 +127,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
         self.pp.fluid_parameters = self.project_parameters['fluid_parameters']
 
         self.pp.nodal_results, self.pp.gauss_points_results = [], []
-        if self.pp.fluid_parameters.Has('output_processes'):
-            gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+        if self.pp.fluid_parameters.Has('sdem_output_processes'):
+            gid_output_options = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
             gauss_point_results = result_file_configuration["gauss_point_results"]
-            nodal_variables = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
+            nodal_variables = self.pp.fluid_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]["postprocess_parameters"]["result_file_configuration"]["nodal_results"]
             self.pp.nodal_results = [nodal_variables[i].GetString() for i in range(nodal_variables.size())]
             self.pp.gauss_points_results = [gauss_point_results[i].GetString() for i in range(gauss_point_results.size())]
 
@@ -356,8 +356,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
 
         self.SetAllModelParts()
 
-        if self.pp.fluid_parameters.Has('output_processes'):
-            gid_output_options = self.pp.fluid_parameters["output_processes"]["gid_output"][0]["Parameters"]
+        if self.project_parameters.Has('sdem_output_processes') and self.pp.CFD_DEM["do_print_results_option"].GetBool():
+            gid_output_options = self.project_parameters["sdem_output_processes"]["gid_output"][0]["Parameters"]
             result_file_configuration = gid_output_options["postprocess_parameters"]["result_file_configuration"]
             write_conditions_option = result_file_configuration["gidpost_flags"]["WriteConditionsFlag"].GetString() == "WriteConditionsFlag"
             deformed_mesh_option = result_file_configuration["gidpost_flags"]["WriteDeformedMeshFlag"].GetString() == "WriteDeformed"
@@ -383,10 +383,10 @@ class SwimmingDEMAnalysis(AnalysisStage):
                 self.rigid_face_model_part,
                 self.mixed_model_part
                 )
-
         self.SetPointGraphPrinter()
 
         self.AssignKinematicViscosityFromDynamicViscosity()
+
         super(SwimmingDEMAnalysis, self).Initialize()
 
         # coarse-graining: applying changes to the physical properties of the model to adjust for
@@ -735,7 +735,8 @@ class SwimmingDEMAnalysis(AnalysisStage):
             elif self.pp.type_of_inlet == 'ForceImposed':
                 self.DEM_inlet = DEM_Force_Based_Inlet(self.DEM_inlet_model_part, self.pp.force)
 
-            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.creator_destructor)
+            self.disperse_phase_solution.DEM_inlet = self.DEM_inlet
+            self.DEM_inlet.InitializeDEM_Inlet(self.spheres_model_part, self.disperse_phase_solution.creator_destructor)
 
     def SetAnalyticParticleWatcher(self):
         from analytic_tools import analytic_data_procedures
@@ -805,7 +806,7 @@ class SwimmingDEMAnalysis(AnalysisStage):
     def GetPrintCounterUpdatedFluid(self):
         counter = SDP.Counter(
             steps_in_cycle=int(self.output_time / self.Dt_DEM + 0.5),
-            beginning_step=int(self.Dt / self.Dt_DEM),
+            beginning_step=int(self.output_time / self.Dt_DEM),
             is_dead = not self.pp.CFD_DEM["do_print_results_option"].GetBool())
 
         if 'UpdatedFluid' != self.pp.CFD_DEM["coupling_scheme_type"].GetString():

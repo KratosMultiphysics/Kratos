@@ -20,6 +20,7 @@
 #include "includes/checks.h"
 #include "custom_elements/prestress_membrane_element.hpp"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -157,7 +158,26 @@ void PrestressMembraneElement::Initialize()
     KRATOS_CATCH( "" )
 }
 
+//***********************************************************************************
+//***********************************************************************************
 
+void PrestressMembraneElement::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo)
+
+{
+    //calculation flags
+    const bool calculate_stiffness_matrix_flag = true;
+    const bool calculate_residual_vector_flag = false;
+    VectorType temp = VectorType();
+
+    CalculateAll(
+        rLeftHandSideMatrix,
+        temp,
+        rCurrentProcessInfo,
+        calculate_stiffness_matrix_flag,
+        calculate_residual_vector_flag);
+}
 
 //***********************************************************************************
 //***********************************************************************************
@@ -170,9 +190,14 @@ void PrestressMembraneElement::CalculateRightHandSide(
     //calculation flags
     const bool calculate_stiffness_matrix_flag = false;
     const bool calculate_residual_vector_flag = true;
-    MatrixType temp = Matrix();
+    MatrixType temp = MatrixType();
 
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
+    CalculateAll(
+        temp,
+        rRightHandSideVector,
+        rCurrentProcessInfo,
+        calculate_stiffness_matrix_flag,
+        calculate_residual_vector_flag);
 }
 
 
@@ -184,49 +209,13 @@ void PrestressMembraneElement::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
+    const std::size_t matrix_size = GetGeometry().PointsNumber() * 3;
 
-    const SizeType number_of_nodes = this->GetGeometry().size();
-    const SizeType num_dofs = number_of_nodes * 3;
-
-    if ( rDampingMatrix.size1() != num_dofs )
-        rDampingMatrix.resize( num_dofs, num_dofs, false );
-
-    noalias( rDampingMatrix ) = ZeroMatrix( num_dofs, num_dofs );
-
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType stiffness_matrix  = Matrix();
-    VectorType residual_vector  = Vector();
-
-    CalculateAll(stiffness_matrix, residual_vector, rCurrentProcessInfo, true, false);
-
-    // 2.-Calculate MassMatrix:
-
-    MatrixType mass_matrix  = Matrix();
-
-    CalculateMassMatrix(mass_matrix, rCurrentProcessInfo);
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0.0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) )
-        alpha = GetProperties()[RAYLEIGH_ALPHA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-    double beta  = 0.0;
-    if( GetProperties().Has(RAYLEIGH_BETA) )
-        beta = GetProperties()[RAYLEIGH_BETA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-    // 4.-Compose the Damping Matrix:
-
-    // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * mass_matrix;
-    noalias( rDampingMatrix ) += beta  * stiffness_matrix;
-
-    KRATOS_CATCH( "" )
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        matrix_size);
 }
 
 //***********************************************************************************
@@ -277,7 +266,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
 
     noalias(rMassMatrix) = ZeroMatrix(mat_size, mat_size);
 
-    const double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * GetProperties()[DENSITY];
+    const double total_mass = mTotalDomainInitialSize * GetProperties()[THICKNESS] * StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);;
 
     Vector lump_fact;
 

@@ -57,18 +57,15 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "design_history_filename" : "design_history",
-            "response_log_filename"   : "response_log",
-            "design_output_mode"      : "WriteDesignSurface",
-            "nodal_results"           : [ "NORMALIZED_SURFACE_NORMAL",
-                                        "DF1DX",
-                                        "DF1DX_MAPPED",
-                                        "SEARCH_DIRECTION",
-                                        "CONTROL_POINT_UPDATE",
-                                        "CONTROL_POINT_CHANGE",
-                                        "SHAPE_UPDATE",
-                                        "SHAPE_CHANGE" ],
+            "design_output_mode" : "WriteDesignSurface",
+            "nodal_results"      : [ "NORMALIZED_SURFACE_NORMAL",
+                                     "DF1DX",
+                                     "DF1DX_MAPPED",
+                                     "SEARCH_DIRECTION",
+                                     "CONTROL_POINT_UPDATE",
+                                     "CONTROL_POINT_CHANGE",
+                                     "SHAPE_UPDATE",
+                                     "SHAPE_CHANGE" ],
             "output_format" : {
                 "name" : "gid"
             }
