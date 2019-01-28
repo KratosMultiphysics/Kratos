@@ -105,14 +105,16 @@ public:
      * @brief Copies the nodal value of a variable from an origin model
      * part nodes to the nodes in a destination model part. It is assumed that
      * both origin and destination model parts have the same number of nodes.
-     * @param rVariable reference to the variable to be set
+     * @param rOriginalVariable reference to the original variable to be copied from
+     * @param rDestinationVariable reference to the desitination variable to be set to
      * @param rOriginModelPart origin model part from where the values are retrieved
      * @param rDestinationModelPart destination model part to where the values are copied to
      * @param BuffStep buffer step
      */
     template< class TVarType >
     void CopyModelPartNodalVar(
-        const TVarType& rVariable,
+        const TVarType& rOriginalVariable,
+        const TVarType& rDestinationVariable,
         const ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
         const unsigned int BuffStep = 0){
@@ -128,8 +130,8 @@ public:
         for(int i_node = 0; i_node < n_orig_nodes; ++i_node){
             auto it_dest_node = rDestinationModelPart.NodesBegin() + i_node;
             const auto &it_orig_node = rOriginModelPart.NodesBegin() + i_node;
-            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->GetSolutionStepValue(rVariable, BuffStep) = r_value;
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rOriginalVariable, BuffStep);
+            it_dest_node->GetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
         }
     }
 
