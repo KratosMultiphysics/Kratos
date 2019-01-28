@@ -31,12 +31,11 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
 
         # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
         if self.particles_per_condition > 0:
-            for condition in self.model_part.Conditions:
-                condition.Set(KratosMultiphysics.BOUNDARY, True)
-                condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Conditions)
+            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Nodes)
 
-            for node in self.model_part.Nodes:
-                node.Set(KratosMultiphysics.BOUNDARY, True)
+            for condition in self.model_part.Conditions:
+                condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
         else:
             err_msg = '\n::[ApplyMPMParticleConditionProcess]:: W-A-R-N-I-N-G: You have not specified "particles_per_condition", '
             err_msg += 'or assigned it to 0. \nPlease assign: "particles_per_condition" > 0!\n'
