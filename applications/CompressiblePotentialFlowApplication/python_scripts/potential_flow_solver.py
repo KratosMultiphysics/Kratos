@@ -152,20 +152,20 @@ class LaplacianSolver(PythonSolver):
         return self.main_model_part
 
     def InitializeSolutionStep(self):
-         self.incompressible_solution_stratety.InitializeSolutionStep()
+        self.incompressible_solution_stratety.InitializeSolutionStep()
 
     def Predict(self):
-        (self.incompressible_solution_stratety).Predict()
+        self.incompressible_solution_stratety.Predict()
 
     def SolveSolutionStep(self):
-        (self.incompressible_solution_stratety).SolveSolutionStep()
+        self.incompressible_solution_stratety.SolveSolutionStep()
 
     def FinalizeSolutionStep(self):
-        (self.incompressible_solution_stratety).FinalizeSolutionStep()
+        self.incompressible_solution_stratety.FinalizeSolutionStep()
 
     def SetEchoLevel(self, level):
-        (self.incompressible_solution_stratety).SetEchoLevel(level)
+        self.incompressible_solution_stratety.SetEchoLevel(level)
 
     def Clear(self):
-        (self.incompressible_solution_stratety).Clear()
+        self.incompressible_solution_stratety.Clear()
 
