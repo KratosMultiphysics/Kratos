@@ -22,28 +22,9 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 
 '''
-auxiliary function of UpdateOnepassPowerSums of the StatisticalVariable class
-'''
-@ExaquteTask(returns=5)
-def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
-    if nsamples == 1:
-        new_S1 = sample
-        new_S2 = sample**2
-        new_S3 = sample**3
-        new_S3_absolute = np.abs(sample**3)
-        new_S4 = sample**4
-    else:
-        new_S1 = old_S1 + sample
-        new_S2 = old_S2 + sample**2
-        new_S3 = old_S3 + sample**3
-        new_S3_absolute = old_S3_absolute + np.abs(sample**3)
-        new_S4 = old_S4 + sample**4
-    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4
-
-'''
 auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
 '''
-@ExaquteTask(returns=2)
+@ExaquteTask(returns=6)
 def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
@@ -64,12 +45,32 @@ def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M
         if (compute_M3):
             new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
         else:
-            new_M3 = old_M3 # so do not update
+            new_M3 = old_M3 # we are not updating
         if (compute_M4):
             new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
         else:
-            new_M4 = old_M4
+            new_M4 = old_M4 # we are not updating
     return new_mean,new_sample_variance,new_M2,new_M3,new_M4,nsamples
+
+
+'''
+auxiliary function of UpdateOnepassPowerSums of the StatisticalVariable class
+'''
+@ExaquteTask(returns=5)
+def UpdateOnePassPowerSumsAux_Task(sample,old_S1,old_S2,old_S3,old_S3_absolute,old_S4,nsamples):
+    if nsamples == 1:
+        new_S1 = sample
+        new_S2 = sample**2
+        new_S3 = sample**3
+        new_S3_absolute = np.abs(sample**3)
+        new_S4 = sample**4
+    else:
+        new_S1 = old_S1 + sample
+        new_S2 = old_S2 + sample**2
+        new_S3 = old_S3 + sample**3
+        new_S3_absolute = old_S3_absolute + np.abs(sample**3)
+        new_S4 = old_S4 + sample**4
+    return new_S1,new_S2,new_S3,new_S3_absolute,new_S4
 
 
 '''
@@ -232,8 +233,6 @@ class StatisticalVariable(object):
         self.moment_3[level] = new_M3
         self.moment_4[level] = new_M4
         self.number_samples[level] = number_samples_level
-        if (self.number_samples[level] != i_sample+1):
-            raise Exception ("Incoherence between current number of samples of the QoI and current i-th position in the QoI list")
 
     '''
     function updating the power sums S_p
