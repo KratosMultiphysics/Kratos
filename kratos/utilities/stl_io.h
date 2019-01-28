@@ -61,9 +61,9 @@ template<class T>
 std::ostream& operator <<(std::ostream& rOStream, const std::weak_ptr<T>& rData) {
 
   if(!rData.expired())
-    rOStream << *rData.lock().get() << std::endl;
+    rOStream << *rData.lock().get();
   else
-    rOStream <<" expired weak_ptr "<<std::endl;
+    rOStream <<" expired weak_ptr ";
 
   return rOStream;
 }
