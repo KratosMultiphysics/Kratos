@@ -174,7 +174,7 @@ public:
                               NodesArrayType const& ThisNodes,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new PotentialWallCondition(
+        return Condition::Pointer(Kratos::make_shared<PotentialWallCondition> (
             NewId, GetGeometry().Create(ThisNodes), pProperties));
     }
 
@@ -182,7 +182,8 @@ public:
                               Condition::GeometryType::Pointer pGeom,
                               PropertiesType::Pointer pProperties) const override
     {
-        return Condition::Pointer(new PotentialWallCondition(NewId, pGeom, pProperties));
+        return Condition::Pointer(Kratos::make_shared<PotentialWallCondition> (
+            NewId, pGeom, pProperties));
     }
 
     /**
