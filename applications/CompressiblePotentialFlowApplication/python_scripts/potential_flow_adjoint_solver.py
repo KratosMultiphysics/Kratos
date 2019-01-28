@@ -59,6 +59,8 @@ class PotentialAdjointSolver(PotentialSolver):
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftGlobalCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         elif self.response_function_settings["response_type"].GetString() == "adjoint_potential_coordinates":
             self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointPotentialCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
+        elif self.response_function_settings["response_type"].GetString() == "adjoint_lift_jump_coordinates":
+            self.response_function = KratosMultiphysics.CompressiblePotentialFlowApplication.AdjointLiftJumpCoordinatesResponseFunction(self.main_model_part, self.response_function_settings)
         else:
             raise Exception("invalid response_type: " + self.response_function_settings["response_type"].GetString())
 
