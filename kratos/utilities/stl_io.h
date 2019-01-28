@@ -42,14 +42,14 @@ std::ostream& operator<<(std::ostream& rOStream, const std::vector<T>& rVec) {
 }
 
 template<class T>
-std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rVec) {
+std::ostream& operator <<(std::ostream& rOStream, const std::set<T>& rSet) {
 
-  std::size_t vector_size = rVec.size();
+  const std::size_t set_size = rSet.size();
 
   rOStream << "[";
-  if(vector_size>0) rOStream << *(rVec.begin());
-  if(vector_size>1) {
-    for(auto it(std::next(rVec.begin(),1)); it!=rVec.end(); ++it)
+  if(set_size>0) rOStream << *(rSet.begin());
+  if(set_size>1) {
+    for(auto it(std::next(rSet.begin(),1)); it!=rSet.end(); ++it)
       rOStream<<", "<<*it;
   }
   rOStream << "]";
@@ -61,9 +61,9 @@ template<class T>
 std::ostream& operator <<(std::ostream& rOStream, const std::weak_ptr<T>& rData) {
 
   if(!rData.expired())
-    rOStream << *rData.lock().get() << std::endl;
+    rOStream << *rData.lock().get();
   else
-    rOStream <<" expired weak_ptr "<<std::endl;
+    rOStream <<" expired weak_ptr ";
 
   return rOStream;
 }
