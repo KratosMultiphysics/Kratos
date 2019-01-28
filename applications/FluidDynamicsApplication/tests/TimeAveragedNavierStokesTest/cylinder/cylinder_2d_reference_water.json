@@ -1,12 +1,12 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "cylinder_test",
+        "problem_name"    : "cylinder_reference_water",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 1,
+        "echo_level"      : 0,
         "start_time"      : 0.0,
-        "end_time"        : 100000.0
+        "end_time"        : 10
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,12 +18,12 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 1000.0,
+            "output_frequency"    : 10,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
             "plane_output"        : [],
-            "nodal_results"       : ["TIME_AVERAGED_VELOCITY","TIME_AVERAGED_PRESSURE"],
+            "nodal_results"       : ["VELOCITY","PRESSURE","TIME_AVERAGED_VELOCITY","TIME_AVERAGED_PRESSURE"],
             "gauss_point_results" : []
         },
         "point_data_configuration"  : []
@@ -35,81 +35,66 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                 : "TimeAveraged",
-        "model_part_name"                 : "MainModelPart",
-        "domain_size"                     : 2,
+        "solver_type"                 : "Monolithic",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
         "model_import_settings"       : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder_2d"
+            "input_filename" : "cylinder_2d_water"
         },
-        "echo_level"                      : 0,
-        "compute_reactions"               : false,
-        "dynamic_tau"                     : 0.01,
-        "predictor_corrector"             : true,
-        "relative_velocity_tolerance": 1e-5,
-        "absolute_velocity_tolerance": 1e-7,
-        "relative_pressure_tolerance": 1e-5,
-        "absolute_pressure_tolerance": 1e-7,
-        "linear_solver_settings" : {
-            "solver_type" : "AMGCL"
-        },
+        "echo_level"                  : 0,
+        "compute_reactions"           : false,
+        "dynamic_tau"                 : 1.0,
+        "oss_switch"                  : 0,
+        "maximum_iterations"          : 10,
+        "relative_velocity_tolerance" : 1e-5,
+        "absolute_velocity_tolerance" : 1e-7,
+        "relative_pressure_tolerance" : 1e-5,
+        "absolute_pressure_tolerance" : 1e-7,
         "volume_model_part_name"      : "Parts_fluid",
         "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_wall","NoSlip2D_cylinder"],
         "no_skin_parts"               : [],
         "time_stepping"               : {
-            "automatic_time_step" : false,
-            "time_step"           : 0.5
+            "automatic_time_step" : true,
+            "CFL_number"            : 1.0,
+            "minimum_delta_time"    : 0.1,
+            "maximum_delta_time"    : 5.0
         },
-        "time_averaging_acceleration"        :{
-            "considered_time"           : 1000.0,
-            "minimum_delta_time"        : 1.0,
-            "maximum_delta_time"        : 9.0,
-            "minimum_CFL"               : 1.0,
-            "maximum_CFL"               : 20.0,
-            "start_acceleration_time"   : 100,
-            "end_acceleration_time"     : 1000.0,
-            "end_time"                  : 100000.0
-        }
+        "compute_time_averaged_results": true
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "apply_inlet_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
-        "process_name": "AssignVectorVariableProcess",
         "Parameters"    : {
             "model_part_name" : "AutomaticInlet2D_inlet",
-            "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "value"           : [0.1,0.0,0.0],
-            "constrained"     : [true,true,true]
+            "variable_name"   : "VELOCITY",
+            "modulus"         : 0.1,
+            "direction"       : "automatic_inwards_normal",
+            "interval"        : [0.0,"End"]
         }
     },{
         "python_module" : "apply_outlet_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
             "model_part_name"    : "Outlet2D_outlet",
-            "variable_name"      : "TIME_AVERAGED_PRESSURE",
+            "variable_name"      : "PRESSURE",
             "constrained"        : true,
             "value"              : 0.0,
             "hydrostatic_outlet" : false,
             "h_top"              : 0.0
         }
     },{
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "apply_noslip_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name" : "NoSlip2D_wall",
-            "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "value"           : [0.0,0.0,0.0],
-            "constrained"     : [true,true,true]
+            "model_part_name" : "NoSlip2D_wall"
         }
     },{
-        "python_module" : "assign_vector_variable_process",
+        "python_module" : "apply_noslip_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name" : "NoSlip2D_cylinder",
-            "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "value"           : [0.0,0.0,0.0],
-            "constrained"     : [true,true,true]
+            "model_part_name" : "NoSlip2D_cylinder"
         }
     }],
     "gravity"                          : [{
@@ -122,6 +107,28 @@
             "modulus"         : 0.0,
             "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
+        }
+    }],
+    "auxiliar_process_list"            : [{
+        "python_module" : "apply_time_averaging_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"  : "ApplyTimeAveragingProcess",
+        "Parameters"    : {
+            "model_part_name" : "Parts_fluid"
+        }
+    },{
+        "python_module"  : "estimate_steady_state_process",
+        "kratos_module"  : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name"   : "EstimateSteadyStateProcess",
+        "Parameters"            : {
+            "model_part_name"           : "Parts_fluid",
+            "print_change_to_screen"    : true,
+            "write_change_output_file"  : true,
+            "print_format"              : ".8f",
+            "output_file_settings": {
+                "folder_name" : "quantity_change",
+                "file_name" : "quantity_change"
+            }
         }
     }]
 }
