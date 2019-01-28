@@ -1,6 +1,6 @@
 # co simulation imports
-from base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
-import co_simulation_tools as tools
+from ... base_co_simulation_classes.co_simulation_base_io import CoSimulationBaseIO
+from ... import co_simulation_tools as tools
 
 
 def Create(model, custom_settings):
