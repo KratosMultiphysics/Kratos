@@ -1179,7 +1179,7 @@ class DataCommunicator
      *  Failing on the Root rank is left to the caller, so that a detailed error message can be
      *  produced.
      *
-     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  @note This method should be called from all ranks, it will deadlock if called within
      *  an if(rank == some_rank) statement.
      *  @see MPIDataCommunicator.
      *  @param Condition The condition to check.
@@ -1204,7 +1204,7 @@ class DataCommunicator
      *  Failing on the Root rank is left to the caller, so that a detailed error message can be
      *  produced.
      *
-     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  @note This method should be called from all ranks, it will deadlock if called within
      *  an if(rank == some_rank) statement.
      *  @see MPIDataCommunicator.
      *  @param Condition The condition to check.
@@ -1229,7 +1229,7 @@ class DataCommunicator
      *  Failing on the ranks where the condition is true is left to the caller,
      *  so that a detailed error message can be produced.
      *
-     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  @note This method should be called from all ranks, it will deadlock if called within
      *  an if(rank == some_rank) statement.
      *  @see MPIDataCommunicator.
      *  @param Condition The condition to check.
@@ -1253,7 +1253,7 @@ class DataCommunicator
      *  Failing on the ranks where the condition is false is left to the caller,
      *  so that a detailed error message can be produced.
      *
-     *  @note: This method should be called from all ranks, it will deadlock if called within
+     *  @note This method should be called from all ranks, it will deadlock if called within
      *  an if(rank == some_rank) statement.
      *  @see MPIDataCommunicator.
      *  @param Condition The condition to check.
