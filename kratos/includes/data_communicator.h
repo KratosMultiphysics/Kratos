@@ -1154,6 +1154,12 @@ class DataCommunicator
     }
 
     ///@}
+    ///@name Access
+    ///@{
+
+    static DataCommunicator& GetDefault();
+
+    ///@}
     ///@name Helper functions for error checking in MPI
     ///@{
 
