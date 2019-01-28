@@ -41,6 +41,11 @@
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
 #include "custom_elements/updated_lagrangian.hpp"
 
+//FIXME: Tobe deleted - should not be imported here!
+#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
+#include "geometries/line_2d.h"
+#include "geometries/line_2d_2.h"
+
 // Core includes
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
@@ -591,8 +596,203 @@ public:
      */
     virtual void CreateMaterialPointCondition()
     {
-        mr_mpm_model_part.SetConditions(mr_grid_model_part.pConditions());
-        // TODO: Going to be implemented further to generate particle condition
+        // Initialize zero the variables needed
+        array_1d<double,3> mpc_xg = ZeroVector(3);
+        array_1d<double,3> MPC_Imposed_Displacement = ZeroVector(3);
+
+        // Determine condition index
+        const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
+        unsigned int last_condition_id = number_conditions + 1;
+
+        // Loop over the submodelpart of mr_grid_model_part
+        for (ModelPart::SubModelPartIterator submodelpart_it = mr_grid_model_part.SubModelPartsBegin();
+                submodelpart_it != mr_grid_model_part.SubModelPartsEnd(); submodelpart_it++)
+        {
+            ModelPart& submodelpart = *submodelpart_it;
+
+            // For submodelpart without condition, exit
+            if (submodelpart.NumberOfConditions() != 0){
+
+                std::string submodelpart_name = submodelpart.Name();
+                mr_mpm_model_part.CreateSubModelPart(submodelpart_name);
+
+                // For regular conditions: straight copy all conditions
+                if (submodelpart.ConditionsBegin()->Is(BOUNDARY) == false){
+                    mr_mpm_model_part.SetConditions(submodelpart.pConditions());
+                    mr_mpm_model_part.GetSubModelPart(submodelpart_name).SetConditions(submodelpart.pConditions());
+                }
+                // For boundary conditions: create particle conditions for all the necessary conditions
+                else{
+
+                    // Loop over the condition of submodelpart and generate mpm condition to be appended to the mr_mpm_model_part
+                    for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
+                            i != submodelpart.ConditionsEnd(); i++)
+                    {
+                        Properties::Pointer properties = i->pGetProperties();
+
+                        // Check number of particles per condition to be created
+                        unsigned int particles_per_condition;
+                        if (i->Has( PARTICLES_PER_CONDITION )){
+                            particles_per_condition = i->GetValue(PARTICLES_PER_CONDITION);
+                        }
+                        else{
+                            std::string warning_msg = "PARTICLES_PER_CONDITION is not specified, ";
+                            warning_msg += "1 Particle per condition is assumed.";
+                            KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                            particles_per_condition = 1;
+                        }
+
+                        // NOTE: To create Particle Condition, we consider both the nodal value as well as the position of integration point
+                        const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current condition's geometry
+                        const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
+                        Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
+                        {
+                            switch (particles_per_condition)
+                            {
+                                case 1:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
+                                default:
+                                    std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
+                                    warning_msg += " is not available for Point" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += "Available option is: 1.\n";
+                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    break;
+                            }
+                        }
+                        else if (rGeoType == GeometryData::Kratos_Line2D2  || rGeoType == GeometryData::Kratos_Line3D2)
+                        {
+                            switch (particles_per_condition)
+                            {
+                                case 1:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
+                                case 2:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    break;
+                                case 3:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    break;
+                                case 4:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    break;
+                                case 5:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                    break;
+                                default:
+                                    std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
+                                    warning_msg += " is not available for Line" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += "Available options are: 1, 2, 3, 4, 5.\n";
+                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    break;
+                            }
+                        }
+                        else if(rGeoType == GeometryData::Kratos_Triangle3D3)
+                        {
+                            switch (particles_per_condition)
+                            {
+                                case 1:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
+                                case 3:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    break;
+                                case 6:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    break;
+                                case 12:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
+                                    break;
+                                case 16:
+                                    if (TDim==2){
+                                        shape_functions_values = this->MP16ShapeFunctions();
+                                        break;
+                                    }
+                                case 33:
+                                    if (TDim==2) {
+                                        shape_functions_values = this->MP33ShapeFunctions();
+                                        break;
+                                    }
+                                default:
+                                    std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
+                                    warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += "Available options are: 1, 3, 6, 12, 16, and 33.\n";
+                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    break;
+                            }
+                        }
+                        else if(rGeoType == GeometryData::Kratos_Quadrilateral3D4)
+                        {
+                            switch (particles_per_condition)
+                            {
+                                case 1:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                    break;
+                                case 4:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                    break;
+                                case 9:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    break;
+                                case 16:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    break;
+                                default:
+                                    std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
+                                    warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
+                                    warning_msg += "Available options are: 1, 4, 9, 16.\n";
+                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
+                                    break;
+                            }
+                        }
+                        else{
+                            std::string error_msg = "The Geometry type of the Condition given is invalid or currently not available. ";
+                            error_msg += "Please remesh the problem domain to Point2D1N or Line2D2N for 2D or ";
+                            error_msg += "Point3D1N, Line3D2N, Triangle3D3N or Quadrilateral3D4N for 3D.";
+                            KRATOS_ERROR << error_msg << std::endl;
+                        }
+
+                        // Number of MPC per condition
+                        const unsigned int integration_point_per_conditions = shape_functions_values.size1();
+
+                        // Loop over the material point conditions that fall in each grid condition
+                        unsigned int new_condition_id = 0;
+                        for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_conditions; PointNumber++ )
+                        {
+                            new_condition_id = last_condition_id + PointNumber;
+                            //FIXME: Need to be generalized!!!!
+                            Condition::Pointer const new_condition = Kratos::make_shared<MPMGridLineLoadCondition2D>(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2))));
+                            Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, rGeom, properties);
+
+                            mpc_xg.clear();
+
+                            // Loop over the nodes of the grid condition
+                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
+                            {
+                                for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                                {
+                                    mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
+                                }
+                            }
+
+                            // Setting particle condition's initial condition
+                            p_condition->SetValue(MPC_COORD, mpc_xg);
+
+                            // Add the MP Condition to the model part
+                            mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                        }
+
+                        last_condition_id += integration_point_per_conditions;
+
+                    }
+                }
+            }
+        }
     }
 
     /**
