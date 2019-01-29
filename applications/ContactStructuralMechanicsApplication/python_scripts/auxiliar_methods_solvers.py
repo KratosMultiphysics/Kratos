@@ -68,7 +68,8 @@ def AuxiliarExplicitContactSettings():
             "mortar_type"                                       : "",
             "compute_dynamic_factor"                            : true,
             "ensure_contact"                                    : false,
-            "silent_strategy"                                   : false
+            "silent_strategy"                                   : false,
+            "delta_time_factor_for_contact"                     : 5.0e-1
         }
     }
     """)
