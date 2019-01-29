@@ -12,41 +12,48 @@ include(pybind11Tools)
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries)
 
-if(${INCLUDE_SUPERLU_MT} MATCHES ON)
-  add_definitions(-DINCLUDE_SUPERLU_MT)
-  # compile SuperLU_MT
-  set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
-  include_directories(${SUPERLU_MT_DIR}/SRC)
-  #add_subdirectory(${SUPERLU_MT_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU_MT.cmake")
-  set(SUPERLU_LIBRARIES external_superlu_mt)
-  message(STATUS "SUPERLU_MT_LIBRARIES : ${SUPERLU_MT_LIBRARIES}")
-else(${INCLUDE_SUPERLU_MT} MATCHES ON)
-  # compile SuperLU 5.2
-  set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2")
-  include_directories(${SUPERLU_DIR}/SRC)
-  #add_subdirectory(${SUPERLU_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU.cmake")
-  set(SUPERLU_LIBRARIES external_superlu)
-  message(STATUS "SUPERLU_LIBRARIES : ${SUPERLU_LIBRARIES}")
-endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
+set(SOLVERS_LIBRARIES "")
 
-set(SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
+if((NOT DEFINED INCLUDE_EXTERNAL_SOLVERS) OR (${INCLUDE_EXTERNAL_SOLVERS} MATCHES OFF))
 
-# compile FEAST
-if(${INCLUDE_FEAST} MATCHES ON)
-  add_definitions(-DINCLUDE_FEAST)
-  set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
-  #include(CMakeAddFortranSubdirectory)
-  #cmake_add_fortran_subdirectory(${FEAST_DIR} NO_EXTERNAL_INSTALL)
-  include_directories(${FEAST_DIR}/include)
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/FEAST.cmake")
-  set(FEAST_LIBRARIES external_feast)
-  message(STATUS "FEAST_LIBRARIES : ${FEAST_LIBRARIES}")
-  list(APPEND SOLVERS_LIBRARIES ${FEAST_LIBRARIES})
-endif(${INCLUDE_FEAST} MATCHES ON)
+  # compile SUPERLU
+  if(${INCLUDE_SUPERLU_MT} MATCHES ON)
+    add_definitions(-DINCLUDE_SUPERLU_MT)
+    # compile SuperLU_MT
+    set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
+    include_directories(${SUPERLU_MT_DIR}/SRC)
+    #add_subdirectory(${SUPERLU_MT_DIR})
+    INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU_MT.cmake")
+    set(SUPERLU_LIBRARIES external_superlu_mt)
+    message(STATUS "SUPERLU_MT_LIBRARIES : ${SUPERLU_MT_LIBRARIES}")
+    list(APPEND SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
+  else(${INCLUDE_SUPERLU_MT} MATCHES ON)
+    # compile SuperLU 5.2
+    set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2")
+    include_directories(${SUPERLU_DIR}/SRC)
+    #add_subdirectory(${SUPERLU_DIR})
+    INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU.cmake")
+    set(SUPERLU_LIBRARIES external_superlu)
+    message(STATUS "SUPERLU_LIBRARIES : ${SUPERLU_LIBRARIES}")
+    list(APPEND SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
+  endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
 
-message(STATUS "SOLVERS_LIBRARIES : ${SOLVERS_LIBRARIES}")
+  # compile FEAST
+  if(${INCLUDE_FEAST} MATCHES ON)
+    add_definitions(-DINCLUDE_FEAST)
+    set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
+    #include(CMakeAddFortranSubdirectory)
+    #cmake_add_fortran_subdirectory(${FEAST_DIR} NO_EXTERNAL_INSTALL)
+    include_directories(${FEAST_DIR}/include)
+    INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/FEAST.cmake")
+    set(FEAST_LIBRARIES external_feast)
+    message(STATUS "FEAST_LIBRARIES : ${FEAST_LIBRARIES}")
+    list(APPEND SOLVERS_LIBRARIES ${FEAST_LIBRARIES})
+  endif(${INCLUDE_FEAST} MATCHES ON)
+
+  message(STATUS "SOLVERS_LIBRARIES : ${SOLVERS_LIBRARIES}")
+
+endif((NOT DEFINED INCLUDE_EXTERNAL_SOLVERS) OR (${INCLUDE_EXTERNAL_SOLVERS} MATCHES OFF))
 
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE

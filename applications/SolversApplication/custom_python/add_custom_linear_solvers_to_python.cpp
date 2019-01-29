@@ -49,21 +49,21 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
   typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
 
   py::class_<SuperLUmtDirectSolverType, typename SuperLUmtDirectSolverType::Pointer, DirectSolverType>
-      (m, "superlu_direct")
+      (m, "ks_superlu_direct")
       .def(py::init<>() )
       .def(py::init<Parameters>());
 #else
   typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
 
   py::class_<SuperLUDirectSolverType, typename SuperLUDirectSolverType::Pointer, DirectSolverType>
-      (m, "superlu_direct")
+      (m, "ks_superlu_direct")
       .def(py::init<>() )
       .def(py::init<Parameters>());
 
   typedef SuperLUIterativeGMRESSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
 
   py::class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer, LinearSolverType>
-      (m, "superlu_iterative")
+      (m, "ks_superlu_iterative")
       .def(py::init<>() )
       .def(py::init<Parameters>());
 #endif
@@ -77,7 +77,7 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
   typedef LinearSolver<ComplexSparseSpaceType, ComplexLocalSpaceType>                 ComplexLinearSolverType;
 
   py::class_<FEASTEigenValueSolverType, FEASTEigenValueSolverType::Pointer, LinearSolverType>
-      (m, "feast_eigen")
+      (m, "ks_feast_eigen")
       .def(py::init<Parameters>() )
       .def(py::init<Parameters, ComplexLinearSolverType::Pointer>() )
       ;
