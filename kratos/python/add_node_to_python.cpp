@@ -211,6 +211,7 @@ void  AddNodeToPython(pybind11::module& m)
     node_binder.def_property("X0", PointGetX0, PointSetX0);
     node_binder.def_property("Y0", PointGetY0, PointSetY0);
     node_binder.def_property("Z0", PointGetZ0, PointSetZ0);
+    node_binder.def_property("Id", &NodeType::GetId, &NodeType::SetId);
 
     PointerVectorSetPythonInterface<MeshType::NodesContainerType>().CreateInterface(m,"NodesArray");
 
