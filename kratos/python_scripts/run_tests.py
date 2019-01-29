@@ -86,9 +86,6 @@ class Commander(object):
             self.process.terminate()
             t.join()
             print('\n[Error]: Tests for {} took to long. Process Killed.'.format(application), file=sys.stderr)
-        if self.exitCode != 0:
-            # If thread terminated with an error, propagate and terminate
-            sys.exit(self.exitCode)
 
     def RunTestSuit(self, application, applicationPath, path, level, verbose, command):
         ''' Calls the script that will run the tests.
