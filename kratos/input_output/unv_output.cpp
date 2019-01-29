@@ -19,13 +19,6 @@ void UnvOutput::WriteMesh() {
     WriteElements();
 }
 
-template <typename Enumeration>
-auto as_integer(Enumeration const value)
-    -> typename std::underlying_type<Enumeration>::type
-{
-    return static_cast<typename std::underlying_type<Enumeration>::type>(value);
-}
-
 void UnvOutput::InitializeOutputFile() {
     std::ofstream outputFile;
     outputFile.open(mOutputFileName, std::ios::out | std::ios::trunc);
@@ -39,15 +32,12 @@ void UnvOutput::WriteNodes() {
     outputFile << std::scientific;
     outputFile << std::setprecision(15);
 
-    const int dataSetNumberForNodes = 2411;
     const int exportCoordinateSystemNumber = 0;
     const int displacementCoordinateSystemNumber = 0;
     const int color = 0;
 
-
     outputFile << std::setw(6) << "-1" << "\n";
-    outputFile << std::setw(6) << dataSetNumberForNodes << "\n";
-
+    outputFile << std::setw(6) << as_integer(DatasetID::NODES_DATASET) << "\n";
 
     for (auto &node_i : mrOutputModelPart.Nodes()) {
         int node_label = node_i.Id();
@@ -69,13 +59,12 @@ void UnvOutput::WriteElements() {
     std::ofstream outputFile;
     outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
-    const int dataSetNumberForElements = 2412;
     const int physicalPropertyTableNumber = 1;
     const int materialPropertyTableNumber = 1;
     const int color = 0;
 
     outputFile << std::setw(6) << "-1" << "\n";
-    outputFile << std::setw(6) << dataSetNumberForElements << "\n";
+    outputFile << std::setw(6) << as_integer(DatasetID::ELEMENTS_DATASET) << "\n";
 
     for (auto &element : mrOutputModelPart.Elements()) {
         const int elementLabel = element.Id();
