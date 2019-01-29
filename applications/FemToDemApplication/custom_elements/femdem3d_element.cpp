@@ -104,7 +104,7 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 {
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	const double element_threhsold = mThreshold
+	const double element_threhsold = mThreshold;
 	if (mThresholds[0] + mThresholds[1] + mThresholds[2] + mThresholds[3] +
 	    mThresholds[4] + mThresholds[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
@@ -113,7 +113,7 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 	}
 
 	// IDEM with the edge damages
-	const double damage_element = mDamage
+	const double damage_element = mDamage;
 	if (mDamages[0] + mDamages[1] + mDamages[2] + mDamages[3] + mDamages[4] +
 		mDamages[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
@@ -541,9 +541,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
-
-		if (detJ < 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 " << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
 		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
