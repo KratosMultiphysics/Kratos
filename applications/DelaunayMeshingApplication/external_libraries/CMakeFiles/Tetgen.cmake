@@ -1,0 +1,45 @@
+# Tetgen automatic download
+# Variables:  TETGEN_DIR
+
+find_path(TETGEN_FOUND NAMES tetgen.h HINTS ${TETGEN_DIR})
+
+if(TETGEN_FOUND)
+  message(STATUS "Tetgen found in ${TETGEN_DIR}")
+else(TETGEN_FOUND)
+  message(STATUS "TETGEN_DIR not defined: ${TETGEN_DIR}")
+
+  # Default version
+  file(TO_NATIVE_PATH "${EXTERNAL_LIBRARIES_DIR}" tetgen_install_dir)
+
+  # Default TETGEN_DIR
+  file(TO_NATIVE_PATH "${tetgen_install_dir}/tetgen" DEFAULT_TETGEN_DIR)
+
+  set(TETGEN_DIR ${DEFAULT_TETGEN_DIR})
+  message(STATUS "set TETGEN_DIR: ${TETGEN_DIR}")
+
+  set(tetgen_packed_file "tetgen-1.5.0-delaunay.zip")
+  file(TO_NATIVE_PATH "${tetgen_install_dir}/${tetgen_packed_file}" tetgen_packed_dir)
+
+  if(NOT EXISTS ${tetgen_packed_dir})
+    message(STATUS "${tetgen_packed_file} not found in ${tetgen_install_dir}")
+    message(STATUS "Downloading ${tetgen_packed_file} from https://github.com/PFEM/tetgen-1.5.0/ to ${tetgen_install_dir} ...")
+    file(DOWNLOAD https://github.com/PFEM/tetgen-1.5.0/archive/delaunay.zip ${tetgen_packed_dir})
+    message(STATUS "${tetgen_packed_file} downloaded")
+  endif(NOT EXISTS ${tetgen_packed_dir})
+
+  find_path(TETGEN_FOUND NAMES tetgen.h HINTS ${TETGEN_DIR})
+
+  if((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
+    message(STATUS "Unpacking tetgen-1.5.0-delaunay.zip in ${tetgen_install_dir} ...")
+    set(unzip_cmd "unzip")
+    set(unzip_args "-j")
+    set(unzip_dir "-d")
+    message(STATUS "unzip cmd: ${unzip_cmd} ${unzip_args} ${tetgen_packed_file} ${unzip_dir} ${TETGEN_DIR} ")
+    execute_process(COMMAND ${unzip_cmd} ${unzip_args} ${tetgen_packed_file} ${unzip_dir} ${TETGEN_DIR}
+      WORKING_DIRECTORY ${tetgen_install_dir}
+      RESULT_VARIABLE unzip_result
+      OUTPUT_VARIABLE unzip_output)
+    message(STATUS "unzip output[${unzip_result}]:\n${unzip_output}")
+  endif((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
+
+endif(TETGEN_FOUND)
