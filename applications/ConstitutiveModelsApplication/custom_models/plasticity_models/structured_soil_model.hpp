@@ -265,15 +265,15 @@ namespace Kratos
             }
             else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF)
             {
-               rValue = this->mInternal.Variables[7];
+               rValue = this->mPreviousInternal.Variables[7];
             }
             else if ( rThisVariable == NONLOCAL_PLASTIC_DEV_DEF)
             {
-               rValue = this->mInternal.Variables[8];
+               rValue = this->mPreviousInternal.Variables[8];
             }
             else if ( rThisVariable == NONLOCAL_PLASTIC_VOL_DEF_ABS)
             {
-               rValue = this->mInternal.Variables[9];
+               rValue = this->mPreviousInternal.Variables[9];
             }
             else {
                rValue = NonAssociativePlasticityModel<TElasticityModel, TYieldSurface>::GetValue( rThisVariable, rValue);
