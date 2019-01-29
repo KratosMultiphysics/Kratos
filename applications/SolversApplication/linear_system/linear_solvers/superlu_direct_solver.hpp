@@ -122,6 +122,8 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
    */
   bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
   {
+    //KRATOS_TRY
+
     // double start_define = OpenMPUtils::GetCurrentTime();
 
     if(this->IsNotConsistent(rA, rX, rB))
@@ -182,6 +184,7 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
     // Creation of a Row Matrix (option2)
     dCreate_CompRow_Matrix (&lhs, rA.size1(), rA.size2(), rA.nnz(), rA.value_data().begin(), index2_vector, index1_vector, SLU_NR, SLU_D, SLU_GE);
 
+    /* Generate the right-hand side */
     dCreate_Dense_Matrix (&rhs, size, 1, &b_rhs[0], size, SLU_DN, SLU_D, SLU_GE);
 
     //allocate memory for permutation arrays
@@ -193,7 +196,6 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
     // double stop_define = OpenMPUtils::GetCurrentTime();
     // if(mEchoLevel > 2)
     //   KRATOS_INFO("superlu_define_time") << stop_define - start_define << std::endl;
-
 
     //initialize container for statistical data
     SuperLUStat_t stat;
@@ -237,6 +239,8 @@ class SuperLUDirectSolver : public DirectSolver< TSparseSpaceType, TDenseSpaceTy
     //   KRATOS_INFO("superlu_solve_time") << stop_solve - start_solve << std::endl;
 
     return true;
+
+    //KRATOS_CATCH("")
   }
 
   ///@}

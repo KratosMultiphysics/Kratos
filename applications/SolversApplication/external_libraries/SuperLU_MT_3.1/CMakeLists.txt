@@ -1,4 +1,4 @@
-project (SUPERLU_MT C Fortran)
+project (SUPERLU_MT C)
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/SRC )
 
