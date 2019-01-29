@@ -33,7 +33,7 @@ class ManageIsolatedNodesProcess : public Process
 public:
     ///@name Type Definitions
     ///@{
-    typedef std::vector<Node<3>*>             NodePointerVectorType;
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
 
     /// Pointer definition of ManageIsolatedNodesProcess
     KRATOS_CLASS_POINTER_DEFINITION(ManageIsolatedNodesProcess);
@@ -312,15 +312,14 @@ private:
 
           if( it->Is(FREE_SURFACE) ){
 
-            NodePointerVectorType& rN = it->GetValue(NEIGHBOR_NODES);
-            unsigned int NumberOfNeighbours = rN.size();
+            NodeWeakPtrVectorType& nNodes = it->GetValue(NEIGHBOUR_NODES);
             unsigned int rigid = 0;
-            for(unsigned int j = 0; j < NumberOfNeighbours; ++j)
+            for(auto& i_nnodes : nNodes)
 	    {
-              if(rN[j]->Is(RIGID))
+              if(i_nnodes.Is(RIGID))
                 ++rigid;
 	    }
-            if( rigid == NumberOfNeighbours )
+            if( rigid == nNodes.size() )
               it->Set(VISITED,true);
           }
         }
