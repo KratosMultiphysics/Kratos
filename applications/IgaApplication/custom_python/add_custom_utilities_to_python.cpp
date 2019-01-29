@@ -845,14 +845,13 @@ void AddCustomUtilitiesToPython(
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
         .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
-        .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
-        .def("CreateTessellationParameterCurve", &EmbeddedIgaModeler::CreateTessellationParameterCurve)
         .def("PrintCurveTessellationPoints", &EmbeddedIgaModeler::PrintCurveTessellationPoints)
         .def("PrintTriangulationPoints", &EmbeddedIgaModeler::PrintTriangulationPoints)
         .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
         .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints)
         .def("PrintMappedGaussPoints", &EmbeddedIgaModeler::PrintMappedGaussPoints)
-        .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
+        .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
+        .def("MapTriangulationVertices", &EmbeddedIgaModeler::MapTriangulationVertices)
         ;
 
     
