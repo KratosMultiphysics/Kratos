@@ -107,7 +107,9 @@ void KratosSolversApplication::Register()
 
 #ifdef INCLUDE_SUPERLU_MT
   KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_direct", mSuperLUmtDirectSolverFactory);
-#else
+#endif
+
+#ifdef INCLUDE_SUPERLU
   KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_direct", mSuperLUDirectSolverFactory);
   KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_iterative", mSuperLUIterativeSolverFactory);
 #endif

@@ -16,9 +16,13 @@
 #include "custom_python/add_custom_linear_solvers_to_python.h"
 
 //linear solvers
+#include "linear_solvers/direct_solver.h"
+
 #ifdef INCLUDE_SUPERLU_MT
   #include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
-#else
+#endif
+
+#ifdef INCLUDE_SUPERLU
   #include "linear_system/linear_solvers/superlu_direct_solver.hpp"
   #include "linear_system/linear_solvers/superlu_iterative_solver.hpp"
 #endif
@@ -52,7 +56,9 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
       (m, "ks_superlu_direct")
       .def(py::init<>() )
       .def(py::init<Parameters>());
-#else
+#endif
+
+#ifdef INCLUDE_SUPERLU
   typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
 
   py::class_<SuperLUDirectSolverType, typename SuperLUDirectSolverType::Pointer, DirectSolverType>

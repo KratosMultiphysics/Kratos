@@ -33,7 +33,9 @@
 //linear solvers
 #ifdef INCLUDE_SUPERLU_MT
   #include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
-#else
+#endif
+
+#ifdef INCLUDE_SUPERLU
   #include "linear_system/linear_solvers/superlu_direct_solver.hpp"
   #include "linear_system/linear_solvers/superlu_iterative_solver.hpp"
 #endif
@@ -171,7 +173,9 @@ class KratosSolversApplication : public KratosApplication {
 #ifdef INCLUDE_SUPERLU_MT
   typedef SuperLUmtDirectSolver<SparseSpaceType, LocalSpaceType>   SuperLUmtDirectSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUmtDirectSolverType> mSuperLUmtDirectSolverFactory;
-#else
+#endif
+
+#ifdef INCLUDE_SUPERLU
   typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
   typedef SuperLUIterativeGMRESSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
