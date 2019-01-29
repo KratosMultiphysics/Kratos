@@ -220,7 +220,7 @@ namespace Kratos
 			}
 
 			int GetSourceRank() const {
-				return mDistributedFilter.GetRank();
+				return mMessageSource.GetRank();
 			}
 
 			void SetTime() {
