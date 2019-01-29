@@ -6,6 +6,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/kratos_flags.h"
 #include "swimming_DEM_application.h"
 #include "spheric_swimming_particle.h"
@@ -57,6 +58,11 @@ SphericSwimmingParticle<TBaseElement>& SphericSwimmingParticle<TBaseElement>::op
     return *this;
 }
 
+template < class TBaseElement >
+void SphericSwimmingParticle<TBaseElement>::CreateHydrodynamicInteractionLaws(const ProcessInfo& r_process_info)
+{
+    mHydrodynamicInteractionLaw = this->GetProperties()[SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER]->Clone();
+}
 
 template < class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>& non_contact_force,
@@ -228,6 +234,16 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, arr
     if (mDragForceType == 0 || node.IsNot(INSIDE) || node.Is(BLOCKED)){ // case of identically null drag force
         noalias(drag_force) = ZeroVector(3);
         return;
+    }
+
+    else if (mDragForceType == 1 || mDragForceType == 10){
+        mHydrodynamicInteractionLaw->ComputeDragForce(node,
+                                                      mRadius,
+                                                      mFluidDensity,
+                                                      mKinematicViscosity,
+                                                      mSlipVel,
+                                                      drag_force,
+                                                      r_current_process_info);
     }
 
     else { // calculating the 'dimensional drag coefficient', i.e., the factor by which the slip velocity must be multiplied to yield the drag force
@@ -1656,6 +1672,8 @@ template< class TBaseElement >
 void SphericSwimmingParticle<TBaseElement>::Initialize(const ProcessInfo& r_process_info)
 {
     TBaseElement::Initialize(r_process_info);
+    CreateHydrodynamicInteractionLaws(r_process_info);
+
     NodeType& node = GetGeometry()[0];
     mFirstStep                   = true;
     mHasDragForceNodalVar        = node.SolutionStepsDataHas(DRAG_FORCE);

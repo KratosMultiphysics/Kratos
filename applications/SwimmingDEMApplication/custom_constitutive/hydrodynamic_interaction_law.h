@@ -6,11 +6,14 @@
 #include "includes/model_part.h"
 #include "containers/flags.h"
 
+#include "drag_law.h"
+
 namespace Kratos {
 
 class KRATOS_API(SWIMMING_DEM_APPLICATION) HydrodynamicInteractionLaw : public Flags {
 
 public:
+    typedef Node <3> NodeType;
 
     // Pointer types for HydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
@@ -30,6 +33,17 @@ public:
     virtual ~HydrodynamicInteractionLaw();
 
     virtual HydrodynamicInteractionLaw::Pointer Clone() const;
+
+    void ComputeDragForce(NodeType& node,
+                            double particle_radius,
+                            double fluid_density,
+                            double fluid_kinematic_viscosity,
+                            array_1d<double, 3>& slip_velocity,
+                            array_1d<double, 3>& drag_force,
+                            const ProcessInfo& r_current_process_info);
+
+protected:
+    DragLaw::Pointer mpDragLaw;
 
 private:
 

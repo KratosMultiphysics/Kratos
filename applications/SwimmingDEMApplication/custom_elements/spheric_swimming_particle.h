@@ -14,9 +14,10 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "../../applications/DEMApplication/custom_elements/spheric_particle.h"
 #include "../../applications/DEMApplication/custom_elements/nanoparticle.h"
-
+#include "custom_constitutive/hydrodynamic_interaction_law.h"
 namespace Kratos
 {
 
@@ -64,6 +65,7 @@ namespace Kratos
       virtual ~SphericSwimmingParticle(){}
 
       SphericSwimmingParticle<TBaseElement>& operator=(const SphericSwimmingParticle<TBaseElement>& rOther);
+      virtual void CreateHydrodynamicInteractionLaws(const ProcessInfo& r_process_info);
 
       void ComputeAdditionalForces(array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, const ProcessInfo& rCurrentProcessInfo, const array_1d<double,3>& gravity) override;
 
@@ -232,6 +234,7 @@ namespace Kratos
       double mLastBassetForceAddedMass;
       array_1d<double, 3> mSlipVel;
       array_1d<double, 3> mOldBassetTerm;
+      HydrodynamicInteractionLaw::Pointer mHydrodynamicInteractionLaw;
 
       ///@}
       ///@name Private Operators

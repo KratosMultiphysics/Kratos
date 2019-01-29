@@ -3,7 +3,7 @@
 namespace Kratos {
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw() {
-
+        auto mpDragLaw = make_unique<DragLaw>();
     }
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw) {
@@ -27,5 +27,24 @@ namespace Kratos {
     }
 
     HydrodynamicInteractionLaw::~HydrodynamicInteractionLaw(){}
+
+
+    void HydrodynamicInteractionLaw::ComputeDragForce(NodeType& node,
+                                                      double particle_radius,
+                                                      double fluid_density,
+                                                      double fluid_kinematic_viscosity,
+                                                      array_1d<double, 3>& slip_velocity,
+                                                      array_1d<double, 3>& drag_force,
+                                                      const ProcessInfo& r_current_process_info)
+    {
+        mpDragLaw->ComputeForce(node,
+                                particle_radius,
+                                fluid_density,
+                                fluid_kinematic_viscosity,
+                                slip_velocity,
+                                drag_force,
+                                r_current_process_info);
+
+    }
 
 } // Namespace Kratos
