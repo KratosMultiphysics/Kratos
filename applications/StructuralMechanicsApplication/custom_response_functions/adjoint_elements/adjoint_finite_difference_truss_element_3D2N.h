@@ -54,10 +54,6 @@ private:
 
     void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
 
-    double CalculateReferenceLength();
-
-    double CalculateCurrentLength();
-
     /**
      * Calculates the derivative of the current length w.r.t. primal displacements.
      */
