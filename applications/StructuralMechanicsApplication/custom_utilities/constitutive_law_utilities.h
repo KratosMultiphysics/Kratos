@@ -19,6 +19,8 @@
 
 // Project includes
 #include "includes/ublas_interface.h"
+#include "includes/node.h"
+#include "geometries/geometry.h"
 
 namespace Kratos
 {
@@ -75,11 +77,17 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /// the vector type definition
     typedef Vector VectorType;
 
-    /// The definition of the bounded matrix type
+    /// The definition of the bounded vector type
     typedef array_1d<double, VoigtSize> BoundedVectorType;
 
     /// The definition of the bounded matrix type
     typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+
+    /// Node type definition
+    typedef Node<3> NodeType;
+
+    /// Geometry definitions
+    typedef Geometry<NodeType> GeometryType;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -194,6 +202,19 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         const double J3,
         double& rLodeAngle
         );
+
+    /**
+     * @brief Calculates the maximal distance between corner node of a geometry and its center
+     * @param rGeometry The geometry to compute
+     * @return The characteristic length
+     */
+    static double CalculateCharacteristicLength(const GeometryType& rGeometry);
+
+    /**
+     * @brief This method computes the equivalent deformation gradient for the elements which provide the deformation gradient as input
+     * @param rStrainVector The strain vector
+     */
+    static Matrix ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector);
 
     /**
      * @brief Calculation of the Green-Lagrange strain vector

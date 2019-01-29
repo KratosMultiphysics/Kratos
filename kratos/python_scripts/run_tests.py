@@ -9,6 +9,7 @@ import subprocess
 
 import KratosMultiphysics as KtsMp
 import KratosMultiphysics.KratosUnittest as KtsUt
+import KratosMultiphysics.kratos_utilities as KtsUtls
 
 
 def Usage():
@@ -28,40 +29,6 @@ def Usage():
 
     for l in lines:
         print(l)
-
-
-def GetModulePath(module):
-    ''' Returns the location of a module using its absolute path
-
-    Return
-    ------
-    string
-        The absolute path of the module
-
-    '''
-
-    return os.path.dirname(KtsMp.__file__)
-
-
-def GetAvailableApplication():
-    ''' Return the list of applications available in KratosMultiphysics
-
-    Return a list of compiled applications available in the KratosMultiphysics
-    module.
-
-    Return
-    ------
-    list of string
-        List of the names of the applications
-
-    '''
-    kratosPath = GetModulePath('KratosMultiphysics')
-
-    apps = [
-        f.split('.')[0] for f in os.listdir(kratosPath) if re.match(r'.*Application\.py$', f)
-    ]
-
-    return apps
 
 
 def handler(signum, frame):
@@ -208,13 +175,13 @@ class Commander(object):
 def main():
 
     # Define the command
-    cmd = os.path.dirname(GetModulePath('KratosMultiphysics'))+'/'+'runkratos'
+    cmd = os.path.join(os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()), 'runkratos')
 
     verbose_values = [0, 1, 2]
     level_values = ['all', 'nightly', 'small', 'validation', 'mpi_all', 'mpi_small', 'mpi_nightly', 'mpi_validation']
 
     # Set default values
-    applications = GetAvailableApplication()
+    applications = KtsUtls.GetListOfAvailableApplications()
     verbosity = 1
     level = 'all'
 
@@ -301,7 +268,7 @@ def main():
         commander.RunTestSuitInTime(
             'KratosCore',
             'kratos',
-            os.path.dirname(GetModulePath('KratosMultiphysics')),
+            os.path.dirname(KtsUtls.GetKratosMultiphysicsPath()),
             level,
             verbosity,
             cmd,

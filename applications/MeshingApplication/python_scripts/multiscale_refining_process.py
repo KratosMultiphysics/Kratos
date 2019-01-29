@@ -3,8 +3,6 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics as KratosMultiphysics
 import KratosMultiphysics.MeshingApplication as MeshingApplication
 
-KratosMultiphysics.CheckForPreviousImport()
-
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
@@ -19,12 +17,12 @@ class MultiscaleRefiningProcess(KratosMultiphysics.Process):
             "main_model_part_name"            : "MainModelPart",
             "visualization_model_part_name"   : "VisualizationModelPart",
             "current_subscale"                : 0,
-            "maximum_number_of_subscales"     : 4,    
+            "maximum_number_of_subscales"     : 4,
             "echo_level"                      : 0,
             "advanced_configuration"          : {
                 "echo_level"                      : 0,
                 "number_of_divisions_at_subscale" : 2,
-                "subscale_interface_base_name"    : "refined_interface",      
+                "subscale_interface_base_name"    : "refined_interface",
                 "subscale_boundary_condition"     : "Condition2D2N"
             }
         }

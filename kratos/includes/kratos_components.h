@@ -27,6 +27,7 @@
 #include "containers/vector_component_adaptor.h"
 #include "containers/flags.h"
 #include "utilities/quaternion.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -85,9 +86,17 @@ public:
     static TComponentType const& Get(std::string const& Name)
     {
         auto it_comp =  msComponents.find(Name);
-        if(it_comp == msComponents.end())
-          KRATOS_THROW_ERROR(std::invalid_argument, "The component is not registered!", Name);
-        return *(it_comp->second);
+        if (it_comp != msComponents.end()) {
+            return *(it_comp->second);
+        }
+
+        std::stringstream err_msg;
+        err_msg << "The component \"" << Name << "\" is not registered!\n"
+                << "Maybe you need to import the application where it is defined?\n"
+                << "The following components of this type are registered:" << std::endl;
+        KratosComponents instance; // creating an instance for using "PrintData"
+        instance.PrintData(err_msg);
+        KRATOS_ERROR << err_msg.str() << std::endl;
     }
 
     static ComponentsContainerType & GetComponents()
@@ -451,6 +460,7 @@ template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<Vector
 template class KRATOS_API(KRATOS_CORE) KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 9> > > >;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Flags> >;
 template class KRATOS_API(KRATOS_CORE) KratosComponents<Flags>;
+template class KRATOS_API(KRATOS_CORE) KratosComponents<DataCommunicator>;
 
 #ifdef KratosCore_EXPORTS
 template<class TComponentType>

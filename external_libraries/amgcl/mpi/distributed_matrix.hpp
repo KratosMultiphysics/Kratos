@@ -201,6 +201,16 @@ class comm_pattern {
             return idx.at(col);
         }
 
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_begin() const {
+            return idx.cbegin();
+        }
+
+        std::unordered_map<ptrdiff_t, std::tuple<int, int> >::const_iterator
+        remote_end() const {
+            return idx.cend();
+        }
+
         size_t renumber(size_t n, ptrdiff_t *col) const {
             for(size_t i = 0; i < n; ++i)
                 col[i] = std::get<1>(idx.at(col[i]));
