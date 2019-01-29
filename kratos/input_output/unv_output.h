@@ -15,6 +15,9 @@ namespace Kratos {
  * @brief Provides a tool to wirte UNV files.
  * 
  * Currently 3 datasets are suported: 
+ * 2411 - Node    Dataset
+ * 2412 - Element Dataset
+ * 2414 - Result  Dataset
  * 
  */
 class KRATOS_API(KRATOS_CORE) UnvOutput {
@@ -97,10 +100,30 @@ public:
 
     void InitializeOutputFile();
 
+    /**
+     * @brief Writes 'mrOutputModelPart' associated mesh.
+     * 
+     */
     void WriteMesh();
+
+    /**
+     * @brief Writes 'mrOutputModelPart' associated nodes.
+     * 
+     */
     void WriteNodes();
+
+    /**
+     * @brief Writes 'mrOutputModelPart' associated conditions.
+     * 
+     */
     void WriteElements();
 
+    /**
+     * @brief Writes a result dataset containing the rVariable value for a given timestep
+     * 
+     * @param rVariable Kratos Variable to be printed
+     * @param timeStep  Time step.
+     */
     void WriteNodalResults(const Variable<bool>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<int>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<double>& rVariable, const double timeStep);
@@ -108,11 +131,29 @@ public:
     void WriteNodalResults(const Variable<Vector>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<Matrix>& rVariable, const double timeStep);
 
+    /**
+     * @brief Returns the type of unv data associated to a Kratos Variable
+     * 
+     * Vectors and Matrices are not supported at this time.
+     * 
+     * @return UnvOutput::DataCharacteristics If of the unv data type
+     */
     UnvOutput::DataCharacteristics GetDataType(const Variable<bool>&);
     UnvOutput::DataCharacteristics GetDataType(const Variable<int>&);
     UnvOutput::DataCharacteristics GetDataType(const Variable<double>&);
     UnvOutput::DataCharacteristics GetDataType(const Variable<array_1d<double,3>>&);
+    UnvOutput::DataCharacteristics GetDataType(const Variable<Vector>&);
+    UnvOutput::DataCharacteristics GetDataType(const Variable<Matrix>&);
 
+    /**
+     * @brief Writes the variable value for a node.
+     * 
+     * Vectors and Matrices are not supported at this time.
+     * 
+     * @param outputFile Output file 
+     * @param node       Input node
+     * @param rVariable  Variable to print
+     */
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
@@ -120,6 +161,12 @@ public:
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable);
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable);
 
+    /**
+     * @brief Get the id of the UNV variable name corresponding to rVariable. 1000+ if none found.
+     * 
+     * @param rVariable Kratos Variable
+     * @return int      Id of the unv variable corresponding to rVariable
+     */
     template<class TVariablebleType>
     int GetUnvVariableName(const TVariablebleType& rVariable) {
         if(rVariable == VELOCITY)       return 11;
@@ -153,10 +200,9 @@ public:
      * R. 14: (node_id)
      * R. 15: (result)*nvaldc
      * 
-     * @tparam TVariablebleType 
-     * @param rVariable 
-     * @param numComponents 
-     * @param timeStep 
+     * @param rVariable     Variable to be printed 
+     * @param numComponents Number of components of the variable 
+     * @param timeStep      Current TimeStep
      */
     template<class TVariablebleType>
     void WriteNodalResultRecords(const TVariablebleType& rVariable, const int numComponents, const double timeStep) {
@@ -167,7 +213,7 @@ public:
         std::string dataSetLabel = rVariable.Name();
 
         outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
-        outputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";                             // DatasetID
+        outputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";              // DatasetID
 
         outputFile << std::setw(10) << dataSetLabel << "\n";                                        // Record 1 - Label
         outputFile << std::setw(6)  << dataSetName << "\n";                                         // Record 2 - Name
@@ -189,7 +235,7 @@ public:
         outputFile << std::setw(10) << numComponents; 
         outputFile << "\n";
 
-        // ????
+        // DesignSetId, IterationNumber, SolutionSetId, BoundaryCondition, LoadSet, ModeNumber, TimeStampNumber, FrequencyNumber
         outputFile << std::setw(10) << 0;                                                           // Record 10
         outputFile << std::setw(10) << timeStep;
         outputFile << std::setw(10) << 0;
@@ -200,10 +246,12 @@ public:
         outputFile << std::setw(10) << 0;
         outputFile << "\n";
 
+        // CreationOption, (Unknown)*7
         outputFile << std::setw(10) << 0;                                                           // Record 11
         outputFile << std::setw(10) << 0;
         outputFile << "\n";
 
+        // Time, Frequency Eigenvalue NodalMass ViscousDampingRatio, HystereticDampingRatio
         outputFile << std::setw(13) << timeStep * 0.1;                                              // Record 12
         outputFile << std::setw(13) << "0.00000E+00";
         outputFile << std::setw(13) << "0.00000E+00";
@@ -212,6 +260,7 @@ public:
         outputFile << std::setw(13) << "0.00000E+00";
         outputFile << "\n";
 
+        // Eigenvalue_re, Eigenvalue_im, ModalA_re, ModalA_im, ModalB_re, ModalB_im
         outputFile << std::setw(13) << "0.00000E+00";                                               // Record 13
         outputFile << std::setw(13) << "0.00000E+00";
         outputFile << std::setw(13) << "0.00000E+00";

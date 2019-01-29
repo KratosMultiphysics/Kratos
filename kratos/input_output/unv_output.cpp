@@ -121,12 +121,10 @@ void UnvOutput::WriteNodalResults(const Variable<array_1d<double,3>>& rVariable,
 
 void UnvOutput::WriteNodalResults(const Variable<Vector>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported in UNV" << std::endl;
-    // WriteNodalResultRecords(rVariable, -1);
 }
 
 void UnvOutput::WriteNodalResults(const Variable<Matrix>& rVariable, const double timeStep) {
     KRATOS_ERROR << "Matrix results are not yet supported in UNV" << std::endl;
-    // WriteNodalResultRecords(rVariable, -1);
 }
 
 UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<bool>& rVariable) {
@@ -143,6 +141,14 @@ UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<double>& rV
 
 UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<array_1d<double,3>>& rVariable) {
     return UnvOutput::DataCharacteristics::D3_DOF_GLOBAL_TRANSLATION_VECTOR;
+}
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<Vector>& rVariable) {
+    KRATOS_ERROR << "Dynamic Vector results are not yet supported in UNV" << std::endl;
+} 
+
+UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<Matrix>& rVariable) {
+    KRATOS_ERROR << "Matrix results are not yet supported in UNV" << std::endl;
 }
 
 void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
