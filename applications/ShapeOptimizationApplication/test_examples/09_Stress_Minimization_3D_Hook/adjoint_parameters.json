@@ -56,62 +56,48 @@
         "compute_reactions" : false,
         "move_mesh_flag" : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Hook.support",
-            "variable_name"   : "ADJOINT_DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0]
-        }
-    }],
-    "list_other_processes" :[{
-        "kratos_module" : "KratosMultiphysics.HDF5Application",
-        "python_module" : "single_mesh_temporal_input_process",
-        "help"          : "",
-        "process_name"  : "",
-        "Parameters" : {
-	        "model_part_name" : "3D_Hook",
-            "file_settings" : {
-                "file_access_mode" : "read_only"
-            },
-            "nodal_solution_step_data_settings" : {
-                "list_of_variables": ["DISPLACEMENT"]
+    "processes" : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Hook.support",
+                "variable_name"   : "ADJOINT_DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
             }
-        }
-     }],
-    "loads_process_list"       : [],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostAscii",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+        }],
+        "loads_process_list"       : []
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "Parameters"    : {
+                "model_part_name"        : "3D_Hook",
+                "output_name"            : "3D_Hook_adjoint",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "time",
+                        "output_control_type" : "time",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY","DFDU","DFDX"]
+                    }
+                }
+            }
+        }]
     }
 }
