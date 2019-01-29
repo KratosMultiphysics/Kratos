@@ -90,7 +90,12 @@ namespace Kratos
         void GetGeometryNodes(
             ModelPart& rModelPart,
             const int& rU,
-            const int& rV);
+            const int& rV) const;
+
+        void GetGeometryVariationNodes(
+            ModelPart& rModelPart,
+            const int& rU,
+            const int& rV) const;
 
         void GetGeometryIntegration(
             ModelPart& rModelPart,
@@ -104,7 +109,7 @@ namespace Kratos
             const std::string& rType,
             const std::string& rName,
             const int rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         void CreateIntegrationElementsConditions(
             std::vector<ANurbs::IntegrationPoint2<double>> rIntegrationPoints,
@@ -138,6 +143,14 @@ namespace Kratos
         This object gives a NURBS representation of the surface of the face.*/
         const Kratos::shared_ptr<NodeSurfaceGeometry3D> GetSurface() const;
 
+
+
+        const bool GetIsTrimmed() const;
+        const bool GetIsRational() const;
+        const std::vector<BrepBoundaryLoop> GetBoundaryLoop() const; 
+        
+
+
         /// Constructor.
         BrepFace(
             int rBrepId,
@@ -145,6 +158,7 @@ namespace Kratos
             bool rIsRational,
             std::vector<BrepBoundaryLoop>& rTrimmingLoops,
             std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
+            std::vector<BrepTrimmingCurve>& rEmbeddedEdges,
             std::vector<EmbeddedPoint>& rEmbeddedPoints,
             Vector& rKnotVectorU,
             Vector& rKnotVectorV,

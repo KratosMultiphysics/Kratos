@@ -106,14 +106,18 @@ namespace Kratos
 
         void GetGeometryNodes(
             ModelPart& rModelPart,
-            const int& rT);
+            const int& rT) const;
+
+        void GetGeometryVariationNodes(
+            ModelPart& rModelPart,
+            const int& rT) const;
 
         void GetIntegrationGeometry(
             ModelPart& rModelPart,
             const std::string& rType,
             const std::string& rName,
             const int& rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         void GetIntegrationBrep(
             ModelPart& rModelPart,
@@ -121,10 +125,12 @@ namespace Kratos
             const std::string& rType,
             const std::string& rName,
             const int& rShapeFunctionDerivativesOrder,
-            std::vector<std::string> rVariables);
+            std::vector<std::string> rVariables) const;
 
         const EdgeTopology GetEdgeTopology(
             const int rTopologyIndex) const;
+
+        const int GetNumberOfEdgeTopologies() const;
 
         ///Constructor
         BrepEdge(

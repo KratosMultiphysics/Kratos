@@ -20,7 +20,7 @@ namespace Kratos
 {
     void BrepEdge::GetGeometryNodes(
         ModelPart& rModelPart,
-        const int& rT)
+        const int& rT) const
     {
         int number_of_cps = mNodeCurveGeometry3D->NbPoles();
 
@@ -39,6 +39,30 @@ namespace Kratos
         }
     }
 
+    void BrepEdge::GetGeometryVariationNodes(
+        ModelPart& rModelPart,
+        const int& rT) const
+    {
+        int number_of_cps = mNodeCurveGeometry3D->NbPoles();
+
+        if (number_of_cps < 3)
+        {
+            KRATOS_ERROR << "BrepEdge::GetGeometryVariationNodes: Not enough control points to get Variation Nodes." << std::endl;
+        }
+
+        int t_start = 1;
+        int t_end = number_of_cps - 1;
+
+        if (rT == 0)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(1));
+        }
+        else if (rT == 1)
+        {
+            rModelPart.AddNode(mNodeCurveGeometry3D->GetNode(number_of_cps - 1));
+        }
+    }
+
     bool BrepEdge::IsCouplingEdge()
     {
         return (mBrepEdgeTopologyVector.size() > 1);
@@ -54,11 +78,16 @@ namespace Kratos
         return mBrepEdgeTopologyVector[rTopologyIndex];
     }
 
+    const int BrepEdge::GetNumberOfEdgeTopologies() const
+    {
+        return mBrepEdgeTopologyVector.size();
+    }
+
     void BrepEdge::GetIntegrationGeometry(ModelPart& rModelPart,
         const std::string& rType,
         const std::string& rName,
         const int& rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
         //for (int trims = 0; trims < m_trimming_range_vector.size(); ++trims)
         //{
@@ -139,7 +168,7 @@ namespace Kratos
         const std::string& rType,
         const std::string& rName,
         const int& rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
         for (int ep = 0; ep < mEmbeddedPoints.size(); ++ep)
         {

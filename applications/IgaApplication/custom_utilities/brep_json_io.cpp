@@ -243,6 +243,13 @@ namespace Kratos
                     embedded_loops.push_back(loop);
                 }
 
+                std::vector<BrepTrimmingCurve> trimming_curves;
+                Parameters& embedded_edges_dict(brep_json["faces"][i]["embedded_edges"]);
+                for (int i = 0; i < embedded_edges_dict.size(); ++i)
+                {
+                    ImportTrimmingCurve(embedded_edges_dict[i], trimming_curves);
+                }
+
                 std::vector<BrepFace::EmbeddedPoint> embedded_points;
                 if (brep_json["faces"][i].Has("embedded_points"))
                 {
@@ -265,10 +272,20 @@ namespace Kratos
                 std::cout << "> Reading face " << face_id << " finishing" << std::endl;
                 //ModelPart sub_model_part_face = sub_model_part_face.GetSubModelPart("FACE_" + std::to_string(face_id) + "_CPS");
                 // create face
-                BrepFace face(face_id, is_trimmed, is_rational,
-                    trimming_loops, embedded_loops, embedded_points,
-                    knot_vector_u, knot_vector_v, p, q,
-                    control_points_ids, rModelPart);
+                BrepFace face(
+                    face_id,
+                    is_trimmed,
+                    is_rational,
+                    trimming_loops,
+                    embedded_loops,
+                    trimming_curves,
+                    embedded_points,
+                    knot_vector_u,
+                    knot_vector_v,
+                    p,
+                    q,
+                    control_points_ids,
+                    rModelPart);
                 faces_vector.push_back(face);
             }
 
@@ -434,4 +451,51 @@ namespace Kratos
         return brep_model_vector;
     }
 
+    void BrepJsonIO::ImportTrimmingCurve(
+        Parameters& rTrimmingCurve,
+        std::vector<BrepTrimmingCurve>& trimming_curves)
+    {
+        int curve_index = rTrimmingCurve["trim_index"].GetInt();
+        //loop.push_back(curve_index);
+
+        bool curve_direction = rTrimmingCurve["curve_direction"].GetBool();
+        bool is_rational = rTrimmingCurve["parameter_curve"]["is_rational"].GetBool();
+        // Variables needed later
+        int length_u_vector = rTrimmingCurve["parameter_curve"]["knot_vector"].size();
+        Vector boundary_knot_vector = ZeroVector(length_u_vector + 2);
+
+        std::vector<BoundedVector<double, 4>> boundary_control_points;
+        Vector active_range = ZeroVector(2);
+        // read and store knot_vector_u
+        for (std::size_t u_idx = 0; u_idx < length_u_vector; u_idx++)
+        {
+            boundary_knot_vector(u_idx) = rTrimmingCurve["parameter_curve"]["knot_vector"][u_idx].GetDouble();
+        }
+
+        // read and store polynamial degree p and q
+        int boundary_p = rTrimmingCurve["parameter_curve"]["degree"].GetInt();
+
+        // read and store control_points
+        for (std::size_t cp_idx = 0; cp_idx < rTrimmingCurve["parameter_curve"]["control_points"].size(); cp_idx++)
+        {
+            //unsigned int cp_id = extractInt(embedded_dict[loop_idx]["trimming_curves"][edge_idx]["parameter_curve"]["control_points"][cp_idx][0]);
+            BoundedVector<double, 4> control_point = rTrimmingCurve["parameter_curve"]["control_points"][cp_idx][1].GetVector();
+
+            boundary_control_points.push_back(control_point);
+        }
+        active_range(0) = rTrimmingCurve["parameter_curve"]["active_range"][0].GetDouble();
+        active_range(1) = rTrimmingCurve["parameter_curve"]["active_range"][1].GetDouble();
+
+        // Create and store edge
+        BrepTrimmingCurve new_trimming_curve(
+            curve_index,
+            boundary_knot_vector,
+            boundary_p,
+            boundary_control_points,
+            curve_direction,
+            is_rational,
+            active_range);
+
+        trimming_curves.push_back(new_trimming_curve);
+    }
 }  // namespace Kratos.

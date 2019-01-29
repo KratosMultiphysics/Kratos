@@ -18,8 +18,8 @@ namespace Kratos
 {
     void BrepFace::GetGeometryNodes(
         ModelPart& rModelPart,
-        const int& rU, 
-        const int& rV)
+        const int& rU,
+        const int& rV) const
     {
         int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
         int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
@@ -49,6 +49,48 @@ namespace Kratos
         }
     }
 
+    void BrepFace::GetGeometryVariationNodes(
+        ModelPart& rModelPart,
+        const int& rU,
+        const int& rV) const
+    {
+        int number_of_cps_u = mNodeSurfaceGeometry3D->NbPolesU();
+        int number_of_cps_v = mNodeSurfaceGeometry3D->NbPolesV();
+
+        int u_start = 0;
+        int u_end = number_of_cps_u;
+        int v_start = 0;
+        int v_end = number_of_cps_v;
+
+        if (rU == 0)
+        {
+            u_start = 1;
+            u_end = 2;
+        }
+        if (rU == 1)
+        {
+            u_start = number_of_cps_u - 2;
+            u_end = number_of_cps_u - 1;
+        }
+        if (rV == 0)
+        {
+            v_start = 1;
+            v_end = 2;
+        }
+        if (rV == 1)
+        {
+            v_start = number_of_cps_v - 2;
+            v_end = number_of_cps_v - 1;
+        }
+
+        for (int i = u_start; i < u_end; ++i)
+        {
+            for (int j = v_start; j < v_end; ++j)
+            {
+                rModelPart.AddNode(mNodeSurfaceGeometry3D->GetNode(i, j));
+            }
+        }
+    }
 
     void BrepFace::GetGeometryIntegration(ModelPart& rModelPart,
         const std::string& rType,
@@ -160,7 +202,7 @@ namespace Kratos
         const std::string& rType,
         const std::string& rName,
         const int rShapeFunctionDerivativesOrder,
-        std::vector<std::string> rVariables)
+        std::vector<std::string> rVariables) const
     {
         auto clipper = TrimmedSurfaceClipping(0.000001, 0.00000001);
 
@@ -509,6 +551,11 @@ namespace Kratos
                     return trimming_loops[j].GetCurve2D();
             }
         }
+        for (int i = 0; i < mEmbeddedEdges.size(); ++i)
+        {
+            if (mEmbeddedEdges[i].GetTrimIndex() == trim_index)
+                return mEmbeddedEdges[i].GetCurve2D();
+        }
         KRATOS_ERROR << "Trimming curve of index: " << trim_index << " does not exist." << std::endl;
     }
 
@@ -526,6 +573,7 @@ namespace Kratos
         bool rIsRational,
         std::vector<BrepBoundaryLoop>& rTrimmingLoops,
         std::vector<BrepBoundaryLoop>& rEmbeddedLoops,
+        std::vector<BrepTrimmingCurve>& rEmbeddedEdges,
         std::vector<EmbeddedPoint>& rEmbeddedPoints,
         Vector& rKnotVectorU,
         Vector& rKnotVectorV,
@@ -537,6 +585,7 @@ namespace Kratos
           m_is_trimmed(rIsTrimmed),
           m_is_rational(rIsRational),
           mEmbeddedLoops(rEmbeddedLoops),
+          mEmbeddedEdges(rEmbeddedEdges),
           mEmbeddedPoints(rEmbeddedPoints),
           mModelPart(rModelPart),
           IndexedObject(rBrepId),
@@ -550,7 +599,8 @@ namespace Kratos
 
         for (int i = 0; i < rKnotVectorU.size()-2; ++i)
         {
-            mNodeSurfaceGeometry3D->SetKnotU(i, rKnotVectorU(i+1));
+            mNodeSurfaceGeometry3D->SetKnotU(
+                i, rKnotVectorU(i+1));
         }
 
         for (int i = 0; i < rKnotVectorV.size()-2; ++i)
@@ -562,11 +612,13 @@ namespace Kratos
         {
             for (int j = 0; j < number_of_nodes_v; ++j)
             {
-                Node<3>::Pointer node = rModelPart.pGetNode(rControlPointIds[j*(number_of_nodes_u)+i]);
+                Node<3>::Pointer node = rModelPart.pGetNode(
+                    rControlPointIds[j*(number_of_nodes_u)+i]);
                 mNodeSurfaceGeometry3D->SetNode(i, j, node);
                 if (rIsRational)
                 {
-                    mNodeSurfaceGeometry3D->SetWeight(i, j, node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
+                    mNodeSurfaceGeometry3D->SetWeight(i, j,
+                        node->GetValue(NURBS_CONTROL_POINT_WEIGHT));
                 }
             }
         }

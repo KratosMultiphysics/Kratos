@@ -3,12 +3,16 @@
 
 // System includes
 #include <vector>
+#include <fstream>
 
 // Project includes
 #include "iga_application_variables.h"
 
 #include "brep_json_io.h"
 #include "brep_topology/brep_model.h"
+
+#include "integration_utilities/iga_integration_utilities.h"
+
 #include "includes/model_part.h"
 
 namespace Kratos
@@ -62,6 +66,16 @@ namespace Kratos
 
         void ImportModelPart(ModelPart& model_part, Parameters& rModelPartParameters);
 
+        // void PrintBrepNodes();
+        
+        // void PrintEdgePolygon();
+
+        // void PrintTrimmingPolygon();
+
+        void ExportGeometry();
+
+        void getTolerance();
+
         ///@}
         ///@name Life Cycle
         ///@{
@@ -85,6 +99,8 @@ namespace Kratos
         ///@name Private Operations
         ///@{
 
+        const BrepEdge& GetBrepEdge(int& rBrepId) const;
+        const BrepFace& GetBrepFace(int& rBrepId) const;
         ///@}
         ///@name Un accessible methods
         ///@{

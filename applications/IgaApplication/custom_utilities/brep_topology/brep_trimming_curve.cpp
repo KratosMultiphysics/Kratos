@@ -22,7 +22,7 @@
 
 namespace Kratos
 {
-    int& BrepTrimmingCurve::GetTrimIndex()
+    const int& BrepTrimmingCurve::GetTrimIndex() const
     {
         return m_trim_index;
     }

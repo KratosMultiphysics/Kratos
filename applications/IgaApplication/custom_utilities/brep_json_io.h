@@ -49,6 +49,11 @@ namespace Kratos
     virtual ~BrepJsonIO() {};
 
   private:
+
+      void ImportTrimmingCurve(
+          Parameters& rTrimmingCurve,
+          std::vector<BrepTrimmingCurve>& trimming_curves);
+
       int mEchoLevel;
   }; // Class BrepJsonIO
 }  // namespace Kratos.
