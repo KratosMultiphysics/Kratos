@@ -217,6 +217,8 @@ namespace Kratos
             rName = "AdjointFiniteDifferenceSmallDisplacementElement";
         else if(name_current_element == "SmallDisplacementElement3D6N")
             rName = "AdjointFiniteDifferenceSmallDisplacementElement";
+        else if(name_current_element == "SmallDisplacementElement3D8N")
+            rName = "AdjointFiniteDifferenceSmallDisplacementElement";
         else
         {
             KRATOS_ERROR << "It is not possible to replace the " << name_current_element <<
