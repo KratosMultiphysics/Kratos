@@ -219,6 +219,18 @@ public:
     void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+
+    /**
      * @brief Sets on rResult the ID's of the element degrees of freedom
      * @param rResult The vector containing the equation id
      * @param rCurrentProcessInfo The current process info instance
@@ -308,6 +320,37 @@ public:
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable (double version)
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable (array_1d<double, 3>) version rDestinationVariable.
+     * @details The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES.
+     * The caller is expected to ensure thread safety hence SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void AddExplicitContribution(const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -635,6 +678,26 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Base Solid Element #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -661,6 +724,24 @@ protected:
     ///@{
 
     /**
+     * @brief Sets the used integration method
+     * @param ThisIntegrationMethod Integration method used
+     */
+    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
+    {
+         mThisIntegrationMethod = ThisIntegrationMethod;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& ThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = ThisConstitutiveLawVector;
+    }
+
+    /**
      * @brief It initializes the material
      */
     virtual void InitializeMaterial();
@@ -673,7 +754,7 @@ protected:
     /**
      * @brief This method returns if the element provides the strain
      */
-    virtual bool UseElementProvidedStrain();
+    virtual bool UseElementProvidedStrain() const;
 
     /**
      * @brief This functions calculates both the RHS and the LHS
@@ -686,7 +767,7 @@ protected:
     virtual void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         );
@@ -742,7 +823,7 @@ protected:
      * @param DeltaDisplacement The matrix containing the increment of displacements
      * @return DeltaDisplacement: The matrix containing the increment of displacements
      */
-    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement);
+    Matrix& CalculateDeltaDisplacement(Matrix& DeltaDisplacement) const;
 
     /**
      * @brief This functions calculate the derivatives in the reference frame
@@ -759,7 +840,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This functions calculate the derivatives in the current frame
@@ -776,7 +857,7 @@ protected:
         Matrix& rDN_DX,
         const IndexType PointNumber,
         IntegrationMethod ThisIntegrationMethod
-        );
+        ) const;
 
     /**
      * @brief This function computes the body force
@@ -801,7 +882,7 @@ protected:
         const Matrix& B,
         const Matrix& D,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the Geometric Stiffness Matrix. Kg = dB * S
@@ -815,7 +896,7 @@ protected:
         const Matrix& DN_DX,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief Calculation of the RHS
@@ -833,7 +914,7 @@ protected:
         const Vector& rBodyForce,
         const Vector& rStressVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This function add the external force contribution
@@ -849,7 +930,7 @@ protected:
         const Vector& rBodyForce,
         VectorType& rRightHandSideVector,
         const double IntegrationWeight
-        );
+        ) const;
 
     /**
      * @brief This functions computes the integration weight to consider
@@ -861,14 +942,14 @@ protected:
         const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
         const IndexType PointNumber,
         const double detJ
-        );
+        ) const;
 
     /**
     * @brief This function computes the shape gradient of mass matrix
     * @param rMassMatrix The mass matrix
     * @param Deriv The shape parameter
     */
-    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv);
+    void CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatrix, ShapeParameter Deriv) const;
 
     ///@}
     ///@name Protected  Access
@@ -897,6 +978,22 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    /**
+     * @brief This method computes directly the lumped mass vector
+     * @param rMassMatrix The lumped mass vector
+     */
+    void CalculateLumpedMassVector(VectorType& rMassVector) const;
+
+    /**
+     * @brief This method computes directly the lumped mass matrix
+     * @param rMassMatrix The lumped mass matrix
+     * @param rCurrentProcessInfo The current process info instance
+     */
+    void CalculateDampingMatrixWithLumpedMass(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        );
 
     /**
      * @brief This method gets a value directly in the CL

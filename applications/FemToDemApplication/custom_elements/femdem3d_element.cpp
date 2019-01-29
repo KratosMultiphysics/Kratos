@@ -508,7 +508,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 	Matrix DN_DX(number_of_nodes, dimension);
 	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
 
-	//deffault values for the infinitessimal theory
+	//default values for the infinitessimal theory
 	double detF = 1;
 	Matrix F(dimension, dimension);
 	noalias(F) = identity_matrix<double>(dimension);
@@ -584,6 +584,67 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * (1.0 - damage_element) * Matrix(prod(constitutive_matrix, B)));
 	}
 }
+
+void FemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+	const unsigned int number_of_nodes = GetGeometry().size();
+	const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+	const unsigned int voigt_size = dimension * (dimension + 1) / 2;
+	const unsigned int system_size = number_of_nodes * dimension;
+
+	if (rRightHandSideVector.size() != system_size)
+		rRightHandSideVector.resize(system_size, false);
+	noalias(rRightHandSideVector) = ZeroVector(system_size);
+
+	Matrix B(voigt_size, dimension * number_of_nodes);
+	noalias(B) = ZeroMatrix(voigt_size, dimension * number_of_nodes);
+	Matrix DN_DX(number_of_nodes, dimension);
+	noalias(DN_DX) = ZeroMatrix(number_of_nodes, dimension);
+
+	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
+	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
+
+	Matrix DeltaPosition(number_of_nodes, dimension);
+	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
+	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+
+	GeometryType::JacobiansType J;
+	J.resize(1, false);
+	J[0].resize(dimension, dimension, false);
+	noalias(J[0]) = ZeroMatrix(dimension, dimension);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+
+	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+
+		Matrix InvJ(dimension, dimension);
+		noalias(InvJ) = ZeroMatrix(dimension, dimension);
+		double detJ = 0;
+		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+
+		Vector N = row(Ncontainer, PointNumber);
+		double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		Vector VolumeForce = ZeroVector(dimension);
+		VolumeForce = this->CalculateVolumeForce(VolumeForce, N);
+		for (unsigned int i = 0; i < number_of_nodes; i++) {
+			const int index = dimension * i;
+			for (unsigned int j = 0; j < dimension; j++) {
+				rRightHandSideVector[index + j] += integration_weight * N[i] * VolumeForce[j];
+			}
+		}
+		
+		const double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
+		const Vector& stress_vector = this->GetValue(STRESS_VECTOR);
+		const Vector& integrated_stress_vector = (1.0 - damage_element) * stress_vector;
+
+		this->CalculateDeformationMatrix(B, DN_DX);
+		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), integrated_stress_vector);
+	}
+}
+
+
+
 void FemDem3DElement::CalculateDeformationMatrix(Matrix &rB, const Matrix &rDN_DX)
 {
 	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1191,6 +1252,9 @@ void FemDem3DElement::IntegrateStressDamageMechanics(
 	} else if (yield_surface == "RankineFragile") {
 		this->RankineFragileLaw(rThreshold, rDamage, 
 			rStressVector, Edge, Length, rIsDamaging);
+	} else if (yield_surface == "Elastic") {
+		this->ElasticLaw(rThreshold, rDamage, 
+			rStressVector, Edge, Length, rIsDamaging);
 	} else {
 		KRATOS_ERROR << "Yield Surface not defined "<< std::endl;
 	}
@@ -1473,6 +1537,24 @@ void FemDem3DElement::RankineFragileLaw(
 	}
 }
 
+void FemDem3DElement::ElasticLaw(
+	double& rThreshold,
+	double &rDamage, 
+	const Vector &rStressVector, 
+	const int Edge, 
+	const double Length,
+	bool& rIsDamaging
+	)
+{
+	const auto& properties = this->GetProperties();
+	const double sigma_t = properties[YIELD_STRESS_T];
+	const double c_max = std::abs(sigma_t);
+	rDamage = 0.0;
+	if (rThreshold < tolerance) {
+		rThreshold = c_max;
+	} // 1st iteration sets threshold as c_max
+}
+
 void FemDem3DElement::CalculateExponentialDamage(
 	double& rDamage,
 	const double DamageParameter,
@@ -1506,8 +1588,18 @@ void FemDem3DElement::SetValueOnIntegrationPoints(
 	std::vector<double> &rValues,
 	const ProcessInfo &rCurrentProcessInfo)
 {
-	for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
-		this->SetValue(rVariable, rValues[point_number]);
+	if (rVariable == DAMAGE_ELEMENT) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mDamage = rValues[PointNumber];
+		}
+	} else if (rVariable == STRESS_THRESHOLD) {
+		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
+			mThreshold = rValues[PointNumber];
+		}
+	} else {
+		for (unsigned int point_number = 0; point_number < GetGeometry().IntegrationPoints().size(); ++point_number) {
+			this->SetValue(rVariable, rValues[point_number]);
+		}
 	}
 }
 

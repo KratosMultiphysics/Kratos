@@ -47,25 +47,38 @@ typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
 typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
 typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
 
-template <unsigned int TDim>
+template <class TValueType, unsigned int TDim>
 void AuxiliarUpdateInterfaceValues(
-    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TValueType, TDim> &dummy,
     ModelPart &rModelPart,
-    const Variable<array_1d<double, 3>> &rSolutionVariable,
+    const Variable<TValueType> &rSolutionVariable,
     AuxiliaryVectorWrapper &rCorrectedGuess)
 {
-    dummy.UpdateInterfaceValues(rModelPart, rSolutionVariable, rCorrectedGuess.GetReference());
+    dummy.UpdateInterfaceValues(
+        rModelPart,
+        rSolutionVariable,
+        rCorrectedGuess.GetReference());
 }
 
-template <unsigned int TDim>
+template <class TValueType, unsigned int TDim>
 void AuxiliarComputeInterfaceResidualVector(
-    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TDim> &dummy,
+    TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, TValueType, TDim> &dummy,
     ModelPart &rInterfaceModelPart,
-    const Variable<array_1d<double, 3>> &rOriginalVariable,
-    const Variable<array_1d<double, 3>> &rModifiedVariable,
-    AuxiliaryVectorWrapper &rInterfaceResidual)
+    const Variable<TValueType> &rOriginalVariable,
+    const Variable<TValueType> &rModifiedVariable,
+    const Variable<TValueType> &rResidualVariable,
+    AuxiliaryVectorWrapper &rInterfaceResidual,
+    const std::string ResidualType = "nodal",
+    const Variable<double> &rResidualNormVariable = FSI_INTERFACE_RESIDUAL_NORM)
 {
-    dummy.ComputeInterfaceResidualVector(rInterfaceModelPart, rOriginalVariable, rModifiedVariable, rInterfaceResidual.GetReference());
+    dummy.ComputeInterfaceResidualVector(
+        rInterfaceModelPart,
+        rOriginalVariable,
+        rModifiedVariable,
+        rResidualVariable,
+        rInterfaceResidual.GetReference(),
+        ResidualType,
+        rResidualNormVariable);
 }
 
 void AuxiliarUpdateSolution(
@@ -177,42 +190,76 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateOnSimplex",&MPINormalCalculationUtils::CalculateOnSimplex)
         ;
 
-    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 2> BasePartitionedFSIUtilities2DType;
-    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, 3> BasePartitionedFSIUtilities3DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> BasePartitionedFSIUtilitiesDouble2DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, double, 3> BasePartitionedFSIUtilitiesDouble3DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 2> BasePartitionedFSIUtilitiesArray2DType;
+    typedef PartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 3> BasePartitionedFSIUtilitiesArray3DType;
 
-    py::class_<BasePartitionedFSIUtilities2DType, BasePartitionedFSIUtilities2DType::Pointer>(m, "PartitionedFSIUtilities2D");
-    py::class_<BasePartitionedFSIUtilities3DType, BasePartitionedFSIUtilities3DType::Pointer>(m, "PartitionedFSIUtilities3D");
+    py::class_<BasePartitionedFSIUtilitiesDouble2DType, BasePartitionedFSIUtilitiesDouble2DType::Pointer>(m, "PartitionedFSIUtilitiesDouble2D");
+    py::class_<BasePartitionedFSIUtilitiesDouble3DType, BasePartitionedFSIUtilitiesDouble3DType::Pointer>(m, "PartitionedFSIUtilitiesDouble3D");
+    py::class_<BasePartitionedFSIUtilitiesArray2DType, BasePartitionedFSIUtilitiesArray2DType::Pointer>(m, "PartitionedFSIUtilitiesArray2D");
+    py::class_<BasePartitionedFSIUtilitiesArray3DType, BasePartitionedFSIUtilitiesArray3DType::Pointer>(m, "PartitionedFSIUtilitiesArray3D");
 
-    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,2> TrilinosPartitionedFSIUtilities2DType;
-    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType,3> TrilinosPartitionedFSIUtilities3DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, double, 2> TrilinosPartitionedFSIUtilitiesDouble2DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, double, 3> TrilinosPartitionedFSIUtilitiesDouble3DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 2> TrilinosPartitionedFSIUtilitiesArray2DType;
+    typedef TrilinosPartitionedFSIUtilities<TrilinosSparseSpaceType, array_1d<double,3>, 3> TrilinosPartitionedFSIUtilitiesArray3DType;
 
-    py::class_<TrilinosPartitionedFSIUtilities2DType, TrilinosPartitionedFSIUtilities2DType::Pointer, BasePartitionedFSIUtilities2DType>(m, "TrilinosPartitionedFSIUtilities2D")
+    py::class_<TrilinosPartitionedFSIUtilitiesDouble2DType, TrilinosPartitionedFSIUtilitiesDouble2DType::Pointer, BasePartitionedFSIUtilitiesDouble2DType>(m, "TrilinosPartitionedFSIUtilitiesDouble2D")
         .def(py::init<const Epetra_MpiComm &>())
-        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceArea)
-        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities2DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities2DType& self, ModelPart& rModelPart){
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilitiesDouble2DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesDouble2DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesDouble2DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<2>)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<2>)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities2DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
-        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintFluidInterfaceNorms)
-        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities2DType::ComputeAndPrintStructureInterfaceNorms)
-        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities2DType::CheckCurrentCoordinatesStructure);
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,2>)
+        .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeInterfaceResidualNorm)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,2>)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble2DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesDouble2DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesDouble2DType::CheckCurrentCoordinatesStructure);
 
-    py::class_<TrilinosPartitionedFSIUtilities3DType, TrilinosPartitionedFSIUtilities3DType::Pointer, BasePartitionedFSIUtilities3DType>(m, "TrilinosPartitionedFSIUtilities3D")
+    py::class_<TrilinosPartitionedFSIUtilitiesArray2DType, TrilinosPartitionedFSIUtilitiesArray2DType::Pointer, BasePartitionedFSIUtilitiesArray2DType>(m, "TrilinosPartitionedFSIUtilitiesArray2D")
         .def(py::init<const Epetra_MpiComm &>())
-        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceArea)
-        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilities3DType::GetInterfaceResidualSize)
-        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilities3DType& self, ModelPart& rModelPart){
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilitiesArray2DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesArray2DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesArray2DType& self, ModelPart& rModelPart){
             return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
-        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<3>)
-        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<3>)
-        .def("ComputeFluidInterfaceMeshVelocityResidualNorm", &TrilinosPartitionedFSIUtilities3DType::ComputeFluidInterfaceMeshVelocityResidualNorm)
-        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintFluidInterfaceNorms)
-        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilities3DType::ComputeAndPrintStructureInterfaceNorms)
-        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesFluid)
-        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilities3DType::CheckCurrentCoordinatesStructure);
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,2>)
+        .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeInterfaceResidualNorm)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,2>)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray2DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesArray2DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesArray2DType::CheckCurrentCoordinatesStructure);
+
+    py::class_<TrilinosPartitionedFSIUtilitiesDouble3DType, TrilinosPartitionedFSIUtilitiesDouble3DType::Pointer, BasePartitionedFSIUtilitiesDouble3DType>(m, "TrilinosPartitionedFSIUtilitiesDouble3D")
+        .def(py::init<const Epetra_MpiComm &>())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilitiesDouble3DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesDouble3DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesDouble3DType& self, ModelPart& rModelPart){
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,3>)
+        .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeInterfaceResidualNorm)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,3>)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesDouble3DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesDouble3DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesDouble3DType::CheckCurrentCoordinatesStructure);
+
+    py::class_<TrilinosPartitionedFSIUtilitiesArray3DType, TrilinosPartitionedFSIUtilitiesArray3DType::Pointer, BasePartitionedFSIUtilitiesArray3DType>(m, "TrilinosPartitionedFSIUtilitiesArray3D")
+        .def(py::init<const Epetra_MpiComm &>())
+        .def("GetInterfaceArea", &TrilinosPartitionedFSIUtilitiesArray3DType::GetInterfaceArea)
+        .def("GetInterfaceResidualSize", &TrilinosPartitionedFSIUtilitiesArray3DType::GetInterfaceResidualSize)
+        .def("SetUpInterfaceVector", [](TrilinosPartitionedFSIUtilitiesArray3DType& self, ModelPart& rModelPart){
+            return AuxiliaryVectorWrapper(self.SetUpInterfaceVector(rModelPart));})
+        .def("UpdateInterfaceValues", &AuxiliarUpdateInterfaceValues<double,3>)
+        .def("ComputeInterfaceResidualNorm", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeInterfaceResidualNorm)
+        .def("ComputeInterfaceResidualVector", &AuxiliarComputeInterfaceResidualVector<double,3>)
+        .def("ComputeAndPrintFluidInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeAndPrintFluidInterfaceNorms)
+        .def("ComputeAndPrintStructureInterfaceNorms", &TrilinosPartitionedFSIUtilitiesArray3DType::ComputeAndPrintStructureInterfaceNorms)
+        .def("CheckCurrentCoordinatesFluid", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesFluid)
+        .def("CheckCurrentCoordinatesStructure", &TrilinosPartitionedFSIUtilitiesArray3DType::CheckCurrentCoordinatesStructure);
 
     // Convergence accelerators (from FSIApplication)
     typedef ConvergenceAccelerator<TrilinosSparseSpaceType> TrilinosConvergenceAccelerator;

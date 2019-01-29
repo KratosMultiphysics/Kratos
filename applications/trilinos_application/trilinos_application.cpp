@@ -27,11 +27,12 @@ void KratosTrilinosApplication::Register()
     KratosApplication::Register();
 
     std::stringstream banner;
-    banner << "    KRATOS  _____     _ _ _                 " << std::endl;
-    banner << "           |_   _| __(_) (_)_ __   ___  ___ " << std::endl;
-    banner << "             | || '__| | | | '_ \\ / _ \\/ __|" << std::endl;
-    banner << "             | || |  | | | | | | | (_) \\__ \\" << std::endl;
-    banner << "             |_||_|  |_|_|_|_| |_|\\___/|___/ APPLICATION     " << std::endl;
+    banner << "    KRATOS  _____     _ _ _\n"
+           << "           |_   _| __(_) (_)_ __   ___  ___\n"
+           << "             | || '__| | | | '_ \\ / _ \\/ __|\n"
+           << "             | || |  | | | | | | | (_) \\__ \\\n"
+           << "             |_||_|  |_|_|_|_| |_|\\___/|___/\n"
+           << "Initializing KratosTrilinosApplication..." << std::endl;
 
     int mpi_is_initialized = 0;
     int rank = -1;
@@ -44,11 +45,11 @@ void KratosTrilinosApplication::Register()
 
     if (mpi_is_initialized)
     {
-        if (rank == 0) std::cout << banner.str();
+        if (rank == 0) KRATOS_INFO("") << banner.str();
     }
     else
     {
-        std::cout << banner.str();
+        KRATOS_INFO("") << banner.str();
     }
 
     RegisterTrilinosLinearSolvers();

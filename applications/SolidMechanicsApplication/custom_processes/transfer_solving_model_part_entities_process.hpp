@@ -416,7 +416,7 @@ private:
                 Element::Pointer pElement = i_entity->GetEntityType().Create(i_elem->Id(), i_elem->GetGeometry(), pProperties);
 
                 //set origin element as pointer
-                pElement->SetValue(MASTER_ELEMENT, (*(i_elem.base())).get() );
+                pElement->SetValue(MASTER_ELEMENT,*i_elem.base());
 
                 rDestinationModelPart.Elements().push_back(pElement);
               }
