@@ -48,11 +48,11 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    void CheckVariables();
+    void CheckVariables() const;
 
-    void CheckDofs();
+    void CheckDofs() const;
 
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
 
     double CalculateReferenceLength();
 
