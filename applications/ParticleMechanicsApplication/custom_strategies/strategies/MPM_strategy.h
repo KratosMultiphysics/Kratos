@@ -42,9 +42,8 @@
 #include "custom_elements/updated_lagrangian.hpp"
 
 //FIXME: Tobe deleted - should not be imported here!
-#include "custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.h"
-#include "geometries/line_2d.h"
-#include "geometries/line_2d_2.h"
+#include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"
+#include "geometries/triangle_3d_3.h"
 
 // Core includes
 #include "solving_strategies/schemes/scheme.h"
@@ -598,7 +597,10 @@ public:
     {
         // Initialize zero the variables needed
         array_1d<double,3> mpc_xg = ZeroVector(3);
+        array_1d<double,3> MPC_Normal = ZeroVector(3);
         array_1d<double,3> MPC_Imposed_Displacement = ZeroVector(3);
+
+        double MPC_Area = 0.0;
 
         // Determine condition index
         const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
@@ -645,6 +647,11 @@ public:
                             warning_msg += "Only using nodal position is assumed: 1 (Point), 2 (Line), 3 (Triangular), 4 (Quadrilateral)";
                             KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                         }
+
+                        // Get condition variables:
+                        // Normal vector (normalized)
+                        MPC_Normal = i->GetValue(NORMAL);
+                        MPC_Normal *= 1.0 / std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
@@ -770,15 +777,21 @@ public:
                             KRATOS_ERROR << error_msg << std::endl;
                         }
 
-                        // 1. Loop over the conditions to create inner particle condition
+                        // Number of integration point per condition
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
+
+                        // Evaluation of element area/volume
+                        const double area = rGeom.Area();
+                        MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
+
+                        // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
                         for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_conditions; PointNumber++ )
                         {
                             new_condition_id = last_condition_id + PointNumber;
 
                             //FIXME: Need to be generalized!!!!
-                            Condition::Pointer const new_condition = Kratos::make_shared<MPMGridLineLoadCondition2D>(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2))));
+                            Condition::Pointer const new_condition = Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))));
                             Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, rGeom, properties);
 
                             mpc_xg.clear();
@@ -792,6 +805,8 @@ public:
 
                             // Setting particle condition's initial condition
                             p_condition->SetValue(MPC_COORD, mpc_xg);
+                            p_condition->SetValue(MPC_AREA, MPC_Area);
+                            p_condition->SetValue(MPC_NORMAL, MPC_Normal);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -807,7 +822,7 @@ public:
                                 new_condition_id = last_condition_id + j;
 
                                 //FIXME: Need to be generalized!!!!
-                                Condition::Pointer const new_condition = Kratos::make_shared<MPMGridLineLoadCondition2D>(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2))));
+                                Condition::Pointer const new_condition = Kratos::make_shared<MPMGridSurfaceLoadCondition3D>(0, Condition::GeometryType::Pointer(new Triangle3D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))));
                                 Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, rGeom, properties);
 
                                 mpc_xg.clear();
@@ -817,6 +832,8 @@ public:
 
                                 // Setting particle condition's initial condition
                                 p_condition->SetValue(MPC_COORD, mpc_xg);
+                                p_condition->SetValue(MPC_AREA, MPC_Area);
+                                p_condition->SetValue(MPC_NORMAL, MPC_Normal);
 
                                 // Add the MP Condition to the model part
                                 mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
