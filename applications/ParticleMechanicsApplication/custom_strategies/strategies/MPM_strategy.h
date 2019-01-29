@@ -39,7 +39,6 @@
 // Custom includes
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
-#include "custom_elements/updated_lagrangian.hpp"
 
 //FIXME: Tobe deleted - should not be imported here!
 #include "custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.h"

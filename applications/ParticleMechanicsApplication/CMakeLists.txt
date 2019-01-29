@@ -69,6 +69,7 @@ set( KRATOS_PARTICLE_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_line_load_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_axisym_line_load_condition_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/grid_based_conditions/mpm_grid_surface_load_condition_3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.cpp
 )
 
 ## generate variables with the testing sources
