@@ -22,7 +22,6 @@
 /* Project includes */
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
-#include "utilities/helper_classes_for_constraint_builder.h"
 #include "input_output/logger.h"
 
 namespace Kratos
@@ -134,11 +133,8 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     /// MPC definitions
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
-    typedef Internals::AuxiliaryGlobalMasterSlaveConstraint AuxiliaryGlobalMasterSlaveConstraintType;
-    typedef Internals::GlobalMasterSlaveRelationContainerType GlobalMasterSlaveRelationContainerType;
     typedef std::vector<IndexType> VectorIndexType;
     typedef Vector VectorType;
-    typedef Internals::ConstraintImposer<TSparseSpace, TDenseSpace, TLinearSolver> ConstraintImposerType;
 
     ///@}
     ///@name  Enum's
