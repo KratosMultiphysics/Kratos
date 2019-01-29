@@ -25,12 +25,12 @@
 #include "processes/compute_nodal_gradient_process.h"
 #include "custom_processes/spr_error_process.h"
 
-namespace Kratos 
+namespace Kratos
 {
-    namespace Testing 
+    namespace Testing
     {
         typedef Node<3> NodeType;
-        
+
         void Create2DGeometry(ModelPart& ThisModelPart, const std::string& ElementName)
         {
             Properties::Pointer p_elem_prop = ThisModelPart.pGetProperties(0);
@@ -194,21 +194,21 @@ namespace Kratos
 
         /**
         * Checks the correct work of the SPR metric process
-        * Test triangle 
+        * Test triangle
         */
 
         KRATOS_TEST_CASE_IN_SUITE(SPRErrorProcess1, KratosStructuralMechanicsFastSuite)
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
-            
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElasticPlaneStrain2DLaw"))
@@ -229,7 +229,7 @@ namespace Kratos
             }
 
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 
@@ -240,8 +240,8 @@ namespace Kratos
             KRATOS_CHECK_LESS_EQUAL((0.0223607 - process_info[ERROR_OVERALL])/0.0223607, 1.0e-5);
             KRATOS_CHECK_LESS_EQUAL((0.148492 - process_info[ENERGY_NORM_OVERALL])/0.148492, 1.0e-5);
         }
-        
-        /** 
+
+        /**
         * Checks the correct work of the nodal SPR compute
         * Test tetrahedra
         */
@@ -250,14 +250,14 @@ namespace Kratos
         {
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("Main",2);
-            
+
             this_model_part.AddNodalSolutionStepVariable(NODAL_H);
             this_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-            
+
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
             process_info[NL_ITERATION_NUMBER] = 1;
-            
+
             // In case the StructuralMechanicsApplciation is not compiled we skip the test
             Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
             if (!KratosComponents<ConstitutiveLaw>::Has("LinearElastic3DLaw"))
@@ -278,7 +278,7 @@ namespace Kratos
             }
 
             for (auto& ielem : this_model_part.Elements()) {
-                ielem.Initialize();
+                ielem.Initialize(process_info);
                 ielem.InitializeSolutionStep(process_info);
             }
 
