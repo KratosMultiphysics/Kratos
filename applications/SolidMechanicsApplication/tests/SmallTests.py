@@ -229,7 +229,7 @@ def SetTestSuite(suites):
     )
 
     if (missing_external_dependencies == False):
-      if( hasattr(KratosMultiphysics.SolversApplication,"feast_eigen") ):
+      if( hasattr(KratosMultiphysics.SolversApplication,"ks_feast_eigen") ):
         small_suite.addTests(
           KratosUnittest.TestLoader().loadTestsFromTestCases([
             EigenQ4Thick2x2PlateTests,

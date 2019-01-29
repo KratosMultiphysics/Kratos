@@ -5,9 +5,8 @@ def run():
     Tester.SetVerbosity(Tester.Verbosity.PROGRESS) # TESTS_OUTPUTS
     try:
         Tester.RunTestSuite("KratosSolidMechanicsFastSuite")
-    except:
+    except RuntimeError:
         print(" cpp test not included ")
-        pass
 
 if __name__ == '__main__':
     run()
