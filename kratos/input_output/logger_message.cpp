@@ -78,12 +78,17 @@ namespace Kratos
 		return *this;
 	}
 
-	LoggerMessage& LoggerMessage::operator << (MessageSource const& TheMessageSource) {
-		mMessageSource = TheMessageSource;
+	LoggerMessage& LoggerMessage::operator << (DistributedFilter const& TheFilter) {
+		mDistributedFilter = TheFilter;
 
 		return *this;
 	}
 
+	LoggerMessage& LoggerMessage::operator << (DataCommunicator const& TheDataCommunicator) {
+		mMessageSource = MessageSource(TheDataCommunicator.Rank());
+
+		return *this;
+	}
 
 	/// output stream function
 	std::ostream& operator << (std::ostream& rOStream,

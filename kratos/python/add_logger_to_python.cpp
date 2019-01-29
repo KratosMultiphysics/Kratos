@@ -44,18 +44,13 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
  * name arguments
  * @printRank bool record the MPI rank in the output message.
  **/
-void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel, bool printRank) {
+void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity severity, bool useKwargLabel, LoggerMessage::DistributedFilter filterOption) {
     if(len(args) == 0)
         std::cout << "ERROR" << std::endl;
 
     std::stringstream buffer;
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
-
-    Logger::MessageSource MessageSource;
-    if (printRank) {
-        MessageSource = Logger::MessageSource(printRank, getDataCommunicator(kwargs).Rank());
-    }
 
     std::string label;
 //     const char* label;
@@ -97,8 +92,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     }
 
     // Send the message and options to the logger
-    Logger(label) << MessageSource << buffer.str() << severityOption << categoryOption << std::endl;
-
+    Logger logger(label);
+    logger << buffer.str() << severityOption << categoryOption << std::endl;
+    logger << filterOption << getDataCommunicator(kwargs);
 }
 
 bool isPrintingRank(pybind11::kwargs kwargs) {
@@ -114,7 +110,7 @@ bool isPrintingRank(pybind11::kwargs kwargs) {
  **/
 void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::INFO, true, false);
+        printImpl(args, kwargs, Logger::Severity::INFO, true, LoggerMessage::DistributedFilter::FromRoot());
 }
 
 /**
@@ -125,7 +121,7 @@ void printDefault(pybind11::args args, pybind11::kwargs kwargs) {
  **/
 void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::INFO, false, false);
+        printImpl(args, kwargs, Logger::Severity::INFO, false, LoggerMessage::DistributedFilter::FromRoot());
 }
 
 /**
@@ -136,19 +132,19 @@ void printInfo(pybind11::args args, pybind11::kwargs kwargs) {
  **/
 void printWarning(pybind11::args args, pybind11::kwargs kwargs) {
     if (isPrintingRank(kwargs))
-        printImpl(args, kwargs, Logger::Severity::WARNING, false, false);
+        printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromRoot());
 }
 
 void printDefaultOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, true, true);
+    printImpl(args, kwargs, Logger::Severity::INFO, true, LoggerMessage::DistributedFilter::FromAllRanks());
 }
 
 void printInfoOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::INFO, false, true);
+    printImpl(args, kwargs, Logger::Severity::INFO, false, LoggerMessage::DistributedFilter::FromAllRanks());
 }
 
 void printWarningOnAllRanks(pybind11::args args, pybind11::kwargs kwargs) {
-    printImpl(args, kwargs, Logger::Severity::WARNING, false, true);
+    printImpl(args, kwargs, Logger::Severity::WARNING, false, LoggerMessage::DistributedFilter::FromAllRanks());
 }
 
 void  AddLoggerToPython(pybind11::module& m) {

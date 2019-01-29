@@ -31,6 +31,7 @@
 // Project includes
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
+#include "includes/data_communicator.h"
 
 namespace Kratos
 {
@@ -74,29 +75,56 @@ namespace Kratos
 				CHECKING
 			};
 
-			class MessageSource {
+			class DistributedFilter {
 			public:
-				MessageSource()
-					: mIsDistributed(false), mRank(0) {}
+				DistributedFilter()
+					: mIsDistributed(false), mSourceRank(0) {}
 
-				MessageSource(bool IsDistributed, int TheRank)
-					: mIsDistributed(IsDistributed), mRank(TheRank) {}
+				DistributedFilter(bool IsDistributed, int TheRank)
+					: mIsDistributed(IsDistributed), mSourceRank(TheRank) {}
 
-				MessageSource(MessageSource const& rOther)
-					: mIsDistributed(rOther.mIsDistributed), mRank(rOther.mRank) {}
+				DistributedFilter(DistributedFilter const& rOther)
+					: mIsDistributed(rOther.mIsDistributed), mSourceRank(rOther.mSourceRank) {}
+
+				static DistributedFilter FromRoot() {
+					return DistributedFilter(false, 0);
+				}
+
+				static DistributedFilter FromRank(int TheRank) {
+					return DistributedFilter(true, TheRank);
+				}
+
+				static DistributedFilter FromAllRanks() {
+					return DistributedFilter(true, 0);
+				}
 
 				bool IsDistributed() const {
 					return mIsDistributed;
 				}
 
 				int GetRank() const {
+					return mSourceRank;
+				}
+
+			private:
+				int mMessageRank;
+				bool mIsDistributed;
+				int mSourceRank;
+				std::string mApplicaton;
+			};
+
+			class MessageSource {
+			public:
+
+				MessageSource(int TheRank)
+					: mRank(TheRank) {}
+
+				int GetRank() const {
 					return mRank;
 				}
 
 			private:
-				bool mIsDistributed;
 				int mRank;
-				std::string mApplicaton;
 			};
 
 			///@}
@@ -105,10 +133,10 @@ namespace Kratos
 
 
 			LoggerMessage(std::string const& TheLabel)
-				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource() {}
+				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource(0), mDistributedFilter(DistributedFilter::FromRoot()) {}
 
 			LoggerMessage(LoggerMessage const& Other)
-				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mMessageSource(Other.mMessageSource) {}
+				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
 
 			/// Destructor.
 			virtual ~LoggerMessage() {}
@@ -125,7 +153,7 @@ namespace Kratos
                 // mLocation = Other.mLocation;
 				mSeverity = Other.mSeverity;
 				mCategory = Other.mCategory;
-				mMessageSource = Other.mMessageSource;
+				mDistributedFilter = Other.mDistributedFilter;
 
 				return *this;
 			}
@@ -188,11 +216,11 @@ namespace Kratos
 			}
 
 			bool IsDistributed() const {
-				return mMessageSource.IsDistributed();
+				return mDistributedFilter.IsDistributed();
 			}
 
 			int GetSourceRank() const {
-				return mMessageSource.GetRank();
+				return mDistributedFilter.GetRank();
 			}
 
 			void SetTime() {
@@ -248,8 +276,11 @@ namespace Kratos
 			/// Category stream function
 			LoggerMessage& operator << (Category const& TheCategory);
 
-			/// MessageSource stream function
-			LoggerMessage& operator << (MessageSource const& TheMessageSource);
+			/// DistributedFilter stream function
+			LoggerMessage& operator << (DistributedFilter const& TheMessageSource);
+
+			/// DataCommunicator stream function
+			LoggerMessage& operator << (DataCommunicator const& TheDataCommunicator);
 
 			///@}
 
@@ -268,6 +299,7 @@ namespace Kratos
 			Severity mSeverity;
 			Category mCategory;
 			MessageSource mMessageSource;
+			DistributedFilter mDistributedFilter;
 			TimePointType mTime;
 
 			///@}

@@ -68,7 +68,7 @@ namespace Kratos
 
 		using Category = LoggerMessage::Category;
 
-    using MessageSource = LoggerMessage::MessageSource;
+    using DistributedFilter = LoggerMessage::DistributedFilter;
 
 	  ///@}
       ///@name Life Cycle
