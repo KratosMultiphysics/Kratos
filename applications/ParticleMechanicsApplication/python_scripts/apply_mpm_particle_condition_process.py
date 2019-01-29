@@ -30,17 +30,16 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
 
         # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
-        if self.particles_per_condition > 0:
-            KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Conditions)
+        if self.particles_per_condition >= 0:
             KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, self.model_part.Nodes)
 
             for condition in self.model_part.Conditions:
+                condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
         else:
-            err_msg = '\n::[ApplyMPMParticleConditionProcess]:: W-A-R-N-I-N-G: You have not specified "particles_per_condition", '
-            err_msg += 'or assigned it to 0. \nPlease assign: "particles_per_condition" > 0!\n'
+            err_msg = '\n::[ApplyMPMParticleConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
+            err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
             raise Exception(err_msg)
-
 
     def ExecuteInitializeSolutionStep(self):
         # Recompute the normals if needed
