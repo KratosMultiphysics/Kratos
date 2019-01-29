@@ -196,6 +196,9 @@ public:
                                           GeometryData::Kratos_Line3D3,
                                           GiD_Linear, "Kratos_Line3D3_Mesh" ) );
         mGidMeshContainers.push_back( TMeshContainer(
+                                          GeometryData::Kratos_Point2D,
+                                          GiD_Point, "Kratos_Point2D_Mesh" ) );
+        mGidMeshContainers.push_back( TMeshContainer(
                                           GeometryData::Kratos_Point3D,
                                           GiD_Point, "Kratos_Point3D_Mesh" ) );
 

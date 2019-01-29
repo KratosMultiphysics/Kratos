@@ -41,15 +41,40 @@ namespace Kratos {
   {}
 
   void KratosContactMechanicsApplication::Register() {
-    // calling base class register to register Kratos components
-    KratosApplication::Register();
+      // calling base class register to register Kratos components
+      KratosApplication::Register();
 
-    std::cout << "             ___         _           _          " << std::endl;
-    std::cout << "     KRATOS / __|___ _ _| |_ __ _ __| |_          " << std::endl;
-    std::cout << "           | (__/ _ \\ ' \\  _/ _` / _|  _|         " << std::endl;
-    std::cout << "            \\___\\___/_||_\\__\\__,_\\__|\\__|MECHANICS" << std::endl;
-    std::cout << "Initializing KratosContactMechanicsApplication... " << std::endl;
+      std::stringstream banner;
 
+      banner << "             ___         _           _           \n"
+             << "    KRATOS  / __|___ _ _| |_ __ _ __| |_           \n"
+             << "           | (__/ _ \\ ' \\  _/ _` / _|  _|          \n"
+             << "            \\___\\___/_||_\\__\\__,_\\__|\\__| MECHANICS\n"
+             << "Initialize KratosContactMechanicsApplication... " << std::endl;
+
+      // mpi initialization
+      int mpi_is_initialized = 0;
+      int rank = -1;
+
+#ifdef KRATOS_MPI
+
+      MPI_Initialized(&mpi_is_initialized);
+
+      if (mpi_is_initialized)
+      {
+        MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+      }
+
+#endif
+
+      if (mpi_is_initialized)
+      {
+        if (rank == 0) KRATOS_INFO("") << banner.str();
+      }
+      else
+      {
+        KRATOS_INFO("") << banner.str();
+      }
 
       //Register Rigid Bodies
       KRATOS_REGISTER_ELEMENT( "RigidBodyElement", mRigidBodyElement )

@@ -256,7 +256,7 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self._check_results(mp,A,b)
         self._check_outputs(mp,A,dim)
 
-        #checking consistent mass matrix
+        # Checking consistent mass matrix
         M = KratosMultiphysics.Matrix(0,0)
         mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
         Area = mp.Elements[1].GetGeometry().Area()
@@ -267,6 +267,16 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
                         coeff = Area/6.0
                     else:
                         coeff = Area/12.0
+                    self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
+        mp.Elements[1].SetValue(StructuralMechanicsApplication.MASS_FACTOR, 2.0)
+        mp.Elements[1].CalculateMassMatrix(M,mp.ProcessInfo)
+        for i in range(3):
+            for j in range(3):
+                for k in range(dim):
+                    if(i==j):
+                        coeff = Area/3.0
+                    else:
+                        coeff = Area/6.0
                     self.assertAlmostEqual(M[i*dim+k,j*dim+k],coeff)
 
         #self.__post_process(mp)
@@ -456,6 +466,11 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
 
         #self.__post_process(mp)
 
+        # Testing explicit utilities
+        empty_param = KratosMultiphysics.Parameters("""{}""")
+        max_delta_time = StructuralMechanicsApplication.CalculateDeltaTime(mp, empty_param)
+        self.assertAlmostEqual(max_delta_time,4.764516014904737e-07)
+
     def __post_process(self, main_model_part):
         from gid_output_process import GiDOutputProcess
         self.gid_output = GiDOutputProcess(main_model_part,
@@ -484,4 +499,5 @@ class TestPatchTestSmallStrain(KratosUnittest.TestCase):
         self.gid_output.ExecuteFinalize()
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()

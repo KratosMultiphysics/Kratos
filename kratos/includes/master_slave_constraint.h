@@ -369,7 +369,7 @@ public:
      * @param rCurrentProcessInfo
      * @note This method is: MANDATORY
      */
-    virtual int Check(const ProcessInfo& rCurrentProcessInfo)
+    virtual int Check(const ProcessInfo& rCurrentProcessInfo) const
     {
         KRATOS_TRY
 
@@ -535,6 +535,7 @@ private:
     }
 };
 
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<MasterSlaveConstraint>;
 
 ///@name Input/Output funcitons
 ///@{

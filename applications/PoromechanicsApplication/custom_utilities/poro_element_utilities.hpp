@@ -904,7 +904,19 @@ public:
     /// Rows: nodes
     /// Columns: GP
 
-    static inline void CalculateExtrapolationMatrix(BoundedMatrix<double,4,4>& rExtrapolationMatrix)
+    static inline void Calculate2DExtrapolationMatrix(BoundedMatrix<double,3,3>& rExtrapolationMatrix)
+    {
+        //Triangle_2d_3
+        //GI_GAUSS_2
+
+        rExtrapolationMatrix(0,0) = 1.6666666666666666666; rExtrapolationMatrix(0,1) = -0.33333333333333333333; rExtrapolationMatrix(0,2) = -0.33333333333333333333;
+        rExtrapolationMatrix(1,0) = -0.33333333333333333333; rExtrapolationMatrix(1,1) = 1.6666666666666666666; rExtrapolationMatrix(1,2) = -0.33333333333333333333;
+        rExtrapolationMatrix(2,0) = -0.33333333333333333333; rExtrapolationMatrix(2,1) = -0.33333333333333333333; rExtrapolationMatrix(2,2) = 1.6666666666666666666;
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void Calculate2DExtrapolationMatrix(BoundedMatrix<double,4,4>& rExtrapolationMatrix)
     {
         //Quadrilateral_2d_4
         //GI_GAUSS_2
@@ -917,7 +929,20 @@ public:
 
     //----------------------------------------------------------------------------------------
 
-    static inline void CalculateExtrapolationMatrix(BoundedMatrix<double,8,8>& rExtrapolationMatrix)
+    static inline void Calculate3DExtrapolationMatrix(BoundedMatrix<double,4,4>& rExtrapolationMatrix)
+    {
+        //Tetrahedra_3d_4
+        //GI_GAUSS_2
+
+        rExtrapolationMatrix(0,0) = -0.309016988749894905; rExtrapolationMatrix(0,1) = -0.3090169887498949046; rExtrapolationMatrix(0,2) = -0.309016988749894905; rExtrapolationMatrix(0,3) = 1.9270509662496847144;
+        rExtrapolationMatrix(1,0) = 1.9270509662496847144; rExtrapolationMatrix(1,1) = -0.30901698874989490481; rExtrapolationMatrix(1,2) = -0.3090169887498949049; rExtrapolationMatrix(1,3) = -0.30901698874989490481;
+        rExtrapolationMatrix(2,0) = -0.30901698874989490473; rExtrapolationMatrix(2,1) = 1.9270509662496847143; rExtrapolationMatrix(2,2) = -0.3090169887498949049; rExtrapolationMatrix(2,3) = -0.30901698874989490481;
+        rExtrapolationMatrix(3,0) = -0.3090169887498949048; rExtrapolationMatrix(3,1) = -0.30901698874989490471; rExtrapolationMatrix(3,2) = 1.9270509662496847143; rExtrapolationMatrix(3,3) = -0.30901698874989490481;
+    }
+
+    //----------------------------------------------------------------------------------------
+
+    static inline void Calculate3DExtrapolationMatrix(BoundedMatrix<double,8,8>& rExtrapolationMatrix)
     {
         //Hexahedra_3d_8
         //GI_GAUSS_2

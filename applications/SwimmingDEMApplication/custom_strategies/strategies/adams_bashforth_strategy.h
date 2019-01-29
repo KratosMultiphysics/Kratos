@@ -101,10 +101,7 @@ namespace Kratos {
             ExplicitSolverStrategy::GetParticleCreatorDestructor() = p_creator_destructor;
         }
         /// Destructor.
-        virtual ~AdamsBashforthStrategy() {
-            Timer::SetOuputFile("TimesPartialRelease");
-            Timer::PrintTimingInformation();
-        }
+        virtual ~AdamsBashforthStrategy() {}
 
         double Solve() override;
 
