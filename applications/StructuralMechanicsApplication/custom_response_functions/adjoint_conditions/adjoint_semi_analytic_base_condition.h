@@ -155,19 +155,6 @@ public:
 				    rCurrentProcessInfo);
     }
 
-    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
-                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
-                                      std::vector< VectorType >& rRightHandSideVectors,
-                                      const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      ProcessInfo& rCurrentProcessInfo) override
-    {
-        mpPrimalCondition->CalculateLocalSystem(rLeftHandSideMatrices,
-                                      rLHSVariables,
-                                      rRightHandSideVectors,
-                                      rRHSVariables,
-                                      rCurrentProcessInfo);
-    }
-
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 				       ProcessInfo& rCurrentProcessInfo) override
     {

@@ -228,16 +228,6 @@ namespace Kratos
         double CalculateGreenLagrangeStrain();
 
         /**
-         * @brief This function calculates the reference length
-         */
-        double CalculateReferenceLength();
-
-        /**
-         * @brief This function calculates the current length
-         */
-        double CalculateCurrentLength();
-
-        /**
          * @brief This function calculates self-weight forces
          */
         BoundedVector<double,msLocalSize> CalculateBodyForces();

@@ -37,71 +37,73 @@
         "processes_sub_model_part_list"      : ["DISPLACEMENT_disp_fix","DISPLACEMENT_disp_slide","PointLoad3D_load"],
         "rotation_dofs"                      : true
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_fix",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0]
-        }
-    },{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_slide",
-            "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [false,true,true],
-            "value"           : [0.0,0.0,0.0]
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "AssignVectorByDirectionProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Shell_diagonal.PointLoad3D_load",
-            "variable_name"   : "POINT_LOAD",
-            "modulus"         : 100000.0,
-            "constrained"     : false,
-            "direction"       : [0.0,-1,0.0]
-        }
-    }],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"],
-            "gauss_point_results" : []
-        },
-        "point_data_configuration"  : []
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_fix",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Shell_diagonal.DISPLACEMENT_disp_slide",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [false,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorByDirectionProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Shell_diagonal.PointLoad3D_load",
+                "variable_name"   : "POINT_LOAD",
+                "modulus"         : 100000.0,
+                "constrained"     : false,
+                "direction"       : [0.0,-1,0.0]
+            }
+        }]
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "3D_Shell_diagonal",
+                "output_name"            : "3D_Shell_diagonal",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "nodal_results"       : ["DISPLACEMENT","REACTION","ROTATION","POINT_LOAD"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }]
     }
 }
