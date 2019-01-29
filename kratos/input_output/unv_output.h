@@ -12,9 +12,9 @@ namespace Kratos {
 
 
 /**
- * @brief Provides a tool to wirte UNV files.
+ * @brief Provides a tool to write UNV files.
  * 
- * Currently 3 datasets are suported: 
+ * Currently 3 datasets are supported: 
  * 2411 - Node    Dataset
  * 2412 - Element Dataset
  * 2414 - Result  Dataset
@@ -122,7 +122,7 @@ public:
      * @brief Writes a result dataset containing the rVariable value for a given timestep
      * 
      * @param rVariable Kratos Variable to be printed
-     * @param timeStep  Time step.
+     * @param timeStep  TimeStep.
      */
     void WriteNodalResults(const Variable<bool>& rVariable, const double timeStep);
     void WriteNodalResults(const Variable<int>& rVariable, const double timeStep);
@@ -179,7 +179,7 @@ public:
     /**
      * @brief Writes a result dataset using the results in node mode
      * 
-     * Fromat:  partially extracted from: http://users.ices.utexas.edu
+     * Fromat: Partially extracted from: http://users.ices.utexas.edu
      * R.  1: unique number of dataset (dataset_label)
      * R.  2: text describing content (dataset_name)
      * R.  3: data belongs to: nodes, elements,...
