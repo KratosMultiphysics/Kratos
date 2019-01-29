@@ -16,7 +16,8 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "mesh_id": 0,
                 "avoid_recomputing_normals": true,
-                "particles_per_condition" : 0
+                "particles_per_condition" : 0,
+                "boundary_type" : ""
             }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -24,6 +25,17 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
+        self.boundary_type = settings["boundary_type"].GetString()
+
+        # set type of boundary
+        if (self.boundary_type == "neumann" or self.boundary_type == "Neumann"):
+            self.is_neumann_boundary = True
+        elif (self.boundary_type == "dirichlet" or self.boundary_type == "Dirichlet"):
+            self.is_neumann_boundary = False
+        else:
+            err_msg =  "The requested type of boundary \"" + self.boundary_type + "\" is not available!\n"
+            err_msg += "Available options are: \"dirichlet\" and \"neumann\"."
+            raise Exception(err_msg)
 
         # Compute the normal on the nodes of interest -
         # Note that the model part employed here is supposed to only have slip "conditions"
@@ -36,6 +48,7 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
+                condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
         else:
             err_msg = '\n::[ApplyMPMParticleConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
