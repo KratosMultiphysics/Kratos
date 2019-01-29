@@ -68,7 +68,7 @@ namespace Kratos
 
 		using Category = LoggerMessage::Category;
 
-    using Source = LoggerMessage::Source;
+    using MessageSource = LoggerMessage::MessageSource;
 
 	  ///@}
       ///@name Life Cycle

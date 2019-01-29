@@ -78,8 +78,8 @@ namespace Kratos
 		return *this;
 	}
 
-	LoggerMessage& LoggerMessage::operator << (Source const& TheSource) {
-		mSource = TheSource;
+	LoggerMessage& LoggerMessage::operator << (MessageSource const& TheMessageSource) {
+		mMessageSource = TheMessageSource;
 
 		return *this;
 	}

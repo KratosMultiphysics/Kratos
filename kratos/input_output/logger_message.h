@@ -74,15 +74,15 @@ namespace Kratos
 				CHECKING
 			};
 
-			class Source {
+			class MessageSource {
 			public:
-				Source()
+				MessageSource()
 					: mIsDistributed(false), mRank(0) {}
 
-				Source(bool IsDistributed, int TheRank)
+				MessageSource(bool IsDistributed, int TheRank)
 					: mIsDistributed(IsDistributed), mRank(TheRank) {}
 
-				Source(Source const& rOther)
+				MessageSource(MessageSource const& rOther)
 					: mIsDistributed(rOther.mIsDistributed), mRank(rOther.mRank) {}
 
 				bool IsDistributed() const {
@@ -96,8 +96,8 @@ namespace Kratos
 			private:
 				bool mIsDistributed;
 				int mRank;
+				std::string mApplicaton;
 			};
-
 
 			///@}
 			///@name Life Cycle
@@ -105,10 +105,10 @@ namespace Kratos
 
 
 			LoggerMessage(std::string const& TheLabel)
-				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mSource() {}
+				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource() {}
 
 			LoggerMessage(LoggerMessage const& Other)
-				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mSource(Other.mSource) {}
+				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mMessageSource(Other.mMessageSource) {}
 
 			/// Destructor.
 			virtual ~LoggerMessage() {}
@@ -125,7 +125,7 @@ namespace Kratos
                 // mLocation = Other.mLocation;
 				mSeverity = Other.mSeverity;
 				mCategory = Other.mCategory;
-				mSource = Other.mSource;
+				mMessageSource = Other.mMessageSource;
 
 				return *this;
 			}
@@ -188,11 +188,11 @@ namespace Kratos
 			}
 
 			bool IsDistributed() const {
-				return mSource.IsDistributed();
+				return mMessageSource.IsDistributed();
 			}
 
-			int GetSourceRank() const {
-				return mSource.GetRank();
+			int GetMessageSourceRank() const {
+				return mMessageSource.GetRank();
 			}
 
 			void SetTime() {
@@ -248,8 +248,8 @@ namespace Kratos
 			/// Category stream function
 			LoggerMessage& operator << (Category const& TheCategory);
 
-			/// Source stream function
-			LoggerMessage& operator << (Source const& TheSource);
+			/// MessageSource stream function
+			LoggerMessage& operator << (MessageSource const& TheMessageSource);
 
 			///@}
 
@@ -267,7 +267,7 @@ namespace Kratos
             CodeLocation mLocation;
 			Severity mSeverity;
 			Category mCategory;
-			Source mSource;
+			MessageSource mMessageSource;
 			TimePointType mTime;
 
 			///@}
