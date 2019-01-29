@@ -20,6 +20,7 @@
   #include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
 #else
   #include "linear_system/linear_solvers/superlu_direct_solver.hpp"
+  #include "linear_system/linear_solvers/superlu_iterative_solver.hpp"
 #endif
 
 #ifdef INCLUDE_FEAST
@@ -41,6 +42,7 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
   typedef boost::numeric::ublas::vector<double>                             SparseVectorType;
   typedef UblasSpace<double, CompressedMatrix, SparseVectorType>             SparseSpaceType;
   typedef UblasSpace<double, DenseMatrixType, DenseVectorType>                LocalSpaceType;
+  typedef LinearSolver<SparseSpaceType, LocalSpaceType>                     LinearSolverType;
   typedef DirectSolver<SparseSpaceType, LocalSpaceType>                     DirectSolverType;
 
 #ifdef INCLUDE_SUPERLU_MT
@@ -58,17 +60,16 @@ void AddCustomLinearSolversToPython(pybind11::module& m)
       .def(py::init<>() )
       .def(py::init<Parameters>());
 
-  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
+  typedef SuperLUIterativeGMRESSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
 
-  // py::class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer, SuperLUDirectSolverType>
-  //     (m, "superlu_iterative")
-  //     .def(py::init<>() )
-  //     .def(py::init<Parameters>());
+  py::class_<SuperLUIterativeSolverType, typename SuperLUIterativeSolverType::Pointer, LinearSolverType>
+      (m, "superlu_iterative")
+      .def(py::init<>() )
+      .def(py::init<Parameters>());
 #endif
 
 #ifdef INCLUDE_FEAST
   typedef FEASTEigenValueSolver<SparseSpaceType, LocalSpaceType>                    FEASTEigenValueSolverType;
-  typedef LinearSolver<SparseSpaceType, LocalSpaceType>                                      LinearSolverType;
   typedef DenseVector<std::complex<double> >                                                ComplexVectorType;
   typedef DenseMatrix<std::complex<double> >                                                ComplexMatrixType;
   typedef UblasSpace<std::complex<double>, ComplexCompressedMatrix, ComplexVectorType> ComplexSparseSpaceType;

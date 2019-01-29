@@ -35,6 +35,7 @@
   #include "linear_system/linear_solvers/superlu_mt_direct_solver.hpp"
 #else
   #include "linear_system/linear_solvers/superlu_direct_solver.hpp"
+  #include "linear_system/linear_solvers/superlu_iterative_solver.hpp"
 #endif
 
 #ifdef INCLUDE_FEAST
@@ -173,8 +174,8 @@ class KratosSolversApplication : public KratosApplication {
 #else
   typedef SuperLUDirectSolver<SparseSpaceType, LocalSpaceType>       SuperLUDirectSolverType;
   const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUDirectSolverType> mSuperLUDirectSolverFactory;
-  //typedef SuperLUIterativeSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
-  //const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUIterativeSolverType> mSuperLUIterativeSolverFactory;
+  typedef SuperLUIterativeGMRESSolver<SparseSpaceType, LocalSpaceType> SuperLUIterativeSolverType;
+  const StandardLinearSolverFactory<SparseSpaceType, LocalSpaceType, SuperLUIterativeSolverType> mSuperLUIterativeSolverFactory;
 #endif
 
 #ifdef INCLUDE_FEAST

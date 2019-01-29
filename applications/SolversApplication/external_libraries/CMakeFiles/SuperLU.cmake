@@ -34,6 +34,7 @@ set(SUPERLU_SOURCES
   ${SUPERLU_DIR}/SRC/mc64ad.c
   ${SUPERLU_DIR}/SRC/qselect.c
   ${SUPERLU_DIR}/SRC/input_error.c
+  ${SUPERLU_DIR}/EXAMPLE/fgmr.c
   )
 set_source_files_properties(superlu_timer.c PROPERTIES COMPILE_FLAGS -O0)
 
@@ -83,6 +84,7 @@ if(enable_single)
     ${SUPERLU_DIR}/SRC/ilu_spivotL.c
     ${SUPERLU_DIR}/SRC/sdiagonal.c
     ${SUPERLU_DIR}/SRC/sreadMM.c
+    ${SUPERLU_DIR}/EXAMPLE/sfgmr.c
     )
   set_source_files_properties(smach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_single)
@@ -134,6 +136,7 @@ if(enable_double)
     ${SUPERLU_DIR}/SRC/ddiagonal.c
     ${SUPERLU_DIR}/SRC/dreadMM.c
     ${SUPERLU_DIR}/SRC/dGetDiagU.c
+    ${SUPERLU_DIR}/EXAMPLE/dfgmr.c
   )
   set_source_files_properties(dmach.c PROPERTIES COMPILE_FLAGS -O0)
 endif(enable_double)
@@ -186,6 +189,7 @@ if(enable_complex)
     ${SUPERLU_DIR}/SRC/ilu_cpivotL.c
     ${SUPERLU_DIR}/SRC/cdiagonal.c
     ${SUPERLU_DIR}/SRC/creadMM.c
+    ${SUPERLU_DIR}/EXAMPLE/cfgmr.c
   )
 endif(enable_complex)
 
@@ -237,6 +241,7 @@ if(enable_complex16)
     ${SUPERLU_DIR}/SRC/ilu_zpivotL.c
     ${SUPERLU_DIR}/SRC/zdiagonal.c
     ${SUPERLU_DIR}/SRC/zreadMM.c
+    ${SUPERLU_DIR}/EXAMPLE/zfgmr.c
   )
 endif(enable_complex16)
 
