@@ -516,11 +516,11 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         Flags& r_flags = rParameterValues.GetOptions();
         // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
@@ -538,11 +538,11 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     } else if (rThisVariable == COMPRESSION_STRESS_VECTOR) {
         Flags& r_flags = rParameterValues.GetOptions();
         // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
@@ -554,8 +554,8 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         rValue = predictive_stress_vector_compression;
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
 
     } else if (this->Has(rThisVariable)) {
@@ -584,8 +584,8 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
         const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
         const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
@@ -596,18 +596,18 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
                                                                    predictive_stress_vector_compression);
         rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_tension);
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
 
     } else if (rThisVariable == COMPRESSION_STRESS_TENSOR) {
         Flags& r_flags = rParameterValues.GetOptions();
         // Previous flags saved
-        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
-        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+        const bool flag_const_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
 
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
@@ -619,8 +619,8 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_compression);
         // Previous flags restored
-        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
-        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_stress);
         return rValue;
 
     } else if (this->Has(rThisVariable)) {
