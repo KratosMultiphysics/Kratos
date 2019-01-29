@@ -67,7 +67,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<2>(
         // We iterate over the elements and check the nodes on the interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (this_geometry.LocalSpaceDimension() == 2) {
@@ -129,7 +129,7 @@ void InterfacePreprocessCondition::GenerateInterfacePart<3>(
         // Generate Conditions from original the faces that can be considered interface
         for (auto it_elem = mrMainModelPart.ElementsBegin(); it_elem != mrMainModelPart.ElementsEnd(); ++it_elem) {
             GeometryType& this_geometry = it_elem->GetGeometry();
-            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.pGetProperties(contact_property_id);
+            Properties::Pointer p_prop = (contact_property_id == 0) ? new_properties[it_elem->pGetProperties()->Id()] : mrMainModelPart.CreateNewProperties(contact_property_id);
             KRATOS_DEBUG_ERROR_IF(p_prop == nullptr) << "ERROR:: Property not well initialized" << std::endl;
 
             if (this_geometry.LocalSpaceDimension() == 3) {
@@ -160,7 +160,7 @@ void InterfacePreprocessCondition::CheckAndCreateProperties(ModelPart& rInterfac
     if (!(p_prop_old->Has(YOUNG_MODULUS))) {
         // Store new properties in a map
         const std::size_t number_properties = mrMainModelPart.NumberOfProperties();
-        Properties::Pointer p_prop_new = mrMainModelPart.pGetProperties(number_properties + 1);
+        Properties::Pointer p_prop_new = mrMainModelPart.CreateNewProperties(number_properties + 1);
 
         GeometryType& this_geometry_cond = rInterfacePart.Conditions().begin()->GetGeometry();
         const std::size_t number_of_nodes = this_geometry_cond.size();
@@ -301,7 +301,7 @@ std::unordered_map<IndexType, Properties::Pointer> InterfacePreprocessCondition:
     for (auto& i_prop : index_vector) {
         Properties::Pointer p_original_prop = mrMainModelPart.pGetProperties(i_prop);
         ++count;
-        Properties::Pointer p_new_prop = mrMainModelPart.pGetProperties(number_properties + count + 1);
+        Properties::Pointer p_new_prop = mrMainModelPart.CreateNewProperties(number_properties + count + 1);
         new_properties.insert({i_prop, p_new_prop});
 
         // Now we copy (an remove) the properties we have interest
