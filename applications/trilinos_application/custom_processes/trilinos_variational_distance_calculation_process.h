@@ -87,10 +87,10 @@ public:
         LinearSolverPointerType plinear_solver,
         unsigned int max_iterations = 10,
         Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string aux_part_name = "RedistanceCalculationPart" )
-        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations, Options, aux_part_name ),
+        std::string AuxPartName = "RedistanceCalculationPart" )
+        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations, Options, AuxPartName ),
         mrComm(rComm),
-        mAuxModelPartName( aux_part_name )
+        mAuxModelPartName( AuxPartName )
     {
 
         KRATOS_TRY

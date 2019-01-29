@@ -124,10 +124,10 @@ public:
         typename TLinearSolver::Pointer plinear_solver,
         unsigned int max_iterations = 10,
         Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string aux_part_name = "RedistanceCalculationPart" )
+        std::string AuxPartName = "RedistanceCalculationPart" )
         : mr_base_model_part( base_model_part ),
         mOptions( Options ),
-        mAuxModelPartName( aux_part_name )
+        mAuxModelPartName( AuxPartName )
     {
         KRATOS_TRY
 
@@ -409,8 +409,8 @@ protected:
         ModelPart &base_model_part,
         unsigned int max_iterations,
         Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
-        std::string aux_part_name = "RedistanceCalculationPart")
-        : mr_base_model_part(base_model_part), mOptions(Options), mAuxModelPartName(aux_part_name)
+        std::string AuxPartName = "RedistanceCalculationPart")
+        : mr_base_model_part(base_model_part), mOptions(Options), mAuxModelPartName(AuxPartName)
     {
         mdistance_part_is_initialized = false;
         mmax_iterations = max_iterations;
