@@ -68,6 +68,9 @@ class SwimmingStrategy(BaseStrategy):
     def ModifyProperties(self, properties, param = 0):
 
         super(SwimmingStrategy,self).ModifyProperties(properties, param)
+        HydrodynamicInteractionLawString = properties[SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME]
+        HydrodynamicInteractionLaw = globals().get(HydrodynamicInteractionLawString)()
+        HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)
 
         if not param:
             if not properties.Has(PARTICLE_SPHERICITY):
