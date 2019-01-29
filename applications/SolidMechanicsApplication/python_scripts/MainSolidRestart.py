@@ -170,6 +170,8 @@ class Solution(object):
 
         clock_time = self._start_time_measuring()
 
+        self.solver.InitializeSolutionStep()
+
         # Predict time step
         self.PredictTimeStep()
 
