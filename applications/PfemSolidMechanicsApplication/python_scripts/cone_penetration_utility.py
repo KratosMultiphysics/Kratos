@@ -29,7 +29,7 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
          "cone_radius"        : 0.01784,
          "u2_initial_depth"   : 0.0332,
          "velocity"           : 0.02,
-         "dissipation_set"    : true,
+         "dissipation_set"    : false,
          "dissipation_depth"  : 0.2676
         }
         """)
@@ -120,9 +120,50 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
         figure_file.write(line_value)
         figure_file.close()
 
+        self.MakeTheOtherFile();
+
+    # make the other stupid file just to check everything is sort of correct
+    def MakeTheOtherFile(self):
+
+        time = self._GetStepTime()
+
+        problem_path = os.getcwd()
+        self.other_file  = os.path.join(problem_path, "other_file_data.csv")
+        self.other_file = open( self.other_file, "a")
+
+        time = str(time) + " \n "
+        self.other_file.write(time)
 
 
+
+        YLim = self.Y0 - self.Vy * self._GetStepTime();
+        YLim = self._GetU2Position()
+
+        for node in self.model_part.GetNodes(0):
+            Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE); 
+            if ( ( abs(Force[0]) + abs(Force[1]) > 1.0e-7 ) or (node.X0 < 1e-5 and node.Y > YLim-0.1) ) :
+                x = node.X;
+                y = node.Y;
+                Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);  
+                Stress = node.GetSolutionStepValue( KratosContact.CONTACT_STRESS);  
+                EfForce = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_FORCE);  
+                EfStress = node.GetSolutionStepValue( KratosContact.EFFECTIVE_CONTACT_STRESS);  
+                WP = node.GetSolutionStepValue( KratosMultiphysics.WATER_PRESSURE); 
+                
+                line = str(x) + "  " + str(y) + "  " + str(YLim) + " " + str(WP) + " " 
+                line = line + self.AddVector( Force)
+                line = line + self.AddVector( Stress)
+                line = line + self.AddVector( EfForce)
+                line = line + self.AddVector( EfStress)
+                line = line + "\n"
+                self.other_file.write(line)
+
+
+        self.other_file.close()
         
+    def AddVector( self, vector):
+        line = str(vector[0]) + " " + str(vector[1]) + " "
+        return line
     #
     def _GetStepTime(self):
 
@@ -203,7 +244,12 @@ class ConePenetrationUtility(KratosMultiphysics.Process):
 
         for node in self.model_part.GetNodes(0):
             Force = node.GetSolutionStepValue( KratosMultiphysics.CONTACT_FORCE);
-            if ( abs(Force[0]) + abs(Force[1]) > 1e-8):
+            condition1 = abs(Force[0]) + abs(Force[1]) > 1e-8;
+            Normal = node.GetSolutionStepValue( KratosMultiphysics.NORMAL);
+            condition2 = ( abs(Normal[0]) + abs(Normal[1]) > 1e-8 and node.X < 3*self.radius);
+            condition3 = abs( node.GetSolutionStepValue(variable)) > 1e-8
+            condition3 = node.Is(KratosMultiphysics.RIGID) == False
+            if ( ( condition1 or condition2) and condition3):
                 YThis = node.Y;
                 if (  (YThis-YSearch) > 0 ):
                     if ( abs(  YThis-YSearch )  < abs( YBestTop - YSearch) ):

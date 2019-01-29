@@ -47,7 +47,7 @@ class FootingProblemProcess(KratosMultiphysics.Process):
 
         Force = 0.0*KratosMultiphysics.Array3()
         for node in self.model_part.GetNodes(0): 
-            if ( abs(node.Y0) < 1e-15):
+            if ( abs(node.Y0) < 1.0e-5):
                 if (node.X0 < 1.0001):
                     res = node.GetSolutionStepValue(KratosSolid.DISPLACEMENT_REACTION)
                     Force = Force + res

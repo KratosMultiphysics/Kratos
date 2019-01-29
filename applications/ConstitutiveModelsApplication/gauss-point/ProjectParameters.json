@@ -4,21 +4,21 @@
             "material_name"   : "steel",
             "constitutive_law": {
                 "law_name"   : "KratosMultiphysics.ConstitutiveModelsApplication.LargeStrain3DLaw",
-                "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.GensNovaModel"
+                "model_name" : "KratosMultiphysics.ConstitutiveModelsApplication.V2GensNovaModel"
             },
             "variables": {
                 "KratosMultiphysics.ConstitutiveModelsApplication.REFERENCE_PRESSURE": 1000000.0,
-                "KratosMultiphysics.YOUNG_MODULUS": 10000.0,
-                "KratosMultiphysics.POISSON_RATIO": 0.3,
+                "KratosMultiphysics.YOUNG_MODULUS": 50000.0,
+                "KratosMultiphysics.POISSON_RATIO": 0.2,
                 "KratosMultiphysics.ALPHA_SHEAR": 0.0,
-                "KratosMultiphysics.CRITICAL_STATE_LINE": 1.5,
+                "KratosMultiphysics.CRITICAL_STATE_LINE": 1.4,
                 "KratosMultiphysics.ConstitutiveModelsApplication.CHIS": 0.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 1.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 8.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 400.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 100.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 14.0,
-                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -18.0
+                "KratosMultiphysics.ConstitutiveModelsApplication.CHIT": 0.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.KSIM": 5.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PS": 1200.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.PT": 320.0,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOS": 16.6,
+                "KratosMultiphysics.ConstitutiveModelsApplication.RHOT": -15.5
             },
             "element_type": "Tetrahedra3D4",
             "nodes" : [ [0.0,0.0,0.0], [1.0,0.0,0.0], [0.0,1.0,0.0], [0.0,0.0,1.0] ],
@@ -27,7 +27,7 @@
                 "jacobian": 1.0
             },
             "echo_level" : 0,
-	    "parametric_analysis_variable": "PT",
-	    "parametric_analysis_values": [40.0 ],
-	    "initial_stress_state": [-150.0, -150.0, -150.0]
+	    "parametric_analysis_variable": "CHIT",
+	    "parametric_analysis_values": [0.2 ],
+	    "initial_stress_state": [-120.0, -120.0, -120.0]
 }

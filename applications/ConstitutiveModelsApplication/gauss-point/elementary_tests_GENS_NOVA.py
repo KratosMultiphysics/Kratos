@@ -27,7 +27,7 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
         
         NumberIncrements = 1000
         IncrementalF = self._set_identity_matrix()
-        IncrementalF[0,0] = 0.99998
+        IncrementalF[1,1] = 0.9995
 
         self._create_material_model_and_law()
         for case in range(0, self.size_parametric_analysis):
@@ -115,7 +115,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
 
     # driver of the triaxial compression
     def _test_TriaxialCompression(self):
-    
+   
+        print('NewTriaxial')
         #self._create_material_model_and_law()
         
         self.F = self._set_identity_matrix()
@@ -232,6 +233,8 @@ class TestModifiedCamClayModel(KratosUnittest.TestCase):
                 norm = 0
                 for i in range(0,6):
                     norm += residual[i]*residual[i]
+
+                print('Iteration '+ str(iteracio)+ ' residual '+ str(norm) )
                 if (norm < 1e-12):
                     break
                 if (iteracio > 90):

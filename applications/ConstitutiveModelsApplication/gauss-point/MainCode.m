@@ -1,15 +1,32 @@
 function [] = MainCode()
-close all
+
+for i = [1:3, 10]
+    figure(i)
+    hold off;
+end
+
 global M;
 
-M = 1.0;
+M = 1.4;
 
+for i = 0:1000
+    ThisExists = MakeThisFile([num2str(i), 'drained_triaxial.csv']);
 
-MakeThisFile('drained_triaxial.csv')
-MakeThisFile('undrained_triaxial.csv')
+    
+    if (ThisExists == false )
+        return
+    end
+    MakeThisFile([num2str(i),'drained_biaxial.csv']);
+    MakeThisFile([num2str(i),'undrained_triaxial.csv']);
+    MakeThisFile([num2str(i),'oedometer.csv']);
+    MakeThisFile([num2str(i),'isotropic.csv']);
+end
+% MakeThisFile('drained_triaxial.csv')
+% MakeThisFile('undrained_triaxial.csv')
 
-MakeThisFileOed('oedometer.csv')
-MakeThisFileOed('isotropic.csv')
+% MakeThisFileOed('oedometer.csv')
+% MakeThisFileOed('isotropic.csv')
+
 
 function [] = MakeThisFileOed(XFILE)
 
@@ -45,8 +62,15 @@ xlabel('p')
 ylabel('eVol')
 hold on
 
-function [] = MakeThisFile(XFILE)
 
+
+function [ThisExists] = MakeThisFile(XFILE)
+ThisExists = true;
+
+if ( isfile(XFILE) == false)
+    ThisExists = false;
+    return
+end
 rawData = csvread(XFILE);
 
 Stress = rawData(:,2:7);
@@ -57,7 +81,15 @@ pt = rawData(:,15);
 pc = rawData(:,16);
 [p, J] = ComputeStressInvariants( Stress);
 [eVol, eDev] = ComputeStrainInvariants( Strain);
-
+% 
+% Slope(1) = 0;
+% for k = 2:length(eVol)
+%     Slope(k) = log(p(k)/p(k-1));
+%     Slope(k) = Slope(k)/(eVol(k)-eVol(k-1));
+% end
+% figure(121)
+% semilogy(p, Slope)
+% hold on
 
 
 figure(1)
@@ -78,9 +110,14 @@ hold on
 
 
 figure(3)
-semilogx( p, eVol);
+semilogx( p, -eVol);
 xlabel('p')
 ylabel('eVol')
+hold on
+
+
+figure(10)
+plot(-Strain(:,2), -Stress(:,2))
 hold on
 
 function PlotYieldSurface( ps, pt, pc, SPEC)

@@ -187,7 +187,7 @@ END MATERIAL
 MATERIAL: GensNovaPlasticity
 QUESTION: Type#CB#(GensNovaPlasticity)
 VALUE: GensNovaPlasticity
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(GensNovaPlasticPlaneStrain2DLaw,GensNovaPlasticAxisym2DLaw,V2GensNovaPlasticPlaneStrain2DLaw,NonlocalV2GensNovaPlasticPlaneStrain2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(GensNovaPlasticPlaneStrain2DLaw,GensNovaPlasticAxisym2DLaw,V2GensNovaPlasticPlaneStrain2DLaw,NonlocalV2GensNovaPlasticPlaneStrain2DLaw,V2GensNovaPlasticAxisym2DLaw,NonlocalV2GensNovaPlasticAxisym2DLaw)
 VALUE: GensNovaPlasticPlaneStrain2DLaw
 QUESTION: DENSITY
 VALUE: 2.0
