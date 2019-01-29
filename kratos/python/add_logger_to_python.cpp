@@ -52,8 +52,9 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     Logger::Severity severityOption = severity;
     Logger::Category categoryOption = Logger::Category::STATUS;
 
+    Logger::Source source;
     if (printRank) {
-        buffer << getDataCommunicator(kwargs).Rank() << ": ";
+        source = Logger::Source(printRank, getDataCommunicator(kwargs).Rank());
     }
 
     std::string label;
@@ -96,7 +97,7 @@ void printImpl(pybind11::args args, pybind11::kwargs kwargs, Logger::Severity se
     }
 
     // Send the message and options to the logger
-    Logger(label) << buffer.str() << severityOption << categoryOption << std::endl;
+    Logger(label) << source << buffer.str() << severityOption << categoryOption << std::endl;
 
 }
 
