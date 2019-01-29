@@ -531,8 +531,8 @@ private:
 
     void save(Serializer& rSerializer) const 
     {
-        rSerializer.save("Is Fixed", mIsFixed);
-        rSerializer.save("Equation Id", mEquationId);
+        rSerializer.save("Is Fixed", static_cast<bool>(mIsFixed));
+        rSerializer.save("Equation Id", static_cast<EquationIdType>(mEquationId));
         rSerializer.save("Nodal Data", mpNodalData);
         rSerializer.save("Variable", mpVariable->Name());
         rSerializer.save("Reaction", mpReaction->Name());
