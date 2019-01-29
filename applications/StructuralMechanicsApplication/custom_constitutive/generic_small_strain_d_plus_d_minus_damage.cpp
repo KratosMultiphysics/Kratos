@@ -524,7 +524,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
-        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
         ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
@@ -546,7 +546,7 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
-        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
         ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
@@ -589,7 +589,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
-        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
         ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
@@ -611,7 +611,7 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
 
         // We compute the stress
         this->CalculateMaterialResponseCauchy(rParameterValues);
-        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        const array_1d<double, VoigtSize>& predictive_stress_vector = rParameterValues.GetStressVector();
         array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
         ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
                                                                    predictive_stress_vector_tension,
