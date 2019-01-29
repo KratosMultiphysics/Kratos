@@ -623,7 +623,12 @@ public:
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
                 else{
+
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
+                    // First reset all nodes' flag to VISITED = false
+                    for (auto& node : submodelpart.Nodes())
+                        node.Reset(VISITED);
+
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the mr_mpm_model_part
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
@@ -642,7 +647,7 @@ public:
                         }
 
                         // Get shape_function_values from defined particle_per_condition
-                        const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current condition's geometry
+                        auto& rGeom = i->GetGeometry(); // current condition's geometry
                         const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
                         Matrix shape_functions_values;
                         if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
@@ -779,10 +784,8 @@ public:
                             mpc_xg.clear();
 
                             // Loop over the nodes of the grid condition
-                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++)
-                            {
-                                for ( unsigned int j = 0; j < rGeom.size(); j ++)
-                                {
+                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
+                                for ( unsigned int j = 0; j < rGeom.size(); j ++){
                                     mpc_xg[dim] = mpc_xg[dim] + shape_functions_values(PointNumber, j) * rGeom[j].Coordinates()[dim];
                                 }
                             }
@@ -795,6 +798,34 @@ public:
                         }
 
                         last_condition_id += integration_point_per_conditions;
+
+                        // 2. Loop over the nodes associated to each condition to create nodal particle condition
+                        // NOTE: each node should only be translated to particle condition once, otherwise, problem might occur with their integration weight
+                        for ( unsigned int j = 0; j < rGeom.size(); j ++)
+                        {
+                            if (!rGeom[j].Is(VISITED)){
+                                new_condition_id = last_condition_id + j;
+
+                                //FIXME: Need to be generalized!!!!
+                                Condition::Pointer const new_condition = Kratos::make_shared<MPMGridLineLoadCondition2D>(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2))));
+                                Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, rGeom, properties);
+
+                                mpc_xg.clear();
+                                for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
+                                    mpc_xg[dim] = rGeom[j].Coordinates()[dim];
+                                }
+
+                                // Setting particle condition's initial condition
+                                p_condition->SetValue(MPC_COORD, mpc_xg);
+
+                                // Add the MP Condition to the model part
+                                mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+
+                                rGeom[j].Set(VISITED);
+                            }
+                        }
+
+                        last_condition_id += rGeom.size();
 
                     }
                 }
