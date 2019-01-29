@@ -74,16 +74,41 @@ namespace Kratos
 				CHECKING
 			};
 
+			class Source {
+			public:
+				Source()
+					: mIsDistributed(false), mRank(0) {}
+
+				Source(bool IsDistributed, int TheRank)
+					: mIsDistributed(IsDistributed), mRank(TheRank) {}
+
+				Source(Source const& rOther)
+					: mIsDistributed(rOther.mIsDistributed), mRank(rOther.mRank) {}
+
+				bool IsDistributed() const {
+					return mIsDistributed;
+				}
+
+				int GetRank() const {
+					return mRank;
+				}
+
+			private:
+				bool mIsDistributed;
+				int mRank;
+			};
+
+
 			///@}
 			///@name Life Cycle
 			///@{
 
 
 			LoggerMessage(std::string const& TheLabel)
-				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS) {}
+				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mSource() {}
 
 			LoggerMessage(LoggerMessage const& Other)
-				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory) {}
+				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mSource(Other.mSource) {}
 
 			/// Destructor.
 			virtual ~LoggerMessage() {}
@@ -100,6 +125,7 @@ namespace Kratos
                 // mLocation = Other.mLocation;
 				mSeverity = Other.mSeverity;
 				mCategory = Other.mCategory;
+				mSource = Other.mSource;
 
 				return *this;
 			}
@@ -161,6 +187,14 @@ namespace Kratos
 				return mCategory;
 			}
 
+			bool IsDistributed() const {
+				return mSource.IsDistributed();
+			}
+
+			int GetSourceRank() const {
+				return mSource.GetRank();
+			}
+
 			void SetTime() {
 				mTime = std::chrono::steady_clock::now();
 			}
@@ -214,6 +248,9 @@ namespace Kratos
 			/// Category stream function
 			LoggerMessage& operator << (Category const& TheCategory);
 
+			/// Source stream function
+			LoggerMessage& operator << (Source const& TheSource);
+
 			///@}
 
 		private:
@@ -230,6 +267,7 @@ namespace Kratos
             CodeLocation mLocation;
 			Severity mSeverity;
 			Category mCategory;
+			Source mSource;
 			TimePointType mTime;
 
 			///@}

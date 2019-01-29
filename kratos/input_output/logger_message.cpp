@@ -78,6 +78,12 @@ namespace Kratos
 		return *this;
 	}
 
+	LoggerMessage& LoggerMessage::operator << (Source const& TheSource) {
+		mSource = TheSource;
+
+		return *this;
+	}
+
 
 	/// output stream function
 	std::ostream& operator << (std::ostream& rOStream,
