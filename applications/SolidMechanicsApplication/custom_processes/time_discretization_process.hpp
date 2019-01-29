@@ -36,9 +36,9 @@ typedef ModelPart::NodesContainerType                      NodesContainerType;
 typedef ModelPart::ElementsContainerType                ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-typedef std::vector<Node<3>*>               NodePointerVectorType;
-typedef std::vector<Element*>            ElementPointerVectorType;
-typedef std::vector<Condition*>        ConditionPointerVectorType;
+typedef WeakPointerVector<Node<3> >       NodeWeakPtrVectorType;
+typedef WeakPointerVector<Element>     ElementWeakPtrVectorType;
+typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
 ///@}
 ///@name  Enum's
 ///@{
@@ -281,8 +281,8 @@ class TimeDiscretizationProcessTimeDiscretizationProcess
 //           }
 //           double motionInStep=sqrt(NormVelNode)*updatedTimeInterval;
 //           double unsafetyFactor=0;
-//           NodePointerVectorType& neighb_nodes = itNode->GetValue(NEIGHBOR_NODES);
-//           for (NodePointerVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
+//           NodeWeakPtrVectorType& neighb_nodes = itNode->GetValue(NEIGHBOUR_NODES);
+//           for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin();nn != neighb_nodes.end(); ++nn)
 //           {
 //             array_1d<double,3>  CoorNeighDifference=itNode->Coordinates()-nn->Coordinates();
 //             double squaredDistance=0;
