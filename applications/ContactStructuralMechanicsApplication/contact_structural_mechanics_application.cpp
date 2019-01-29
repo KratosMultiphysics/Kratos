@@ -138,7 +138,7 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
 
     /* For mesh tying mortar condition */
-    KRATOS_REGISTER_VARIABLE( IMPACT_TIME_DURATION )                                  // The time that the impact will be considered
+    KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
 
     // CONDITIONS
     // Mesh tying mortar condition

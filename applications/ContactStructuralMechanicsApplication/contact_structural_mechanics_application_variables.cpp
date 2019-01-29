@@ -53,5 +53,5 @@ KRATOS_CREATE_VARIABLE( double, MAX_GAP_FACTOR )                                
 KRATOS_CREATE_VARIABLE( std::string, TYING_VARIABLE )                           // The variable name for the mesh tying
 
 /* Explicit simulation */
-KRATOS_CREATE_VARIABLE( double, IMPACT_TIME_DURATION )                          // The time that the impact will be considered
+KRATOS_CREATE_VARIABLE( double, MAX_GAP_THRESHOLD )                             // The gap considered as threshold to rescale penalty
 }
