@@ -113,10 +113,10 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
             puts $FileVar "            \"max_iteration\":       100,"
             puts $FileVar "            \"scaling\":             [GiD_AccessValue get gendata Scaling],"
             puts $FileVar "            \"preconditioner_type\": \"ILU0Preconditioner\""
-        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver") || ([GiD_AccessValue get gendata Solver_Type] eq "ExternalSolversApplication.SuperLUSolver")} {
+        } elseif {([GiD_AccessValue get gendata Solver_Type] eq "SkylineLUFactorizationSolver") || ([GiD_AccessValue get gendata Solver_Type] eq "SuperLUSolver")} {
             puts $FileVar "            \"solver_type\":   \"[GiD_AccessValue get gendata Solver_Type]\""
         } else {
-            puts $FileVar "            \"solver_type\":   \"ExternalSolversApplication.SuperLUSolver\""
+            puts $FileVar "            \"solver_type\":   \"SuperLUSolver\""
         }
     }
     puts $FileVar "        \},"
