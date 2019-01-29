@@ -220,12 +220,12 @@ private:
     /**
      * @brief This method computes the factor to consider the dynamic factor considing a logictic curve
      * @details Look in https://en.wikipedia.org/wiki/Logistic_function
-     * @param ImpactTimeDuration The time it requires to reach the maximum value
-     * @param CurrentDeltaTime The current delta time since activation of the contact
+     * @param MaxGapThreshold The maximum gap considered for the interpolation
+     * @param CurrentGap The current gap
      */
     double ComputeLogisticFactor(
-        const double ImpactTimeDuration,
-        const double CurrentDeltaTime
+        const double MaxGapThreshold,
+        const double CurrentGap
         );
 
     ///@}
