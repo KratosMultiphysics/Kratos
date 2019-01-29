@@ -775,7 +775,7 @@ namespace Kratos
     //Contact face segment node1-node2
     unsigned int slave = mContactVariables.slaves.front();
 
-    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOR_ELEMENTS)[0]->GetProperties();
+    const Properties& SlaveProperties  = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties();
     const Properties& MasterProperties = rMasterElement.GetProperties();
     double Eslave  = 1e9;
     if( SlaveProperties.Has(YOUNG_MODULUS) ){
@@ -2311,77 +2311,74 @@ namespace Kratos
 
     //Check slave node inside the contacting domain:
 
-    //node1:
-    ElementPointerVectorType& rNeighbours_n1 = GetGeometry()[node1].GetValue(NEIGHBOR_ELEMENTS);
-    //node2:
-    ElementPointerVectorType& rNeighbours_n2 = GetGeometry()[node2].GetValue(NEIGHBOR_ELEMENTS);
 
-    unsigned int NumberOfNeighbours_n1 = rNeighbours_n1.size();
-    unsigned int NumberOfNeighbours_n2 = rNeighbours_n2.size();
+    //node1:
+    ElementWeakPtrVectorType& rElements1 = GetGeometry()[node1].GetValue(NEIGHBOUR_ELEMENTS);
+    //node2:
+    ElementWeakPtrVectorType& rElements2 = GetGeometry()[node2].GetValue(NEIGHBOUR_ELEMENTS);
 
     bool is_inside_a = false;
     //following slave normal projection of the slave Sx1 and Sy1
-    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-      {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
+    for(auto& i_nelem : nElements1)
+    {
+      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							   vertices[1].X(), vertices[1].Y(),
-							   vertices[2].X(), vertices[2].Y(),
-							   Sx1, Sy1);
-
-	if(is_inside_a)
-	  break;
-      }
+      is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                         vertices[1].X(), vertices[1].Y(),
+                                                         vertices[2].X(), vertices[2].Y(),
+                                                         Sx1, Sy1);
+      if(is_inside_a)
+        break;
+    }
 
     if(!is_inside_a){
 
-      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
-	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
+      for(auto& i_nelem : nElements2)
+      {
+        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	  is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							     vertices[1].X(), vertices[1].Y(),
-							     vertices[2].X(), vertices[2].Y(),
-							     Sx1, Sy1);
+        is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                           vertices[1].X(), vertices[1].Y(),
+                                                           vertices[2].X(), vertices[2].Y(),
+                                                           Sx1, Sy1);
 
-	  if(is_inside_a)
-	    break;
-	}
+        if(is_inside_a)
+          break;
+      }
 
     }
 
     bool is_inside_b = false;
     //Check projection of the slave node inside the contacting domain:
     //following master normal projection of the slave Mx1 and My1
-    for(unsigned int i = 0; i < NumberOfNeighbours_n1; i++)
-      {
-	GeometryType::PointsArrayType& vertices=rNeighbours_n1[i]->GetGeometry().Points();
+    for(auto& i_nelem : nElements1)
+    {
+      GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							   vertices[1].X(), vertices[1].Y(),
-							   vertices[2].X(), vertices[2].Y(),
-							   Mx1, My1);
+      is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                         vertices[1].X(), vertices[1].Y(),
+                                                         vertices[2].X(), vertices[2].Y(),
+                                                         Mx1, My1);
 
-	if(is_inside_b)
-	  break;
-      }
+      if(is_inside_b)
+        break;
+    }
 
     if(!is_inside_b){
 
 
-      for(unsigned int i = 0; i < NumberOfNeighbours_n2; i++)
-	{
-	  GeometryType::PointsArrayType& vertices=rNeighbours_n2[i]->GetGeometry().Points();
+      for(auto& i_nelem : nElements2)
+      {
+        GeometryType::PointsArrayType& vertices=i_nelem.GetGeometry().Points();
 
-	  is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
-							     vertices[1].X(), vertices[1].Y(),
-							     vertices[2].X(), vertices[2].Y(),
-							     Mx1, My1);
+        is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+                                                           vertices[1].X(), vertices[1].Y(),
+                                                           vertices[2].X(), vertices[2].Y(),
+                                                           Mx1, My1);
 
-	  if(is_inside_b)
-	    break;
-	}
+        if(is_inside_b)
+          break;
+      }
 
     }
 

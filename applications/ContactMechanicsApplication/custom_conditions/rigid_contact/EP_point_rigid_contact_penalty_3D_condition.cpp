@@ -265,23 +265,23 @@ namespace Kratos
       KRATOS_TRY
 
       //Compute the neighbour distance, then a stress-"like" may be computed.
-      NodePointerVectorType& rN  = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
+      NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
       array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
       array_1d<double,3> Neighb_Point;
 
       double distance = 0;
       double counter = 0;
 
-      for(unsigned int i = 0; i < rN.size(); i++)
+      for(auto& i_nnode : nNodes)
       {
-         if(rN[i]->Is(BOUNDARY)){
+        if(i_nnode.Is(BOUNDARY)){
 
-            Neighb_Point = rN[i]->Coordinates();
+          Neighb_Point = i_nnode.Coordinates();
 
-            distance += norm_2(Contact_Point-Neighb_Point);
+          distance += norm_2(Contact_Point-Neighb_Point);
 
-            counter ++;
-         }
+          counter ++;
+        }
       }
 
       if( counter != 0 )
@@ -298,28 +298,28 @@ namespace Kratos
       if( GetProperties().Has(PENALTY_PARAMETER) )
          PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
 
-      ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
+      ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
       double ElasticModulus = 0;
       if( GetProperties().Has(YOUNG_MODULUS) )
          ElasticModulus = GetProperties()[YOUNG_MODULUS];
       else
-         ElasticModulus = rE.front()->GetProperties()[YOUNG_MODULUS];
+         ElasticModulus = nElements.front().GetProperties()[YOUNG_MODULUS];
 
       // the Modified Cam Clay model does not have a constant Young modulus, so something similar to that is computed
       if (ElasticModulus <= 1.0e-5) {
-         if ( mElasticYoungModulus < 0) {
-            std::vector<double> ModulusVector;
-            ProcessInfo SomeProcessInfo;
-            for ( unsigned int i = 0; i < rE.size(); i++)
-            {
-               rE[i]->CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
-               ElasticModulus += ModulusVector[0];
-            }
-            ElasticModulus /= double(rE.size());
-            mElasticYoungModulus = ElasticModulus;
-         } else {
-            ElasticModulus = mElasticYoungModulus;
-         }
+        if ( mElasticYoungModulus < 0) {
+          std::vector<double> ModulusVector;
+          ProcessInfo SomeProcessInfo;
+          for(auto& i_nelem : nElements)
+          {
+            i_nelem.CalculateOnIntegrationPoints(YOUNG_MODULUS, ModulusVector, SomeProcessInfo);
+            ElasticModulus += ModulusVector[0];
+          }
+          ElasticModulus /= double(nElements.size());
+          mElasticYoungModulus = ElasticModulus;
+        } else {
+          ElasticModulus = mElasticYoungModulus;
+        }
       }
 
 
@@ -638,40 +638,40 @@ namespace Kratos
          return Area;
 
 
-      ElementPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
+      ElementWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
 
 
       std::vector< double > AreaVector;
-      for ( unsigned int el = 0; el < rE.size() ; el++) {
+      for(auto& i_nelem : nElements)
+      {
+        const Geometry< Node < 3 > > & rElemGeom = i_nelem.GetGeometry();
+        unsigned int nBoundary = 0;
 
-         const Geometry< Node < 3 > > & rElemGeom = rE[el]->GetGeometry();
-         unsigned int nBoundary = 0;
+        std::vector< unsigned int > BoundaryNodes;
+        for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
 
-         std::vector< unsigned int > BoundaryNodes;
-         for ( unsigned int i = 0; i < rElemGeom.size(); i++) {
+          if ( rElemGeom[i].Is(BOUNDARY) ) {
+            const array_1d<double, 3> &  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
 
-            if ( rElemGeom[i].Is(BOUNDARY) ) {
-               const array_1d<double, 3> &  CN = rElemGeom[i].FastGetSolutionStepValue(CONTACT_NORMAL);
-
-               if ( ( fabs(CN[0]) + fabs(CN[1]) + fabs(CN[2])  ) > 0.01) {
-                  BoundaryNodes.push_back( i );
-                  nBoundary += 1;
-                  if ( nBoundary == 3)
-                     break;
-               }
+            if ( ( fabs(CN[0]) + fabs(CN[1]) + fabs(CN[2])  ) > 0.01) {
+              BoundaryNodes.push_back( i );
+              nBoundary += 1;
+              if ( nBoundary == 3)
+                break;
             }
-         }
+          }
+        }
 
-         if ( nBoundary == 3)
-         {
-            array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
-            array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
-            array_1d< double, 3 > Cross;
-            MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
-            Cross /= 2.0;
-            double ThisArea = MathUtils<double>::Norm3( Cross);
-            AreaVector.push_back(ThisArea);
-         }
+        if ( nBoundary == 3)
+        {
+          array_1d< double, 3 > Vector1 = rElemGeom[ BoundaryNodes[1] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
+          array_1d< double, 3 > Vector2 = rElemGeom[ BoundaryNodes[2] ].Coordinates() - rElemGeom[ BoundaryNodes[0] ].Coordinates();
+          array_1d< double, 3 > Cross;
+          MathUtils<double>::CrossProduct( Cross, Vector1, Vector2 );
+          Cross /= 2.0;
+          double ThisArea = MathUtils<double>::Norm3( Cross);
+          AreaVector.push_back(ThisArea);
+        }
 
       }
 
@@ -713,15 +713,15 @@ namespace Kratos
 
          /*  std::vector< Vector > aux1, aux2, aux3;
              ProcessInfo SomeProcessInfo;
-             ElememntPointerVectorType& rE = GetGeometry()[0].GetValue(NEIGHBOR_ELEMENTS);
+             ElememntWeakPtrVectorType& nElements = GetGeometry()[0].GetValue(NEIGHBOUR_ELEMENTS);
              Vector WaterForceVector = ZeroVector(2);
              Vector EffecForceVector = ZeroVector(2);
              Vector TotalForceVector = ZeroVector(2);
-             for (unsigned int ne = 0; ne < rE.size() ; ne++)
+             for(auto& i_nelem : nElements)
              {
-             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_WATER_FORCE, aux1, SomeProcessInfo);
-             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_EFFEC_FORCE, aux2, SomeProcessInfo);
-             rE[ne]->CalculateOnIntegrationPoints( EFF_CON_TOTAL_FORCE, aux3, SomeProcessInfo);
+             i_nelem.CalculateOnIntegrationPoints( EFF_CON_WATER_FORCE, aux1, SomeProcessInfo);
+             i_nelem.CalculateOnIntegrationPoints( EFF_CON_EFFEC_FORCE, aux2, SomeProcessInfo);
+             i_nelem.CalculateOnIntegrationPoints( EFF_CON_TOTAL_FORCE, aux3, SomeProcessInfo);
 
              if (aux1[0].size() == 0)  {
          //std::cout << " in this exit " << std::endl;

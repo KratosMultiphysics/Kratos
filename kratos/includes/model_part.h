@@ -807,6 +807,21 @@ public:
         return false;
     }
 
+    /** Returns if the Properties corresponding to it's identifier exists in any of the model parts */
+    bool RecursivelyHasProperties(IndexType PropertiesId, IndexType MeshIndex = 0) const
+    {
+        auto pprop_it = GetMesh(MeshIndex).Properties().find(PropertiesId);
+        if(pprop_it != GetMesh(MeshIndex).Properties().end()) { // Property does exist
+            return true;
+        } else {
+            if(IsSubModelPart()) {
+                return mpParentModelPart->RecursivelyHasProperties(PropertiesId, MeshIndex);
+            } else {
+                return false;
+            }
+        }
+    }
+
     /**
      * @brief Creates a new property in the current mesh
      * @details If the property is already existing it will crash

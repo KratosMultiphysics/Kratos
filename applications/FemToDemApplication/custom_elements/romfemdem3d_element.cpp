@@ -120,30 +120,30 @@ void RomFemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProce
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
 	// Loop Over Integration Points
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int integration_point = 0; integration_point < integration_points.size(); integration_point++) {
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
 		double detJ = 0;
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[integration_point], InvJ, detJ);
 		KRATOS_ERROR_IF(detJ < 0) << "SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0" << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[integration_point], InvJ);
 
 		//set shape functions for this integration point
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, integration_point);
 
 		//b.-compute infinitessimal strainof the composite
 		this->CalculateInfinitesimalStrain(strain_vector, DN_DX);
@@ -169,22 +169,23 @@ void RomFemDem3DElement::CalculatePredictiveStresses(const Vector &rStrainVector
 	Matrix constitutive_matrix_concrete = ZeroMatrix(voigt_size, voigt_size);
 	Matrix constitutive_matrix_steel = ZeroMatrix(voigt_size, voigt_size);
 
-	// Elastic C
+	// Elastic rC
 	this->CalculateConstitutiveMatrix(constitutive_matrix_concrete, Ec, nuc);
 	this->CalculateConstitutiveMatrix(constitutive_matrix_steel, Es, nus);
 
 	Vector r_stress_vector_concrete = prod(constitutive_matrix_concrete, rStrainVector);
 
-	Vector StressVectorSteel;
+	Vector stress_vector_steel;
 	if (r_properties[STEEL_VOLUMETRIC_PART] > 0.0) {
-		Vector ElasticStrainVector = rStrainVector - mPlasticDeformation; // E-Ep
-		StressVectorSteel = prod(constitutive_matrix_steel, ElasticStrainVector);
-	} else
-		StressVectorSteel = ZeroVector(voigt_size);
+		Vector elastic_strain_vector = rStrainVector - mPlasticDeformation; // E-Ep
+		stress_vector_steel = prod(constitutive_matrix_steel, elastic_strain_vector);
+	} else {
+		stress_vector_steel = ZeroVector(voigt_size);
+	}
 
 	// Predictive Stresses
 	this->SetValue(CONCRETE_STRESS_VECTOR, r_stress_vector_concrete);
-	this->SetValue(STEEL_STRESS_VECTOR, StressVectorSteel);
+	this->SetValue(STEEL_STRESS_VECTOR, stress_vector_steel);
 }
 
 void RomFemDem3DElement::CalculateAverageStressOnEdge(Vector &rAverageVector, const std::vector<Element *>& VectorOfElems)
@@ -206,7 +207,6 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	VectorType &rRightHandSideVector,
 	ProcessInfo &rCurrentProcessInfo)
 {
-//*****************************
 	KRATOS_TRY
 
 	//1.-Initialize sizes for the system components:
@@ -240,7 +240,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	//3.-Calculate elemental system:
 
 	//reading integration points
-	const GeometryType::IntegrationPointsArrayType &integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
 	//get the shape functions [N] (for the order of the default integration method)
 	const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
@@ -249,41 +249,41 @@ void RomFemDem3DElement::CalculateLocalSystem(
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int integration_point = 0; integration_point < integration_points.size(); integration_point++) {
 		const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, integration_point);
 
 		double detJ = 0;
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[integration_point], InvJ, detJ);
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[integration_point], InvJ);
 
-		const double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		const double integration_weight = integration_points[integration_point].Weight() * detJ;
 		Vector integrated_stress_concrete = ZeroVector(voigt_size);
 		bool is_damaging = false;
 
 		// Loop over edges of the element
 		const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
 		for (unsigned int edge = 0; edge < 6; edge++) {
-			const std::vector<Element *> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
+			const std::vector<Element *> edge_neighbours = this->GetEdgeNeighbourElements(edge);
 
-			Vector AverageStressVectorConcrete, AverageStrainVectorConcrete, IntegratedStressVectorOnEdge;
-			this->CalculateAverageStressOnEdge(AverageStressVectorConcrete, EdgeNeighbours);
-			this->CalculateAverageStrainOnEdge(AverageStrainVectorConcrete, EdgeNeighbours);
+			Vector average_stress_concrete, average_strain_concrete, integrated_stress_vector_on_edge;
+			this->CalculateAverageStressOnEdge(average_stress_concrete, edge_neighbours);
+			this->CalculateAverageStrainOnEdge(average_strain_concrete, edge_neighbours);
 
 			double damage_edge = mDamages[edge];
 			double threshold = mThresholds[edge];
@@ -291,8 +291,8 @@ void RomFemDem3DElement::CalculateLocalSystem(
 			// Integrate the stress on edge DAMAGE
 			this->IntegrateStressDamageMechanics(threshold,
 												 damage_edge,
-												 AverageStrainVectorConcrete, 
-												 AverageStressVectorConcrete, 
+												 average_strain_concrete, 
+												 average_stress_concrete, 
 												 edge, 
 												 characteristic_lengths[edge],
 												 is_damaging);
@@ -303,7 +303,7 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		// Compute elemental damage
 		double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
-		const Vector &r_stress_vector_concrete = this->GetValue(CONCRETE_STRESS_VECTOR);
+		const Vector& r_stress_vector_concrete = this->GetValue(CONCRETE_STRESS_VECTOR);
 		noalias(integrated_stress_concrete) = (1.0 - damage_element) * r_stress_vector_concrete;
 
 		// Linear elastic const matrix concrete
@@ -318,11 +318,6 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		const double Es = r_properties[YOUNG_MODULUS_STEEL];
 		const double nus = r_properties[POISSON_RATIO_STEEL];
 		this->CalculateConstitutiveMatrix(constitutive_matrix_steel, Es, nus);
-
-		const double k = r_properties[STEEL_VOLUMETRIC_PART];
-		this->CalculateDeformationMatrix(B, DN_DX);
-		const Matrix& composite_constitutive_matrix = k * constitutive_matrix_steel + (1.0 - k) * (1.0 - damage_element) * constitutive_matrix_concrete;
-		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(composite_constitutive_matrix, B))); // LHS
 
 		Vector volume_force = ZeroVector(dimension);
 		volume_force = this->CalculateVolumeForce(volume_force, N);
@@ -343,8 +338,13 @@ void RomFemDem3DElement::CalculateLocalSystem(
 		this->IntegrateStressPlasticity(integrated_steel_stress_vector, steel_stress_vector, constitutive_matrix_steel);
 		this->SetValue(STEEL_STRESS_VECTOR, integrated_steel_stress_vector);
 
+		const double k = r_properties[STEEL_VOLUMETRIC_PART];
 		const Vector& composite_stress_vector = k * integrated_steel_stress_vector + (1.0 - k) * integrated_stress_concrete;
 		noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), composite_stress_vector);
+
+		this->CalculateDeformationMatrix(B, DN_DX);
+		const Matrix& composite_constitutive_matrix = k * constitutive_matrix_steel + (1.0 - k) * (1.0 - damage_element) * constitutive_matrix_concrete;
+		noalias(rLeftHandSideMatrix) += prod(trans(B), integration_weight * Matrix(prod(composite_constitutive_matrix, B))); // LHS
 	}
 	KRATOS_CATCH("")
 	//*****************************
@@ -382,30 +382,30 @@ void RomFemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int integration_point = 0; integration_point < integration_points.size(); integration_point++) {
 		const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, integration_point);
 
 		double detJ = 0;
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[integration_point], InvJ, detJ);
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[integration_point], InvJ);
 
-		const double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		const double integration_weight = integration_points[integration_point].Weight() * detJ;
 		// Compute elemental damage
 		double damage_element = this->CalculateElementalDamage(mNonConvergedDamages);
 
@@ -472,30 +472,30 @@ void RomFemDem3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector
 	const GeometryType::ShapeFunctionsGradientsType &DN_De = GetGeometry().ShapeFunctionsLocalGradients(mThisIntegrationMethod);
 
 	//calculate delta position (here coincides with the current displacement)
-	Matrix DeltaPosition(number_of_nodes, dimension);
-	noalias(DeltaPosition) = ZeroMatrix(number_of_nodes, dimension);
-	DeltaPosition = this->CalculateDeltaPosition(DeltaPosition);
+	Matrix delta_position(number_of_nodes, dimension);
+	noalias(delta_position) = ZeroMatrix(number_of_nodes, dimension);
+	delta_position = this->CalculateDeltaPosition(delta_position);
 
 	//calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d�]
 	GeometryType::JacobiansType J;
 	J.resize(1, false);
 	J[0].resize(dimension, dimension, false);
 	noalias(J[0]) = ZeroMatrix(dimension, dimension);
-	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, DeltaPosition);
+	J = GetGeometry().Jacobian(J, mThisIntegrationMethod, delta_position);
 
-	for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++) {
+	for (unsigned int integration_point = 0; integration_point < integration_points.size(); integration_point++) {
 		const Matrix &Ncontainer = GetGeometry().ShapeFunctionsValues(mThisIntegrationMethod);
-		Vector N = row(Ncontainer, PointNumber);
+		Vector N = row(Ncontainer, integration_point);
 
 		double detJ = 0;
 		Matrix InvJ(dimension, dimension);
 		noalias(InvJ) = ZeroMatrix(dimension, dimension);
-		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
+		MathUtils<double>::InvertMatrix(J[integration_point], InvJ, detJ);
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
-		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
+		noalias(DN_DX) = prod(DN_De[integration_point], InvJ);
 
-		const double integration_weight = integration_points[PointNumber].Weight() * detJ;
+		const double integration_weight = integration_points[integration_point].Weight() * detJ;
 		Vector integrated_stress_concrete = ZeroVector(voigt_size);
 
 		// Compute elemental damage
@@ -604,37 +604,37 @@ void RomFemDem3DElement::GetValueOnIntegrationPoints(
 // **** plasticity methods *****
 void RomFemDem3DElement::IntegrateStressPlasticity(
 	Vector &rIntegratedStress,
-	const Vector &PredictiveStress,
-	const Matrix &C)
+	const Vector &rPredictiveStress,
+	const Matrix& rC)
 { // ecuua
 
-	double Kp, Capap;
-	Vector PlasticStrain;
+	double threshold, plastic_dissipation;
+	Vector plastic_strain;
 	
 	// Get Converged values from the prev step
-	Kp = this->GetKp();
-	Capap = this->GetCapap();
-	PlasticStrain = this->GetPlasticDeformation();
+	threshold = this->GetKp();
+	plastic_dissipation = this->GetCapap();
+	plastic_strain = this->GetPlasticDeformation();
 
-	double Yield, PlasticDenominator;
-	Vector FluxVector = ZeroVector(6), PlasticStrainIncr = ZeroVector(6);
+	double uniaxial_stress, plastic_denominator;
+	Vector flux_vector = ZeroVector(6), plastic_strain_increment = ZeroVector(6);
 
 	// Compute Plastic variables
-	this->CalculatePlasticParameters(PredictiveStress, Yield, Kp,
-									 PlasticDenominator, FluxVector, Capap,
-									 PlasticStrainIncr, C);
-	double F = Yield - Kp;
+	this->CalculatePlasticParameters(rPredictiveStress, uniaxial_stress, threshold,
+									 plastic_denominator, flux_vector, plastic_dissipation,
+									 plastic_strain_increment, rC);
+	double F = uniaxial_stress - threshold;
 
-	if (F <= std::abs(1.0e-4 * Kp)) { // Elastic
-		rIntegratedStress = PredictiveStress;
-		this->SetNonConvergedKp(Kp);
-		this->SetNonConvergedCapap(Capap);
-		this->SetNonConvergedPlasticDeformation(PlasticStrain);
+	if (F <= std::abs(1.0e-4 * threshold)) { // Elastic
+		rIntegratedStress = rPredictiveStress;
+		this->SetNonConvergedKp(threshold);
+		this->SetNonConvergedCapap(plastic_dissipation);
+		this->SetNonConvergedPlasticDeformation(plastic_strain);
 
-		this->SetValue(EQUIVALENT_STRESS_VM, Yield);
+		this->SetValue(EQUIVALENT_STRESS_VM, uniaxial_stress);
 	} else { // Plastic case
-		noalias(rIntegratedStress) = PredictiveStress;
-		double DLambda;
+		noalias(rIntegratedStress) = rPredictiveStress;
+		double plastic_consistency_factor;
 		Vector DS = ZeroVector(6), DESIG = ZeroVector(6);
 
 		int iteration = 0;
@@ -642,29 +642,29 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 		bool is_converged = false;
 
 		while (is_converged == false && iteration <= iter_max) {
-			DLambda = F * PlasticDenominator;
-			// if (DLambda < 0.0)
-			// 	DLambda = 0.0;
+			plastic_consistency_factor = F * plastic_denominator;
+			// if (plastic_consistency_factor < 0.0)
+			// 	plastic_consistency_factor = 0.0;
 
-			noalias(PlasticStrainIncr) = DLambda * FluxVector;
-			noalias(PlasticStrain) += PlasticStrainIncr;
-			noalias(DS) = prod(C, PlasticStrainIncr);
+			noalias(plastic_strain_increment) = plastic_consistency_factor * flux_vector;
+			noalias(plastic_strain) += plastic_strain_increment;
+			noalias(DS) = prod(rC, plastic_strain_increment);
 			noalias(DESIG) -= DS;
 			noalias(rIntegratedStress) -= DS;
 
-			this->CalculatePlasticParameters(rIntegratedStress, Yield, Kp,
-											 PlasticDenominator, FluxVector,
-											 Capap, PlasticStrainIncr, C);
+			this->CalculatePlasticParameters(rIntegratedStress, uniaxial_stress, threshold,
+											 plastic_denominator, flux_vector,
+											 plastic_dissipation, plastic_strain_increment, rC);
 
-			F = Yield - Kp;
+			F = uniaxial_stress - threshold;
 
-			if (F < std::abs(1.0e-4 * Kp)) {// Has converged
+			if (F < std::abs(1.0e-4 * threshold)) {// Has converged
 				is_converged = true;
 				// Update Int Vars
-				this->SetNonConvergedKp(Kp);
-				this->SetNonConvergedCapap(Capap);
-				this->SetNonConvergedPlasticDeformation(PlasticStrain);
-				this->SetValue(EQUIVALENT_STRESS_VM, Yield);
+				this->SetNonConvergedKp(threshold);
+				this->SetNonConvergedCapap(plastic_dissipation);
+				this->SetNonConvergedPlasticDeformation(plastic_strain);
+				this->SetValue(EQUIVALENT_STRESS_VM, uniaxial_stress);
 			} else iteration++;
 		}
 		KRATOS_WARNING_IF("iteration", iteration == iter_max) << "Reached Max iterations inside Plasticity Loop" << std::endl;
@@ -674,7 +674,7 @@ void RomFemDem3DElement::IntegrateStressPlasticity(
 void RomFemDem3DElement::VonMisesYieldCriterion(
 	const Vector &rStressVector,
 	Vector &rDeviator,
-	double &ryield,
+	double &rYield,
 	double &rJ2)
 {
 	const double I1 = this->CalculateI1Invariant(rStressVector);
@@ -689,7 +689,7 @@ void RomFemDem3DElement::VonMisesYieldCriterion(
 	rJ2 = 0.5 * (rDeviator[0] * rDeviator[0] + rDeviator[1] * rDeviator[1] + rDeviator[2] * rDeviator[2]) +
 		  (rDeviator[3] * rDeviator[3] + rDeviator[4] * rDeviator[4] + rDeviator[5] * rDeviator[5]);
 
-	ryield = std::sqrt(3.0 * rJ2);
+	rYield = std::sqrt(3.0 * rJ2);
 }
 
 void RomFemDem3DElement::CalculatePlasticParameters(
@@ -698,7 +698,7 @@ void RomFemDem3DElement::CalculatePlasticParameters(
 	double &rKp,
 	double &rPlasticDenominator,
 	Vector &rFluxVector,
-	double &rCapap,
+	double &rPlasticDissipation,
 	const Vector &rPlasticStrainIncr,
 	const Matrix &rC)
 { // modaux
@@ -708,8 +708,8 @@ void RomFemDem3DElement::CalculatePlasticParameters(
 	this->VonMisesYieldCriterion(rStressVector, Deviator, rYield, J2);
 	this->CalculateFluxVector(rStressVector, Deviator, J2, rFluxVector);
 	this->CalculateRFactors(rStressVector, r0, r1);
-	this->CalculatePlasticDissipation(rStressVector, r0, r1, rPlasticStrainIncr, rCapap, HCapa);
-	this->CalculateEquivalentStressThreshold(rCapap, r0, r1, rKp, Slope);
+	this->CalculatePlasticDissipation(rStressVector, r0, r1, rPlasticStrainIncr, rPlasticDissipation, HCapa);
+	this->CalculateEquivalentStressThreshold(rPlasticDissipation, r0, r1, rKp, Slope);
 	this->CalculateHardeningParameter(rFluxVector, Slope, HCapa, HardeningParam);
 	this->CalculatePlasticDenominator(rFluxVector, rC, HardeningParam, rPlasticDenominator);
 }
@@ -720,7 +720,7 @@ void RomFemDem3DElement::CalculateFluxVector(
 	const double J2,
 	Vector &rFluxVector)
 {
-	// Only valid for Von Mises Yield Surf
+	// Only valid for Von Mises uniaxial_stress Surf
 	Vector auxiliar_vector = ZeroVector(6);
 	const double denomJ2 = 1.0 / (2.0 * std::sqrt(J2));
 
@@ -767,7 +767,7 @@ void RomFemDem3DElement::CalculatePlasticDissipation(
 	const double r0,
 	const double r1,
 	const Vector &rPlasticStrainIncrement,
-	double &rCapap,
+	double &rPlasticDissipation,
 	Vector &rHCapa)
 {
 	auto& r_properties = this->GetProperties();
@@ -784,8 +784,7 @@ void RomFemDem3DElement::CalculatePlasticDissipation(
 	const double gfc = Gfc / l_char;
 
 	const double hlim = 2.0 * E * gfc / std::pow(fc, 2);
-	if (l_char > hlim)
-		KRATOS_THROW_ERROR(std::invalid_argument, " Characteristic length lower than minimum ", l_char)
+	KRATOS_ERROR_IF(l_char > hlim) << " Characteristic length lower than minimum " << std::endl;
 
 	double Const0 = 0.0, Const1 = 0.0;
 	if (gf > 0.000001)
@@ -803,14 +802,14 @@ void RomFemDem3DElement::CalculatePlasticDissipation(
 
 	if (Dcapa < 0.0 || Dcapa > 1.0)
 		Dcapa = 0.0;
-	rCapap += Dcapa;
+	rPlasticDissipation += Dcapa;
 
-	if (rCapap >= 1.0)
-		rCapap = 0.9999;
+	if (rPlasticDissipation >= 1.0)
+		rPlasticDissipation = 0.9999;
 }
 
 void RomFemDem3DElement::CalculateEquivalentStressThreshold(
-	const double Capap,
+	const double plastic_dissipation,
 	const double r0,
 	const double r1,
 	double &rEquivalentStressThreshold,
@@ -830,13 +829,13 @@ void RomFemDem3DElement::CalculateEquivalentStressThreshold(
 		switch (HardCurve)
 		{
 		case 1:
-			this->LinearCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
+			this->LinearCalculateThreshold(plastic_dissipation, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
 		case 2:
-			this->ExponentialCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
+			this->ExponentialCalculateThreshold(plastic_dissipation, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
 		case 3:
-			this->HardSoftCalculateThreshold(Capap, G[i], EqTrhesholds[i], Slopes[i]);
+			this->HardSoftCalculateThreshold(plastic_dissipation, G[i], EqTrhesholds[i], Slopes[i]);
 			break;
 		default:
 			KRATOS_ERROR << "Hardening law not defined..." << std::endl;
@@ -848,26 +847,26 @@ void RomFemDem3DElement::CalculateEquivalentStressThreshold(
 }
 
 void RomFemDem3DElement::LinearCalculateThreshold(
-	const double Capap,
+	const double plastic_dissipation,
 	const double Gf,
 	double &rEqThreshold,
 	double &rSlope)
 { // Linear softening case!!
 	const double fc = this->GetProperties()[YIELD_STRESS_C_STEEL];
 
-	rEqThreshold = fc * std::sqrt(1.0 - Capap);
+	rEqThreshold = fc * std::sqrt(1.0 - plastic_dissipation);
 	rSlope = -0.5 * (std::pow(fc, 2.0) / (rEqThreshold));
 }
 
 void RomFemDem3DElement::ExponentialCalculateThreshold(
-	const double Capap,
+	const double plastic_dissipation,
 	const double Gf,
 	double &rEqThreshold,
 	double &rSlope)
 { // Exponential softening case!!
 	const double fc = this->GetProperties()[YIELD_STRESS_C_STEEL];
 
-	rEqThreshold = fc * (1.0 - Capap);
+	rEqThreshold = fc * (1.0 - plastic_dissipation);
 	rSlope = -0.5 * fc;
 }
 
@@ -892,7 +891,7 @@ void RomFemDem3DElement::HardSoftCalculateThreshold(
 		
 		rSlope = peak_stress * ((1.0 / std::sqrt(Phi)) - 1.0) * (3.0 - Ro) * (1.0 + Ro) * (std::pow(alpha, (1.0 - PlasticDissipation))) *
 				 (1.0 - std::log(alpha) * PlasticDissipation);
-	} else  {
+	} else {
 		KRATOS_ERROR << "The Plastic Dissipation is greater that 1.0 ..." << std::endl;
 	}
 }
@@ -979,24 +978,24 @@ void RomFemDem3DElement::CalculateOnIntegrationPoints(
 {
 	if (rVariable == DAMAGE_ELEMENT) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(DAMAGE_ELEMENT));
+		for (unsigned int integration_point = 0; integration_point < 1; integration_point++) {
+			rOutput[integration_point] = double(this->GetValue(DAMAGE_ELEMENT));
 		}
 	} else if (rVariable == IS_DAMAGED) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(IS_DAMAGED));
+		for (unsigned int integration_point = 0; integration_point < 1; integration_point++) {
+			rOutput[integration_point] = double(this->GetValue(IS_DAMAGED));
 		}
 	} else if (rVariable == STRESS_THRESHOLD) {
 		rOutput.resize(1);
-		for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-			rOutput[PointNumber] = double(this->GetValue(STRESS_THRESHOLD));
+		for (unsigned int integration_point = 0; integration_point < 1; integration_point++) {
+			rOutput[integration_point] = double(this->GetValue(STRESS_THRESHOLD));
 		}
 	} else if (rVariable == PLASTIC_DISSIPATION_CAPAP) {
 		rOutput.resize(1);
 		if (this->GetProperties()[STEEL_VOLUMETRIC_PART] > 0.0) {
-			for (unsigned int PointNumber = 0; PointNumber < 1; PointNumber++) {
-				rOutput[PointNumber] = double(this->GetCapap());
+			for (unsigned int integration_point = 0; integration_point < 1; integration_point++) {
+				rOutput[integration_point] = double(this->GetCapap());
 			}
 		} else {
 			double dummy = 0.0;
