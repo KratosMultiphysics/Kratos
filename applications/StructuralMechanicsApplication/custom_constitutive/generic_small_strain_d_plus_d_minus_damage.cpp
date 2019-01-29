@@ -512,7 +512,58 @@ Vector& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     Vector& rValue
     )
 {
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    if (rThisVariable == TENSION_STRESS_VECTOR) {
+
+        Flags& r_flags = rParameterValues.GetOptions();
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+                                                                   predictive_stress_vector_tension,
+                                                                   predictive_stress_vector_compression);
+        rValue = predictive_stress_vector_tension;
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
+
+    } else if (rThisVariable == COMPRESSION_STRESS_VECTOR) {
+        Flags& r_flags = rParameterValues.GetOptions();
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+                                                                   predictive_stress_vector_tension,
+                                                                   predictive_stress_vector_compression);
+
+        rValue = predictive_stress_vector_compression;
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
+
+    } else if (this->Has(rThisVariable)) {
+        return this->GetValue(rThisVariable, rValue);
+    } else {
+        return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
+    }
+    return rValue;
 }
 
 /***********************************************************************************/
