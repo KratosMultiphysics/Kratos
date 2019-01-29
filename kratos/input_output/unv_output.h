@@ -11,8 +11,20 @@
 namespace Kratos {
 
 
-class UnvOutput {
+/**
+ * @brief Provides a tool to wirte UNV files.
+ * 
+ * Currently 3 datasets are suported: 
+ * 
+ */
+class KRATOS_API(KRATOS_CORE) UnvOutput {
 public:
+
+    enum class DatasetID {
+        NODES_DATASET               = 2411,
+        ELEMENTS_DATASET            = 2412,
+        RESULTS_DATASET             = 2414
+    };
     
     enum class DatasetLocation {
         DATA_AT_NODES               = 1,
@@ -101,24 +113,6 @@ public:
     UnvOutput::DataCharacteristics GetDataType(const Variable<double>&);
     UnvOutput::DataCharacteristics GetDataType(const Variable<array_1d<double,3>>&);
 
-    // Partially extracted from: http://users.ices.utexas.edu
-    // # beginning of dataset
-    // # type of dataset: data at mesh entities
-    // # R.  1: unique number of dataset (dataset_label)
-    // # R.  2: text describing content (dataset_name)
-    // # R.  3: data belongs to: nodes, elements,...
-    // #        (dataset_location)
-    // # R.  4: user-specified text (id_lines_1_to_5[0])
-    // # R.  5: user-specified text (id_lines_1_to_5[1])
-    // # R.  6: user-specified text (id_lines_1_to_5[2])
-    // # R.  7: user-specified text (id_lines_1_to_5[3])
-    // # R.  8: user-specified text (id_lines_1_to_5[4])
-    // # R.  9: (model_type) (analysis_type) (data_characteristic) (result_type) (data_type) (nvaldc)
-    // # R. 10: (design_set_id) (iteration_number) (solution_set_id) (boundary_condition) (load_set) (mode_number) (time_stamp_number) (frequency_number)
-    // # R. 11: (creation_option) (Unknown)*7
-    // # R. 12: (time) (frequency) (eigenvalue) (nodal_mass) (viscous_damping_ratio) (hysteretic_damping_ratio)
-    // # R. 13: (eigenvalue_re) (eigenvalue_im) (modalA_re) (modalA_im) (modalB_re) (modalB_im)
-
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable);
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable);
     void WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable);
@@ -128,35 +122,63 @@ public:
 
     template<class TVariablebleType>
     int GetUnvVariableName(const TVariablebleType& rVariable) {
-        if(rVariable == VELOCITY) return 11;
-        if(rVariable == TEMPERATURE) return 5;
-        if(rVariable == PRESSURE) return 117;
+        if(rVariable == VELOCITY)       return 11;
+        if(rVariable == TEMPERATURE)    return 5;
+        if(rVariable == PRESSURE)       return 117;
 
         return 1000;
     }
 
+    /**
+     * @brief Writes a result dataset using the results in node mode
+     * 
+     * Fromat:  partially extracted from: http://users.ices.utexas.edu
+     * R.  1: unique number of dataset (dataset_label)
+     * R.  2: text describing content (dataset_name)
+     * R.  3: data belongs to: nodes, elements,...
+     *        (dataset_location)
+     * R.  4: user-specified text (id_lines_1_to_5[0])
+     * R.  5: user-specified text (id_lines_1_to_5[1])
+     * R.  6: user-specified text (id_lines_1_to_5[2])
+     * R.  7: user-specified text (id_lines_1_to_5[3])
+     * R.  8: user-specified text (id_lines_1_to_5[4])
+     * R.  9: (model_type) (analysis_type) (data_characteristic) (result_type) (data_type) (nvaldc)
+     * R. 10: (design_set_id) (iteration_number) (solution_set_id) (boundary_condition) (load_set) (mode_number) (time_stamp_number) (frequency_number)
+     * R. 11: (creation_option) (Unknown)*7
+     * R. 12: (time) (frequency) (eigenvalue) (nodal_mass) (viscous_damping_ratio) (hysteretic_damping_ratio)
+     * R. 13: (eigenvalue_re) (eigenvalue_im) (modalA_re) (modalA_im) (modalB_re) (modalB_im)
+     * 
+     * For nodes (Repeat for every node):
+     * 
+     * R. 14: (node_id)
+     * R. 15: (result)*nvaldc
+     * 
+     * @tparam TVariablebleType 
+     * @param rVariable 
+     * @param numComponents 
+     * @param timeStep 
+     */
     template<class TVariablebleType>
     void WriteNodalResultRecords(const TVariablebleType& rVariable, const int numComponents, const double timeStep) {
         std::ofstream outputFile;
         outputFile.open(mOutputFileName, std::ios::out | std::ios::app);
 
-        const int dataSetNumberForResults = 2414;
         std::string dataSetName = "NodalResults";
         std::string dataSetLabel = rVariable.Name();
 
         outputFile << std::setw(6)  << "-1" << "\n";                                                // Begin block
-        outputFile << std::setw(6)  << dataSetNumberForResults << "\n";                             // DatasetID
+        outputFile << std::setw(6)  << as_integer(DatasetID::RESULTS_DATASET) << "\n";                             // DatasetID
 
         outputFile << std::setw(10) << dataSetLabel << "\n";                                        // Record 1 - Label
         outputFile << std::setw(6)  << dataSetName << "\n";                                         // Record 2 - Name
         outputFile << std::setw(10) << as_integer(DatasetLocation::DATA_AT_NODES) << "\n";          // Record 3
 
         // String records, seems like you can put anything you want.
-        outputFile << "Test1" << "\n";                                                               // Record 4
-        outputFile << "Test2" << "\n";                                                               // Record 5
-        outputFile << "Test3" << "\n";                                                               // Record 6
-        outputFile << "Test4" << "\n";                                                               // Record 7
-        outputFile << "Test5" << "\n";                                                               // Record 8
+        outputFile << "" << "\n";                                                                   // Record 4
+        outputFile << "" << "\n";                                                                   // Record 5
+        outputFile << "" << "\n";                                                                   // Record 6
+        outputFile << "" << "\n";                                                                   // Record 7
+        outputFile << "" << "\n";                                                                   // Record 8
         
         // ModelType, AnalysisType, DataCharacteristic, ResultType, DataType, NumberOfDataValues    // Record 9
         outputFile << std::setw(10) << as_integer(ModelType::STRUCTURAL); 
@@ -202,7 +224,7 @@ public:
         for (auto &node_i : mrOutputModelPart.Nodes()) {
             int node_label = node_i.Id();
             outputFile << std::setw(6) << node_label << "\n";                                       // Record 14 - Node Number
-            WriteNodalResultValues(outputFile, node_i, rVariable);                                                      // Record 15 - NumberOfDataValues' data of the node
+            WriteNodalResultValues(outputFile, node_i, rVariable);                                  // Record 15 - NumberOfDataValues' data of the node
         }
         
         outputFile << std::setw(6) << "-1" << "\n";
@@ -210,8 +232,10 @@ public:
     }
 
 private:
+
     Kratos::ModelPart &mrOutputModelPart;
     std::string mOutputFileName;
+    
 };
 }
 
