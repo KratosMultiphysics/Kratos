@@ -20,20 +20,21 @@
 #include "iga_edge_cable_element.h"
 #include "iga_application_variables.h"
 
-namespace Kratos {
+namespace Kratos {              // Geometrie von Menmbrane einarbeiten 
 
 Element::Pointer IgaEdgeCableElement::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const
+    PropertiesType::Pointer pProperties) const      //kann ich hier bei Properties feslegen zu welchem Element die Punkte gehören? bzw. neue Eigenschaft hinzufüen?
 {
     auto geometry = GetGeometry().Create(ThisNodes);
 
     return Kratos::make_shared<IgaEdgeCableElement>(NewId, geometry,
         pProperties);
 }
+//Hier sollen nachher zwei Geometrie Blöcke stehen mit Konten mit einem Index für Cable und Knoten mit zwei Indizes für Membrane 
 
-void IgaEdgeCableElement::GetDofList(
+void IgaEdgeCableElement::GetDofList(       // DOFs nur für CPs Cable oder werden auch die von der Membrane benötigt?
     DofsVectorType& rElementalDofList,
     ProcessInfo& rCurrentProcessInfo)
 {
@@ -72,20 +73,40 @@ void IgaEdgeCableElement::Initialize()
     mReferenceBaseVector = GetActualBaseVector();
 }
 
+ //Neue Definition von Base Vector g1
+
 IgaEdgeCableElement::Vector3 IgaEdgeCableElement::GetActualBaseVector() const
 {
     const Matrix& DN_De = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
 
+    // Base Vector Teile (2) und (4) (aufsummiert über CPs Cable)
+ 
     Vector3 actual_base_vector = ZeroVector(3);
 
-    for (std::size_t i = 0; i < NumberOfNodes(); i++)
+    for (std::size_t k = 0; k < NumberOfNodes(); k++) // k = Number of Nodes Cable
     {
-        actual_base_vector[0] += DN_De(0, i) * GetGeometry()[i].X();
-        actual_base_vector[1] += DN_De(0, i) * GetGeometry()[i].Y();
-        actual_base_vector[2] += DN_De(0, i) * GetGeometry()[i].Z();
+        actual_base_vector[0] += DN_De(k, 0) * GetGeometry()[k].X();        //entspricht (2)
+        actual_base_vector[1] += DN_De(k, 0) * GetGeometry()[k].Y();        //entspricht (4)
+        actual_base_vector[2] += DN_De(k, 0) * GetGeometry()[k].Z();
     }
 
     return actual_base_vector;
+
+    // Gesamter Base Vector MEMBRANE
+
+    //ShapeFunction + Derivatives Membrane importieren
+    const Vector& ShapeFunctionNsrf = GetValue(SHAPE_FUNCTUIN_VALUES_MEMBRANE);        
+    const Matrix& DNsrf_Du = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_U);
+    const Matrix& DNsrf_Dv = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_V);
+
+    for (std::size_t i=0; i < NumberOfNodes(); i++)
+    {
+        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].X();
+        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].Y();
+        final_actual_base_vector[0] = ( DNsrf_Du(i, 0) * actual_base_vector[0] + DNsrf_Dv(i, 1) * actual_base_vector[1] ) * GetGeometry()[i].Z();
+    }
+
+        return final_actual_base_vector;
 }
 
 void IgaEdgeCableElement::CalculateAll(
@@ -100,7 +121,8 @@ void IgaEdgeCableElement::CalculateAll(
     // get integration data
     
     const double& integration_weight = GetValue(INTEGRATION_WEIGHT);
-    Matrix& shape_derivatives = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
+    Matrix& shape_derivatives_u = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_U);
+    Matrix& shape_derivatives_v = GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES_MEMBRANE_V);
 
     // get properties
 
@@ -115,46 +137,48 @@ void IgaEdgeCableElement::CalculateAll(
     const Vector3 actual_base_vector = GetActualBaseVector();
 
     const double reference_a = norm_2(mReferenceBaseVector);
-    const double actual_a = norm_2(actual_base_vector);
+    const double actual_a = actual_base_vector;
+    const double final_actual_a = norm_2(final_actual_base_vector);
 
-    const double actual_aa = actual_a * actual_a;
+    const double final_actual_aa = actual_a * actual_a;
     const double reference_aa = reference_a * reference_a;
 
     // green-lagrange strain
 
-    const double e11_membrane = 0.5 * (actual_aa - reference_aa);
+    const double e11_membrane = 0.5 * (final_actual_aa - reference_aa);
 
     // normal force
 
     const double s11_membrane = prestress * A + e11_membrane * A * E /
         reference_aa;
 
+
     for (std::size_t r = 0; r < NumberOfDofs(); r++) {
         const std::size_t dof_type_r = GetDofTypeIndex(r);
         const std::size_t shape_index_r = GetShapeIndex(r);
 
-        const double epsilon_var_r = actual_base_vector[dof_type_r] *
-            shape_derivatives(shape_index_r, 0) / reference_aa;
+        const double epsilon_var_r = final_actual_a[dof_type_r] *
+            (shape_derivatives_u(shape_index_r, 0) * acutal_a[0] + shape_derivatives_v(shape_index_r, 0) * acutal_a[1]) / reference_aa;
 
-        if (ComputeLeftHandSide) {
+       if (ComputeLeftHandSide) {
             for (std::size_t s = 0; s < NumberOfDofs(); s++) {
                 const std::size_t dof_type_s = GetDofTypeIndex(s);
                 const std::size_t shape_index_s = GetShapeIndex(s);
 
                 const double epsilon_var_s =
-                    actual_base_vector[dof_type_s] *
-                    shape_derivatives(shape_index_s, 0) / reference_aa;
+                    final_actual_a[dof_type_s] *
+                    (shape_derivatives_u(shape_index_r, 0) * acutal_a[0] + shape_derivatives_v(shape_index_r, 0) * acutal_a[1]) / reference_aa;
 
                 rLeftHandSideMatrix(r, s) = E * A * epsilon_var_r *
                     epsilon_var_s;
-
-                if (dof_type_r == dof_type_s) {
-                    const double epsilon_var_rs =
-                        shape_derivatives(shape_index_r, 0) *
-                        shape_derivatives(shape_index_s, 0) / reference_aa;
-
-                    rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
-                }
+//
+//                if (dof_type_r == dof_type_s) {
+//                    const double epsilon_var_rs =
+//                        shape_derivatives(shape_index_r, 0) *
+//                        shape_derivatives(shape_index_s, 0) / reference_aa;
+//
+//                    rLeftHandSideMatrix(r, s) += s11_membrane * epsilon_var_rs;
+//                }
             }
         }
 
@@ -165,7 +189,7 @@ void IgaEdgeCableElement::CalculateAll(
 
     if (ComputeLeftHandSide) {
         rLeftHandSideMatrix *= reference_a * integration_weight;
-    }
+   }
 
     if (ComputeRightHandSide) {
         rRightHandSideVector *= reference_a * integration_weight;

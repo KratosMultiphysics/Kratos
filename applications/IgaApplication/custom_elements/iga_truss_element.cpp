@@ -80,9 +80,9 @@ IgaTrussElement::Vector3 IgaTrussElement::GetActualBaseVector() const
 
     for (std::size_t i = 0; i < NumberOfNodes(); i++)
     {
-        actual_base_vector[0] += DN_De(0, i) * GetGeometry()[i].X();
-        actual_base_vector[1] += DN_De(0, i) * GetGeometry()[i].Y();
-        actual_base_vector[2] += DN_De(0, i) * GetGeometry()[i].Z();
+        actual_base_vector[0] += DN_De(i, 0) * GetGeometry()[i].X();
+        actual_base_vector[1] += DN_De(i, 0) * GetGeometry()[i].Y();
+        actual_base_vector[2] += DN_De(i, 0) * GetGeometry()[i].Z();
     }
 
     return actual_base_vector;
@@ -179,4 +179,4 @@ void IgaTrussElement::PrintInfo(std::ostream& rOStream) const
     rOStream << "\"IgaTrussElement\" #" << Id();
 }
 
-} // namespace Kratos
+} // namespace Kratos  
