@@ -10,4 +10,4 @@ The Fluid-Structure Interaction Application contains the core developments in Fl
 
 - Non-matching meshes support (see MappingApplication).
 
-- Laplacian and structural  mesh solvers (see MeshMovingApplication).
+- Laplacian and structural mesh solvers (see MeshMovingApplication).
