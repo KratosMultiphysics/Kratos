@@ -17,7 +17,7 @@ from analysis_stage import AnalysisStage
 import numpy as np
 
 # Import Monte Carlo library
-import mc_utilities as mc
+import test_mc_utilities as mc
 
 # Import cpickle to pickle the serializer
 try:
@@ -25,24 +25,18 @@ try:
 except ImportError:
     import pickle
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
-
 
 '''Adapt the following class depending on the problem, deriving the MonteCarloAnalysis class from the problem of interest'''
 
-'''
-This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
+'''This Analysis Stage implementation solves the elliptic PDE in (0,1)^2 with zero Dirichlet boundary conditions
 -lapl(u) = xi*f,    f= -432*x*(x-1)*y*(y-1)
                     f= -432*(x**2+y**2-x-y)
 where xi is a Beta(2,6) random variable, and computes statistic of the QoI
 Q = int_(0,1)^2 u(x,y)dxdy
+more details in Section 5.2 of [PKN17]
+
+References:
+[PKN17] M. Pisaroni; S. Krumscheid; F. Nobile : Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; MATHICSE technical report no. 23.2017.
 '''
 class MonteCarloAnalysis(AnalysisStage):
     '''Main analysis stage for Monte Carlo simulations'''
@@ -107,7 +101,6 @@ input:
 output:
         QoI         : Quantity of Interest
 '''
-@ExaquteTask(returns=1)
 def ExecuteMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
@@ -135,7 +128,6 @@ output:
         ExactExpectedValueQoI : Quantity of Interest for sample = 1.0
 OBSERVATION: here we multiply by 0.25 because it is the mean value of beta(2,6)
 '''
-@ExaquteTask(returns=1)
 def ExecuteExactMonteCarloAnalysis_Task(pickled_model, pickled_parameters):
     '''overwrite the old model serializer with the unpickled one'''
     model_serializer = pickle.loads(pickled_model)
@@ -165,7 +157,6 @@ output:
         QoI                   : Quantity of Interest
         pickled_model_refined : serialization of the model with refined model part
 '''
-@ExaquteTask(returns=2)
 def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
     sample = GenerateSample()
     '''overwrite the old model serializer with the unpickled one'''
@@ -206,14 +197,13 @@ output:
         pickled_model      : model serializaton
         pickled_parameters : project parameters serialization
 '''
-@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
     local_parameters = parameters
     model = KratosMultiphysics.Model()
     # local_parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(model_part_file_name[:-5])
-    fake_sample = GenerateSample()
+    fake_sample = 1.0
     simulation = MonteCarloAnalysis(model,local_parameters,fake_sample)
     simulation.Initialize()
     serialized_model = KratosMultiphysics.StreamSerializer()
@@ -223,8 +213,7 @@ def SerializeModelParameters_Task(parameter_file_name):
     # pickle dataserialized_data
     pickled_model = pickle.dumps(serialized_model, 2) # second argument is the protocol and is NECESSARY (according to pybind11 docs)
     pickled_parameters = pickle.dumps(serialized_parameters, 2)
-    print("\n","#"*50," SERIALIZATION COMPLETED ","#"*50,"\n")
-    return pickled_model,pickled_parameters
+    return pickled_model, pickled_parameters
 
 
 '''
@@ -235,68 +224,6 @@ input :
 output :
         relative_error        : relative error
 '''
-@ExaquteTask(returns=1)
 def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
-
-
-if __name__ == '__main__':
-
-    '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
-    '''create a serialization of the model and of the project parameters'''
-    pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
-    '''evaluate the exact expected value of Q (sample = 1.0)'''
-    ExactExpectedValueQoI = ExecuteExactMonteCarloAnalysis_Task(pickled_model,pickled_parameters)
-    '''customize setting parameters of the ML simulation'''
-    settings_MC_simulation = KratosMultiphysics.Parameters("""
-    {
-        "tolerance" : 0.1,
-        "cphi" : 5e-1,
-        "batch_size" : 20,
-        "convergence_criteria" : "MC_higher_moments_sequential_stopping_rule"
-    }
-    """)
-    '''contruct MonteCarlo class'''
-    mc_class = mc.MonteCarlo(settings_MC_simulation)
-    '''start MC algorithm'''
-    while mc_class.convergence is not True:
-        mc_class.InitializeMCPhase()
-        mc_class.ScreeningInfoInitializeMCPhase()
-        for instance in range (mc_class.difference_number_samples[0]):
-            mc_class.AddResults(ExecuteMonteCarloAnalysis_Task(pickled_model,pickled_parameters))
-        mc_class.FinalizeMCPhase()
-        mc_class.ScreeningInfoFinalizeMCPhase()
-
-    mc_class.QoI.mean = get_value_from_remote(mc_class.QoI.mean)
-    ExactExpectedValueQoI = get_value_from_remote(ExactExpectedValueQoI)
-    print("\nMC mean = ",mc_class.QoI.mean,"exact mean = ",ExactExpectedValueQoI)
-    relative_error = (mc_class.QoI.mean[0]-ExactExpectedValueQoI)/ExactExpectedValueQoI
-    print("relative error = ",relative_error)
-
-
-    ''' The below part evaluates the relative L2 error between the numerical solution SOLUTION(x,y,sample) and the analytical solution, also dependent on sample.
-    Analytical solution available in case FORCING = sample * -432.0 * (coord_x**2 + coord_y**2 - coord_x - coord_y)'''
-    # model_serializer = pickle.loads(pickled_model)
-    # current_model = KratosMultiphysics.Model()
-    # model_serializer.Load("ModelSerialization",current_model)
-    # del(model_serializer)
-    # serialized_parameters = pickle.loads(pickled_parameters)
-    # current_parameters = KratosMultiphysics.Parameters()
-    # serialized_parameters.Load("ParametersSerialization",current_parameters)
-    # del(serialized_parameters)
-    # sample = 1.0
-    # simulation = MonteCarloAnalysis(current_model,current_parameters,sample)
-    # simulation.Run()
-    # KratosMultiphysics.CalculateNodalAreaProcess(simulation._GetSolver().main_model_part,2).Execute()
-    # error = 0.0
-    # L2norm_analyticalsolution = 0.0
-    # for node in simulation._GetSolver().main_model_part.Nodes:
-    #     local_error = ((node.GetSolutionStepValue(KratosMultiphysics.TEMPERATURE) - (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5))**2) * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     error = error + local_error
-    #     local_analyticalsolution = (432.0*simulation.sample*node.X*node.Y*(1-node.X)*(1-node.Y)*0.5)**2 * node.GetSolutionStepValue(KratosMultiphysics.NODAL_AREA)
-    #     L2norm_analyticalsolution = L2norm_analyticalsolution + local_analyticalsolution
-    # error = np.sqrt(error)
-    # L2norm_analyticalsolution = np.sqrt(L2norm_analyticalsolution)
-    # print("L2 relative error = ", error/L2norm_analyticalsolution)

@@ -29,15 +29,6 @@ try:
 except ImportError:
     import pickle
 
-# Import exaqute
-from exaqute.ExaquteTaskPyCOMPSs import *   # to execute with pycompss
-# from exaqute.ExaquteTaskHyperLoom import *  # to execute with the IT4 scheduler
-# from exaqute.ExaquteTaskLocal import *      # to execute with python3
-'''
-get_value_from_remote is the equivalent of compss_wait_on: a synchronization point
-in future, when everything is integrated with the it4i team, importing exaqute.ExaquteTaskHyperLoom you can launch your code with their scheduler instead of BSC
-'''
-
 
 '''Adapt the following class depending on the problem, deriving the MultilevelMonteCarloAnalysis class from the problem of interest'''
 
@@ -129,7 +120,6 @@ output:
                              finer_level : finest level
                              time_ML     : list of MLMC time for all levels computed in the current simulation
 '''
-@ExaquteTask(returns=1)
 def ExecuteMultilevelMonteCarloAnalisys_Task(finest_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement):
     '''unpickle model and build Kratos Model object'''
     model_serializer = pickle.loads(pickled_coarse_model)
@@ -199,7 +189,6 @@ output:
         pickled_model      : model serializaton
         pickled_parameters : project parameters serialization
 '''
-@ExaquteTask(parameter_file_name=FILE_IN,returns=2)
 def SerializeModelParameters_Task(parameter_file_name):
     with open(parameter_file_name,'r') as parameter_file:
         parameters = KratosMultiphysics.Parameters(parameter_file.read())
@@ -257,7 +246,6 @@ output:
         QoI                   : Quantity of Interest
         pickled_model_refined : serialization of the model with refined model part
 '''
-@ExaquteTask(returns=2)
 def ExecuteRefinement_Task(pickled_model_coarse, pickled_parameters, min_size, max_size):
     fake_sample = 1.0
     '''overwrite the old model serializer with the unpickled one'''
@@ -293,89 +281,6 @@ input :
 output :
         relative_error        : relative error
 '''
-@ExaquteTask(returns=1)
 def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
     relative_error = abs((AveragedMeanQoI - ExactExpectedValueQoI)/ExactExpectedValueQoI)
     return relative_error
-
-
-if __name__ == '__main__':
-
-    '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
-    '''create a serialization of the model and of the project parameters'''
-    pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
-    '''customize setting parameters of the ML simulation'''
-    settings_ML_simulation = KratosMultiphysics.Parameters("""
-    {
-        "tol0"                            : 0.25,
-        "tolF"                            : 0.1,
-        "cphi"                            : 1.0,
-        "number_samples_screening"        : 15,
-        "Lscreening"                      : 2,
-        "Lmax"                            : 4,
-        "initial_mesh_size"               : 0.5
-    }
-    """)
-    '''customize setting parameters of the metric of the adaptive refinement utility'''
-    settings_metric_refinement = KratosMultiphysics.Parameters("""
-        {
-            "hessian_strategy_parameters"              :{
-                    "metric_variable"                  : ["TEMPERATURE"],
-                    "estimate_interpolation_error"     : false,
-                    "interpolation_error"              : 0.004
-            },
-            "anisotropy_remeshing"              : true,
-            "anisotropy_parameters":{
-                "reference_variable_name"          : "TEMPERATURE",
-                "hmin_over_hmax_anisotropic_ratio" : 0.15,
-                "boundary_layer_max_distance"      : 1.0,
-                "interpolation"                    : "Linear"
-            },
-            "local_gradient_variable"           : "TEMPERATURE"
-        }
-    """)
-    '''customize setting parameters of the remesh of the adaptive refinement utility'''
-    settings_remesh_refinement = KratosMultiphysics.Parameters("""
-        {
-            "echo_level"                       : 0
-        }
-    """)
-    pickled_settings_metric_refinement,pickled_settings_remesh_refinement = SerializeRefinementParameters(settings_metric_refinement,settings_remesh_refinement)
-
-    '''contruct MultilevelMonteCarlo class'''
-    mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
-    ''''start screening phase'''
-    for lev in range(mlmc_class.current_number_levels+1):
-        for instance in range (mlmc_class.number_samples[lev]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
-    '''finalize screening phase'''
-    mlmc_class.FinalizeScreeningPhase()
-    mlmc_class.ScreeningInfoScreeningPhase()
-    '''start MLMC phase'''
-    while mlmc_class.convergence is not True:
-        '''initialize MLMC phase'''
-        mlmc_class.InitializeMLMCPhase()
-        mlmc_class.ScreeningInfoInitializeMLMCPhase()
-        '''MLMC execution phase'''
-        for lev in range (mlmc_class.current_number_levels+1):
-            for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
-        '''finalize MLMC phase'''
-        mlmc_class.FinalizeMLMCPhase()
-        mlmc_class.ScreeningInfoFinalizeMLMCPhase()
-
-    print("\niterations = ",mlmc_class.current_iteration,\
-    "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
-
-    '''### OBSERVATIONS ###
-
-    compss: between different tasks you don't need compss_wait_on/get_value_from_remote, it's pycompss who handles everything automatically
-    if the output of a task is given directly to the input of an other, pycompss handles everything
-
-    compss: set absolute path when launching with compss
-
-    MmgProcess: need to use conditions in the model part to preserve the boundary conditions in the refinement process
-    The submodelpart: Subpart_Boundary contains only nodes and no geometries (conditions/elements).
-    It is not guaranteed that the submodelpart will be preserved.
-    PLEASE: Add some "dummy" conditions to the submodelpart to preserve it'''
