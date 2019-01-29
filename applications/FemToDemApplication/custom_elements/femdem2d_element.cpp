@@ -812,7 +812,7 @@ double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *pCurrentE
 
 	// Computation of the l_char
 	if (aux < 3) {  // It is not an edge element --> The 2 elements are not equal
-		return std::pow((std::pow(Xcoord[0] - Xcoord[1], 2) + std::pow(Ycoord[0] - Ycoord[1], 2)), 0.5); // Length of the edge between 2 elements                                                                  // Currently the characteristic length is the edge length (can be modified)
+		return std::pow((std::pow(Xcoord[0] - Xcoord[1], 2) + std::pow(Ycoord[0] - Ycoord[1], 2)), 0.5); // Length of the edge between 2 elements 
 	} else { // Edge element
 		const double element_area = std::abs(this->GetGeometry().Area());
 		return std::sqrt(4.0 * element_area / std::sqrt(3.0)); // Cervera's Formula
