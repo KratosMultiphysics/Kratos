@@ -33,7 +33,7 @@
             "time_scheme" : "bossak"
         },
         "mesh_motion_solver_settings"                     :{
-            "solver_type" : "mesh_solver_structural_similarity",
+            "solver_type" : "structural_similarity",
             "mesh_motion_linear_solver_settings" : {
                 "solver_type" : "AMGCL",
                 "smoother_type":"ilu0",
