@@ -4,7 +4,7 @@ import KratosMultiphysics.ConvectionDiffusionApplication as KratosConvDiff
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ApplyInletProcess(Model, settings["Parameters"])
+    return ApplyThermalInterfaceProcess(Model, settings["Parameters"])
 
 
 class ApplyThermalInterfaceProcess(KratosMultiphysics.Process):

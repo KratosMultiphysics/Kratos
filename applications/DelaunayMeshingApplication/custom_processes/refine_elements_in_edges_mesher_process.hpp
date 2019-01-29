@@ -48,8 +48,7 @@ class RefineElementsInEdgesMesherProcess
   typedef ModelPart::PropertiesType       PropertiesType;
   typedef ConditionType::GeometryType       GeometryType;
 
-  typedef std::vector<Element*>          ElementPointerVectorType;
-
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -178,18 +177,14 @@ class RefineElementsInEdgesMesherProcess
   ///@{
   ///@}
 
-
-  //**************************************************************************
-  //**************************************************************************
-
   virtual void SelectFullBoundaryEdgedElements(ModelPart& rModelPart,
                                                ModelPart::ElementsContainerType& rBoundaryEdgedElements)
   {
     KRATOS_TRY
 
     bool is_full_boundary = false;
-    for(ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin();
-        i_elem != rModelPart.ElementsEnd(); ++i_elem)
+    ModelPart::ElementsContainerType& rElements = rModelPart.Elements();
+    for(auto i_elem(rElements.begin()); i_elem != rElements.end(); ++i_elem)
     {
       Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
 
@@ -203,7 +198,7 @@ class RefineElementsInEdgesMesherProcess
       }
 
       if( is_full_boundary ){
-        rBoundaryEdgedElements.push_back(*(i_elem.base()));
+        rBoundaryEdgedElements.push_back(*i_elem.base());
       }
 
     }
@@ -211,34 +206,27 @@ class RefineElementsInEdgesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-
-  //**************************************************************************
-  //**************************************************************************
-
   void SelectFacesToSplit(ModelPart::ElementsContainerType& rBoundaryEdgedElements,
                           std::vector<Geometry< Node<3> > >& rListOfFacesToSplit)
-
   {
     KRATOS_TRY
 
     DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
     DenseVector<unsigned int> lnofa; //number of points defining faces
 
-    for(ModelPart::ElementsContainerType::iterator i_elem = rBoundaryEdgedElements.begin();
-        i_elem != rBoundaryEdgedElements.end(); ++i_elem)
+    for(auto& i_elem : rBoundaryEdgedElements)
     {
-      ElementPointerVectorType& neighb_elems = i_elem->GetValue(NEIGHBOR_ELEMENTS);
+      ElementWeakPtrVectorType& nElements = i_elem.GetValue(NEIGHBOUR_ELEMENTS);
 
       unsigned int face=0;
       bool accepted_face = false;
-      for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+      for(auto& i_nelem : nElements)
       {
-
-        if ((*ne)->Id() != i_elem->Id())  // If there is a shared element in face nf
+        if(i_nelem.Id() != i_elem.Id())  // If there is a shared element in face nf
         {
           accepted_face = true;
 
-          Geometry< Node<3> >& rGeometry = i_elem->GetGeometry();
+          Geometry< Node<3> >& rGeometry = i_elem.GetGeometry();
 
           rGeometry.NodesInFaces(lpofa);
           rGeometry.NumberNodesInFaces(lnofa);
@@ -294,7 +282,6 @@ class RefineElementsInEdgesMesherProcess
             //set TO_SPLIT to make the insertion unique
             for(unsigned int i=0; i<FaceNodes.size(); ++i)
               FaceNodes[i].Set(TO_SPLIT);
-
             break;
           }
 
@@ -304,11 +291,11 @@ class RefineElementsInEdgesMesherProcess
     }
 
     // reset TO_SPLIT
-    for(std::vector<Geometry< Node<3> > >::iterator nf = rListOfFacesToSplit.begin(); nf != rListOfFacesToSplit.end(); ++nf)
+    for(auto& i_face : rListOfFacesToSplit)
     {
-      for(unsigned int i=0; i<nf->size(); ++i)
+      for(unsigned int i=0; i<i_face.size(); ++i)
       {
-        (*nf)[i].Set(TO_SPLIT,false);
+        i_face[i].Set(TO_SPLIT,false);
       }
     }
 
@@ -317,9 +304,6 @@ class RefineElementsInEdgesMesherProcess
 
     KRATOS_CATCH( "" )
   }
-
-  //*******************************************************************************************
-  //*******************************************************************************************
 
   void GenerateNewNodes(ModelPart& rModelPart,
                         std::vector<Node<3>::Pointer>& rListOfNewNodes,
@@ -354,25 +338,21 @@ class RefineElementsInEdgesMesherProcess
     unsigned int size  = 0;
     //unsigned int count = 0;
 
-    for (std::vector<Geometry<Node<3> > >::iterator i_face = rListOfFacesToSplit.begin() ; i_face != rListOfFacesToSplit.end(); ++i_face)
+    for(auto& i_face : rListOfFacesToSplit)
     {
-
-      size = i_face->size();
-
+      size = i_face.size();
 
       ShapeFunctionsN.resize(size);
 
-
       if( size == 2 )
-        DataTransferUtilities.CalculateCenterAndSearchRadius( (*i_face)[0].X(), (*i_face)[0].Y(),
-                                                              (*i_face)[1].X(), (*i_face)[1].Y(),
+        DataTransferUtilities.CalculateCenterAndSearchRadius( i_face[0].X(), i_face[0].Y(),
+                                                              i_face[1].X(), i_face[1].Y(),
                                                               xc,yc,radius);
 
-
       if( size == 3 )
-        DataTransferUtilities.CalculateCenterAndSearchRadius( (*i_face)[0].X(), (*i_face)[0].Y(), (*i_face)[0].Z(),
-                                                              (*i_face)[1].X(), (*i_face)[1].Y(), (*i_face)[1].Z(),
-                                                              (*i_face)[2].X(), (*i_face)[2].Y(), (*i_face)[2].Z(),
+        DataTransferUtilities.CalculateCenterAndSearchRadius( i_face[0].X(), i_face[0].Y(), i_face[0].Z(),
+                                                              i_face[1].X(), i_face[1].Y(), i_face[1].Z(),
+                                                              i_face[2].X(), i_face[2].Y(), i_face[2].Z(),
                                                               xc,yc,zc,radius);
 
 
@@ -386,9 +366,9 @@ class RefineElementsInEdgesMesherProcess
       pNode->SetBufferSize(rModelPart.GetBufferSize());
 
       //generating the dofs
-      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
+      for(auto& i_dof : ReferenceDofs)
       {
-        Node<3>::DofType& rDof = *i_dof;
+        Node<3>::DofType& rDof = i_dof;
         Node<3>::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
 
         // in rigid edges set it fix has no sense:
@@ -397,7 +377,7 @@ class RefineElementsInEdgesMesherProcess
         // count = 0;
         // for( unsigned int i = 0; i<size; ++i )
         // {
-        //   if((*i_face)[i].IsFixed(rDof.GetVariable()))
+        //   if(i_face[i].IsFixed(rDof.GetVariable()))
         //     count++;
         // }
 
@@ -410,10 +390,10 @@ class RefineElementsInEdgesMesherProcess
       std::fill(ShapeFunctionsN.begin(), ShapeFunctionsN.end(), 1.0/double(size));
 
       double alpha = 1;
-      DataTransferUtilities.Interpolate( (*i_face), ShapeFunctionsN, VariablesList, pNode, alpha );
+      DataTransferUtilities.Interpolate( i_face, ShapeFunctionsN, VariablesList, pNode, alpha );
 
       //set flags from one of the nodes
-      pNode->AssignFlags((*i_face)[0]);
+      pNode->AssignFlags(i_face[0]);
 
       if( rModelPart.Is(FLUID) )
         pNode->Set(FLUID);
@@ -441,10 +421,6 @@ class RefineElementsInEdgesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
   void SetNewNodeVariables(ModelPart& rModelPart, Node<3>::Pointer& pNode)
   {
     KRATOS_TRY
@@ -469,24 +445,19 @@ class RefineElementsInEdgesMesherProcess
     KRATOS_CATCH( "" )
   }
 
-
-  //*******************************************************************************************
-  //*******************************************************************************************
-
-  void SetNodesToModelPart(ModelPart& rModelPart,
-                           std::vector<Node<3>::Pointer>& rListOfNewNodes)
+  void SetNodesToModelPart(ModelPart& rModelPart, std::vector<Node<3>::Pointer>& rListOfNewNodes)
   {
     KRATOS_TRY
 
-        if(rListOfNewNodes.size()){
+    if(rListOfNewNodes.size())
+    {
+      //add new conditions: ( SOLID body model part )
+      for(auto& i_node : rListOfNewNodes)
+      {
+        rModelPart.Nodes().push_back(i_node);
+      }
 
-          //add new conditions: ( SOLID body model part )
-          for(std::vector<Node<3>::Pointer>::iterator i_node = rListOfNewNodes.begin(); i_node!= rListOfNewNodes.end(); ++i_node)
-	  {
-	    rModelPart.Nodes().push_back(*(i_node));
-	  }
-
-        }
+    }
 
     KRATOS_CATCH( "" )
   }
