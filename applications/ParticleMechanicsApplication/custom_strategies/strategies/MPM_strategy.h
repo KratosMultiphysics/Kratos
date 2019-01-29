@@ -623,40 +623,40 @@ public:
                 }
                 // For boundary conditions: create particle conditions for all the necessary conditions
                 else{
-
-                    // Loop over the condition of submodelpart and generate mpm condition to be appended to the mr_mpm_model_part
+                    // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
+                    // Loop over the conditions of submodelpart and generate mpm condition to be appended to the mr_mpm_model_part
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
                     {
                         Properties::Pointer properties = i->pGetProperties();
 
                         // Check number of particles per condition to be created
-                        unsigned int particles_per_condition;
+                        unsigned int particles_per_condition = 0; // Default zero
                         if (i->Has( PARTICLES_PER_CONDITION )){
                             particles_per_condition = i->GetValue(PARTICLES_PER_CONDITION);
                         }
                         else{
                             std::string warning_msg = "PARTICLES_PER_CONDITION is not specified, ";
-                            warning_msg += "1 Particle per condition is assumed.";
+                            warning_msg += "Only using nodal position is assumed: 1 (Point), 2 (Line), 3 (Triangular), 4 (Quadrilateral)";
                             KRATOS_WARNING("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
-                            particles_per_condition = 1;
                         }
 
-                        // NOTE: To create Particle Condition, we consider both the nodal value as well as the position of integration point
+                        // Get shape_function_values from defined particle_per_condition
                         const Geometry< Node < 3 > >& rGeom = i->GetGeometry(); // current condition's geometry
                         const GeometryData::KratosGeometryType rGeoType = rGeom.GetGeometryType();
-                        Matrix shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                        Matrix shape_functions_values;
                         if (rGeoType == GeometryData::Kratos_Point2D  || rGeoType == GeometryData::Kratos_Point3D)
                         {
                             switch (particles_per_condition)
                             {
-                                case 1:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                case 0: // Default case
+                                    break;
+                                case 1: // Only nodal
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
                                     warning_msg += " is not available for Point" + std::to_string(TDim) + "D.\n";
-                                    warning_msg += "Available option is: 1.\n";
+                                    warning_msg += "Available option is: 1 (default).\n";
                                     warning_msg += "The default number of particle: 1 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                     break;
@@ -666,26 +666,30 @@ public:
                         {
                             switch (particles_per_condition)
                             {
-                                case 1:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
+                                case 0: // Default case
                                     break;
-                                case 2:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
+                                case 2: // Only nodal
                                     break;
                                 case 3:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
                                 case 4:
-                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
                                 case 5:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
+                                    break;
+                                case 6:
+                                    shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
+                                    break;
+                                case 7:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
                                     warning_msg += " is not available for Line" + std::to_string(TDim) + "D.\n";
-                                    warning_msg += "Available options are: 1, 2, 3, 4, 5.\n";
-                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    warning_msg += "Available options are: 2 (default), 3, 4, 5, 6, 7.\n";
+                                    warning_msg += "The default number of particle: 2 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
@@ -694,33 +698,33 @@ public:
                         {
                             switch (particles_per_condition)
                             {
-                                case 1:
+                                case 0: // Default case
+                                    break;
+                                case 3: // Only nodal
+                                    break;
+                                case 4:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
-                                case 3:
+                                case 6:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
-                                case 6:
+                                case 9:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
-                                case 12:
+                                case 15:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_5);
                                     break;
-                                case 16:
-                                    if (TDim==2){
-                                        shape_functions_values = this->MP16ShapeFunctions();
-                                        break;
-                                    }
-                                case 33:
-                                    if (TDim==2) {
-                                        shape_functions_values = this->MP33ShapeFunctions();
-                                        break;
-                                    }
+                                case 19:
+                                    shape_functions_values = this->MP16ShapeFunctions();
+                                    break;
+                                case 36:
+                                    shape_functions_values = this->MP33ShapeFunctions();
+                                    break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
                                     warning_msg += " is not available for Triangular" + std::to_string(TDim) + "D.\n";
-                                    warning_msg += "Available options are: 1, 3, 6, 12, 16, and 33.\n";
-                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    warning_msg += "Available options are: 3 (default), 4, 6, 9, 15, 19 and 36.\n";
+                                    warning_msg += "The default number of particle: 3 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
@@ -729,23 +733,27 @@ public:
                         {
                             switch (particles_per_condition)
                             {
-                                case 1:
+                                case 0: // Default case
+                                    break;
+                                case 4: // Only nodal
+                                    break;
+                                case 5:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_1);
                                     break;
-                                case 4:
+                                case 8:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_2);
                                     break;
-                                case 9:
+                                case 13:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_3);
                                     break;
-                                case 16:
+                                case 20:
                                     shape_functions_values = rGeom.ShapeFunctionsValues( GeometryData::GI_GAUSS_4);
                                     break;
                                 default:
                                     std::string warning_msg = "The input number of PARTICLES_PER_CONDITION: " + std::to_string(particles_per_condition);
                                     warning_msg += " is not available for Quadrilateral" + std::to_string(TDim) + "D.\n";
-                                    warning_msg += "Available options are: 1, 4, 9, 16.\n";
-                                    warning_msg += "The default number of particle: 1 is currently assumed.";
+                                    warning_msg += "Available options are: 4 (default), 5, 8, 13, and 20.\n";
+                                    warning_msg += "The default number of particle: 4 is currently assumed.";
                                     KRATOS_INFO("MPM_Strategy") << "WARNING: " << warning_msg << std::endl;
                                     break;
                             }
@@ -757,14 +765,13 @@ public:
                             KRATOS_ERROR << error_msg << std::endl;
                         }
 
-                        // Number of MPC per condition
+                        // 1. Loop over the conditions to create inner particle condition
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
-
-                        // Loop over the material point conditions that fall in each grid condition
                         unsigned int new_condition_id = 0;
                         for ( unsigned int PointNumber = 0; PointNumber < integration_point_per_conditions; PointNumber++ )
                         {
                             new_condition_id = last_condition_id + PointNumber;
+
                             //FIXME: Need to be generalized!!!!
                             Condition::Pointer const new_condition = Kratos::make_shared<MPMGridLineLoadCondition2D>(0, Condition::GeometryType::Pointer(new Line2D2<Node<3>>(Condition::GeometryType::PointsArrayType(2))));
                             Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, rGeom, properties);
