@@ -191,7 +191,7 @@ namespace Kratos
 				return mMessageSource.IsDistributed();
 			}
 
-			int GetMessageSourceRank() const {
+			int GetSourceRank() const {
 				return mMessageSource.GetRank();
 			}
 
