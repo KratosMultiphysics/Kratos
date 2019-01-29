@@ -526,29 +526,52 @@ Matrix& GenericSmallStrainDplusDminusDamage<TConstLawIntegratorTensionType, TCon
     Matrix& rValue
     )
 {
-    if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        //1.-Compute total deformation gradient
-        const Matrix& deformation_gradient_F = rParameterValues.GetDeformationGradientF();
-        //2.-Right Cauchy-Green tensor C
-		KRATOS_WATCH(deformation_gradient_F)
-        Matrix right_cauchy_green = prod(trans(deformation_gradient_F), deformation_gradient_F);
-        Vector strain_vector = ZeroVector(6);
+    if (rThisVariable == TENSION_STRESS_TENSOR) {
 
-        //E= 0.5*(FT*F-1) or E = 0.5*(C-1)
-        strain_vector[0] = 0.5 * (right_cauchy_green(0, 0) - 1.00);
-        strain_vector[1] = 0.5 * (right_cauchy_green(1, 1) - 1.00);
-        strain_vector[2] = 0.5 * (right_cauchy_green(2, 2) - 1.00);
-        strain_vector[3] = right_cauchy_green(0, 1); // xy
-        strain_vector[4] = right_cauchy_green(1, 2); // yz
-        strain_vector[5] = right_cauchy_green(0, 2); // xz
+        Flags& r_flags = rParameterValues.GetOptions();
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
 
-        Matrix constitutive_matrix;
-        this->CalculateElasticMatrix(constitutive_matrix, rParameterValues);
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
 
-        Vector stress = prod(constitutive_matrix, strain_vector);
-        //stress *= (1.0 - mDamage);
-        rValue =  MathUtils<double>::StressVectorToTensor(stress);
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+                                                                   predictive_stress_vector_tension,
+                                                                   predictive_stress_vector_compression);
+        rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_tension);
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
         return rValue;
+
+    } else if (rThisVariable == COMPRESSION_STRESS_TENSOR) {
+        Flags& r_flags = rParameterValues.GetOptions();
+        // Previous flags saved
+        const bool flag_const_tensor = r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR );
+        const bool flag_stress = r_flags.Is( ConstitutiveLaw::COMPUTE_STRESS );
+
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, true );
+
+        // We compute the stress
+        this->CalculateMaterialResponseCauchy(rParameterValues);
+        const array_1d<double, VoigtSize>& rValue = rParameterValues.GetStressVector();
+        array_1d<double, VoigtSize> predictive_stress_vector_tension, predictive_stress_vector_compression;
+        ConstitutiveLawUtilities<VoigtSize>::SpectralDecomposition(predictive_stress_vector,
+                                                                   predictive_stress_vector_tension,
+                                                                   predictive_stress_vector_compression);
+
+        rValue = MathUtils<double>::StressVectorToTensor(predictive_stress_vector_compression);
+        // Previous flags restored
+        r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
+        r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
+        return rValue;
+
     } else if (this->Has(rThisVariable)) {
         return this->GetValue(rThisVariable, rValue);
     } else {
