@@ -13,7 +13,6 @@ else(TETGEN_FOUND)
 
   # Default TETGEN_DIR
   file(TO_NATIVE_PATH "${tetgen_install_dir}/tetgen" DEFAULT_TETGEN_DIR)
-
   set(TETGEN_DIR ${DEFAULT_TETGEN_DIR})
   message(STATUS "set TETGEN_DIR: ${TETGEN_DIR}")
 
@@ -24,13 +23,11 @@ else(TETGEN_FOUND)
     message(STATUS "${tetgen_packed_file} not found in ${tetgen_install_dir}")
     message(STATUS "Downloading ${tetgen_packed_file} from https://github.com/PFEM/tetgen-1.5.0/archive/delaunay.zip to ${tetgen_install_dir} ...")
     file(DOWNLOAD https://github.com/PFEM/tetgen-1.5.0/archive/delaunay.zip ${tetgen_packed_dir} SHOW_PROGRESS EXPECTED_MD5 7f5b348b1edac952700d5635fa150faa STATUS download_status LOG download_log)
-
     list(GET download_status 0 status_code)
     list(GET download_status 1 status_string)
     if(NOT status_code EQUAL 0)
       message(STATUS FATAL_ERROR " error: downloading 'https://github.com/PFEM/tetgen-1.5.0/archive/delaunay.zip' failed status_code: ${status_code} status_string: ${status_string} log: ${download_log} ")
     endif(NOT status_code EQUAL 0)
-
     message(STATUS "${tetgen_packed_file} downloaded")
   endif(NOT EXISTS ${tetgen_packed_dir})
 
@@ -38,15 +35,10 @@ else(TETGEN_FOUND)
 
   if((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
     message(STATUS "Unpacking tetgen-1.5.0-delaunay.zip in ${tetgen_install_dir} ...")
-    set(unzip_cmd "unzip")
-    set(unzip_args "-j")
-    set(unzip_dir "-d")
-    message(STATUS "unzip cmd: ${unzip_cmd} ${unzip_args} ${tetgen_packed_file} ${unzip_dir} ${TETGEN_DIR} ")
-    execute_process(COMMAND ${unzip_cmd} ${unzip_args} ${tetgen_packed_file} ${unzip_dir} ${TETGEN_DIR}
+    execute_process(COMMAND unzip -j ${tetgen_packed_file} -d ${TETGEN_DIR}
       WORKING_DIRECTORY ${tetgen_install_dir}
       RESULT_VARIABLE unzip_result
       OUTPUT_VARIABLE unzip_output)
     message(STATUS "unzip output[${unzip_result}]:\n${unzip_output}")
   endif((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
-
 endif(TETGEN_FOUND)
