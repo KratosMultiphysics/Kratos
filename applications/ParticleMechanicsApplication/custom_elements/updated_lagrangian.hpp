@@ -105,7 +105,6 @@ protected:
         double  detF;
         double  detF0;
         double  detFT;
-        double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
@@ -118,9 +117,6 @@ protected:
         Matrix  ConstitutiveMatrix;
 
         // Variables including all integration points
-        Matrix J;
-        Matrix j;
-        Matrix DeltaPosition;
         Matrix CurrentDisp;
         Matrix PreviousDisp;
 
@@ -502,16 +498,6 @@ protected:
      * Container for the total deformation gradient determinants
      */
     double mDeterminantF0;
-    /**
-     * Container for historical inverse of Jacobian at reference configuration invJ0
-     */
-    Matrix mInverseJ0;
-    Matrix mInverseJ;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    double mDeterminantJ0;
 
     /**
      * Container for constitutive law instances on each integration point
@@ -710,10 +696,6 @@ protected:
      * Calculate Shape Function grandient local Values in a given point in 3 dimension
      */
     virtual Matrix& MPMShapeFunctionsLocalGradients(Matrix& rResult);
-    /**
-     * Calculate local coordinated of a given point in 3 dimension
-     */
-    virtual Vector& MPMLocalCoordinates(Vector& rResult, array_1d<double,3>& rPoint);
 
     /**
      * Calculation of the Volume Change of the Element

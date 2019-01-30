@@ -34,7 +34,11 @@ KratosMultilevelMonteCarloApplication::KratosMultilevelMonteCarloApplication():
 void KratosMultilevelMonteCarloApplication::Register() {
  	// calling base class register to register Kratos components
  	KratosApplication::Register();
- 	std::cout << "Initializing KratosMultilevelMonteCarloApplication... " << std::endl;
+	KRATOS_INFO("") <<
+    " KRATOS __ __ _   __ __  __ " << std::endl <<
+    "       |  V  | | |  V  |/ _|" << std::endl <<
+    "       | \\_/ | |_| \\_/ | (_ " << std::endl <<
+    "       |_| |_|___|_| |_|\\__|APPLICATION" << std::endl;
 
 
 }

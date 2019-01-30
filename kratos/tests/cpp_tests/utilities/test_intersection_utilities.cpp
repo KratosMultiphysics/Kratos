@@ -66,9 +66,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
@@ -93,9 +93,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
@@ -120,13 +120,12 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
-        const array_1d<double,3> int_pt_coords = int_pt.Coordinates();
         KRATOS_CHECK_EQUAL(int_id, 0);
     }
 
@@ -144,13 +143,12 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
-        const array_1d<double,3> int_pt_coords = int_pt.Coordinates();
         KRATOS_CHECK_EQUAL(int_id, 2);
     }
 
@@ -168,13 +166,12 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
-        const array_1d<double,3> int_pt_coords = int_pt.Coordinates();
         KRATOS_CHECK_EQUAL(int_id, 0);
     }
 
@@ -192,13 +189,12 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeLineLineIntersection<Line2D2<Point>>(
-            line_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            line_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
-        const array_1d<double,3> int_pt_coords = int_pt.Coordinates();
         KRATOS_CHECK_EQUAL(int_id, 3);
         KRATOS_CHECK_NEAR(int_pt.Coordinates()[0], 0.0, 1e-6);
         KRATOS_CHECK_NEAR(int_pt.Coordinates()[1], 0.0, 1e-6);
@@ -219,9 +215,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
@@ -246,9 +242,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point coordinates
@@ -273,9 +269,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Check that there is no intersection
@@ -296,9 +292,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Compute and check the obtained intersection point passes through the node
@@ -322,9 +318,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // Check that there is no intersection
@@ -348,9 +344,9 @@ namespace Testing {
 
         // Call the intersection utility
         const int int_id = IntersectionUtilities::ComputeTriangleLineIntersection<Triangle3D3<Point>>(
-            triang_geom, 
-            line_pt_1.Coordinates(), 
-            line_pt_2.Coordinates(), 
+            triang_geom,
+            line_pt_1.Coordinates(),
+            line_pt_2.Coordinates(),
             int_pt.Coordinates());
 
         // The triangle and edge are set such that the intersection occurs close to the triangle boundary
