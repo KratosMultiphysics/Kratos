@@ -313,7 +313,7 @@ namespace Kratos {
             double TotalGlobalElasticContactForce[3] = {0.0};
             double OldLocalElasticContactForce[3] = {0.0};
 
-            FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
+            //FilterNonSignificantDisplacements(DeltDisp, RelVel, indentation);
 
             GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltDisp, LocalDeltDisp);
 
