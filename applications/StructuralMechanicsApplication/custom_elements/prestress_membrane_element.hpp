@@ -77,33 +77,33 @@ namespace Kratos
 
     void EquationIdVector(
       EquationIdVectorType& rResult,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
     void GetDofList(
       DofsVectorType& ElementalDofList,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) const override;
 
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo) override;
+    const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateDampingMatrix(
         MatrixType& rDampingMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,
       VectorType& rRightHandSideVector,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(
       const Variable<Matrix>& rVariable,
@@ -112,22 +112,22 @@ namespace Kratos
 
     void CalculateMassMatrix(
       MatrixType& rMassMatrix,
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(
-      ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetFirstDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetSecondDerivativesVector(
       Vector& rValues,
-      int Step = 0) override;
+      int Step = 0) const override;
 
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
@@ -164,7 +164,7 @@ namespace Kratos
       const double& rWeight);
 
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateAndAddNonlinearKm(
         Matrix& rK,
@@ -262,7 +262,7 @@ namespace Kratos
 
     const Matrix CalculateDeformationGradient(const unsigned int PointNumber);
 
-    int  Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Serialization

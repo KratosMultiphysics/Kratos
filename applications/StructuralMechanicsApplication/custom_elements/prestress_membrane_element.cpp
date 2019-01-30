@@ -75,7 +75,7 @@ PrestressMembraneElement::~PrestressMembraneElement()
 
 void PrestressMembraneElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 
 {
   KRATOS_TRY;
@@ -106,7 +106,7 @@ void PrestressMembraneElement::EquationIdVector(
 
 void PrestressMembraneElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 
 {
     unsigned int num_nodes, local_size;
@@ -129,7 +129,7 @@ void PrestressMembraneElement::GetDofList(
 //***********************************************************************************
 //***********************************************************************************
 
-void PrestressMembraneElement::Initialize()
+void PrestressMembraneElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
@@ -163,7 +163,7 @@ void PrestressMembraneElement::Initialize()
 
 void PrestressMembraneElement::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     //calculation flags
@@ -184,7 +184,7 @@ void PrestressMembraneElement::CalculateLeftHandSide(
 
 void PrestressMembraneElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     //calculation flags
@@ -206,7 +206,7 @@ void PrestressMembraneElement::CalculateRightHandSide(
 
 void PrestressMembraneElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const std::size_t matrix_size = GetGeometry().PointsNumber() * 3;
@@ -224,7 +224,7 @@ void PrestressMembraneElement::CalculateDampingMatrix(
 void PrestressMembraneElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     //calculation flags
@@ -251,7 +251,7 @@ void PrestressMembraneElement::CalculateOnIntegrationPoints(
 
 void PrestressMembraneElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 
 {
     KRATOS_TRY
@@ -291,7 +291,7 @@ void PrestressMembraneElement::CalculateMassMatrix(
 //***********************************************************************************
 
 void PrestressMembraneElement::FinalizeSolutionStep(
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo)
 {
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); i++)
     {
@@ -309,7 +309,7 @@ void PrestressMembraneElement::FinalizeSolutionStep(
 
 void PrestressMembraneElement::GetValuesVector(
     Vector& rValues,
-    int Step)
+    int Step) const
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -333,7 +333,7 @@ void PrestressMembraneElement::GetValuesVector(
 
 void PrestressMembraneElement::GetFirstDerivativesVector(
     Vector& rValues,
-    int Step)
+    int Step) const
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -358,7 +358,7 @@ void PrestressMembraneElement::GetFirstDerivativesVector(
 
 void PrestressMembraneElement::GetSecondDerivativesVector(
     Vector& rValues,
-    int Step)
+    int Step) const
 
 {
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -926,12 +926,12 @@ void PrestressMembraneElement::ProjectPrestress(
 //***********************************************************************************
 //***********************************************************************************
 
-void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+void PrestressMembraneElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
 
 }
 //***********************************************************************************
 //***********************************************************************************
-void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo){
+void PrestressMembraneElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo){
     // for formfinding: update basevectors (and prestress in case of anisotropy)
     if(this->Has(IS_FORMFINDING)){
         if(this->GetValue(IS_FORMFINDING)){
@@ -1511,7 +1511,7 @@ void PrestressMembraneElement::InitializeFormfinding(const unsigned int rIntegra
 }
 //***********************************************************************************
 //***********************************************************************************
-int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
     const unsigned int number_of_nodes = this->GetGeometry().size();
@@ -1527,7 +1527,7 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < number_of_nodes; i++ ) {
-        Node<3> &r_node = this->GetGeometry()[i];
+        const Node<3> &r_node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
