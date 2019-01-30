@@ -2,21 +2,21 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:         BSD License 
+//  License:         BSD License
 //                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                   
 //
-
+//
 
 // Project includes
 #include "testing/testing.h"
 #include "input_output/logger.h"
 #include "input_output/logger_table_output.h"
-
+#include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos {
     namespace Testing {
@@ -35,8 +35,8 @@ namespace Kratos {
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFunctionName(), "Unknown");
             KRATOS_CHECK_EQUAL(message.GetLocation().GetLineNumber(), -1);
 
-            message << LoggerMessage::Severity::DETAIL 
-                << LoggerMessage::Category::CRITICAL 
+            message << LoggerMessage::Severity::DETAIL
+                << LoggerMessage::Category::CRITICAL
                 << KRATOS_CODE_LOCATION << std::endl;
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00\n");
@@ -69,7 +69,7 @@ namespace Kratos {
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestLabel: Test message with number 12e00");
 
-            Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output " 
+            Logger("TestDetail") << Logger::Severity::DETAIL << "This log has detailed severity and will not be printed in output "
                 << Logger::Category::CRITICAL << std::endl;
 
             // The message has DETAIL severity and should not be written
@@ -194,7 +194,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
             Logger::AddOutput(p_output);
-            
+
             KRATOS_DETAIL("TestDetail") << "Test detail message";
 
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "TestDetail: Test detail message");
@@ -283,12 +283,85 @@ namespace Kratos {
             reference_output << std::endl << "              2                        0.075               No           ";
             reference_output << std::endl << "3             1                        0.1                 ";
             reference_output << std::endl << "              2                        0.05                Yes          ";
-            
+
             KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), reference_output.str().c_str());
-            
+
             std::cout << std::endl;
             std::cout << buffer.str() << std::endl;
 
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoAllRanks, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+
+            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            int rank = r_comm.Rank();
+
+            KRATOS_INFO_ALL_RANKS("TestInfo") << "Test info message";
+            std::stringstream out;
+            out << "Rank " << rank << ": TestInfo: Test info message";
+
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), out.str().c_str());
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIfAllRanks, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+
+            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            int rank = r_comm.Rank();
+            std::stringstream out;
+
+            KRATOS_INFO_IF_ALL_RANKS("TestInfo", false) << "Test info if false message";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), "");
+
+            KRATOS_INFO_IF_ALL_RANKS("TestInfo", true) << "Test info if true message";
+            out << "Rank " << rank << ": TestInfo: Test info if true message";
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), out.str().c_str());
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnceAllRanks, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+
+            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            int rank = r_comm.Rank();
+
+            for(std::size_t i = 0; i < 10; i++) {
+                KRATOS_INFO_ONCE_ALL_RANKS("TestInfo") << "Test info message - " << i;
+            }
+            std::stringstream out;
+            out << "Rank " << rank << ": TestInfo: Test info message - 0";
+
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), out.str().c_str());
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirstAllRanks, KratosCoreFastSuite)
+        {
+            static std::stringstream buffer;
+            LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
+            Logger::AddOutput(p_output);
+
+            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            int rank = r_comm.Rank();
+
+            for(std::size_t i = 0; i < 10; i++) {
+                KRATOS_INFO_FIRST_N_ALL_RANKS("TestInfo", 4) << ".";
+            }
+
+            std::stringstream out;
+            for(std::size_t i = 0; i < 4; i++) {
+                out << "Rank " << rank << ": TestInfo: .";
+            }
+
+            KRATOS_CHECK_C_STRING_EQUAL(buffer.str().c_str(), out.str().c_str());
         }
 
     }   // namespace Testing
