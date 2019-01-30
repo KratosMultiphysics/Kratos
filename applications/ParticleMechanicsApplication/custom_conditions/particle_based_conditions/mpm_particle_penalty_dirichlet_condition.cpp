@@ -91,7 +91,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         noalias( rLeftHandSideMatrix ) = ZeroMatrix(matrix_size,matrix_size); //resetting LHS
     }
 
-    //resizing as needed the RHS
+    // Resizing as needed the RHS
     if ( CalculateResidualVectorFlag == true ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size( ) != matrix_size )
@@ -120,19 +120,11 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
         for(unsigned int k = 0; k < Dimension; ++k)
         {
-            rRightHandSideVector[base + k] += GetPointLoadIntegrationWeight() * PointLoad[k];
+            rRightHandSideVector[base + k] += GetIntegrationWeight() * PointLoad[k];
         }
     }
 
     KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-double MPMParticlePenaltyDirichletCondition::GetPointLoadIntegrationWeight()
-{
-    return 1.0;
 }
 
 } // Namespace Kratos

@@ -166,11 +166,6 @@ protected:
         bool CalculateResidualVectorFlag
         ) override;
 
-    /**
-     * It calcules the integration load for the point load
-     */
-    virtual double GetPointLoadIntegrationWeight();
-
     ///@}
     ///@name Protected  Access
     ///@{
