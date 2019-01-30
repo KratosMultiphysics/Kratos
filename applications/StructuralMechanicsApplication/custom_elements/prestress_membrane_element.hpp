@@ -85,7 +85,7 @@ namespace Kratos
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
@@ -132,7 +132,7 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 private:
     ///@name Static Member Variables
