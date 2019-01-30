@@ -84,10 +84,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         }
     }
 
-	double CalculateCharacteristicLength(Geometry<Node<3>>& rGeometry)
-	{
 
-	}
 
     double CalculateNormalizedFreeEnergy(
         const Vector& rStrainVector, 
@@ -103,8 +100,36 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
         const double density = rMatProps[DENSITY];
 
+        // const double characteristic_length = this->
+
 
     }
+
+	double CalculateCharacteristicLength2D(Geometry<Node<3>>& rGeometry)
+	{
+        Vector node_1_coordinates = ZeroVector(3);
+        Vector node_2_coordinates = ZeroVector(3);
+        Vector node_3_coordinates = ZeroVector(3);
+        node_1_coordinates[0] = rGeometry[0].X0();
+        node_1_coordinates[1] = rGeometry[0].Y0();
+        node_1_coordinates[2] = rGeometry[0].Z0();
+        node_2_coordinates[0] = rGeometry[1].X0();
+        node_2_coordinates[1] = rGeometry[1].Y0();
+        node_2_coordinates[2] = rGeometry[1].Z0();
+        node_3_coordinates[0] = rGeometry[2].X0();
+        node_3_coordinates[1] = rGeometry[2].Y0();
+        node_3_coordinates[2] = rGeometry[2].Z0();
+
+        const double length1 = MathUtils<double>::Norm3(node_1_coordinates-node_2_coordinates);
+        const double length2 = MathUtils<double>::Norm3(node_2_coordinates-node_3_coordinates);
+        const double length3 = MathUtils<double>::Norm3(node_3_coordinates-node_1_coordinates);
+        return (length1 + length2 + length3) / 3.0;
+	}
+
+	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry)
+	{
+        // TODO
+	}
 
     void ComputeTensionFactor2D(const Vector& rStressVector, double& rTensionFactor)
     {
@@ -112,6 +137,19 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         this->CalculatePrincipalStresses2D(rStressVector, principal_stress_vector);
         double SumA = 0.0, SumB = 0.0, SumC = 0.0;
         for (unsigned int cont = 0; cont < 2; cont++) {
+            SumA += std::abs(principal_stress_vector[cont]);
+            SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
+            SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        }
+        rTensionFactor = SumB / SumA;
+    }
+
+    void ComputeTensionFactor3D(const Vector& rStressVector, double& rTensionFactor)
+    {
+        Vector principal_stress_vector;
+        this->CalculatePrincipalStresses3D(rStressVector, principal_stress_vector);
+        double SumA = 0.0, SumB = 0.0, SumC = 0.0;
+        for (unsigned int cont = 0; cont < 3; cont++) {
             SumA += std::abs(principal_stress_vector[cont]);
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
@@ -136,11 +174,11 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const double I3 = this->CalculateI3Invariant(rStressVector);
         const double II1 = I1 * I1;
 
-        const double Num = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
-        const double Denom = (II1 - 3.0 * I2);
+        const double numerator = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
+        const double denominator = (II1 - 3.0 * I2);
 
-        if (Denom != 0.0) {
-            double phi = Num / (2.0 * Denom * std::sqrt(Denom));
+        if (denominator != 0.0) {
+            double phi = numerator / (2.0 * denominator * std::sqrt(denominator));
 
             if (std::abs(phi) > 1.0) {
                 if (phi > 0.0)
