@@ -923,12 +923,7 @@ void PrestressMembraneElement::ProjectPrestress(
     prestress_matrix(1,rPointNumber) = tensor(1,1);
     prestress_matrix(2,rPointNumber) = tensor(1,0);
 }
-//***********************************************************************************
-//***********************************************************************************
 
-void PrestressMembraneElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
-
-}
 //***********************************************************************************
 //***********************************************************************************
 void PrestressMembraneElement::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo){
@@ -948,7 +943,6 @@ void PrestressMembraneElement::InitializeNonLinearIteration(const ProcessInfo& r
         }
     }
 }
-
 
 //***********************************************************************************
 //***********************************************************************************

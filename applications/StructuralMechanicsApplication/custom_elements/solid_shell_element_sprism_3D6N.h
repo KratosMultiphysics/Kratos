@@ -959,7 +959,7 @@ protected:
     bool HasNeighbour(
         const IndexType Index,
         const NodeType& NeighbourNode
-        ) const;
+        ) const ;
 
     /**
      * @brief Calculates the number of active neighbours:
@@ -973,9 +973,9 @@ protected:
      */
     void GetNodalCoordinates(
         BoundedMatrix<double, 12, 3 >& NodesCoord,
-        WeakPointerVector< NodeType >& pNeighbourNodes,
+        const WeakPointerVector< NodeType >& pNeighbourNodes,
         const Configuration ThisConfiguration
-        );
+        ) const;
 
     /**
      * @brief Calculate the cartesian derivatives

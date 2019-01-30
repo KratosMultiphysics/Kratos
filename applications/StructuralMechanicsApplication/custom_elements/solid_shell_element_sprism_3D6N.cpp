@@ -536,7 +536,7 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const SizeType mat_size = number_of_nodes * 3;
@@ -563,7 +563,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const IndexType mat_size = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes) * 3;
 
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
@@ -585,7 +585,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
 {
     KRATOS_TRY;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     // 0.-Initialize the DampingMatrix:
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
@@ -1921,7 +1921,7 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
 
     KRATOS_INFO("SolidShellElementSprism3D6N") << " Element: " << this->Id() << std::endl;
 
-    WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     const IndexType number_of_neighbours = NumberOfActiveNeighbours(NeighbourNodes);
 
     for ( IndexType i = 0; i < 6; ++i ) {
@@ -2016,9 +2016,9 @@ std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(const WeakPoin
 
 void SolidShellElementSprism3D6N::GetNodalCoordinates(
     BoundedMatrix<double, 12, 3 > & NodesCoord,
-    WeakPointerVectorNodesType& NeighbourNodes,
+    const WeakPointerVectorNodesType& NeighbourNodes,
     const Configuration ThisConfiguration
-    )
+    ) const
 {
      NodesCoord = ZeroMatrix(12, 3);
      const IndexType number_of_neighbours = NumberOfActiveNeighbours(NeighbourNodes);
@@ -2089,7 +2089,7 @@ void SolidShellElementSprism3D6N::GetNodalCoordinates(
 void SolidShellElementSprism3D6N::CalculateCartesianDerivatives(CartesianDerivatives& rCartesianDerivatives)
 {
     BoundedMatrix<double, 12, 3 > nodes_coord; // Coordinates of the nodes
-    WeakPointerVectorNodesType& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     if ( mELementalFlags.Is(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN)) {
         this->GetNodalCoordinates(nodes_coord, neighbour_nodes, Configuration::INITIAL);
     } else {
@@ -2161,7 +2161,7 @@ void SolidShellElementSprism3D6N::CalculateCommonComponents(
     KRATOS_TRY;
 
     BoundedMatrix<double, 12, 3 > NodesCoord; // Coordinates of the nodes
-    WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& NeighbourNodes = this->GetValue(NEIGHBOUR_NODES);
     this->GetNodalCoordinates(NodesCoord, NeighbourNodes, Configuration::CURRENT);
 
     /* Declare deformation Gradient F components */
@@ -2386,7 +2386,7 @@ void SolidShellElementSprism3D6N::CalculateIdVector(array_1d<IndexType, 18 >& rI
 {
     KRATOS_TRY;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Compute ID vector */ // TODO: Optimize this
     IndexType index = 18;
@@ -2862,7 +2862,7 @@ void SolidShellElementSprism3D6N::CalculateInPlaneGradientFGauss(
 
     noalias(InPlaneGradientFGauss) = prod(nodes_coord_aux, in_plane_cartesian_derivatives_gauss_aux);
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     if (HasNeighbour(NodeGauss, p_neighbour_nodes[NodeGauss])) {
         for (IndexType j = 0; j < 3 ; ++j) {
             InPlaneGradientFGauss(j, 0) += NodesCoord(NodeGauss + 6 + index, j) * InPlaneCartesianDerivativesGauss(0, 3);
@@ -3247,7 +3247,7 @@ BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorCurrentPosit
 
     BoundedMatrix<double, 36, 1 > vector_current_position;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
     for (IndexType index = 0; index < 6; ++index) {
@@ -3292,7 +3292,7 @@ BoundedMatrix<double, 36, 1 > SolidShellElementSprism3D6N::GetVectorPreviousPosi
 
     BoundedMatrix<double, 36, 1 > vector_current_position;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     /* Element nodes */
     for (IndexType index = 0; index < 6; ++index) {
@@ -3826,7 +3826,7 @@ void SolidShellElementSprism3D6N::InitializeSystemMatrices(
     )
 {
     // Resizing as needed the LHS
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const IndexType mat_size = number_of_nodes * 3;
 
