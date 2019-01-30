@@ -858,7 +858,7 @@ public:
         MathUtils<double>::CrossProduct(normal1,edge1,edge2a);
         MathUtils<double>::CrossProduct(normal2,edge1,edge2b);
         normal1 /= std::sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
-        normal2 /= sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
+        normal2 /= std::sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
 
         //and finally the cos of the angle:
         const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
