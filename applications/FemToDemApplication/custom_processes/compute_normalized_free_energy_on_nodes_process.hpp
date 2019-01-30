@@ -88,6 +88,15 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         for (unsigned int i = 0; i < mNNodes; i++) {
             pNodeNormalizedFreeEnergyVector[i].NormalizedFreeEnergy /= pNodeNormalizedFreeEnergyVector[i].NElems;
         }
+
+        // Loop over nodes to assign the variable
+        for (ModelPart::NodeIterator it = mrModelPart.NodesBegin(); it != mrModelPart.NodesEnd(); ++it) {
+            int Id = (*it).Id();
+            const double nodal_free_energy = pNodeNormalizedFreeEnergyVector[Id - 1].NormalizedFreeEnergy;
+
+            double &norm = it->GetSolutionStepValue(EQUIVALENT_NODAL_STRESS);
+            norm = nodal_free_energy;
+        }
     }
 
     double CalculateNormalizedFreeEnergy(
