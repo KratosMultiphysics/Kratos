@@ -76,21 +76,6 @@ void ComputeDynamicFactorProcess::Execute()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ComputeDynamicFactorProcess::ExecuteInitialize()
-{
-    // Getting process info
-    ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
-
-    // We initialize in case MAX_GAP_THRESHOLD
-    if (r_process_info.Has(MAX_GAP_THRESHOLD)) {
-        // We initialize the DELTA_TIME on the nodes
-        VariableUtils().SetNonHistoricalVariable(DELTA_TIME, 0.0, mrThisModelPart.Nodes());
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 double ComputeDynamicFactorProcess::ComputeLogisticFactor(
     const double MaxGapThreshold,
     const double CurrentGap
