@@ -29,11 +29,16 @@
 #include "custom_response_functions/response_utilities/adjoint_local_stress_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
+
+// Direct Sensitivity variables
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_element_data_variable.h"
 
 // Adjoint postprocessing
 #include "custom_response_functions/response_utilities/adjoint_postprocess.h"
+
+// Direct sensitivity postprocess 
+#include "state_derivative/variable_utilities/direct_sensitivity_postprocess.h"
 
 namespace Kratos {
 namespace Python {
@@ -69,6 +74,18 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
         (m, "ReplaceElementsAndConditionsForAdjointProblemProcess")
         .def(py::init<ModelPart&>());
 
+    // Variable classes
+    py::class_<DirectSensitivityVariable, DirectSensitivityVariable::Pointer>
+        (m, "DirectSensitivityVariable")
+        .def(py::init<ModelPart&, Parameters>())
+        .def("Initialize", &DirectSensitivityVariable::Initialize)
+        .def("InitializeSolutionStep", &DirectSensitivityVariable::InitializeSolutionStep)
+        .def("FinalizeSolutionStep", &DirectSensitivityVariable::FinalizeSolutionStep);        
+
+    py::class_<DirectSensitivityElementDataVariable, DirectSensitivityElementDataVariable::Pointer, DirectSensitivityVariable>
+        (m, "DirectSensitivityElementDataVariable")
+        .def(py::init<ModelPart&, Parameters>());
+    
     // Response Functions
     py::class_<AdjointLocalStressResponseFunction, AdjointLocalStressResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLocalStressResponseFunction")
@@ -81,19 +98,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
-
-    py::class_<DirectSensitivityVariable, DirectSensitivityVariable::Pointer>
-        (m, "DirectSensitivityVariable")
-        .def(py::init<ModelPart&, Parameters>())
-        .def("Initialize", &DirectSensitivityVariable::Initialize)
-        .def("InitializeSolutionStep", &DirectSensitivityVariable::InitializeSolutionStep)
-        .def("FinalizeSolutionStep", &DirectSensitivityVariable::FinalizeSolutionStep);
-        
-
-    py::class_<DirectSensitivityElementDataVariable, DirectSensitivityElementDataVariable::Pointer, DirectSensitivityVariable>
-        (m, "DirectSensitivityElementDataVariable")
-        .def(py::init<ModelPart&, Parameters>());
-        
+     
     // Adjoint postprocess
     py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
       (m, "AdjointPostprocess")
@@ -102,6 +107,15 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
       .def("InitializeSolutionStep", &AdjointPostprocess::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &AdjointPostprocess::FinalizeSolutionStep)
       .def("UpdateSensitivities", &AdjointPostprocess::UpdateSensitivities);
+
+    // Direct sensitivity postprocess
+    py::class_<DirectSensitivityPostprocess, DirectSensitivityPostprocess::Pointer>
+      (m, "DirectSensitivityPostprocess")
+      .def(py::init<ModelPart&, AdjointResponseFunction&, DirectSensitivityVariable&, Parameters>())
+      .def("Initialize", &DirectSensitivityPostprocess::Initialize)
+      .def("InitializeSolutionStep", &DirectSensitivityPostprocess::InitializeSolutionStep)
+      .def("FinalizeSolutionStep", &DirectSensitivityPostprocess::FinalizeSolutionStep)
+      .def("UpdateSensitivities", &DirectSensitivityPostprocess::UpdateSensitivities);
 }
 
 }  // namespace Python.
