@@ -19,6 +19,8 @@ if(NOT DEFINED ${INCLUDE_TETGEN})
   set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
+set(MESHER_LIBS "")
+
 if(${INCLUDE_TRIANGLE} MATCHES ON)
   add_definitions(-DINCLUDE_TRIANGLE)
   add_definitions(-DTRILIBRARY)
@@ -35,6 +37,7 @@ if(${INCLUDE_TRIANGLE} MATCHES ON)
   SET_SOURCE_FILES_PROPERTIES(${TRIANGLE_SOURCES} PROPERTIES COMPILE_FLAGS -O0)
   add_library(external_triangle STATIC ${TRIANGLE_SOURCES})
   #install (FILES ${TRIANGLE_DIR}/triangle.h DESTINATION libs)
+  list(APPEND MESHER_LIBS external_triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
 
 if(${INCLUDE_TETGEN} MATCHES ON)
@@ -58,6 +61,7 @@ if(${INCLUDE_TETGEN} MATCHES ON)
   SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
   add_library(external_tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES})
   #install (FILES ${TETGEN_DIR}/tetgen.h DESTINATION libs)
+  list(APPEND MESHER_LIBS external_tetgen)
 endif(${INCLUDE_TETGEN} MATCHES ON)
 
 
@@ -91,27 +95,12 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_PYTHON_INTERFACE
 )
 
 ## matplot lib
-if(${MSVC})
-  set(MATLIB "")
-else(${MSVC})
-  set(MATLIB "m")
-endif(${MSVC})
-
-## define the linkage of libraries
-if( ${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON )
-    set(LIBS external_triangle external_tetgen ${MATLIB})
-    #set(LIBS external_triangle libextet.a ${MATLIB})
-elseif(${INCLUDE_TRIANGLE} MATCHES ON)
-    set(LIBS external_triangle ${MATLIB})
-elseif(${INCLUDE_TETGEN} MATCHES ON)
-    set(LIBS external_tetgen ${MATLIB})
-    #set(LIBS libextet.a ${MATLIB})
-else(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
-    set(LIBS)
-endif(${INCLUDE_TRIANGLE} MATCHES ON AND ${INCLUDE_TETGEN} MATCHES ON)
+if(NOT ${MSVC})
+  list(APPEND MESHER_LIBS m)
+endif(NOT ${MSVC})
 
 add_library(KratosDelaunayMeshingCore SHARED ${KRATOS_DELAUNAY_MESHING_APPLICATION_CORE})
-target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${LIBS})
+target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${MESHER_LIBS})
 set_target_properties(KratosDelaunayMeshingCore PROPERTIES COMPILE_DEFINITIONS "DELAUNAY_MESHING_APPLICATION=EXPORT,API")
 
 ###############################################################
