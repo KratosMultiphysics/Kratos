@@ -63,29 +63,17 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         // Loop over elements to extrapolate the stress to the nodes
         for (ElementsArrayType::ptr_iterator it = mrModelPart.Elements().ptr_begin(); it != mrModelPart.Elements().ptr_end(); ++it) {
             auto& r_geometry = (*it)->GetGeometry();
-            gauss_point_stress = (*it)->GetValue(STRESS_VECTOR);
-            gauss_point_damage = (*it)->GetValue(DAMAGE_ELEMENT);
+            auto& r_mat_properties = (*it)->GetProperties();
 
             if (r_geometry.PointsNumber() == 3) { // 2D version
                 for (unsigned int i = 0; i < 3; i++) {
-                    // const int node_id = r_geometry.GetPoint(i).Id();
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[1] += gauss_point_stress[1];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[2];
-                    // pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
-                    // pNodeStressesVector[node_id - 1].NElems += 1;
+
+
                 }
             } else { // 3D version
                 for (unsigned int i = 0; i < 4; i++) {
-                    // const int node_id = r_geometry.GetPoint(i).Id();
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[0] += gauss_point_stress[0];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[1] += gauss_point_stress[1];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[2] += gauss_point_stress[2];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[3] += gauss_point_stress[3];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[4] += gauss_point_stress[4];
-                    // pNodeStressesVector[node_id - 1].EffectiveStressVector[5] += gauss_point_stress[5];
-                    // pNodeStressesVector[node_id - 1].Damage += gauss_point_damage;
-                    // pNodeStressesVector[node_id - 1].NElems += 1;
+
+
                 }
             }
         }
@@ -109,6 +97,70 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const Geometry<Node<3>>& rGeometry)
     {
         const double fracture_energy_tension = rMatProps[FRAC_ENERGY_T];
+        const double yield_tension = rMatProps[YIELD_STRESS_T];
+        const double yield_compression = rMatProps[YIELD_STRESS_C];
+        const double ratio = yield_compression / yield_tension;
+        const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
+        const double density = rMatProps[DENSITY];
+
+
+    }
+
+    void ComputeTensionFactor2D(const Vector& rStressVector, double& rTensionFactor)
+    {
+        Vector principal_stress_vector;
+        this->CalculatePrincipalStresses2D(rStressVector, principal_stress_vector);
+        double SumA = 0.0, SumB = 0.0, SumC = 0.0;
+        for (unsigned int cont = 0; cont < 2; cont++) {
+            SumA += std::abs(principal_stress_vector[cont]);
+            SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
+            SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
+        }
+        rTensionFactor = SumB / SumA;
+    }
+
+    void CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector)
+    {
+        rPrincipalStressVector.resize(2);
+        rPrincipalStressVector[0] = 0.5 * (rStressVector[0] + rStressVector[1]) + 
+            std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2) + std::pow(rStressVector[2], 2));
+    	rPrincipalStressVector[1] = 0.5 * (rStressVector[0] + rStressVector[1]) - 
+		std::sqrt(std::pow(0.5 * (rStressVector[0] - rStressVector[1]), 2) + std::pow(rStressVector[2], 2));
+    }
+
+    void CalculatePrincipalStresses3D(const Vector& rStressVector, Vector& rPrincipalStressVector)
+    {
+        rPrincipalStressVector.resize(3);
+        const double I1 = this->CalculateI1Invariant(rStressVector);
+        const double I2 = this->CalculateI2Invariant(rStressVector);
+        const double I3 = this->CalculateI3Invariant(rStressVector);
+        const double II1 = I1 * I1;
+
+        const double Num = (2.0 * II1 - 9.0 * I2) * I1 + 27.0 * I3;
+        const double Denom = (II1 - 3.0 * I2);
+
+        if (Denom != 0.0) {
+            double phi = Num / (2.0 * Denom * std::sqrt(Denom));
+
+            if (std::abs(phi) > 1.0) {
+                if (phi > 0.0)
+                    phi = 1.0;
+                else
+                    phi = -1.0;
+            }
+
+            const double acosphi = std::acos(phi);
+            phi = acosphi / 3.0;
+
+            const double aux1 = 2.0 / 3.0 * std::sqrt(II1 - 3.0 * I2);
+            const double aux2 = I1 / 3.0;
+
+            rPrincipalStressVector[0] = aux2 + aux1 * std::cos(phi);
+            rPrincipalStressVector[1] = aux2 + aux1 * std::cos(phi - 2.09439510239);
+            rPrincipalStressVector[2] = aux2 + aux1 * std::cos(phi - 4.18879020478);
+        } else {
+            rPrincipalStressVector = ZeroVector(3);
+        }
     }
 
     void ObtainMaximumNodeId(int &rmax_id)
@@ -122,6 +174,24 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
                 aux = id;
         }
         rmax_id = aux;
+    }
+
+    double CalculateI1Invariant(const Vector& rStressVector)
+    {
+        return rStressVector[0] + rStressVector[1] + rStressVector[2];
+    }
+
+    double CalculateI2Invariant(const Vector& rStressVector)
+    {
+        return (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
+            -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
+    }
+
+    double CalculateI3Invariant(const Vector& rStressVector)
+    {
+        return (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
+            rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
+            2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
     }
 
   protected:
