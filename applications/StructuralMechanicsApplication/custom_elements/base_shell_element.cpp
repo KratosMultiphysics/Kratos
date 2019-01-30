@@ -44,7 +44,7 @@ BaseShellElement::~BaseShellElement() {
 }
 
 void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
-                                        ProcessInfo& rCurrentProcessInfo)
+                                        const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -55,7 +55,7 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
         const IndexType index = i * 6;
-        NodeType& i_node = r_geom[i];
+        const NodeType& i_node = r_geom[i];
 
         rResult[index]     = i_node.GetDof(DISPLACEMENT_X).EquationId();
         rResult[index + 1] = i_node.GetDof(DISPLACEMENT_Y).EquationId();
@@ -68,7 +68,7 @@ void BaseShellElement::EquationIdVector(EquationIdVectorType& rResult,
 }
 
 void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
-                                  ProcessInfo& rCurrentProcessInfo)
+                                  const ProcessInfo& rCurrentProcessInfo) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -78,7 +78,7 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
 
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        NodeType& i_node = r_geom[i];
+        const NodeType& i_node = r_geom[i];
 
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_X));
         rElementalDofList.push_back(i_node.pGetDof(DISPLACEMENT_Y));
@@ -90,7 +90,7 @@ void BaseShellElement::GetDofList(DofsVectorType& rElementalDofList,
     }
 }
 
-void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
+void BaseShellElement::GetValuesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -115,7 +115,7 @@ void BaseShellElement::GetValuesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -140,7 +140,7 @@ void BaseShellElement::GetFirstDerivativesVector(Vector& rValues, int Step)
     }
 }
 
-void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step)
+void BaseShellElement::GetSecondDerivativesVector(Vector& rValues, int Step) const
 {
     const SizeType num_dofs = GetNumberOfDofs();
 
@@ -179,7 +179,7 @@ void BaseShellElement::ResetConstitutiveLaw()
     KRATOS_CATCH("")
 }
 
-void BaseShellElement::Initialize()
+void BaseShellElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = GetGeometry();
     const auto& r_props = GetProperties();
@@ -226,7 +226,7 @@ void BaseShellElement::Initialize()
     }
 }
 
-void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -234,7 +234,7 @@ void BaseShellElement::BaseInitializeNonLinearIteration(ProcessInfo& rCurrentPro
         mSections[i]->InitializeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
-void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_geom = this->GetGeometry();
     const Matrix& r_shape_fct_values = r_geom.ShapeFunctionsValues(GetIntegrationMethod());
@@ -242,7 +242,7 @@ void BaseShellElement::BaseFinalizeNonLinearIteration(ProcessInfo& rCurrentProce
         mSections[i]->FinalizeNonLinearIteration(GetProperties(), r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
-void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseInitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
 	const auto& r_props = GetProperties();
 	const auto& r_geom = GetGeometry();
@@ -252,7 +252,7 @@ void BaseShellElement::BaseInitializeSolutionStep(ProcessInfo& rCurrentProcessIn
 		mSections[i]->InitializeSolutionStep(r_props, r_geom, row(r_shape_fct_values, i), rCurrentProcessInfo);
 }
 
-void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::BaseFinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     const auto& r_props = GetProperties();
     const auto& r_geom = GetGeometry();
@@ -264,7 +264,7 @@ void BaseShellElement::BaseFinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo
 
 void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 	VectorType& rRightHandSideVector,
-	ProcessInfo& rCurrentProcessInfo)
+	const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -276,7 +276,7 @@ void BaseShellElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 
 void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                       ProcessInfo& rCurrentProcessInfo)
+                                       const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true;
@@ -288,7 +288,7 @@ void BaseShellElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 }
 
 void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
-	ProcessInfo& rCurrentProcessInfo)
+	const ProcessInfo& rCurrentProcessInfo)
 {
     // Calculation flags
     const bool calculate_stiffness_matrix_flag = true; // TODO check is this can be false => see solids
@@ -299,14 +299,14 @@ void BaseShellElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
                  calculate_stiffness_matrix_flag, calculate_residual_vector_flag);
 }
 
-void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+void BaseShellElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     // TODO unify implementation and move it to BaseClass
 }
 
 void BaseShellElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const std::size_t matrix_size = GetNumberOfDofs();
@@ -318,7 +318,7 @@ void BaseShellElement::CalculateDampingMatrix(
         matrix_size);
 }
 
-int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
