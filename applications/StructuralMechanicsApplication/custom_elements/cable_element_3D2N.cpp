@@ -51,7 +51,7 @@ CableElement3D2N::~CableElement3D2N() {}
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                TrussElement3D2N::msLocalSize>
 CableElement3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   BoundedMatrix<double, msLocalSize, msLocalSize> local_stiffness_matrix =
