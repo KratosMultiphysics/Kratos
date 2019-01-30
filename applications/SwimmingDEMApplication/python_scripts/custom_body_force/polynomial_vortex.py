@@ -16,7 +16,8 @@ class PolynomialVortex(ManufacturedSolution):
                 "length"      : 1.0,
                 "viscosity"   : 1.0e-2,
                 "density"     : 1.0,
-                "time_factor" : 1.0
+                "frequency"   : 1.0,
+                "damping"     : 1.0
             }
             """
             )
@@ -28,20 +29,21 @@ class PolynomialVortex(ManufacturedSolution):
         self.rho = settings["density"].GetDouble()
         self.nu = settings["viscosity"].GetDouble() / self.rho
         self.T = self.L / self.U
-        self.omega = settings["time_factor"].GetDouble() * 4 * np.pi / self.T
+        self.omega = settings["frequency"].GetDouble() * 2 * np.pi / self.T
+        self.damp = settings["damping"].GetDouble() * 2 * np.pi / self.T
         self.k = np.pi / self.L
 
     def f(self, x):
         return self.U * x**2 * (self.L - x)**2
 
     def g(self, t):
-        return np.cos(self.omega * t) * np.e**(-t)
+        return np.cos(self.omega * t) * np.e**(-self.damp * t)
 
     def df(self, x):
         return 2 * self.U * x * (self.L - x)**2 - 2 * self.U * x**2 * (self.L - x)
 
     def dg(self, t):
-        return -self.omega * np.sin(self.omega * t) * np.e**(-t) - np.cos(self.omega * t) * np.e**(-t)
+        return -self.omega * np.sin(self.omega * t) * np.e**(-self.damp * t) -self.damp * np.cos(self.omega * t) * np.e**(-self.damp * t)
 
     def ddf(self, x):
         return 2 * self.U * (self.L**2 - 6*self.L*x + 6*x**2)
