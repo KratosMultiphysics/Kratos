@@ -67,7 +67,7 @@ void AddCustomProcessesToPython(pybind11::module &m)
 
 	// Normalized Free Energy extrapolation to Nodes
 	class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")
-		.def(init<ModelPart &>())
+		.def(init<ModelPart &, unsigned int>())
 		.def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
 
 }

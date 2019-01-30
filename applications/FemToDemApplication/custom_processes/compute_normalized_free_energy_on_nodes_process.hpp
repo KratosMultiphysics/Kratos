@@ -39,9 +39,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     typedef ModelPart::ElementsContainerType ElementsArrayType;
 
     // Constructor
-    ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part) : mrModelPart(r_model_part)
+    ComputeNormalizedFreeEnergyOnNodesProcess(ModelPart &r_model_part, int Dimension) : mrModelPart(r_model_part)
     {
         mNNodes = mrModelPart.NumberOfNodes();
+        mDimension = Dimension;
     }
 
     // Destructor
@@ -65,7 +66,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             auto& r_geometry = (*it)->GetGeometry();
             auto& r_mat_properties = (*it)->GetProperties();
 
-            if (r_geometry.PointsNumber() == 3) { // 2D version
+            if (mDimension == 2) { // 2D version
                 for (unsigned int i = 0; i < 3; i++) {
 
 
@@ -89,7 +90,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
     double CalculateNormalizedFreeEnergy(
         const Vector& rStrainVector, 
         const Vector& rStressVector, 
-        const double damage, 
+        const double Damage, 
         const Properties& rMatProps,
         const Geometry<Node<3>>& rGeometry)
     {
@@ -99,13 +100,30 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const double ratio = yield_compression / yield_tension;
         const double fracture_energy_compression = fracture_energy_tension * std::pow(ratio, 2.0);
         const double density = rMatProps[DENSITY];
+        double normalized_free_energy;
 
-        // const double characteristic_length = this->
-
-
+        if (mDimension == 2) { // 2D version
+            const double characteristic_length = this->CalculateCharacteristicLength2D(rGeometry);
+            const double g_t = fracture_energy_tension / characteristic_length;
+            const double g_c = fracture_energy_compression / characteristic_length;
+            const double r   = this->ComputeTensionFactor2D(rStressVector);
+            normalized_free_energy = inner_prod(rStrainVector, rStressVector);
+            normalized_free_energy *= (1.0 - Damage);
+            normalized_free_energy /= (2.0 * density);
+            normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
+        } else { // 3D version
+            const double characteristic_length = this->CalculateCharacteristicLength3D(rGeometry);
+            const double g_t = fracture_energy_tension / characteristic_length;
+            const double g_c = fracture_energy_compression / characteristic_length;
+            const double r   = this->ComputeTensionFactor3D(rStressVector);
+            normalized_free_energy = inner_prod(rStrainVector, rStressVector);
+            normalized_free_energy *= (1.0 - Damage);
+            normalized_free_energy /= (2.0 * density);
+            normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
+        }
     }
 
-	double CalculateCharacteristicLength2D(Geometry<Node<3>>& rGeometry)
+	double CalculateCharacteristicLength2D(const Geometry<Node<3>>& rGeometry)
 	{
         Vector node_1_coordinates = ZeroVector(3);
         Vector node_2_coordinates = ZeroVector(3);
@@ -126,12 +144,12 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         return (length1 + length2 + length3) / 3.0;
 	}
 
-	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry)
+	double CalculateCharacteristicLength3D(const Geometry<Node<3>>& rGeometry)
 	{
         // TODO
 	}
 
-    void ComputeTensionFactor2D(const Vector& rStressVector, double& rTensionFactor)
+    double ComputeTensionFactor2D(const Vector& rStressVector)
     {
         Vector principal_stress_vector;
         this->CalculatePrincipalStresses2D(rStressVector, principal_stress_vector);
@@ -141,10 +159,10 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        rTensionFactor = SumB / SumA;
+        return SumB / SumA;
     }
 
-    void ComputeTensionFactor3D(const Vector& rStressVector, double& rTensionFactor)
+    double ComputeTensionFactor3D(const Vector& rStressVector)
     {
         Vector principal_stress_vector;
         this->CalculatePrincipalStresses3D(rStressVector, principal_stress_vector);
@@ -154,7 +172,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             SumB += 0.5 * (principal_stress_vector[cont]  + std::abs(principal_stress_vector[cont]));
             SumC += 0.5 * (-principal_stress_vector[cont] + std::abs(principal_stress_vector[cont]));
         }
-        rTensionFactor = SumB / SumA;
+        return SumB / SumA;
     }
 
     void CalculatePrincipalStresses2D(const Vector& rStressVector, Vector& rPrincipalStressVector)
@@ -235,7 +253,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
   protected:
     // Member Variables
     ModelPart& mrModelPart;
-    unsigned int mNNodes;
+    unsigned int mNNodes, mDimension;
 
 }; // Class ComputeNormalizedFreeEnergyOnNodesProcess
 
