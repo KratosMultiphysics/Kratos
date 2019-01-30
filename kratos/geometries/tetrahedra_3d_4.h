@@ -862,7 +862,7 @@ public:
 
         //and finally the cos of the angle:
         const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
-        rDihedralAngles[i] = acos(angle_cos);
+        rDihedralAngles[i] = std::acos(angle_cos);
       }
 
     }
