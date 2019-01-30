@@ -44,7 +44,7 @@ namespace Kratos
         if (message_severity <= mSeverity)
         {
 			if(TheMessage.IsDistributed())
-				mrStream << TheMessage.GetSourceRank() << ": ";
+				mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";
 
             if(TheMessage.GetLabel().size())
                 mrStream << TheMessage.GetLabel() << ": " << TheMessage.GetMessage();
