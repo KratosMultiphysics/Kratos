@@ -115,7 +115,7 @@ double GetDensityForMassMatrixComputation(const Element& rElement)
 void CalculateRayleighDampingMatrix(
     Element& rElement,
     Element::MatrixType& rDampingMatrix,
-    /*const*/ProcessInfo& rCurrentProcessInfo,
+    const ProcessInfo& rCurrentProcessInfo,
     const std::size_t MatrixSize)
 {
     KRATOS_TRY;
