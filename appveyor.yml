@@ -16,7 +16,7 @@ image: Visual Studio 2017
 platform: 
   - x64
 
-# Specify custom environment variables
+# Specify custom environment variables to use
 environment:
   MSVC_DEFAULT_OPTIONS: ON
   BOOST_ROOT: C:\Libraries\boost_1_65_1
