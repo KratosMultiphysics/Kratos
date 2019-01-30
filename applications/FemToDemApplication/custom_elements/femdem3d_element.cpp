@@ -970,14 +970,14 @@ Vector FemDem3DElement::CalculateCharacteristicLengths()
 	this->SetNodeIndexes(Indexes);
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-		const double X1 = NodesElem[Indexes(edge, 0)].X();
-		const double X2 = NodesElem[Indexes(edge, 1)].X();
-		const double Y1 = NodesElem[Indexes(edge, 0)].Y();
-		const double Y2 = NodesElem[Indexes(edge, 1)].Y();
-		const double Z1 = NodesElem[Indexes(edge, 0)].Z();
-		const double Z2 = NodesElem[Indexes(edge, 1)].Z();
+		const double X1 = NodesElem[Indexes(edge, 0)].X0();
+		const double X2 = NodesElem[Indexes(edge, 1)].X0();
+		const double Y1 = NodesElem[Indexes(edge, 0)].Y0();
+		const double Y2 = NodesElem[Indexes(edge, 1)].Y0();
+		const double Z1 = NodesElem[Indexes(edge, 0)].Z0();
+		const double Z2 = NodesElem[Indexes(edge, 1)].Z0();
 
-		lengths[edge] = std::sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2) + (Z1 - Z2) * (Z1 - Z2));
+		lengths[edge] = std::sqrt(std::pow((X1 - X2), 2.0) + std::pow((Y1 - Y2), 2.0) + std::pow((Z1 - Z2), 2.0));
 	}
 	return lengths;
 }
