@@ -82,6 +82,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
             node.SetSolutionStepValue(self.variable, value)
 
     def _ComputeVelocityError(self):
+        epsilon = 1e-16
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         for node in self.model_part.Nodes:
             fem_vel = node.GetSolutionStepValue(KratosMultiphysics.VELOCITY)
@@ -89,7 +90,7 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
             fem_vel_modulus = (fem_vel[0]**2 + fem_vel[1]**2 + fem_vel[2]**2)**0.5
             exact_vel_modulus = (exact_vel[0]**2 + exact_vel[1]**2 + exact_vel[2]**2)**0.5
             error = abs(fem_vel_modulus - exact_vel_modulus)
-            rel_error = error / exact_vel_modulus
+            error = error / abs(exact_vel_modulus + epsilon)
             node.SetValue(KratosMultiphysics.NODAL_ERROR, error)
 
     def _CopyVelocityAsNonHistorical(self):
@@ -107,5 +108,4 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         err_sum = 0.0
         for node in self.model_part.Nodes:
             err_sum = err_sum + node.GetValue(KratosMultiphysics.NODAL_ERROR)
-        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The sum of the nodal error is : ", err_sum)
-        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The mean of the nodal error is : ", err_sum / self.model_part.Nodes.__len__())
+        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The nodal error average is : ", err_sum / self.model_part.Nodes.__len__())
