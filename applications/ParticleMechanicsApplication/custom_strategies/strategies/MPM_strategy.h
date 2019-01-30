@@ -35,15 +35,10 @@
 
 // Geometry utilities
 #include "utilities/geometry_utilities.h"
-#include "geometries/triangle_2d_3.h"
-#include "geometries/tetrahedra_3d_4.h"
-#include "geometries/quadrilateral_2d_4.h"
-#include "geometries/hexahedra_3d_8.h"
 
 // Custom includes
 #include "custom_strategies/schemes/MPM_residual_based_bossak_scheme.hpp"
 #include "custom_strategies/strategies/MPM_residual_based_newton_raphson_strategy.hpp"
-#include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 
 // Core includes
 #include "solving_strategies/schemes/scheme.h"
@@ -642,7 +637,6 @@ public:
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
-                        Condition::Pointer new_condition;
 
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
@@ -808,21 +802,25 @@ public:
                         MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
 
                         // If dirichlet boundary
+                        std::string condition_type_name;
                         const GeometryData::KratosGeometryType rBackgroundGeoType = mr_grid_model_part.ElementsBegin()->GetGeometry().GetGeometryType();
                         if (!is_neumann_condition){
                             if (TDim==2){
                                 if (rBackgroundGeoType == GeometryData::Kratos_Triangle2D3)
-                                    new_condition = Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(0, Condition::GeometryType::Pointer(new Triangle2D3<Node<3>>(Condition::GeometryType::PointsArrayType(3))));
+                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D3N";
                                 else if (rBackgroundGeoType == GeometryData::Kratos_Quadrilateral2D4)
-                                    new_condition = Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(0, Condition::GeometryType::Pointer(new Tetrahedra3D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))));
+                                    condition_type_name = "MPMParticlePenaltyDirichletCondition2D4N";
                             }
                             else if (TDim==3){
                                 if (rBackgroundGeoType == GeometryData::Kratos_Tetrahedra3D4)
-                                    new_condition = Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(0, Condition::GeometryType::Pointer(new Quadrilateral2D4<Node<3>>(Condition::GeometryType::PointsArrayType(4))));
+                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D4N";
                                 else if (rBackgroundGeoType == GeometryData::Kratos_Hexahedra3D8)
-                                    new_condition = Kratos::make_shared<MPMParticlePenaltyDirichletCondition>(0, Condition::GeometryType::Pointer(new Hexahedra3D8<Node<3>>(Condition::GeometryType::PointsArrayType(8))));
+                                    condition_type_name = "MPMParticlePenaltyDirichletCondition3D8N";
                             }
                         }
+
+                        // Get new condition
+                        const Condition& new_condition = KratosComponents<Condition>::Get(condition_type_name);
 
                         // 1. Loop over the conditions to create inner particle condition
                         unsigned int new_condition_id = 0;
@@ -830,7 +828,7 @@ public:
                         {
                             // Create new material point condition
                             new_condition_id = last_condition_id + PointNumber;
-                            Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
+                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
 
                             mpc_xg.clear();
 
@@ -861,7 +859,7 @@ public:
                             {
                                 // Create new material point condition
                                 new_condition_id = last_condition_id + j;
-                                Condition::Pointer p_condition = (*new_condition).Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
+                                Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
 
                                 mpc_xg.clear();
                                 for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
