@@ -179,7 +179,7 @@ CrBeamElement3D2N::CalculateBodyForces() const {
 
   const double A = this->GetProperties()[CROSS_AREA];
   const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-  const double rho = this->GetProperties()[DENSITY];
+  const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
   // calculating equivalent line load
   for (int i = 0; i < msNumberOfNodes; ++i) {

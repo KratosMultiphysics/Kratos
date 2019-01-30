@@ -36,8 +36,7 @@
                 "step_size"              : 1e-6,
                 "traced_eigenfrequencies": [1,2],
                 "weighting_method"       : "linear_scaling",
-                "weighting_factors"      : [1.0,1.0],
-                "consider_discretization": false
+                "weighting_factors"      : [1.0,1.0]
             },
             "project_gradient_on_surface_normals" : true
         }],
