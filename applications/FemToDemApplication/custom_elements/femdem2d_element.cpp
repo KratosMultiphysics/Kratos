@@ -792,31 +792,25 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 
 double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *pCurrentElement, const Element &rNeibElement, int cont)
 {
-	Geometry<Node<3>> &NodesElem1 = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
-	Geometry<Node<3>> NodesElem2 = rNeibElement.GetGeometry();	   // "         " 2
-	Vector Xcoord, Ycoord;
-	Xcoord.resize(3);
-	Ycoord.resize(3);
+	Geometry<Node<3>>& nodes_current_element = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
 
-	// Let's find the two shared nodes between the 2 elements
-	int aux = 0;
-	for (unsigned int cont = 0; cont < 3; cont++) {
-		for (unsigned int cont2 = 0; cont2 < 3; cont2++) {
-			if (NodesElem1[cont].Id() == NodesElem2[cont2].Id()) {
-				Xcoord[aux] = NodesElem1[cont].X0();
-				Ycoord[aux] = NodesElem1[cont].Y0();
-				aux++; // aux > 3 if the two elements are the same one (in fact aux == 9)
-			}
-		}
-	}
+	Vector node_1_coordinates = ZeroVector(3);
+	Vector node_2_coordinates = ZeroVector(3);
+	Vector node_3_coordinates = ZeroVector(3);
+	node_1_coordinates[0] = nodes_current_element[0].X0();
+	node_1_coordinates[1] = nodes_current_element[0].Y0();
+	node_1_coordinates[2] = nodes_current_element[0].Z0();
+	node_2_coordinates[0] = nodes_current_element[1].X0();
+	node_2_coordinates[1] = nodes_current_element[1].Y0();
+	node_2_coordinates[2] = nodes_current_element[1].Z0();
+	node_3_coordinates[0] = nodes_current_element[2].X0();
+	node_3_coordinates[1] = nodes_current_element[2].Y0();
+	node_3_coordinates[2] = nodes_current_element[2].Z0();
 
-	// Computation of the l_char
-	if (aux < 3) {  // It is not an edge element --> The 2 elements are not equal
-		return std::pow((std::pow(Xcoord[0] - Xcoord[1], 2) + std::pow(Ycoord[0] - Ycoord[1], 2)), 0.5); // Length of the edge between 2 elements 
-	} else { // Edge element
-		const double element_area = std::abs(this->GetGeometry().Area());
-		return std::sqrt(4.0 * element_area / std::sqrt(3.0)); // Cervera's Formula
-	} // l_char computed
+	const double length1 = MathUtils<double>::Norm3(node_1_coordinates-node_2_coordinates);
+	const double length2 = MathUtils<double>::Norm3(node_2_coordinates-node_3_coordinates);
+	const double length3 = MathUtils<double>::Norm3(node_3_coordinates-node_1_coordinates);
+	return (length1 + length2 + length3) / 3.0;
 }
 
 void FemDem2DElement::Get2MaxValues(Vector &MaxValues, double a, double b, double c)
@@ -1261,6 +1255,12 @@ void FemDem2DElement::SimoJuCriterion(
 	const double F = uniaxial_stress - rThreshold;
 
 	const double A = 1.00 / (Gt * n * n * E / (Length * std::pow(sigma_c, 2)) - 0.5);
+	if (A < tolerance) {
+		KRATOS_WATCH(this->Id())
+		KRATOS_WATCH(Gt)
+		KRATOS_WATCH(Length)
+		KRATOS_WATCH(Length)
+	}
 	KRATOS_ERROR_IF(A < tolerance) << "'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	if (F <= 0) {// Elastic region --> Damage is constant
