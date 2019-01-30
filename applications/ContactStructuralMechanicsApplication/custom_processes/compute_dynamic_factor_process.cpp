@@ -28,9 +28,6 @@ void ComputeDynamicFactorProcess::Execute()
     // Getting process info
     ProcessInfo& r_process_info = mrThisModelPart.GetProcessInfo();
 
-    // Getting delta time
-    const double delta_time = r_process_info[DELTA_TIME];
-
     // Getting logistic factor
     double logistic_factor = 1.0;
 
