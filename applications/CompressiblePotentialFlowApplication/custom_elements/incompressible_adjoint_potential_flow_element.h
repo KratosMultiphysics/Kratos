@@ -461,41 +461,43 @@ public:
 
         if (rOutput.size1() != NumNodes)
             rOutput.resize(Dim*NumNodes, RHS.size(), false);
-        bool compute_sensitivity=true;
+        bool kutta_node_spotted=false;
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             if(GetGeometry()[i_node].Is(STRUCTURE)){
-                compute_sensitivity=false;
+                kutta_node_spotted=true;
                 break;
             }
         }
-        if (compute_sensitivity){
-            for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-                for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                    if (GetGeometry()[i_node].Is(SOLID)){
-                        pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
-                        pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
-                        // compute LHS after perturbation
-                        pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
+        for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
+            for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
+                if (GetGeometry()[i_node].Is(SOLID)){
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] += delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] += delta;
 
-                        //compute derivative of RHS w.r.t. design variable with finite differences
-                        for(unsigned int i = 0; i < RHS.size(); ++i)
-                            rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
+                    // compute LHS after perturbation
+                    pGetPrimalElement()->CalculateRightHandSide(RHS_perturbed, process_info);
 
-                        // unperturb the design variable
-                        pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
-                        pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
-                    }else{
-                        for(unsigned int i = 0; i < RHS.size(); ++i)
-                            rOutput( (i_dim + i_node*Dim), i) = 0.0;
-                    }
+                    //compute derivative of RHS w.r.t. design variable with finite differences
+                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                        rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
+
+                    // unperturb the design variable
+                    pGetPrimalElement()->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
+                    pGetPrimalElement()->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
+                }else{
+                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                        rOutput( (i_dim + i_node*Dim), i) = 0.0;
                 }
             }
-        }else{
+        }
+        if (kutta_node_spotted){ //remove kutta node lines
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
-                for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
-                            rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                if(GetGeometry()[i_node].Is(STRUCTURE)){
+                    for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
+                        for(unsigned int i = 0; i < RHS.size(); ++i)
+                                rOutput( (i_dim + i_node*Dim), i) = 0.0;
+                    }
                 }
             }  
         }
