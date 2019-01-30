@@ -53,7 +53,7 @@ CrBeamElementLinear2D2N::~CrBeamElementLinear2D2N() {}
 
 void CrBeamElementLinear2D2N::CalculateLocalSystem(
     MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   // Kt
   this->CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
@@ -69,7 +69,7 @@ void CrBeamElementLinear2D2N::CalculateLocalSystem(
 }
 
 void CrBeamElementLinear2D2N::CalculateRightHandSide(
-    VectorType &rRightHandSideVector, ProcessInfo &rCurrentProcessInfo) {
+    VectorType &rRightHandSideVector, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   Vector nodal_deformation = ZeroVector(msElementSize);
   this->GetValuesVector(nodal_deformation);
@@ -80,7 +80,7 @@ void CrBeamElementLinear2D2N::CalculateRightHandSide(
 }
 
 void CrBeamElementLinear2D2N::CalculateLeftHandSide(
-    MatrixType &rLeftHandSideMatrix, ProcessInfo &rCurrentProcessInfo) {
+    MatrixType &rLeftHandSideMatrix, const ProcessInfo &rCurrentProcessInfo) {
   KRATOS_TRY;
   rLeftHandSideMatrix = this->CreateElementStiffnessMatrix_Total();
 

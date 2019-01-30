@@ -49,7 +49,7 @@ CrBeamElement3D2N::Create(IndexType NewId, GeometryType::Pointer pGeom,
 CrBeamElement3D2N::~CrBeamElement3D2N() {}
 
 void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
-                                         const ProcessInfo &rCurrentProcessInfo) {
+                                         const ProcessInfo &rCurrentProcessInfo) const {
   if (rResult.size() != msElementSize)
     rResult.resize(msElementSize);
 
@@ -68,7 +68,7 @@ void CrBeamElement3D2N::EquationIdVector(EquationIdVectorType &rResult,
 }
 
 void CrBeamElement3D2N::GetDofList(DofsVectorType &rElementalDofList,
-                                   const ProcessInfo &rCurrentProcessInfo) {
+                                   const ProcessInfo &rCurrentProcessInfo) const {
 
   if (rElementalDofList.size() != msElementSize) {
     rElementalDofList.resize(msElementSize);
@@ -283,7 +283,7 @@ void CrBeamElement3D2N::CalculateAndAddWorkEquivalentNodalForcesLineLoad(
 }
 
 void CrBeamElement3D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo)
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -1441,7 +1441,7 @@ CrBeamElement3D2N::GetIntegrationMethod() const {
 
 void CrBeamElement3D2N::AddExplicitContribution(
     const VectorType &rRHSVector, const Variable<VectorType> &rRHSVariable,
-    Variable<array_1d<double, 3>> &rDestinationVariable,
+    const Variable<array_1d<double, 3>> &rDestinationVariable,
     const ProcessInfo &rCurrentProcessInfo
     )
 {
