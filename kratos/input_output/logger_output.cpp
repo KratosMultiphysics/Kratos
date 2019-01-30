@@ -41,7 +41,7 @@ namespace Kratos
     void LoggerOutput::WriteMessage(LoggerMessage const& TheMessage)
     {
 		auto message_severity = TheMessage.GetSeverity();
-        if (message_severity <= mSeverity)
+        if (TheMessage.WriteInThisRank() && message_severity <= mSeverity)
         {
 			if(TheMessage.IsDistributed())
 				mrStream << "Rank " << TheMessage.GetSourceRank() << ": ";

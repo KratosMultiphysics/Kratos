@@ -79,24 +79,28 @@ namespace Kratos
 			class DistributedFilter {
 			public:
 				DistributedFilter()
-					: mIsDistributed(false), mSourceRank(0) {}
+					: mIsDistributed(false), mPrintFromAllRanks(false), mSourceRank(0) {}
 
-				DistributedFilter(bool IsDistributed, int TheRank)
-					: mIsDistributed(IsDistributed), mSourceRank(TheRank) {}
+				DistributedFilter(bool IsDistributed, bool PrintFromAllRanks, int TheRank)
+					: mIsDistributed(IsDistributed), mPrintFromAllRanks(PrintFromAllRanks), mSourceRank(TheRank) {}
 
 				DistributedFilter(DistributedFilter const& rOther)
-					: mIsDistributed(rOther.mIsDistributed), mSourceRank(rOther.mSourceRank) {}
+					: mIsDistributed(rOther.mIsDistributed), mPrintFromAllRanks(rOther.mPrintFromAllRanks), mSourceRank(rOther.mSourceRank) {}
 
 				static DistributedFilter FromRoot() {
-					return DistributedFilter(false, 0);
+					return DistributedFilter(false, false, 0);
 				}
 
 				static DistributedFilter FromRank(int TheRank) {
-					return DistributedFilter(true, TheRank);
+					return DistributedFilter(true, false, TheRank);
 				}
 
 				static DistributedFilter FromAllRanks() {
-					return DistributedFilter(true, 0);
+					return DistributedFilter(true, true, 0);
+				}
+
+				bool WriteFromRank(int Rank) const {
+					return mPrintFromAllRanks || Rank == mSourceRank;
 				}
 
 				bool IsDistributed() const {
@@ -108,8 +112,8 @@ namespace Kratos
 				}
 
 			private:
-				int mMessageRank;
 				bool mIsDistributed;
+				bool mPrintFromAllRanks;
 				int mSourceRank;
 			};
 
@@ -222,6 +226,10 @@ namespace Kratos
 
 			bool IsDistributed() const {
 				return mDistributedFilter.IsDistributed();
+			}
+
+			bool WriteInThisRank() const {
+				return mDistributedFilter.WriteFromRank(mMessageSource.GetRank());
 			}
 
 			int GetSourceRank() const {
