@@ -106,7 +106,7 @@ namespace Kratos
          * @brief This function calculates the total stiffness matrix for the element
          */
         BoundedMatrix<double,msLocalSize,msLocalSize>
-         CreateElementStiffnessMatrix(ProcessInfo& rCurrentProcessInfo);
+         CreateElementStiffnessMatrix(const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function calculates the original nodal postion for the transformation matrix
@@ -139,8 +139,8 @@ namespace Kratos
          * @param rSaveInternalVariables Boolean to save internal constit. law variables
          */
         BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
-            ProcessInfo& rCurrentProcessInfo,
-            const bool& rSaveInternalVariables);
+            const ProcessInfo& rCurrentProcessInfo,
+            const bool rSaveInternalVariables) override;
 
 
 		private:

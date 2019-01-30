@@ -274,7 +274,7 @@ namespace Kratos
          */
         virtual BoundedVector<double,msLocalSize> GetConstitutiveLawTrialResponse(
             const ProcessInfo& rCurrentProcessInfo,
-            const bool& rSaveInternalVariables);
+            const bool rSaveInternalVariables);
 
 private:
     /**

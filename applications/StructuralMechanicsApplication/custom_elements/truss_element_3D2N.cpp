@@ -113,7 +113,7 @@ TrussElement3D2N::CreateElementStiffnessMatrix(
 }
 
 void TrussElement3D2N::CalculateDampingMatrix(
-    MatrixType &rDampingMatrix, ProcessInfo &rCurrentProcessInfo)
+    MatrixType &rDampingMatrix, const ProcessInfo &rCurrentProcessInfo)
 {
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
@@ -876,7 +876,7 @@ void TrussElement3D2N::FinalizeNonLinearIteration(const ProcessInfo& rCurrentPro
 
 BoundedVector<double,TrussElement3D2N::msLocalSize>
   TrussElement3D2N::GetConstitutiveLawTrialResponse(
-   const ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
+   const ProcessInfo& rCurrentProcessInfo,const bool rSaveInternalVariables)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());

@@ -53,7 +53,7 @@ TrussElementLinear3D2N::~TrussElementLinear3D2N() {}
 BoundedMatrix<double, TrussElement3D2N::msLocalSize,
                TrussElement3D2N::msLocalSize>
 TrussElementLinear3D2N::CreateElementStiffnessMatrix(
-    ProcessInfo &rCurrentProcessInfo) {
+    const ProcessInfo &rCurrentProcessInfo) {
 
   KRATOS_TRY
   BoundedMatrix<double, msLocalSize, msLocalSize> LocalStiffnessMatrix =
@@ -271,7 +271,7 @@ void TrussElementLinear3D2N::InitializeNonLinearIteration(const ProcessInfo& rCu
 
 BoundedVector<double,TrussElementLinear3D2N::msLocalSize>
   TrussElementLinear3D2N::GetConstitutiveLawTrialResponse(
-   ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
+   const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
