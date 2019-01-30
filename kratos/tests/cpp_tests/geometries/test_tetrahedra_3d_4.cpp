@@ -448,9 +448,9 @@ namespace Kratos {
       Vector dihedral_angles(6);
       geomTriRect->ComputeDihedralAngles(dihedral_angles); 
 
-      KRATOS_CHECK_NEAR(dihedral_angles[0],  3.14159265359*0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[1],  3.14159265359*0.5, TOLERANCE);
-      KRATOS_CHECK_NEAR(dihedral_angles[2],  3.14159265359*0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[2],  Globals::Pi *0.5, TOLERANCE);
       KRATOS_CHECK_NEAR(dihedral_angles[3],  0.955316618, TOLERANCE);
       KRATOS_CHECK_NEAR(dihedral_angles[4],  0.955316618, TOLERANCE);
       KRATOS_CHECK_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
@@ -467,7 +467,7 @@ namespace Kratos {
       Vector solid_angles(6);
       geomTriRect->ComputeSolidAngles(solid_angles); 
 
-      KRATOS_CHECK_NEAR(solid_angles[0],  3.14159265359*0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
       KRATOS_CHECK_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
       KRATOS_CHECK_NEAR(solid_angles[2],  0.339836909, TOLERANCE);
       KRATOS_CHECK_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
