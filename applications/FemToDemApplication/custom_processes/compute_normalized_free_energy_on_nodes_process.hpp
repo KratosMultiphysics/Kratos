@@ -66,16 +66,21 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             auto& r_geometry = (*it)->GetGeometry();
             auto& r_mat_properties = (*it)->GetProperties();
 
-            if (mDimension == 2) { // 2D version
-                for (unsigned int i = 0; i < 3; i++) {
+            const Vector& r_strain_vector = (*it)->GetValue(STRAIN_VECTOR);
+            const Vector& r_stress_vector = (*it)->GetValue(STRESS_VECTOR);
+            const double damage = (*it)->GetValue(DAMAGE_ELEMENT);
 
+            // Compute Normalized Free Energy on that element
+            const double normalized_free_energy = this->CalculateNormalizedFreeEnergy(r_strain_vector,
+                                                                                      r_stress_vector,
+                                                                                      damage,
+                                                                                      r_mat_properties,
+                                                                                      r_geometry);
 
-                }
-            } else { // 3D version
-                for (unsigned int i = 0; i < 4; i++) {
-
-
-                }
+            for (unsigned int i = 0; i < r_geometry.PointsNumber(); i++) {
+                const int node_id = r_geometry.GetPoint(i).Id();
+                pNodeNormalizedFreeEnergyVector[node_id - 1].NormalizedFreeEnergy += normalized_free_energy;
+                pNodeNormalizedFreeEnergyVector[node_id - 1].NElems += 1;
             }
         }
 
@@ -84,8 +89,6 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             pNodeNormalizedFreeEnergyVector[i].NormalizedFreeEnergy /= pNodeNormalizedFreeEnergyVector[i].NElems;
         }
     }
-
-
 
     double CalculateNormalizedFreeEnergy(
         const Vector& rStrainVector, 
