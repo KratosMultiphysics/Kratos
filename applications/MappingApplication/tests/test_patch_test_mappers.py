@@ -1,5 +1,5 @@
 from __future__ import print_function, absolute_import, division
-import KratosMultiphysics
+import KratosMultiphysics as KM
 
 import KratosMultiphysics.MappingApplication as KratosMapping
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -20,8 +20,9 @@ x--x--x----x---x
 
 class TestPatchTestMappers(KratosUnittest.TestCase):
     def setUp(self):
-        self.mp_origin = KratosMultiphysics.ModelPart("origin_part")
-        self.mp_destination = KratosMultiphysics.ModelPart("destination_part")
+        self.test_model = KM.Model()
+        self.mp_origin = self.test_model.CreateModelPart("origin_part")
+        self.mp_destination = self.test_model.CreateModelPart("destination_part")
 
         self._add_variables()
         self._create_nodes()
@@ -29,11 +30,11 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
 
     def _add_variables(self):
-        self.mp_origin.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
-        self.mp_origin.AddNodalSolutionStepVariable(KratosMultiphysics.FORCE)
+        self.mp_origin.AddNodalSolutionStepVariable(KM.PRESSURE)
+        self.mp_origin.AddNodalSolutionStepVariable(KM.FORCE)
 
-        self.mp_destination.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
-        self.mp_destination.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        self.mp_destination.AddNodalSolutionStepVariable(KM.TEMPERATURE)
+        self.mp_destination.AddNodalSolutionStepVariable(KM.VELOCITY)
 
 
     def _create_nodes(self):
@@ -67,16 +68,16 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
     def _set_values_origin(self):
         value = 0
         for node in self.mp_origin.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, value+0.2)
-            node.SetSolutionStepValue(KratosMultiphysics.FORCE, [value, value+0.1, value-0.3])
+            node.SetSolutionStepValue(KM.PRESSURE, value+0.2)
+            node.SetSolutionStepValue(KM.FORCE, [value, value+0.1, value-0.3])
             value += 1
 
 
     def _set_values_destination(self):
         value = 0
         for node in self.mp_destination.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.TEMPERATURE, value-0.3)
-            node.SetSolutionStepValue(KratosMultiphysics.VELOCITY, [value, value-0.1, value+0.4])
+            node.SetSolutionStepValue(KM.TEMPERATURE, value-0.3)
+            node.SetSolutionStepValue(KM.VELOCITY, [value, value-0.1, value+0.4])
             value += 1
 
 
@@ -88,39 +89,34 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
 
     def _create_mapper(self, mapper_name):
-        mapper_settings = KratosMultiphysics.Parameters("""{ }""")
-        mapper_settings.AddEmptyValue("mapper_type")
-        mapper_settings["mapper_type"].SetString(mapper_name)
+        mapper_settings = KM.Parameters("""{
+            "mapper_type" : \"""" + mapper_name + """\"
+         }""")
 
         self.mapper = KratosMapping.MapperFactory.CreateMapper(self.mp_origin,
-                                                                  self.mp_destination,
-                                                                  mapper_settings)
+                                                               self.mp_destination,
+                                                               mapper_settings)
 
 
     def _check_results_scalar(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
             raise RuntimeError("Something went wrong!")
-        index = 0
-        for node in mp.Nodes:
+        for index, node in enumerate(mp.Nodes):
             self.assertAlmostEqual(node.GetSolutionStepValue(variable), results[index], 10)
-            index += 1
 
 
     def _check_results_vector(self, mp, results, variable):
         if len(results) != mp.NumberOfNodes():
             raise RuntimeError("Something went wrong!")
-        index = 0
-        for node in mp.Nodes:
+        for index, node in enumerate(mp.Nodes):
             self.assertAlmostEqual(node.GetSolutionStepValue(variable)[0], results[index][0], 10)
             self.assertAlmostEqual(node.GetSolutionStepValue(variable)[1], results[index][1], 10)
             self.assertAlmostEqual(node.GetSolutionStepValue(variable)[2], results[index][2], 10)
-            index += 1
 
 
     def _check_results_scalar_const(self, mp, value, variable):
         for node in mp.Nodes:
             self.assertAlmostEqual(node.GetSolutionStepValue(variable), value)
-
 
     def _check_results_vector_const(self, mp, value, variable):
         for node in mp.Nodes:
@@ -134,85 +130,85 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         ### Map ###
         # Scalar Mapping
         mapping_value = 1.33
-        self._set_values_mp_const(self.mp_origin, KratosMultiphysics.PRESSURE, mapping_value)
+        self._set_values_mp_const(self.mp_origin, KM.PRESSURE, mapping_value)
 
-        self.mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE)
-        self._check_results_scalar_const(self.mp_destination, mapping_value, KratosMultiphysics.TEMPERATURE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE)
+        self._check_results_scalar_const(self.mp_destination, mapping_value, KM.TEMPERATURE)
 
         self.mapper.UpdateInterface()
 
-        self.mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
-        self._check_results_scalar_const(self.mp_destination, 2*mapping_value, KratosMultiphysics.TEMPERATURE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self._check_results_scalar_const(self.mp_destination, 2*mapping_value, KM.TEMPERATURE)
 
-        self.mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
-        self._check_results_scalar_const(self.mp_destination, mapping_value, KratosMultiphysics.TEMPERATURE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self._check_results_scalar_const(self.mp_destination, mapping_value, KM.TEMPERATURE)
 
         # Vector Mapping
         mapping_value = (1.443, -5.874, 7.99)
-        self._set_values_mp_const(self.mp_origin, KratosMultiphysics.FORCE, mapping_value)
+        self._set_values_mp_const(self.mp_origin, KM.FORCE, mapping_value)
 
-        self.mapper.Map(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY)
-        self._check_results_vector_const(self.mp_destination, mapping_value, KratosMultiphysics.VELOCITY)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY)
+        self._check_results_vector_const(self.mp_destination, mapping_value, KM.VELOCITY)
 
-        self.mapper.Map(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
-        self._check_results_vector_const(self.mp_destination, [2*x for x in mapping_value], KratosMultiphysics.VELOCITY)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self._check_results_vector_const(self.mp_destination, [2*x for x in mapping_value], KM.VELOCITY)
 
-        self.mapper.Map(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
-        self._check_results_vector_const(self.mp_destination, mapping_value, KratosMultiphysics.VELOCITY)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self._check_results_vector_const(self.mp_destination, mapping_value, KM.VELOCITY)
 
         ### InverseMap ###
         # Scalar Mapping
         mapping_value = -71.33
-        self._set_values_mp_const(self.mp_destination, KratosMultiphysics.TEMPERATURE, mapping_value)
+        self._set_values_mp_const(self.mp_destination, KM.TEMPERATURE, mapping_value)
 
-        self.mapper.InverseMap(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE)
-        self._check_results_scalar_const(self.mp_origin, mapping_value, KratosMultiphysics.PRESSURE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE)
+        self._check_results_scalar_const(self.mp_origin, mapping_value, KM.PRESSURE)
 
-        self.mapper.InverseMap(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
-        self._check_results_scalar_const(self.mp_origin, 2*mapping_value, KratosMultiphysics.PRESSURE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES)
+        self._check_results_scalar_const(self.mp_origin, 2*mapping_value, KM.PRESSURE)
 
-        self.mapper.InverseMap(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
-        self._check_results_scalar_const(self.mp_origin, mapping_value, KratosMultiphysics.PRESSURE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self._check_results_scalar_const(self.mp_origin, mapping_value, KM.PRESSURE)
 
         # Vector Mapping
         mapping_value = (-5.443, 44.874, -7.9779)
-        self._set_values_mp_const(self.mp_destination, KratosMultiphysics.VELOCITY, mapping_value)
+        self._set_values_mp_const(self.mp_destination, KM.VELOCITY, mapping_value)
 
-        self.mapper.InverseMap(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY)
-        self._check_results_vector_const(self.mp_origin, mapping_value, KratosMultiphysics.FORCE)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY)
+        self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
 
         self.mapper.UpdateInterface(KratosMapping.Mapper.REMESHED)
 
-        self.mapper.InverseMap(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
-        self._check_results_vector_const(self.mp_origin, [2*x for x in mapping_value], KratosMultiphysics.FORCE)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES)
+        self._check_results_vector_const(self.mp_origin, [2*x for x in mapping_value], KM.FORCE)
 
-        self.mapper.InverseMap(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
-        self._check_results_vector_const(self.mp_origin, mapping_value, KratosMultiphysics.FORCE)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, KratosMapping.Mapper.ADD_VALUES | KratosMapping.Mapper.SWAP_SIGN)
+        self._check_results_vector_const(self.mp_origin, mapping_value, KM.FORCE)
 
 
-    def _execute_non_constant_value_test(self, results, mapper_flag=KratosMultiphysics.Flags()):
+    def _execute_non_constant_value_test(self, results, mapper_flag=KM.Flags()):
         # Check mapping of a non-constant field
         ### Map ###
         # Scalar Mapping
         self._set_values_origin()
 
-        self.mapper.Map(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, mapper_flag)
-        self._check_results_scalar(self.mp_destination, results[0], KratosMultiphysics.TEMPERATURE)
+        self.mapper.Map(KM.PRESSURE, KM.TEMPERATURE, mapper_flag)
+        self._check_results_scalar(self.mp_destination, results[0], KM.TEMPERATURE)
 
         # Vector Mapping
-        self.mapper.Map(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, mapper_flag)
-        self._check_results_vector(self.mp_destination, results[1], KratosMultiphysics.VELOCITY)
+        self.mapper.Map(KM.FORCE, KM.VELOCITY, mapper_flag)
+        self._check_results_vector(self.mp_destination, results[1], KM.VELOCITY)
 
         ### InverseMap ###
         # Scalar Mapping
         self._set_values_destination()
 
-        self.mapper.InverseMap(KratosMultiphysics.PRESSURE, KratosMultiphysics.TEMPERATURE, mapper_flag)
-        self._check_results_scalar(self.mp_origin, results[2], KratosMultiphysics.PRESSURE)
+        self.mapper.InverseMap(KM.PRESSURE, KM.TEMPERATURE, mapper_flag)
+        self._check_results_scalar(self.mp_origin, results[2], KM.PRESSURE)
 
         # Vector Mapping
-        self.mapper.InverseMap(KratosMultiphysics.FORCE, KratosMultiphysics.VELOCITY, mapper_flag)
-        self._check_results_vector(self.mp_origin, results[3], KratosMultiphysics.FORCE)
+        self.mapper.InverseMap(KM.FORCE, KM.VELOCITY, mapper_flag)
+        self._check_results_vector(self.mp_origin, results[3], KM.FORCE)
 
     def test_nearest_neighbor_mapper_matrix_based(self):
         mapper_name = "nearest_neighbor"
@@ -270,35 +266,6 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
 
         # # Test conservative Mapping
         self._execute_non_constant_value_test(results_conservative, KratosMapping.Mapper.USE_TRANSPOSE) # TODO check the values!
-
-
-    # def test_mortar_mapper(self):
-    #     mapper_name = "Mortar"
-
-    #     map_results_scalar = [0.2, 0.2, 1.2, 2.2, 2.2]
-    #     map_results_vector     = [(0.0,0.1,-0.3), (0.0,0.1,-0.3), (1.0,1.1,0.7), (2.0,2.1,1.7), (2.0,2.1,1.7)]
-    #     inverse_map_results_scalar     = [-0.3, 1.7, 3.7, 3.7]
-    #     inverse_map_results_vector     = [(0.0,-0.1,0.4), (2.0,1.9,2.4), (4.0,3.9,4.4), (4.0,3.9,4.4)]
-
-    #     map_results_scalar_conservative = [0.2, 0.0, 1.2, 0.0, 5.4]
-    #     map_results_vector_conservative     = [(0.0,0.1,-0.3), (0.0,0.0,0.0), (1.0,1.1,0.7), (0.0,0.0,0.0), (5.0,5.2,4.4)]
-    #     inverse_map_results_scalar_conservative     = [0.4, 1.7, 6.4, 0.0]
-    #     inverse_map_results_vector_conservative     = [(1.0,0.8,1.8), (2.0,1.9,2.4), (7.0,6.8,7.8), (0.0,0.0,0.0)]
-
-    #     results = [map_results_scalar, map_results_vector]
-    #     results.extend([inverse_map_results_scalar, inverse_map_results_vector])
-
-    #     results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
-    #     results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
-
-    #     self._create_mapper(mapper_name)
-
-    #     # self._execute_constant_value_test()
-
-    #     # self._execute_non_constant_value_test(results)
-
-    #     # # Test conservative Mapping
-    #     # self._execute_non_constant_value_test(results_conservative, KratosMapping.Mapper.USE_TRANSPOSE)
 
 
 if __name__ == '__main__':
