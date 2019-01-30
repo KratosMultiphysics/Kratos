@@ -4,22 +4,22 @@
 #include <cmath>
 
 // Project includes
-#include "dem_kdem_fissured_rock_cl.h"
+#include "DEM_KDEM_fissured_rock_CL.h"
 #include "custom_elements/spheric_continuum_particle.h"
 
 namespace Kratos {
 
-    DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_Fissured_Rock_CL::Clone() const {
-        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_Fissured_Rock_CL(*this));
+    DEMContinuumConstitutiveLaw::Pointer DEM_KDEM_fissured_rock_CL::Clone() const {
+        DEMContinuumConstitutiveLaw::Pointer p_clone(new DEM_KDEM_fissured_rock_CL(*this));
         return p_clone;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_Fissured_Rock_CL to Properties " << pProp->Id() << std::endl;
+    void DEM_KDEM_fissured_rock_CL::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        KRATOS_INFO("DEM") << "Assigning DEM_KDEM_fissured_rock_CL to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_CONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    double DEM_KDEM_Fissured_Rock_CL::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
+    double DEM_KDEM_fissured_rock_CL::LocalMaxSearchDistance(const int i, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         Properties& element1_props = element1->GetProperties();
         Properties& element2_props = element2->GetProperties();
@@ -47,7 +47,7 @@ namespace Kratos {
         return u1;
     }
 
-    void DEM_KDEM_Fissured_Rock_CL::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
+    void DEM_KDEM_fissured_rock_CL::CheckFailure(const int i_neighbour_count, SphericContinuumParticle* element1, SphericContinuumParticle* element2){
 
         int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
 
@@ -102,7 +102,7 @@ namespace Kratos {
 
     }
 
-    bool DEM_KDEM_Fissured_Rock_CL::CheckRequirementsOfStressTensor() {
+    bool DEM_KDEM_fissured_rock_CL::CheckRequirementsOfStressTensor() {
 
         return true;
 

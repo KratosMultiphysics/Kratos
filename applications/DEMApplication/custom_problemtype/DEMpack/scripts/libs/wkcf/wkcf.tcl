@@ -450,7 +450,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM2D"
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
-		                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+		                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric2D"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
@@ -471,7 +471,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "INTERNAL_FRICTION_ANGLE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_internal_friction_angle" dv read {} mat]"
                                 } elseif {$propvalue == "KDEM_Fissured_Rock"} {
 		                    set using_dem_kdem 1
-		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_Fissured_Rock"
+		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM_fissured_rock"
 		                    GiD_File fprintf $filechannel "TENSION_LIMIT_INCREASE_SLOPE [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_stress_limit_growth_slope" dv read {} mat]"
 		                } elseif {$propvalue == "KDEM_CamClay"} {
 		                    set using_dem_kdem 1
@@ -481,7 +481,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
                                     GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric"
-                                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+                                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
 		                }
@@ -512,7 +512,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		            } elseif {$contact_law eq "LinearCustomized"} {
 		                GiD_File fprintf $filechannel "K_NORMAL [::xmlutils::setXml DEMMaterial//m.$material//p.KNormal dv read {} mat]"
 		                GiD_File fprintf $filechannel "K_TANGENTIAL [::xmlutils::setXml DEMMaterial//m.$material//p.KTangential dv read {} mat]"
-		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_Custom_Constants"
+		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_custom_constants"
 		            } else {
 		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEMDiscontinuumConstitutiveLaw"
 		            }
@@ -533,12 +533,12 @@ proc ::wkcf::WriteProperties {AppId} {
 		                }
 
 					} elseif {$contact_law eq "Linear_HighStiffness"} {
-		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_HighStiffness"
+		                    GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_high_stiffness"
 
 		            } elseif {$contact_law eq "LinearCustomized"} {
 		                GiD_File fprintf $filechannel "K_NORMAL [::xmlutils::setXml DEMMaterial//m.$material//p.KNormal dv read {} mat]"
 		                GiD_File fprintf $filechannel "K_TANGENTIAL [::xmlutils::setXml DEMMaterial//m.$material//p.KTangential dv read {} mat]"
-		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_Custom_Constants"
+		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_custom_constants"
 		            } else {
 		                GiD_File fprintf $filechannel "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEMDiscontinuumConstitutiveLaw"
 		            }
@@ -715,7 +715,7 @@ proc ::wkcf::WriteProperties {AppId} {
 	} elseif {$contact_law eq "LinearCustomized"} {
 	    GiD_File fprintf $deminletchannel "  K_NORMAL [::xmlutils::setXml DEMMaterial//m.$material//p.KNormal dv read {} mat]"
 	    GiD_File fprintf $deminletchannel "  K_TANGENTIAL [::xmlutils::setXml DEMMaterial//m.$material//p.KTangential dv read {} mat]"
-	    GiD_File fprintf $deminletchannel "  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_Custom_Constants"
+	    GiD_File fprintf $deminletchannel "  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEM_D_Linear_custom_constants"
 	} else {
 	    GiD_File fprintf $deminletchannel "  DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME DEMDiscontinuumConstitutiveLaw"
 	    W "No Discontinuum Law was chosen!"

@@ -9,17 +9,17 @@
 
 namespace Kratos {
 
-    class KRATOS_API(DEM_APPLICATION) DEM_KDEM_Fissured_Rock_CL : public DEM_KDEM_Rankine {
+    class KRATOS_API(DEM_APPLICATION) DEM_KDEM_fissured_rock_CL : public DEM_KDEM_Rankine {
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_Fissured_Rock_CL);
+        KRATOS_CLASS_POINTER_DEFINITION(DEM_KDEM_fissured_rock_CL);
 
-        DEM_KDEM_Fissured_Rock_CL() {
+        DEM_KDEM_fissured_rock_CL() {
         }
 
         void SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose = true) const override;
 
-        ~DEM_KDEM_Fissured_Rock_CL() {
+        ~DEM_KDEM_fissured_rock_CL() {
         }
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;

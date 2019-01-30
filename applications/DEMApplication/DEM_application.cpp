@@ -22,8 +22,8 @@
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "custom_constitutive/DEM_Dempack_dev_CL.h"
-#include "custom_constitutive/dem_kdem_2d_cl.h"
-#include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
+#include "custom_constitutive/DEM_KDEM_2D_CL.h"
+#include "custom_constitutive/DEM_KDEM_fabric_2D_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -31,7 +31,7 @@
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
+#include "custom_constitutive/DEM_D_Linear_custom_constants_cl.h"
 #include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
@@ -172,7 +172,7 @@ KRATOS_CREATE_VARIABLE(double, MAX_STRESS)
 KRATOS_CREATE_VARIABLE(double, GAMMA)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY)
 KRATOS_CREATE_VARIABLE(double, EXCENTRICITY_STANDARD_DEVIATION)
-KRATOS_CREATE_VARIABLE(double, FABRIC_COEFFICIENT)
+KRATOS_CREATE_VARIABLE(double, ROTATIONAL_MOMENT_COEFFICIENT)
 KRATOS_CREATE_VARIABLE(double, POISSON_VALUE)
 KRATOS_CREATE_VARIABLE(double, INTERNAL_COHESION)
 KRATOS_CREATE_VARIABLE(int, FREE_BODY_MOTION)
@@ -579,7 +579,7 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(GAMMA)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY)
     KRATOS_REGISTER_VARIABLE(EXCENTRICITY_STANDARD_DEVIATION)
-    KRATOS_REGISTER_VARIABLE(FABRIC_COEFFICIENT)
+    KRATOS_REGISTER_VARIABLE(ROTATIONAL_MOMENT_COEFFICIENT)
     KRATOS_REGISTER_VARIABLE(POISSON_VALUE)
     KRATOS_REGISTER_VARIABLE(INTERNAL_COHESION)
 
@@ -843,7 +843,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register(
-        "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
+        "DEM_D_Linear_custom_constants", DEM_D_Linear_custom_constants());
     Serializer::Register(
         "DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
     Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",

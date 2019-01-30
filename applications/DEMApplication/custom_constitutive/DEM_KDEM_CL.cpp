@@ -104,7 +104,7 @@ namespace Kratos {
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
-        
+
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
         double initial_dist = radius_sum - initial_delta;
@@ -339,7 +339,9 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
+
         KRATOS_TRY
+        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -391,6 +393,9 @@ namespace Kratos {
         ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
 
+        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
+        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
+
         // TODO: Judge if the rotation spring is broken or not
         /*
         double ForceN  = LocalElasticContactForce[2];
@@ -408,8 +413,9 @@ namespace Kratos {
         }
         */
         //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
+
         KRATOS_CATCH("")
-    }//ComputeParticleRotationalMoments
+    }
 
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,
