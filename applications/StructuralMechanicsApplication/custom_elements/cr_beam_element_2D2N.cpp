@@ -151,7 +151,7 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
 
   const double L = this->CalculateLength();
   const double A = this->GetProperties()[CROSS_AREA];
-  const double rho = this->GetProperties()[DENSITY];
+  const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
   const double pre_beam = (rho * A * L) / 420.00;
   const double pre_bar = (rho * A * L) / 6.00;

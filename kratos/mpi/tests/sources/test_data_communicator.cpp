@@ -729,7 +729,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvInt, KratosMPICoreFastSuite)
     std::vector<int> recv_buffer = {-1, -1};
 
     // two-buffer version
-    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+    serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(recv_buffer[i], -1);
@@ -766,7 +766,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvDouble, KratosMPICoreFastSuite
     std::vector<double> recv_buffer{-1.0, -1.0};
 
     // two-buffer version
-    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+    serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     for (int i = 0; i < 2; i++)
     {
         KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
@@ -804,7 +804,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
     std::string recv_buffer("************");
 
     // two-buffer version
-    serial_communicator.SendRecv(send_buffer, send_rank, recv_buffer, recv_rank);
+    serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
     KRATOS_CHECK_C_STRING_EQUAL(recv_buffer.c_str(), "************");
 
     // return version

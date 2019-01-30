@@ -48,15 +48,11 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
 private:
-    void CheckVariables();
+    void CheckVariables() const;
 
-    void CheckDofs();
+    void CheckDofs() const;
 
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo);
-
-    double CalculateReferenceLength();
-
-    double CalculateCurrentLength();
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
 
     /**
      * Calculates the derivative of the current length w.r.t. primal displacements.

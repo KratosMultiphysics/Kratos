@@ -12,7 +12,7 @@ import derivative_recovery.derivative_recovery_strategy as derivative_recoverer
 import math
 
 def Say(*args):
-    KratosMultiphysics.Logger.PrintInfo("DEM-FLUID", *args)
+    KratosMultiphysics.Logger.PrintInfo("SwimmingDEM", *args)
     KratosMultiphysics.Logger.Flush()
 
 class SwimmingDEMSolver(PythonSolver):

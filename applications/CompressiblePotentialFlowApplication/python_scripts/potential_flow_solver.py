@@ -49,7 +49,7 @@ class LaplacianSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of LaplacianSolver finished")
