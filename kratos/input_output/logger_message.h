@@ -32,6 +32,7 @@
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
 #include "includes/data_communicator.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -110,11 +111,15 @@ namespace Kratos
 				int mMessageRank;
 				bool mIsDistributed;
 				int mSourceRank;
-				std::string mApplicaton;
 			};
 
 			class MessageSource {
 			public:
+
+				MessageSource() {
+					const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+					mRank = r_comm.Rank();
+				}
 
 				MessageSource(int TheRank)
 					: mRank(TheRank) {}
@@ -133,7 +138,7 @@ namespace Kratos
 
 
 			LoggerMessage(std::string const& TheLabel)
-				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource(0), mDistributedFilter(DistributedFilter::FromRoot()) {}
+				: mLabel(TheLabel), mLevel(1), mSeverity(Severity::INFO), mCategory(Category::STATUS), mMessageSource(), mDistributedFilter(DistributedFilter::FromRoot()) {}
 
 			LoggerMessage(LoggerMessage const& Other)
 				: mLabel(Other.mLabel), mMessage(Other.mMessage), mLevel(Other.mLevel), mLocation(Other.mLocation), mSeverity(Other.mSeverity), mCategory(Other.mCategory), mMessageSource(Other.mMessageSource), mDistributedFilter(Other.mDistributedFilter) {}
