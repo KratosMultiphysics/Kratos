@@ -229,16 +229,16 @@ namespace Kratos {
                 ConditionsArrayType::iterator it = rConditions.ptr_begin() + k;
                 (it)->Set(DEMFlags::STICKY, true);
             }
+        }
 
-            const int number_of_particles = (int) mListOfSphericParticles.size();
+        const int number_of_particles = (int) mListOfSphericParticles.size();
 
-            #pragma omp parallel for schedule(dynamic, 100)
-            for (int i = 0; i < number_of_particles; i++) {
-                auto neighbour_walls = mListOfSphericParticles[i]->mNeighbourRigidFaces;
-                if (neighbour_walls.size()) {
-                    if( neighbour_walls[0]->Is(DEMFlags::STICKY) ) {
-                        mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls[0]);
-                    }
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < number_of_particles; i++) {
+            auto neighbour_walls = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+            if (neighbour_walls.size()) {
+                if( neighbour_walls[0]->Is(DEMFlags::STICKY) ) {
+                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls[0]);
                 }
             }
         }

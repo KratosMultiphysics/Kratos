@@ -88,10 +88,12 @@ SphericParticle::~SphericParticle(){
         mSymmStressTensor = NULL;
     }
     if (mpTranslationalIntegrationScheme!=NULL) {
-        delete mpTranslationalIntegrationScheme;
+        if(mpTranslationalIntegrationScheme != mpRotationalIntegrationScheme) delete mpTranslationalIntegrationScheme;
+        mpTranslationalIntegrationScheme = NULL;
     }
     if (mpRotationalIntegrationScheme!=NULL) {
         delete mpRotationalIntegrationScheme;
+        mpRotationalIntegrationScheme = NULL;
     }
 }
 
