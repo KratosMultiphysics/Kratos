@@ -638,6 +638,7 @@ public:
                             i != submodelpart.ConditionsEnd(); i++)
                     {
                         Properties::Pointer properties = i->pGetProperties();
+                        const int MPC_Condition_Id = i->GetProperties().Id();
 
                         // Flag whether condition is Neumann or Dirichlet
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
@@ -802,7 +803,7 @@ public:
                         // Number of integration point per condition
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
 
-                        // Evaluation of element area/volume
+                        // Evaluation of geometric area/volume
                         const double area = rGeom.Area();
                         MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
 
@@ -841,6 +842,7 @@ public:
                             }
 
                             // Setting particle condition's initial condition
+                            p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
                             p_condition->SetValue(MPC_AREA, MPC_Area);
                             p_condition->SetValue(MPC_NORMAL, MPC_Normal);
@@ -867,6 +869,7 @@ public:
                                 }
 
                                 // Setting particle condition's initial condition
+                                p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
                                 p_condition->SetValue(MPC_COORD, mpc_xg);
                                 p_condition->SetValue(MPC_AREA, MPC_Area);
                                 p_condition->SetValue(MPC_NORMAL, MPC_Normal);
