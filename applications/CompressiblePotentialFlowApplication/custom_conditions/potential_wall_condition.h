@@ -288,12 +288,8 @@ public:
         else
         {
             // Check that all required variables have been registered
-            if (VELOCITY_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "VELOCITY_POTENTIAL Key is 0. Check if the "
-                                "application was correctly registered.";
-            if (AUXILIARY_VELOCITY_POTENTIAL.Key() == 0)
-                KRATOS_ERROR << "AUXILIARY_VELOCITY_POTENTIAL Key is 0. Check "
-                                "if the application was correctly registered.";
+            KRATOS_CHECK_VARIABLE_KEY(VELOCITY_POTENTIAL);
+            KRATOS_CHECK_VARIABLE_KEY(AUXILIARY_VELOCITY_POTENTIAL);
 
             // Checks on nodes
 
@@ -301,14 +297,8 @@ public:
             // SolutionStepData and Degrees of freedom
             for (unsigned int i = 0; i < this->GetGeometry().size(); ++i)
             {
-                if (this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing VELOCITY_POTENTIAL variable on "
-                                    "solution step data for node "
-                                 << this->GetGeometry()[i].Id();
-                if (this->GetGeometry()[i].SolutionStepsDataHas(AUXILIARY_VELOCITY_POTENTIAL) == false)
-                    KRATOS_ERROR << "missing AUXILIARY_VELOCITY_POTENTIAL "
-                                    "variable on solution step data for node "
-                                 << this->GetGeometry()[i].Id();
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL, this->GetGeometry()[i]);
+                KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(AUXILIARY_VELOCITY_POTENTIAL, this->GetGeometry()[i]);
 
                 return Check;
             }
