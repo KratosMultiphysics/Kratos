@@ -35,17 +35,19 @@ namespace Kratos
 
         // It is necessary to initialize the elements/conditions since no adjoint problem is solved for this response type.
 
+        const ProcessInfo r_current_process_info = mrModelPart.GetProcessInfo();
+
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(mrModelPart.Elements().size()); ++i)
         {
             auto it = mrModelPart.ElementsBegin() + i;
-            it->Initialize();
+            it->Initialize(r_current_process_info);
         }
         #pragma omp parallel for
         for(int i=0; i< static_cast<int>(mrModelPart.Conditions().size()); ++i)
         {
             auto it = mrModelPart.ConditionsBegin() + i;
-            it->Initialize();
+            it->Initialize(r_current_process_info);
         }
 
         KRATOS_CATCH("");

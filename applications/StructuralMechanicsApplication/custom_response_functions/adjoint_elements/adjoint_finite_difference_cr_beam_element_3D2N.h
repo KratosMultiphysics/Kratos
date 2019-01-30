@@ -31,7 +31,7 @@ public:
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 protected:
 

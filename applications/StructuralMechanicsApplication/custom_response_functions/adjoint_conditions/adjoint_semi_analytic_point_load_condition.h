@@ -75,7 +75,7 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const override;
 
-    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const  override;
+    void GetDofList(DofsVectorType& ElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
     void GetValuesVector(Vector& rValues, int Step = 0 ) const override;
 

@@ -40,10 +40,10 @@ AdjointFiniteDifferencingBaseElement::AdjointFiniteDifferencingBaseElement(Eleme
 AdjointFiniteDifferencingBaseElement::~AdjointFiniteDifferencingBaseElement() {}
 
 void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    GeometryType& geom = this->GetGeometry();
+    const GeometryType& geom = this->GetGeometry();
 
     const SizeType number_of_nodes = geom.PointsNumber();
     const SizeType dimension = geom.WorkingSpaceDimension();
@@ -56,7 +56,7 @@ void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType
     for(IndexType i = 0; i < geom.size(); ++i)
     {
         const IndexType index = i * num_dofs_per_node;
-        NodeType& iNode = geom[i];
+        const NodeType& iNode = geom[i];
 
         rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
         rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
@@ -73,7 +73,7 @@ void AdjointFiniteDifferencingBaseElement::EquationIdVector(EquationIdVectorType
 }
 
 void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -104,7 +104,7 @@ void AdjointFiniteDifferencingBaseElement::GetDofList(DofsVectorType& rElemental
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int Step)
+void AdjointFiniteDifferencingBaseElement::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
 
@@ -222,7 +222,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProcessInfo)
+int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
@@ -230,7 +230,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
 
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -251,7 +251,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
     // Check dofs
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        auto& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
@@ -316,7 +316,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             rOutput.resize(dimension * number_of_nodes, local_size);
 
         IndexType index = 0;
-        
+
         Vector RHS;
         pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
         for(auto& node_i : mpPrimalElement->GetGeometry())
