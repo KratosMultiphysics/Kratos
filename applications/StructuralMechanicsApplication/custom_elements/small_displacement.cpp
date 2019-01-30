@@ -324,7 +324,7 @@ Matrix SmallDisplacement::ComputeEquivalentF(const Vector& rStrainTensor) const
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  SmallDisplacement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
 

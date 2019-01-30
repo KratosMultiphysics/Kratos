@@ -145,7 +145,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Access

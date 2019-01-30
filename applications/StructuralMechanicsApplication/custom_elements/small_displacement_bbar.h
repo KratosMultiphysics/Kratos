@@ -135,7 +135,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     /**
     * Calculate a Matrix Variable on the Element Constitutive Law
@@ -177,7 +177,7 @@ public:
     * Called at the end of eahc solution step
     * @param rCurrentProcessInfo the current process info instance
     */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 

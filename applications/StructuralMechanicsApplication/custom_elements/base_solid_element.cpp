@@ -24,7 +24,7 @@
 
 namespace Kratos
 {
-void BaseSolidElement::Initialize()
+void BaseSolidElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -69,7 +69,7 @@ void BaseSolidElement::Initialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -117,7 +117,7 @@ void BaseSolidElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -131,7 +131,7 @@ void BaseSolidElement::InitializeNonLinearIteration( ProcessInfo& rCurrentProces
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     const GeometryType& r_geometry = GetGeometry();
     const Properties& r_properties = GetProperties();
@@ -145,7 +145,7 @@ void BaseSolidElement::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessI
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+void BaseSolidElement::FinalizeSolutionStep( const ProcessInfo& rCurrentProcessInfo )
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -277,8 +277,8 @@ Element::Pointer BaseSolidElement::Clone (
 
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -313,8 +313,8 @@ void BaseSolidElement::EquationIdVector(
 
 void BaseSolidElement::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
@@ -345,7 +345,7 @@ void BaseSolidElement::GetDofList(
 void BaseSolidElement::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -369,7 +369,7 @@ void BaseSolidElement::GetValuesVector(
 void BaseSolidElement::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -390,7 +390,7 @@ void BaseSolidElement::GetFirstDerivativesVector(
 void BaseSolidElement::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
@@ -410,7 +410,7 @@ void BaseSolidElement::GetSecondDerivativesVector(
 
 void BaseSolidElement::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Calculation flags
@@ -428,7 +428,7 @@ void BaseSolidElement::CalculateRightHandSide(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<double>& rDestinationVariable,
+    const Variable<double>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -461,7 +461,7 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
-    Variable<array_1d<double, 3>>& rDestinationVariable,
+    const Variable<array_1d<double, 3>>& rDestinationVariable,
     const ProcessInfo& rCurrentProcessInfo
     )
 {
@@ -510,7 +510,7 @@ void BaseSolidElement::AddExplicitContribution(
 void BaseSolidElement::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     //calculation flags
@@ -524,7 +524,7 @@ void BaseSolidElement::CalculateLocalSystem(
 /***********************************************************************************/
 
 void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-                                             ProcessInfo& rCurrentProcessInfo)
+                                             const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
     VectorType RHS;
@@ -537,7 +537,7 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 void BaseSolidElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -606,7 +606,7 @@ void BaseSolidElement::CalculateMassMatrix(
 
 void BaseSolidElement::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     const unsigned int mat_size = GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension();
@@ -1399,7 +1399,7 @@ void BaseSolidElement::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo )
+int  BaseSolidElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY;
 
