@@ -12,7 +12,6 @@ from StructuralMechanicsAnalysis to do modifications
 
 class RVEAnalysis(StructuralMechanicsAnalysis):
     def __init__(self, model, project_parameters,
-            averaging_volume = -1,
             boundary_mp_name = "Structure.DISPLACEMENT_Displacement_Auto1",
             averaging_mp_name = "Structure.computing_domain"
             ):
@@ -21,7 +20,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         #######################################
         #######################################
         ##parameters to be adjusted by the user
-        self.averaging_volume = averaging_volume #project_parameters["rve_data"]["averaging_volume"].GetDouble()       
+        self.averaging_volume = -1.0 #it will be computed in initialize     
         self.boundary_mp_name = boundary_mp_name
         self.averaging_mp_name = averaging_mp_name
         #######################################
@@ -50,6 +49,8 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         #construct auxiliary modelparts
         self.min_corner,self.max_corner = self._DetectBoundingBox(averaging_mp)
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
+
+        self.averaging_volume = (self.max_corner[0]-self.min_corner[0]) * (self.max_corner[1]-self.min_corner[1]) * (self.max_corner[2]-self.min_corner[2])
 
     def InitializeSolutionStep(self):
         raise Exception("should use the _CustomInitializeSolutionStep instead of this")
@@ -321,12 +322,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self._GetSolver().Clear()            
         
         print("measured volume = ", measured_volume)
-
-        #average will be computed with the averaging volume given by the user unless volume given is negative,
-        #in which case the computed volume will be employed
-        if(self.averaging_volume < 0): #use the one we computed
-            self.averaging_volume = measured_volume
-        
+     
                 
         avg_stress /= self.averaging_volume
 

@@ -19,6 +19,7 @@
 //Utilities
 #include "custom_utilities/formfinding_io_utility.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "custom_utilities/rve_periodicity_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -35,6 +36,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def("CalculateDeltaTime",&ExplicitIntegrationUtilities::CalculateDeltaTime);
+
+    py::class_<RVEPeriodicityUtility>(m,"RVEPeriodicityUtility")
+        .def(py::init<ModelPart&>())
+        .def("AssignPeriodicity",&RVEPeriodicityUtility::AssignPeriodicity)
+        .def("Finalize",&RVEPeriodicityUtility::Finalize)
+        ;
 }
 
 }  // namespace Python.
