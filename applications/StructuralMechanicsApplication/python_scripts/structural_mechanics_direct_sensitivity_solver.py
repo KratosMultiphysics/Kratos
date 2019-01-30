@@ -31,7 +31,11 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
         self.scheme_settings = direct_settings["scheme_settings"]
 
         self.direct_settings = custom_settings["variable_settings"].Clone()
+        self.direct_response_settings = custom_settings["response_function_settings"].Clone()
+        self.direct_sensitivity_settings = custom_settings["sensitivity_settings"].Clone()
         custom_settings.RemoveValue("variable_settings")
+        custom_settings.RemoveValue("response_function_settings")
+        custom_settings.RemoveValue("sensitivity_settings")
         # Construct the base solver.
         super(StructuralMechanicsDirectSensitivitySolver, self).__init__(model, custom_settings)
         self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Construction finished")
@@ -67,12 +71,21 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
 
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
-        if self.direct_settings["variable_type"].GetString() == "element_data_variable":
+
+        # Initialize the design variable
+        if self.direct_settings["variable_type"].GetString() == "element_data_type":
             self.variable = StructuralMechanicsApplication.DirectSensitivityElementDataVariable(self.main_model_part, self.direct_settings)
         else:
             raise Exception("invalid variable_type: " + self.direct_settings["variable_type"].GetString())
-
         
+        # Initialize the response function
+        self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.direct_response_settings)
+        
+
+        # Initialize the postprocess of the direct sensitivty analysis 
+        self.direct_sensitivity_postprocess = StructuralMechanicsApplication.DirectSensitivityPostprocess(self.main_model_part, self.response_function, self.variable, self.direct_sensitivity_settings)
+        self.direct_sensitivity_postprocess.Initialize()
+
         super(StructuralMechanicsDirectSensitivitySolver, self).Initialize()
 
         self.print_on_rank_zero("::[DirectSensitivitySolver]:: ", "Finished initialization.")
@@ -89,7 +102,8 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
     def SolveSolutionStep(self):
         super(StructuralMechanicsDirectSensitivitySolver, self).SolveSolutionStep()
         #after adjoint solution, calculate sensitivities
-       
+        self.direct_sensitivity_postprocess.UpdateSensitivities() # TODO call postprocess here or in FinalizeSolutionStep ?
+        print("All Sensitivities updated")
 
     def _create_mechanical_solution_strategy(self):
         analysis_type = self.settings["analysis_type"].GetString()
