@@ -1555,17 +1555,14 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Vector rPointLocal = ZeroVector(dimension);
+    array_1d<double,3> rPointLocal = ZeroVector(3);
+    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
 
     if (dimension == 2)
     {
         rResult.resize(3, false);
-        array_1d<double,3> rPointLocal = ZeroVector(3);
 
-        // 1. Obtain the local coordinate of rPoint
-        rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-        // 2. Get Shape functions: N
+        // Get Shape functions: N
         rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
         rResult[1] = rPointLocal[0] ;
         rResult[2] = rPointLocal[1];
@@ -1573,12 +1570,8 @@ Vector& UpdatedLagrangian::MPMShapeFunctionPointValues( Vector& rResult, const a
     else if (dimension == 3)
     {
         rResult.resize(4, false);
-        array_1d<double,3> rPointLocal = ZeroVector(3);
 
-        // 1. Obtain the local coordinate of rPoint
-        rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
-
-        // 2. Get Shape functions: N
+        // Get Shape functions: N
         rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
         rResult[1] = rPointLocal[0] ;
         rResult[2] = rPointLocal[1];

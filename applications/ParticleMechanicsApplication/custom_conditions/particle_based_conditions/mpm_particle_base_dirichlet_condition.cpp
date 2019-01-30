@@ -25,9 +25,9 @@ void MPMParticleBaseDirichletCondition::Initialize()
     KRATOS_TRY
 
     // Initialize parameters
-    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    // mDeterminantF0 = 1;
-    // mDeformationGradientF0 = IdentityMatrix(dimension);
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    mDeterminantF0 = 1;
+    mDeformationGradientF0 = IdentityMatrix(dimension);
 
     KRATOS_CATCH( "" )
 }
@@ -40,14 +40,14 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& Cur
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
-    // GeometryType& rGeom = GetGeometry();
-    // const unsigned int dimension = rGeom.WorkingSpaceDimension();
-    // const unsigned int number_of_nodes = rGeom.PointsNumber();
-    // const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    // GeneralVariables Variables;
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
+    GeneralVariables Variables;
 
-    // // Calculating shape function
-    // Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    // Calculating shape function
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
 
     // mFinalizedStep = false;
 
@@ -369,6 +369,77 @@ int MPMParticleBaseDirichletCondition::Check( const ProcessInfo& rCurrentProcess
     }
 
     return 0;
+}
+
+//***********************************************************************
+//***********************************************************************
+/**
+   * Shape function values in given point. This method calculate the shape function
+   * vector in given point.
+   *
+   * @param rPoint point which shape function values have to
+   * be calculated in it.
+   *
+   * @return Vector of double which is shape function vector \f$ N \f$ in given point.
+   *
+ */
+Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint)
+{
+    KRATOS_TRY
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    rResult.resize(number_of_nodes, false);
+
+    // Get local point coordinate
+    array_1d<double,3> rPointLocal = ZeroVector(3);
+    rPointLocal = GetGeometry().PointLocalCoordinates(rPointLocal, rPoint);
+
+    if (dimension == 2)
+    {
+        // Get Shape functions: N depending on number of nodes
+        switch (number_of_nodes)
+        {
+            case 3:
+                rResult[0] = 1 - rPointLocal[0] - rPointLocal[1] ;
+                rResult[1] = rPointLocal[0];
+                rResult[2] = rPointLocal[1];
+                break;
+            case 4:
+                rResult[0] = 0.25 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) ;
+                rResult[1] = 0.25 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) ;
+                rResult[2] = 0.25 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) ;
+                rResult[3] = 0.25 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) ;
+                break;
+        }
+    }
+    else if (dimension == 3)
+    {
+        // Get Shape functions: N depending on number of nodes
+        switch (number_of_nodes)
+        {
+            case 4:
+                rResult[0] =  1.0-(rPointLocal[0]+rPointLocal[1]+rPointLocal[2]) ;
+                rResult[1] = rPointLocal[0];
+                rResult[2] = rPointLocal[1];
+                rResult[3] = rPointLocal[2];
+                break;
+            case 8:
+                rResult[0] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
+                rResult[1] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 - rPointLocal[2]) ;
+                rResult[2] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
+                rResult[3] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 - rPointLocal[2]) ;
+                rResult[4] = 0.125 * (1 - rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
+                rResult[5] = 0.125 * (1 + rPointLocal[0]) * (1 - rPointLocal[1]) * (1 + rPointLocal[2]) ;
+                rResult[6] = 0.125 * (1 + rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
+                rResult[7] = 0.125 * (1 - rPointLocal[0]) * (1 + rPointLocal[1]) * (1 + rPointLocal[2]) ;
+                break;
+        }
+    }
+
+    return rResult;
+
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************
