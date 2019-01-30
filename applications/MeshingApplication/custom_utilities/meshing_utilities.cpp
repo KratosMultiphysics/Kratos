@@ -26,7 +26,7 @@ void BlockThresholdSizeElements(
     Parameters ThisParameters
     )
 {
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "minimal_size" : 0.1,
         "maximal_size" : 10.0
@@ -52,10 +52,10 @@ void BlockThresholdSizeElements(
         
         if (it_elem->IsNot(BLOCKED)) {
             // Getting ELEMENT_H
-            const double element_h = it_elem->GetValues(ELEMENT_H);
+            const double element_h = it_elem->GetValue(ELEMENT_H);
             
             // Blocking elements in the threshold sizes
-            if (element_h =< minimal_size || element_h >= maximal_size) {
+            if (element_h <= minimal_size || element_h >= maximal_size) {
                 it_elem->Set(BLOCKED, true);
             }
         }
