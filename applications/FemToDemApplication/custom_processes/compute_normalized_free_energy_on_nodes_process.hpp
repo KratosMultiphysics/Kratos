@@ -111,7 +111,8 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             normalized_free_energy *= (1.0 - Damage);
             normalized_free_energy /= (2.0 * density);
             normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
-        } else { // 3D version
+            return normalized_free_energy;
+        } else if (mDimension == 3) { // 3D version
             const double characteristic_length = this->CalculateCharacteristicLength3D(rGeometry);
             const double g_t = fracture_energy_tension / characteristic_length;
             const double g_c = fracture_energy_compression / characteristic_length;
@@ -120,6 +121,9 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
             normalized_free_energy *= (1.0 - Damage);
             normalized_free_energy /= (2.0 * density);
             normalized_free_energy *= (r / g_t + (1.0 - r) / g_c);
+            return normalized_free_energy;
+        } else {
+            KRATOS_ERROR << "Dimension is wrong..." << std::endl;
         }
     }
 
@@ -146,7 +150,32 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 
 	double CalculateCharacteristicLength3D(const Geometry<Node<3>>& rGeometry)
 	{
-        // TODO
+        Matrix node_indices;
+		node_indices.resize(6, 2);
+		node_indices(0, 0) = 0;
+		node_indices(0, 1) = 1;
+		node_indices(1, 0) = 0;
+		node_indices(1, 1) = 2;
+		node_indices(2, 0) = 0;
+		node_indices(2, 1) = 3;
+		node_indices(3, 0) = 1;
+		node_indices(3, 1) = 2;
+		node_indices(4, 0) = 1;
+		node_indices(4, 1) = 3;
+		node_indices(5, 0) = 2;
+		node_indices(5, 1) = 3;
+
+    	Vector lengths = ZeroVector(6);
+        for (unsigned int edge = 0; edge < 6; edge++) { // Loop over edges
+            const double X1 = rGeometry[node_indices(edge, 0)].X0();
+            const double X2 = rGeometry[node_indices(edge, 1)].X0();
+            const double Y1 = rGeometry[node_indices(edge, 0)].Y0();
+            const double Y2 = rGeometry[node_indices(edge, 1)].Y0();
+            const double Z1 = rGeometry[node_indices(edge, 0)].Z0();
+            const double Z2 = rGeometry[node_indices(edge, 1)].Z0();
+            lengths[edge] = std::sqrt(std::pow((X1 - X2), 2.0) + std::pow((Y1 - Y2), 2.0) + std::pow((Z1 - Z2), 2.0));
+        }
+        return (lengths[0] + lengths[1] + lengths[2] + lengths[3] + lengths[4] + lengths[5]) / 6.0;
 	}
 
     double ComputeTensionFactor2D(const Vector& rStressVector)
