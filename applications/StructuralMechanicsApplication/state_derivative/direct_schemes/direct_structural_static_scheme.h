@@ -85,11 +85,7 @@ public:
 
         mHasRotationDofs = rParameters["rotation_dofs"].GetBool();
 
-        std::cout << "DirectStructuralScheme constructed !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#########"  << std::endl;
-
-        KRATOS_CATCH("");
-
-        
+        KRATOS_CATCH("");        
     }
 
     /// Destructor.
@@ -263,12 +259,14 @@ public:
         //    *pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
         mpVariable->CalculatePseudoLoadVector(*pCurrentElement, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
-        noalias(rRHS_Contribution) = -rRHS_Contribution;
+        noalias(rRHS_Contribution) = -rRHS_Contribution;       
+        
 
         // Calculate system contributions in residual form.
         pCurrentElement->GetValuesVector(mAdjointValues[thread_id]);
+        
         noalias(rRHS_Contribution) -= prod(rLHS_Contribution, mAdjointValues[thread_id]);
-
+        
         pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
 
         KRATOS_CATCH("");
@@ -310,6 +308,8 @@ public:
         // Calculate transposed gradient of response function on condition w.r.t. primal solution.
         //mpResponseFunction->CalculateGradient(
         //     *pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
+
+        mpVariable->CalculatePseudoLoadVector(*pCurrentCondition, rLHS_Contribution, rRHS_Contribution, rCurrentProcessInfo);
 
         noalias(rRHS_Contribution) = -rRHS_Contribution;
 
