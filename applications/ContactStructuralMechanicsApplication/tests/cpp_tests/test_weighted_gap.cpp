@@ -71,7 +71,7 @@ namespace Kratos
             ThisModelPart.CreateSubModelPart("MasterModelPart");
             ModelPart& master_model_part = ThisModelPart.GetSubModelPart("MasterModelPart");
 
-            Properties::Pointer p_cond_prop = ThisModelPart.pGetProperties(0);
+            Properties::Pointer p_cond_prop = ThisModelPart.CreateNewProperties(0);
             
             double x, y;
             

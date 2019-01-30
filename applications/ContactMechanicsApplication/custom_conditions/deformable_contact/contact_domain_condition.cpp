@@ -130,7 +130,7 @@ namespace Kratos
     //ADD MASTER NODES
     for ( unsigned int i = 0; i < GetValue(MASTER_NODES).size(); i++ )
       {
-	Element::NodeType& MasterNode = *GetValue(MASTER_NODES)[i];
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_X ) );
 	rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Y ) );
@@ -166,7 +166,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = *GetValue(MASTER_NODES)[i];
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rResult[index]   = MasterNode.GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[index+1] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId();
@@ -202,7 +202,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = *GetValue(MASTER_NODES)[i];
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -240,7 +240,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = *GetValue(MASTER_NODES)[i];
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
@@ -279,7 +279,7 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_master_nodes; i++ )
       {
 	unsigned int index = (number_of_nodes + i) * dimension;
-	Element::NodeType& MasterNode = *GetValue(MASTER_NODES)[i];
+	Element::NodeType& MasterNode = GetValue(MASTER_NODES)[i];
 
 	rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
 	rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
@@ -433,8 +433,8 @@ namespace Kratos
     TransferVariables.SetVariable(DEFORMATION_GRADIENT);
 
     MeshDataTransferUtilities DataTransfer;
-    Element*   MasterElement   = GetValue(MASTER_ELEMENTS).front();
-    Condition* MasterCondition = GetValue(MASTER_CONDITION);
+    Element*   MasterElement   = &GetValue(MASTER_ELEMENTS).front();
+    Condition* MasterCondition = GetValue(MASTER_CONDITION).lock().get();
     DataTransfer.TransferBoundaryData(MasterElement,MasterCondition,TransferVariables,CurrentProcessInfo);
 
     KRATOS_CATCH( "" )
@@ -532,7 +532,7 @@ namespace Kratos
 	    GetGeometry()[i].UnSetLock();
 	  }
 
-	Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
+	Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
 	MasterNode.SetLock();
 
@@ -565,7 +565,7 @@ namespace Kratos
 	    GetGeometry()[i].UnSetLock();
 	  }
 
-	Element::NodeType&    MasterNode   = *GetValue(MASTER_NODES).back();
+	Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
 	MasterNode.SetLock();
 

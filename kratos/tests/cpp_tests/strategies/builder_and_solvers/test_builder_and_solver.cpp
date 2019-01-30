@@ -87,7 +87,7 @@ namespace Kratos
             NodeType::Pointer pnode2 = rModelPart.CreateNewNode(2, 1.0, 0.0, 0.0);
             NodeType::Pointer pnode3 = rModelPart.CreateNewNode(3, 2.0, 0.0, 0.0);
 
-            auto p_prop = rModelPart.pGetProperties(1, 0);
+            auto p_prop = rModelPart.CreateNewProperties(1, 0);
             p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
             p_prop->SetValue(NODAL_AREA, 0.01);
 
@@ -152,7 +152,7 @@ namespace Kratos
             NodeType::Pointer pnode10 = rModelPart.CreateNewNode(10, 2.0, 0.0, 0.0);
             NodeType::Pointer pnode11 = rModelPart.CreateNewNode(11, 0.0, 0.0, 0.0);
 
-            auto p_prop = rModelPart.pGetProperties(1, 0);
+            auto p_prop = rModelPart.CreateNewProperties(1, 0);
             p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
             p_prop->SetValue(NODAL_AREA, 0.01);
 
