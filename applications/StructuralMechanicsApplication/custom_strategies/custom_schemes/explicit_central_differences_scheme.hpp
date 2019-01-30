@@ -22,6 +22,7 @@
 /* Project includes */
 #include "solving_strategies/schemes/scheme.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/explicit_integration_utilities.h"
 
 namespace Kratos {
 
@@ -100,7 +101,7 @@ public:
      * @details The ExplicitCentralDifferencesScheme method
      * @param MaximumDeltaTime The maximum delta time to be considered
      * @param DeltaTimeFraction The delta ttime fraction
-     * @param DeltaTimePredictionLevel The prdiction level
+     * @param DeltaTimePredictionLevel The prediction level
      */
     ExplicitCentralDifferencesScheme(
         const double MaximumDeltaTime,
@@ -177,7 +178,15 @@ public:
         KRATOS_TRY
 
         if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
-            CalculateDeltaTime(rModelPart);
+            Parameters prediction_parameters = Parameters(R"(
+            {
+                "time_step_prediction_level" : 2.0,
+                "max_delta_time"             : 1.0e-3,
+                "safety_factor"              : 0.5
+            })" );
+            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel);
+            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
+            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
         }
 
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
@@ -207,9 +216,9 @@ public:
     /**
      * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
      * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
      */
     void InitializeSolutionStep(
@@ -222,7 +231,17 @@ public:
         KRATOS_TRY
 
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-        if (mDeltaTime.PredictionLevel > 1) CalculateDeltaTime(rModelPart); // WARNING This could be problematic if PredictionLevel is a double and not a integer
+        if (mDeltaTime.PredictionLevel > 1) {
+            Parameters prediction_parameters = Parameters(R"(
+            {
+                "time_step_prediction_level" : 2.0,
+                "max_delta_time"             : 1.0e-3,
+                "safety_factor"              : 0.5
+            })" );
+            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel); // WARNING This could be problematic if PredictionLevel is a double and not a integer
+            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
+            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
+        }
         InitializeResidual(rModelPart);
 
         KRATOS_CATCH("")
@@ -231,16 +250,16 @@ public:
     /**
      * @brief It initializes the non-linear iteration
      * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
      */
     void InitializeNonLinIteration(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY;
@@ -282,82 +301,6 @@ public:
         const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
         if (has_dof_for_rot_z)
             VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method computes the necessry delta time to avoid numerical instabilities
-     * @param rModelPart The model of the problem to solve
-     */
-    void CalculateDeltaTime(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        ElementsArrayType& r_elements = rModelPart.Elements();
-
-        const double safety_factor = 0.5;
-
-        double delta_time = mDeltaTime.Maximum / safety_factor;
-
-        double stable_delta_time = 1000.0;
-
-        auto it_begin = rModelPart.ElementsBegin();
-
-        #pragma omp parallel for firstprivate(it_begin)
-        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
-            auto it_node = (it_begin + i);
-            bool check_has_all_variables = true;
-            double E(0.0), nu(0.0), roh(0.0), alpha(0.0), beta(0.0);
-            // get geometric and material properties
-            if (it_node->GetProperties().Has(RAYLEIGH_ALPHA)) {
-                alpha = it_node->GetProperties()[RAYLEIGH_ALPHA];
-            }
-            if (it_node->GetProperties().Has(RAYLEIGH_BETA)) {
-                beta = it_node->GetProperties()[RAYLEIGH_BETA];
-            }
-            if (it_node->GetProperties().Has(YOUNG_MODULUS)) {
-                E = it_node->GetProperties()[YOUNG_MODULUS];
-            } else
-                check_has_all_variables = false;
-            if (it_node->GetProperties().Has(POISSON_RATIO)) {
-                nu = it_node->GetProperties()[POISSON_RATIO];
-            }
-            if (it_node->GetProperties().Has(DENSITY)) {
-                roh = it_node->GetProperties()[DENSITY];
-            } else
-                check_has_all_variables = false;
-
-            if (check_has_all_variables) {
-                const double length = it_node->GetGeometry().Length();
-
-                // compute courant criterion
-                const double bulk_modulus = E / (3.0 * (1.0 - 2.0 * nu));
-                const double wavespeed = std::sqrt(bulk_modulus / roh);
-                const double w = 2.0 * wavespeed / length; // frequency
-
-                const double psi = 0.5 * (alpha / w + beta * w); // critical ratio;
-                stable_delta_time = (2.0 / w) * (std::sqrt(1.0 + psi * psi) - psi);
-
-                if (stable_delta_time > 0.0) {
-                    #pragma omp critical
-                    if (stable_delta_time < delta_time) delta_time = stable_delta_time;
-                }
-            } else {
-                KRATOS_ERROR << "not enough parameters for prediction level " << mDeltaTime.PredictionLevel << std::endl;
-            }
-        }
-
-        stable_delta_time = delta_time * safety_factor;
-
-        if (stable_delta_time < mDeltaTime.Maximum) {
-            r_current_process_info[DELTA_TIME] = stable_delta_time;
-        }
-
-        KRATOS_INFO_IF("ExplicitCentralDifferencesScheme", mDeltaTime.PredictionLevel > 1)
-        << "  [EXPLICIT PREDICTION LEVEL " << mDeltaTime.PredictionLevel << " ] : (computed stable time step = " << stable_delta_time << " s)\n"
-        << "  Using  = " << r_current_process_info[DELTA_TIME] << " s as time step DELTA_TIME)" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -435,16 +378,16 @@ public:
      * @brief Performing the update of the solution
      * @param rModelPart The model of the problem to solve
      * @param rDofSet Set of all primary variables
-     * @param A LHS matrix
-     * @param Dx incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx incremental update of primary variables
+     * @param rb RHS Vector
      */
     void Update(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
         KRATOS_TRY
@@ -699,8 +642,7 @@ public:
     {
         KRATOS_TRY
 
-        this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution,
-                                        rCurrentProcessInfo);
+        this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution, rCurrentProcessInfo);
         KRATOS_CATCH("")
     }
 
@@ -719,26 +661,27 @@ public:
         ) override
     {
         KRATOS_TRY
-        this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution,
-                                        rCurrentProcessInfo);
+
+        this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
+
         KRATOS_CATCH("")
     }
 
     /**
      * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
      * @param rModelPart The model of the problem to solve
-     * @param A LHS matrix
-     * @param Dx Incremental update of primary variables
-     * @param b RHS Vector
+     * @param rA LHS matrix
+     * @param rDx Incremental update of primary variables
+     * @param rb RHS Vector
      */
     void FinalizeSolutionStep(
         ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
         ) override
     {
-        BaseType::FinalizeSolutionStep(rModelPart,A,Dx,b);
+        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
     }
 
     ///@}
@@ -770,8 +713,8 @@ protected:
      */
     struct DeltaTimeParameters {
         double PredictionLevel; // 0, 1, 2 // NOTE: Should be a integer?
-        double Maximum;  // Maximum delta time
-        double Fraction; // fraction of the delta time
+        double Maximum;         // Maximum delta time
+        double Fraction;        // Fraction of the delta time
     };
 
     /**
@@ -783,13 +726,13 @@ protected:
         double Middle;         // n+1/2
         double Current;        // n+1
 
-        double Delta; // time step
+        double Delta;          // Time step
     };
 
     ///@name Protected static Member Variables
     ///@{
 
-    TimeVariables mTime; /// This struct contains the details of the time variables
+    TimeVariables mTime;            /// This struct contains the details of the time variables
     DeltaTimeParameters mDeltaTime; /// This struct contains the information related with the increment od time step
 
     ///@}
@@ -848,13 +791,10 @@ private:
         )
     {
         Matrix dummy_lhs;
-        (pCurrentEntity)->CalculateLocalSystem(dummy_lhs, RHS_Contribution,
-                                    rCurrentProcessInfo);
+        (pCurrentEntity)->CalculateLocalSystem(dummy_lhs, RHS_Contribution, rCurrentProcessInfo);
 
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR,
-                                        FORCE_RESIDUAL, rCurrentProcessInfo);
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR,
-                                        MOMENT_RESIDUAL, rCurrentProcessInfo);
+        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
+        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
     }
 
     ///@}

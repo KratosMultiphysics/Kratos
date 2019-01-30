@@ -50,19 +50,24 @@ void ALMFastInit::Execute()
     for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
         auto it_node = it_node_begin + i;
         
-        // Weighted values
-        it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
-        if (is_frictional)
-            it_node->FastGetSolutionStepValue(WEIGHTED_SLIP) = zero_array;
-        
-        // Penalty parameter
-        it_node->SetValue(INITIAL_PENALTY, epsilon);
-        
-        // Auxiliar values
-        it_node->SetValue(DYNAMIC_FACTOR, 1.0);
-        it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
-        if (is_frictional)
-            it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_array);
+        const bool is_slave = it_node->IsDefined(SLAVE) ? it_node->Is(SLAVE) : true;
+        if (is_slave) {
+            // Weighted values
+            it_node->FastGetSolutionStepValue(WEIGHTED_GAP) = 0.0;
+            if (is_frictional) {
+                noalias(it_node->FastGetSolutionStepValue(WEIGHTED_SLIP)) = zero_array;
+            }
+
+            // Penalty parameter
+            it_node->SetValue(INITIAL_PENALTY, epsilon);
+
+            // Auxiliar values
+            it_node->SetValue(DYNAMIC_FACTOR, 1.0);
+            it_node->SetValue(AUGMENTED_NORMAL_CONTACT_PRESSURE, 0.0);
+            if (is_frictional) {
+                it_node->SetValue(AUGMENTED_TANGENT_CONTACT_PRESSURE, zero_array);
+            }
+        }
     }
     
     // Now we iterate over the conditions

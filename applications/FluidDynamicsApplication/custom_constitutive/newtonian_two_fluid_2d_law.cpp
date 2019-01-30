@@ -54,7 +54,7 @@ std::string NewtonianTwoFluid2DLaw::Info() const {
     return "NewtonianTwoFluid2DLaw";
 }
 
-double NewtonianTwoFluid2DLaw::ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
+double NewtonianTwoFluid2DLaw::GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const
 {
     double viscosity;
     EvaluateInPoint(viscosity, DYNAMIC_VISCOSITY, rParameters);

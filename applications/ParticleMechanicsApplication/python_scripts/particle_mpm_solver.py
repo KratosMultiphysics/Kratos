@@ -102,7 +102,7 @@ class ParticleMPMSolver(PythonSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):
             self.block_builder = True
         else:
@@ -351,7 +351,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specify domain size
         self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-         # Read material property
+        # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
             self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
@@ -364,10 +364,10 @@ class ParticleMPMSolver(PythonSolver):
     def _import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            import read_materials_process
             # Add constitutive laws and material properties from json file to model parts.
-            read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
-
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:
             materials_imported = False
