@@ -31,7 +31,6 @@
 #include "custom_utilities/damping/damping_utilities.h"
 #include "custom_utilities/mesh_controller_utilities.h"
 #include "custom_utilities/input_output/universal_file_io.h"
-#include "custom_utilities/input_output/vtk_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 
 // ==============================================================================
@@ -190,11 +189,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, std::string, std::string, Parameters>())
         .def("InitializeLogging", &UniversalFileIO::InitializeLogging)
         .def("LogNodalResults", &UniversalFileIO::LogNodalResults)
-        ;
-    py::class_<VTKFileIO >(m, "VTKFileIO")
-        .def(py::init<ModelPart&, std::string, std::string, Parameters>())
-        .def("InitializeLogging", &VTKFileIO::InitializeLogging)
-        .def("LogNodalResults", &VTKFileIO::LogNodalResults)
         ;
 
     // ========================================================================

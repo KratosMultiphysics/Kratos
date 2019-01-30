@@ -1,7 +1,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.IgaApplication import *
 from KratosMultiphysics.StructuralMechanicsApplication import *
-import new_linear_solver_factory
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
@@ -92,7 +92,7 @@ class IgaTrussElementTests(KratosUnittest.TestCase):
 
         time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
-        linear_solver = new_linear_solver_factory.ConstructSolver(Parameters(
+        linear_solver = linear_solver_factory.ConstructSolver(Parameters(
             r'{"solver_type": "SkylineLUFactorizationSolver"}'))
 
         relative_tolerance = 1e-7

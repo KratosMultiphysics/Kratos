@@ -42,7 +42,7 @@ class LaplacianSolver:
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         #construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         print("Construction of LaplacianSolver finished")
@@ -101,14 +101,14 @@ class LaplacianSolver:
                 #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     #{
                     #"element_name":"LaplacianElement3D4N",
-                    #"condition_name": "ThermalFace2D"
+                    #"condition_name": "ThermalFace2D2N"
                     #}
                     #""")
             #elif(self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
                 #self.settings["element_replace_settings"] = KratosMultiphysics.Parameters("""
                     #{
                     #"element_name":"LaplacianElement2D3N",
-                    #"condition_name": "ThermalFace2D"
+                    #"condition_name": "ThermalFace2D2N"
                     #}
                     #""")
             #else:
@@ -150,4 +150,3 @@ class LaplacianSolver:
     #
     def Clear(self):
         (self.solver).Clear()
-

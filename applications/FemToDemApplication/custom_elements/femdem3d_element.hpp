@@ -58,7 +58,8 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void CalculateOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void CalculateOnIntegrationPoints(const Variable<Matrix> &rVariable, std::vector<Matrix> &rOutput, const ProcessInfo &rCurrentProcessInfo);
 	void CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, VectorType &rRightHandSideVector,
-							  ProcessInfo &rCurrentProcessInfo);
+							  ProcessInfo &rCurrentProcessInfo) override;
+	void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
 	void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 	void AverageVector(Vector &rAverageVector, const Vector &v, const Vector &w);
 	void GetValueOnIntegrationPoints(const Variable<double> &rVariable, std::vector<double> &rValues,
@@ -83,6 +84,8 @@ class FemDem3DElement : public SmallDisplacementElement // Derived Element from 
 	void DruckerPragerCriterion(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
 	void SimoJuCriterion(double& rThreshold, double &Damage, const Vector &StrainVector, const Vector &StressVector, const int cont, const double L_char, bool& rIsDamaging);
 	void RankineFragileLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+	void ElasticLaw(double& rThreshold, double &Damage, const Vector &StressVector, int cont, double L_char, bool& rIsDamaging);
+
 
 	// Stress Invariants in 3D
 	double CalculateI1Invariant(const Vector& rStressVector);
