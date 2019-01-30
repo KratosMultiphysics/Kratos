@@ -308,10 +308,17 @@ Vector SlidingCableElement3D::GetDirectionVectorNt() const
 
 Vector SlidingCableElement3D::GetInternalForces() const
 {
-  const double k_0            = this->LinearStiffness();
+  //const double k_0            = this->LinearStiffness();
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
-  const double total_internal_force = k_0 * strain_gl * current_length;
+  const double prestress     = this->GetPK2PrestressValue();
+  const double area           = this->GetProperties()[CROSS_AREA];
+  const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
+  const double ref_length     = this->GetRefLength();
+
+  const double total_internal_force = (youngs_mod*strain_gl+prestress) * area * current_length / ref_length;
+
+  //const double total_internal_force = k_0 * strain_gl * current_length;
   const Vector internal_foces = this->GetDirectionVectorNt() * total_internal_force;
   return internal_foces;
 }
@@ -322,11 +329,14 @@ Matrix SlidingCableElement3D::ElasticStiffnessMatrix() const
   const int dimension = 3;
   const SizeType local_size = dimension*points_number;
 
+  const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
+  const double prestress     = this->GetPK2PrestressValue();
+
   Matrix elastic_stiffness_matrix = ZeroMatrix(local_size,local_size);
   const Vector direction_vector = this->GetDirectionVectorNt();
   elastic_stiffness_matrix = outer_prod(direction_vector,direction_vector);
   elastic_stiffness_matrix *= this->LinearStiffness();
-  elastic_stiffness_matrix *= (1.0 + (3.0*this->CalculateGreenLagrangeStrain()));
+  elastic_stiffness_matrix *= (1.0 + (3.0*(this->CalculateGreenLagrangeStrain()+(prestress/youngs_mod))));
   return elastic_stiffness_matrix;
 }
 
@@ -339,6 +349,11 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix() const
   const double k_0            = this->LinearStiffness();
   const double strain_gl      = this->CalculateGreenLagrangeStrain();
   const double current_length = this->GetCurrentLength();
+
+  const double prestress     = this->GetPK2PrestressValue();
+  const double area           = this->GetProperties()[CROSS_AREA];
+  const double youngs_mod     = this->GetProperties()[YOUNG_MODULUS];
+  const double ref_length     = this->GetRefLength();
 
   const Vector d_x = this->GetDeltaPositions(1);
   const Vector d_y = this->GetDeltaPositions(2);
@@ -372,7 +387,7 @@ Matrix SlidingCableElement3D::GeometricStiffnessMatrix() const
     project(geometric_stiffness_matrix, range((i*3)+3,((i+1)*3)+3),range((i*3),((i+1)*3))) -= sub_stiffness_matrix;
   }
 
-  geometric_stiffness_matrix *= k_0 * strain_gl * current_length;
+  geometric_stiffness_matrix *= (youngs_mod*strain_gl+prestress) * area * current_length / ref_length;
 
   return geometric_stiffness_matrix;
 }

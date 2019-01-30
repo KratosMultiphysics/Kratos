@@ -134,6 +134,15 @@ namespace Kratos
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
         };
 
+        double GetPK2PrestressValue() const
+        {
+            double prestress = 0.00;
+            if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+                prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
+            }
+            return prestress;
+        }
+
         void CalculateLumpedMassVector(VectorType &rMassVector);
 
         void CalculateMassMatrix(
