@@ -62,7 +62,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         #construct MPCs according to the provided strain
         self.ApplyPeriodicity(strain,averaging_mp, boundary_mp) 
-        print("b1")
         
         ##apply BCs for RVE according to the provided strain
         self._ApplyMinimalConstraints(averaging_mp,strain,self.min_corner,self.max_corner)
@@ -97,8 +96,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         C = self.ComputeEquivalentElasticTensor(stress_and_strain, perturbation)
         self.MatrixOutput(C)
-        print( " **************** C *************")
-        print(C)
 
 
     def _DetectBoundingBox(self,mp):
@@ -125,7 +122,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             min_corner[2] = min(min_corner[2], z)
             max_corner[2] = max(max_corner[2], z)
 
-        print("Boundaing box detected")
+        print("Boundng box detected")
         print("min corner = ",min_corner)
         print("max corner = ",max_corner)
 
@@ -153,8 +150,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
                     node_ids.add(node.Id)
                     node.Set(KratosMultiphysics.SLAVE)
 
-        print("--------------------------",face_name)
-        print(node_ids)
+
 
         face_mp.AddNodes(list(node_ids))
         return face_mp
@@ -167,79 +163,17 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             node.Set(KratosMultiphysics.SLAVE,False)
             node.Set(KratosMultiphysics.MASTER,False)
 
-        # #max corner node should not be included in any of those modelparts
-        # node = self._SelectClosestNode(mp, max_corner)
-        # node.Set(KratosMultiphysics.SLAVE)
-
-        #populate max_xy_edge (between x and y faces)
-        print("----------------- populate xy edge")
-        if not mp.HasSubModelPart("max_xy_edge"):
-            mp.CreateSubModelPart("max_xy_edge")
-        self.max_xy_edge_mp = mp.GetSubModelPart("max_xy_edge")
-        ids = []
-        for node in mp.Nodes:
-            if abs(node.X-max_corner[0]) < eps and abs(node.Y-max_corner[1]) < eps and node.IsNot(KratosMultiphysics.SLAVE):
-                node.Set(KratosMultiphysics.SLAVE)
-                ids.append(node.Id)
-        print(ids)
-        self.max_xy_edge_mp.AddNodes(ids)
-
-        #populate max_xz_edge (between x and y faces)
-        print("----------------- populate xz edge")
-        if not mp.HasSubModelPart("max_xz_edge"):
-            mp.CreateSubModelPart("max_xz_edge")
-        self.max_xz_edge_mp = mp.GetSubModelPart("max_xz_edge")
-        ids = []
-        for node in mp.Nodes:
-            if abs(node.X-max_corner[0]) < eps and abs(node.Z-max_corner[2]) < eps and node.IsNot(KratosMultiphysics.SLAVE):
-                node.Set(KratosMultiphysics.SLAVE)
-                ids.append(node.Id)
-        print(ids)
-        self.max_xz_edge_mp.AddNodes(ids)               
-                
-        #populate max_yz_edge (between x and y faces)
-        print("----------------- populate yz edge")
-        if not mp.HasSubModelPart("max_yz_edge"):
-            mp.CreateSubModelPart("max_yz_edge")
-        self.max_yz_edge_mp = mp.GetSubModelPart("max_yz_edge")
-        ids = []
-        for node in mp.Nodes:
-            if abs(node.Y-max_corner[1]) < eps and abs(node.Z-max_corner[2]) < eps and node.IsNot(KratosMultiphysics.SLAVE):
-                node.Set(KratosMultiphysics.SLAVE)
-                ids.append(node.Id)
-        print(ids)
-        self.max_yz_edge_mp.AddNodes(ids) 
-           
-
-        #poulate the slave faces
+        #populate the slave faces
         print("----------------- populate slave faces")
         self.max_x_face = self.__PopulateMp("max_x_face", max_corner[0], 0, eps, mp)
         self.max_y_face = self.__PopulateMp("max_y_face", max_corner[1], 1, eps, mp)
         self.max_z_face = self.__PopulateMp("max_z_face", max_corner[2], 2, eps, mp)  
-        for node in self.max_x_face.Nodes:
-            node.Set(KratosMultiphysics.SLAVE)     
-        for node in self.max_y_face.Nodes:
-            node.Set(KratosMultiphysics.SLAVE)   
-        for node in self.max_z_face.Nodes:
-            node.Set(KratosMultiphysics.SLAVE)          
-
-
-
 
         #first populate the master faces (min)
         print("----------------- populate master faces")
         self.min_x_face = self.__PopulateMp("min_x_face", min_corner[0], 0, eps, mp)
         self.min_y_face = self.__PopulateMp("min_y_face", min_corner[1], 1, eps, mp)
         self.min_z_face = self.__PopulateMp("min_z_face", min_corner[2], 2, eps, mp)   
-        for node in self.min_x_face.Nodes:
-            node.Set(KratosMultiphysics.MASTER)  
-            node.Set(KratosMultiphysics.SLAVE,False)   
-        for node in self.min_y_face.Nodes:
-            node.Set(KratosMultiphysics.MASTER)   
-            node.Set(KratosMultiphysics.SLAVE,False)   
-        for node in self.min_z_face.Nodes:
-            node.Set(KratosMultiphysics.MASTER)   
-            node.Set(KratosMultiphysics.SLAVE,False)   
 
         if len(self.min_x_face.Conditions) == 0:
             raise Exception("min_x_face has 0 conditions")
@@ -247,15 +181,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             raise Exception("min_y_face has 0 conditions")
         if len(self.min_z_face.Conditions) == 0:
             raise Exception("min_z_face has 0 conditions")
-        
-        print("************ master nodes *************")
-        for node in mp.Nodes:
-            if(node.Is(KratosMultiphysics.MASTER)):
-                print(node.Id)
-        print("************ slave nodes *************")
-        for node in mp.Nodes:
-            if(node.Is(KratosMultiphysics.SLAVE)):
-                print(node.Id)
 
     def _SelectClosestNode(self,mp,coords):
         min_distance = 1e30
@@ -286,56 +211,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         coords_min_corner[0] = node.X0
         coords_min_corner[1] = node.Y0
         coords_min_corner[2] = node.Z0
-        print("min node = ",coords_min_corner)
 
         disp_min_corner = strain*coords_min_corner 
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,disp_min_corner)
-
-        # #point coinciding with the max_corner
-        # node = self._SelectClosestNode(mp, max_corner)
-        # node.Fix(KratosMultiphysics.DISPLACEMENT_X)
-        # node.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-        # node.Fix(KratosMultiphysics.DISPLACEMENT_Z)
-
-        # coords = KratosMultiphysics.Array3(node)
-        # coords[0] = node.X0 #- coords_min_corner[0]
-        # coords[1] = node.Y0 #- coords_min_corner[1]
-        # coords[2] = node.Z0 #- coords_min_corner[2]
-        # print("max node = ",coords)
-
-        # disp = strain*coords #+ disp_min_corner
-        # node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,disp)
-
-        # #same y and z as min_cDISPLACEMENT_Displacement_Auto1
-        # aux[0] = max_corner[0]DISPLACEMENT_Displacement_Auto1
-        # aux[1] = min_corner[1]DISPLACEMENT_Displacement_Auto1
-        # aux[2] = min_corner[2]DISPLACEMENT_Displacement_Auto1
-        # node = _SelectClosestNDISPLACEMENT_Displacement_Auto1
-        # node.Fix(DISPLACEMENT_DISPLACEMENT_Displacement_Auto1
-
-        # #same x and z as min_cDISPLACEMENT_Displacement_Auto1
-        # aux[0] = min_corner[0]DISPLACEMENT_Displacement_Auto1
-        # aux[1] = max_corner[1]
-        # aux[2] = min_corner[2]
-        # node = _SelectClosestNode(mp, aux)
-        # node.Fix(DISPLACEMENT_X)
-
-        # #same z as min_corner /   x, y = max_corner
-        # aux[0] = min_corner[0]
-        # aux[1] = max_corner[1]
-        # aux[2] = max_corner[2]
-        # node = _SelectClosestNode(mp, aux)
-        # node.Fix(DISPLACEMENT_Z)
-
-    def _AssignPeriodicity(self,master,slave,strain_tensor, direction):
-
-        print("direction = ",direction)
-        print("strain_tensor = ",strain_tensor)
-
-        #compute translation
-        T = strain_tensor*direction
-
-
 
     def ComputeEquivalentElasticTensor(self,stress_and_strain,perturbation):
         C = KratosMultiphysics.Matrix(self.strain_size, self.strain_size)
@@ -360,13 +238,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             inverse_perturbation[5,5] = 0.5/perturbation
 
         C = C*inverse_perturbation
-
-        ##expected values caseDISPLACEMENT_Displacement_Auto1
-        # E = 206900000000.0
-        # nu = 0.29
-        # print("C11 = ", E*(1DISPLACEMENT_Displacement_Auto1
-        # print("C12 = ", E*(nDISPLACEMENT_Displacement_Auto1
-        # print("C33 = ", E*(1DISPLACEMENT_Displacement_Auto1
 
         return C
         
@@ -409,7 +280,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         strain = KratosMultiphysics.Matrix(3,3)
         strain.fill(0.0)
 
-        print("a")
         strain[i,j] = perturbation
         strain[j,i] = perturbation
 
@@ -428,14 +298,11 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         #self._GetSolver().Initialize()
         self.__CustomInitializeSolutionStep(strain,boundary_mp, averaging_mp)
-        print("b2")
 
         self._GetSolver().Predict()
-        print("b3")
         print(self._GetSolver().GetComputingModelPart())
 
         self._GetSolver().SolveSolutionStep()
-        print("c")
         process_info = averaging_mp.ProcessInfo
         avg_stress = KratosMultiphysics.Vector(self.strain_size)
         avg_stress.fill(0.0)
@@ -464,19 +331,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         avg_stress /= self.averaging_volume
 
         print("avg_stress = ", avg_stress)
-
-        print("d")
-        #self._GetSolver().Clear()
-
-        x = KratosMultiphysics.Vector(3)
-        for node in averaging_mp.Nodes:
-            x[0] = node.X0
-            x[1] = node.Y0
-            x[2] = node.Z0
-            dcomputed = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-            d = strain*x 
-            print(node.Id," ",dcomputed, " ", d)
-        
+       
 
             
 
@@ -516,11 +371,16 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         periodicity_utility.AssignPeriodicity(self.min_y_face,self.max_y_face,strain, KratosMultiphysics.Vector([0.0, dy, 0.0]))
         periodicity_utility.AssignPeriodicity(self.min_z_face,self.max_z_face,strain, KratosMultiphysics.Vector([0.0, 0.0, dz]))
 
-        ##assign periodicity to edges
-        periodicity_utility.AssignPeriodicity(self.min_x_face,self.max_xy_edge_mp,strain, KratosMultiphysics.Vector([dx, dy, 0.0]))
-        periodicity_utility.AssignPeriodicity(self.min_z_face,self.max_xz_edge_mp,strain, KratosMultiphysics.Vector([dx, 0.0, dz]))
-        periodicity_utility.AssignPeriodicity(self.min_y_face,self.max_yz_edge_mp,strain, KratosMultiphysics.Vector([0.0, dy, dz]))
-
         periodicity_utility.Finalize()
+
+        #start from the exact solution in the case of a constant strain
+        x = KratosMultiphysics.Vector(3)
+        for node in volume_mp.Nodes:
+            x[0] = node.X0
+            x[1] = node.Y0
+            x[2] = node.Z0
+            d = strain*x 
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,d)
+
 
 

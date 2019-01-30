@@ -106,8 +106,6 @@ public:
             //search in which condition it falls
             auto i_node = slave.NodesBegin() + i;
 
-            KRATOS_WATCH(i_node->Id());
-
             Condition::Pointer p_host_cond;
             Vector N;
             array_1d<double, 3 > transformed_slave_coordinates = i_node->Coordinates() - direction;
@@ -152,23 +150,6 @@ public:
     void Finalize()
     {
 
-        std::cout << "BEFORE COMPACTING" << std::endl;
-        for(auto& data : mAuxPairings)
-        {
-            const unsigned int slave_id = data.first;
-            auto& master_data = data.second;
-            auto& master_ids = std::get<0>(master_data);
-            auto& master_weights = std::get<1>(master_data);
-            auto& T = std::get<2>(master_data);
-
-            std::cout << slave_id << " - ";
-            for(auto& master : master_ids)
-                std::cout << master << " ";
-            std::cout << " - ";
-            for(auto& w : master_weights)
-                std::cout << w << " ";  
-            std::cout << " - " << T << std::endl; 
-        }
        
         for(auto& data : mAuxPairings)
         {
@@ -216,13 +197,14 @@ public:
             auto& master_weights = std::get<1>(master_data);
             auto& T = std::get<2>(master_data);
 
-            std::cout << slave_id << " - ";
-            for(auto& master : master_ids)
-                std::cout << master << " ";
-            std::cout << " - ";
-            for(auto& w : master_weights)
-                std::cout << w << " ";  
-            std::cout << " - " << T << std::endl;  
+            //very useful for debugging. please do not remove
+            // std::cout << slave_id << " - ";
+            // for(auto& master : master_ids)
+            //     std::cout << master << " ";
+            // std::cout << " - ";
+            // for(auto& w : master_weights)
+            //     std::cout << w << " ";  
+            // std::cout << " - " << T << std::endl;  
 
             //flag slave and master nodes
             mrModelPart.pGetNode(slave_id)->Set(SLAVE);
