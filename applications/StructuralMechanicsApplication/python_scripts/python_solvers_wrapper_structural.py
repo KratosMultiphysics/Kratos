@@ -34,6 +34,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         elif (solver_type == "adjoint_static"):
             solver_module_name = "structural_mechanics_adjoint_static_solver"
 
+        elif (solver_type == "direct_static"):
+            solver_module_name = "structural_mechanics_direct_sensitivity_solver"
+
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\", \"eigen_value\", \"harmonic_analysis\", \"formfinding\", \"adjoint_static\""
