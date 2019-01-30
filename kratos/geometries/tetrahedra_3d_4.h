@@ -801,18 +801,18 @@ public:
      *
      * @return   The solid angles of the geometry
     */
-    virtual inline void ComputeSolidAngles(Vector& solid_angles) const override
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles) const override
     {
-      if(solid_angles.size() != 4)
-          solid_angles.resize(4, false);
+      if(rSolidAngles.size() != 4)
+          rSolidAngles.resize(4, false);
 
       Vector dihedral_angles(6);
       ComputeDihedralAngles(dihedral_angles); 
 
-      solid_angles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  -3.14159265359;     
-      solid_angles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  -3.14159265359;     
-      solid_angles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  -3.14159265359;     
-      solid_angles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  -3.14159265359;     
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  -3.14159265359;     
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  -3.14159265359;     
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  -3.14159265359;     
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  -3.14159265359;     
     }
 
 
@@ -821,10 +821,10 @@ public:
      *
      * @return   The dihedral angles of the geometry
     */
-    virtual inline void ComputeDihedralAngles(Vector& dihedral_angles) const override
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
     {
-      if(dihedral_angles.size() != 6)
-          dihedral_angles.resize(6, false);
+      if(rDihedralAngles.size() != 6)
+          rDihedralAngles.resize(6, false);
 
 
       BoundedMatrix<double, 4, 3 > coords;
@@ -862,7 +862,7 @@ public:
 
         //and finally the cos of the angle:
         const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
-        dihedral_angles[i] = acos(angle_cos);
+        rDihedralAngles[i] = acos(angle_cos);
       }
 
     }
