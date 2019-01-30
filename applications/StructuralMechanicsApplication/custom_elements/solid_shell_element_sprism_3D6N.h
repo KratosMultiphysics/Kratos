@@ -200,8 +200,8 @@ public:
      */
      void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rElementalDofList the degrees of freedom of the considered element geometry
@@ -210,8 +210,8 @@ public:
      */
      void GetDofList(
         DofsVectorType& rElementalDofList,
-        ProcessInfo& rCurrentProcessInfo
-        ) override;
+        const ProcessInfo& rCurrentProcessInfo
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal displacements
@@ -221,7 +221,7 @@ public:
      void GetValuesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal velocities
@@ -231,7 +231,7 @@ public:
     void GetFirstDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
     /**
      * @brief Sets on rValues the nodal accelerations
@@ -241,7 +241,7 @@ public:
     void GetSecondDerivativesVector(
         Vector& rValues,
         int Step = 0
-        ) override;
+        ) const override;
 
      /**
        * @brief This is called during the assembling process in order
@@ -251,7 +251,7 @@ public:
        */
      void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
      /**
@@ -264,7 +264,7 @@ public:
      void CalculateRightHandSide(
         std::vector< VectorType >& rRightHandSideVectors,
         const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
      /**
@@ -275,7 +275,7 @@ public:
       */
      void CalculateLeftHandSide(
         MatrixType& rLeftHandSideMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -289,7 +289,7 @@ public:
     void CalculateLocalSystem(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
      /**
@@ -306,7 +306,7 @@ public:
         const std::vector< Variable< MatrixType > >& rLHSVariables,
         std::vector< VectorType >& rRightHandSideVectors,
         const std::vector< Variable< VectorType > >& rRHSVariables,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -317,7 +317,7 @@ public:
       */
     void CalculateMassMatrix(
         MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         ) override;
 
     /**
@@ -328,7 +328,7 @@ public:
       */
     void CalculateDampingMatrix(
             MatrixType& rDampingMatrix,
-            ProcessInfo& rCurrentProcessInfo
+            const ProcessInfo& rCurrentProcessInfo
             ) override;
 
     /**
@@ -344,7 +344,7 @@ public:
         MatrixType& rDampingMatrix,
         const MatrixType& rStiffnessMatrix,
         const MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -578,7 +578,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo The current process info instance
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     ///@}
     ///@name Input and output
@@ -610,31 +610,31 @@ public:
      * @brief Called at the beginning of each solution step
      * @param rCurrentProcessInfo The current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Called at the end of each solution step
      * @param rCurrentProcessInfo The current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo The current process info instance
      */
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief This is called for non-linear analysis at the beginning of the iteration process
      * @param rCurrentProcessInfo The current process info instance
      */
-    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
       * @brief Called to initialize the element.
       * @details Must be called before any calculation is done
       */
-    void Initialize() override;
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
 protected:
 
@@ -933,7 +933,7 @@ protected:
      */
     void CalculateElementalSystem(
         LocalSystemComponents& rLocalSystem,
-        ProcessInfo& rCurrentProcessInfo
+        const ProcessInfo& rCurrentProcessInfo
         );
 
     /**
@@ -959,14 +959,14 @@ protected:
     bool HasNeighbour(
         const IndexType Index,
         const NodeType& NeighbourNode
-        );
+        ) const;
 
     /**
      * @brief Calculates the number of active neighbours:
      * @param pNeighbourNodes The neighbours nodes
      * @return An integer with the number of neighbours of the node
      */
-    std::size_t NumberOfActiveNeighbours(WeakPointerVector< NodeType >& pNeighbourNodes);
+    std::size_t NumberOfActiveNeighbours(const WeakPointerVector< NodeType >& pNeighbourNodes) const;
 
     /**
      * @brief  It gets the nodal coordinates, according to the configutaion

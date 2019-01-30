@@ -159,12 +159,12 @@ Element::Pointer SolidShellElementSprism3D6N::Clone(
 
 void SolidShellElementSprism3D6N::EquationIdVector(
     EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    )const
 {
     KRATOS_TRY;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
 
     const IndexType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
     const IndexType dim = number_of_nodes * 3;
@@ -199,12 +199,12 @@ void SolidShellElementSprism3D6N::EquationIdVector(
 
 void SolidShellElementSprism3D6N::GetDofList(
     DofsVectorType& rElementalDofList,
-    ProcessInfo& rCurrentProcessInfo
-    )
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
 {
     KRATOS_TRY;
 
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     rElementalDofList.resize(0);
 
     // Nodes of the central element
@@ -232,9 +232,9 @@ void SolidShellElementSprism3D6N::GetDofList(
 void SolidShellElementSprism3D6N::GetValuesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -268,9 +268,9 @@ void SolidShellElementSprism3D6N::GetValuesVector(
 void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -304,9 +304,9 @@ void SolidShellElementSprism3D6N::GetFirstDerivativesVector(
 void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
     Vector& rValues,
     int Step
-    )
+    ) const
 {
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     const SizeType number_of_nodes = GetGeometry().size() + NumberOfActiveNeighbours(p_neighbour_nodes);
 
     const SizeType mat_size = number_of_nodes * 3;
@@ -340,7 +340,7 @@ void SolidShellElementSprism3D6N::GetSecondDerivativesVector(
 
 void SolidShellElementSprism3D6N::CalculateRightHandSide(
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -372,7 +372,7 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 void SolidShellElementSprism3D6N::CalculateRightHandSide(
     std::vector< VectorType >& rRightHandSideVectors,
     const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -412,7 +412,7 @@ void SolidShellElementSprism3D6N::CalculateRightHandSide(
 
 void SolidShellElementSprism3D6N::CalculateLeftHandSide(
     MatrixType& rLeftHandSideMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -445,7 +445,7 @@ void SolidShellElementSprism3D6N::CalculateLeftHandSide(
 void SolidShellElementSprism3D6N::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -478,7 +478,7 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
     const std::vector< Variable< MatrixType > >& rLHSVariables,
     std::vector< VectorType >& rRightHandSideVectors,
     const std::vector< Variable< VectorType > >& rRHSVariables,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -531,7 +531,7 @@ void SolidShellElementSprism3D6N::CalculateLocalSystem(
 
 void SolidShellElementSprism3D6N::CalculateMassMatrix(
     MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -560,7 +560,7 @@ void SolidShellElementSprism3D6N::CalculateMassMatrix(
 
 void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
@@ -580,7 +580,7 @@ void SolidShellElementSprism3D6N::CalculateDampingMatrix(
     MatrixType& rDampingMatrix,
     const MatrixType& rStiffnessMatrix,
     const MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -1471,17 +1471,17 @@ void SolidShellElementSprism3D6N::GetValueOnIntegrationPoints(
 /***********************************************************************************/
 /***********************************************************************************/
 
-int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
+int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
     /* Check the neighbours have been calculated */
     // Neighbour elements
-    WeakPointerVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    const WeakPointerVector< Element >& p_neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(p_neighbour_elements.size() == 0) << "The neighbour elements are not calculated" << std::endl;
 
     // Neighbour nodes
-    WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
+    const WeakPointerVectorNodesType& p_neighbour_nodes = this->GetValue(NEIGHBOUR_NODES);
     KRATOS_ERROR_IF(p_neighbour_nodes.size() == 0) << "The neighbour nodes are not calculated" << std::endl;
 
     const int check = BaseType::Check(rCurrentProcessInfo);
@@ -1525,7 +1525,7 @@ int  SolidShellElementSprism3D6N::Check(const ProcessInfo& rCurrentProcessInfo)
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     /* Create and initialize element variables: */
     GeneralVariables general_variables;
@@ -1585,7 +1585,7 @@ void SolidShellElementSprism3D6N::InitializeSolutionStep(ProcessInfo& rCurrentPr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+void SolidShellElementSprism3D6N::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -1646,7 +1646,7 @@ void SolidShellElementSprism3D6N::FinalizeSolutionStep(ProcessInfo& rCurrentProc
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::InitializeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::InitializeNonLinearIteration(rCurrentProcessInfo);
 }
@@ -1654,7 +1654,7 @@ void SolidShellElementSprism3D6N::InitializeNonLinearIteration( ProcessInfo& rCu
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
+void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( const ProcessInfo& rCurrentProcessInfo )
 {
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
@@ -1728,7 +1728,7 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SolidShellElementSprism3D6N::Initialize()
+void SolidShellElementSprism3D6N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
 
@@ -1819,7 +1819,7 @@ void SolidShellElementSprism3D6N::Initialize()
 
 void SolidShellElementSprism3D6N::CalculateElementalSystem(
     LocalSystemComponents& rLocalSystem,
-    ProcessInfo& rCurrentProcessInfo
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     KRATOS_TRY;
@@ -1986,7 +1986,7 @@ void SolidShellElementSprism3D6N::PrintElementCalculation(
 bool SolidShellElementSprism3D6N::HasNeighbour(
     const IndexType Index,
     const NodeType& NeighbourNode
-    )
+    ) const
 {
     if (NeighbourNode.Id() == GetGeometry()[Index].Id()) {
         return false;
@@ -2001,7 +2001,7 @@ bool SolidShellElementSprism3D6N::HasNeighbour(
 /***********************************************************************************/
 /***********************************************************************************/
 
-std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(WeakPointerVectorNodesType& pNeighbourNodes)
+std::size_t SolidShellElementSprism3D6N::NumberOfActiveNeighbours(const WeakPointerVectorNodesType& pNeighbourNodes) const
 {
     std::size_t active_neighbours = 0;
     for (IndexType i = 0; i < pNeighbourNodes.size(); ++i) {
