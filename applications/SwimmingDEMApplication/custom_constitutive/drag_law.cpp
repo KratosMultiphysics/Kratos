@@ -12,15 +12,21 @@ namespace Kratos {
         return type_of_law;
     }
 
+
+    void DragLaw::SetDragLawInProperties(Properties::Pointer pProp) const {
+        pProp->SetValue(SDEM_DRAG_LAW_POINTER, this->Clone());
+    }
+
     void DragLaw::ComputeForce(NodeType& node,
                                double particle_radius,
                                double fluid_density,
                                double fluid_kinematic_viscosity,
                                array_1d<double, 3>& slip_velocity,
                                array_1d<double, 3>& drag_force,
-                               const ProcessInfo& r_current_process_info)
-    {
-        double drag_coeff = 6.0 * Globals::Pi * fluid_kinematic_viscosity * fluid_density * particle_radius;
-        noalias(drag_force) = drag_coeff * slip_velocity;
+                               const ProcessInfo& r_current_process_info){}
+
+    DragLaw::Pointer DragLaw::Clone() const {
+        DragLaw::Pointer p_clone(new DragLaw(*this));
+        return p_clone;
     }
 } // namespace Kratos

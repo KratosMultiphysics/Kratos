@@ -6,7 +6,7 @@
 #include "includes/model_part.h"
 #include "containers/flags.h"
 
-#include "drag_law.h"
+#include "stokes_drag_law.h"
 
 namespace Kratos {
 
@@ -19,6 +19,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
 
     HydrodynamicInteractionLaw();
+
+    HydrodynamicInteractionLaw(DragLaw& r_drag_law);
 
     HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw);
 
@@ -34,13 +36,15 @@ public:
 
     virtual HydrodynamicInteractionLaw::Pointer Clone() const;
 
+    DragLaw::Pointer CloneDragLaw() const;
+
     void ComputeDragForce(NodeType& node,
-                            double particle_radius,
-                            double fluid_density,
-                            double fluid_kinematic_viscosity,
-                            array_1d<double, 3>& slip_velocity,
-                            array_1d<double, 3>& drag_force,
-                            const ProcessInfo& r_current_process_info);
+                          double particle_radius,
+                          double fluid_density,
+                          double fluid_kinematic_viscosity,
+                          array_1d<double, 3>& slip_velocity,
+                          array_1d<double, 3>& drag_force,
+                          const ProcessInfo& r_current_process_info);
 
 protected:
     DragLaw::Pointer mpDragLaw;

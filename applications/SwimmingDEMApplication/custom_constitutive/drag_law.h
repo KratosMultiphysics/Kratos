@@ -23,11 +23,15 @@ namespace Kratos {
 
         ~DragLaw(){}
 
-        void Initialize(const ProcessInfo& r_process_info);
+        virtual DragLaw::Pointer Clone() const;
 
-        std::string GetTypeOfLaw();
+        virtual void Initialize(const ProcessInfo& r_process_info);
 
-        void ComputeForce(NodeType& node,
+        void SetDragLawInProperties(Properties::Pointer pProp) const;
+
+        virtual std::string GetTypeOfLaw();
+
+        virtual void ComputeForce(NodeType& node,
                           double particle_radius,
                           double fluid_density,
                           double fluid_kinematic_viscosity,
@@ -40,14 +44,16 @@ namespace Kratos {
         friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const override {
-            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DragLaw)
+            KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags)
         }
 
         virtual void load(Serializer& rSerializer) override {
-            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DragLaw)
+            KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags)
         }
 
     }; //class DragLaw
+
+KRATOS_DEFINE_APPLICATION_VARIABLE(SWIMMING_DEM_APPLICATION, DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
 
 } // Namespace Kratos
 

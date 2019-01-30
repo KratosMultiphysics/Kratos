@@ -23,6 +23,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/sphere_3d_1.h"
 #include "custom_constitutive/hydrodynamic_interaction_law.h"
+#include "custom_constitutive/drag_law.h"
 
 namespace Kratos
 {
@@ -32,6 +33,8 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(VECTORIAL_ERROR_1)
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
+KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
 
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   KratosApplication("SwimmingDEMApplication"),
@@ -74,6 +77,8 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(AVERAGED_FLUID_VELOCITY)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_NAME)
+  KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_POINTER)
   /* Define In Global variables.cpp */
 
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled2D", mMonolithicDEMCoupled2D)

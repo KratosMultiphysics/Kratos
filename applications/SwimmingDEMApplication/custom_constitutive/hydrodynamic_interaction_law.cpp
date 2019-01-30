@@ -3,10 +3,16 @@
 namespace Kratos {
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw() {
-        auto mpDragLaw = make_unique<DragLaw>();
+        mpDragLaw = make_unique<StokesDragLaw>();
     }
 
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw) {
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(DragLaw& r_drag_law) {
+        mpDragLaw = r_drag_law.Clone();
+    }
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
+    {
+        mpDragLaw = rHydrodynamicInteractionLaw.CloneDragLaw();
     }
 
     void HydrodynamicInteractionLaw::Initialize(const ProcessInfo& r_process_info) {
@@ -24,6 +30,10 @@ namespace Kratos {
     HydrodynamicInteractionLaw::Pointer HydrodynamicInteractionLaw::Clone() const {
         HydrodynamicInteractionLaw::Pointer p_clone(new HydrodynamicInteractionLaw(*this));
         return p_clone;
+    }
+
+    DragLaw::Pointer HydrodynamicInteractionLaw::CloneDragLaw() const {
+        return mpDragLaw->Clone();
     }
 
     HydrodynamicInteractionLaw::~HydrodynamicInteractionLaw(){}
