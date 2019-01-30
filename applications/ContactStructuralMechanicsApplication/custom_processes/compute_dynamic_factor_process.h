@@ -118,11 +118,6 @@ public:
      */
     void Execute() override;
 
-    /**
-     * @brief This function is designed for being called at the beginning of the computations right after reading the model and the groups
-     */
-    void ExecuteInitialize() override;
-
     ///@}
     ///@name Access
     ///@{
