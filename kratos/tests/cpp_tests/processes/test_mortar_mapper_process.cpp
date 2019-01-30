@@ -63,7 +63,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
 
-            Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -154,7 +154,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
 
-            Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -248,7 +248,7 @@ namespace Kratos
             this_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
             this_model_part.AddNodalSolutionStepVariable(NORMAL);
 
-            Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = this_model_part.CreateNewProperties(0);
 
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
