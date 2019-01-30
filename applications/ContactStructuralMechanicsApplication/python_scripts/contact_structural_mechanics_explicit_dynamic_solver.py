@@ -41,11 +41,6 @@ class ContactExplicitMechanicalSolver(structural_mechanics_explicit_dynamic_solv
 
         # Setting default configurations true by default
         auxiliar_methods_solvers.AuxiliarSetSettings(self.settings, self.contact_settings)
-        if not self.dynamic_settings["damping_settings"]["determine_rayleigh_damping"].GetBool():
-            if self.dynamic_settings["rayleigh_alpha"].GetDouble() == 0.0 and self.dynamic_settings["rayleigh_beta"].GetDouble() == 0.0:
-                self.print_on_rank_zero("Rayleigh parameters", "Rayleigh parameters not set. Setting automatically")
-                self.dynamic_settings["damping_settings"]["determine_rayleigh_damping"].SetBool(True)
-                self.dynamic_settings["damping_settings"]["determine_rayleigh_damping_settings"]["write_on_properties"].SetBool(True)
 
         # Getting delta_time_factor_for_contact
         self.delta_time_factor_for_contact = self.contact_settings["delta_time_factor_for_contact"].GetDouble()
