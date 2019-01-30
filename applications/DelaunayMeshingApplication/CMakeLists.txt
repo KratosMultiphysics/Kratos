@@ -19,30 +19,17 @@ if(NOT DEFINED ${INCLUDE_TETGEN})
   set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
-set(MESHER_LIBS "")
-
+set(MESHER_LIBRARIES "")
 if(${INCLUDE_TRIANGLE} MATCHES ON)
-  add_definitions(-DINCLUDE_TRIANGLE)
-  add_definitions(-DTRILIBRARY)
-  add_definitions(-w)
-  #perform platform specific defintions
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    add_definitions(-DCPU86)
-    add_definitions(-DNO_TIMER)
-  else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    add_definitions(-DLINUX)
-  endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   include_directories(${TRIANGLE_DIR})
-  set(TRIANGLE_SOURCES ${TRIANGLE_DIR}/triangle.c)
-  SET_SOURCE_FILES_PROPERTIES(${TRIANGLE_SOURCES} PROPERTIES COMPILE_FLAGS -O0)
-  add_library(external_triangle STATIC ${TRIANGLE_SOURCES})
-  #install (FILES ${TRIANGLE_DIR}/triangle.h DESTINATION libs)
-  list(APPEND MESHER_LIBS external_triangle)
+  list(APPEND MESHER_LIBRARIES triangle)
 endif(${INCLUDE_TRIANGLE} MATCHES ON)
+
 
 if(${INCLUDE_TETGEN} MATCHES ON)
   set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
   INCLUDE("${EXTERNAL_LIBRARIES_DIR}/CMakeFiles/Tetgen.cmake")
+  include_directories(${TETGEN_DIR})
   add_definitions(-DINCLUDE_TETGEN)
   add_definitions(-DTETLIBRARY)
   add_definitions(-DTETGEN150)
@@ -54,16 +41,17 @@ if(${INCLUDE_TETGEN} MATCHES ON)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_definitions(-DLINUX)
   endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  include_directories(${TETGEN_DIR})
   set(TETGEN_SOURCES ${TETGEN_DIR}/tetgen.cxx)
   set(UNOPTIMIZED_PREDICATES ${TETGEN_DIR}/predicates.cxx)
   SET_SOURCE_FILES_PROPERTIES(${UNOPTIMIZED_PREDICATES} PROPERTIES COMPILE_FLAGS -O0)
   SET_SOURCE_FILES_PROPERTIES(${TETGEN_SOURCES} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-  add_library(external_tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES})
-  #install (FILES ${TETGEN_DIR}/tetgen.h DESTINATION libs)
-  list(APPEND MESHER_LIBS external_tetgen)
+  add_library(tetgen STATIC ${TETGEN_SOURCES} ${UNOPTIMIZED_PREDICATES})
+  list(APPEND MESHER_LIBRARIES tetgen)
 endif(${INCLUDE_TETGEN} MATCHES ON)
 
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  list(APPEND MESHER_LIBRARIES m)
+endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 ## Generate variables with the sources
 set( KRATOS_DELAUNAY_MESHING_APPLICATION_CORE
@@ -94,13 +82,8 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 )
 
-## matplot lib
-if(NOT ${MSVC})
-  list(APPEND MESHER_LIBS m)
-endif(NOT ${MSVC})
-
 add_library(KratosDelaunayMeshingCore SHARED ${KRATOS_DELAUNAY_MESHING_APPLICATION_CORE})
-target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${MESHER_LIBS})
+target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${MESHER_LIBRARIES})
 set_target_properties(KratosDelaunayMeshingCore PROPERTIES COMPILE_DEFINITIONS "DELAUNAY_MESHING_APPLICATION=EXPORT,API")
 
 ###############################################################

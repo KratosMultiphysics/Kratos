@@ -16,7 +16,8 @@ else(TETGEN_FOUND)
   set(TETGEN_DIR ${DEFAULT_TETGEN_DIR})
   message(STATUS "set TETGEN_DIR: ${TETGEN_DIR}")
 
-  set(tetgen_packed_file "tetgen-1.5.0-delaunay.zip")
+  set(tetgen_file_name "tetgen-1.5.0-delaunay")
+  set(tetgen_packed_file "${tetgen_file_name}.zip")
   file(TO_NATIVE_PATH "${tetgen_install_dir}/${tetgen_packed_file}" tetgen_packed_dir)
 
   if(NOT EXISTS ${tetgen_packed_dir})
@@ -35,10 +36,11 @@ else(TETGEN_FOUND)
 
   if((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
     message(STATUS "Unpacking tetgen-1.5.0-delaunay.zip in ${tetgen_install_dir} ...")
-    execute_process(COMMAND unzip -j ${tetgen_packed_file} -d ${TETGEN_DIR}
-      WORKING_DIRECTORY ${tetgen_install_dir}
-      RESULT_VARIABLE unzip_result
-      OUTPUT_VARIABLE unzip_output)
-    message(STATUS "unzip output[${unzip_result}]:\n${unzip_output}")
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${tetgen_packed_file}
+      WORKING_DIRECTORY ${tetgen_install_dir})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory ${tetgen_install_dir}/${tetgen_file_name} ${TETGEN_DIR}
+      WORKING_DIRECTORY ${tetgen_install_dir})
+    execute_process(COMMAND ${CMAKE_COMMAND} -E remove_directory ${tetgen_install_dir}/${tetgen_file_name}
+      WORKING_DIRECTORY ${tetgen_install_dir})
   endif((NOT EXISTS ${TETGEN_DIR}) OR (NOT TETGEN_FOUND))
 endif(TETGEN_FOUND)
