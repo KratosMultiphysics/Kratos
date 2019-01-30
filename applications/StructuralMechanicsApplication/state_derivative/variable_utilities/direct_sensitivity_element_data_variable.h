@@ -18,10 +18,6 @@
 
 // Project includes
 #include "direct_sensitivity_variable.h"
-#include "includes/define.h"
-#include "includes/element.h"
-#include "includes/kratos_parameters.h"
-#include "structural_mechanics_application_variables.h"
 
 
 namespace Kratos
@@ -64,9 +60,12 @@ public:
 
     void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo) override;    
 
-    void PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable) override;
+    void PerturbDesignVariable(Element& rElement) override;
     
-    void UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable) override;
+    void UnperturbDesignVariable(Element& rElement) override;
+      
+    unsigned int GetTracedElementId() override;
+
     ///@}
     ///@name Access
     ///@{
@@ -102,11 +101,11 @@ protected:
 private:
     ///@name private member Variables
     ///@{
-        int mIdTracedElement;
+        unsigned int mIdTracedElement;
         Element mTracedElement;   
-        Element::Pointer mpTracedElement;
-        std::string mDesignVariableName;
+        Element::Pointer mpTracedElement;        
         ProcessInfo mProcessInfo;
+
     ///@}
 
     ///@name private Operators
@@ -117,7 +116,8 @@ private:
     ///@{
         Variable<double> ReadScalarDesignVariables(std::string const& rVariableName) override;
 
-        Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName) override;
+        Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName) override;        
+        
     ///@}
 
 }; // Class DirectSensitivityElementDataVariable

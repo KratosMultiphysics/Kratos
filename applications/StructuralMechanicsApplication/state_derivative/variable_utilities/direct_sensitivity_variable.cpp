@@ -17,8 +17,6 @@
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "direct_sensitivity_variable.h"
-#include "utilities/variable_utils.h"
-#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 
 namespace Kratos
 {
@@ -29,24 +27,22 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        //Get perturbation size
-        //mDelta = VariableSettings["delta"].GetDouble();
+       //Get perturbation size
+        mDelta = VariableSettings["delta"].GetDouble();
+        
+        // Get the name of the design variable 
+        mDesignVariableName = VariableSettings["design_variable_name"].GetString();
 
-        std::cout << "[DirectSensitivityDataVariable] :: Construction finished" << std::endl;
+        // Get the type of the design variable
+        mVariableType = VariableSettings["variable_type"].GetString();
 
         KRATOS_CATCH("");
     }
 
     /// Destructor.
-    DirectSensitivityVariable::~DirectSensitivityVariable()
-    {
-        std::cout << "[DirectSensitivityDataVariable] :: Destruction finished" << std::endl;
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-        
+    DirectSensitivityVariable::~DirectSensitivityVariable(){}
+    
+            
     void DirectSensitivityVariable::Initialize()
     {
         KRATOS_TRY;
@@ -58,40 +54,60 @@ namespace Kratos
     void DirectSensitivityVariable::CalculatePseudoLoadVector(Element& rDirectElement, const Matrix& rRHS, 
                                     Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY;
-
         KRATOS_ERROR << "CalculatePseudoLoadVector should be implemented in the derived class." << std::endl;
-
-        KRATOS_CATCH("");
     }  
+
 
     void DirectSensitivityVariable::CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, 
                                     Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo)
     {
-        KRATOS_TRY;
-
         KRATOS_ERROR << "CalculatePseudoLoadVector should be implemented in the derived class." << std::endl;
-
-        KRATOS_CATCH("");
     }  
 
-    void DirectSensitivityVariable::PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable)
+
+    void DirectSensitivityVariable::PerturbDesignVariable(Element& rDirectElement)
     {
         KRATOS_ERROR << "PerturbDesignVariable should be implemented in the derived class." << std::endl;
     }
+   
     
-    void DirectSensitivityVariable::UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable)
+    void DirectSensitivityVariable::UnperturbDesignVariable(Element& rDirectElement)
     {
         KRATOS_ERROR << "UnperturbDesignVariable should be implemented in the derived class." << std::endl;
-    }
+    }  
+   
 
     Variable<double> DirectSensitivityVariable::ReadScalarDesignVariables(std::string const& rVariableName)
     {
         KRATOS_ERROR << "ReadScalarDesignVariables should be implemented in the derived class." << std::endl;
     }
 
+
     Variable<array_1d<double,3>> DirectSensitivityVariable::ReadVectorDesignVariables(std::string const& rVariableName)
     {
         KRATOS_ERROR << "ReadVectorDesignVariables should be implemented in the derived class." << std::endl;
+    }
+
+
+    std::string DirectSensitivityVariable::GetDesignVariableName() 
+    {              
+        return mDesignVariableName;
+    }
+    
+    
+    std::string DirectSensitivityVariable::GetDesignVariableType() 
+    {              
+        return mVariableType;
+    }
+
+    unsigned int DirectSensitivityVariable::GetTracedElementId() 
+    {              
+        KRATOS_ERROR << "GetTracedElementId() should be implemented in the derived class." << std::endl;
+        return 0;
+    }
+
+    double DirectSensitivityVariable::GetPerturbationSize()
+    {              
+        return mDelta;
     }
 }   

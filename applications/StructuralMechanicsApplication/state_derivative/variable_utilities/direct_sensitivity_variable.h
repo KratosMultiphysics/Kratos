@@ -19,11 +19,11 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-#include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
+#include "includes/define.h"
+#include "includes/element.h"
+#include "includes/condition.h"
 #include "includes/process_info.h"
-#include "includes/ublas_interface.h"
-#include "containers/array_1d.h"
-#include "containers/variable.h"
+
 
 
 
@@ -82,7 +82,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
+        
     ///@}
     ///@name Operations
     ///@{
@@ -98,9 +98,19 @@ public:
 
     virtual void CalculatePseudoLoadVector(Condition& rDirectCondition, const Matrix& rLHS, Vector& rPseudoLoadVector, const ProcessInfo& rProcessInfo);
 
-    virtual void PerturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable);
+    virtual void PerturbDesignVariable(Element& rDirectElement);
     
-    virtual void UnperturbDesignVariable(Element& rElement, Variable<double>& rDesignVariable);
+    virtual void UnperturbDesignVariable(Element& rDirectElement);        
+       
+    virtual std::string GetDesignVariableName();
+
+    virtual std::string GetDesignVariableType();
+
+    virtual unsigned int GetTracedElementId();
+
+    virtual double GetPerturbationSize();
+
+    
 
     ///@}
 
@@ -110,6 +120,10 @@ protected:
 
     ModelPart& mrModelPart;
     double mDelta;
+    std::string mDesignVariableName;
+    std::string mVariableType;
+    unsigned int mTracedElement;
+
      
     ///@}
     ///@name protected Operators
@@ -138,7 +152,7 @@ private:
     ///@{
     virtual Variable<double> ReadScalarDesignVariables(std::string const& rVariableName);
 
-    virtual Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName);
+    virtual Variable<array_1d<double,3>> ReadVectorDesignVariables(std::string const& rVariableName);    
     ///@} 
         
 };

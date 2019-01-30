@@ -16,36 +16,21 @@
 
 // Project includes
 #include "direct_sensitivity_element_data_variable.h"
-#include "includes/define.h"
-#include "includes/element.h"
-#include "utilities/variable_utils.h"
-#include "utilities/openmp_utils.h"
-#include "includes/kratos_parameters.h"
-#include "structural_mechanics_application_variables.h"
+
 
 namespace Kratos
 {
+    // Constructor
     DirectSensitivityElementDataVariable::DirectSensitivityElementDataVariable(ModelPart& rModelPart, Parameters VariableSettings)
     : DirectSensitivityVariable(rModelPart, VariableSettings)
     {
         // Get traced element
         mIdTracedElement = VariableSettings["traced_element_id"].GetInt();
         mpTracedElement = rModelPart.pGetElement(mIdTracedElement);
-                
-        //Get perturbation size
-        mDelta = VariableSettings["delta"].GetDouble();
-        
-        // Get the name of the design variable 
-        mDesignVariableName = VariableSettings["design_variable_name"].GetString();
-                
-        std::cout << "ch Construction finished" << std::endl;
     }
 
-
-    DirectSensitivityElementDataVariable::~DirectSensitivityElementDataVariable()
-    {
-        std::cout << "[DirectSensitivityElementDataVariable] :: Destruction finished" << std::endl;
-    }
+    // Destructor
+    DirectSensitivityElementDataVariable::~DirectSensitivityElementDataVariable(){}
 
 
     void DirectSensitivityElementDataVariable::Initialize()
@@ -64,10 +49,7 @@ namespace Kratos
         
         // Define working variable rOutput
         Matrix rOutput;
-        rOutput.resize(rLHS.size1(), rLHS.size2(), false);
-
-        rOutput.clear();
-
+        
         // Sizing and clearing of the pseudo load vector
         if (rPseudoLoadVector.size() != rLHS.size1())
             rPseudoLoadVector.resize(rLHS.size1(), false);
@@ -85,9 +67,13 @@ namespace Kratos
             else if (KratosComponents<Variable<array_1d<double,3>>>::Has(mDesignVariableName))
                 rDirectElement.CalculateSensitivityMatrix(ReadVectorDesignVariables(mDesignVariableName), rOutput, rProcessInfo);
             else
-                KRATOS_ERROR << "Unsupported variable: " << mDesignVariableName << "." << std::endl; 
-                
-            // Transform rOutput from CalculateSensitivityMatrix(matrix) into PseudoLoadVector(vector)
+                KRATOS_ERROR << "Unsupported variable: " << mDesignVariableName << "." << std::endl;
+   
+            // Check if the sizes of the pseudo load vector and the sensitivity matrix match 
+            KRATOS_ERROR_IF_NOT( rPseudoLoadVector.size() == rOutput.size2() ) << 
+                "Sizes of the pseudo load vector and the sensitivity matrix do not match" << std::endl;
+            
+            // Transform rOutput from CalculateSensitivityMatrix(matrix) into rPseudoLoadVector(vector)
             for(IndexType i = 0; i < rLHS.size1(); ++i)                    
                 rPseudoLoadVector[i] = rOutput(0, i);           
         }
@@ -97,7 +83,8 @@ namespace Kratos
             for(IndexType i = 0; i < rLHS.size1(); ++i)            
                 rPseudoLoadVector[i] = 0;                          
         }  
-            
+        
+
         KRATOS_CATCH("");           
     }
 
@@ -106,14 +93,12 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        // Sizing and clearing of the pseudo load vector
-        if (rPseudoLoadVector.size() != rLHS.size1())
-            rPseudoLoadVector.resize(rLHS.size1(), false);
-
-        rPseudoLoadVector.clear();
+        // Sizing of the pseudo load vector
+        if (rPseudoLoadVector.size() != rLHS.size2())
+            rPseudoLoadVector.resize(rLHS.size2(), false);
 
         // rPseudoLoadVector = zero vector    
-        for(IndexType i = 0; i < rLHS.size1(); ++i)            
+        for(IndexType i = 0; i < rLHS.size2(); ++i)            
             rPseudoLoadVector[i] = 0;
 
         KRATOS_CATCH("");
@@ -133,15 +118,52 @@ namespace Kratos
             return r_variable;                  
     }
 
-    void DirectSensitivityElementDataVariable::PerturbDesignVariable(Element& rDirectElement, Variable<double>& rDesignVariable)                                                 
+    
+    void DirectSensitivityElementDataVariable::PerturbDesignVariable(Element& rDirectElement)                                                 
     {              
-        const double current_property_value = rDirectElement.GetProperties()[rDesignVariable];
-        rDirectElement.SetValue(rDesignVariable, (current_property_value + mDelta)); 
-    }
+        if (KratosComponents<Variable<double>>::Has(mDesignVariableName))
+        {
+            // Save property pointer
+            Properties::Pointer p_global_properties = rDirectElement.pGetProperties();
 
-    void DirectSensitivityElementDataVariable::UnperturbDesignVariable(Element& rDirectElement, Variable<double>& rDesignVariable)                                                  
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            rDirectElement.SetProperties(p_local_property);
+
+            // perturb the design variable
+            const double current_property_value = rDirectElement.GetProperties()[ ReadScalarDesignVariables(mDesignVariableName) ];
+            p_local_property->SetValue( ReadScalarDesignVariables(mDesignVariableName) , (current_property_value + mDelta) );
+        }
+        else if (KratosComponents<Variable<array_1d<double,3>>>::Has(mDesignVariableName))                      
+            KRATOS_ERROR << "No element_data_variable of type Variable<array_1d<double,3>> is implemented yet." << std::endl;
+        else
+            KRATOS_ERROR << "Unsupported variable: " << mDesignVariableName << "." << std::endl;         
+    }    
+
+    
+    void DirectSensitivityElementDataVariable::UnperturbDesignVariable(Element& rDirectElement)                                                  
     {              
-        const double current_property_value = rDirectElement.GetProperties()[rDesignVariable];
-        rDirectElement.SetValue(rDesignVariable, (current_property_value - mDelta)); 
-    }
+        if (KratosComponents<Variable<double>>::Has(mDesignVariableName))
+        {
+            // Save property pointer
+            Properties::Pointer p_global_properties = rDirectElement.pGetProperties();
+
+            // Create new property and assign it to the element
+            Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+            rDirectElement.SetProperties(p_local_property);
+
+            // perturb the design variable
+            const double current_property_value = rDirectElement.GetProperties()[ ReadScalarDesignVariables(mDesignVariableName) ];
+            p_local_property->SetValue( ReadScalarDesignVariables(mDesignVariableName) , (current_property_value - mDelta) );
+        }
+        else if (KratosComponents<Variable<array_1d<double,3>>>::Has(mDesignVariableName))                      
+            KRATOS_ERROR << "No element_data_variable of type Variable<array_1d<double,3>> is implemented yet." << std::endl;
+        else
+            KRATOS_ERROR << "Unsupported variable: " << mDesignVariableName << "." << std::endl; 
+    }  
+    
+    unsigned int  DirectSensitivityElementDataVariable::GetTracedElementId() 
+    {              
+        return mIdTracedElement;
+    } 
 }    
