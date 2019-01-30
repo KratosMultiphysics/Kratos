@@ -118,6 +118,7 @@ void AddCustomStrategiesToPython(pybind11::module &m)
     .def(py::init<unsigned int, Process::Pointer>())
     .def(py::init<unsigned int>())                             // constructor without a turbulence model
     .def(py::init<unsigned int, Kratos::Variable<double> &>()) // constructor with a non-default flag for slip conditions
+    .def(py::init<unsigned int, Kratos::Flags&>())// constructor with a Flag
     ;
 
     py::class_<
