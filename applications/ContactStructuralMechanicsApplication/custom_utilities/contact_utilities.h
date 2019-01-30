@@ -308,9 +308,7 @@ public:
 
         const bool is_active = aux_check == 0 ?  false : true;
 
-        if (ThrowError) {
-            KRATOS_ERROR_IF_NOT(is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
-        }
+        KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
         return is_active;
     }
