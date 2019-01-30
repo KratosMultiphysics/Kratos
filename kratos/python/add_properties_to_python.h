@@ -12,8 +12,8 @@
 //
 
 
-#if !defined(KRATOS_ADD_MESH_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_MESH_TO_PYTHON_H_INCLUDED
+#if !defined(KRATOS_ADD_PROPERTIES_TO_PYTHON_H_INCLUDED )
+#define  KRATOS_ADD_PROPERTIES_TO_PYTHON_H_INCLUDED
 
 
 
@@ -33,10 +33,10 @@ namespace Kratos
 namespace Python
 {
 
-void  AddMeshToPython(pybind11::module& m);
+void  AddPropertiesToPython(pybind11::module& m);
 
 }  // namespace Python.
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_MESH_TO_PYTHON_H_INCLUDED  defined 
+#endif // KRATOS_ADD_PROPERTIES_TO_PYTHON_H_INCLUDED  defined

@@ -44,6 +44,8 @@
 #include "add_processes_to_python.h"
 #include "add_model_to_python.h"
 #include "add_io_to_python.h"
+#include "add_node_to_python.h"
+#include "add_properties_to_python.h"
 #include "add_mesh_to_python.h"
 #include "add_modeler_to_python.h"
 #include "add_kratos_application_to_python.h"
