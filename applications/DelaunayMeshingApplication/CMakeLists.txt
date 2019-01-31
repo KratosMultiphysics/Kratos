@@ -28,7 +28,7 @@ endif(${INCLUDE_TRIANGLE} MATCHES ON)
 
 if(${INCLUDE_TETGEN} MATCHES ON)
   set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
-  INCLUDE("${EXTERNAL_LIBRARIES_DIR}/CMakeFiles/Tetgen.cmake")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Tetgen.cmake")
   include_directories(${TETGEN_DIR})
   add_definitions(-DINCLUDE_TETGEN)
   add_definitions(-DTETLIBRARY)
