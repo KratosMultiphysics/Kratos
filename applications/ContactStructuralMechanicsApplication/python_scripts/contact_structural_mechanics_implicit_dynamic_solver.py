@@ -159,6 +159,8 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
                 builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
+        else:
+            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
