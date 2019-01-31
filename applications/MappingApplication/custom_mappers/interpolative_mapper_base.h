@@ -117,7 +117,12 @@ public:
         Kratos::Flags MappingOptions) override
     {
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
@@ -130,7 +135,12 @@ public:
         Kratos::Flags MappingOptions) override
     {
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);

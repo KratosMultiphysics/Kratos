@@ -51,7 +51,10 @@ Benchmark_text = ["Running DEM Benchmark 1.... Elastic normal impact of two iden
                   "Running DEM Benchmark 30... Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n",
                   "Running DEM Benchmark 31... Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n",
                   "Running DEM Benchmark 32... Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n",
-                  "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n"]
+                  "Running DEM Benchmark 33... Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n",
+                  "","","","","","",
+                  "Running DEM Benchmark 40... Generic test for code functionalities verification\n"]
+
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
@@ -81,18 +84,6 @@ def worker(queue):
         except Exception as e:# catch exceptions to avoid exiting the thread prematurely
             print("A problem was found in DEM Benchmark " + str(benchmark) + "... Resuming...\n")
             g = open("errors.err", "a")
-            if benchmark == 10:
-                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. LINEAR LAW =====\n\n")
-            if benchmark == 11:
-                g.write("\n===== THORNTON PAPER TESTS. FULL REGIME. HERTZIAN LAW ===\n\n")
-            if benchmark == 12:
-                g.write("\n===== WENSRICH PAPER TEST. ROLLING FRICTION =============\n\n")
-            if benchmark == 13:
-                g.write("\n===== DE/FE CONTACT BENCHMARKS ==========================\n\n")
-            if benchmark == 20:
-                g.write("\n===== BASIC CONTINUUM TESTS  ============================\n\n")
-            if benchmark == 30:
-                g.write("\n===== DISCONTINUUM CLUSTERS TESTS  ======================\n\n")
             g.write("DEM Benchmark " + str(benchmark) + ": KO!........ Test " + str(benchmark) + " FAILED\n")
             g.close()
 
@@ -101,25 +92,24 @@ def main():
         print("\nAdding processes to DEM parallel Benchmarking..............\n")
         g = open("errors.err", "w")
         g.write("The complete list of benchmarks are included at the end of this message as a quick reference.\n")
-        g.write("\n========== DEM BENCHMARKING RESULTS ==========\n")
-        g.write("\n=========== DEM DISCONTINUUM TESTS ===========\n")
-        g.write("\n==== TSUJI PAPER BENCHMARKS. SLIDING REGIME ==\n\n")
         g.close()
         Text = ""
-        failure = False
 
         q = queue.Queue()
 
-        #Discontinuum Tests. From 1 to 17
+        #### Discontinuum Tests.
         D_DEM_Benchmarks_list = list(range(1,18))
 
-        #Continuum Tests
+        #### Continuum Tests
         C_DEM_Benchmarks_list = list(range(20,26))
 
-        #Discontinuum Clusters Tests. From 30 to 33
+        #### Discontinuum Clusters Tests. From 30 to 33
         Dcl_DEM_Benchmarks_list = list(range(30,34))
 
-        Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list
+        #### Generic test for code functionalities verification
+        Gen_DEM_Benchmarks_list = list(range(40,41))
+
+        Total_DEM_Benchmarks_list = D_DEM_Benchmarks_list + C_DEM_Benchmarks_list + Dcl_DEM_Benchmarks_list  + Gen_DEM_Benchmarks_list
 
         for item in Total_DEM_Benchmarks_list:
             #print(Benchmark_text[item - 1])
@@ -154,6 +144,7 @@ def main():
         g.write("Benchmark 15. Impact of a low stiffness sphere against a rigid vertex divided in small triangular elements\n")
         g.write("Benchmark 16. Spheres contacting multiple entities (facets, edges and vertices)\n")
         g.write("Benchmark 17. Sphere sliding on a plane (discretized with triangles and quadrilaterals) with friction\n")
+
         g.write("\nCONTINUUM TESTS:\n")
         g.write("Benchmark 20. Normal compression of two identical spheres\n")
         g.write("Benchmark 21. Normal compression of two identical indented spheres\n")
@@ -161,16 +152,16 @@ def main():
         g.write("Benchmark 23. Tensile test of two identical indented spheres\n")
         g.write("Benchmark 24. Shear test of two identical spheres by applying rotation\n")
         g.write("Benchmark 25. Shear test of two identical spheres by applying rotation and radius expansion\n")
+
         g.write("\nDISCONTINUUM CLUSTERS TESTS:\n")
         g.write("Benchmark 30. Cylinder cluster with imposed angular velocity in two axis (Velocity Verlet + Zhao scheme)\n")
         g.write("Benchmark 31. Cylinder cluster with imposed angular velocity in two axis (Symplectic Euler + Runge-Kutta scheme)\n")
         g.write("Benchmark 32. Fiber cluster bouncing without any damping (Velocity Verlet + Zhao scheme)\n")
         g.write("Benchmark 33. Fiber cluster bouncing without any damping (Symplectic Euler + Runge-Kutta scheme)\n")
+
+        g.write("\nGENERIC TEST:\n")
+        g.write("Benchmark 40. Generic test for code functionalities verification\n")
         g.close()
-
-        if 'FAILED' in open('errors.err').read():
-            failure = True
-
         g = open("errors.err")
         file_contents = g.read()
         g.close()

@@ -168,6 +168,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
 
     /* Adding the SPRISM variable to deactivate the quadratic interpolation */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONSIDER_QUADRATIC_SPRISM_ELEMENT);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,PURE_EXPLICIT_RHS_COMPUTATION);
 
     /* Hencky strain */
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,HENCKY_STRAIN_VECTOR);
