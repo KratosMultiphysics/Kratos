@@ -848,7 +848,7 @@ public:
       for (unsigned int i = 0; i < 6; i++)
       {
         //first we find the edges
-        for (unsigned int j = 0; j < 3; j++)
+        for (unsigned int j = 0; j < 3; ++j)
         {
             edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
             edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
