@@ -195,7 +195,7 @@ class MonolithicSolver(object):
 
     def _domain_parts_updated(self):
         update_time = False
-        if not self._is_not_restarted():
+        if self._is_restarted():
             if self.process_info.Has(KratosSolver.RESTART_STEP_TIME):
                 update_time = self._check_previous_time_step(self.process_info[KratosSolver.RESTART_STEP_TIME])
 
@@ -241,6 +241,9 @@ class MonolithicSolver(object):
         else:
             mechanical_solver = self._get_mechanical_solver()
             mechanical_solver.Initialize()
+
+    def _is_restarted(self):
+        return not self._is_not_restarted()
 
     def _is_not_restarted(self):
         if self.process_info.Has(KratosMultiphysics.IS_RESTARTED):
