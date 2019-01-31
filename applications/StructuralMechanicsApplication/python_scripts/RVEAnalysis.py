@@ -318,7 +318,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             for item in tmp:
                 avg_stress = avg_stress + item*Agauss
 
-        self._GetSolver().SolveSolutionStep()
         self._GetSolver().Clear()            
         
         print("measured volume = ", measured_volume)
@@ -367,7 +366,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         periodicity_utility.AssignPeriodicity(self.min_y_face,self.max_y_face,strain, KratosMultiphysics.Vector([0.0, dy, 0.0]))
         periodicity_utility.AssignPeriodicity(self.min_z_face,self.max_z_face,strain, KratosMultiphysics.Vector([0.0, 0.0, dz]))
 
-        periodicity_utility.Finalize()
+        periodicity_utility.Finalize(KratosMultiphysics.DISPLACEMENT)
 
         #start from the exact solution in the case of a constant strain
         x = KratosMultiphysics.Vector(3)
