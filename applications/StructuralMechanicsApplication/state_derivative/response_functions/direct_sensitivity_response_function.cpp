@@ -43,7 +43,7 @@ namespace Kratos
 
     void DirectSensitivityResponseFunction::CalculateGradient(Element& rDirectElement,
                                             const Matrix& rLHS,
-                                            Vector& rResponseGradient,
+                                            Matrix& rResponseGradientMatrix,                                            
                                             const ProcessInfo& rProcessInfo)
     {
         KRATOS_ERROR << "CalculateGradient needs to be implemented by the derived class.\n";

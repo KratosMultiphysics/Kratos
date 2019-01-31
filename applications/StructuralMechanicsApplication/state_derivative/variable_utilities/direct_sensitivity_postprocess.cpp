@@ -219,7 +219,7 @@ namespace Kratos
     void DirectSensitivityPostprocess::UpdateElementContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, 
                         Variable<TDataType> const& rOutputVariable)
     {
-        KRATOS_TRY;
+        /*KRATOS_TRY;
         
         ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
         const int num_threads = 1;
@@ -302,7 +302,89 @@ namespace Kratos
             }
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("");*/
+
+        KRATOS_TRY;
+        
+        ProcessInfo& r_process_info = mrModelPart.GetProcessInfo();
+        const int num_threads = 1;
+        std::vector<Vector> sensitivity_vector(num_threads);
+        std::vector<Matrix> response_displacement_gradient(num_threads);
+        std::vector<Vector> response_sensitivity_gradient(num_threads);
+        std::vector<Vector> displacement_gradient(num_threads);
+        std::vector<Vector> helping_vector(num_threads);        
+        std::vector<Matrix> LHS(num_threads);
+        
+        int k = 0;
+
+        
+        for (auto& elem_i : mrModelPart.Elements())
+        {   
+            std::cout << "UpdateElementContributionToSensitivity: ELEMENT: "<< elem_i.Id() << std::endl;
+            //Element::GeometryType& r_geom = elem_i.GetGeometry();
+            
+            // No element contribution if the design variable is an condition data type
+            if(mVariableType == "condition_data_type")
+                break;  
+
+            elem_i.CalculateLeftHandSide(LHS[k], r_process_info); 
+
+            mrResponseFunction.CalculateGradient(elem_i, LHS[k], response_displacement_gradient[k], r_process_info);            
+
+            mrResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, response_sensitivity_gradient[k], r_process_info);
+
+            // Define Sizes
+            const SizeType num_traced_stresses = response_displacement_gradient[k].size1();
+            const SizeType num_dofs = response_displacement_gradient[k].size2();
+                     
+            // Get the displacement vector derived wrt. the design parameter
+            elem_i.GetValuesVector(displacement_gradient[k]);
+            
+            // Output of dg/du und du/ds
+            for(IndexType i = 0; i < displacement_gradient[k].size(); ++i)
+                std::cout << "du/ds: " << displacement_gradient[k][i] << "  ::  " << "dg/du: " << response_displacement_gradient[k](0,i) << " , " << response_displacement_gradient[k](1,i) << " , " << response_displacement_gradient[k](2,i) << std::endl; 
+
+            // Sizing of the sensitivity vector 
+            if(sensitivity_vector[k].size() != num_traced_stresses)
+                sensitivity_vector[k].resize(num_traced_stresses, false);
+            
+            if( (num_dofs > 0) && (displacement_gradient[k].size() > 0) )
+            {
+                KRATOS_ERROR_IF_NOT( num_dofs == displacement_gradient[k].size() ) << 
+                    "Sizes of the response vector derived wrt. the displacement" <<
+                    " and of the displacement vector derived wrt. the design parameter do not match!" << std::endl;
+
+                if ( helping_vector[k].size() != num_dofs )
+                        helping_vector[k].resize(num_dofs, false);
+                
+                for ( IndexType i = 0; i < num_traced_stresses; i++ )
+                {
+                    for ( IndexType j = 0; j < num_dofs; j++ )
+                        helping_vector[k][j] = response_displacement_gradient[k](i,j); 
+
+                    sensitivity_vector[k][i] = MathUtils<double>::Dot(helping_vector[k], displacement_gradient[k]);
+                    std::cout << "product: " << sensitivity_vector[k][i] << std::endl;
+
+                    helping_vector[k].clear();
+                }                
+            }   
+            if( response_sensitivity_gradient[k].size() > 0)
+            {
+                KRATOS_ERROR_IF_NOT( response_sensitivity_gradient[k].size() == sensitivity_vector[k].size() ) << 
+                    "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
+                
+                for(IndexType i = 0; i < sensitivity_vector[k].size(); ++i)
+                {  
+                    std::cout << "dg/ds: " << response_sensitivity_gradient[k][i] << std::endl;
+                    sensitivity_vector[k][i] += response_sensitivity_gradient[k][i];
+                    std::cout << "Sensitivity_vector:  "<< sensitivity_vector[k][i] << std::endl;
+                }              
+            } 
+        }
+
+        KRATOS_CATCH("")
+
+
     }
 
 

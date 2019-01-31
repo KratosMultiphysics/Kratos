@@ -73,19 +73,24 @@ public:
     void Initialize() override;
 
     void CalculateGradient(Element& rDirectElement, 
-                                    const Matrix& rLHS,
-                                    Vector& rResponseGradient, 
-                                    const ProcessInfo& rProcessInfo) override; 
+                            const Matrix& rLHS,
+                            Matrix& rResponseGradientMatrix,                                     
+                            const ProcessInfo& rProcessInfo) override;
+
+    void CalculateElementContributionToGradient(Element& rDirectElement,
+                            const Matrix& rLHS,
+                            Vector& rResponseGradientVector,
+                            ProcessInfo& rProcessInfo);    
     
     void CalculatePartialSensitivity(Element& rDirectElement, 
-                                    DirectSensitivityVariable& DesignVariable,
-                                    Vector& rSensitivityGradient,
-                                    const ProcessInfo& rProcessInfo) override;
+                            DirectSensitivityVariable& DesignVariable,
+                            Vector& rSensitivityGradient,
+                            const ProcessInfo& rProcessInfo) override;
 
     void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
-                                    const std::string& rVariableName,
-                                    Vector& rSensitivityGradient,
-                                    ProcessInfo& rProcessInfo);
+                            const std::string& rVariableName,
+                            Vector& rSensitivityGradient,
+                            ProcessInfo& rProcessInfo);
 
     void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
@@ -117,7 +122,9 @@ private:
         unsigned int mIdOfLocation;
         StressTreatment mStressTreatment;
         TracedStressType mTracedStressType; 
-        //std::vector<TracedStressType> mTracedForcesVector; 
+        std::vector<TracedStressType> mTracedForcesVector;
+        std::vector<TracedStressType> mTracedMomentsVector; 
+        std::vector<TracedStressType> mTracedStressesVector;
               
     ///@}
     ///@name Private Operators

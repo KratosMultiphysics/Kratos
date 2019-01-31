@@ -90,7 +90,7 @@ public:
 
     virtual void CalculateGradient(Element& rDirectElement,
                                             const Matrix& rLHS,
-                                            Vector& rResponseGradient,
+                                            Matrix& rResponseGradientMatrix,
                                             const ProcessInfo& rProcessInfo);
 
     virtual void CalculatePartialSensitivity(Element& rDirectElement, 
