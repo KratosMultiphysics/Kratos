@@ -89,9 +89,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         self.main_path = os.getcwd()
         self.nodeplotter = False
 
-    def GetProblemTypeFilename(self):
-        return benchmark
-
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
