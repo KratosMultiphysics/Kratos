@@ -480,7 +480,7 @@ void BaseSolidElement::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
-        Matrix damping_matrix = ZeroMatrix(element_size, element_size);
+        Matrix damping_matrix(element_size, element_size);
         this->CalculateDampingMatrixWithLumpedMass(damping_matrix, rCurrentProcessInfo);
 
         // Current residual contribution due to damping
