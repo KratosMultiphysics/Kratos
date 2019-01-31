@@ -67,11 +67,13 @@ void AddProcesses(pybind11::module& m)
     typedef TrilinosVariationalDistanceCalculationProcess<2,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType2D;
     py::class_<TrilinosDistanceCalculationType2D, TrilinosDistanceCalculationType2D::Pointer, BaseDistanceCalculationType2D >(m,"TrilinosVariationalDistanceCalculationProcess2D")
         .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, Flags>())
+        .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, Flags, std::string>())
         ;
 
     typedef TrilinosVariationalDistanceCalculationProcess<3,TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosDistanceCalculationType3D;
     py::class_<TrilinosDistanceCalculationType3D, TrilinosDistanceCalculationType3D::Pointer, BaseDistanceCalculationType3D >(m,"TrilinosVariationalDistanceCalculationProcess3D")
         .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, Flags>())
+        .def(py::init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, unsigned int, Flags, std::string>())
         ;
 
     // Level set convection processes

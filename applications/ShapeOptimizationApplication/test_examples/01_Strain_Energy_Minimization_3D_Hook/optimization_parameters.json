@@ -75,8 +75,7 @@
                     "materials_filename": "materials_3D.json"
                 },
                 "gradient_mode"          : "finite_differencing",
-                "step_size"              : 1e-8,
-                "consider_discretization": false
+                "step_size"              : 1e-8
             },
             "project_gradient_on_surface_normals" : true
         }],
@@ -89,8 +88,7 @@
                 "response_type"          : "strain_energy",
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
-                "step_size"              : 1e-5,
-                "consider_discretization": false
+                "step_size"              : 1e-5
             },
             "project_gradient_on_surface_normals" : true
         }],
