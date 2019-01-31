@@ -246,19 +246,19 @@ private:
     ///@name Private Operators
     ///@{
 
-    void GetWakeDistances(array_1d<double, NumNodes>& distances);
+    void GetWakeDistances(array_1d<double, NumNodes>& distances) const;
 
-    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult);
+    void GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const;
 
-    void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult);
+    void GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const;
 
-    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult);
+    void GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const;
 
-    void GetDofListNormalElement(DofsVectorType& rElementalDofList);
+    void GetDofListNormalElement(DofsVectorType& rElementalDofList) const;
 
-    void GetDofListKuttaElement(DofsVectorType& rElementalDofList);
+    void GetDofListKuttaElement(DofsVectorType& rElementalDofList) const;
 
-    void GetDofListWakeElement(DofsVectorType& rElementalDofList);
+    void GetDofListWakeElement(DofsVectorType& rElementalDofList) const;
 
     void CalculateLocalSystemNormalElement(MatrixType& rLeftHandSideMatrix,
                                            VectorType& rRightHandSideVector);
@@ -270,22 +270,22 @@ private:
 
     void ComputeLHSGaussPointContribution(const double weight,
                                           Matrix& lhs,
-                                          const ElementalData<NumNodes, Dim>& data);
+                                          const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemSubdividedElement(MatrixType& rLeftHandSideMatrix,
                                             Matrix& lhs_positive,
                                             Matrix& lhs_negative,
                                             Matrix& lhs_total,
-                                            const ElementalData<NumNodes, Dim>& data);
+                                            const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeElement(MatrixType& rLeftHandSideMatrix,
                                       Matrix& lhs_total,
-                                      const ElementalData<NumNodes, Dim>& data);
+                                      const ElementalData<NumNodes, Dim>& data) const;
 
     void AssignLocalSystemWakeNode(MatrixType& rLeftHandSideMatrix,
                                    Matrix& lhs_total,
                                    const ElementalData<NumNodes, Dim>& data,
-                                   unsigned int& row);
+                                   unsigned int& row) const;
 
     void CheckWakeCondition();
 
@@ -293,16 +293,16 @@ private:
 
     void ComputeElementInternalEnergy();
 
-    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis);
+    void GetPotentialOnNormalElement(array_1d<double, NumNodes>& phis) const;
 
     void GetPotentialOnWakeElement(Vector& split_element_values,
-                                   const array_1d<double, NumNodes>& distances);
+                                   const array_1d<double, NumNodes>& distances) const;
 
     void GetPotentialOnUpperWakeElement(array_1d<double, NumNodes>& upper_phis,
-                                        const array_1d<double, NumNodes>& distances);
+                                        const array_1d<double, NumNodes>& distances) const;
 
     void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
-                                        const array_1d<double, NumNodes>& distances);
+                                        const array_1d<double, NumNodes>& distances) const;
 
     void ComputeVelocityUpper(array_1d<double, Dim>& velocity);
 

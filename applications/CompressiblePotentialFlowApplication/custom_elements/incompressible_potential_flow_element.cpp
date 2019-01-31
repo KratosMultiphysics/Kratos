@@ -273,20 +273,20 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::PrintData(std::ostream& 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetWakeDistances(array_1d<double, NumNodes>& distances) const
 {
     noalias(distances) = GetValue(ELEMENTAL_DISTANCES);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorNormalElement(EquationIdVectorType& rResult) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         rResult[i] = GetGeometry()[i].GetDof(VELOCITY_POTENTIAL).EquationId();
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKuttaElement(EquationIdVectorType& rResult) const
 {
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -299,7 +299,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorKutta
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeElement(EquationIdVectorType& rResult) const
 {
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
@@ -327,14 +327,14 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetEquationIdVectorWakeE
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListNormalElement(DofsVectorType& rElementalDofList)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListNormalElement(DofsVectorType& rElementalDofList) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         rElementalDofList[i] = GetGeometry()[i].pGetDof(VELOCITY_POTENTIAL);
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(DofsVectorType& rElementalDofList) const
 {
     // Kutta elements have only negative part
     for (unsigned int i = 0; i < NumNodes; i++)
@@ -347,7 +347,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListKuttaElement(D
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetDofListWakeElement(DofsVectorType& rElementalDofList) const
 {
     array_1d<double, NumNodes> distances;
     GetWakeDistances(distances);
@@ -476,7 +476,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::CalculateLocalSystemSubd
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeLHSGaussPointContribution(
-    const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data)
+    const double weight, Matrix& lhs, const ElementalData<NumNodes, Dim>& data) const
 {
     noalias(lhs) += weight * prod(data.DN_DX, trans(data.DN_DX));
 }
@@ -487,7 +487,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
     Matrix& lhs_positive,
     Matrix& lhs_negative,
     Matrix& lhs_total,
-    const ElementalData<NumNodes, Dim>& data)
+    const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int i = 0; i < NumNodes; ++i)
     {
@@ -508,7 +508,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemSubdivi
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeElement(
-    MatrixType& rLeftHandSideMatrix, Matrix& lhs_total, const ElementalData<NumNodes, Dim>& data)
+    MatrixType& rLeftHandSideMatrix, Matrix& lhs_total, const ElementalData<NumNodes, Dim>& data) const
 {
     for (unsigned int row = 0; row < NumNodes; ++row)
         AssignLocalSystemWakeNode(rLeftHandSideMatrix, lhs_total, data, row);
@@ -519,7 +519,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
     MatrixType& rLeftHandSideMatrix,
     Matrix& lhs_total,
     const ElementalData<NumNodes, Dim>& data,
-    unsigned int& row)
+    unsigned int& row) const
 {
     // Filling the diagonal blocks (i.e. decoupling upper and lower dofs)
     for (unsigned int column = 0; column < NumNodes; ++column)
@@ -599,7 +599,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeElementInternalEn
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElement(
-    array_1d<double, NumNodes>& phis)
+    array_1d<double, NumNodes>& phis) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int kutta = r_this.GetValue(KUTTA);
@@ -617,7 +617,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnNormalElem
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElement(
-    Vector& split_element_values, const array_1d<double, NumNodes>& distances)
+    Vector& split_element_values, const array_1d<double, NumNodes>& distances) const
 {
     array_1d<double, NumNodes> upper_phis;
     GetPotentialOnUpperWakeElement(upper_phis, distances);
@@ -634,7 +634,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnWakeElemen
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeElement(
-    array_1d<double, NumNodes>& upper_phis, const array_1d<double, NumNodes>& distances)
+    array_1d<double, NumNodes>& upper_phis, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] > 0)
@@ -645,7 +645,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnUpperWakeE
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeElement(
-    array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances)
+    array_1d<double, NumNodes>& lower_phis, const array_1d<double, NumNodes>& distances) const
 {
     for (unsigned int i = 0; i < NumNodes; i++)
         if (distances[i] < 0)
@@ -811,10 +811,6 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWa
 
     return pressure_coefficient;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Private functions
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // serializer
 
