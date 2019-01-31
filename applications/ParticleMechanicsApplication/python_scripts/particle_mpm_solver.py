@@ -307,6 +307,7 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MASS)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
