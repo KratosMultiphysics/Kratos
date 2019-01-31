@@ -538,7 +538,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::AssignLocalSystemWakeNod
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition()
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::CheckWakeCondition() const
 {
     array_1d<double, Dim> upper_wake_velocity;
     ComputeVelocityUpperWakeElement(upper_wake_velocity);
@@ -655,7 +655,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::GetPotentialOnLowerWakeE
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
@@ -669,7 +669,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpper(arr
 }
 
 template <int Dim, int NumNodes>
-void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity)
+void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(array_1d<double, Dim>& velocity) const
 {
     velocity.clear();
 
@@ -684,7 +684,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLower(arr
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalElement(
-    array_1d<double, Dim>& velocity)
+    array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -698,7 +698,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityNormalEle
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWakeElement(
-    array_1d<double, Dim>& velocity)
+    array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -715,7 +715,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityUpperWake
 
 template <int Dim, int NumNodes>
 void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWakeElement(
-    array_1d<double, Dim>& velocity)
+    array_1d<double, Dim>& velocity) const
 {
     ElementalData<NumNodes, Dim> data;
 
@@ -731,7 +731,7 @@ void IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputeVelocityLowerWake
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo)
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -743,7 +743,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpper(c
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo)
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const
 {
     const IncompressiblePotentialFlowElement& r_this = *this;
     const int wake = r_this.GetValue(WAKE);
@@ -755,7 +755,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLower(c
 }
 
 template <int Dim, int NumNodes>
-double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo)
+double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -774,7 +774,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureNormalE
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWakeElement(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);
@@ -794,7 +794,7 @@ double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureUpperWa
 
 template <int Dim, int NumNodes>
 double IncompressiblePotentialFlowElement<Dim, NumNodes>::ComputePressureLowerWakeElement(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo) const
 {
     const array_1d<double, 3> vinfinity = rCurrentProcessInfo[VELOCITY_INFINITY];
     const double vinfinity_norm2 = inner_prod(vinfinity, vinfinity);

@@ -287,7 +287,7 @@ private:
                                    const ElementalData<NumNodes, Dim>& data,
                                    unsigned int& row) const;
 
-    void CheckWakeCondition();
+    void CheckWakeCondition() const;
 
     void ComputePotentialJump(ProcessInfo& rCurrentProcessInfo);
 
@@ -304,25 +304,25 @@ private:
     void GetPotentialOnLowerWakeElement(array_1d<double, NumNodes>& lower_phis,
                                         const array_1d<double, NumNodes>& distances) const;
 
-    void ComputeVelocityUpper(array_1d<double, Dim>& velocity);
+    void ComputeVelocityUpper(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityLower(array_1d<double, Dim>& velocity);
+    void ComputeVelocityLower(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity);
+    void ComputeVelocityNormalElement(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity);
+    void ComputeVelocityUpperWakeElement(array_1d<double, Dim>& velocity) const;
 
-    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity);
+    void ComputeVelocityLowerWakeElement(array_1d<double, Dim>& velocity) const;
 
-    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo);
+    double ComputePressureUpper(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo);
+    double ComputePressureLower(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo);
+    double ComputePressureNormalElement(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo);
+    double ComputePressureUpperWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
 
-    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo);
+    double ComputePressureLowerWakeElement(const ProcessInfo& rCurrentProcessInfo) const;
 
     ///@}
     ///@name Private Operations

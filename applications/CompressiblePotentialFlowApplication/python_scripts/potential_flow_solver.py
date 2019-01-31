@@ -74,7 +74,8 @@ class LaplacianSolver(PythonSolver):
             if domain_size < 0:
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
-        #construct the linear solvers
+
+        # Construct the linear solvers
         import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
@@ -94,9 +95,6 @@ class LaplacianSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KCPFApp.AUXILIARY_VELOCITY_POTENTIAL, self.main_model_part)
 
     def Initialize(self):
-        # Construct the linear solvers
-        from KratosMultiphysics import linear_solver_factory
-        self.linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
 
         time_scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
 
