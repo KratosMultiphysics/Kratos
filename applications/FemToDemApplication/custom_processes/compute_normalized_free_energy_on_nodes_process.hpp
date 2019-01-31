@@ -165,12 +165,13 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
 
     	Vector lengths = ZeroVector(6);
         for (unsigned int edge = 0; edge < 6; edge++) { // Loop over edges
-            const double X1 = rGeometry.Edges()[edge][0].X0();
-            const double X2 = rGeometry.Edges()[edge][1].X0();
-            const double Y1 = rGeometry.Edges()[edge][0].Y0();
-            const double Y2 = rGeometry.Edges()[edge][1].Y0();
-            const double Z1 = rGeometry.Edges()[edge][0].Z0();
-            const double Z2 = rGeometry.Edges()[edge][1].Z0();
+            auto& edges = rGeometry.Edges();
+            const double X1 = edges[edge][0].X0();
+            const double X2 = edges[edge][1].X0();
+            const double Y1 = edges[edge][0].Y0();
+            const double Y2 = edges[edge][1].Y0();
+            const double Z1 = edges[edge][0].Z0();
+            const double Z2 = edges[edge][1].Z0();
             lengths[edge] = std::sqrt(std::pow((X1 - X2), 2.0) + std::pow((Y1 - Y2), 2.0) + std::pow((Z1 - Z2), 2.0));
         }
         return (lengths[0] + lengths[1] + lengths[2] + lengths[3] + lengths[4] + lengths[5]) / 6.0;
