@@ -10,24 +10,20 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 #if !defined(KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED)
 #define KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED
-
 
 // System includes
 #include <string>
 #include <iostream>
 
-
 // External includes
-
+#include <tuple>
 
 // Project includes
 #include "includes/define.h"
 #include "includes/linear_master_slave_constraint.h"
 #include "utilities/binbased_fast_point_locator_conditions.h"
-
 
 namespace Kratos
 {
@@ -58,84 +54,80 @@ namespace Kratos
 */
 class RVEPeriodicityUtility
 {
-public:
+  public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of RVEPeriodicityUtility
     KRATOS_CLASS_POINTER_DEFINITION(RVEPeriodicityUtility);
 
-    typedef std::tuple< std::vector<unsigned int>, std::vector<double>, Vector > DataTuple;
+    typedef std::tuple<std::vector<unsigned int>, std::vector<double>, Vector> DataTupletype;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    RVEPeriodicityUtility(ModelPart& rDestinationModelPart) : mrModelPart(rDestinationModelPart){}
+    RVEPeriodicityUtility(ModelPart &rDestinationModelPart) : mrModelPart(rDestinationModelPart) {}
 
     /// Destructor.
-    virtual ~RVEPeriodicityUtility(){}
+    virtual ~RVEPeriodicityUtility() {}
 
     ///@}
     ///@name Operators
     ///@{
-    void AssignPeriodicity(ModelPart& master,
-                           ModelPart& slave,
-                           const Matrix& strain,
-                           const Vector& direction
-                           )
+    void AssignPeriodicity(ModelPart &rMasterModelPart,
+                           ModelPart &rSlaveModelPart,
+                           const Matrix &rStrainTensor,
+                           const Vector &rDirection)
     {
-        if(master.Conditions().size() == 0)
+        if (rMasterModelPart.Conditions().size() == 0)
             KRATOS_ERROR << "the master is expected to have conditions and it is empty" << std::endl;
 
-        Vector translation = prod(strain,direction);
+        Vector translation = prod(rStrainTensor, rDirection);
 
-        BinBasedFastPointLocatorConditions<3> bin_based_point_locator(master);
+        BinBasedFastPointLocatorConditions<3> bin_based_point_locator(rMasterModelPart);
         bin_based_point_locator.UpdateSearchDatabase();
-
-
 
         int max_search_results = 100;
         double search_tolerance = 1e-6;
 
         //construct auxiliary data structure to contain the master slave relation.
         //slave nodes must appear once, however a non-circular dependency is allowed between the masters
-        for(unsigned int i=0; i<slave.Nodes().size(); ++i)
+        for (unsigned int i = 0; i < rSlaveModelPart.Nodes().size(); ++i)
         {
             //search in which condition it falls
-            auto i_node = slave.NodesBegin() + i;
+            auto i_node = rSlaveModelPart.NodesBegin() + i;
 
             Condition::Pointer p_host_cond;
             Vector N;
-            array_1d<double, 3 > transformed_slave_coordinates = i_node->Coordinates() - direction;
-
+            array_1d<double, 3> transformed_slave_coordinates = i_node->Coordinates() - rDirection;
 
             // Finding the host element for this node
             const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(transformed_slave_coordinates, N, p_host_cond, max_search_results, search_tolerance);
-            if(is_found)
+            if (is_found)
             {
-                const auto& geom = p_host_cond->GetGeometry();
+                const auto &geom = p_host_cond->GetGeometry();
 
-                DataTuple aux_data;
-                
-                auto& T = std::get<2>(aux_data);
+                DataTupletype aux_data;
+
+                auto &T = std::get<2>(aux_data);
                 T = translation;
 
-                auto& master_ids = std::get<0>(aux_data);
-                auto& weights = std::get<1>(aux_data);
-                for(unsigned int j=0; j<geom.size(); ++j)
+                auto &master_ids = std::get<0>(aux_data);
+                auto &weights = std::get<1>(aux_data);
+                for (unsigned int j = 0; j < geom.size(); ++j)
                 {
                     master_ids.push_back(geom[j].Id());
                     weights.push_back(N[j]);
                 }
 
-                if(mAuxPairings.find(i_node->Id()) == mAuxPairings.end()) //this slave is not already present
+                if (mAuxPairings.find(i_node->Id()) == mAuxPairings.end()) //this slave is not already present
                     mAuxPairings[i_node->Id()] = aux_data;
                 else
                 {
-                    std::cout << "slave model part = " << slave << std::endl;
-                    std::cout << "master model part = " << master << std::endl;
+                    std::cout << "slave model part = " << rSlaveModelPart << std::endl;
+                    std::cout << "master model part = " << rMasterModelPart << std::endl;
                     KRATOS_ERROR << "attempting to add twice the slave node with Id " << i_node->Id() << std::endl;
                 }
             }
@@ -146,26 +138,27 @@ public:
         }
     }
 
-
-    void Finalize()
+    void Finalize(const Variable<array_1d<double, 3>> &rVariable)
     {
+        //get the components
+        auto& rVar_x = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(rVariable.Name() + "_X");
+        auto& rVar_y = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(rVariable.Name() + "_Y");
+        auto& rVar_z = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(rVariable.Name() + "_Z");
 
-       
         for(auto& data : mAuxPairings)
         {
-            const unsigned int slave_id = data.first;
-            auto& master_data = data.second;
-            auto& master_ids = std::get<0>(master_data);
-            auto& master_weights = std::get<1>(master_data);
-            auto& T = std::get<2>(master_data);
+            auto &master_data = data.second;
+            auto &master_ids = std::get<0>(master_data);
+            auto &master_weights = std::get<1>(master_data);
+            auto &T = std::get<2>(master_data);
 
             std::vector<unsigned int> final_master_ids;
             std::vector<double> final_master_weights;
             Vector final_T = T;
 
-            for(unsigned int i = 0; i<master_ids.size(); ++i)
+            for (unsigned int i = 0; i < master_ids.size(); ++i)
             {
-                AppendIdsAndWeights( mAuxPairings, master_ids[i], master_weights[i],final_master_ids, final_master_weights, final_T);
+                AppendIdsAndWeights(mAuxPairings, master_ids[i], master_weights[i], final_master_ids, final_master_weights, final_T);
             }
 
             //assign back the finalized pairings and weights to the data structure
@@ -175,108 +168,77 @@ public:
         }
 
         //first assign master and slave all to false
-        for(auto& node : mrModelPart.Nodes())
+        for (auto &node : mrModelPart.Nodes())
         {
-            node.Set(SLAVE,false);
-            node.Set(MASTER,false);
+            node.Set(SLAVE, false);
+            node.Set(MASTER, false);
         }
 
-
-
         //compute the max id of the constraint
-        int ConstraintId = 0;
-        if(mrModelPart.MasterSlaveConstraints().size() != 0)
-            ConstraintId = (mrModelPart.MasterSlaveConstraints().end()-1)->Id();
-        ConstraintId+= 1;
+        unsigned int ConstraintId = 0;
+        if (mrModelPart.MasterSlaveConstraints().size() != 0)
+            ConstraintId = (mrModelPart.MasterSlaveConstraints().end() - 1)->Id();
+        ConstraintId += 1;
 
-        for(const auto& data : mAuxPairings)
+        //define translation vector
+        Vector xtranslation(1);
+        Vector ytranslation(1);
+        Vector ztranslation(1);
+
+        for (const auto &data : mAuxPairings)
         {
             const unsigned int slave_id = data.first;
-            const auto& master_data = data.second;
-            auto& master_ids = std::get<0>(master_data);
-            auto& master_weights = std::get<1>(master_data);
-            auto& T = std::get<2>(master_data);
+            const auto &master_data = data.second;
+            auto &master_ids = std::get<0>(master_data);
+            auto &master_weights = std::get<1>(master_data);
+            auto &T = std::get<2>(master_data);
 
             //very useful for debugging. please do not remove
             // std::cout << slave_id << " - ";
-            // for(auto& master : master_ids)
-            //     std::cout << master << " ";
+            // for(auto& rMasterModelPart : master_ids)
+            //     std::cout << rMasterModelPart << " ";
             // std::cout << " - ";
             // for(auto& w : master_weights)
-            //     std::cout << w << " ";  
-            // std::cout << " - " << T << std::endl;  
+            //     std::cout << w << " ";
+            // std::cout << " - " << T << std::endl;
 
             //flag slave and master nodes
             mrModelPart.pGetNode(slave_id)->Set(SLAVE);
-            for(auto& id : master_ids)
+            for (auto &id : master_ids)
                 mrModelPart.pGetNode(id)->Set(MASTER);
-            
-            //now construct the linear constraint
-            LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs, master_dofs;
 
+            
+
+            //obtain the slave node
             auto pslave_node = mrModelPart.pGetNode(slave_id);
 
-            //define translation vector
-            Vector xtranslation(1);
-            Vector ytranslation(1);
-            Vector ztranslation(1);
-            xtranslation[0] = T[0];
-            ytranslation[0] = T[1];
-            ztranslation[0] = T[2];
-
             //define relation matrix (same for the different components)
-            Matrix relation_matrix(1,master_weights.size());
-            for(unsigned int i=0; i<relation_matrix.size2(); ++i)
-                relation_matrix(0,i) = master_weights[i];
+            Matrix relation_matrix(1, master_weights.size());
+            for (unsigned int i = 0; i < relation_matrix.size2(); ++i)
+                relation_matrix(0, i) = master_weights[i];
 
-            //x-component
-            slave_dofs.push_back(pslave_node->pGetDof(DISPLACEMENT_X));
-            for(unsigned int i=0; i<master_ids.size(); ++i)
-                master_dofs.push_back(mrModelPart.pGetNode(master_ids[i])->pGetDof(DISPLACEMENT_X));
-            mrModelPart.AddMasterSlaveConstraint( 
-                    Kratos::make_shared<LinearMasterSlaveConstraint>(ConstraintId,master_dofs,slave_dofs, relation_matrix, xtranslation) );
-            ConstraintId+= 1;
-            slave_dofs.clear();
-            master_dofs.clear();
+            xtranslation[0] = T[0];
+            GenerateConstraint(ConstraintId,rVar_x, pslave_node, master_ids, relation_matrix, xtranslation);
 
-            //y-component
-            slave_dofs.push_back(pslave_node->pGetDof(DISPLACEMENT_Y));
-            for(unsigned int i=0; i<master_ids.size(); ++i)
-                master_dofs.push_back(mrModelPart.pGetNode(master_ids[i])->pGetDof(DISPLACEMENT_Y));
-            mrModelPart.AddMasterSlaveConstraint( 
-                    Kratos::make_shared<LinearMasterSlaveConstraint>(ConstraintId,master_dofs,slave_dofs, relation_matrix, ytranslation) );
-            ConstraintId+= 1;
-            slave_dofs.clear();
-            master_dofs.clear();
+            ytranslation[0] = T[1];
+            GenerateConstraint(ConstraintId,rVar_y, pslave_node, master_ids, relation_matrix, ytranslation);
 
-            //z-component
-            slave_dofs.push_back(pslave_node->pGetDof(DISPLACEMENT_Z));
-            for(unsigned int i=0; i<master_ids.size(); ++i)
-                master_dofs.push_back(mrModelPart.pGetNode(master_ids[i])->pGetDof(DISPLACEMENT_Z));
-            mrModelPart.AddMasterSlaveConstraint( 
-                    Kratos::make_shared<LinearMasterSlaveConstraint>(ConstraintId,master_dofs,slave_dofs, relation_matrix, ztranslation) );
-            ConstraintId+= 1;
-            slave_dofs.clear();
-            master_dofs.clear();
-            
-        }    
+            ztranslation[0] = T[2];
+            GenerateConstraint(ConstraintId,rVar_z, pslave_node, master_ids, relation_matrix, ztranslation);
+        }
     }
-
 
     ///@}
     ///@name Operations
     ///@{
 
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -286,134 +248,139 @@ public:
     virtual std::string Info() const
     {
         std::stringstream buffer;
-        buffer << "RVEPeriodicityUtility" ;
+        buffer << "RVEPeriodicityUtility";
         return buffer.str();
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "RVEPeriodicityUtility";}
+    virtual void PrintInfo(std::ostream &rOStream) const
+    {
+        rOStream << "RVEPeriodicityUtility";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    virtual void PrintData(std::ostream &rOStream) const {}
 
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
     void AppendIdsAndWeights(
-                            std::map<unsigned int, DataTuple>& aux, 
-                            const unsigned int master_id, 
-                            const double& master_weight,
-                            std::vector<unsigned int>& final_master_ids, 
-                            std::vector<double>& final_master_weights, 
-                            Vector& final_T)
+        std::map<unsigned int, DataTupletype> &rAux,
+        const unsigned int MasterId,
+        const double MasterWeight,
+        std::vector<unsigned int> &rFinalMastersIds,
+        std::vector<double> &rFinalMastersWeights,
+        Vector &rFinalT)
     {
-        if(std::abs(master_weight) > 1e-12  ) //discard nodes with negligible weight (note that weights sum to 1)
+        if (std::abs(MasterWeight) > 1e-12) //discard nodes with negligible weight (note that weights sum to 1)
         {
-            if(aux.find(master_id) == aux.end()) //master is NOT also a slave
+            if (rAux.find(MasterId) == rAux.end()) //master is NOT also a slave
             {
-                final_master_ids.push_back(master_id);
-                final_master_weights.push_back(master_weight);
+                rFinalMastersIds.push_back(MasterId);
+                rFinalMastersWeights.push_back(MasterWeight);
             }
             else //master also happens to be a slave
             {
-                const auto& other_data = aux[master_id];
-                const auto& other_master_ids = std::get<0>(other_data);
-                const auto& other_master_weights = std::get<1>(other_data);
-                const auto& other_T = std::get<2>(other_data);
-                for(unsigned int j = 0; j<other_master_ids.size(); ++j)
-                {     
-                    AppendIdsAndWeights(aux,other_master_ids[j], master_weight*other_master_weights[j], final_master_ids, final_master_weights, final_T );                   
+                const auto &other_data = rAux[MasterId];
+                const auto &other_master_ids = std::get<0>(other_data);
+                const auto &other_master_weights = std::get<1>(other_data);
+                const auto &other_T = std::get<2>(other_data);
+                for (unsigned int j = 0; j < other_master_ids.size(); ++j)
+                {
+                    AppendIdsAndWeights(rAux, other_master_ids[j], MasterWeight * other_master_weights[j], rFinalMastersIds, rFinalMastersWeights, rFinalT);
                 }
 
-                final_T += master_weight*other_T;
+                rFinalT += MasterWeight * other_T;
             }
         }
     }
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
-private:
+  private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
     ///@{
-    ModelPart& mrModelPart;
+    ModelPart &mrModelPart;
 
-    std::map< unsigned int, DataTuple  > mAuxPairings;
-
-    
-
+    std::map<unsigned int, DataTupletype> mAuxPairings;
 
     ///@}
     ///@name Private Operators
     ///@{
+    void GenerateConstraint(unsigned int& rConstraintId,
+                            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVar,
+                            Node<3>::Pointer pSlaveNode,
+                            const std::vector<unsigned int>& rMasterIds,
+                            const Matrix& rRelationMatrix,
+                            const Vector& rTranslationVector)
+    {
+        LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs, master_dofs;
+        slave_dofs.reserve(1);
+        master_dofs.reserve(rMasterIds.size());
 
+        slave_dofs.push_back(pSlaveNode->pGetDof(rVar));
+        for (unsigned int i = 0; i < rMasterIds.size(); ++i)
+            master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
+        mrModelPart.AddMasterSlaveConstraint(
+            Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector));
+        rConstraintId += 1;
+    }
 
     ///@}
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
     /// Assignment operator.
-    RVEPeriodicityUtility& operator=(RVEPeriodicityUtility const& rOther) = delete;
+    RVEPeriodicityUtility &operator=(RVEPeriodicityUtility const &rOther) = delete;
 
     /// Copy constructor.
-    RVEPeriodicityUtility(RVEPeriodicityUtility const& rOther) = delete;
+    RVEPeriodicityUtility(RVEPeriodicityUtility const &rOther) = delete;
 
     ///@}
 
@@ -424,19 +391,20 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                RVEPeriodicityUtility& rThis){return rIStream;}
+inline std::istream &operator>>(std::istream &rIStream,
+                                RVEPeriodicityUtility &rThis)
+{
+    return rIStream;
+}
 
 /// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const RVEPeriodicityUtility& rThis)
+inline std::ostream &operator<<(std::ostream &rOStream,
+                                const RVEPeriodicityUtility &rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -448,8 +416,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 ///@} addtogroup block
 
-}  // namespace Kratos.
+} // namespace Kratos.
 
 #endif // KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED  defined
-
-
