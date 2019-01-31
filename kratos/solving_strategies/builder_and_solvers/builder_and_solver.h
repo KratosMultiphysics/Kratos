@@ -525,7 +525,7 @@ public:
     virtual void Clear()
     {
         this->mDofSet = DofsArrayType();
-        if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
+        this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
         KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)

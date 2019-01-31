@@ -49,14 +49,14 @@ namespace Kratos {
         else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
-    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double current_distance, double equiv_young,
+    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         KRATOS_TRY
 
         const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
-        kn_el = equiv_young * calculation_area / current_distance;
-        kt_el = equiv_shear * calculation_area / current_distance;
+        kn_el = equiv_young * calculation_area / initial_dist;
+        kt_el = equiv_shear * calculation_area / initial_dist;
 
         KRATOS_CATCH("")
     }

@@ -81,7 +81,7 @@ class PFEM2Solver:
         '''
 
         #construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         #self.monolithic_linear_solver =  linear_solver
         self.monolithic_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,1000,verbosity,gmres_size)
         self.conv_criteria = DisplacementCriteria(1e-3,1e-3)  #tolerance for the solver

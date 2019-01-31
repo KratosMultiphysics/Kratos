@@ -2,20 +2,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from math import sqrt   # Import the square root from python library
 
 # Import utilities
-import NonConformant_OneSideMap                # Import non-conformant mapper
-import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
-import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
-import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
-import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
+from KratosMultiphysics.FSIApplication import NonConformant_OneSideMap                # Import non-conformant mapper
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+from KratosMultiphysics.MeshMovingApplication import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, project_parameters):
@@ -229,8 +227,12 @@ class PartitionedFSIBaseSolver(PythonSolver):
                     self._PrintWarningOnRankZero("","\tFSI NON-LINEAR ITERATION CONVERGENCE NOT ACHIEVED")
 
         ## Compute the mesh residual as final testing (it is expected to be 0)
-        self.partitioned_fsi_utilities.ComputeFluidInterfaceMeshVelocityResidualNorm(self._GetFluidInterfaceSubmodelPart())
-        mesh_res_norm = self.fluid_solver.main_model_part.ProcessInfo.GetValue(KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL_NORM)
+        mesh_res_norm = self.partitioned_fsi_utilities.ComputeInterfaceResidualNorm(
+            self._GetFluidInterfaceSubmodelPart(),
+            KratosMultiphysics.VELOCITY,
+            KratosMultiphysics.MESH_VELOCITY,
+            KratosMultiphysics.FSI_INTERFACE_MESH_RESIDUAL,
+            "nodal")
         self._PrintInfoOnRankZero("","\tNL residual norm: ", nl_res_norm)
         self._PrintInfoOnRankZero("","\tMesh residual norm: ", mesh_res_norm)
 
@@ -363,9 +365,9 @@ class PartitionedFSIBaseSolver(PythonSolver):
 
     def _GetPartitionedFSIUtilities(self):
         if (self.domain_size == 2):
-            return KratosFSI.PartitionedFSIUtilities2D()
+            return KratosFSI.PartitionedFSIUtilitiesArray2D()
         else:
-            return KratosFSI.PartitionedFSIUtilities3D()
+            return KratosFSI.PartitionedFSIUtilitiesArray3D()
 
     def _SetUpMapper(self):
         # Recall, to set the INTERFACE flag in both the fluid and solid interface before the mapper construction
