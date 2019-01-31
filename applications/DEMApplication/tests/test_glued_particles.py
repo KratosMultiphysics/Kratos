@@ -38,22 +38,22 @@ class GluedParticlesTestSolution(main_script.Solution):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
 
     def FinalizeTimeStep(self, time):
-        tolerance = 1e-3
+        tolerance = 1e-4
         for node in self.spheres_model_part.Nodes:
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
                 if time > 0.01:
-                    self.CheckValue("Angular Velocity at time "+ str(time), angular_velocity[0], 2.0, 1e-4)
+                    self.CheckValue("Angular Velocity at time "+ str(time), angular_velocity[0], 2.0, tolerance)
 
                 if time > 0.499999 and time < 0.5000001:
-                    self.CheckValue("X Coordinate at time 0.5", node.X, -1.0,     1e-4)
-                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6638445208099379, 1e-4)
-                    self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.21679366644461678, 1e-4)
+                    self.CheckValue("X Coordinate at time 0.5", node.X, -1.0,     tolerance)
+                    self.CheckValue("Y Coordinate at time 0.5", node.Y,  0.6638445208099379, tolerance)
+                    self.CheckValue("Z Coordinate at time 0.5", node.Z,  0.21679366644461678, tolerance)
 
                 if time > 0.999999 and time < 1.0000001:
-                    self.CheckValue("X Coordinate at time 1.0", node.X, -1.0,     1e-4)
-                    self.CheckValue("Y Coordinate at time 1.0", node.Y,  0.6359488, 1e-4)
-                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.1657309642449, 1e-4)
+                    self.CheckValue("X Coordinate at time 1.0", node.X, -1.0, tolerance)
+                    self.CheckValue("Y Coordinate at time 1.0", node.Y,  0.6359488, tolerance)
+                    self.CheckValue("Z Coordinate at time 1.0", node.Z, -0.1657309642449, tolerance)
 
     @classmethod
     def CheckValue(self, explaining_string, value, expected_value, tolerance):
