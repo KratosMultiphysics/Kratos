@@ -31,6 +31,9 @@ class DefineWakeProcess(KratosMultiphysics.Process):
         # TODO Implement this process in C++ and make it open mp parallel to save time selecting the wake elements
 
         self.wake_direction = settings["wake_direction"].GetVector()
+        if(self.wake_direction.Size() != 3):
+            raise Exception('The wake direction should be a vector with 3 components!')
+
         dnorm = math.sqrt(
             self.wake_direction[0]**2 + self.wake_direction[1]**2 + self.wake_direction[2]**2)
         self.wake_direction[0] /= dnorm
