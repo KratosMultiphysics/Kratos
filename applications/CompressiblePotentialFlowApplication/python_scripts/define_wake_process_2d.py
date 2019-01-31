@@ -90,7 +90,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
     def MarkWakeElements(self):
         # This function checks which elements are cut by the wake
         # and marks them as wake elements
-        print('...Selecting wake elements...')
+        KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements...')
 
         for elem in self.fluid_model_part.Elements:
             # Mark and save the elements touching the trailing edge
@@ -111,7 +111,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                     elem.SetValue(
                         KratosMultiphysics.ELEMENTAL_DISTANCES, distances_to_wake)
 
-        print('...Selecting wake elements finished...')
+        KratosMultiphysics.Logger.PrintInfo('...Selecting wake elements finished...')
 
     def MarkTrailingEdgeElements(self, elem):
         # This function marks the elements touching the trailing
