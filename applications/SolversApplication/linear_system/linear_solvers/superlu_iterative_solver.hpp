@@ -29,20 +29,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-//some definitions for SuperLU iterative solver
-char *GLOBAL_EQUED;
-superlu_options_t *GLOBAL_OPTIONS;
-double *GLOBAL_R, *GLOBAL_C;
-int *GLOBAL_PERM_C, *GLOBAL_PERM_R;
-SuperMatrix *GLOBAL_A, *GLOBAL_L, *GLOBAL_U;
-SuperLUStat_t *GLOBAL_STAT;
-mem_usage_t   *GLOBAL_MEM_USAGE;
-
-
 //some initial definitions
 extern "C"
 {
   void dcopy_(int *, double [], int *, double [], int *);
+
+  void daxpy_(int *, double *, double [], int *, double [], int *);
 
   int dfgmr(int n,
             void (*matvec_mult)(double, double [], double, double []),
@@ -53,11 +45,18 @@ extern "C"
   int dfill_diag(int n, NCformat *Astore);
 
   double dnrm2_(int *, double [], int *);
-
-  void daxpy_(int *, double *, double [], int *, double [], int *);
 }
 
-void dmatvec_mult(double alpha, double x[], double beta, double y[])
+//some definitions for SuperLU iterative solver
+static char *GLOBAL_EQUED;
+static superlu_options_t *GLOBAL_OPTIONS;
+static double *GLOBAL_R, *GLOBAL_C;
+static int *GLOBAL_PERM_C, *GLOBAL_PERM_R;
+static SuperMatrix *GLOBAL_A, *GLOBAL_L, *GLOBAL_U;
+static SuperLUStat_t *GLOBAL_STAT;
+static mem_usage_t *GLOBAL_MEM_USAGE;
+
+static void dmatvec_mult(double alpha, double x[], double beta, double y[])
 {
   SuperMatrix *A = GLOBAL_A;
 
@@ -65,7 +64,7 @@ void dmatvec_mult(double alpha, double x[], double beta, double y[])
   sp_dgemv(flag, alpha, A, x, 1, beta, y, 1);
 }
 
-void dpsolve(int n, double x[], double y[])
+static void dpsolve(int n, double x[], double y[])
 {
   int i_1 = 1;
   SuperMatrix *L = GLOBAL_L, *U = GLOBAL_U;
@@ -317,7 +316,6 @@ class SuperLUIterativeGMRESSolver : public LinearSolver< TSparseSpaceType, TDens
     rhs.ncol = 0;  /* not to perform triangular solution */
     dgsisx(&options, &lhs, perm_c, perm_r, etree, equed, R, C, &L, &U, work,
            lwork, &rhs, &X, &rpg, &rcond, &Glu, &mem_usage, &stat, &info);
-
 
     // double stop_factorization = OpenMPUtils::GetCurrentTime();
     // if(mEchoLevel > 2)
