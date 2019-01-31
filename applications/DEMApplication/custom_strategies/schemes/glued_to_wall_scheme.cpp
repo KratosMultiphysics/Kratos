@@ -28,12 +28,10 @@ namespace Kratos {
     }
 
     void GluedToWallScheme::SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_TRANSLATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
     void GluedToWallScheme::SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose) const {
-//         if(verbose) KRATOS_INFO("DEM") << "Assigning SymplecticEulerScheme to properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_ROTATIONAL_INTEGRATION_SCHEME_POINTER, this->CloneShared());
     }
 
@@ -88,11 +86,12 @@ namespace Kratos {
         BoundedMatrix<double,3,3> new_lhs = prod(trans_matrix_a, matrix_a);
         BoundedVector<double,3> new_rhs = prod(trans_matrix_a, vector_b);
         double det = 0.0;
-        //BoundedMatrix<double,3,3> inverse_new_lhs;
         Matrix inverse_new_lhs(3,3);
         MathUtils<double>::InvertMatrix3(new_lhs, inverse_new_lhs, det);
         array_1d<double, 3>&  angular_velocity = i.FastGetSolutionStepValue(ANGULAR_VELOCITY);
         noalias(angular_velocity) = prod(inverse_new_lhs, new_rhs);
+
+        //Once the angular velocity is found, we use it to calculate the total velocity of the sphere:
         array_1d<double, 3> linear_vel_of_sphere_due_to_rotation;
         MathUtils<double>::CrossProduct(linear_vel_of_sphere_due_to_rotation, angular_velocity, mCurrentNormalToWall);
         noalias(i.FastGetSolutionStepValue(VELOCITY)) = velocity_of_inner_point + linear_vel_of_sphere_due_to_rotation;
