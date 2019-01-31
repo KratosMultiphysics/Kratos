@@ -181,10 +181,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 number_of_nodes_with_positive_distance += 1
 
         # Elements with nodes above and below the wake are wake elements
-        if(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0):
-            return True
-        else:
-            return False
+        return(number_of_nodes_with_negative_distance > 0 and number_of_nodes_with_positive_distance > 0)
 
     def MarkKuttaElements(self):
         # This function selects the kutta elements. Kutta elements
