@@ -311,9 +311,6 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_VEL)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_ACC)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Add variables for arbitrary slope with slip
