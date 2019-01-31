@@ -62,7 +62,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self.ApplyBoundaryConditions() #here the processes are called
 
         #construct MPCs according to the provided strain
-        self.ApplyPeriodicity(strain,averaging_mp, boundary_mp) 
+        self._ApplyPeriodicity(strain,averaging_mp, boundary_mp) 
         
         ##apply BCs for RVE according to the provided strain
         self._ApplyMinimalConstraints(averaging_mp,strain,self.min_corner,self.max_corner)
@@ -84,19 +84,19 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         stress_and_strain = []
         if(self.strain_size == 3): ##2D case - ordering s00 s11 s01
-            stress_and_strain.append( self.ComputeEquivalentStress(0,0,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(1,1,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(0,1,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(0,0,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(1,1,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(0,1,perturbation, boundary_mp, averaging_mp) )
         elif(self.strain_size == 6): ##3D case - ordering:  s00 s11 s22 s01 s12 s02
-            stress_and_strain.append( self.ComputeEquivalentStress(0,0,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(1,1,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(2,2,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(0,1,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(1,2,perturbation, boundary_mp, averaging_mp) )
-            stress_and_strain.append( self.ComputeEquivalentStress(0,2,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(0,0,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(1,1,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(2,2,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(0,1,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(1,2,perturbation, boundary_mp, averaging_mp) )
+            stress_and_strain.append( self._ComputeEquivalentStress(0,2,perturbation, boundary_mp, averaging_mp) )
 
-        C = self.ComputeEquivalentElasticTensor(stress_and_strain, perturbation)
-        self.MatrixOutput(C)
+        C = self._ComputeEquivalentElasticTensor(stress_and_strain, perturbation)
+        self._MatrixOutput(C)
 
 
     def _DetectBoundingBox(self,mp):
@@ -216,7 +216,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         disp_min_corner = strain*coords_min_corner 
         node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,0,disp_min_corner)
 
-    def ComputeEquivalentElasticTensor(self,stress_and_strain,perturbation):
+    def _ComputeEquivalentElasticTensor(self,stress_and_strain,perturbation):
         C = KratosMultiphysics.Matrix(self.strain_size, self.strain_size)
 
         for j in range(len(stress_and_strain)):
@@ -242,7 +242,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         return C
         
-    def MatrixOutput(self,C,filename="rve_elasticity_tensor.txt"):
+    def _MatrixOutput(self,C,filename="rve_elasticity_tensor.txt"):
         f = open(filename,'w')
 
         if(self.strain_size == 3): #2D
@@ -272,7 +272,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         
 
 
-    def ComputeEquivalentStress(self,i,j,perturbation, boundary_mp, averaging_mp):
+    def _ComputeEquivalentStress(self,i,j,perturbation, boundary_mp, averaging_mp):
 
         #here use a pseudotime for output
         self.time = self.time + 1.0
@@ -348,7 +348,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
 
 
-    def ApplyPeriodicity(self,strain, volume_mp, boundary_mp):
+    def _ApplyPeriodicity(self,strain, volume_mp, boundary_mp):
 
         #clear 
         for constraint in volume_mp.GetRootModelPart().MasterSlaveConstraints:
