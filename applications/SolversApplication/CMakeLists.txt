@@ -1,62 +1,14 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-# set(LOCAL_CMAKE_MODULES "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/cmake_modules")
-# file(TO_NATIVE_PATH ${LOCAL_CMAKE_MODULES} LOCAL_CMAKE_MODULES_PATH)
-# list(APPEND CMAKE_MODULE_PATH ${LOCAL_CMAKE_MODULES_PATH})
-
 message("**** configuring KratosSolversApplication ****")
 
 ################### PYBIND11
 include(pybind11Tools)
 
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries)
 
-set(SOLVERS_LIBRARIES "")
-
-if((${INCLUDE_SUPERLU_MT} MATCHES ON) AND (${INCLUDE_SUPERLU} MATCHES ON))
-  set(INCLUDE_SUPERLU_MT OFF)
-endif((${INCLUDE_SUPERLU_MT} MATCHES ON) AND (${INCLUDE_SUPERLU} MATCHES ON))
-
-# compile SUPERLU MT 3.1
-if(${INCLUDE_SUPERLU_MT} MATCHES ON)
-  add_definitions(-DINCLUDE_SUPERLU_MT)
-  # compile SuperLU_MT
-  set(SUPERLU_MT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_MT_3.1")
-  include_directories(${SUPERLU_MT_DIR}/SRC)
-  #add_subdirectory(${SUPERLU_MT_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU_MT.cmake")
-  set(SUPERLU_LIBRARIES external_superlu_mt)
-  message(STATUS "SUPERLU_MT_LIBRARIES : ${SUPERLU_MT_LIBRARIES}")
-  list(APPEND SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
-endif(${INCLUDE_SUPERLU_MT} MATCHES ON)
-
-# compile SuperLU 5.2
-if(${INCLUDE_SUPERLU} MATCHES ON)
-  add_definitions(-DINCLUDE_SUPERLU)
-  set(SUPERLU_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/SuperLU_5.2")
-  include_directories(${SUPERLU_DIR}/SRC)
-  #add_subdirectory(${SUPERLU_DIR})
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/SuperLU.cmake")
-  set(SUPERLU_LIBRARIES external_superlu)
-  message(STATUS "SUPERLU_LIBRARIES : ${SUPERLU_LIBRARIES}")
-  list(APPEND SOLVERS_LIBRARIES ${SUPERLU_LIBRARIES})
-endif(${INCLUDE_SUPERLU} MATCHES ON)
-
-# compile FEAST
-if(${INCLUDE_FEAST} MATCHES ON)
-  add_definitions(-DINCLUDE_FEAST)
-  set(FEAST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST_3.0")
-  #include(CMakeAddFortranSubdirectory)
-  #cmake_add_fortran_subdirectory(${FEAST_DIR} NO_EXTERNAL_INSTALL)
-  include_directories(${FEAST_DIR}/include)
-  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/CMakeFiles/FEAST.cmake")
-  set(FEAST_LIBRARIES external_feast)
-  message(STATUS "FEAST_LIBRARIES : ${FEAST_LIBRARIES}")
-  list(APPEND SOLVERS_LIBRARIES ${FEAST_LIBRARIES})
-endif(${INCLUDE_FEAST} MATCHES ON)
-
-message(STATUS "SOLVERS_LIBRARIES : ${SOLVERS_LIBRARIES}")
+set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Solvers.cmake")
 
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE
