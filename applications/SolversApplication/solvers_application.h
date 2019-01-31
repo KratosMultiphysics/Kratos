@@ -64,7 +64,7 @@ namespace Kratos {
 /// Short class definition.
 /** Detail class definition.
  */
-class KratosSolversApplication : public KratosApplication {
+class KRATOS_API(SOLVERS_APPLICATION) KratosSolversApplication : public KratosApplication {
  public:
   ///@name Type Definitions
   ///@{
