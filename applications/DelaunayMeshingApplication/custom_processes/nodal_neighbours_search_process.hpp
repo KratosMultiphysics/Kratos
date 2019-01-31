@@ -440,6 +440,7 @@ class NodalNeighboursSearchProcess
 
       for(auto& i_nelem : nElements)
       {
+
         Element::GeometryType& rGeometry = i_nelem.GetGeometry();
 
         for (unsigned int nd=0; nd<rGeometry.size(); ++nd)
