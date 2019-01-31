@@ -305,10 +305,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
 					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override
-    {
-        KRATOS_ERROR << "CalculateOnIntegrationPoints of the adjoint base condition is called!" << std::endl;
-    }
+					      const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
 					      std::vector< array_1d<double, 6 > >& rOutput,
@@ -336,6 +333,13 @@ public:
 					     const ProcessInfo& rCurrentProcessInfo) override
     {
         this->CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    }
+
+    void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo) override
+    {
+        this->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
@@ -399,6 +403,10 @@ protected:
     ///@}
     ///@name Operations
     ///@{
+
+    template <typename TDataType>
+    void CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable, std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo);
+
 
     ///@}
     ///@name Member Variables

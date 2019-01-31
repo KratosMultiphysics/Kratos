@@ -145,7 +145,6 @@ void AdjointFiniteDifferencingBaseElement::Calculate(const Variable<Matrix >& rV
 {
     KRATOS_TRY;
 
-
     if(rVariable == STRESS_DISP_DERIV_ON_GP)
         this->CalculateStressDisplacementDerivative(STRESS_ON_GP, rOutput, rCurrentProcessInfo);
     else if(rVariable == STRESS_DISP_DERIV_ON_NODE)
@@ -218,6 +217,84 @@ void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Va
     }
     else
         KRATOS_ERROR << "Unsupported output variable." << std::endl;
+
+    KRATOS_CATCH("")
+}
+
+void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                      std::vector< array_1d<double, 3 > >& rOutput,
+                      const ProcessInfo& rCurrentProcessInfo)
+{
+    this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+}
+
+template <typename TDataType>
+void AdjointFiniteDifferencingBaseElement::CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable,
+                                                std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    const SizeType num_nodes = mpPrimalElement->GetGeometry().PointsNumber();
+    const SizeType dimension = mpPrimalElement->GetGeometry().WorkingSpaceDimension();
+    const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
+    const SizeType num_dofs = num_nodes * num_dofs_per_node;
+    Vector initial_state_variables;
+    initial_state_variables.resize(num_dofs);
+
+    //MFusseder TODO: transform particular solution into global direction
+    Vector particular_solution = ZeroVector(num_dofs);
+    if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT))
+        particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
+    //std::cout << particular_solution << std::endl;
+
+    // Build vector of variables containing the DOF-variables of the primal problem
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> primal_solution_variable_list;
+    primal_solution_variable_list.reserve(num_dofs_per_node);
+    primal_solution_variable_list.push_back(DISPLACEMENT_X);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Y);
+    primal_solution_variable_list.push_back(DISPLACEMENT_Z);
+
+    if(mHasRotationDofs)
+    {
+        primal_solution_variable_list.push_back(ROTATION_X);
+        primal_solution_variable_list.push_back(ROTATION_Y);
+        primal_solution_variable_list.push_back(ROTATION_Z);
+    }
+
+    // Build vector of variables containing the DOF-variables of the adjoint problem
+    std::vector<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>> adjoint_solution_variable_list;
+    adjoint_solution_variable_list.reserve(num_dofs_per_node);
+    adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_X);
+    adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_Y);
+    adjoint_solution_variable_list.push_back(ADJOINT_DISPLACEMENT_Z);
+
+    if(mHasRotationDofs)
+    {
+        adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_X);
+        adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_Y);
+        adjoint_solution_variable_list.push_back(ADJOINT_ROTATION_Z);
+    }
+
+    for (IndexType i = 0; i < num_nodes; ++i)
+    {
+        const IndexType index = i * num_dofs_per_node;
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+        {
+            initial_state_variables[index + j] = mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]);
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) =
+                                        this->GetGeometry()[i].FastGetSolutionStepValue(adjoint_solution_variable_list[j]) +
+                                        particular_solution[index + j];
+        }
+    }
+
+    mpPrimalElement->CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    for (IndexType i = 0; i < num_nodes; ++i)
+    {
+        const IndexType index = i * num_dofs_per_node;
+        for(IndexType j = 0; j < primal_solution_variable_list.size(); ++j)
+            mpPrimalElement->GetGeometry()[i].FastGetSolutionStepValue(primal_solution_variable_list[j]) = initial_state_variables[index + j];
+    }
 
     KRATOS_CATCH("")
 }
