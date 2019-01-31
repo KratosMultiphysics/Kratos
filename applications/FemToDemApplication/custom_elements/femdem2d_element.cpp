@@ -1255,12 +1255,6 @@ void FemDem2DElement::SimoJuCriterion(
 	const double F = uniaxial_stress - rThreshold;
 
 	const double A = 1.00 / (Gt * n * n * E / (Length * std::pow(sigma_c, 2)) - 0.5);
-	if (A < tolerance) {
-		KRATOS_WATCH(this->Id())
-		KRATOS_WATCH(Gt)
-		KRATOS_WATCH(Length)
-		KRATOS_WATCH(Length)
-	}
 	KRATOS_ERROR_IF(A < tolerance) << "'A' damage parameter lower than zero --> Increase FRAC_ENERGY_T" << std::endl;
 
 	if (F <= 0) {// Elastic region --> Damage is constant
