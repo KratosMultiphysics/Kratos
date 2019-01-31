@@ -13,12 +13,7 @@
 #if !defined(KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H)
 #define KRATOS_INCOMPRESSIBLE_POTENTIAL_FLOW_ELEMENT_H
 
-// #define SYMMETRIC_CONSTRAINT_APPLICATION
-
 // System includes
-#include <string>
-#include <iostream>
-#include <algorithm>
 
 // External includes
 
