@@ -191,7 +191,8 @@ class MonolithicSolver(object):
         update_time = False
         if not self._is_not_restarted():
             if self.process_info.Has(KratosSolid.RESTART_STEP_TIME):
-                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME])
+                delta_time = self.process_info[KratosMultiphysics.DELTA_TIME]
+                update_time = self._check_current_time_step(self.process_info[KratosSolid.RESTART_STEP_TIME] + delta_time)
 
         if not update_time and self.process_info.Has(KratosSolid.MESHING_STEP_TIME):
             update_time = self._check_previous_time_step(self.process_info[KratosSolid.MESHING_STEP_TIME])
