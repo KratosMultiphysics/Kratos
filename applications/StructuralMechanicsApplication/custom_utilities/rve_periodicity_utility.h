@@ -76,6 +76,18 @@ class RVEPeriodicityUtility
     ///@}
     ///@name Operators
     ///@{
+
+    /** This function assign a pairing condition between two modelparts which contain two flat faces, parallel to 
+     *  each other and separated by a distance rDistance.
+     *  Note that this function should be called multiple times to pair the different faces in a box.
+     * 
+     *  @param rMasterModelPart master part to be paired
+     *  @param rSlaveModelPart slave in the pairing
+     *  @param rStrainTensor strain tensor which will be used in computing the pairing conditions
+     *         the condition to be guaranteed will be that :    uslave = umaster + rStrainTensor * rDirection
+     *  @param rDirection  a node with coordinates Xs on the slave, will be paired to the corresponding point with coordinates Xm on the master
+     *         Xm will be computed as      Xm = Xs - rDirection
+     */
     void AssignPeriodicity(ModelPart &rMasterModelPart,
                            ModelPart &rSlaveModelPart,
                            const Matrix &rStrainTensor,
@@ -138,6 +150,9 @@ class RVEPeriodicityUtility
         }
     }
 
+    /** this function finalizes the computation of the pairings. It can be called ONLY ONCE
+     * @param rVariable is the value to which the pairing condition will be applied (needs to be a Variable with components)
+     */
     void Finalize(const Variable<array_1d<double, 3>> &rVariable)
     {
         //get the components
