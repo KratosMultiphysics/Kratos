@@ -85,7 +85,7 @@ namespace Kratos
         // Calling base class register to register Kratos components
         KratosApplication::Register();
         KRATOS_INFO("") << "    KRATOS  ____ __   ____ _____ _  ___ _   ____\n"
-                        << "              _ |  \\ |  _ |_   _| |/   | | | ___|\n"
+                        << "           |  _ |  \\ |  _ |_   _| |/   | | | ___|\n"
                         << "           |   _| \\ \\|    | | | | |   (  |_| _|_\n"
                         << "           |__|__/ \\_\\_|\\_\\ |_| |_|\\___|___|____|MECHANICS\n"
                         << "Initializing KratosParticleMechanicsApplication..." << std::endl;
