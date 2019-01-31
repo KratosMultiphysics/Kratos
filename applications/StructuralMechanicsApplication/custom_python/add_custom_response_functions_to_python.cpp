@@ -30,6 +30,9 @@
 #include "custom_response_functions/response_utilities/adjoint_nodal_displacement_response_function.h"
 #include "custom_response_functions/response_utilities/adjoint_linear_strain_energy_response_function.h"
 
+#include "state_derivative/response_functions/direct_sensitivity_response_function.cpp"
+#include "state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp"
+
 // Direct Sensitivity variables
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_element_data_variable.h"
@@ -98,6 +101,14 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     py::class_<AdjointLinearStrainEnergyResponseFunction, AdjointLinearStrainEnergyResponseFunction::Pointer, AdjointResponseFunction>
         (m, "AdjointLinearStrainEnergyResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<DirectSensitivityResponseFunction, DirectSensitivityResponseFunction::Pointer>
+        (m, "DirectSensitivityResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<DirectSensitivityLocalStressResponseFunction, DirectSensitivityLocalStressResponseFunction::Pointer, DirectSensitivityResponseFunction >
+        (m, "DirectSensitivityLocalStressResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
      
     // Adjoint postprocess
     py::class_<AdjointPostprocess, AdjointPostprocess::Pointer>
@@ -111,7 +122,7 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
     // Direct sensitivity postprocess
     py::class_<DirectSensitivityPostprocess, DirectSensitivityPostprocess::Pointer>
       (m, "DirectSensitivityPostprocess")
-      .def(py::init<ModelPart&, AdjointResponseFunction&, DirectSensitivityVariable&, Parameters>())
+      .def(py::init<ModelPart&, DirectSensitivityResponseFunction&, DirectSensitivityVariable&, Parameters>())
       .def("Initialize", &DirectSensitivityPostprocess::Initialize)
       .def("InitializeSolutionStep", &DirectSensitivityPostprocess::InitializeSolutionStep)
       .def("FinalizeSolutionStep", &DirectSensitivityPostprocess::FinalizeSolutionStep)

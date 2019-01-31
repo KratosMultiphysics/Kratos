@@ -79,7 +79,7 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
             raise Exception("invalid variable_type: " + self.direct_settings["variable_type"].GetString())
         
         # Initialize the response function
-        self.response_function = StructuralMechanicsApplication.AdjointLocalStressResponseFunction(self.main_model_part, self.direct_response_settings)
+        self.response_function = StructuralMechanicsApplication.DirectSensitivityLocalStressResponseFunction(self.main_model_part, self.direct_response_settings)
         
 
         # Initialize the postprocess of the direct sensitivty analysis 

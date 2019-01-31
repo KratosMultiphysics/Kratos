@@ -54,8 +54,13 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_variable.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_element_data_variable.cpp  
 
-  ## DIRECT SENSITIVITY VARIABLE UTILITIES
+  ## DIRECT SENSITIVITY POSTPROCESS
   ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/variable_utilities/direct_sensitivity_postprocess.cpp
+
+  ## DIRECT SENSITIVITY RESPONSE FUNCTIONS
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_response_function.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp
+
 
   ##CONSTITUTIVE LAW
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/truss_constitutive_law.cpp
@@ -116,10 +121,6 @@ set( KRATOS_STRUCTURAL_MECHANICS_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.cpp
-
-  # Adding elements for direct sensitivity analysis
-  ${CMAKE_CURRENT_SOURCE_DIR}/state_derivative/direct_sensitivity_elements/direct_sensitivity_base_element.cpp
-  
 
   # Solid elements
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/base_solid_element.cpp

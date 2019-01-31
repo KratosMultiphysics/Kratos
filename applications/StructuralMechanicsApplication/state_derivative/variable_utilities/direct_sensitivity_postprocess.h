@@ -20,9 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "structural_mechanics_application_variables.h"
-//#include "state_derivative/direct_sensitivity_response_functions/direct_sensitivity_response_function.h"
+#include "state_derivative/response_functions/direct_sensitivity_response_function.h"
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
-#include "response_functions/adjoint_response_function.h"
 
 //#include "state_derivative/new_adjoint_response_functions/new_adjoint_response_function.h"
 
@@ -71,7 +70,7 @@ public:
     ///@{
 
     /// Constructor.
-    DirectSensitivityPostprocess(ModelPart& rModelPart, AdjointResponseFunction& rResponseFunction, DirectSensitivityVariable& rDirectSensitivityVariable,
+    DirectSensitivityPostprocess(ModelPart& rModelPart, DirectSensitivityResponseFunction& rResponseFunction, DirectSensitivityVariable& rDirectSensitivityVariable,
                        Parameters VariableSettings);
 
     /// Destructor.
@@ -144,7 +143,7 @@ private:
 
     ModelPart* mpSensitivityModelPart = nullptr;
     ModelPart& mrModelPart;
-    AdjointResponseFunction& mrResponseFunction;
+    DirectSensitivityResponseFunction& mrResponseFunction;
     DirectSensitivityVariable& mrDirectSensitivityVariable;
     std::string mBuildMode;
     std::string mVariableType;

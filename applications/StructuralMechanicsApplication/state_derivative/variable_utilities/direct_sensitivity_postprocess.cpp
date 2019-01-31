@@ -26,7 +26,7 @@ namespace Kratos
 {
 
     /// Constructor.
-    DirectSensitivityPostprocess::DirectSensitivityPostprocess(ModelPart& rModelPart, AdjointResponseFunction& rResponseFunction, 
+    DirectSensitivityPostprocess::DirectSensitivityPostprocess(ModelPart& rModelPart, DirectSensitivityResponseFunction& rResponseFunction, 
                                 DirectSensitivityVariable& rDirectSensitivityVariable, Parameters SensitivitySettings)
       : mrModelPart(rModelPart) , mrResponseFunction(rResponseFunction) , mrDirectSensitivityVariable(rDirectSensitivityVariable)
     {
@@ -248,7 +248,7 @@ namespace Kratos
 
             mrResponseFunction.CalculateGradient(elem_i, LHS[k], response_displacement_gradient[k], r_process_info);            
 
-            mrResponseFunction.CalculatePartialSensitivity(elem_i, rSensitivityVariable, helper_matrix[k], response_sensitivity_gradient[k], r_process_info);
+            mrResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, response_sensitivity_gradient[k], r_process_info);
                      
             // Get the displacement vector derived wrt. the design parameter
             elem_i.GetValuesVector(displacement_gradient[k]);
@@ -311,7 +311,7 @@ namespace Kratos
     void DirectSensitivityPostprocess::UpdateConditionContributionToSensitivity(Variable<TDataType> const& rSensitivityVariable, 
                         Variable<TDataType> const& rOutputVariable)
     {
-        KRATOS_TRY;
+        /*KRATOS_TRY;
 
         std::cout << "In UpdateConditionContributionToSensitivity!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
         
@@ -341,7 +341,7 @@ namespace Kratos
 
             mrResponseFunction.CalculateGradient(cond_i, LHS[k], response_displacement_gradient[k], r_process_info);            
 
-            mrResponseFunction.CalculatePartialSensitivity(cond_i, rSensitivityVariable, helper_matrix[k], response_sensitivity_gradient[k], r_process_info);
+            mrResponseFunction.CalculatePartialSensitivity(cond_i, rSensitivityVariable, response_sensitivity_gradient[k], r_process_info);
                      
             // Get the displacement vector derived wrt. the design parameter
             cond_i.GetValuesVector(displacement_gradient[k]);
@@ -393,7 +393,7 @@ namespace Kratos
             }
         }
         
-        KRATOS_CATCH("");
+        KRATOS_CATCH("");*/
     }
 
 
