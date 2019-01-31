@@ -63,7 +63,8 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         super(ImplicitMechanicalSolver, self).InitializeSolutionStep()
 
         # Some pre-processes may affect the system of equations, we rebuild the equation ids
-        if self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] == 1:
+        proces_info = self.main_model_part.ProcessInfo
+        if proces_info[KratosMultiphysics.STEP] == 1 and proces_info[StructuralMechanicsApplication.RESET_EQUATION_IDS]:
             # Resetting the global equations ids
             self.get_builder_and_solver().SetUpSystem(self.GetComputingModelPart())
 
@@ -73,8 +74,9 @@ class ImplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+        proces_info = self.main_model_part.ProcessInfo
+        proces_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        proces_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
         if(scheme_type == "newmark"):

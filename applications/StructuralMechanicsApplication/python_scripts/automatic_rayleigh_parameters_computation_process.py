@@ -130,6 +130,9 @@ class AutomaticRayleighComputationProcess(KM.Process):
                 eigen_solver = SMA.EigensolverStrategy(self.main_model_part, eigen_scheme, builder_and_solver)
                 eigen_solver.Solve()
 
+                # Setting the variable RESET_EQUATION_IDS
+                current_process_info[SMA.RESET_EQUATION_IDS] = True
+
             eigenvalue_vector = current_process_info.GetValue(SMA.EIGENVALUE_VECTOR)
             compute_damping_coefficients_settings["eigen_values_vector"].SetVector(eigenvalue_vector)
 
@@ -140,10 +143,22 @@ class AutomaticRayleighComputationProcess(KM.Process):
         if self.settings["write_on_properties"].GetBool():
             for prop in self.main_model_part.Properties:
                 prop.SetValue(SMA.RAYLEIGH_ALPHA, coefficients_vector[0])
-                prop.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
+                if current_process_info.Has(KM.COMPUTE_LUMPED_MASS_MATRIX):
+                    if current_process_info[KM.COMPUTE_LUMPED_MASS_MATRIX]:
+                        prop.SetValue(SMA.RAYLEIGH_BETA, 0.0)
+                    else:
+                        prop.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
+                else:
+                    prop.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
         else:
             current_process_info.SetValue(SMA.RAYLEIGH_ALPHA, coefficients_vector[0])
-            current_process_info.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
+            if current_process_info.Has(KM.COMPUTE_LUMPED_MASS_MATRIX):
+                if current_process_info[KM.COMPUTE_LUMPED_MASS_MATRIX]:
+                    current_process_info.SetValue(SMA.RAYLEIGH_BETA, 0.0)
+                else:
+                    current_process_info.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
+            else:
+                current_process_info.SetValue(SMA.RAYLEIGH_BETA, coefficients_vector[1])
 
     def _auxiliar_eigen_settings(self, solver_type):
         """ This method returns the settings for the eigenvalues computations

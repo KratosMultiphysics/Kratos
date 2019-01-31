@@ -89,8 +89,9 @@ class ExplicitMechanicalSolver(structural_mechanics_solver.MechanicalSolver):
         scheme_type = self.dynamic_settings["scheme_type"].GetString()
 
         # Setting the Rayleigh damping parameters
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
-        self.main_model_part.ProcessInfo[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
+        process_info = self.main_model_part.ProcessInfo
+        process_info[StructuralMechanicsApplication.RAYLEIGH_ALPHA] = self.dynamic_settings["rayleigh_alpha"].GetDouble()
+        process_info[StructuralMechanicsApplication.RAYLEIGH_BETA] = self.dynamic_settings["rayleigh_beta"].GetDouble()
 
         # Setting the time integration schemes
         if(scheme_type == "central_differences"):
