@@ -649,7 +649,7 @@ namespace Kratos
             {
                KRATOS_TRY
 
-               double Tolerance = 1.0E-5;
+               double Tolerance = 1.0E-6;
                double TimeStep = 0.25;
                double MinTimeStep = 1.0e-4;
                double DoneTimeStep = 0.0;

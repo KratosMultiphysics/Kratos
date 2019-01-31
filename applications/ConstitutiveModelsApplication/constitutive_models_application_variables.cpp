@@ -35,5 +35,7 @@ namespace Kratos
    KRATOS_CREATE_VARIABLE( double, KSIM )   
    KRATOS_CREATE_VARIABLE( double, PS )   
    KRATOS_CREATE_VARIABLE( double, PT )   
-   KRATOS_CREATE_VARIABLE( double, PM )   
+   KRATOS_CREATE_VARIABLE( double, PM )  
+
+   KRATOS_CREATE_VARIABLE( double, COHESION )   
 }

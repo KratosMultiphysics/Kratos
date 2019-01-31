@@ -68,6 +68,7 @@
 #include "custom_models/plasticity_models/nonlocal_v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
+#include "custom_models/plasticity_models/mohr_coulomb_v1_model.hpp"
 
 
 namespace Kratos
@@ -293,6 +294,10 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       ;
   py::class_< NonlocalV2GensNovaModel, typename NonlocalV2GensNovaModel::Pointer, ConstitutiveModelBaseType >
       (m, "NonlocalV2GensNovaModel")
+      .def( py::init<>() )
+      ;
+  py::class_< MohrCoulombV1Model, typename MohrCoulombV1Model::Pointer, ConstitutiveModelBaseType >
+      (m, "MohrCoulombV1Model")
       .def( py::init<>() )
       ;
 
