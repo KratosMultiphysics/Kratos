@@ -19,12 +19,54 @@
 
 
 namespace Kratos
-{
-    void EmbeddedIgaTessellation::CreateTessellationCurve(std::vector<array_1d<double, 3> >& rPolygon)
+{   
+    void EmbeddedIgaTessellation::CreateTessellationCurveOnSurface(std::vector<array_1d<double, 2> >& rPolygon)
     {
         unsigned int point_id = 0; 
         for (unsigned int brep_i = 0; brep_i < mBrepModelVector.size(); ++brep_i)
         {
+            for (unsigned int face_i = 0; face_i < mBrepModelVector[brep_i].GetFaceVector().size(); ++face_i)
+            {
+                auto surface_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetSurface();
+
+                for (unsigned int b_loop_i = 0; b_loop_i < mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop().size(); ++b_loop_i)
+                {   
+                    for (unsigned int trim_i = 0; trim_i < mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop()[b_loop_i].GetTrimmingCurves().size(); ++trim_i)
+                    {   
+                        auto trimming_curves = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetBoundaryLoop()[b_loop_i].GetTrimmingCurves();
+                        int trim_index = trimming_curves[trim_i].GetTrimIndex(); 
+
+                        auto curve_geometry = mBrepModelVector[brep_i].GetFaceVector()[face_i].GetTrimCurve(
+                            trim_index); 
+
+                        auto curve_on_surface = CurveOnSurface<3>(
+                            curve_geometry->CurveGeometry(), 
+                            surface_geometry, 
+                            curve_geometry->Domain());
+
+                        auto tessellation = Kratos::make_shared<ANurbs::CurveTessellation<array_1d<double, 3>>>();
+                        
+                        tessellation->Compute(curve_on_surface, 1e-4);
+            
+                        rPolygon.resize(point_id + tessellation->NbPoints() - 1); 
+        
+                        for (unsigned int i = 0; i < tessellation->NbPoints() -1; ++i)
+                        {
+                            double curve_para = tessellation->Parameter(i); 
+                            for (unsigned int j = 0; j < 2; ++j)    rPolygon[point_id][j] = curve_geometry->CurveGeometry()->PointAt(curve_para)[j];      
+                            point_id += 1; 
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void EmbeddedIgaTessellation::CreateTessellationCurve(std::vector<array_1d<double, 3> >& rPolygon)
+    {
+        unsigned int point_id = 0; 
+        for (unsigned int brep_i = 0; brep_i < mBrepModelVector.size(); ++brep_i)
+        {   
             for (unsigned int edge_i = 0; edge_i < mBrepModelVector[brep_i].GetEdgeVector().size(); ++edge_i)
             {
                 const int degree = mBrepModelVector[brep_i].GetEdgeVector()[edge_i].GetCurve3d()->Degree();
@@ -52,17 +94,34 @@ namespace Kratos
 
                 // Perform the tessellation of the curve with flatness factor
                 ANurbs::Pointer<ANurbs::CurveTessellation3D> tessellation = ANurbs::New<ANurbs::CurveTessellation3D>();
+                
                 tessellation->Compute(curve, 1e-4);
 
                 rPolygon.resize(point_id + tessellation->NbPoints() - 1); 
-                
-                for (unsigned int i = 0; i < tessellation->NbPoints() -1; ++i)
+            
+                int trim_index = mBrepModelVector[brep_i].GetEdgeVector()[edge_i].GetBrepEdgeTopologyVector()[0].trim_index; 
+                for (unsigned int i = 0; i < tessellation->NbPoints() - 1; ++i)
                 {
-                    rPolygon[point_id][0] = tessellation->Point(i).X(); 
-                    rPolygon[point_id][1] = tessellation->Point(i).Y(); 
-                    rPolygon[point_id][2] = tessellation->Point(i).Z();
+                    double para = tessellation->Parameter(i);
+
+                    auto point_UV = mBrepModelVector[brep_i].GetFaceVector()[0].GetTrimCurve(trim_index)->CurveGeometry()->PointAt(para); 
+
+                    KRATOS_WATCH(point_UV)
+
+                    rPolygon[point_id][0] = point_UV[0]; 
+                    rPolygon[point_id][1] = point_UV[1]; 
+                    rPolygon[point_id][2] = 0; 
                     point_id += 1; 
                 }
+
+
+                // for (unsigned int i = 0; i < tessellation->NbPoints() -1; ++i)
+                // {
+                //     rPolygon[point_id][0] = tessellation->Point(i).X(); 
+                //     rPolygon[point_id][1] = tessellation->Point(i).Y(); 
+                //     rPolygon[point_id][2] = tessellation->Point(i).Z();
+                //     point_id += 1; 
+                // }
             }
         }
     }
@@ -107,7 +166,7 @@ namespace Kratos
                         ANurbs::Curve2D curve(geometry);
 
                         // Perform the tessellation of the curve with flatness factor 
-                        ANurbs::Pointer<ANurbs::CurveTessellation2D> tessellation = ANurbs::New<ANurbs::CurveTessellation2D>();
+                        auto tessellation = ANurbs::New<ANurbs::CurveTessellation2D>();
                         tessellation->Compute(curve, 1e-2);
                         
                         rPolygon.resize(point_id + tessellation->NbPoints() - 1); 

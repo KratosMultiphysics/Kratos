@@ -27,7 +27,8 @@ namespace Kratos
         
         void CreateTessellationCurve(
             std::vector<array_1d<double, 3> >& rPolygon);
-        
+        void CreateTessellationCurveOnSurface(
+            std::vector<array_1d<double, 2> >& rPolygon); 
         void CreateTessellationParameterCurve(
             std::vector<array_1d<double, 3> >& rPolygon);
         ///@}

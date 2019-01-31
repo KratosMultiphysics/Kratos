@@ -45,18 +45,37 @@ namespace Kratos
         
         void CreateElements2D(
             ModelPart& rSkinModelPart);
+
+        void CreateElements3D(
+            ModelPart& rSkinModelPart);
         
         std::vector<Matrix> TriangulateEmpire(); 
+
+        void TriangulateCurveOnSurface(
+            std::vector<array_1d<double,2>>& rTriangulation);  
         
+        void MapTriangulationGeometricSpace(
+            std::vector<array_1d<double,3>>& rTriangulation_xyz); 
         
         std::vector<std::vector<double>> PrintCurveTessellationPoints(); 
-        std::vector<std::vector<double>> PrintTriangulationPoints(); 
-        std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
-        std::vector<std::vector<double>> PrintGaussPoints();
-        std::vector<std::vector<double>> PrintMappedGaussPoints(); 
+        std::vector<std::vector<double>> PrintCurveOnSurfaceTessellationPoints();
+        std::vector<std::vector<double>> PrintTriangulationPoints_uv(); 
+        std::vector<std::vector<double>> PrintTriangulationPoints_xyz(); 
 
-        std::vector<std::vector<double>> Triangulate();  
-        std::vector<std::vector<double>> MapTriangulationVertices(); 
+        
+        
+        // std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
+        // std::vector<std::vector<double>> PrintGaussPoints();
+        // std::vector<std::vector<double>> PrintMappedGaussPoints(); 
+
+
+
+
+
+
+        // std::vector<std::vector<double>> Triangulate();  
+        
+        // std::vector<std::vector<double>> TestTriangle(); 
 
 
 

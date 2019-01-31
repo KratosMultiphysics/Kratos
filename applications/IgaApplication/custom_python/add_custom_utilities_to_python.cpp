@@ -845,13 +845,17 @@ void AddCustomUtilitiesToPython(
     pybind11::class_<EmbeddedIgaModeler,  typename EmbeddedIgaModeler::Pointer, NurbsBrepModeler>(m, "EmbeddedIgaModeler") 
         .def(pybind11::init<ModelPart&>())
         .def("CreateElements2D", &EmbeddedIgaModeler::CreateElements2D)
+        .def("CreateElements3D", &EmbeddedIgaModeler::CreateElements3D)
         .def("PrintCurveTessellationPoints", &EmbeddedIgaModeler::PrintCurveTessellationPoints)
-        .def("PrintTriangulationPoints", &EmbeddedIgaModeler::PrintTriangulationPoints)
-        .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
-        .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints)
-        .def("PrintMappedGaussPoints", &EmbeddedIgaModeler::PrintMappedGaussPoints)
-        .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
-        .def("MapTriangulationVertices", &EmbeddedIgaModeler::MapTriangulationVertices)
+        .def("PrintCurveOnSurfaceTessellationPoints", &EmbeddedIgaModeler::PrintCurveOnSurfaceTessellationPoints)
+        .def("PrintTriangulationPoints_xyz", &EmbeddedIgaModeler::PrintTriangulationPoints_xyz)
+        .def("PrintTriangulationPoints_uv", &EmbeddedIgaModeler::PrintTriangulationPoints_uv)
+        
+        // .def("PrintParameterCurveTessellationPoints", &EmbeddedIgaModeler::PrintParameterCurveTessellationPoints)
+        // .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints)
+        // .def("PrintMappedGaussPoints", &EmbeddedIgaModeler::PrintMappedGaussPoints)
+        // .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
+        // .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
         ;
 
     
