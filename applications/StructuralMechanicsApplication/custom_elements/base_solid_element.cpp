@@ -1846,13 +1846,10 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
-        MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
         VectorType temp_vector(mat_size);
         CalculateLumpedMassVector(temp_vector);
         for (IndexType i = 0; i < mat_size; ++i)
-            mass_matrix(i, i) = temp_vector[i];
-
-        noalias( rDampingMatrix ) += alpha * mass_matrix;
+            rDampingMatrix(i, i) += alpha * temp_vector[i];
     }
 
     // 3.-Calculate StiffnessMatrix:
