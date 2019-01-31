@@ -30,9 +30,10 @@ KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, COMPUTE_RHS_VECTOR,      
 KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, COMPUTE_LHS_MATRIX,                 1 );
 KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
 KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, EAS_IMPLICIT_EXPLICIT,              4 ); // True means implicit // TODO: change this using templates!!!
+KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, EAS_IMPLICIT_EXPLICIT,              4 ); // True means implicit
 KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, TOTAL_UPDATED_LAGRANGIAN,           5 ); // True means total lagrangian // TODO: change this using templates!!!
-KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, QUADRATIC_ELEMENT,                  6 ); // True means quadratic in-plane behaviour // TODO: Idem
+KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, QUADRATIC_ELEMENT,                  6 ); // True means quadratic in-plane behaviour
+KRATOS_CREATE_LOCAL_FLAG( SolidShellElementSprism3D6N, EXPLICIT_RHS_COMPUTATION,           7 ); // True means elastic behaviour for stabilization
 
 // ------------------------------------------------------------------------- //
 // ------------------------------ PUBLIC ----------------------------------- //
@@ -1670,7 +1671,11 @@ void SolidShellElementSprism3D6N::FinalizeNonLinearIteration( ProcessInfo& rCurr
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    if ( mELementalFlags.IsNot(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION) ) { // Implicit calculation of the RHS
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    } else {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    }
 
     /* Reading integration points */
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
@@ -1734,8 +1739,12 @@ void SolidShellElementSprism3D6N::Initialize()
 
     mFinalizedStep = true; // the creation is out of the time step, it must be true
 
-    if( GetProperties().Has(INTEGRATION_ORDER) ) {
-        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+    // Getting properties
+    const Properties& r_properties = GetProperties();
+
+    // Checking integration order
+    if( r_properties.Has(INTEGRATION_ORDER) ) {
+        const SizeType integration_order = r_properties.GetValue(INTEGRATION_ORDER);
         switch ( integration_order )
         {
         case 1:
@@ -1768,22 +1777,28 @@ void SolidShellElementSprism3D6N::Initialize()
         mConstitutiveLawVector.resize( integration_points.size() );
 
     /* Implicit or explicit EAS update */
-    if( GetProperties().Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, GetProperties()[CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT]);
+    if( r_properties.Has(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, r_properties.GetValue(CONSIDER_IMPLICIT_EAS_SPRISM_ELEMENT));
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::EAS_IMPLICIT_EXPLICIT, true);
 
     /* Total or updated lagrangian */
-    if( GetProperties().Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, GetProperties()[CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT]);
+    if( r_properties.Has(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, r_properties.GetValue(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT));
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::TOTAL_UPDATED_LAGRANGIAN, true);
 
     /* Quadratic or linear element */
-    if( GetProperties().Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
-        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, GetProperties()[CONSIDER_QUADRATIC_SPRISM_ELEMENT]);
+    if( r_properties.Has(CONSIDER_QUADRATIC_SPRISM_ELEMENT) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, r_properties.GetValue(CONSIDER_QUADRATIC_SPRISM_ELEMENT));
     else
         mELementalFlags.Set(SolidShellElementSprism3D6N::QUADRATIC_ELEMENT, true);
+
+    /* Explicit RHS computation */
+    if( r_properties.Has(PURE_EXPLICIT_RHS_COMPUTATION) )
+        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, r_properties.GetValue(PURE_EXPLICIT_RHS_COMPUTATION));
+    else
+        mELementalFlags.Set(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION, false);
 
     // Resizing the containers
     mAuxContainer.resize( integration_points.size() );
@@ -1836,7 +1851,13 @@ void SolidShellElementSprism3D6N::CalculateElementalSystem(
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+
+    if ( rLocalSystem.CalculationFlags.IsNot(SolidShellElementSprism3D6N::COMPUTE_LHS_MATRIX) &&
+         mELementalFlags.Is(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION) ) { // Explicit calculation of the RHS and calculation of the matrix is required
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    } else {
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    }
 
     /* Reading integration points */
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( this->GetIntegrationMethod() );
@@ -3392,14 +3413,38 @@ void SolidShellElementSprism3D6N::IntegrateEASInZeta(
     // Calculate EAS residual
     rEAS.mRHSAlpha += IntegrationWeight * ZetaGauss * rVariables.StressVector[2] * rVariables.C[2];
 
-    // Calculate EAS stiffness
-    rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2] * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
-
+    // Auxiliar values
     BoundedMatrix<double, 1, 36 > B3;
     BoundedMatrix<double, 1,  6 > D3;
 
-    for (IndexType i = 0; i < 6; ++i) {
-        D3(0, i) = rVariables.ConstitutiveMatrix(2, i);
+    if ( mELementalFlags.Is(SolidShellElementSprism3D6N::EXPLICIT_RHS_COMPUTATION) ) { // Explicit calculation of the RHS
+        // Kirchoff PK2 tangent tensor
+        const Properties& r_properties = GetProperties();
+        const double young_modulus = r_properties[YOUNG_MODULUS];
+        const double poisson_ratio = r_properties[POISSON_RATIO];
+        const double c1 = young_modulus / (( 1.0 + poisson_ratio ) * ( 1.0 - 2.0 * poisson_ratio ) );
+        const double c2 = c1 * ( 1 - poisson_ratio );
+        const double c3 = c1 * poisson_ratio;
+
+        // Calculate EAS stiffness
+        rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2] * (c2 * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
+
+        // Assign D3
+        D3(0, 0) = c3;
+        D3(0, 1) = c3;
+        D3(0, 2) = c2;
+        D3(0, 3) = 0.0;
+        D3(0, 4) = 0.0;
+        D3(0, 5) = 0.0;
+
+    } else { // Implicit solution uses the tangent tensor
+        // Calculate EAS stiffness
+        rEAS.mStiffAlpha += IntegrationWeight * ZetaGauss * ZetaGauss * rVariables.C[2] * (rVariables.ConstitutiveMatrix(2, 2) * rVariables.C[2] + 2.0 * rVariables.StressVector[2]);
+
+        // Assign D3
+        for (IndexType i = 0; i < 6; ++i) {
+            D3(0, i) = rVariables.ConstitutiveMatrix(2, i);
+        }
     }
     for (IndexType i = 0; i < 36; ++i) {
         B3(0, i) = rVariables.B(2, i);
