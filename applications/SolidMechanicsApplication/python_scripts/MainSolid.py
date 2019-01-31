@@ -10,7 +10,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.ExternalSolversApplication
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-import KratosMultiphysics.ConstitutiveModelsApplication
 
 sys.stdout.flush()
 
