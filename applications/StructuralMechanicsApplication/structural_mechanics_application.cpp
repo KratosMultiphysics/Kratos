@@ -306,6 +306,9 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE(CONSIDER_TOTAL_LAGRANGIAN_SPRISM_ELEMENT);
     KRATOS_REGISTER_VARIABLE(PURE_EXPLICIT_RHS_COMPUTATION);
 
+    // Reset equations ids "flag"
+    KRATOS_REGISTER_VARIABLE(RESET_EQUATION_IDS);
+
     // Adding the SPRISM additional variables
     KRATOS_REGISTER_VARIABLE(ANG_ROT);
 
