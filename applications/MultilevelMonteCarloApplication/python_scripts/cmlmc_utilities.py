@@ -213,15 +213,19 @@ class MultilevelMonteCarlo(object):
         '''prepare lists'''
         self.difference_QoI.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.difference_QoI.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.difference_QoI.second_moment = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.difference_QoI.moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.time_ML.mean = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         self.time_ML.sample_variance = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
-        self.time_ML.second_moment = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.moment_2 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.moment_3 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
+        self.time_ML.moment_4 = [[] for _ in range (self.settings["Lscreening"].GetInt()+1)]
         '''compute mean, sample variance and second moment for difference QoI and time ML'''
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.number_samples[level]):
-                self.difference_QoI.UpdateOnepassMeanVariance(level,i_sample)
-                self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
+                self.difference_QoI.UpdateOnePassMomentsVariance(level,i_sample)
+                self.time_ML.UpdateOnePassMomentsVariance(level,i_sample)
         '''compute i_E, number of iterations of Multilevel Monte Carlo algorithm'''
         self.ComputeNumberIterationsMLMC()
         '''the following lines represent the functions we execute in FinalizePhase_Task
@@ -281,17 +285,21 @@ class MultilevelMonteCarlo(object):
         for _ in range (self.current_number_levels - self.previous_number_levels): # append a list for the new level
             self.difference_QoI.mean.append([])
             self.difference_QoI.sample_variance.append([])
-            self.difference_QoI.second_moment.append([])
+            self.difference_QoI.moment_2.append([])
+            self.difference_QoI.moment_3.append([])
+            self.difference_QoI.moment_4.append([])
             self.difference_QoI.number_samples.append(0)
             self.time_ML.mean.append([])
             self.time_ML.sample_variance.append([])
-            self.time_ML.second_moment.append([])
+            self.time_ML.moment_2.append([])
+            self.time_ML.moment_3.append([])
+            self.time_ML.moment_4.append([])
             self.time_ML.number_samples.append(0)
         '''compute mean, sample variance and second moment for difference QoI and time ML'''
         for level in range (self.current_number_levels+1):
             for i_sample in range(self.previous_number_samples[level],self.number_samples[level]):
-                self.difference_QoI.UpdateOnepassMeanVariance(level,i_sample)
-                self.time_ML.UpdateOnepassMeanVariance(level,i_sample)
+                self.difference_QoI.UpdateOnePassMomentsVariance(level,i_sample)
+                self.time_ML.UpdateOnePassMomentsVariance(level,i_sample)
         '''update number of levels'''
         self.previous_number_levels = self.current_number_levels
         '''the following commented lines represent the functions we execute in FinalizePhase_Task

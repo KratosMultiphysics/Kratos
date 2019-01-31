@@ -16,14 +16,16 @@ in future, when everything is integrated with the it4i team, importing exaqute.E
 This utility contains the classes to perform the Continuation Multilevel Monte Carlo (CMLMC) and the Monte Carlo (MC) algorithms
 
 References:
-M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation ;  available as MATHICSE technical report no. 23.2017
+P. Pébay, T. B. Terriberry, H. Kolla, J. Bennett; Stable, Scalable Formulas for Parallel and Online Computation of Higher-order Multivariate Central Moments with Arbitrary Weights; Comput. Stat.(2016) 31:1305-1325
+M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via the multilevel Monte Carlo method - Part I: Central moment estimation; available at MATHICSE technical report no. 23.2017
 '''
 
+
 '''
-auxiliary function of UpdateOnepassMeanVariance of the StatisticalVariable class
+auxiliary function of UpdateOnePassMomentsVariance of the StatisticalVariable class
 '''
-@ExaquteTask(returns=4)
-def UpdateOnepassMeanVarianceAux_Task(sample,old_mean,old_M2,nsamples):
+@ExaquteTask(returns=6)
+def UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,nsamples):
     nsamples = nsamples + 1
     if nsamples == 1:
         new_mean = sample
@@ -31,12 +33,24 @@ def UpdateOnepassMeanVarianceAux_Task(sample,old_mean,old_M2,nsamples):
         new_M2 = np.asscalar(new_M2) # do so to have a list of scalars, and not a list of arrays of one element
         new_sample_variance = np.zeros(np.size(sample))
         new_sample_variance = np.asscalar(new_sample_variance) # do so to have a list of scalars, and not a list of arrays of one element
+        new_M3 = np.zeros(np.size(sample))
+        new_M3 = np.asscalar(new_M3) # do so to have a list of scalars, and not a list of arrays of one element
+        new_M4 = np.zeros(np.size(sample))
+        new_M4 = np.asscalar(new_M4) # do so to have a list of scalars, and not a list of arrays of one element
     else:
-        delta = np.subtract(sample, old_mean)
+        delta = np.subtract(sample,old_mean)
         new_mean = old_mean + np.divide(delta,nsamples)
         new_M2 = old_M2 + delta*np.subtract(sample,new_mean)
         new_sample_variance = np.divide(new_M2,np.subtract(nsamples,1))
-    return new_mean, new_M2, new_sample_variance, nsamples
+        if (compute_M3):
+            new_M3 = old_M3 - 3.0*old_M2*np.divide(delta,nsamples) + np.divide(np.multiply((nsamples-1)*(nsamples-2),(delta**3)),(nsamples**2))
+        else:
+            new_M3 = old_M3 # we are not updating
+        if (compute_M4):
+            new_M4 = old_M4 - 4.0*old_M3*np.divide(delta,nsamples) + 6.0*old_M2*np.divide(delta,nsamples)**2 + np.multiply((nsamples-1)*(nsamples**2-3*nsamples+3),np.divide(delta**4,nsamples**3))
+        else:
+            new_M4 = old_M4 # we are not updating
+    return new_mean,new_sample_variance,new_M2,new_M3,new_M4,nsamples
 
 
 '''
@@ -120,8 +134,15 @@ class StatisticalVariable(object):
         self.mean = []
         '''sample variance of the variable per each level'''
         self.sample_variance = []
-        '''second moment of the variable per each level'''
-        self.second_moment = []
+        '''moments of the variable per each level M_p   = n * \mu_p
+                                                  \mu_p = p-th central moment
+                                                  n     = number of values'''
+        self.moment_2 = []
+        self.moment_3 = []
+        self.moment_4 = []
+        '''set if M3 and M4 will be computed (M2 is mandatory to be computed because it is exploited in the mean evaluation)'''
+        self.moment_3_to_compute = False
+        self.moment_4_to_compute = False
         '''bias error of the variable'''
         self.bias_error = None
         '''statistical error of the variable'''
@@ -161,20 +182,56 @@ class StatisticalVariable(object):
         self.convergence_criteria = None
 
     '''
-    function updating mean and second moment values and computing the sample variance
-    M_{2,n} = sum_{i=1}^{n} (x_i - mean(x)_n)^2
-    M_{2,n} = M_{2,n-1} + (x_n - mean(x)_{n-1}) * (x_n - mean(x)_{n})
+    function initializing variables of the Statistical Variable class given number of levels
+    '''
+    def InitializeStatisticalVariableVariables(self,number_levels):
+        self.values = [[] for _ in range (number_levels)]
+        self.mean = [[] for _ in range (number_levels)]
+        self.moment_2 = [[] for _ in range (number_levels)]
+        self.moment_3 = [[] for _ in range (number_levels)]
+        self.moment_4 = [[] for _ in range (number_levels)]
+        self.sample_variance = [[] for _ in range (number_levels)]
+        self.power_sum_1 = [[] for _ in range (number_levels)]
+        self.power_sum_2 = [[] for _ in range (number_levels)]
+        self.power_sum_3 = [[] for _ in range (number_levels)]
+        self.power_sum_3_absolute = [[] for _ in range (number_levels)]
+        self.power_sum_4 = [[] for _ in range (number_levels)]
+        self.h_statistics_1 = [[] for _ in range (number_levels)]
+        self.h_statistics_2 = [[] for _ in range (number_levels)]
+        self.h_statistics_3 = [[] for _ in range (number_levels)]
+        self.h_statistics_4 = [[] for _ in range (number_levels)]
+        self.skewness = [[] for _ in range (number_levels)]
+        self.kurtosis = [[] for _ in range (number_levels)]
+        self.sample_central_moment_1 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_2 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_3 = [[] for _ in range (number_levels)]
+        self.sample_central_moment_3_absolute = [[] for _ in range (number_levels)]
+        self.sample_central_moment_4 = [[] for _ in range (number_levels)]
+
+    '''
+    function updating moments and sample variance
+    moments:
+    M_p   = n * \mu_p
+    \mu_p = p-th central moment
+    n     = number of values
+    sample variance:
     s_n^2 = M_{2,n} / (n-1)
     '''
-    def UpdateOnepassMeanVariance(self,level,i_sample):
+    def UpdateOnePassMomentsVariance(self,level,i_sample):
         sample = self.values[level][i_sample]
         old_mean = self.mean[level]
-        old_M2 = self.second_moment[level]
+        old_M2 = self.moment_2[level]
+        old_M3 = self.moment_3[level]
+        compute_M3 = self.moment_3_to_compute
+        old_M4 = self.moment_4[level]
+        compute_M4 = self.moment_4_to_compute
         number_samples_level = self.number_samples[level]
-        new_mean, new_M2, new_sample_variance, number_samples_level = UpdateOnepassMeanVarianceAux_Task(sample, old_mean, old_M2, number_samples_level)
+        new_mean,new_sample_variance,new_M2,new_M3,new_M4,number_samples_level = UpdateOnePassMomentsVarianceAux_Task(sample,old_mean,old_M2,old_M3,compute_M3,old_M4,compute_M4,number_samples_level)
         self.mean[level] = new_mean
-        self.second_moment[level] = new_M2
         self.sample_variance[level] = new_sample_variance
+        self.moment_2[level] = new_M2
+        self.moment_3[level] = new_M3
+        self.moment_4[level] = new_M4
         self.number_samples[level] = number_samples_level
 
     '''
