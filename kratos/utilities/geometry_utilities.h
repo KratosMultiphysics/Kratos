@@ -40,28 +40,28 @@ class GeometryUtils
 public:
 
     /**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
-     * @param geom it is the array of nodes. It is expected to be a tetrahedra
+     * @param rGeometry it is the array of nodes. It is expected to be a tetrahedra
      * @param a stack matrix of size 4*3 to store the shape function's derivatives
      * @param an array_1d to store the shape functions at the barycenter
      * @param the volume of the element
      */
     static inline void CalculateGeometryData(
-        const Element::GeometryType& geom,
+        const Element::GeometryType& rGeometry,
         BoundedMatrix<double,4,3>& DN_DX,
         array_1d<double,4>& N,
         double& Volume)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
-        double z10 = geom[1].Z() - geom[0].Z();
+        double x10 = rGeometry[1].X() - rGeometry[0].X();
+        double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+        double z10 = rGeometry[1].Z() - rGeometry[0].Z();
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
-        double z20 = geom[2].Z() - geom[0].Z();
+        double x20 = rGeometry[2].X() - rGeometry[0].X();
+        double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+        double z20 = rGeometry[2].Z() - rGeometry[0].Z();
 
-        double x30 = geom[3].X() - geom[0].X();
-        double y30 = geom[3].Y() - geom[0].Y();
-        double z30 = geom[3].Z() - geom[0].Z();
+        double x30 = rGeometry[3].X() - rGeometry[0].X();
+        double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+        double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
 
@@ -89,22 +89,22 @@ public:
     }
 
     /**this function computes the element's volume (with sign)
-     * @param geom it is the array of nodes. It expects a tetrahedra
+     * @param rGeometry it is the array of nodes. It expects a tetrahedra
      */
     static inline double CalculateVolume3D(
-        const Element::GeometryType& geom)
+        const Element::GeometryType& rGeometry)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
-        double z10 = geom[1].Z() - geom[0].Z();
+        double x10 = rGeometry[1].X() - rGeometry[0].X();
+        double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+        double z10 = rGeometry[1].Z() - rGeometry[0].Z();
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
-        double z20 = geom[2].Z() - geom[0].Z();
+        double x20 = rGeometry[2].X() - rGeometry[0].X();
+        double y20 = rGeometry[2].Y() - rGeometry[0].Y();
+        double z20 = rGeometry[2].Z() - rGeometry[0].Z();
 
-        double x30 = geom[3].X() - geom[0].X();
-        double y30 = geom[3].Y() - geom[0].Y();
-        double z30 = geom[3].Z() - geom[0].Z();
+        double x30 = rGeometry[3].X() - rGeometry[0].X();
+        double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+        double z30 = rGeometry[3].Z() - rGeometry[0].Z();
 
         double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
         return  detJ*0.1666666666666666666667;
@@ -113,22 +113,22 @@ public:
     //********************************************************************************
     //********************************************************************************
     /**this function is designed to compute the shape function derivatives, shape functions and volume in 3D
-     * @param geom it is the array of nodes. It is expected to be a triangle
+     * @param rGeometry it is the array of nodes. It is expected to be a triangle
      * @param a stack matrix of size 3*2 to store the shape function's derivatives
      * @param an array_1d to store the shape functions at the barycenter
      * @param the volume of the element
      */
     static inline void CalculateGeometryData(
-        const Element::GeometryType& geom,
+        const Element::GeometryType& rGeometry,
         BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
+        double x10 = rGeometry[1].X() - rGeometry[0].X();
+        double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
+        double x20 = rGeometry[2].X() - rGeometry[0].X();
+        double y20 = rGeometry[2].Y() - rGeometry[0].Y();
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
@@ -157,16 +157,16 @@ public:
     //********************************************************************************
     //********************************************************************************
     /**this function computes the element's volume (with sign)
-     * @param geom it is the array of nodes. It expects a triangle
+     * @param rGeometry it is the array of nodes. It expects a triangle
      */
     static inline double CalculateVolume2D(
-        const Element::GeometryType& geom)
+        const Element::GeometryType& rGeometry)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
+        double x10 = rGeometry[1].X() - rGeometry[0].X();
+        double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
+        double x20 = rGeometry[2].X() - rGeometry[0].X();
+        double y20 = rGeometry[2].Y() - rGeometry[0].Y();
 
         double detJ = x10 * y20-y10 * x20;
         return 0.5*detJ;
@@ -176,14 +176,14 @@ public:
     //********************************************************************************
     /** this function compute the maximum and minimum edge lenghts */
     static inline void SideLenghts2D(
-        const Element::GeometryType& geom,
+        const Element::GeometryType& rGeometry,
         double& hmin, double& hmax)
     {
-        double x10 = geom[1].X() - geom[0].X();
-        double y10 = geom[1].Y() - geom[0].Y();
+        double x10 = rGeometry[1].X() - rGeometry[0].X();
+        double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-        double x20 = geom[2].X() - geom[0].X();
-        double y20 = geom[2].Y() - geom[0].Y();
+        double x20 = rGeometry[2].X() - rGeometry[0].X();
+        double y20 = rGeometry[2].Y() - rGeometry[0].Y();
 
         double l = x20*x20 + y20*y20;
         hmax = l;
@@ -203,18 +203,18 @@ public:
 
 
     static inline void CalculateGeometryData(
-        const Element::GeometryType& geom,
+        const Element::GeometryType& rGeometry,
         BoundedMatrix<double,2,1>& DN_DX,
         array_1d<double,2>& N,
         double& Area)
     {
-        double x10 = std::abs(geom[1].X() - geom[0].X());
+        double x10 = std::abs(rGeometry[1].X() - rGeometry[0].X());
 
 
         double detJ = x10;
 
-        DN_DX(0,0) = 1.0/(geom[0].X() - geom[1].X());
-        DN_DX(0,1) = 1.0/(geom[1].X() - geom[0].X());
+        DN_DX(0,0) = 1.0/(rGeometry[0].X() - rGeometry[1].X());
+        DN_DX(0,1) = 1.0/(rGeometry[1].X() - rGeometry[0].X());
 
 
         //DN_DX /= detJ;
