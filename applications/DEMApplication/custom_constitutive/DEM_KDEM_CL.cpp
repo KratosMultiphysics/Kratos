@@ -339,7 +339,6 @@ namespace Kratos {
                                                     double equiv_poisson,
                                                     double indentation) {
 
-
         KRATOS_TRY
         double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
@@ -413,9 +412,8 @@ namespace Kratos {
         }
         */
         //GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalRotationalMoment, mContactMoment);
-
         KRATOS_CATCH("")
-    }
+    }//ComputeParticleRotationalMoments
 
     void DEM_KDEM::AddPoissonContribution(const double equiv_poisson, double LocalCoordSystem[3][3], double& normal_force,
                                           double calculation_area, Matrix* mSymmStressTensor, SphericContinuumParticle* element1,

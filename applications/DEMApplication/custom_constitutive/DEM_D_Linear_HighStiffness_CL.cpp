@@ -1,20 +1,20 @@
-#include "DEM_D_Linear_high_stiffness_CL.h"
+#include "DEM_D_Linear_HighStiffness_CL.h"
 #include "custom_elements/spheric_particle.h"
 
 namespace Kratos {
 
-        DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_high_stiffness::Clone() const {
+        DEMDiscontinuumConstitutiveLaw::Pointer DEM_D_Linear_HighStiffness::Clone() const {
 
-        DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_high_stiffness(*this));
+        DEMDiscontinuumConstitutiveLaw::Pointer p_clone(new DEM_D_Linear_HighStiffness(*this));
         return p_clone;
     }
 
-    void DEM_D_Linear_high_stiffness::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
-        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_high_stiffness to Properties " << pProp->Id() << std::endl;
+    void DEM_D_Linear_HighStiffness::SetConstitutiveLawInProperties(Properties::Pointer pProp, bool verbose) const {
+        if(verbose) KRATOS_INFO("DEM") << "Assigning DEM_D_Linear_HighStiffness to Properties " << pProp->Id() << std::endl;
         pProp->SetValue(DEM_DISCONTINUUM_CONSTITUTIVE_LAW_POINTER, this->Clone());
     }
 
-    void DEM_D_Linear_high_stiffness::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
+    void DEM_D_Linear_HighStiffness::InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation) {
         //Get equivalent Radius
         const double my_radius       = element1->GetRadius();
         const double other_radius    = element2->GetRadius();
@@ -42,7 +42,7 @@ namespace Kratos {
     }
 
 
-    void DEM_D_Linear_high_stiffness::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
+    void DEM_D_Linear_HighStiffness::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         //Get effective Radius
         const double my_radius           = element->GetRadius(); //Get equivalent Radius
         const double effective_radius    = my_radius - ini_delta;

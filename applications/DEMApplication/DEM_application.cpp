@@ -22,8 +22,8 @@
 #include "custom_constitutive/DEM_Dempack_2D_CL.h"
 #include "custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "custom_constitutive/DEM_Dempack_dev_CL.h"
-#include "custom_constitutive/DEM_KDEM_2D_CL.h"
-#include "custom_constitutive/DEM_KDEM_fabric_2D_CL.h"
+#include "custom_constitutive/dem_kdem_2d_cl.h"
+#include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.h"
 #include "custom_constitutive/DEM_D_Linear_viscous_Coulomb_2D_CL.h"
 #include "custom_constitutive/DEM_D_Hertz_viscous_Coulomb_CL.h"
@@ -31,7 +31,7 @@
 #include "custom_constitutive/DEM_D_JKR_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Bentonite_Colloid_CL.h"
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
-#include "custom_constitutive/DEM_D_Linear_custom_constants_cl.h"
+#include "custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
 #include "custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "custom_constitutive/DEM_KDEM_Rankine_CL.h"
@@ -843,7 +843,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_D_Bentonite_Colloid", DEM_D_Bentonite_Colloid());
     Serializer::Register("DEM_D_DMT_Cohesive_Law", DEM_D_DMT_Cohesive_Law());
     Serializer::Register(
-        "DEM_D_Linear_custom_constants", DEM_D_Linear_custom_constants());
+        "DEM_D_Linear_Custom_Constants", DEM_D_Linear_Custom_Constants());
     Serializer::Register(
         "DEM_D_Hertz_dependent_friction", DEM_D_Hertz_dependent_friction());
     Serializer::Register("DEM_D_Hertz_viscous_Coulomb_Nestle",

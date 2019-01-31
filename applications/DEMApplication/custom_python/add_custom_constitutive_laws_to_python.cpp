@@ -23,7 +23,7 @@
 
 #include "../custom_constitutive/DEM_D_Hertz_confined_CL.h"
 #include "../custom_constitutive/DEM_D_Linear_confined_CL.h"
-#include "../custom_constitutive/DEM_D_Linear_high_stiffness_CL.h"
+#include "../custom_constitutive/DEM_D_Linear_HighStiffness_CL.h"
 
 #include "../custom_constitutive/DEM_Dempack_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_CL.h"
@@ -31,17 +31,17 @@
 #include "../custom_constitutive/DEM_KDEM_Rankine_CL.h"
 #include "../custom_constitutive/DEM_KDEM_Mohr_Coulomb_CL.h"
 #include "../custom_constitutive/DEM_KDEM_CamClay_CL.h"
-#include "../custom_constitutive/DEM_KDEM_fissured_rock_CL.h"
+#include "../custom_constitutive/dem_kdem_fissured_rock_cl.h"
 #include "../custom_constitutive/DEM_sintering_continuum_CL.h"
 #include "../custom_constitutive/DEM_KDEM_fabric_CL.h"
 #include "../custom_constitutive/DEM_ExponentialHC_CL.h"
 #include "../custom_constitutive/DEM_Dempack_torque_CL.h"
 #include "../custom_constitutive/DEM_Dempack_dev_CL.h"
 #include "../custom_constitutive/DEM_Dempack_2D_dev_CL.h"
-#include "../custom_constitutive/DEM_D_Linear_custom_constants_cl.h"
+#include "../custom_constitutive/dem_d_linear_custom_constants_cl.h"
 #include "../custom_constitutive/DEM_D_Hertz_dependent_friction_CL.h"
-#include "../custom_constitutive/DEM_KDEM_2D_CL.h"
-#include "../custom_constitutive/DEM_KDEM_fabric_2D_CL.h"
+#include "../custom_constitutive/dem_kdem_2d_cl.h"
+#include "../custom_constitutive/dem_kdem_fabric_2d_cl.h"
 
 namespace Kratos {
 namespace Python {
@@ -99,7 +99,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_D_Linear_custom_constants, DEM_D_Linear_custom_constants::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_custom_constants")
+    py::class_<DEM_D_Linear_Custom_Constants, DEM_D_Linear_Custom_Constants::Pointer, DEM_D_Linear_viscous_Coulomb>(m, "DEM_D_Linear_Custom_Constants")
         .def(py::init<>())
         ;
 
@@ -119,7 +119,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_D_Linear_high_stiffness, DEM_D_Linear_high_stiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_high_stiffness")
+    py::class_<DEM_D_Linear_HighStiffness, DEM_D_Linear_HighStiffness::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_HighStiffness")
         .def(py::init<>())
         ;
     // DEM Continuum Constitutive Laws:
@@ -182,7 +182,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_KDEM_fissured_rock_CL, DEM_KDEM_fissured_rock_CL::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Fissured_Rock")
+    py::class_<DEM_KDEM_Fissured_Rock_CL, DEM_KDEM_Fissured_Rock_CL::Pointer, DEM_KDEM_Rankine>(m, "DEM_KDEM_Fissured_Rock")
         .def(py::init<>())
         ;
 
