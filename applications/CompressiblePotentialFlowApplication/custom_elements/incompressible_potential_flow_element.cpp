@@ -22,7 +22,7 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(new IncompressiblePotentialFlowElement(
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
         NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
@@ -32,7 +32,8 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Create(
     IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
-    return Element::Pointer(new IncompressiblePotentialFlowElement(NewId, pGeom, pProperties));
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
+        NewId, pGeom, pProperties));
     KRATOS_CATCH("");
 }
 
@@ -41,7 +42,7 @@ Element::Pointer IncompressiblePotentialFlowElement<Dim, NumNodes>::Clone(
     IndexType NewId, NodesArrayType const& ThisNodes) const
 {
     KRATOS_TRY
-    return Element::Pointer(new IncompressiblePotentialFlowElement(
+    return Element::Pointer(Kratos::make_shared<IncompressiblePotentialFlowElement>(
         NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
     KRATOS_CATCH("");
 }
