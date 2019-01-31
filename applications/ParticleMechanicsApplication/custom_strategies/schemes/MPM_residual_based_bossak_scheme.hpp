@@ -506,7 +506,7 @@ public:
 			{
 
 			    auto i = mr_grid_model_part.NodesBegin() + iter;
-			    const double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
+			    const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 
                 if (nodal_mass > 1.0e-16 )
                 {

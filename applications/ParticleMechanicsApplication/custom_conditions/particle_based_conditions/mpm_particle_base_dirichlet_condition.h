@@ -310,6 +310,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mFinalizedStep;
+
     double mDeterminantF0;
 
     Matrix mDeformationGradientF0;

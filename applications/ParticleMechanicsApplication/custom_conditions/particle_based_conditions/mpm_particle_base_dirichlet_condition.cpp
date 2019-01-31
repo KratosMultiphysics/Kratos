@@ -49,31 +49,27 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& Cur
     // Calculating shape function
     Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
 
-    // mFinalizedStep = false;
+    mFinalizedStep = false;
 
-    // const array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
+    const array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
 
-    // // Here MP contribution in terms of momentum, inertia and mass are added
+    // Here MPC contribution in terms of velocity is added
     // for ( unsigned int i = 0; i < number_of_nodes; i++ )
     // {
+    //     // Get old nodal velocity
+    //     array_1d<double, 3 >& nodal_velocity = rGeom[i].FastGetSolutionStepValue(VELOCITY,1);
+
     //     for (unsigned int j = 0; j < dimension; j++)
-    //     {
-    //         // nodal_momentum[j] = Variables.N[i] * (MP_Velocity[j] - AUX_MP_Velocity[j]) * MP_Mass;
-    //         // nodal_inertia[j] = Variables.N[i] * (MP_Acceleration[j] - AUX_MP_Acceleration[j]) * MP_Mass;
+    //         nodal_velocity[j] += Variables.N[i] * MPC_Velocity[j] * this->GetIntegrationWeight();
 
-    //     }
+    //     rGeom[i].SetLock();
+    //     rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
+    //     rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
 
-    //     // rGeom[i].SetLock();
-    //     // rGeom[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-    //     // rGeom[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-
-    //     // rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
-    //     // rGeom[i].UnSetLock();
+    //     rGeom[i].FastGetSolutionStepValue(NODAL_MASS, 0) += Variables.N[i] * MP_Mass;
+    //     rGeom[i].UnSetLock();
 
     // }
-
-    // // AUX_MP_Velocity.clear();
-    // // AUX_MP_Acceleration.clear();
 }
 
 //************************************************************************************
