@@ -79,19 +79,19 @@ public:
      * @param NewId Index number of the new element (optional)
      */
     [[deprecated("Using deprecated IncompressiblePotentialFlowElement constructor")]]
-    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){};
+    explicit IncompressiblePotentialFlowElement(IndexType NewId = 0){}
 
     /**
      * Constructor using an array of nodes
      */
     IncompressiblePotentialFlowElement(IndexType NewId, const NodesArrayType& ThisNodes)
-        : Element(NewId, ThisNodes){};
+        : Element(NewId, ThisNodes){}
 
     /**
      * Constructor using Geometry
      */
     IncompressiblePotentialFlowElement(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry){};
+        : Element(NewId, pGeometry){}
 
     /**
      * Constructor using Properties
@@ -99,7 +99,7 @@ public:
     IncompressiblePotentialFlowElement(IndexType NewId,
                                        GeometryType::Pointer pGeometry,
                                        PropertiesType::Pointer pProperties)
-        : Element(NewId, pGeometry, pProperties){};
+        : Element(NewId, pGeometry, pProperties){}
 
     /**
      * Copy Constructor
@@ -114,7 +114,7 @@ public:
     /**
      * Destructor
      */
-    ~IncompressiblePotentialFlowElement() override{};
+    ~IncompressiblePotentialFlowElement() override{}
 
     ///@}
     ///@name Operators
