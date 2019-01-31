@@ -117,10 +117,14 @@ public:
         Kratos::Flags MappingOptions) override
     {
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
-            // correct;
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
     }
@@ -130,15 +134,15 @@ public:
         const Variable< array_1d<double, 3> >& rDestinationVariable,
         Kratos::Flags MappingOptions) override
     {
-        KRATOS_WATCH("In MAP")
-        KRATOS_WATCH(MappingOptions.Is(MapperFlags::ADD_VALUES))
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            GetInverseMapper()->Map(rOriginVariable, rDestinationVariable, MappingOptions);
-            // this should be a call to MapInternalTranspose!
-            KRATOS_WATCH("Detected use of USE_TRANSPOSE; vector")
+            MappingOptions.Reset(MapperFlags::USE_TRANSPOSE);
+            MappingOptions.Set(MapperFlags::INTERNAL_USE_TRANSPOSE, true);
+            GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
+        }
+        else if (MappingOptions.Is(MapperFlags::INTERNAL_USE_TRANSPOSE)) {
+            MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
-            // correct;
             MapInternal(rOriginVariable, rDestinationVariable, MappingOptions);
         }
     }
@@ -149,12 +153,9 @@ public:
         Kratos::Flags MappingOptions) override
     {
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            // correct;
-            KRATOS_WATCH("Detected use of USE_TRANSPOSE in InverseMap; vector")
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
-            // GetInverseMapper()->MapInternal; correct
             GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
     }
@@ -165,11 +166,9 @@ public:
         Kratos::Flags MappingOptions) override
     {
         if (MappingOptions.Is(MapperFlags::USE_TRANSPOSE)) {
-            // correct;
             MapInternalTranspose(rOriginVariable, rDestinationVariable, MappingOptions);
         }
         else {
-            // GetInverseMapper()->MapInternal; correct
             GetInverseMapper()->Map(rDestinationVariable, rOriginVariable, MappingOptions);
         }
     }

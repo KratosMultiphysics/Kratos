@@ -189,8 +189,8 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
+        mpInterfaceVectorContainerDestination->GetVector(),
+        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_x_origin, MappingOptions);
 
@@ -199,8 +199,8 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
+        mpInterfaceVectorContainerDestination->GetVector(),
+        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_y_origin, MappingOptions);
 
@@ -209,8 +209,8 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 
     TSparseSpace::TransposeMult(
         *mpMappingMatrix,
-        mpInterfaceVectorContainerOrigin->GetVector(),
-        mpInterfaceVectorContainerDestination->GetVector()); // rQo = rMdo^T * rQd
+        mpInterfaceVectorContainerDestination->GetVector(),
+        mpInterfaceVectorContainerOrigin->GetVector()); // rQo = rMdo^T * rQd
 
     mpInterfaceVectorContainerOrigin->UpdateModelPartFromSystemVector(var_z_origin, MappingOptions);
 }
