@@ -923,12 +923,7 @@ void PrestressMembraneElement::ProjectPrestress(
     prestress_matrix(1,rPointNumber) = tensor(1,1);
     prestress_matrix(2,rPointNumber) = tensor(1,0);
 }
-//***********************************************************************************
-//***********************************************************************************
 
-void PrestressMembraneElement::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo){
-
-}
 //***********************************************************************************
 //***********************************************************************************
 void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo){
@@ -948,7 +943,6 @@ void PrestressMembraneElement::InitializeNonLinearIteration(ProcessInfo& rCurren
         }
     }
 }
-
 
 //***********************************************************************************
 //***********************************************************************************
@@ -1527,7 +1521,7 @@ int PrestressMembraneElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for ( unsigned int i = 0; i < number_of_nodes; i++ ) {
-        Node<3> &r_node = this->GetGeometry()[i];
+        const Node<3> &r_node = this->GetGeometry()[i];
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,r_node)
 
         KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X, r_node)
