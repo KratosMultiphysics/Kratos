@@ -21,7 +21,7 @@ else(FEAST_FOUND)
   if(NOT EXISTS ${feast_packed_dir})
     message(STATUS "${feast_packed_file} not found in ${feast_install_dir}")
     message(STATUS "Downloading ${feast_packed_file} from https://github.com/PFEM/feast/archive/kratos.zip to ${feast_install_dir} ...")
-    file(DOWNLOAD https://github.com/PFEM/feast/archive/kratos.zip ${feast_packed_dir} SHOW_PROGRESS EXPECTED_MD5 2eccba96c12cef20640abd347e91d91b)
+    file(DOWNLOAD https://github.com/PFEM/feast/archive/kratos.zip ${feast_packed_dir} SHOW_PROGRESS EXPECTED_MD5 8335ec9c8a52dd28eeefeda76c427b78)
     message(STATUS "${feast_packed_file} downloaded")
   endif(NOT EXISTS ${feast_packed_dir})
 
