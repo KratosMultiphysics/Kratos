@@ -12,6 +12,7 @@
 #include "../custom_constitutive/drag_laws/drag_law.h"
 #include "../custom_constitutive/drag_laws/stokes_drag_law.h"
 #include "../custom_constitutive/drag_laws/beetstra_drag_law.h"
+#include "../custom_constitutive/drag_laws/schiller_and_naumann_drag_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -42,6 +43,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<BeetstraDragLaw, BeetstraDragLaw::Pointer, BaseDragLawType>(m, "BeetstraDragLaw")
+        .def(py::init<>())
+        ;
+
+    py::class_<SchillerAndNaumann, SchillerAndNaumann::Pointer, BaseDragLawType>(m, "SchillerAndNaumann")
         .def(py::init<>())
         ;
   }
