@@ -821,7 +821,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use FinalizeMaterialResponse instead\"")
     virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
                                         const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                         const Vector& rShapeFunctionsValues,
@@ -851,7 +851,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
 					      const GeometryType& rElementGeometry,
 					      const Vector& rShapeFunctionsValues,
@@ -867,7 +867,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
-    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - There is no equivalent for this\"")
     virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
 					    const GeometryType& rElementGeometry,
 					    const Vector& rShapeFunctionsValues,
