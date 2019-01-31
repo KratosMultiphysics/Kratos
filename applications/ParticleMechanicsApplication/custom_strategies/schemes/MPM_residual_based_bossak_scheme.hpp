@@ -665,17 +665,6 @@ public:
                                       ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-                i != mr_grid_model_part.NodesEnd(); ++i)
-        {
-            if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
-            {
-                array_1d<double, 3 > & external_force = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
-                array_1d<double, 3 > & internal_force = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
-                external_force.clear();
-                internal_force.clear();
-            }
-        }
     }
 
     //***************************************************************************
