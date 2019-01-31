@@ -34,8 +34,7 @@
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-6,
-                "traced_eigenfrequencies": [2],
-                "consider_discretization": false
+                "traced_eigenfrequencies": [2]
             },
             "project_gradient_on_surface_normals" : true
         }],

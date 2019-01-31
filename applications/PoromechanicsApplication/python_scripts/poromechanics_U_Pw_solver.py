@@ -349,7 +349,7 @@ class UPwSolver(PythonSolver):
             self.main_model_part.CloneTimeStep(time)
 
     def _ConstructLinearSolver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 
