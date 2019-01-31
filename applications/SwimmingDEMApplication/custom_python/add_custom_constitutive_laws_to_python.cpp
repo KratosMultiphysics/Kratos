@@ -9,8 +9,9 @@
 #include "includes/define_python.h"
 
 #include "../custom_constitutive/hydrodynamic_interaction_law.h"
-#include "../custom_constitutive/drag_law.h"
-
+#include "../custom_constitutive/drag_laws/drag_law.h"
+#include "../custom_constitutive/drag_laws/stokes_drag_law.h"
+#include "../custom_constitutive/drag_laws/beetstra_drag_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -23,7 +24,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<HydrodynamicInteractionLaw, HydrodynamicInteractionLaw::Pointer>(m, "HydrodynamicInteractionLaw")
         .def(py::init<>())
-        .def(py::init<DragLaw&>())
+        .def(py::init<const DragLaw&>())
         .def("Clone", &HydrodynamicInteractionLaw::Clone)
         .def("SetHydrodynamicInteractionLawInProperties", &HydrodynamicInteractionLaw::SetHydrodynamicInteractionLawInProperties)
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
@@ -37,6 +38,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<StokesDragLaw, StokesDragLaw::Pointer, BaseDragLawType>(m, "StokesDragLaw")
+        .def(py::init<>())
+        ;
+
+    py::class_<BeetstraDragLaw, BeetstraDragLaw::Pointer, BaseDragLawType>(m, "BeetstraDragLaw")
         .def(py::init<>())
         ;
   }

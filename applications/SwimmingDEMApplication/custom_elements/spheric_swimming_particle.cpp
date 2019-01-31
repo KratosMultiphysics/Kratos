@@ -237,7 +237,7 @@ void SphericSwimmingParticle<TBaseElement>::ComputeDragForce(NodeType& node, arr
     }
 
     else if (mDragForceType == 1 || mDragForceType == 10){
-        mHydrodynamicInteractionLaw->ComputeDragForce(node,
+        mHydrodynamicInteractionLaw->ComputeDragForce(GetGeometry(),
                                                       mRadius,
                                                       mFluidDensity,
                                                       mKinematicViscosity,
@@ -1094,11 +1094,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
 {
     double drag_coeff;
 
-    if (mDragForceType == 1 || mDragForceType == 10){
-        drag_coeff = ComputeStokesDragCoefficient();
-    }
-
-    else if (mDragForceType == 2){ // formulations of Haider (1989) and Chien (1994)
+    if (mDragForceType == 2){ // formulations of Haider (1989) and Chien (1994)
         drag_coeff = ComputeWeatherfordDragCoefficient(r_current_process_info);
     }
 

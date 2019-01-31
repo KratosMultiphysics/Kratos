@@ -1,22 +1,22 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 // Date: February 2019
 
-#if !defined(SDEM_STOKES_DRAG_LAW_H_INCLUDED)
-#define SDEM_STOKES_DRAG_LAW_H_INCLUDED
+#if !defined(SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED)
+#define SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED
 
-#include "drag_law.h"
+#include "stokes_drag_law.h"
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) StokesDragLaw : public DragLaw {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) BeetstraDragLaw : public StokesDragLaw {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(StokesDragLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(BeetstraDragLaw);
 
-        StokesDragLaw(){}
+        BeetstraDragLaw(): StokesDragLaw(){}
 
-        ~StokesDragLaw(){}
+        ~BeetstraDragLaw(){}
 
         DragLaw::Pointer Clone() const override;
 
@@ -25,6 +25,7 @@ namespace Kratos {
         std::string GetTypeOfLaw() override;
 
         void ComputeForce(Geometry<Node<3> >& r_geometry,
+                          const double reynolds_number,
                           double particle_radius,
                           double fluid_density,
                           double fluid_kinematic_viscosity,
@@ -44,8 +45,8 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DragLaw)
         }
 
-    }; //class StokesDragLaw
+    }; //class BeetstraDragLaw
 
 } // Namespace Kratos
 
-#endif /* SDEM_STOKES_DRAG_LAW_H_INCLUDED  defined */
+#endif /* SDEM_BEETSTRA_DRAG_LAW_H_INCLUDED  defined */

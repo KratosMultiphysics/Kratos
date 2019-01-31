@@ -69,7 +69,8 @@ class SwimmingStrategy(BaseStrategy):
 
         super(SwimmingStrategy,self).ModifyProperties(properties, param)
         HydrodynamicInteractionLawString = properties[SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME]
-        drag_law = StokesDragLaw()
+        drag_law = BeetstraDragLaw()
+        HydrodynamicInteractionLawString = 'HydrodynamicInteractionLaw'
         HydrodynamicInteractionLaw = globals().get(HydrodynamicInteractionLawString)(drag_law)
         HydrodynamicInteractionLaw.SetHydrodynamicInteractionLawInProperties(properties, True)
 

@@ -23,7 +23,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/sphere_3d_1.h"
 #include "custom_constitutive/hydrodynamic_interaction_law.h"
-#include "custom_constitutive/drag_law.h"
+#include "custom_constitutive/drag_laws/drag_law.h"
 
 namespace Kratos
 {
