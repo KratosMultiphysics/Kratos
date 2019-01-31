@@ -76,7 +76,7 @@ namespace Kratos {
 
         virtual void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& r_process_info) override {
             if (ElementalDofList.size() != 0)
-                ElementalDofList.resize(0, false);
+                ElementalDofList.resize(0);
         }
 
         using Element::InitializeSolutionStep;
