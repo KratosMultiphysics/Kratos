@@ -98,10 +98,10 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
     rRightHandSideVector = ZeroVector(msLocalSize);
     // update Residual
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
-
-    if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -121,10 +121,10 @@ void CableElement3D2N::CalculateRightHandSide(
 
 
     noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
-
-    // add bodyforces
-    if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -171,6 +171,41 @@ void CableElement3D2N::UpdateInternalForces(
   rInternalForces = ZeroVector(msLocalSize);
   noalias(rInternalForces) = prod(transformation_matrix, f_local);
   KRATOS_CATCH("");
+}
+
+void CableElement3D2N::CalculateOnIntegrationPoints(
+    const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) {
+  KRATOS_TRY
+  const GeometryType::IntegrationPointsArrayType &integration_points =
+      GetGeometry().IntegrationPoints();
+  if (rOutput.size() != integration_points.size()) {
+    rOutput.resize(integration_points.size());
+  }
+  if (rVariable == GREEN_LAGRANGE_STRAIN_VECTOR) {
+    Vector strain = ZeroVector(msDimension);
+    strain[0] = this->CalculateGreenLagrangeStrain();
+    strain[1] = 0.00;
+    strain[2] = 0.00;
+    rOutput[0] = strain;
+  }
+  if ((rVariable == PK2_STRESS_VECTOR) && !this->mIsCompressed) {
+
+    array_1d<double, 3 > truss_stresses;
+    array_1d<double, msDimension> temp_internal_stresses = ZeroVector(msDimension);
+    ProcessInfo temp_process_information;
+
+    ConstitutiveLaw::Parameters Values(this->GetGeometry(),this->GetProperties(),temp_process_information);
+    Vector temp_strain = ZeroVector(1);
+    temp_strain[0] = this->CalculateGreenLagrangeStrain();
+    Values.SetStrainVector(temp_strain);
+    this->mpConstitutiveLaw->CalculateValue(Values,FORCE,temp_internal_stresses);
+
+    rOutput[0] = temp_internal_stresses;
+  }
+
+
+  KRATOS_CATCH("")
 }
 
 

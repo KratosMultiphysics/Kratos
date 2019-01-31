@@ -88,6 +88,10 @@ namespace Kratos
             VectorType& rRightHandSideVector,
             ProcessInfo& rCurrentProcessInfo) override;
 
+        void CalculateOnIntegrationPoints(
+            const Variable<Vector> &rVariable, std::vector<Vector> &rOutput,
+            const ProcessInfo &rCurrentProcessInfo) override;
+
         /**
          * @brief This function updates the internal normal force w.r.t. the current deformations
          * @param rinternalForces The current updated internal forces
