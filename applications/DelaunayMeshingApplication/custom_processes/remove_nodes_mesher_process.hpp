@@ -75,10 +75,9 @@ class RemoveNodesMesherProcess
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef std::vector<Node<3>*>             NodePointerVectorType;
-  typedef std::vector<Element*>          ElementPointerVectorType;
-  typedef std::vector<Condition*>      ConditionPointerVectorType;
-
+  typedef WeakPointerVector<Node<3> >          NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
+  typedef WeakPointerVector<Condition>    ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -197,16 +196,16 @@ class RemoveNodesMesherProcess
         ModelPart::ConditionsContainerType PreservedConditions;
 
         //id = 0;
-        for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(); ic!= mrModelPart.ConditionsEnd(); ++ic)
+        for(auto i_cond(mrModelPart.Conditions().begin()); i_cond != mrModelPart.Conditions().end(); ++i_cond)
         {
 
-          if(ic->IsNot(TO_ERASE)){
+          if(i_cond->IsNot(TO_ERASE)){
             //id+=1;
-            PreservedConditions.push_back(*(ic.base()));
+            PreservedConditions.push_back(*i_cond.base());
             //PreservedConditions.back().SetId(id);
           }
           else{
-            std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+            std::cout<<"   Condition RELEASED:"<<i_cond->Id()<<std::endl;
           }
         }
 
@@ -219,10 +218,10 @@ class RemoveNodesMesherProcess
 
 
     //check
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
+    for(auto& i_node : mrModelPart.Nodes())
     {
-      if( i_node->Is(TO_ERASE) && i_node->Is(BLOCKED) )
-        std::cout<<" REMOVE NOT ALLOWED entity NODE : "<<i_node->Id()<<" "<<i_node->Coordinates()<<std::endl;
+      if( i_node.Is(TO_ERASE) && i_node.Is(BLOCKED) )
+        std::cout<<" REMOVE NOT ALLOWED entity NODE : "<<i_node.Id()<<" "<<i_node.Coordinates()<<std::endl;
     }
 
     //reset flags for the local process execution
@@ -325,10 +324,10 @@ class RemoveNodesMesherProcess
 
     temporal_nodes.swap(rModelPart.Nodes());
 
-    for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; ++i_node)
+    for(auto i_node(temporal_nodes.begin()); i_node != temporal_nodes.end(); ++i_node)
     {
       if( i_node->IsNot(TO_ERASE) ){
-        (rModelPart.Nodes()).push_back(*(i_node.base()));
+        rModelPart.Nodes().push_back(*i_node.base());
       }
       else{
         if( i_node->Is(BOUNDARY) )
@@ -365,9 +364,9 @@ class RemoveNodesMesherProcess
     //create the list of the nodes to be check during the search
     std::vector<Node<3>::Pointer> list_of_nodes;
     list_of_nodes.reserve(rModelPart.NumberOfNodes());
-    for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; ++i_node)
+    for(auto i_node(rModelPart.Nodes().begin()); i_node != rModelPart.Nodes().end(); ++i_node)
     {
-      (list_of_nodes).push_back(*(i_node.base()));
+      list_of_nodes.push_back(*i_node.base());
     }
 
     KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
@@ -387,44 +386,44 @@ class RemoveNodesMesherProcess
     unsigned int n_points_in_radius;
 
 
-    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
+    for(auto& i_node : rModelPart.Nodes())
     {
 
       bool on_contact_tip = false;
       bool contact_active = false;
 
-      if( in->SolutionStepsDataHas(CONTACT_FORCE) ){
-        array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+      if( i_node.SolutionStepsDataHas(CONTACT_FORCE) ){
+        array_1d<double, 3 > & ContactForceNormal  = i_node.FastGetSolutionStepValue(CONTACT_FORCE);
         if(norm_2(ContactForceNormal)>0)
           contact_active = true;
       }
 
-      if(contact_active || in->Is(CONTACT) )
+      if(contact_active || i_node.Is(CONTACT) )
         on_contact_tip = true;
 
-      if( in->IsNot(NEW_ENTITY) && in->IsNot(BLOCKED) && in->IsNot(TO_ERASE) )
+      if( i_node.IsNot(NEW_ENTITY) && i_node.IsNot(BLOCKED) && i_node.IsNot(TO_ERASE) )
       {
         radius = size_for_distance_inside;
 
-        work_point[0]=in->X();
-        work_point[1]=in->Y();
-        work_point[2]=in->Z();
+        work_point[0]=i_node.X();
+        work_point[1]=i_node.Y();
+        work_point[2]=i_node.Z();
 
         n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(),neighbour_distances.begin(), num_neighbours);
 
         if (n_points_in_radius>1)
         {
           //std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
-          if( in->IsNot(BOUNDARY) )
+          if( i_node.IsNot(BOUNDARY) )
           {
             if( mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE) ){
 
-              if( !this->CheckEngagedNode((*in),neighbours,neighbour_distances,n_points_in_radius) ){ //we release the node if no other nodes neighbours are being erased
-                in->Set(TO_ERASE);
+              if( !this->CheckEngagedNode(i_node,neighbours,neighbour_distances,n_points_in_radius) ){ //we release the node if no other nodes neighbours are being erased
+                i_node.Set(TO_ERASE);
                 any_node_removed = true;
                 inside_nodes_removed++;
                 //distance_remove++;
-                //std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+                //std::cout<<"     Distance Criterion Node ["<<i_node.Id()<<"] TO_ERASE "<<std::endl;
               }
 
             }
@@ -433,31 +432,31 @@ class RemoveNodesMesherProcess
           else if ( (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES) && mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_BOUNDARY_NODES_ON_DISTANCE)) ) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
           {
 
-            //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
+            //std::cout<<"  Remove close boundary nodes: Candidate ["<<i_node.Id()<<"]"<<std::endl;
 
             //here we loop over the neighbouring nodes and if there are nodes
             //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
             unsigned int k = 0;
             unsigned int counter = 0;
-            for(std::vector<Node<3>::Pointer>::iterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; ++nn)
+            for(std::vector<Node<3>::Pointer>::iterator i_nnode=neighbours.begin(); i_nnode!=neighbours.begin() + n_points_in_radius ; ++i_nnode)
             {
               bool nn_on_contact_tip = false;
               bool contact_active = false;
 
-              if( (*nn)->SolutionStepsDataHas(CONTACT_FORCE) ){
-                array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
+              if( (*i_nnode)->SolutionStepsDataHas(CONTACT_FORCE) ){
+                array_1d<double, 3 > & ContactForceNormal  = (*i_nnode)->FastGetSolutionStepValue(CONTACT_FORCE);
                 if(norm_2(ContactForceNormal)>0)
                   contact_active = true;
               }
 
-              if(contact_active || (*nn)->Is(CONTACT) )
+              if(contact_active || (*i_nnode)->Is(CONTACT) )
                 nn_on_contact_tip = true;
 
               //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
-              if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
+              if ( (*i_nnode)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < size_for_distance_boundary && neighbour_distances[k] > 0.0 )
               {
                 //KRATOS_WATCH( neighbours_distances[k] )
-                if((*nn)->IsNot(TO_ERASE)){
+                if((*i_nnode)->IsNot(TO_ERASE)){
                   counter += 1;
                 }
               }
@@ -467,8 +466,8 @@ class RemoveNodesMesherProcess
             }
 
             if(counter > 1 && !on_contact_tip ){ //Can be inserted in the boundary refine
-              in->Set(TO_ERASE);
-              //std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+              i_node.Set(TO_ERASE);
+              //std::cout<<"     Removed Boundary Node ["<<i_node.Id()<<"] on Distance "<<std::endl;
               any_node_removed = true;
               boundary_nodes_removed++;
               //distance_remove ++;
@@ -527,9 +526,9 @@ class RemoveNodesMesherProcess
     else{
       counter = 0;
       unsigned int erased_node = 0;
-      for(std::vector<Node<3>::Pointer>::iterator nn=rNeighbours.begin(); nn!=rNeighbours.begin()+rn_points_in_radius; ++nn)
+      for(std::vector<Node<3>::Pointer>::iterator i_nnode=rNeighbours.begin(); i_nnode!=rNeighbours.begin()+rn_points_in_radius; ++i_nnode)
       {
-        if( (*nn)->IsNot(BOUNDARY) && (*nn)->Is(TO_ERASE) )
+        if( (*i_nnode)->IsNot(BOUNDARY) && (*i_nnode)->Is(TO_ERASE) )
         {
           erased_node = counter;
           engaged_node = true;
@@ -580,39 +579,37 @@ class RemoveNodesMesherProcess
 
     MeshErrorDistribution.NodalErrorCalculation(rModelPart,NodalError,nodes_ids,mrRemesh.Refine->GetErrorVariable());
 
-    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(); in != rModelPart.NodesEnd(); ++in)
+    for(auto& i_node : rModelPart.Nodes())
     {
 
-      NodePointerVectorType& rN = in->GetValue(NEIGHBOR_NODES);
+      NodeWeakPtrVectorType& nNodes = i_node.GetValue(NEIGHBOUR_NODES);
       int erased_nodes =0;
-      for(unsigned int i = 0; i < rN.size(); ++i)
+      for(auto& i_nnode : nNodes)
       {
-        if(rN[i]->Is(TO_ERASE))
+        if(i_nnode.Is(TO_ERASE))
           erased_nodes += 1;
       }
 
 
-      if( in->IsNot(BOUNDARY) && erased_nodes < 1 )
+      if(i_node.IsNot(BOUNDARY) && erased_nodes < 1)
       {
-        double& MeanError = in->FastGetSolutionStepValue(MEAN_ERROR);
-        MeanError = NodalError[nodes_ids[in->Id()]];
+        double& MeanError = i_node.FastGetSolutionStepValue(MEAN_ERROR);
+        MeanError = NodalError[nodes_ids[i_node.Id()]];
 
-        ElementPointerVectorType& neighb_elems = in->GetValue(NEIGHBOR_ELEMENTS);
+        ElementWeakPtrVectorType& nElements = i_node.GetValue(NEIGHBOUR_ELEMENTS);
         double mean_node_radius = 0;
-        for(ElementPointerVectorType::iterator ne = neighb_elems.begin(); ne!=neighb_elems.end(); ++ne)
+        for(auto& i_nelem : nElements)
         {
-          mean_node_radius+= mMesherUtilities.CalculateElementRadius((*ne)->GetGeometry()); //Triangle 2D, Tetrahedron 3D
-          //mean_node_radius+= mMesherUtilities.CalculateTriangleRadius((*ne)->GetGeometry());
-          //mean_node_radius+= mMesherUtilities.CalculateTetrahedronRadius((*ne)->GetGeometry());
+          mean_node_radius+= mMesherUtilities.CalculateElementRadius(i_nelem.GetGeometry()); //Triangle 2D, Tetrahedron 3D
         }
 
-        mean_node_radius /= double(neighb_elems.size());
+        mean_node_radius /= double(nElements.size());
 
-        if(NodalError[nodes_ids[in->Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
+        if(NodalError[nodes_ids[i_node.Id()]] < mrRemesh.Refine->ReferenceError && mean_node_radius < size_for_criterion_error)
         {
-          //std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+          //std::cout<<"   Energy : node remove ["<<i_node.Id()<<"] : "<<NodalError[nodes_ids[i_node.Id()]]<<std::endl;
           //std::cout<<"   mean_node_radius "<<mean_node_radius<<" < "<<size_for_criterion_error<<" size_for_criterion_error"<<std::endl;
-          in->Set(TO_ERASE);
+          i_node.Set(TO_ERASE);
           any_node_removed = true;
           error_removed_nodes++;
         }
@@ -652,9 +649,9 @@ class RemoveNodesMesherProcess
     //create the list of the nodes to be check during the search
     std::vector<Node<3>::Pointer> list_of_nodes;
     list_of_nodes.reserve(mrModelPart.NumberOfNodes());
-    for(ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin() ; i_node != mrModelPart.NodesEnd() ; ++i_node)
+    for(auto i_node(mrModelPart.Nodes().begin()); i_node != mrModelPart.Nodes().end(); ++i_node)
     {
-      (list_of_nodes).push_back(*(i_node.base()));
+      list_of_nodes.push_back(*i_node.base());
     }
 
     KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
@@ -898,18 +895,18 @@ class RemoveNodesMesherProcess
 
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(number_of_nodes); //all domain nodes
 
-    for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ++ic)
+    for(auto i_cond(rModelPart.Conditions().begin()); i_cond != rModelPart.Conditions().end(); ++i_cond)
     {
-      if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
-        Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
+      if(i_cond->IsNot(NEW_ENTITY) && i_cond->IsNot(TO_ERASE)){
+        Geometry< Node<3> >& rConditionGeom = i_cond->GetGeometry();
         for(unsigned int i=0; i<rConditionGeom.size(); ++i){
-          //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
+          //std::cout<<"["<<i_cond->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
           if(rConditionGeom[i].Is(TO_ERASE)){
             if( mEchoLevel > 0 )
               std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
           }
 
-          node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));
+          node_shared_conditions[rConditionGeom[i].Id()].push_back(*i_cond.base());
         }
       }
 
