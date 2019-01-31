@@ -104,7 +104,7 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         const Vector& rStressVector, 
         const double Damage, 
         const Properties& rMatProps,
-        const Geometry<Node<3>>& rGeometry)
+        Geometry<Node<3>>& rGeometry)
     {
         const double fracture_energy_tension = rMatProps[FRAC_ENERGY_T];
         const double yield_tension = rMatProps[YIELD_STRESS_T];
@@ -160,31 +160,17 @@ class ComputeNormalizedFreeEnergyOnNodesProcess : public Process
         return (length1 + length2 + length3) / 3.0;
 	}
 
-	double CalculateCharacteristicLength3D(const Geometry<Node<3>>& rGeometry)
+	double CalculateCharacteristicLength3D(Geometry<Node<3>>& rGeometry)
 	{
-        Matrix node_indices;
-		node_indices.resize(6, 2);
-		node_indices(0, 0) = 0;
-		node_indices(0, 1) = 1;
-		node_indices(1, 0) = 0;
-		node_indices(1, 1) = 2;
-		node_indices(2, 0) = 0;
-		node_indices(2, 1) = 3;
-		node_indices(3, 0) = 1;
-		node_indices(3, 1) = 2;
-		node_indices(4, 0) = 1;
-		node_indices(4, 1) = 3;
-		node_indices(5, 0) = 2;
-		node_indices(5, 1) = 3;
 
     	Vector lengths = ZeroVector(6);
         for (unsigned int edge = 0; edge < 6; edge++) { // Loop over edges
-            const double X1 = rGeometry[node_indices(edge, 0)].X0();
-            const double X2 = rGeometry[node_indices(edge, 1)].X0();
-            const double Y1 = rGeometry[node_indices(edge, 0)].Y0();
-            const double Y2 = rGeometry[node_indices(edge, 1)].Y0();
-            const double Z1 = rGeometry[node_indices(edge, 0)].Z0();
-            const double Z2 = rGeometry[node_indices(edge, 1)].Z0();
+            const double X1 = rGeometry.Edges()[edge][0].X0();
+            const double X2 = rGeometry.Edges()[edge][1].X0();
+            const double Y1 = rGeometry.Edges()[edge][0].Y0();
+            const double Y2 = rGeometry.Edges()[edge][1].Y0();
+            const double Z1 = rGeometry.Edges()[edge][0].Z0();
+            const double Z2 = rGeometry.Edges()[edge][1].Z0();
             lengths[edge] = std::sqrt(std::pow((X1 - X2), 2.0) + std::pow((Y1 - Y2), 2.0) + std::pow((Z1 - Z2), 2.0));
         }
         return (lengths[0] + lengths[1] + lengths[2] + lengths[3] + lengths[4] + lengths[5]) / 6.0;
