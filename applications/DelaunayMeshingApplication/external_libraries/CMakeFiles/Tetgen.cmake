@@ -9,16 +9,15 @@ else(TETGEN_FOUND)
   message(STATUS "TETGEN_DIR not defined: ${TETGEN_DIR}")
 
   # Default version
-  file(TO_NATIVE_PATH "${EXTERNAL_LIBRARIES_DIR}" tetgen_install_dir)
+  set(tetgen_install_dir "${EXTERNAL_LIBRARIES_DIR}")
 
   # Default TETGEN_DIR
-  file(TO_NATIVE_PATH "${tetgen_install_dir}/tetgen" DEFAULT_TETGEN_DIR)
-  set(TETGEN_DIR ${DEFAULT_TETGEN_DIR})
+  set(TETGEN_DIR "${tetgen_install_dir}/tetgen")
   message(STATUS "set TETGEN_DIR: ${TETGEN_DIR}")
 
   set(tetgen_file_name "tetgen-1.5.0-delaunay")
   set(tetgen_packed_file "${tetgen_file_name}.zip")
-  file(TO_NATIVE_PATH "${tetgen_install_dir}/${tetgen_packed_file}" tetgen_packed_dir)
+  set(tetgen_packed_dir "${tetgen_install_dir}/${tetgen_packed_file}")
 
   if(NOT EXISTS ${tetgen_packed_dir})
     message(STATUS "${tetgen_packed_file} not found in ${tetgen_install_dir}")
