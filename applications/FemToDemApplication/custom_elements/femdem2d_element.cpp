@@ -792,20 +792,20 @@ void FemDem2DElement::CalculateOnIntegrationPoints(
 
 double FemDem2DElement::CalculateCharacteristicLength(FemDem2DElement *pCurrentElement, const Element &rNeibElement, int cont)
 {
-	Geometry<Node<3>>& nodes_current_element = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
+	Geometry<Node<3>>& r_nodes_current_element = pCurrentElement->GetGeometry(); // 3 nodes of the Element 1
 
 	Vector node_1_coordinates = ZeroVector(3);
 	Vector node_2_coordinates = ZeroVector(3);
 	Vector node_3_coordinates = ZeroVector(3);
-	node_1_coordinates[0] = nodes_current_element[0].X0();
-	node_1_coordinates[1] = nodes_current_element[0].Y0();
-	node_1_coordinates[2] = nodes_current_element[0].Z0();
-	node_2_coordinates[0] = nodes_current_element[1].X0();
-	node_2_coordinates[1] = nodes_current_element[1].Y0();
-	node_2_coordinates[2] = nodes_current_element[1].Z0();
-	node_3_coordinates[0] = nodes_current_element[2].X0();
-	node_3_coordinates[1] = nodes_current_element[2].Y0();
-	node_3_coordinates[2] = nodes_current_element[2].Z0();
+	node_1_coordinates[0] = r_nodes_current_element[0].X0();
+	node_1_coordinates[1] = r_nodes_current_element[0].Y0();
+	node_1_coordinates[2] = r_nodes_current_element[0].Z0();
+	node_2_coordinates[0] = r_nodes_current_element[1].X0();
+	node_2_coordinates[1] = r_nodes_current_element[1].Y0();
+	node_2_coordinates[2] = r_nodes_current_element[1].Z0();
+	node_3_coordinates[0] = r_nodes_current_element[2].X0();
+	node_3_coordinates[1] = r_nodes_current_element[2].Y0();
+	node_3_coordinates[2] = r_nodes_current_element[2].Z0();
 
 	const double length1 = MathUtils<double>::Norm3(node_1_coordinates-node_2_coordinates);
 	const double length2 = MathUtils<double>::Norm3(node_2_coordinates-node_3_coordinates);
