@@ -163,9 +163,7 @@ int IncompressiblePotentialFlowElement<Dim, NumNodes>::Check(const ProcessInfo& 
 
     for (unsigned int i = 0; i < this->GetGeometry().size(); i++)
     {
-        KRATOS_ERROR_IF(this->GetGeometry()[i].SolutionStepsDataHas(VELOCITY_POTENTIAL) == false)
-            << "missing variable VELOCITY_POTENTIAL on node "
-            << this->GetGeometry()[i].Id() << std::endl;
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY_POTENTIAL,this->GetGeometry()[i]);
     }
 
     return out;
