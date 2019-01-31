@@ -35,7 +35,7 @@ void MPMParticleBaseDirichletCondition::Initialize()
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -71,7 +71,7 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& Cur
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseDirichletCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add something if necessary
 }
@@ -79,7 +79,7 @@ void MPMParticleBaseDirichletCondition::InitializeNonLinearIteration( ProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
     // TODO: Add something if necessary
 }
@@ -87,21 +87,17 @@ void MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration( ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 
-    // // Create and initialize element variables:
-    // GeneralVariables Variables;
-    // this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+    // Update the MPC Position
+    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
+    const array_1d<double,3> & displacement = this->GetValue(MPC_DISPLACEMENT);
+    const array_1d<double,3> & new_xg_c = xg_c + displacement ;
+    this -> SetValue(MPC_COORD,new_xg_c);
 
-    // // Compute element kinematics B, F, DN_DX ...
-    // this->CalculateKinematics(Variables, rCurrentProcessInfo);
-
-    // // Call the element internal variables update
-    // this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
-    // mFinalizedStep = true;
+    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
@@ -430,6 +426,36 @@ Vector& MPMParticleBaseDirichletCondition::MPMShapeFunctionPointValues(Vector& r
     }
 
     return rResult;
+
+    KRATOS_CATCH( "" )
+}
+
+//*************************COMPUTE CURRENT DISPLACEMENT*******************************
+//************************************************************************************
+/*
+This function convert the computed nodal displacement into matrix of (number_of_nodes, dimension)
+*/
+Matrix& MPMParticleBaseDirichletCondition::CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    GeometryType& rGeom = GetGeometry();
+    const unsigned int number_of_nodes = rGeom.PointsNumber();
+    const unsigned int dimension = rGeom.WorkingSpaceDimension();
+
+    rCurrentDisp = ZeroMatrix(number_of_nodes, dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        const array_1d<double, 3 > & current_displacement  = rGeom[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rCurrentDisp(i,j) = current_displacement[j];
+        }
+    }
+
+    return rCurrentDisp;
 
     KRATOS_CATCH( "" )
 }

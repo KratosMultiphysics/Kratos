@@ -19,7 +19,6 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "utilities/math_utils.h"
-#include "utilities/integration_utilities.h"
 
 namespace Kratos
 {
@@ -75,11 +74,12 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 {
     KRATOS_TRY
 
-    const unsigned int NumberOfNodes = GetGeometry().size();
-    const unsigned int Dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int block_size = this->GetBlockSize();
 
     // Resizing as needed the LHS
-    const unsigned int matrix_size = NumberOfNodes * Dimension;
+    const unsigned int matrix_size = number_of_nodes * block_size;
 
     if ( CalculateStiffnessMatrixFlag == true ) //calculation of the matrix is required
     {
@@ -102,26 +102,62 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         noalias( rRightHandSideVector ) = ZeroVector( matrix_size ); //resetting RHS
     }
 
-    // Vector with a loading applied to the condition
-    array_1d<double, 3 > PointLoad = ZeroVector(3);
-    if( this->Has( POINT_LOAD ) )
+    // Get imposed displacement and normal vector
+    const array_1d<double, 3 > & xg_c = this->GetValue(MPC_COORD);
+    const array_1d<double, 3 > & imposed_displacement = this->GetValue (MPC_DISPLACEMENT);
+    const array_1d<double, 3 > & normal_vector = this->GetValue (MPC_NORMAL);
+    array_1d<double, 3 > field_displacement = ZeroVector(3);
+
+    GeneralVariables Variables;
+
+    // Calculating shape function
+    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
+    Variables.CurrentDisp = this->CalculateCurrentDisp(Variables.CurrentDisp, rCurrentProcessInfo);
+
+    // Calculating field displacement
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        noalias(PointLoad) = this->GetValue( POINT_LOAD );
+        if (Variables.N[i] > 1e-16)
+        {
+            for ( unsigned int j = 0; j < dimension; j++ )
+                field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+        }
     }
 
-    for (unsigned int ii = 0; ii < NumberOfNodes; ++ii)
+    // Calculate gap function / penetration
+    const double penetration = MathUtils<double>::Dot((imposed_displacement - field_displacement), normal_vector);
+
+    if (penetration < 0.0)
     {
-        const unsigned int base = ii*Dimension;
+        // Prepare variables
+        const double penalty_factor = 10.0e5;
 
-        if( GetGeometry()[ii].SolutionStepsDataHas( POINT_LOAD ) )
+        // Compute modified shape function vector: modified_N (number_of_nodes * dimension)
+        Vector modified_N = ZeroVector(matrix_size);
+        for (unsigned int ii = 0; ii < number_of_nodes; ++ii)
         {
-            noalias(PointLoad) += GetGeometry()[ii].FastGetSolutionStepValue( POINT_LOAD );
+            const unsigned int base = ii * block_size;
+            for(unsigned int k = 0; k < dimension; ++k)
+            {
+                modified_N[base + k] = Variables.N[ii] * normal_vector[k];
+            }
         }
 
-        for(unsigned int k = 0; k < Dimension; ++k)
+        // Compute Right Hand Side Vector
+        for(unsigned int i = 0; i < matrix_size; ++i)
         {
-            rRightHandSideVector[base + k] += GetIntegrationWeight() * PointLoad[k];
+            rRightHandSideVector[i] = -penalty_factor * this->GetIntegrationWeight() * modified_N[i] * penetration;
         }
+
+        // Compute Left Hand Side Matrix
+        for (unsigned int i = 0; i<matrix_size; ++i)
+        {
+            for (unsigned int j = 0; j<matrix_size; ++j)
+            {
+                rLeftHandSideMatrix(i,j) = penalty_factor * this->GetIntegrationWeight() * modified_N[i] * modified_N[j];
+            }
+        }
+
     }
 
     KRATOS_CATCH( "" )
