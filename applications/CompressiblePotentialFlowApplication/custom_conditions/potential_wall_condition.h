@@ -221,7 +221,7 @@ public:
 
         mInitializeWasPerformed = true;
 
-        GeometryType& rGeom = this->GetGeometry();
+        const GeometryType& rGeom = this->GetGeometry();
         WeakPointerVector<Element> ElementCandidates;
         GetElementCandidates(ElementCandidates, rGeom);
 
@@ -405,11 +405,11 @@ protected:
         return mpElement.lock();
     }
 
-    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates, GeometryType& rGeom)
+    void GetElementCandidates(WeakPointerVector<Element>& ElementCandidates, const GeometryType& rGeom)
     {
         for (SizeType i = 0; i < TDim; i++)
         {
-            WeakPointerVector<Element>& rNodeElementCandidates =
+            const WeakPointerVector<Element>& rNodeElementCandidates =
                 rGeom[i].GetValue(NEIGHBOUR_ELEMENTS);
             for (SizeType j = 0; j < rNodeElementCandidates.size(); j++)
                 ElementCandidates.push_back(rNodeElementCandidates(j));
