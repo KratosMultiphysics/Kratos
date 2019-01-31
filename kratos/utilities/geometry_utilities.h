@@ -46,7 +46,7 @@ public:
      * @param the volume of the element
      */
     static inline void CalculateGeometryData(
-        Element::GeometryType& geom,
+        const Element::GeometryType& geom,
         BoundedMatrix<double,4,3>& DN_DX,
         array_1d<double,4>& N,
         double& Volume)
@@ -92,7 +92,7 @@ public:
      * @param geom it is the array of nodes. It expects a tetrahedra
      */
     static inline double CalculateVolume3D(
-        Element::GeometryType& geom)
+        const Element::GeometryType& geom)
     {
         double x10 = geom[1].X() - geom[0].X();
         double y10 = geom[1].Y() - geom[0].Y();
@@ -119,7 +119,7 @@ public:
      * @param the volume of the element
      */
     static inline void CalculateGeometryData(
-        Element::GeometryType& geom,
+        const Element::GeometryType& geom,
         BoundedMatrix<double,3,2>& DN_DX,
         array_1d<double,3>& N,
         double& Area)
@@ -160,7 +160,7 @@ public:
      * @param geom it is the array of nodes. It expects a triangle
      */
     static inline double CalculateVolume2D(
-        Element::GeometryType& geom)
+        const Element::GeometryType& geom)
     {
         double x10 = geom[1].X() - geom[0].X();
         double y10 = geom[1].Y() - geom[0].Y();
@@ -176,7 +176,7 @@ public:
     //********************************************************************************
     /** this function compute the maximum and minimum edge lenghts */
     static inline void SideLenghts2D(
-        Element::GeometryType& geom,
+        const Element::GeometryType& geom,
         double& hmin, double& hmax)
     {
         double x10 = geom[1].X() - geom[0].X();
@@ -196,19 +196,19 @@ public:
         if(l>hmax) hmax = l;
         else if(l<hmin) hmin = l;
 
-        hmax = sqrt(hmax);
-        hmin = sqrt(hmin);
+        hmax = std::sqrt(hmax);
+        hmin = std::sqrt(hmin);
     }
 
 
 
     static inline void CalculateGeometryData(
-        Element::GeometryType& geom,
+        const Element::GeometryType& geom,
         BoundedMatrix<double,2,1>& DN_DX,
         array_1d<double,2>& N,
         double& Area)
     {
-        double x10 = fabs(geom[1].X() - geom[0].X());
+        double x10 = std::abs(geom[1].X() - geom[0].X());
 
 
         double detJ = x10;
@@ -233,7 +233,7 @@ public:
      * the same argument is used to give the calculated exact distance
      */
     template<std::size_t TSize>
-    static void CalculateTetrahedraDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
+    static void CalculateTetrahedraDistances(const Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
         array_1d<Point, 4> intersection_points;
@@ -265,7 +265,7 @@ public:
 			}
 //                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
 //                       {
-//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                           Distances[i_node] = std::abs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
 //                       }
 
 		}
@@ -295,7 +295,7 @@ public:
                        for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
                        {
 				Distances[i_node] = PointDistanceToTriangle3D(intersection_points[0], intersection_points[1], intersection_points[2], ThisGeometry[i_node]);
-//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                           Distances[i_node] = std::abs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
                        }
 
 		}
@@ -304,7 +304,7 @@ public:
                     //std::cout << "4 intersection points" << std::endl;
 //                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
 //                       {
-//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                           Distances[i_node] = std::abs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
 //                        }
 
 			// loop over nodes to calculate their distance to the each zero distance triangle.
@@ -335,7 +335,7 @@ public:
      * the same argument is used to give the calculated exact distance
      */
     template<std::size_t TSize>
-    static void CalculateTriangleDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
+    static void CalculateTriangleDistances(const Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
     {
         // Calculating the intersection points
         array_1d<Point, 4> intersection_points;
@@ -367,7 +367,7 @@ public:
 			}
 //                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
 //                       {
-//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                           Distances[i_node] = std::abs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
 //                       }
 
 		}
@@ -409,7 +409,7 @@ public:
      */
     template<std::size_t TSize>
     static void CalculateExactDistancesToPlane(
-        Element::GeometryType& rThisGeometry,
+        const Element::GeometryType& rThisGeometry,
         array_1d<double, TSize>& rDistances)
     {
         array_1d<Point, TSize> intersection_points;
@@ -454,14 +454,14 @@ public:
      * @return Number of intersection points.
      */
     template<std::size_t TSize1, std::size_t TSize2>
-    static int CalculateTetrahedraIntersectionPoints(Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point, TSize2>& IntersectionPoints)
+    static int CalculateTetrahedraIntersectionPoints(const Element::GeometryType& ThisGeometry, array_1d<double, TSize1>& Distances, array_1d<Point, TSize2>& IntersectionPoints)
     {
         const double epsilon = 1e-15; //1.00e-9;
 
         int number_of_intersection_points = 0;
         for(unsigned int i = 0 ; i < TSize1 ; i++)
         {
-            if(fabs(Distances[i]) < epsilon)
+            if(std::abs(Distances[i]) < epsilon)
             {
                 noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) = ThisGeometry[i].Coordinates();
 
@@ -470,16 +470,16 @@ public:
             }
             for(unsigned int j = i + 1 ; j < TSize1 ; j++)
             {
-                if(fabs(Distances[j]) < epsilon)
+                if(std::abs(Distances[j]) < epsilon)
                     continue; // we will add it to the intersections by the i index to be unique
 
                 if(Distances[i] * Distances[j] < 0.00)  // The interface passes through the edge
                 {
 
-                    double delta_d = fabs(Distances[i]) + fabs(Distances[j]);  // we know that both distances are greater than epsilon.
+                    double delta_d = std::abs(Distances[i]) + std::abs(Distances[j]);  // we know that both distances are greater than epsilon.
 
-                    double di = fabs(Distances[i]) / delta_d;
-                    double dj = fabs(Distances[j]) / delta_d;
+                    double di = std::abs(Distances[i]) / delta_d;
+                    double dj = std::abs(Distances[j]) / delta_d;
 
                     noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) = dj * ThisGeometry[i].Coordinates();
                     noalias(IntersectionPoints[number_of_intersection_points].Coordinates()) += di * ThisGeometry[j].Coordinates();
