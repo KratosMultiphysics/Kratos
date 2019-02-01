@@ -1714,7 +1714,10 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
         exit(EXIT_FAILURE);
 
     // Sometimes MMG creates elements where there are not, then we skip
+    KRATOS_WATCH( mpRefElement.size() )
+
     if (mpRefElement[PropId] == nullptr) {
+        KRATOS_WATCH( "Null pointer returned" )
         return p_element;
     }
 
