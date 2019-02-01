@@ -36,13 +36,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         self.work_folder = "TimeAveragedNavierStokesTest/back_step"
         self.settings = "back_step_flow_100.json"
         self.ExcecuteFlowTest()
-
-
-    def testBackStepFlow2DReference(self):
-        self.work_folder = "TimeAveragedNavierStokesTest/back_step"
-        self.settings = "back_step_flow_reference_100.json"
-        self.ExcecuteFlowTest()
-
+        
 
     def testPipeFlow2D(self):
         self.work_folder = "TimeAveragedNavierStokesTest/pipe_flow"
@@ -128,10 +122,11 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             process.ExecuteInitialize()
             process.ExecuteBeforeSolutionLoop()
 
-        monolithic_initialization_time = 10
+        monolithic_initialization_step = 10
         time = 0.0
-        while(time <= monolithic_initialization_time):
-            print ("Monolithic Initialization Time: ", str(time))
+        step = 0
+        while(step <= monolithic_initialization_step):
+            print ("Monolithic Initialization Step: ", str(step))
             for process in self.monolithic_list_of_processes:
                 process.ExecuteInitializeSolutionStep()
             (self.monolithic_solver).InitializeSolutionStep()
@@ -141,6 +136,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             for process in self.monolithic_list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
             time = self.monolithic_solver.AdvanceInTime(time)
+            step += 1
         
 
     def InitializeMonolithicSolution(self):
@@ -255,7 +251,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    # TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
+    TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
     # TimeAveragedNavierStokesTest().testCylinderFlow2DAir()
     # TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
