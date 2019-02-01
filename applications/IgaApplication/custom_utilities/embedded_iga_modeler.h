@@ -52,18 +52,16 @@ namespace Kratos
         std::vector<Matrix> TriangulateEmpire(); 
 
         void TriangulateCurveOnSurface(
-            std::vector<array_1d<double,2>>& rTriangulation);  
+            std::vector<Matrix>& rTriangulation_uv);  
         
         void MapTriangulationGeometricSpace(
-            std::vector<array_1d<double,3>>& rTriangulation_xyz); 
+            std::vector<Matrix>& rTriangulation_xyz); 
         
         std::vector<std::vector<double>> PrintCurveTessellationPoints(); 
         std::vector<std::vector<double>> PrintCurveOnSurfaceTessellationPoints();
         std::vector<std::vector<double>> PrintTriangulationPoints_uv(); 
         std::vector<std::vector<double>> PrintTriangulationPoints_xyz(); 
 
-        
-        
         // std::vector<std::vector<double>> PrintParameterCurveTessellationPoints(); 
         // std::vector<std::vector<double>> PrintGaussPoints();
         // std::vector<std::vector<double>> PrintMappedGaussPoints(); 
