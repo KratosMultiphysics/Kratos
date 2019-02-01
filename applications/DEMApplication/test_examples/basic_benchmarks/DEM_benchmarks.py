@@ -22,6 +22,8 @@ listDEMFEM    = list(range(13,18))
 listCONT      = list(range(20,27))
 listDISclZHAO = [30,32]
 listDISclRK   = [31,33]
+listGeneric   = [40]
+
 
 
 class Solution(main_script.Solution):
@@ -46,6 +48,8 @@ class Solution(main_script.Solution):
             file_name = "ProjectParametersDISclZHAO.json"
         elif benchmark_number in listDISclRK:
             file_name = "ProjectParametersDISclRK.json"
+        elif benchmark_number in listGeneric:
+            file_name = "ProjectParametersDEMGeneric.json"
         else:
             Logger.PrintInfo("DEM",'Benchmark number does not exist')
             sys.exit()
@@ -62,9 +66,6 @@ class Solution(main_script.Solution):
         self.nodeplotter = False
         self.LoadParametersFile()
         self.main_path = os.getcwd()
-
-    def GetProblemTypeFilename(self):
-        return benchmark
 
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
@@ -124,8 +125,10 @@ class Solution(main_script.Solution):
         return 'benchmark' + str(benchmark_number) + "DEM"
 
     def GetInletFilename(self):
-        return 'benchmarkDEM_Inlet'
-        #return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        if benchmark_number == 40:
+            return 'benchmark' + str(benchmark_number) + "DEM_Inlet"
+        else:
+            return 'benchmarkDEM_Inlet'
 
     def GetFemFilename(self):
         return 'benchmark' + str(benchmark_number) + "DEM_FEM_boundary"
