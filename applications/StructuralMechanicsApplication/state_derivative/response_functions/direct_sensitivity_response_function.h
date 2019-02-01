@@ -95,8 +95,10 @@ public:
 
     virtual void CalculatePartialSensitivity(Element& rDirectElement, 
                                             DirectSensitivityVariable& DesignVariable, 
-                                            Vector& rSensitivityGradient, 
+                                            Matrix& rSensitivityGradient, 
                                             const ProcessInfo& rProcessInfo);
+
+    virtual int GetNumberOfTracedGaussPoints();
 
     ///@}
 
@@ -128,7 +130,9 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
+    
+    
+    
     ///@}
 };
 
