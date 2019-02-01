@@ -97,11 +97,12 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         import process_factory
         self.list_of_processes  = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["gravity"] )
         self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["boundary_conditions_process_list"] )
-        if self.ProjectParameters.Has("auxiliar_process_list") == True:
-            self.list_of_processes += process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["auxiliar_process_list"] )
+        self.appy_time_averaging_process = process_factory.KratosProcessFactory(self.model).ConstructListOfProcesses( self.ProjectParameters["auxiliar_process_list"] )
 
         ## Processes initialization
         for process in self.list_of_processes:
+            process.ExecuteInitialize()
+        for process in self.appy_time_averaging_process:
             process.ExecuteInitialize()
 
         ## Set results file Configuration
@@ -127,6 +128,9 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
             for process in self.list_of_processes:
                 process.ExecuteInitializeSolutionStep()
+            if (step >= 10):
+                for process in self.appy_time_averaging_process:
+                    process.ExecuteInitializeSolutionStep()
 
             self.gid_output.ExecuteInitializeSolutionStep()
 
@@ -137,6 +141,10 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
+            
+            if (step >= 10):
+                for process in self.appy_time_averaging_process:
+                    process.ExecuteFinalizeSolutionStep()
 
             if (self.print_output):
                 if self.gid_output.IsOutputStep():
@@ -168,11 +176,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    # TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
     TimeAveragedNavierStokesTest().testCylinderFlow2DReferenceWater()
-    # TimeAveragedNavierStokesTest().testCylinderFlow2DAir()
     # TimeAveragedNavierStokesTest().testCylinderFlow2DReferenceAir()
-    # TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testBackStepFlow2DReference()
-    # TimeAveragedNavierStokesTest().testPipeFlow2D()
     # TimeAveragedNavierStokesTest().testPipeFlow2DReference()
