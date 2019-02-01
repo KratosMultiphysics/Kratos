@@ -178,7 +178,7 @@ void SkinDetectionProcess<TDim>::Execute()
 
         const VectorIndexType& nodes_face = map.second;
 
-        Properties::Pointer p_prop = nullptr;
+        Properties::Pointer p_prop;
         const IndexType property_id = properties_face_map[map.first];
          if (mrModelPart.RecursivelyHasProperties(property_id)) {
              p_prop = mrModelPart.pGetProperties(property_id);
