@@ -152,7 +152,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
     #
     #
     #  So here the _SynchronizeXXXXXData functions exchange data between the python co simulation solvers.
-    #  How the solvers get their data from their remote solvers is handled in ImportCouplingInterfaceData and ExportData
+    #  How the solvers get their data from their remote solvers is handled in ImportCouplingInterfaceData and ExportCouplingInterfaceData
     #  functions. Here Import and Export data functions of to_solver and from_solver are called.
     #
     #  @param solver_name     string: name of the solver for which data has to be synchronized
@@ -192,7 +192,7 @@ class CoSimulationBaseCoupledSolver(CoSimulationBaseSolver):
                     solver_data_conf.AddValue("destination_data_config",to_solver_data_conf)
                     solver_data_conf.AddValue("mapper_settings", output_data["settings"]["mapper_settings"])
 
-                solver.ExportData(solver_data_conf, to_solver)
+                solver.ExportCouplingInterfaceData(solver_data_conf, to_solver)
 
     ## _CreateSolvers : Private Function to make the participating solver objects
     #

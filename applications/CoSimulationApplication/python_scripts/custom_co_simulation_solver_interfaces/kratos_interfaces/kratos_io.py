@@ -102,14 +102,14 @@ class KratosIo(CoSimulationBaseIO):
         """
         raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportMesh is not implemented in the IO class!" + tools.bcolors.ENDC)
 
-    ## ExportData :  used to export data to other solvers
+    ## ExportCouplingInterfaceData :  used to export data to other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param data_config     python dictionary : configuration of the mesh to be exported.
     #                                             also contains the data to export.
     #  @param to_solver       python object : The solver to which mesh is to be exported.
-    def ExportData(self, data_config, to_solver):
+    def ExportCouplingInterfaceData(self, data_config, to_solver):
         if(to_solver):
             # exchange data from python cosim solver
             if(data_config.Has("mapper_settings")):

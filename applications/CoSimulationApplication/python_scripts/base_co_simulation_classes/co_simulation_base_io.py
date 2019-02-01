@@ -47,21 +47,21 @@ class CoSimulationBaseIO(object):
         """
         raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportMesh is not implemented in the IO class!" + tools.bcolors.ENDC)
 
-    ## ExportData :  used to export data to other solvers
+    ## ExportCouplingInterfaceData :  used to export data to other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param data_config     python dictionary : configuration of the mesh to be exported.
     #                                             also contains the data to export.
     #  @param to_solver       python object : The solver to which mesh is to be exported.
-    def ExportData(self, data_config, to_solver=None):
+    def ExportCouplingInterfaceData(self, data_config, to_solver=None):
         """
         if(to_client not None): # IMPORTANT : exchanging data between python cosim solvers should be avoided here.
             # put data on to python cosim solver.
         else:
             # export the given data to the remote solver
         """
-        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ExportData is not implemented in the IO class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ExportCouplingInterfaceData is not implemented in the IO class!" + tools.bcolors.ENDC)
 
     ## ExportMesh :  used to export mesh to other solvers
     #                Follow EXAMPLE implementation below.
