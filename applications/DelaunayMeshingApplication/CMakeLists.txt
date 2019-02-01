@@ -11,12 +11,12 @@ include(pybind11Tools)
 ## to avoid problems with the define linkage block. By default we will compile the lib
 if(NOT DEFINED ${INCLUDE_TRIANGLE})
   set(INCLUDE_TRIANGLE ON)
-  set(TRIANGLE_DIR ${CMAKE_SOURCE_DIR}/external_libraries/triangle/)
+  set(TRIANGLE_DIR "${CMAKE_SOURCE_DIR}/external_libraries/triangle")
 endif(NOT DEFINED ${INCLUDE_TRIANGLE})
 
 if(NOT DEFINED ${INCLUDE_TETGEN})
   set(INCLUDE_TETGEN ON)
-  set(TETGEN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external_modules/tetgen/)
+  set(TETGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/tetgen")
 endif(NOT DEFINED ${INCLUDE_TETGEN})
 
 set(MESHER_LIBRARIES "")
@@ -27,6 +27,8 @@ endif(${INCLUDE_TRIANGLE} MATCHES ON)
 
 
 if(${INCLUDE_TETGEN} MATCHES ON)
+  set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
+  INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Tetgen.cmake")
   include_directories(${TETGEN_DIR})
   add_definitions(-DINCLUDE_TETGEN)
   add_definitions(-DTETLIBRARY)
@@ -79,8 +81,6 @@ set( KRATOS_DELAUNAY_MESHING_APPLICATION_PYTHON_INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_meshers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_bounding_to_python.cpp
 )
-
-message(STATUS "MESHER_LIBRARIES : ${MESHER_LIBRARIES}")
 
 add_library(KratosDelaunayMeshingCore SHARED ${KRATOS_DELAUNAY_MESHING_APPLICATION_CORE})
 target_link_libraries(KratosDelaunayMeshingCore PUBLIC KratosCore ${MESHER_LIBRARIES})
