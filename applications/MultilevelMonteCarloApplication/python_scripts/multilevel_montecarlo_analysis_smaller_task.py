@@ -18,7 +18,7 @@ import numpy as np
 import time
 
 # Import Continuation Multilevel Monte Carlo library
-import cmlmc_utilities as mlmc
+import cmlmc_utilities_smaller_task as mlmc
 
 # Import refinement library
 import adaptive_refinement_utilities_smaller_task as refinement
@@ -313,7 +313,7 @@ def CompareMean_Task(AveragedMeanQoI,ExactExpectedValueQoI):
 if __name__ == '__main__':
 
     '''set the ProjectParameters.json path'''
-    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_finer.json"
+    parameter_file_name = "../tests/PoissonSquareTest/parameters_poisson_coarse.json"
     '''create a serialization of the model and of the project parameters'''
     pickled_model,pickled_parameters = SerializeModelParameters_Task(parameter_file_name)
     '''customize setting parameters of the ML simulation'''
@@ -323,9 +323,9 @@ if __name__ == '__main__':
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
         "number_samples_screening"        : 25,
-        "Lscreening"                      : 3,
+        "Lscreening"                      : 2,
         "Lmax"                            : 4,
-        "initial_mesh_size"               : 0.25
+        "initial_mesh_size"               : 0.5
     }
     """)
     '''customize setting parameters of the metric of the adaptive refinement utility'''
@@ -361,23 +361,23 @@ if __name__ == '__main__':
         for instance in range (mlmc_class.number_samples[lev]):
             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
     '''finalize screening phase'''
-    # mlmc_class.FinalizeScreeningPhase()
-    # mlmc_class.ScreeningInfoScreeningPhase()
-    # '''start MLMC phase'''
-    # while mlmc_class.convergence is not True:
-    #     '''initialize MLMC phase'''
-    #     mlmc_class.InitializeMLMCPhase()
-    #     mlmc_class.ScreeningInfoInitializeMLMCPhase()
-    #     '''MLMC execution phase'''
-    #     for lev in range (mlmc_class.current_number_levels+1):
-    #         for instance in range (mlmc_class.difference_number_samples[lev]):
-    #             mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
-    #     '''finalize MLMC phase'''
-    #     mlmc_class.FinalizeMLMCPhase()
-    #     mlmc_class.ScreeningInfoFinalizeMLMCPhase()
+    mlmc_class.FinalizeScreeningPhase()
+    mlmc_class.ScreeningInfoScreeningPhase()
+    '''start MLMC phase'''
+    while mlmc_class.convergence is not True:
+        '''initialize MLMC phase'''
+        mlmc_class.InitializeMLMCPhase()
+        mlmc_class.ScreeningInfoInitializeMLMCPhase()
+        '''MLMC execution phase'''
+        for lev in range (mlmc_class.current_number_levels+1):
+            for instance in range (mlmc_class.difference_number_samples[lev]):
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+        '''finalize MLMC phase'''
+        mlmc_class.FinalizeMLMCPhase()
+        mlmc_class.ScreeningInfoFinalizeMLMCPhase()
 
-    # print("\niterations = ",mlmc_class.current_iteration,\
-    # "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
+    print("\niterations = ",mlmc_class.current_iteration,\
+    "total error TErr computed = ",mlmc_class.TErr,"mean MLMC QoI = ",mlmc_class.mean_mlmc_QoI)
 
     '''### OBSERVATIONS ###
 

@@ -157,7 +157,6 @@ def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_m
     start_MLMC_time = time.time()
     end_MLMC_time = []
     if(current_MLMC_level == 0):
-        print("solving level ", 0)
         simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
         simulation.Run()
         QoI.append(EvaluateQuantityOfInterest(simulation))
@@ -175,7 +174,6 @@ def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_m
                 '''update model Kratos object'''
                 current_model = simulation.model
                 del(simulation)
-            print("solving level ", lev)
             simulation = MultilevelMonteCarloAnalysis(current_model,current_parameters,sample)
             simulation.Run()
             QoI.append(EvaluateQuantityOfInterest(simulation))
