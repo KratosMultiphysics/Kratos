@@ -77,24 +77,14 @@ public:
                             Matrix& rResponseGradientMatrix,                                     
                             const ProcessInfo& rProcessInfo) override;
 
-    void CalculateElementContributionToGradient(Element& rDirectElement,
-                            const Matrix& rLHS,
-                            Vector& rResponseGradientVector,
-                            ProcessInfo& rProcessInfo);    
+       
     
     void CalculatePartialSensitivity(Element& rDirectElement, 
                             DirectSensitivityVariable& DesignVariable,
-                            Vector& rSensitivityGradient,
+                            Matrix& rSensitivityGradient,
                             const ProcessInfo& rProcessInfo) override;
 
-    void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
-                            const std::string& rVariableName,
-                            Vector& rSensitivityGradient,
-                            ProcessInfo& rProcessInfo);
-
-    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
-
-    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+    int GetNumberOfTracedGaussPoints() override;
 
     
 
@@ -119,9 +109,9 @@ private:
     ///@name Member Variables
     ///@{
         
-        unsigned int mIdOfLocation;
         StressTreatment mStressTreatment;
         std::vector<TracedStressType> mTracedStressesVector;
+        std::vector<unsigned int> mIdOfLocationVector;
               
     ///@}
     ///@name Private Operators
@@ -130,7 +120,23 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+    void CalculateElementContributionToGradient(Element& rDirectElement,
+                            const Matrix& rLHS,
+                            Vector& rResponseGradientVector,
+                            unsigned int& rIdOfGaussPoint,
+                            ProcessInfo& rProcessInfo); 
 
+    void CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
+                            const std::string& rVariableName,
+                            Vector& rSensitivityGradient,
+                            unsigned int& rIdOfGaussPoint,
+                            ProcessInfo& rProcessInfo);
+
+    void ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+
+    void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, 
+                            unsigned int& rIdOfGaussPoint,
+                            Vector& rResponseGradient);
     ///@}
 };
 
