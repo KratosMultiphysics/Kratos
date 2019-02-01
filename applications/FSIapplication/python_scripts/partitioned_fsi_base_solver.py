@@ -2,20 +2,18 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 from math import sqrt   # Import the square root from python library
 
 # Import utilities
-import NonConformant_OneSideMap                # Import non-conformant mapper
-import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
-import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
-import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
-import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
+from KratosMultiphysics.FSIApplication import NonConformant_OneSideMap                # Import non-conformant mapper
+from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid            # Import the fluid Python solvers wrapper
+from KratosMultiphysics.StructuralMechanicsApplication import python_solvers_wrapper_structural       # Import the structure Python solvers wrapper
+from KratosMultiphysics.MeshMovingApplication import python_solvers_wrapper_mesh_motion      # Import the mesh motion Python solvers wrapper
+from KratosMultiphysics.FSIApplication import convergence_accelerator_factory         # Import the FSI convergence accelerator factory
 
 # Importing the Kratos Library
 import KratosMultiphysics
-from python_solver import PythonSolver
+from KratosMultiphysics.python_solver import PythonSolver
 
 # Import applications
 import KratosMultiphysics.FSIApplication as KratosFSI
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
-import KratosMultiphysics.FluidDynamicsApplication as KratosFluid
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 
 def CreateSolver(model, project_parameters):

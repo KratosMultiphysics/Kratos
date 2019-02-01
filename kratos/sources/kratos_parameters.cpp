@@ -358,6 +358,9 @@ void Parameters::AddValue(
 {
     if(mpValue->find(rEntry) == mpValue->end()) {
         (*mpValue)[rEntry] = *(rOtherValue.mpValue);
+    } else {
+        KRATOS_WARNING("Parameters") << "WARNING:: Entry " << rEntry << " already defined. Overwriting it" << std::endl;
+        SetValue(rEntry, rOtherValue);
     }
 }
 
@@ -781,7 +784,6 @@ void Parameters::SetArrayItem(
 
 void Parameters::AddEmptyArray(const std::string& rEntry)
 {
-    KRATOS_ERROR_IF_NOT(mpValue->is_array()) << "It must be an Array parameter to append" << std::endl;
     if(mpValue->find(rEntry) == mpValue->end()) {
         nlohmann::json j_array(nlohmann::json::value_t::array);
         (*mpValue)[rEntry] = j_array;

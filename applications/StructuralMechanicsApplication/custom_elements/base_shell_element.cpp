@@ -18,6 +18,7 @@
 // Project includes
 #include "custom_elements/base_shell_element.h"
 #include "custom_utilities/shell_utilities.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "includes/checks.h"
 
 namespace Kratos
@@ -308,48 +309,13 @@ void BaseShellElement::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
+    const std::size_t matrix_size = GetNumberOfDofs();
 
-    const SizeType num_dofs = GetNumberOfDofs();
-
-    if ( rDampingMatrix.size1() != num_dofs )
-        rDampingMatrix.resize( num_dofs, num_dofs, false );
-
-    noalias( rDampingMatrix ) = ZeroMatrix( num_dofs, num_dofs );
-
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix  = Matrix();
-    VectorType ResidualVector  = Vector();
-
-    CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-
-    // 2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix  = Matrix();
-
-    CalculateMassMatrix(MassMatrix, rCurrentProcessInfo);
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0.0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) )
-        alpha = GetProperties()[RAYLEIGH_ALPHA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-    double beta  = 0.0;
-    if( GetProperties().Has(RAYLEIGH_BETA) )
-        beta = GetProperties()[RAYLEIGH_BETA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-    // 4.-Compose the Damping Matrix:
-
-    // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * MassMatrix;
-    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
-
-    KRATOS_CATCH( "" )
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        matrix_size);
 }
 
 int BaseShellElement::Check(const ProcessInfo& rCurrentProcessInfo)

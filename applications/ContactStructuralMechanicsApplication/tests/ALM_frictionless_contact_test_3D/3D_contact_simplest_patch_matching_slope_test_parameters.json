@@ -37,7 +37,7 @@
         "residual_absolute_tolerance"        : 1e-9,
         "max_iteration"                      : 10,
         "linear_solver_settings"             : {
-            "solver_type" : "SuperLUSolver"
+            "solver_type" : "ExternalSolversApplication.SuperLUSolver"
         },
         "problem_domain_sub_model_part_list" : ["Structure","Parts_Parts_Auto1","Parts_Parts_Auto2"],
         "processes_sub_model_part_list"      : ["Structure","Parts_Parts_Nodes1","Parts_Parts_Nodes2","DISPLACEMENT_Displacement_Auto1","DISPLACEMENT_Displacement_Auto2","SurfaceLoad3D_SurfaceLoad","Contact_Part"]

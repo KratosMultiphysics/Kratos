@@ -360,6 +360,13 @@ class TestParameters(KratosUnittest.TestCase):
         self.assertTrue(kp.Has("new_double"))
         self.assertEqual(kp["new_double"].GetDouble(), 1.0)
 
+    def test_add_empty_array(self):
+        kp = Parameters("{}")
+        kp.AddEmptyArray("new_array")
+
+        self.assertTrue(kp.Has("new_array"))
+        self.assertEqual(kp["new_array"].size(), 0)
+
     def test_iterators(self):
         kp = Parameters(json_string)
 

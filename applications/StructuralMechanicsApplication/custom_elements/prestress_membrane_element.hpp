@@ -85,7 +85,11 @@ namespace Kratos
 
     void Initialize() override;
 
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(
       VectorType& rRightHandSideVector,
@@ -128,10 +132,9 @@ namespace Kratos
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
       std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
-  protected:
+    int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
-
-  private:
+private:
     ///@name Static Member Variables
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
     Vector mDetJ0;
@@ -158,9 +161,6 @@ namespace Kratos
       Matrix& rB,
       Matrix& rD,
       const double& rWeight);
-
-
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateAndAddNonlinearKm(
         Matrix& rK,
@@ -257,8 +257,6 @@ namespace Kratos
                     const double Lambda1, const double Lambda2);
 
     const Matrix CalculateDeformationGradient(const unsigned int PointNumber);
-
-    int  Check(const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Serialization
