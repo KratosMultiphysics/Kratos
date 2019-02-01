@@ -11,6 +11,7 @@ class Hdf5OutputTool:
         default_output_settings = KratosMultiphysics.Parameters("""
             {
                 "file_name" : "output_file",
+                "case_id"   : 0,
                 "framework" : "please_specify_it",
                 "h"         : 0.0,
                 "courant"   : 0.0       
@@ -25,9 +26,9 @@ class Hdf5OutputTool:
 
         self.f = h5py.File(self.settings["output_parameters"]["file_name"].GetString() + ".hdf5", 'a') # 'a' means append mode
 
-        case_name = "case_" + str(dt.datetime.now())
+        case_name = "case_{:03d}".format(self.settings["output_parameters"]["case_id"].GetInt())
         self.case = self.f.create_group(case_name)
-    
+
     def WriteDiscretizationAttributes(self):
         d = self.case.create_group("discretization")
         d.attrs["framework"] = self.settings["output_parameters"]["framework"].GetString()
