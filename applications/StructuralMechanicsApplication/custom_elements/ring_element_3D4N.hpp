@@ -11,8 +11,8 @@
 //
 //
 
-#if !defined(KRATOS_SLIDING_CABLE_ELEMENT_H_INCLUDED )
-#define  KRATOS_SLIDING_CABLE_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_RING_ELEMENT_3D4N_H_INCLUDED )
+#define  KRATOS_RING_ELEMENT_3D4N_H_INCLUDED
 
 // System includes
 
@@ -35,12 +35,12 @@ namespace Kratos
      * @author Klaus B Sautter
      */
 
-    class SlidingCableElement3D : public Element
+    class RingElement3D4N : public Element
     {
     protected:
 
     public:
-        KRATOS_CLASS_POINTER_DEFINITION(SlidingCableElement3D);
+        KRATOS_CLASS_POINTER_DEFINITION(RingElement3D4N);
 
 
         typedef Element BaseType;
@@ -55,15 +55,15 @@ namespace Kratos
         typedef BaseType::DofsVectorType DofsVectorType;
 
 
-        SlidingCableElement3D() {};
-        SlidingCableElement3D(IndexType NewId,
+        RingElement3D4N() {};
+        RingElement3D4N(IndexType NewId,
                         GeometryType::Pointer pGeometry);
-        SlidingCableElement3D(IndexType NewId,
+        RingElement3D4N(IndexType NewId,
                         GeometryType::Pointer pGeometry,
                         PropertiesType::Pointer pProperties);
 
 
-        ~SlidingCableElement3D() override;
+        ~RingElement3D4N() override;
 
     /**
      * @brief Creates a new element
@@ -132,15 +132,6 @@ namespace Kratos
         inline double LinearStiffness() const
         {
             return (this->GetProperties()[CROSS_AREA] * this->GetProperties()[YOUNG_MODULUS] / this->GetRefLength());
-        };
-
-        double GetPK2PrestressValue() const
-        {
-            double prestress = 0.00;
-            if (this->GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-                prestress = this->GetProperties()[TRUSS_PRESTRESS_PK2];
-            }
-            return prestress;
         };
 
         void CalculateLumpedMassVector(VectorType &rMassVector);

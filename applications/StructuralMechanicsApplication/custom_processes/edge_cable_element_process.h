@@ -65,6 +65,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         {
             "model_part_name"           : "example_part",
             "computing_model_part_name" : "computing_domain",
+            "element_type"              : "cable",
             "node_id_order"             : [1,2,3],
             "element_id"                : 1,
             "property_id"               : 1
@@ -123,9 +124,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
          << "numbers of nodes in submodel part not consistent with numbers of nodes in process properties"
          << std::endl;
 
-        // testing
-        //KRATOS_ERROR_IF_NOT(number_nodes==3) << "only for 3 nodes right now" << std::endl;
-        // testing
 
         // get new element id
         const ModelPart::IndexType new_element_id = mParameters["element_id"].GetInt();
@@ -142,11 +140,22 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) EdgeCableElementProcess
         Properties::Pointer p_elem_prop = master_model_part.pGetProperties(mParameters["property_id"].GetInt());
 
         // create element
-        const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
-        Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
-        master_model_part.AddElement(pElem);
+        if (mParameters["element_type"].GetString() == "cable")
+        {
+            const Element& rElem = KratosComponents<Element>::Get("SlidingCableElement3D3N");
+            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+            master_model_part.AddElement(pElem);
+        }
+        else if (mParameters["element_type"].GetString() == "ring")
+        {
+            const Element& rElem = KratosComponents<Element>::Get("RingElement3D4N");
+            Element::Pointer pElem = rElem.Create(new_element_id, line_t, p_elem_prop);
+            master_model_part.AddElement(pElem);
+        }
+        else KRATOS_ERROR << "element type :" << mParameters["element_type"].GetString() << " not available for sliding process" << std::endl;
 
-        //master_model_part.CreateNewElement("SlidingCableElement3D3N", new_element_id, line_0, p_elem_prop);
+
+
 
         KRATOS_CATCH("");
     }
