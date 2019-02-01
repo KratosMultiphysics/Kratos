@@ -136,7 +136,7 @@ public:
      * Called at the beginning of each solution step
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * This is called for non-linear analysis at the beginning of the iteration process
@@ -154,7 +154,7 @@ public:
      * Called at the end of eahc solution step
      * @param rCurrentProcessInfo the current process info instance
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo) override;
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
@@ -310,6 +310,8 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    bool mFinalizedStep;
+
     double mDeterminantF0;
 
     Matrix mDeformationGradientF0;
@@ -348,6 +350,11 @@ protected:
      */
 
     virtual Vector& MPMShapeFunctionPointValues(Vector& rResult, const array_1d<double,3>& rPoint);
+
+    /**
+     * Calculation of the Current Displacement
+     */
+    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Protected  Access

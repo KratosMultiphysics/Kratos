@@ -590,7 +590,8 @@ public:
         // Initialize zero the variables needed
         array_1d<double,3> mpc_xg = ZeroVector(3);
         array_1d<double,3> MPC_Normal = ZeroVector(3);
-        array_1d<double,3> MPC_Imposed_Displacement = ZeroVector(3);
+        array_1d<double,3> MPC_Displacement = ZeroVector(3);
+        array_1d<double,3> MPC_Velocity = ZeroVector(3);
 
         double MPC_Area = 0.0;
 
@@ -839,6 +840,8 @@ public:
                             p_condition->SetValue(MPC_COORD, mpc_xg);
                             p_condition->SetValue(MPC_AREA, MPC_Area);
                             p_condition->SetValue(MPC_NORMAL, MPC_Normal);
+                            p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
+                            p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
