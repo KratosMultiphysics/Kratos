@@ -16,7 +16,6 @@
 #include "input_output/logger.h"
 #include "input_output/logger_table_output.h"
 #include "includes/data_communicator.h"
-#include "includes/parallel_environment.h"
 
 namespace Kratos {
     namespace Testing {
@@ -28,7 +27,7 @@ namespace Kratos {
             message << "Test message with number " << 12 << 'e' << "00";
 
             KRATOS_CHECK_C_STRING_EQUAL(message.GetLabel().c_str(), "label");
-            if (ParallelEnvironment::GetDefaultDataCommunicator().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
+            if (DataCommunicator::GetDefault().Rank() == 0) KRATOS_CHECK_C_STRING_EQUAL(message.GetMessage().c_str(), "Test message with number 12e00");
             KRATOS_CHECK_EQUAL(message.GetSeverity(), LoggerMessage::Severity::INFO);
             KRATOS_CHECK_EQUAL(message.GetCategory(), LoggerMessage::Category::STATUS);
             KRATOS_CHECK_EQUAL(message.GetLocation().GetFileName(), "Unknown");
@@ -49,7 +48,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerOutput, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
@@ -62,7 +61,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStream, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -80,7 +79,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(CheckPoint, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             std::stringstream buffer;
             LoggerOutput output(buffer);
 
@@ -95,7 +94,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfo, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -107,7 +106,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoIf, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -120,7 +119,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoOnce, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -134,7 +133,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamInfoFirst, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -148,7 +147,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarning, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -160,7 +159,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningIf, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -173,7 +172,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningOnce, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -187,7 +186,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamWarningFirst, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
@@ -201,7 +200,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetail, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -214,7 +213,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailIf, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -228,7 +227,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailOnce, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -243,7 +242,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerStreamDetailFirst, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             p_output->SetSeverity(LoggerMessage::Severity::DETAIL);
@@ -258,7 +257,7 @@ namespace Kratos {
 
         KRATOS_TEST_CASE_IN_SUITE(LoggerTableOutput, KratosCoreFastSuite)
         {
-            if(ParallelEnvironment::GetDefaultDataCommunicator().Rank() != 0) return;
+            if(DataCommunicator::GetDefault().Rank() != 0) return;
             static std::stringstream buffer;
             LoggerOutput::Pointer p_output(new LoggerTableOutput(buffer, {"Time Step    ", "Iteration Number        ", "Convergence        ", "Is converged"}));
             Logger::AddOutput(p_output);
@@ -313,7 +312,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
             int rank = r_comm.Rank();
 
             KRATOS_INFO_ALL_RANKS("TestInfo") << "Test info message";
@@ -329,7 +328,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
             int rank = r_comm.Rank();
             std::stringstream out;
 
@@ -347,7 +346,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
             int rank = r_comm.Rank();
 
             for(std::size_t i = 0; i < 10; i++) {
@@ -365,7 +364,7 @@ namespace Kratos {
             LoggerOutput::Pointer p_output(new LoggerOutput(buffer));
             Logger::AddOutput(p_output);
 
-            const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+            const DataCommunicator& r_comm = DataCommunicator::GetDefault();
             int rank = r_comm.Rank();
 
             for(std::size_t i = 0; i < 10; i++) {

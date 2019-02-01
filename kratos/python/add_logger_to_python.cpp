@@ -16,7 +16,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "includes/data_communicator.h"
-#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
 
 
@@ -31,7 +30,7 @@ const DataCommunicator& getDataCommunicator(pybind11::kwargs kwargs) {
         return *p_data_communicator;
     }
     else {
-        return ParallelEnvironment::GetDefaultDataCommunicator();
+        return DataCommunicator::GetDefault();
     }
 }
 

@@ -32,7 +32,6 @@
 #include "includes/kratos_export_api.h"
 #include "includes/code_location.h"
 #include "includes/data_communicator.h"
-#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -121,7 +120,7 @@ namespace Kratos
 			public:
 
 				MessageSource() {
-					const DataCommunicator& r_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+					const DataCommunicator& r_comm = DataCommunicator::GetDefault();
 					mRank = r_comm.Rank();
 				}
 
