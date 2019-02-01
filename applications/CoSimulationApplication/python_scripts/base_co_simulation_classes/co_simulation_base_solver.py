@@ -130,7 +130,7 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ImportCouplingInterfaceData(data_conf, from_client)
 
-    ## ImportMesh : This function imports the requested surface/volume
+    ## ImportCouplingInterface : This function imports the requested surface/volume
     #               mesh from from_client
     #
     #  @param self            The object pointer.
@@ -138,10 +138,10 @@ class CoSimulationBaseSolver(object):
     #  @param from_client     python obj : The client from which data_name has to be imported.
     #                         Default is None that means, the solver imports the mesh from itself,
     #                         that is the actual solver for which this acts as an alias
-    def ImportMesh(self, mesh_name, from_client=None):
+    def ImportCouplingInterface(self, mesh_name, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportMesh(mesh_name, from_client)
+        self.io.ImportCouplingInterface(mesh_name, from_client)
 
     ## ExportCouplingInterfaceData : This function exports the requested data to
     #               to_client

@@ -86,21 +86,21 @@ class KratosIo(CoSimulationBaseIO):
             pass
 
 
-    ## ImportMesh :  used to import mesh from other solvers
+    ## ImportCouplingInterface :  used to import mesh from other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param mesh_config      python dictionary : configuration of the mesh to be imported.
     #                                             mesh will be imported into this dictionary.
     #  @param from_solver     python object : The solver from which mesh is to be imported.
-    def ImportMesh(self, mesh_config, from_solver):
+    def ImportCouplingInterface(self, mesh_config, from_solver):
         """
         if(from_client not None):
             # exchange mesh from python cosim solver
         else:
             # import mesh from remote solver
         """
-        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportMesh is not implemented in the IO class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportCouplingInterface is not implemented in the IO class!" + tools.bcolors.ENDC)
 
     ## ExportCouplingInterfaceData :  used to export data to other solvers
     #                Follow EXAMPLE implementation below.

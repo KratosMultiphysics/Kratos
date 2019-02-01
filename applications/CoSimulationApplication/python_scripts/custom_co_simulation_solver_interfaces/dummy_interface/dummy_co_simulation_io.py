@@ -32,13 +32,13 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
             pass
 
 
-    ## ImportMesh :  used to import mesh from other clients
+    ## ImportCouplingInterface :  used to import mesh from other clients
     #
     #  @param self            The object pointer.
     #  @param mesh_conig      python dictionary : configuration of the mesh to be imported.
     #                                             mesh will be imported into this dictionary.
     #  @param from_client     python object : The client from which mesh is to be imported.
-    def ImportMesh(self, mesh_conig, from_client=None):
+    def ImportCouplingInterface(self, mesh_conig, from_client=None):
         if(from_client != None):
             # exchange mesh from python cosim solver
             pass

@@ -52,7 +52,7 @@ class KratosDummyCoSimulationSolver(CoSimulationBaseSolver):
 
     def ImportCouplingInterfaceData(self, DataName, FromClient):
         pass
-    def ImportMesh(self, MeshName, FromClient):
+    def ImportCouplingInterface(self, MeshName, FromClient):
         pass
 
     def ExportCouplingInterfaceData(self, DataName, ToClient):
