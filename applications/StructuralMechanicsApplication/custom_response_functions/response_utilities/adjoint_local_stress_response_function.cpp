@@ -17,6 +17,7 @@
 #include "adjoint_local_stress_response_function.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 namespace Kratos
 {
@@ -352,7 +353,13 @@ namespace Kratos
 
         if(element_name == "CrLinearBeamElement3D2N")
         {
+            // delifers particular solution of influence function in local coordinates
             Vector particular_solution = this->CalculateParticularSolutionCrBeam();
+            // transform particular solution into global coordinates
+            CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(p_adjoint_element->pGetPrimalElement());
+            BoundedMatrix<double, 12, 12> transformation_matrix = p_primal_beam_element->CalculateInitialLocalCS();
+            particular_solution = prod(transformation_matrix, particular_solution);
+
             mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
         }
         else

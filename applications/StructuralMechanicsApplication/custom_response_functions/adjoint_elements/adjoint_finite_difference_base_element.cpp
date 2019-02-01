@@ -241,7 +241,6 @@ void AdjointFiniteDifferencingBaseElement::CalculateAdjointFieldOnIntegrationPoi
     Vector initial_state_variables;
     initial_state_variables.resize(num_dofs);
 
-    //MFusseder TODO: transform particular solution into global direction
     Vector particular_solution = ZeroVector(num_dofs);
     if(this->Has(ADJOINT_PARTICULAR_DISPLACEMENT))
         particular_solution = this->GetValue(ADJOINT_PARTICULAR_DISPLACEMENT);
