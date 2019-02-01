@@ -6,6 +6,7 @@
 //   Revision:            $Revision:           0.0 $
 //
 //
+//   (based on the work of Miquel Santasusana)
 
 #if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED)
 #define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED
