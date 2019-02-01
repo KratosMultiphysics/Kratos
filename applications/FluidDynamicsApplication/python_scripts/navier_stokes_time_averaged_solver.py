@@ -187,6 +187,10 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.averaging_time_length = self.initial_averaging_time_length
         self.restart_time = self.initial_averaging_time_length 
         self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
+        self.CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
+        self.CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
+        self.min_dt = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
+        self.max_dt = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
 
         # parameters for dt accleration
         self.start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
@@ -197,7 +201,11 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         # Initializing STEP
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
-        
+
+        # initial ratio
+        self.initial_ratio = self.initial_averaging_time_length/self.min_dt
+        self.restarted = False
+
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
 
 
@@ -245,6 +253,15 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         KratosMultiphysics.VariableUtils().SetScalarVar(KratosMultiphysics.DYNAMIC_VISCOSITY, dyn_viscosity, self.main_model_part.Nodes)
 
 
+    def _compute_initial_ratio(self):
+        if(self.domain_size == 3):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+        elif(self.domain_size == 2):
+            EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)      
+        self.CFL_min_dt = EstimateDeltaTimeUtility.EstimateDt()
+        self.initial_ratio = self.initial_averaging_time_length/self.CFL_min_dt
+
+
     def _compute_increased_delta_time(self, current_time):
         dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
         dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
@@ -272,17 +289,23 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
     def _compute_averaging_time_length(self, current_time, dt):
         if (current_time > self.initial_averaging_time_length): # start restarting after initial averaging time length
             if ( current_time > self.restart_time):
+                if (self.restarted == False):
+                    # Initializing CFL_min_dt
+                    self._compute_initial_ratio()
+                    self.restarted = True
                 # RESTART -> reset averaging time length to the initial averaging time length
-                self.averaging_time_length = self.initial_averaging_time_length
-                self.restart_time += self.restart_time
+                self.averaging_time_length = self.initial_ratio * dt
+                self.restart_time += self.averaging_time_length
                 # At restart, all the previous averaged velocity and pressure should be set to the current one
                 self.main_model_part.CloneSolutionStep()
                 self.main_model_part.CloneSolutionStep()
                 self.main_model_part.CloneSolutionStep()
-                print("############### RESTART at " + str(current_time) + "###############")
+                print("### RESTART at " + str(current_time) + " ###")
+                print("New Restart Time: " + str(self.restart_time))
             else: 
                 self.averaging_time_length += dt
-            print("Averaging time length set to ", self.averaging_time_length)
+            print("Averaging time length set to ", self.averaging_time_length)           
+        print("=================================================================")
 
 
     def _set_averaging_time_length(self, new_averaging_time_length=0.0):
