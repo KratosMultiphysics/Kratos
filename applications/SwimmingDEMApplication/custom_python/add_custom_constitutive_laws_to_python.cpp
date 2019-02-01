@@ -17,6 +17,7 @@
 #include "../custom_constitutive/drag_laws/haider_and_levenspiel_drag_law.h"
 #include "../custom_constitutive/drag_laws/ganser_drag_law.h"
 #include "../custom_constitutive/drag_laws/shah_drag_law.h"
+#include "../custom_constitutive/drag_laws/newton_drag_law.h"
 
 namespace Kratos {
 namespace Python {
@@ -63,6 +64,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<ShahDragLaw, ShahDragLaw::Pointer, BaseDragLawType>(m, "ShahDragLaw")
+        .def(py::init<>())
+        ;
+
+    py::class_<NewtonDragLaw, NewtonDragLaw::Pointer, BaseDragLawType>(m, "NewtonDragLaw")
         .def(py::init<>())
         ;
   }
