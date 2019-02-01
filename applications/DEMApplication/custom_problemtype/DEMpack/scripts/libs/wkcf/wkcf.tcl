@@ -450,7 +450,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEM2D"
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
-		                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+		                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                    GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric2D"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
@@ -481,7 +481,7 @@ proc ::wkcf::WriteProperties {AppId} {
 		                } elseif {$propvalue == "KDEMFabric"} {
 		                    set using_dem_kdem 1
                                     GiD_File fprintf $filechannel "DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME DEM_KDEMFabric"
-                                    GiD_File fprintf $filechannel "FABRIC_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
+                                    GiD_File fprintf $filechannel "ROTATIONAL_MOMENT_COEFFICIENT [::xmlutils::setXml "DEMMaterial//m.$material//p.DEM_Fabric_Coefficient" dv read {} mat]"
 		                } else {
 		                    WarnWin [= "Unknown Continuum Constitutive Law for material $material"]
 		                }

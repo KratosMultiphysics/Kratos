@@ -839,8 +839,7 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective
-     * local point for the given global point
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
@@ -852,14 +851,11 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
         ) override
     {
-        PointLocalCoordinatesImplementation( rResult, rPoint, true );
+        PointLocalCoordinates( rResult, rPoint );
 
-        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) )
-        {
-            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) )
-            {
-                if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) )
-                {
+        if ( (rResult[0] >= (0.0-Tolerance)) && (rResult[0] <= (1.0+Tolerance)) ) {
+            if ( (rResult[1] >= (0.0-Tolerance)) && (rResult[1] <= (1.0+Tolerance)) ) {
+                if ( (rResult[0] + rResult[1]) <= (1.0+Tolerance) ) {
                     return true;
                 }
             }
@@ -869,7 +865,7 @@ public:
     }
 
     /**
-     * Returns the local coordinates of a given arbitrary point
+     * @brief Returns the local coordinates of a given arbitrary point
      * @param rResult The vector containing the local coordinates of the point
      * @param rPoint The point in global coordinates
      * @return The vector containing the local coordinates of the point
@@ -879,7 +875,66 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        return PointLocalCoordinatesImplementation(rResult, rPoint);
+        // Initialize
+        rResult = ZeroVector(3);
+
+        // Tangent vectors
+        const array_1d<double, 3> tangent_xi  = this->GetPoint(1) - this->GetPoint(0);
+        const array_1d<double, 3> tangent_eta = this->GetPoint(2) - this->GetPoint(0);
+
+        // We compute the normal to check the normal distances between the point and the triangles, so we can discard that is on the triangle
+        array_1d<double, 3> normal;
+        MathUtils<double>::UnitCrossProduct(normal, tangent_xi, tangent_eta);
+
+        // The center of the geometry
+        const auto& r_center = this->Center();
+
+        // We compute the distance, if it is not in the pane we
+        CoordinatesArrayType point_projected = rPoint;
+        const array_1d<double,3> vector_points = rPoint - r_center.Coordinates();
+        const double distance = inner_prod(vector_points, normal);
+        if (std::abs(distance) > std::numeric_limits<double>::epsilon()) { // Not in the plane, projecting
+            noalias(point_projected) = rPoint - normal * distance;
+        }
+
+        // Computation of the rotation matrix
+        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3, 3);
+        for (IndexType i = 0; i < 3; ++i) {
+            rotation_matrix(0, i) = tangent_xi[i];
+            rotation_matrix(1, i) = tangent_eta[i];
+        }
+
+        // Destination point rotated
+        CoordinatesArrayType aux_point_to_rotate, destination_point_rotated;
+        noalias(aux_point_to_rotate) = point_projected - r_center.Coordinates();
+        noalias(destination_point_rotated) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
+
+        // Points of the geometry
+        array_1d<CoordinatesArrayType, 3> points_rotated;
+        for (IndexType i = 0; i < 3; ++i) {
+            noalias(aux_point_to_rotate) = this->GetPoint(i).Coordinates() - r_center.Coordinates();
+            noalias(points_rotated[i]) = prod(rotation_matrix, aux_point_to_rotate) + r_center.Coordinates();
+        }
+
+        // Compute the Jacobian matrix and its determinant
+        BoundedMatrix<double, 2, 2> J;
+        J(0,0) = points_rotated[1][0] - points_rotated[0][0];
+        J(0,1) = points_rotated[2][0] - points_rotated[0][0];
+        J(1,0) = points_rotated[1][1] - points_rotated[0][1];
+        J(1,1) = points_rotated[2][1] - points_rotated[0][1];
+        const double det_J = J(0,0)*J(1,1) - J(0,1)*J(1,0);
+
+        // Compute eta and xi
+        const double eta = (J(1,0)*(points_rotated[0][0] - destination_point_rotated[0]) +
+                            J(0,0)*(destination_point_rotated[1] - points_rotated[0][1])) / det_J;
+        const double xi  = (J(1,1)*(destination_point_rotated[0] - points_rotated[0][0]) +
+                            J(0,1)*(points_rotated[0][1] - destination_point_rotated[1])) / det_J;
+
+        rResult(0) = xi;
+        rResult(1) = eta;
+        rResult(2) = 0.0;
+
+        return rResult;
     }
 
     ///@}
@@ -1656,85 +1711,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * Returns the local coordinates of a given arbitrary point
-     * @param rResult The vector containing the local coordinates of the point
-     * @param rPoint The point in global coordinates
-     * @param IsInside The flag that checks if we are computing IsInside (is common for seach to have the nodes outside the geometry)
-     * @return The vector containing the local coordinates of the point
-     */
-    CoordinatesArrayType& PointLocalCoordinatesImplementation(
-        CoordinatesArrayType& rResult,
-        const CoordinatesArrayType& rPoint,
-        const bool IsInside = false
-        ) const
-    {
-        BoundedMatrix<double, 3, 3> X;
-        BoundedMatrix<double, 3, 2> DN;
-        for(unsigned int i=0; i<this->size();i++)
-        {
-            X(0,i ) = this->GetPoint( i ).X();
-            X(1,i ) = this->GetPoint( i ).Y();
-            X(2,i ) = this->GetPoint( i ).Z();
-        }
-
-        static constexpr double MaxNormPointLocalCoordinates = 30.0;
-        static constexpr std::size_t MaxIteratioNumberPointLocalCoordinates = 1000;
-        static constexpr double MaxTolerancePointLocalCoordinates = 1.0e-8;
-
-        BoundedMatrix<double, 2, 2> J = ZeroMatrix( 2, 2 );
-        BoundedMatrix<double, 2, 2> invJ = ZeroMatrix( 2, 2 );
-
-        //starting with xi = 0
-        noalias(rResult) = ZeroVector( 3 );
-        Vector delta_xi = ZeroVector( 2 );
-        array_1d<double,3> current_global_coords;
-
-        //Newton iteration:
-        for ( std::size_t k = 0; k < MaxIteratioNumberPointLocalCoordinates; k++ )
-        {
-            noalias(current_global_coords) = ZeroVector( 3 );
-            this->GlobalCoordinates( current_global_coords, rResult );
-
-            noalias( current_global_coords ) = rPoint - current_global_coords;
-
-            //derivatives of shape functions
-            Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
-            noalias(DN) = prod(X,shape_functions_gradients);
-
-            noalias(J) = prod(trans(DN),DN);
-            Vector res = prod(trans(DN),current_global_coords);
-
-            //deteminant of Jacobian
-            const double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
-
-            //filling matrix
-            invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-            invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-            invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-            invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
-
-            delta_xi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
-            delta_xi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
-
-            rResult[0] += delta_xi[0];
-            rResult[1] += delta_xi[1];
-            rResult[2] = 0.0;
-
-            if ( k>0 && norm_2( delta_xi ) > MaxNormPointLocalCoordinates ) {
-                KRATOS_WARNING_IF("Triangle3D3", IsInside == false) << "detJ =\t" << det_j << " DeltaX =\t" << delta_xi << " stopping calculation. Iteration:\t" << k << std::endl;
-                break;
-            }
-
-            if ( norm_2( delta_xi ) < MaxTolerancePointLocalCoordinates ) {
-                break;
-            }
-        }
-
-        return( rResult );
-    }
 
     /**
      * Calculates the values of all shape function in all integration points.

@@ -49,14 +49,14 @@ namespace Kratos {
         else CalculateContactArea(radius, other_radius, calculation_area);
     }
 
-    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double current_distance, double equiv_young,
+    void DEM_KDEM::CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                              double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2) {
 
         KRATOS_TRY
 
         const double equiv_shear = equiv_young / (2.0 * (1 + equiv_poisson)); // TODO: Is this correct? SLS
-        kn_el = equiv_young * calculation_area / current_distance;
-        kt_el = equiv_shear * calculation_area / current_distance;
+        kn_el = equiv_young * calculation_area / initial_dist;
+        kt_el = equiv_shear * calculation_area / initial_dist;
 
         KRATOS_CATCH("")
     }
@@ -104,7 +104,7 @@ namespace Kratos {
 
         Vector& vector_of_contact_areas = element1->GetValue(NEIGHBOURS_CONTACT_AREAS);
         GetContactArea(my_radius, other_radius, vector_of_contact_areas, i, calculation_area);
-        
+
         double radius_sum = my_radius + other_radius;
         double initial_delta = element1->GetInitialDelta(i);
         double initial_dist = radius_sum - initial_delta;
@@ -340,6 +340,7 @@ namespace Kratos {
                                                     double indentation) {
 
         KRATOS_TRY
+        double rotational_moment_coeff = element->GetProperties()[ROTATIONAL_MOMENT_COEFFICIENT];
         //double LocalRotationalMoment[3]     = {0.0};
         double LocalDeltaRotatedAngle[3]    = {0.0};
         double LocalDeltaAngularVelocity[3] = {0.0};
@@ -390,6 +391,9 @@ namespace Kratos {
         ViscoLocalRotationalMoment[0] = -visc_param[0] * LocalEffDeltaAngularVelocity[0];
         ViscoLocalRotationalMoment[1] = -visc_param[1] * LocalEffDeltaAngularVelocity[1];
         ViscoLocalRotationalMoment[2] = -visc_param[2] * LocalEffDeltaAngularVelocity[2];
+
+        DEM_MULTIPLY_BY_SCALAR_3(ElasticLocalRotationalMoment, rotational_moment_coeff);
+        DEM_MULTIPLY_BY_SCALAR_3(ViscoLocalRotationalMoment, rotational_moment_coeff);
 
         // TODO: Judge if the rotation spring is broken or not
         /*

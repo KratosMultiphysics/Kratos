@@ -10,16 +10,16 @@ class TestPatchTestShells(KratosUnittest.TestCase):
     def test_isotropic_rve(self):
         with open("ProjectParameters.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
-            
+
         boundary_mp_name = "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2"
         averaging_mp_name = "Structure.computing_domain"
-        
+
         model = KratosMultiphysics.Model()
         simulation = RVEAnalysis.RVEAnalysis(model,parameters,boundary_mp_name,averaging_mp_name)
         simulation.Run()
 
         Cestimated = model["Structure.computing_domain"].GetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX)
-        
+
         Canalytic = KratosMultiphysics.Matrix(6,6)
         Canalytic.fill(0.0)
         E = 1e6
@@ -42,8 +42,8 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         Canalytic[4,4] = G
         Canalytic[5,5] = G
 
-        for i in range(0,6):
-            for j in range(0,6):
+        for i in range(0,Cestimated.Size1()):
+            for j in range(0,Cestimated.Size2()):
                 print(i,j,Cestimated[i,j],Canalytic[i,j])
                 self.assertAlmostEqual(abs(Cestimated[i,j] - Canalytic[i,j])/(l+2*G),0.0,5)
 

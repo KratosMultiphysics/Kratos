@@ -22,8 +22,8 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/model_part.h"
 #include "includes/linear_master_slave_constraint.h"
-#include "utilities/binbased_fast_point_locator_conditions.h"
 
 namespace Kratos
 {

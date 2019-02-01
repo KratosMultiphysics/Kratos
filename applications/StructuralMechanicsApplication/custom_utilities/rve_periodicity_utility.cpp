@@ -19,6 +19,7 @@
 
 // Project includes
 #include "rve_periodicity_utility.h"
+#include "utilities/binbased_fast_point_locator_conditions.h"
 
 namespace Kratos
 {
@@ -205,7 +206,7 @@ namespace Kratos
             for (auto &id : master_ids)
                 mrModelPart.pGetNode(id)->Set(MASTER);
 
-            
+
 
             //obtain the slave node
             auto pslave_node = mrModelPart.pGetNode(slave_id);
