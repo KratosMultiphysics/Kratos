@@ -57,12 +57,12 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         self._SetBodyForce()
 
-    def ExecuteBeforeOutputStep(self):
-        self._ComputeVelocityBenchmark()
-
-    def ExecuteAfterOutputStep(self):
+    def ExecuteFinalizeSolutionStep(self):
         if self.compute_error:
             self._ComputeVelocityError()
+
+    def ExecuteBeforeOutputStep(self):
+        self._ComputeVelocityBenchmark()
 
     def ExecuteFinalize(self):
         if self.compute_error:
