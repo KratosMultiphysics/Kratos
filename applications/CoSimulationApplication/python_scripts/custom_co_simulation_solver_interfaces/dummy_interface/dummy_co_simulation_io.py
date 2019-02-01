@@ -15,7 +15,7 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
         self.echo_level = 0
         self.settings = settings
 
-    ## ImportData :  used to import data from other clients
+    ## ImportCouplingInterfaceData :  used to import data from other clients
     #
     #  IMPORTANT :: Import and Export by default will import the mesh and data from the remote solver.
     #
@@ -23,7 +23,7 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
     #  @param data_config     python dictionary : configuration of the data to be imported.
     #                                             data will be imported into this dictionary
     #  @param from_client     python object : The client from which data is to be imported.
-    def ImportData(self, data_config, from_client=None):
+    def ImportCouplingInterfaceData(self, data_config, from_client=None):
         if(from_client != None):
             # exchange data from python cosim solver
             pass

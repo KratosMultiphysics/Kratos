@@ -50,7 +50,7 @@ class KratosDummyCoSimulationSolver(CoSimulationBaseSolver):
         # This function is not needed in this solver
         pass
 
-    def ImportData(self, DataName, FromClient):
+    def ImportCouplingInterfaceData(self, DataName, FromClient):
         pass
     def ImportMesh(self, MeshName, FromClient):
         pass

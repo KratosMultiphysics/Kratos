@@ -36,14 +36,14 @@ class KratosIo(CoSimulationBaseIO):
         super(KratosIo, self).__init__(model, self.settings)
         ### Constructing the IO for this solver
 
-    ## ImportData :  used to import data from other solvers
+    ## ImportCouplingInterfaceData :  used to import data from other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param data_config     python dictionary : configuration of the data to be imported.
     #                                             data will be imported into this dictionary
     #  @param from_solver     python object : The solver from which data is to be imported.
-    def ImportData(self, data_config, from_solver):
+    def ImportCouplingInterfaceData(self, data_config, from_solver):
         if(from_solver):
             # exchange data from python cosim solver
             if(data_config.Has("mapper_settings")):

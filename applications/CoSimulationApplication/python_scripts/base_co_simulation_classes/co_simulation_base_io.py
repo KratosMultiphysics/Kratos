@@ -15,21 +15,21 @@ class CoSimulationBaseIO(object):
         self.settings = settings
         self.model = model
 
-    ## ImportData :  used to import data from other solvers
+    ## ImportCouplingInterfaceData :  used to import data from other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param data_config     python dictionary : configuration of the data to be imported.
     #                                             data will be imported into this dictionary
     #  @param from_solver     python object : The solver from which data is to be imported.
-    def ImportData(self, data_config, from_solver=None):
+    def ImportCouplingInterfaceData(self, data_config, from_solver=None):
         """
         if(from_client not None):
             # exchange data from python cosim solver
         else:
             # import data from remote solver
         """
-        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportData is not implemented in the IO class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ImportCouplingInterfaceData is not implemented in the IO class!" + tools.bcolors.ENDC)
 
     ## ImportMesh :  used to import mesh from other solvers
     #                Follow EXAMPLE implementation below.

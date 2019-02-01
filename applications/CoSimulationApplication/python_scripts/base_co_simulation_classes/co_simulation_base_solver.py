@@ -117,7 +117,7 @@ class CoSimulationBaseSolver(object):
         else:
             raise Exception(tools.bcolors.FAIL+ "Requested data field " + data_name + " does not exist in the solver "+self.name+tools.bcolors.ENDC)
 
-    ## ImportData : This function imports the requested data from
+    ## ImportCouplingInterfaceData : This function imports the requested data from
     #               from_client
     #
     #  @param self            The object pointer.
@@ -125,10 +125,10 @@ class CoSimulationBaseSolver(object):
     #  @param from_client     python obj : The client from which data_name has to be imported
     #                         Default is None that means, the solver imports the mesh from itself,
     #                         that is the actual solver for which this acts as an alias
-    def ImportData(self, data_conf, from_client=None):
+    def ImportCouplingInterfaceData(self, data_conf, from_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ImportData(data_conf, from_client)
+        self.io.ImportCouplingInterfaceData(data_conf, from_client)
 
     ## ImportMesh : This function imports the requested surface/volume
     #               mesh from from_client
