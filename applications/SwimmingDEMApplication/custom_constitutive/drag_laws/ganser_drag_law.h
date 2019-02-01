@@ -1,22 +1,22 @@
 // Author: Guillermo Casas (gcasas@cimne.upc.edu)
 // Date: February 2019
 
-#if !defined(SDEM_SCHILLER_AND_NAUMANN_DRAG_LAW_H_INCLUDED)
-#define SDEM_SCHILLER_AND_NAUMANN_DRAG_LAW_H_INCLUDED
+#if !defined(SDEM_GANSER_DRAG_LAW_H_INCLUDED)
+#define SDEM_GANSER_DRAG_LAW_H_INCLUDED
 
 #include "stokes_drag_law.h"
 
 namespace Kratos {
 
-    class KRATOS_API(SWIMMING_DEM_APPLICATION) SchillerAndNaumannDragLaw : public StokesDragLaw {
+    class KRATOS_API(SWIMMING_DEM_APPLICATION) GanserDragLaw : public StokesDragLaw {
 
     public:
         typedef Node <3> NodeType;
-        KRATOS_CLASS_POINTER_DEFINITION(SchillerAndNaumannDragLaw);
+        KRATOS_CLASS_POINTER_DEFINITION(GanserDragLaw);
 
-        SchillerAndNaumannDragLaw(): StokesDragLaw(){}
+        GanserDragLaw(): StokesDragLaw(){}
 
-        ~SchillerAndNaumannDragLaw(){}
+        ~GanserDragLaw(){}
 
         DragLaw::Pointer Clone() const override;
 
@@ -45,8 +45,8 @@ namespace Kratos {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DragLaw)
         }
 
-    }; //class SchillerAndNaumannDragLaw
+    }; //class GanserDragLaw
 
 } // Namespace Kratos
 
-#endif /* SDEM_SCHILLER_AND_NAUMANN_DRAG_LAW_H_INCLUDED  defined */
+#endif /* SDEM_GANSER_DRAG_LAW_H_INCLUDED  defined */

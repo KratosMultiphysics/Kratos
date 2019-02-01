@@ -1126,7 +1126,7 @@ double SphericSwimmingParticle<TBaseElement>::ComputeDragCoefficient(const Proce
         drag_coeff = 2.0 / Globals::Pi * ComputeStokesDragCoefficient();
     }
 
-    else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen correction
+    else if (mDragForceType == 11){ // Maxey-Riley expression with Faxen's correction
         drag_coeff = ComputeStokesDragCoefficient(); // temporary
     }
 

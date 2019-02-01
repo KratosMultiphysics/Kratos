@@ -5,19 +5,19 @@
 
 namespace Kratos {
 
-    DragLaw::Pointer SchillerAndNaumann::Clone() const {
-        SchillerAndNaumann::Pointer p_clone(new SchillerAndNaumann(*this));
+    DragLaw::Pointer SchillerAndNaumannDragLaw::Clone() const {
+        SchillerAndNaumannDragLaw::Pointer p_clone(new SchillerAndNaumannDragLaw(*this));
         return p_clone;
     }
 
-    void SchillerAndNaumann::Initialize(const ProcessInfo& r_process_info) {}
+    void SchillerAndNaumannDragLaw::Initialize(const ProcessInfo& r_process_info) {}
 
-    std::string SchillerAndNaumann::GetTypeOfLaw() {
-        std::string type_of_law = "SchillerAndNaumann";
+    std::string SchillerAndNaumannDragLaw::GetTypeOfLaw() {
+        std::string type_of_law = "SchillerAndNaumannDragLaw";
         return type_of_law;
     }
 
-    void SchillerAndNaumann::ComputeForce(Geometry<Node<3> >& r_geometry,
+    void SchillerAndNaumannDragLaw::ComputeForce(Geometry<Node<3> >& r_geometry,
                                        const double reynolds_number,
                                        double particle_radius,
                                        double fluid_density,

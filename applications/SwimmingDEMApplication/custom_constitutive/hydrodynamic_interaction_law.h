@@ -32,21 +32,21 @@ public:
 
     virtual ~HydrodynamicInteractionLaw();
 
-    virtual HydrodynamicInteractionLaw::Pointer Clone() const;
+    HydrodynamicInteractionLaw::Pointer Clone() const;
 
-    DragLaw::Pointer CloneDragLaw() const;
+    virtual DragLaw::Pointer CloneDragLaw() const;
 
     double ComputeParticleReynoldsNumber(const double particle_radius,
                                          const double fluid_kinematic_viscosity,
                                          const double modulus_of_slip_velocity);
 
-    void ComputeDragForce(Geometry<Node<3> >& r_geometry,
-                          double particle_radius,
-                          double fluid_density,
-                          double fluid_kinematic_viscosity,
-                          array_1d<double, 3>& slip_velocity,
-                          array_1d<double, 3>& drag_force,
-                          const ProcessInfo& r_current_process_info);
+    virtual void ComputeDragForce(Geometry<Node<3> >& r_geometry,
+                                  double particle_radius,
+                                  double fluid_density,
+                                  double fluid_kinematic_viscosity,
+                                  array_1d<double, 3>& slip_velocity,
+                                  array_1d<double, 3>& drag_force,
+                                  const ProcessInfo& r_current_process_info);
 
 protected:
     DragLaw::Pointer mpDragLaw;
