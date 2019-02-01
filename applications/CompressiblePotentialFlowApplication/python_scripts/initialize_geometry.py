@@ -104,8 +104,8 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
             angle=math.radians(-self.geometry_parameter)
             origin=[0.25+self.initial_point[0],0+self.initial_point[1]] #to be defined from skin model part          
             for node in self.skin_model_part.Nodes:
-                node.X=self.initial_point[0]+2*node.X+1e-5
-                node.Y=2*node.Y+1e-5
+                node.X=self.initial_point[0]+node.X+1e-5
+                node.Y=node.Y+1e-5
             RotateModelPart(origin,angle,self.skin_model_part)
         elif self.skin_model_part_name=='circle':
             for node in self.skin_model_part.Nodes:
@@ -180,6 +180,7 @@ class InitializeGeometryProcess(KratosMultiphysics.Process):
         for element in self.main_model_part.Elements:
             IsPositive=False
             IsNegative=False
+            element.Set(KratosMultiphysics.ACTIVE,True)
             for node in element.GetNodes():
                 distance=node.GetSolutionStepValue(CompressiblePotentialFlow.LEVEL_SET_DISTANCE)
                 if distance>0:
