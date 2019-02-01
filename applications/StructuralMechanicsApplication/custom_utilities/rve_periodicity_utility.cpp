@@ -150,8 +150,7 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>> &rVaria
     auto& rVar_y = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(rVariable.Name() + "_Y");
     auto& rVar_z = KratosComponents<VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>>::Get(rVariable.Name() + "_Z");
 
-    for(auto& data : mAuxPairings)
-    {
+    for(auto& data : mAuxPairings) {
         auto &master_data = data.second;
         auto &master_ids = std::get<0>(master_data);
         auto &master_weights = std::get<1>(master_data);
@@ -161,8 +160,7 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>> &rVaria
         std::vector<double> final_master_weights;
         Vector final_T = T;
 
-        for (IndexType i = 0; i < master_ids.size(); ++i)
-        {
+        for (IndexType i = 0; i < master_ids.size(); ++i) {
             AppendIdsAndWeights(mAuxPairings, master_ids[i], master_weights[i], final_master_ids, final_master_weights, final_T);
         }
 
@@ -173,10 +171,13 @@ void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>> &rVaria
     }
 
     // First assign master and slave all to false
-    for (auto &node : mrModelPart.Nodes())
-    {
-        node.Set(SLAVE, false);
-        node.Set(MASTER, false);
+    auto& r_nodes_array = mrModelPart.Nodes();
+    const auto it_node_begin = r_nodes_array.begin();
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(r_nodes_array.size()); ++i_node) {
+        auto it_node = it_node_begin + i_node;
+        it_node->Set(SLAVE, false);
+        it_node->Set(MASTER, false);
     }
 
     // Compute the max id of the constraint
