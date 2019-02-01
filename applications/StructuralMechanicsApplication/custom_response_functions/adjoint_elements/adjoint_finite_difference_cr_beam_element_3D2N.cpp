@@ -28,6 +28,51 @@ AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
 {
 }
 
+void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    if (rVariable == ADJOINT_CURVATURE || rVariable == ADJOINT_STRAIN)
+    {
+        const double E = this->GetProperties()[YOUNG_MODULUS];
+        const double nu = this->GetProperties()[POISSON_RATIO];
+        const double G = E / (2.0 * (1.0 + nu));
+        const double A = this->GetProperties()[CROSS_AREA];
+        const double J = this->GetProperties()[TORSIONAL_INERTIA];
+        const double Iy = this->GetProperties()[I22];
+        const double Iz = this->GetProperties()[I33];
+
+        if (rVariable == ADJOINT_CURVATURE)
+        {
+            this->CalculateAdjointFieldOnIntegrationPoints(MOMENT, rOutput, rCurrentProcessInfo);
+
+            for (IndexType i = 0; i < rOutput.size(); ++i)
+            {
+                rOutput[i][0] *=  1.0 / (G * J);
+                rOutput[i][1] *= -1.0 / (E * Iy);
+                rOutput[i][2] *= -1.0 / (E * Iz);
+            }
+        }
+        else if (rVariable == ADJOINT_STRAIN)
+        {
+            this->CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
+
+            for (IndexType i = 0; i < rOutput.size(); ++i)
+            {
+                rOutput[i][0] *= 1.0 / (E * A);
+                rOutput[i][1] *= 0.0;
+                rOutput[i][2] *= 0.0;
+            }
+        }
+    }
+    else
+        this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+
+    KRATOS_CATCH("")
+}
+
 int AdjointFiniteDifferenceCrBeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
