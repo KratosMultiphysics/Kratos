@@ -308,12 +308,6 @@ class DEMAnalysisStage(AnalysisStage):
         #self.creator_destructor.SetMaxNodeId(max_Id)
         self.creator_destructor.SetMaxNodeId(self.all_model_parts.MaxNodeId)  #TODO check functionalities
 
-        #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
-        #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
-        self.SetInlet()
-
-        self.SetInitialNodalValues()
-
         self.DEMFEMProcedures = DEM_procedures.DEMFEMProcedures(self.DEM_parameters, self.graphs_path, self.spheres_model_part, self.rigid_face_model_part)
 
         self.DEMEnergyCalculator = DEM_procedures.DEMEnergyCalculator(self.DEM_parameters, self.spheres_model_part, self.cluster_model_part, self.graphs_path, "EnergyPlot.grf")
@@ -331,6 +325,12 @@ class DEMAnalysisStage(AnalysisStage):
         self.report.total_steps_expected = int(self.end_time / self.solver.dt)
 
         super(DEMAnalysisStage, self).Initialize()
+
+        #Constructing a model part for the DEM inlet. It contains the DEM elements to be released during the simulation
+        #Initializing the DEM solver must be done before creating the DEM Inlet, because the Inlet configures itself according to some options of the DEM model part
+        self.SetInlet()
+
+        self.SetInitialNodalValues()
 
         self.KRATOSprint(self.report.BeginReport(timer))
 
@@ -541,6 +541,13 @@ class DEMAnalysisStage(AnalysisStage):
         self.DEMFEMProcedures.FinalizeBallsGraphs(self.spheres_model_part)
         self.DEMEnergyCalculator.FinalizeEnergyPlot()
         self.CleanUpOperations()
+
+    def __SafeDeleteModelParts(self):
+        self.model.DeleteModelPart(self.cluster_model_part.Name)
+        self.model.DeleteModelPart(self.rigid_face_model_part.Name)
+        self.model.DeleteModelPart(self.DEM_inlet_model_part.Name)
+        self.model.DeleteModelPart(self.mapping_model_part.Name)
+        self.model.DeleteModelPart(self.spheres_model_part.Name)
 
     def CleanUpOperations(self):
 

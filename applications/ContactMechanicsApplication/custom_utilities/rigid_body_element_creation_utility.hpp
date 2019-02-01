@@ -58,7 +58,8 @@ public:
     typedef ElementType::GeometryType         GeometryType;
     typedef Point2D<ModelPart::NodeType>       Point2DType;
     typedef Point3D<ModelPart::NodeType>       Point3DType;
-    typedef std::vector<Element*> ElementPointerVectorType;
+
+    typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -248,8 +249,8 @@ public:
         //pRigidBodyElement->Set(ACTIVE,false); //if parametric body in dynamics -> check element build matrices
       }
 
-      ElementPointerVectorType MasterElements;
-      MasterElements.push_back(pRigidBodyElement.get());
+      ElementWeakPtrVectorType MasterElements;
+      MasterElements.push_back(pRigidBodyElement);
 
       for(ModelPart::NodesContainerType::iterator j_node = rModelPart.NodesBegin(); j_node != rModelPart.NodesEnd(); ++j_node)
       {
