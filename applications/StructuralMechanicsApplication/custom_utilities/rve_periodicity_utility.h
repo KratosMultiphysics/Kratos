@@ -62,14 +62,23 @@ class RVEPeriodicityUtility
     /// Pointer definition of RVEPeriodicityUtility
     KRATOS_CLASS_POINTER_DEFINITION(RVEPeriodicityUtility);
 
+    /// Definition of the index type
+    typedef std::size_t IndexType;
+
     /// Definition of the data tuple type
-    typedef std::tuple<std::vector<unsigned int>, std::vector<double>, Vector> DataTupletype;
+    typedef std::tuple<std::vector<IndexType>, std::vector<double>, Vector> DataTupletype;
 
     /// The DoF type definition
     typedef Dof<double> DofType;
 
     /// The DoF pointer vector type definition
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
+
+    /// Definition of the node
+    typedef Node<3> NodeType;
+
+    /// Definition of the component of variable type
+    typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>> VariableComponentType;
 
     ///@}
     ///@name Life Cycle
@@ -158,10 +167,10 @@ class RVEPeriodicityUtility
     ///@{
 
     void AppendIdsAndWeights(
-        std::map<unsigned int, DataTupletype> &rAux,
-        const unsigned int MasterId,
+        std::map<IndexType, DataTupletype> &rAux,
+        const IndexType MasterId,
         const double MasterWeight,
-        std::vector<unsigned int> &rFinalMastersIds,
+        std::vector<IndexType> &rFinalMastersIds,
         std::vector<double> &rFinalMastersWeights,
         Vector &rFinalT
         );
@@ -193,18 +202,19 @@ class RVEPeriodicityUtility
     ///@{
     ModelPart &mrModelPart;
 
-    std::map<unsigned int, DataTupletype> mAuxPairings;
+    std::map<IndexType, DataTupletype> mAuxPairings;
 
     ///@}
     ///@name Private Operators
     ///@{
 
-    void GenerateConstraint(unsigned int& rConstraintId,
-                            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVar,
-                            Node<3>::Pointer pSlaveNode,
-                            const std::vector<unsigned int>& rMasterIds,
-                            const Matrix& rRelationMatrix,
-                            const Vector& rTranslationVector);
+    void GenerateConstraint(
+        IndexType& rConstraintId,
+        const VariableComponentType& rVar,
+        NodeType::Pointer pSlaveNode,
+        const std::vector<IndexType>& rMasterIds,
+        const Matrix& rRelationMatrix,
+        const Vector& rTranslationVector);
 
     ///@}
     ///@name Private Operations
