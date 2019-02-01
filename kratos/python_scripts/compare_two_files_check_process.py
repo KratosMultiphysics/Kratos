@@ -77,7 +77,7 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         Please see the respective files for details on the format of the files
         """
 
-        KratosMultiphysics.DataCommunicator.GetDefault.Barrier()
+        KratosMultiphysics.DataCommunicator.GetDefault().Barrier()
 
         if (self.comparison_type == "deterministic"):
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
