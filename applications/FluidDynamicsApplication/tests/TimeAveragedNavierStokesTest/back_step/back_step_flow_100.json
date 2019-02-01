@@ -1,6 +1,6 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "back_step_flow_100",
+        "problem_name"    : "re100_r_a",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
@@ -62,10 +62,14 @@
             "time_step"           : 0.1
         },
         "time_averaging_acceleration"        :{
-            "considered_time"     : 5.0,
-            "minimum_delta_time"  : 1e-1,
-            "maximum_delta_time"  : 1.0,
-            "end_time"            : 20.0
+            "considered_time"           : 1.0,
+            "minimum_delta_time"        : 0.05,
+            "maximum_delta_time"        : 1.0,
+            "minimum_CFL"               : 1.0,
+            "maximum_CFL"               : 40.0,
+            "start_acceleration_time"   : 1.0,
+            "end_acceleration_time"     : 10,
+            "end_time"                  : 20
         }
     },
     "initial_conditions_process_list"  : [],

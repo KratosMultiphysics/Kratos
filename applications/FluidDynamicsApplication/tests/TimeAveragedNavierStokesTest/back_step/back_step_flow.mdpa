@@ -7,7 +7,7 @@ End Properties
 
 Begin Properties 1
     DENSITY 1000.0
-    DYNAMIC_VISCOSITY 0.001002
+    DYNAMIC_VISCOSITY 0.001
 End Properties
 
 Begin Nodes
