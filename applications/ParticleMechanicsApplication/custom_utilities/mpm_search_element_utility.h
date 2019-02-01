@@ -93,7 +93,7 @@ namespace MPMSearchElementUtility
                             rGeom[j].Set(ACTIVE);
                 }
                 else{
-                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << element_itr->Id()
+                        KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point: " << element_itr->Id()
                             << " is failed. Geometry is cleared." << std::endl;
 
                         element_itr->GetGeometry().clear();
@@ -126,7 +126,7 @@ namespace MPMSearchElementUtility
                                 rGeom[j].Set(ACTIVE);
                     }
                     else{
-                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Particle " << condition_itr->Id()
+                            KRATOS_INFO("MPMSearchElementUtility") << "WARNING: Search Element for Material Point Condition: " << condition_itr->Id()
                                 << " is failed. Geometry is cleared." << std::endl;
 
                             condition_itr->GetGeometry().clear();

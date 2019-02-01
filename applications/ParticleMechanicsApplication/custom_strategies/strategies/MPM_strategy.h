@@ -648,7 +648,8 @@ public:
                         // Get condition variables:
                         // Normal vector (normalized)
                         MPC_Normal = i->GetValue(NORMAL);
-                        MPC_Normal *= 1.0 / std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
+                        const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
+                        if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
 
                         // Get shape_function_values from defined particle_per_condition
                         auto& rGeom = i->GetGeometry(); // current condition's geometry
@@ -869,6 +870,8 @@ public:
                                 p_condition->SetValue(MPC_COORD, mpc_xg);
                                 p_condition->SetValue(MPC_AREA, MPC_Area);
                                 p_condition->SetValue(MPC_NORMAL, MPC_Normal);
+                                p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
+                                p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
 
                                 // Add the MP Condition to the model part
                                 mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
