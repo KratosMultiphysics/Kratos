@@ -291,6 +291,8 @@ void KratosFluidDynamicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("Newtonian3DLaw", mNewtonian3DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTwoFluid2DLaw", mNewtonianTwoFluid2DLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTwoFluid3DLaw", mNewtonianTwoFluid3DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent2DLaw", mNewtonianTemperatureDependent2DLaw);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("NewtonianTemperatureDependent3DLaw", mNewtonianTemperatureDependent3DLaw);
 }
 
 }  // namespace Kratos.

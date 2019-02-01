@@ -40,7 +40,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             # the previous default linear-solver is set
             if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
                 default_lin_solver_settings = KratosMultiphysics.Parameters("""{
-                "solver_type": "SuperLUSolver",
+                "solver_type": "ExternalSolversApplication.SuperLUSolver",
                     "max_iteration": 500,
                     "tolerance": 1e-9,
                     "scaling": false,
@@ -213,9 +213,6 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
-
-class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
 
 class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"

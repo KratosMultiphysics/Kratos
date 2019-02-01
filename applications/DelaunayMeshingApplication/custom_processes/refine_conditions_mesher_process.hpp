@@ -231,7 +231,7 @@ public:
 
       if( pCondition->GetValue(MASTER_ELEMENTS).size() > 0 ){
 
-	Element::ElementType& MasterElement = *pCondition->GetValue(MASTER_ELEMENTS).back();
+	Element::ElementType& MasterElement = pCondition->GetValue(MASTER_ELEMENTS).back();
 
 	std::vector<double> Value;
 

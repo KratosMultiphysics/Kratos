@@ -16,12 +16,11 @@
 
 // Project includes
 #include "includes/checks.h"
-#include "includes/define.h"
 #include "custom_elements/base_solid_element.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "includes/constitutive_law.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -249,6 +248,33 @@ void BaseSolidElement::ResetConstitutiveLaw()
 /***********************************************************************************/
 /***********************************************************************************/
 
+Element::Pointer BaseSolidElement::Clone (
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+    ) const
+{
+    KRATOS_TRY
+
+    KRATOS_WARNING("BaseSolidElement") << " Call BaseSolidElement (base class) Clone " << std::endl;
+
+    BaseSolidElement::Pointer p_new_elem = Kratos::make_shared<BaseSolidElement>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    p_new_elem->SetData(this->GetData());
+    p_new_elem->Set(Flags(*this));
+
+    // Currently selected integration methods
+    p_new_elem->SetIntegrationMethod(mThisIntegrationMethod);
+
+    // The vector containing the constitutive laws
+    p_new_elem->SetConstitutiveLawVector(mConstitutiveLawVector);
+
+    return p_new_elem;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::EquationIdVector(
     EquationIdVectorType& rResult,
     ProcessInfo& rCurrentProcessInfo
@@ -382,23 +408,6 @@ void BaseSolidElement::GetSecondDerivativesVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // Calculation flags
-    const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-
-    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
@@ -454,7 +463,7 @@ void BaseSolidElement::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
-        Matrix damping_matrix = ZeroMatrix(element_size, element_size);
+        Matrix damping_matrix(element_size, element_size);
         this->CalculateDampingMatrixWithLumpedMass(damping_matrix, rCurrentProcessInfo);
 
         // Current residual contribution due to damping
@@ -509,6 +518,22 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 /***********************************************************************************/
 /***********************************************************************************/
 
+void BaseSolidElement::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = false;
+    const bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+
+    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void BaseSolidElement::CalculateMassMatrix(
     MatrixType& rMassMatrix,
     ProcessInfo& rCurrentProcessInfo
@@ -541,7 +566,7 @@ void BaseSolidElement::CalculateMassMatrix(
         for (IndexType i = 0; i < mat_size; ++i)
             rMassMatrix(i, i) = temp_vector[i];
     } else { // CONSISTENT MASS
-        const double density = r_prop[DENSITY];
+        const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
         const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
         Matrix J0(dimension, dimension);
@@ -583,52 +608,13 @@ void BaseSolidElement::CalculateDampingMatrix(
     ProcessInfo& rCurrentProcessInfo
     )
 {
-    KRATOS_TRY;
+    const unsigned int mat_size = GetGeometry().PointsNumber() * GetGeometry().WorkingSpaceDimension();
 
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // Resizing as needed the LHS
-    unsigned int mat_size = number_of_nodes * dimension;
-
-    if ( rDampingMatrix.size1() != mat_size || rDampingMatrix.size2() != mat_size )
-        rDampingMatrix.resize( mat_size, mat_size, false );
-
-    noalias( rDampingMatrix ) = ZeroMatrix( mat_size, mat_size );
-
-    // 1.-Calculate StiffnessMatrix:
-
-    MatrixType StiffnessMatrix( mat_size, mat_size );
-    VectorType ResidualVector( mat_size );
-
-    this->CalculateAll(StiffnessMatrix, ResidualVector, rCurrentProcessInfo, true, false);
-
-    // 2.-Calculate MassMatrix:
-
-    MatrixType MassMatrix( mat_size, mat_size );
-
-    this->CalculateMassMatrix ( MassMatrix, rCurrentProcessInfo );
-
-    // 3.-Get Damping Coeffitients (RAYLEIGH_ALPHA, RAYLEIGH_BETA)
-    double alpha = 0.0;
-    if( GetProperties().Has(RAYLEIGH_ALPHA) )
-        alpha = GetProperties()[RAYLEIGH_ALPHA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_ALPHA) )
-        alpha = rCurrentProcessInfo[RAYLEIGH_ALPHA];
-
-    double beta  = 0.0;
-    if( GetProperties().Has(RAYLEIGH_BETA) )
-        beta = GetProperties()[RAYLEIGH_BETA];
-    else if( rCurrentProcessInfo.Has(RAYLEIGH_BETA) )
-        beta = rCurrentProcessInfo[RAYLEIGH_BETA];
-
-    // 4.-Compose the Damping Matrix:
-
-    // Rayleigh Damping Matrix: alpha*M + beta*K
-    noalias( rDampingMatrix ) += alpha * MassMatrix;
-    noalias( rDampingMatrix ) += beta  * StiffnessMatrix;
-
-    KRATOS_CATCH( "" )
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        mat_size);
 }
 
 /***********************************************************************************/
@@ -1513,7 +1499,7 @@ void BaseSolidElement::CalculateShapeGradientOfMassMatrix(MatrixType& rMassMatri
     KRATOS_ERROR_IF_NOT(r_prop.Has(DENSITY)) << "DENSITY has to be provided for the calculation of the MassMatrix!" << std::endl;
 
     // Getting density
-    const double density = r_prop[DENSITY];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     const IntegrationMethod integration_method =
@@ -1673,25 +1659,29 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector BaseSolidElement::GetBodyForce(
+array_1d<double, 3> BaseSolidElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
     ) const
 {
-    Vector body_force = ZeroVector(3);
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i)
+        body_force[i] = 0.0;
 
+    const auto& r_properties = GetProperties();
     double density = 0.0;
-    if (GetProperties().Has( DENSITY ) == true)
-        density = GetProperties()[DENSITY];
+    if (r_properties.Has( DENSITY ))
+        density = r_properties[DENSITY];
 
-    if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-        body_force += density * GetProperties()[VOLUME_ACCELERATION];
+    if (r_properties.Has( VOLUME_ACCELERATION ))
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
 
-    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+    const auto& r_geometry = this->GetGeometry();
+    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
         Vector N;
-        N = GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
-            noalias(body_force) += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        N = r_geometry.ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
+            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
     return body_force;
@@ -1741,7 +1731,7 @@ void BaseSolidElement::CalculateAndAddResidualVector(
     VectorType& rRightHandSideVector,
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rCurrentProcessInfo,
-    const Vector& rBodyForce,
+    const array_1d<double, 3>& rBodyForce,
     const Vector& rStressVector,
     const double IntegrationWeight
     ) const
@@ -1763,7 +1753,7 @@ void BaseSolidElement::CalculateAndAddResidualVector(
 void BaseSolidElement::CalculateAndAddExtForceContribution(
     const Vector& rN,
     const ProcessInfo& rCurrentProcessInfo,
-    const Vector& rBodyForce,
+    const array_1d<double, 3>& rBodyForce,
     VectorType& rRightHandSideVector,
     const double Weight
     ) const
@@ -1800,7 +1790,7 @@ void BaseSolidElement::CalculateLumpedMassVector(VectorType& rMassVector) const
     if (rMassVector.size() != mat_size)
         rMassVector.resize( mat_size, false );
 
-    const double density = r_prop[DENSITY];
+    const double density = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
     const double thickness = (dimension == 2 && r_prop.Has(THICKNESS)) ? r_prop[THICKNESS] : 1.0;
 
     // LUMPED MASS MATRIX
@@ -1859,13 +1849,10 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
-        MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
         VectorType temp_vector(mat_size);
         CalculateLumpedMassVector(temp_vector);
         for (IndexType i = 0; i < mat_size; ++i)
-            mass_matrix(i, i) = temp_vector[i];
-
-        noalias( rDampingMatrix ) += alpha * mass_matrix;
+            rDampingMatrix(i, i) += alpha * temp_vector[i];
     }
 
     // 3.-Calculate StiffnessMatrix:

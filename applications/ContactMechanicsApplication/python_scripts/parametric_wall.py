@@ -24,12 +24,11 @@ class ParametricWall(object):
         {
             "python_module": "parametric_wall",
             "model_part_name" : "WallDomain",
-            "rigid_body_settings":{
-               "rigid_body_element_type": "TranslatoryRigidElement3D1N",
-               "fixed_body": true,
-               "compute_body_parameters": false,
-               "rigid_body_model_part_name": "RigidBodyDomain",
-               "rigid_body_parameters":{
+            "body_settings":{
+               "element_type": "TranslatoryRigidElement3D1N",
+               "constrained": true,
+               "compute_parameters": false,
+               "body_parameters":{
                    "center_of_gravity": [0.0 ,0.0, 0.0],
                    "mass":0.0,
                    "main_inertias": [0.0, 0.0, 0.0],
@@ -106,7 +105,7 @@ class ParametricWall(object):
 
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
             creation_utility = KratosContact.RigidBodyCreationUtility()
-            creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+            creation_utility.CreateRigidBody(self.wall_model_part, self.wall_bounding_box, self.settings["body_settings"])
 
             # create a contact model part
             self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
@@ -118,11 +117,11 @@ class ParametricWall(object):
         else:
 
             # next must be tested:
-            self.rigid_body_model_part_name = self.settings["rigid_body_settings"]["rigid_body_model_part_name"].GetString()
-            self.rigid_body_model_part = self.main_model_part.GetSubModelPart(self.rigid_body_model_part_name)
+            self.body_model_part_name = self.settings["model_part_name"].GetString()
+            self.body_model_part = self.main_model_part.GetSubModelPart(self.body_model_part_name)
 
             #RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes()-1)
-            for node in self.rigid_body_model_part.GetNodes():
+            for node in self.body_model_part.GetNodes():
                 RigidBodyCenter = node
                 break
 

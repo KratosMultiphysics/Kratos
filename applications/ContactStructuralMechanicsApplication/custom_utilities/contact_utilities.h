@@ -280,9 +280,13 @@ public:
 
     /**
      * @brief It checks the activity of the current contact simulation
-     * @param rModelPart The modelpart to update
+     * @param rModelPart The modelpart to check the activity
+     * @param ThrowError If an error is thrown
      */
-    static inline void CheckActivity(ModelPart& rModelPart)
+    static inline bool CheckActivity(
+        ModelPart& rModelPart,
+        const bool ThrowError = true
+        )
     {
         // Iterate over the nodes
         NodesArrayType& r_nodes_array = rModelPart.Nodes();
@@ -302,7 +306,11 @@ public:
             }
         }
 
-        KRATOS_ERROR_IF(aux_check == 0) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+        const bool is_active = aux_check == 0 ?  false : true;
+
+        KRATOS_ERROR_IF(ThrowError && !is_active) << "CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
+
+        return is_active;
     }
 
     /**
