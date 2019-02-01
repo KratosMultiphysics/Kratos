@@ -40,9 +40,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType ElementsContainerType;
   typedef  ModelPart::ConditionsContainerType ConditionsContainerType;
 
-  typedef  std::vector<Node<3>*> NodePointerVectorType;
-  typedef  std::vector<Element*> ElementPointerVectorType;
-
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -270,7 +269,7 @@ namespace Kratos
 	    boost::numeric::ublas::matrix<unsigned int> lpofa; //connectivities of points defining faces
 	    boost::numeric::ublas::vector<unsigned int> lnofa; //number of points defining faces
 
-	    ElementPointerVectorType& rE = ie->GetValue(NEIGHBOR_ELEMENTS);
+	    ElementWeakPtrVectorType& rE = ie->GetValue(NEIGHBOUR_ELEMENTS);
 
 	    //get matrix nodes in faces
 	    rElementGeometry.NodesInFaces(lpofa);
@@ -278,12 +277,12 @@ namespace Kratos
 
 	    //loop on neighbour elements of an element
 	    unsigned int iface=0;
-	    for(ElementPointerVectorType::iterator ne = rE.begin(); ne!=rE.end(); ne++)
+	    for(ElementWeakPtrVectorType::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 	      {
 
 		unsigned int NumberNodesInFace = lnofa[iface];
 
-		if ((*ne)->Id() == ie->Id())
+		if ((ne)->Id() == ie->Id())
 		  {
 
 		    //if no neighbour is present => the face is free surface

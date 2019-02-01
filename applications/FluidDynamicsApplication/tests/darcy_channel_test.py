@@ -229,7 +229,7 @@ class DarcyChannelTest(UnitTest.TestCase):
 
         self.fluid_solver.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulentNoReaction(self.domain_size)
 
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
                 "solver_type" : "AMGCL"
             }'''))

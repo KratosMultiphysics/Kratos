@@ -219,6 +219,16 @@ bool ModelPartHasPropertiesById2(const ModelPart& rModelPart, const unsigned int
     return rModelPart.HasProperties(PropertiesId, 0);
 }
 
+bool ModelPartRecursivelyHasPropertiesById1(const ModelPart& rModelPart, const unsigned int PropertiesId, const unsigned int MeshId)
+{
+    return rModelPart.RecursivelyHasProperties(PropertiesId, MeshId);
+}
+
+bool ModelPartRecursivelyHasPropertiesById2(const ModelPart& rModelPart, const unsigned int PropertiesId)
+{
+    return rModelPart.RecursivelyHasProperties(PropertiesId, 0);
+}
+
 Properties::Pointer ModelPartCreateNewPropertiesById1(ModelPart& rModelPart, unsigned int PropertiesId, unsigned int MeshId)
 {
     return rModelPart.CreateNewProperties(PropertiesId, MeshId);
@@ -834,6 +844,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetTable", &ModelPart::pGetTable)
         .def("HasProperties", ModelPartHasPropertiesById1)
         .def("HasProperties", ModelPartHasPropertiesById2)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById1)
+        .def("RecursivelyHasProperties", ModelPartRecursivelyHasPropertiesById2)
         .def("CreateNewProperties", ModelPartCreateNewPropertiesById1)
         .def("CreateNewProperties", ModelPartCreateNewPropertiesById2)
         .def("GetProperties", ModelPartGetPropertiesById1)

@@ -168,6 +168,7 @@ void  AddLoggerToPython(pybind11::module& m) {
     logger_scope.def_static("PrintWarningOnAllRanks", printWarningOnAllRanks);
     logger_scope.def_static("Flush", Logger::Flush);
     logger_scope.def_static("GetDefaultOutput", &Logger::GetDefaultOutputInstance, py::return_value_policy::reference); //_internal )
+    logger_scope.def_static("AddOutput", &Logger::AddOutput);
     ;
 
     // Enums for Severity

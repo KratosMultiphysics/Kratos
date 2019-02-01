@@ -70,7 +70,7 @@ namespace Kratos
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
-      NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
+      //NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
       return Kratos::make_shared<EPAxisymPointRigidContactPenalty2DCondition>(NewCondition);
    }
@@ -125,13 +125,13 @@ namespace Kratos
 
       if( rCurrentRadius == 0 ){
 
-         NodePointerVectorType& rN = GetGeometry()[0].GetValue(NEIGHBOR_NODES);
+         NodeWeakPtrVectorType& nNodes = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
 
          double counter = 0;
 
-         for(unsigned int i = 0; i < rN.size(); i++)
+         for(auto& i_nnode : nNodes)
          {
-            array_1d<double, 3 > & NodePosition = rN[i]->Coordinates();
+            array_1d<double,3> & NodePosition = i_nnode.Coordinates();
             if( NodePosition[0] != 0 ){
                rCurrentRadius += NodePosition[0] * 0.225;
                counter ++;
