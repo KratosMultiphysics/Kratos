@@ -789,7 +789,7 @@ public:
      *
      * @return a vector of dihedral angles of the geometry..
      */
-    virtual inline void ComputeDihedralAngles(Vector& dihedral_angles )  const
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles )  const
     {
         KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
     }
@@ -799,7 +799,7 @@ public:
      *
      * @return a vector of dihedral angles of the geometry..
      */
-    virtual inline void ComputeSolidAngles(Vector& solid_angles )  const
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles )  const
     {
         KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
     }
