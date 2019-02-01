@@ -10,7 +10,6 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-
 sys.stdout.flush()
 
 class Solution(object):
