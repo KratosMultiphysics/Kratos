@@ -39,8 +39,7 @@
                     "input_type"       : "use_input_model_part"
                 },
                 "gradient_mode"          : "finite_differencing",
-                "step_size"              : 1e-6,
-                "consider_discretization": false
+                "step_size"              : 1e-6
             },
             "project_gradient_on_surface_normals" : true
         }],

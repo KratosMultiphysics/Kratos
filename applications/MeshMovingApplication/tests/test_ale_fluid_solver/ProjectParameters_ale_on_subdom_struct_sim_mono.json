@@ -1,0 +1,161 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "test_ale_fluid_solver_on_subdom_struct_sim_mono",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.5
+    },
+    "output_processes" : { },
+    "solver_settings" : {
+        "solver_type" : "ale_fluid",
+        "ale_boundary_parts" : ["circ_inner", "rect_inner"],
+        "mesh_motion_parts"           : ["circ_mesh", "rect_mesh"],
+        "mesh_motion_solver_settings" : {
+            "solver_type" : "structural_similarity"
+        },
+        "fluid_solver_settings"  : {
+            "model_part_name"             : "FluidModelPart",
+            "domain_size"                 : 2,
+            "solver_type"                 : "Monolithic",
+            "model_import_settings"       : {
+                "input_type"     : "mdpa",
+                "input_filename" : "ale_subdomains",
+                "reorder_consecutive" : true,
+                "partition_in_memory" : true
+            },
+            "echo_level"                  : 0,
+            "compute_reactions"           : false,
+            "volume_model_part_name"      : "domain",
+            "skin_parts"                  : ["inlet","outlet","circ_inner","rect_inner","bottom","top"],
+            "no_skin_parts"               : [],
+            "time_stepping"               : {
+                "automatic_time_step" : false,
+                "time_step"           : 0.01
+            }
+        }
+    },
+    "processes"        : {
+        "initial_conditions_process_list"  : [],
+        "boundary_conditions_process_list" : [{
+            "python_module" : "apply_inlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.inlet",
+                "variable_name"   : "VELOCITY",
+                "modulus"         : 3.0,
+                "direction"       : "automatic_inwards_normal",
+                "interval"        : [0.0,"End"]
+            }
+        },{
+            "python_module" : "apply_outlet_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name"    : "FluidModelPart.outlet",
+                "variable_name"      : "PRESSURE",
+                "constrained"        : true,
+                "value"              : 0.0,
+                "hydrostatic_outlet" : false,
+                "h_top"              : 0.0
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.circ_inner"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.rect_inner"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.bottom"
+            }
+        },{
+            "python_module" : "apply_noslip_process",
+            "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+            "Parameters"    : {
+                "model_part_name" : "FluidModelPart.top"
+            }
+        }],
+        "ale_bc_process_list"            : [{
+            "python_module"       : "assign_vector_variable_process",
+            "kratos_module"       : "KratosMultiphysics",
+            "process_name"        : "AssignVectorVariableProcess",
+            "Parameters"          : {
+                "model_part_name" : "FluidModelPart.circ_inner",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "value"           : ["0.1*cos(0.5*t)", "0.2*sin(0.5*t)", 0.0]
+            }
+        },{
+            "python_module"       : "assign_vector_variable_process",
+            "kratos_module"       : "KratosMultiphysics",
+            "process_name"        : "AssignVectorVariableProcess",
+            "Parameters"          : {
+                "model_part_name" : "FluidModelPart.rect_inner",
+                "variable_name"   : "MESH_DISPLACEMENT",
+                "value"           : ["0.3*sin(0.5*t)", "0.1*cos(0.5*t)", 0.0]
+            }
+        },{
+            "python_module"       : "fix_vector_variable_process",
+            "kratos_module"       : "KratosMultiphysics",
+            "process_name"        : "FixScalarVariableProcess",
+            "Parameters"          : {
+                "model_part_name" : "FluidModelPart.rect_outter",
+                "variable_name"   : "MESH_DISPLACEMENT"
+            }
+        },{
+            "python_module"       : "fix_vector_variable_process",
+            "kratos_module"       : "KratosMultiphysics",
+            "process_name"        : "FixScalarVariableProcess",
+            "Parameters"          : {
+                "model_part_name" : "FluidModelPart.circ_outter",
+                "variable_name"   : "MESH_DISPLACEMENT"
+            }
+        }],
+        "check_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["MESH_DISPLACEMENT_X",
+                                     "MESH_DISPLACEMENT_Y",
+                                     "MESH_VELOCITY_X",
+                                     "MESH_VELOCITY_Y",
+                                     "VELOCITY_X",
+                                     "VELOCITY_Y",
+                                     "PRESSURE"],
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results.json",
+                "model_part_name"  : "FluidModelPart.domain",
+                "time_frequency"   : 0.2
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results_reac_rect.json",
+                "model_part_name"  : "FluidModelPart.rect_inner",
+                "time_frequency"   : 0.05
+            }
+        },{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "Parameters"            : {
+                "check_variables" : ["REACTION_X",
+                                     "REACTION_Y"],
+                "input_file_name" : "ale_on_subdom_struct_sim_mono_results_react_circ.json",
+                "model_part_name"  : "FluidModelPart.circ_inner",
+                "time_frequency"   : 0.05
+            }
+        }]
+    }
+}
