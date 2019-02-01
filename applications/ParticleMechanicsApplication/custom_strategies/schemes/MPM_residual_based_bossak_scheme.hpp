@@ -271,7 +271,6 @@ public:
             const array_1d<double, 3 > & previous_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
 
             array_1d<double, 3 > & current_displacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
             {

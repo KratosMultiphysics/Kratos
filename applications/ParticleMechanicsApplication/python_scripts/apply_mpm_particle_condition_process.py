@@ -14,8 +14,6 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
         default_parameters = KratosMultiphysics.Parameters( """
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
-                "mesh_id": 0,
-                "avoid_recomputing_normals": true,
                 "particles_per_condition" : 0,
                 "boundary_type" : ""
             }  """ )
@@ -23,7 +21,6 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
         settings.ValidateAndAssignDefaults(default_parameters)
 
         self.model_part = Model[settings["model_part_name"].GetString()]
-        self.avoid_recomputing_normals = settings["avoid_recomputing_normals"].GetBool()
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.boundary_type = settings["boundary_type"].GetString()
 
@@ -53,8 +50,3 @@ class ApplyMPMParticleConditionProcess(KratosMultiphysics.Process):
             err_msg = '\n::[ApplyMPMParticleConditionProcess]:: W-A-R-N-I-N-G: You have specified invalid "particles_per_condition", '
             err_msg += 'or assigned negative values. \nPlease assign: "particles_per_condition" > 0 or = 0 (for automatic value)!\n'
             raise Exception(err_msg)
-
-    def ExecuteInitializeSolutionStep(self):
-        # Recompute the normals if needed
-        if self.avoid_recomputing_normals == False:
-            KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
