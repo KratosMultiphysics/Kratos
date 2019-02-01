@@ -96,6 +96,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             stress_and_strain.append( self._ComputeEquivalentStress(0,2,perturbation, boundary_mp, averaging_mp) )
 
         C = self._ComputeEquivalentElasticTensor(stress_and_strain, perturbation)
+        averaging_mp.SetValue(KratosMultiphysics.StructuralMechanicsApplication.EIGENVECTOR_MATRIX, C)
         self._MatrixOutput(C)
 
 
