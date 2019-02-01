@@ -9,7 +9,7 @@
     "solver_settings"  : {
         "solver_type"                        : "Static",
         "model_part_name"                    : "Structure",
-        "block_builder"                      : false,
+        "block_builder"                      : true,
         "multi_point_constraints_used"       : true,
         "domain_size"                        : 3,
         "echo_level"                         : 1,
