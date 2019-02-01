@@ -155,17 +155,17 @@ class CoSimulationBaseSolver(object):
             raise Exception('IO for "' + solver_name + '" is not initialized!')
         self.io.ExportCouplingInterfaceData(data_name, to_client)
 
-    ## ExportMesh : This function exports the requested surface/volume
+    ## ExportCouplingInterface : This function exports the requested surface/volume
     #               to to_client
     #
     #  @param self            The object pointer.
     #  @param to_client       The client to which the Mesh is to be exported
     #                         Default is None that means, the solver imports the mesh from itself,
     #                         that is the actual solver for which this acts as an alias
-    def ExportMesh(self, mesh_name, to_client=None):
+    def ExportCouplingInterface(self, mesh_name, to_client=None):
         if not self.io_is_initialized:
             raise Exception('IO for "' + solver_name + '" is not initialized!')
-        self.io.ExportMesh(mesh_name, to_client)
+        self.io.ExportCouplingInterface(mesh_name, to_client)
 
     ## GetDataDefinition : Function to get the data configuration belonging
     #                      requested data field

@@ -60,13 +60,13 @@ class DummyCoSimulationIO(CoSimulationBaseIO):
             # export the given data to the remote solver
             pass
 
-    ## ExportMesh :  used to export mesh to other clients
+    ## ExportCouplingInterface :  used to export mesh to other clients
     #
     #  @param self            The object pointer.
     #  @param mesh_conig      python dictionary : configuration of the mesh to be exported.
     #                                             also contains the mesh data to export.
     #  @param to_client       python object : The client to which mesh is to be exported.
-    def ExportMesh(self, mesh_conig, to_client=None):
+    def ExportCouplingInterface(self, mesh_conig, to_client=None):
         if(to_client != None): # IMPORTANT : exchanging mesh between python cosim solvers should be avoided here.
             # put mesh on to python cosim solver.
             pass

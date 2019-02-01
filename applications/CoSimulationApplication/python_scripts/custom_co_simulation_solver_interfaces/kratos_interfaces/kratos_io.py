@@ -150,21 +150,21 @@ class KratosIo(CoSimulationBaseIO):
             # import data from remote solver
             pass
 
-    ## ExportMesh :  used to export mesh to other solvers
+    ## ExportCouplingInterface :  used to export mesh to other solvers
     #                Follow EXAMPLE implementation below.
     #
     #  @param self            The object pointer.
     #  @param mesh_conig      python dictionary : configuration of the mesh to be exported.
     #                                             also contains the mesh data to export.
     #  @param to_solver       python object : The solver to which mesh is to be exported.
-    def ExportMesh(self, mesh_conig, to_solver):
+    def ExportCouplingInterface(self, mesh_conig, to_solver):
         """
         if(to_client not None): # IMPORTANT : exchanging mesh between python cosim solvers should be avoided here.
             # put mesh on to python cosim solver.
         else:
             # export the given mesh to the remote solver
         """
-        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ExportMesh is not implemented in the IO class!" + tools.bcolors.ENDC)
+        raise NotImplementedError(tools.bcolors.FAIL + "From BaseIO : The method ExportCouplingInterface is not implemented in the IO class!" + tools.bcolors.ENDC)
 
 
     def HasMapper(self, mapper_tuple):
