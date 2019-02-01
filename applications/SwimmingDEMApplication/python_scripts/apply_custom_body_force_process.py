@@ -1,8 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# other imports
-from multiple_points_output_process import MultiplePointsOutputProcess
 
 def Factory(settings, Model):
     if(type(settings) != KratosMultiphysics.Parameters):
@@ -40,11 +38,13 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
 
         self.print_output = settings["print_point_output"].GetBool()
         if self.print_output:
-            self.output_process = MultiplePointsOutputProcess(model, settings["output_parameters"])
+            from custom_body_force.hdf5_output_tool import Hdf5OutputTool
+            self.output_process = Hdf5OutputTool(model, settings)
 
     def ExecuteInitialize(self):
         if self.print_output:
-            self.output_process.ExecuteInitialize()
+            self.output_process.WriteDiscretizationAttributes()
+            self.output_process.WriteBodyForceAttributes()
 
     def ExecuteBeforeSolutionLoop(self):
         current_time = 0.0
@@ -64,16 +64,11 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         if self.compute_error:
             self._ComputeVelocityError()
 
-        if self.print_output:
-            self._CopyVelocityAsNonHistorical()
-            self.output_process.ExecuteFinalizeSolutionStep()
-
     def ExecuteFinalize(self):
         if self.compute_error:
-            self._SumNodalError()
-
-        if self.print_output:
-            self.output_process.ExecuteFinalize
+            err = self._SumNodalError()
+            if self.print_output:
+                self.output_process.WriteAverageRelativeError(err)
 
     def _SetBodyForce(self):
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -108,4 +103,6 @@ class ApplyCustomBodyForceProcess(KratosMultiphysics.Process):
         err_sum = 0.0
         for node in self.model_part.Nodes:
             err_sum = err_sum + node.GetValue(KratosMultiphysics.NODAL_ERROR)
-        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The nodal error average is : ", err_sum / self.model_part.Nodes.__len__())
+        rel_err = err_sum / self.model_part.Nodes.__len__()
+        KratosMultiphysics.Logger.PrintInfo("Benchmark", "The nodal error average is : ", rel_err)
+        return rel_err
