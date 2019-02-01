@@ -3,7 +3,7 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication
 import math
-from structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 """
 For user-scripting it is intended that a new class is derived
