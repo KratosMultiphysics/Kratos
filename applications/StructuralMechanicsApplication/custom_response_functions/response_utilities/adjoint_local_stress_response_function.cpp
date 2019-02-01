@@ -15,6 +15,8 @@
 
 // Project includes
 #include "adjoint_local_stress_response_function.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
+#include "utilities/compare_elements_and_conditions_utility.h"
 
 namespace Kratos
 {
@@ -37,9 +39,22 @@ namespace Kratos
             mIdOfLocation = ResponseSettings["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
+
+        if(ResponseSettings.Has("consider_particular_solution"))
+            mAddParticularSolution = ResponseSettings["consider_particular_solution"].GetBool();
     }
 
     AdjointLocalStressResponseFunction::~AdjointLocalStressResponseFunction(){}
+
+    void AdjointLocalStressResponseFunction::FinalizeSolutionStep()
+    {
+        KRATOS_TRY
+
+        if(mAddParticularSolution)
+            this->CalculateParticularSolution();
+
+        KRATOS_CATCH("");
+    }
 
     void AdjointLocalStressResponseFunction::CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
@@ -325,6 +340,136 @@ namespace Kratos
             rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (mIdOfLocation-1));
 
         KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateParticularSolution()
+    {
+        KRATOS_TRY;
+
+        AdjointFiniteDifferencingBaseElement::Pointer p_adjoint_element = dynamic_pointer_cast<AdjointFiniteDifferencingBaseElement>(mpTracedElement);
+        std::string element_name;
+        CompareElementsAndConditionsUtility::GetRegisteredName(*(p_adjoint_element->pGetPrimalElement()), element_name);
+
+        if(element_name == "CrLinearBeamElement3D2N")
+        {
+            Vector particular_solution = this->CalculateParticularSolutionCrBeam();
+            mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
+        }
+        else
+            KRATOS_WARNING("CalculateParticularSolution, Warning") << "Not available for " << element_name << "!" << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    Vector AdjointLocalStressResponseFunction::CalculateParticularSolutionCrBeam()
+    {
+        KRATOS_TRY;
+
+        DofsVectorType dofs_of_element;
+        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        Vector particular_solution = ZeroVector(dofs_of_element.size());
+
+        std::string dof_label = "DEFAULT";
+        this->FindCorrespondingDofLabel(dof_label);
+
+        if(mStressTreatment == StressTreatment::Mean)
+        {
+            const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+            const double prefactor = 1.0 / (1.0 + num_GP);
+
+            const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+            const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+            for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it)
+            {
+                for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+                {
+                    if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+                    {
+                        if (dofs_of_element[i]->Id() == id_node_1)
+                            particular_solution[i] += prefactor * (num_GP - gp_it);
+                        else if (dofs_of_element[i]->Id() == id_node_2)
+                            particular_solution[i] += -prefactor * (gp_it + 1);
+                    }
+                }
+            }
+            particular_solution /= num_GP;
+        }
+        else if(mStressTreatment == StressTreatment::GaussPoint)
+        {
+            const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+            const double prefactor = 1.0 / (1.0 + num_GP);
+
+            const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+            const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+            {
+                if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+                {
+                    if (dofs_of_element[i]->Id() == id_node_1)
+                        particular_solution[i] = prefactor * (num_GP + 1 - mIdOfLocation);
+                    else if (dofs_of_element[i]->Id() == id_node_2)
+                        particular_solution[i] = -prefactor * mIdOfLocation;
+                }
+            }
+        }
+        else if(mStressTreatment == StressTreatment::Node)
+        {
+            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+            {
+                if (dofs_of_element[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
+                    dofs_of_element[i]->GetVariable().Name() == dof_label)
+                {
+                    if (mIdOfLocation == 1)
+                        particular_solution[i] = 1.0;
+                    else if (mIdOfLocation == 2)
+                        particular_solution[i] = -1.0;
+                }
+            }
+        }
+        return particular_solution;
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::FindCorrespondingDofLabel(std::string& rDofLabel)
+    {
+        switch (mTracedStressType)
+        {
+            case TracedStressType::MX:
+            {
+                rDofLabel = "ADJOINT_ROTATION_X";
+                break;
+            }
+            case TracedStressType::MY:
+            {
+                rDofLabel = "ADJOINT_ROTATION_Y";
+                break;
+            }
+            case TracedStressType::MZ:
+            {
+                rDofLabel = "ADJOINT_ROTATION_Z";
+                break;
+            }
+            case TracedStressType::FX:
+            {
+                rDofLabel = "ADJOINT_DISPLACEMENT_X";
+                break;
+            }
+            case TracedStressType::FY:
+            {
+                rDofLabel = "ADJOINT_DISPLACEMENT_Y";
+                break;
+            }
+            case TracedStressType::FZ:
+            {
+                rDofLabel = "ADJOINT_DISPLACEMENT_Z";
+                break;
+            }
+            default:
+                KRATOS_ERROR << "Invalid stress type! Stress type not supported for particular solution!" << std::endl;
+        }
     }
 
 } // namespace Kratos.

@@ -55,6 +55,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Element::DofsVectorType DofsVectorType;
+
     ///@}
     ///@name Pointer Definitions
     /// Pointer definition of AdjointLocalStressResponseFunction
@@ -77,6 +79,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    void FinalizeSolutionStep() override;
 
     void CalculateGradient(const Element& rAdjointElement,
                                    const Matrix& rResidualGradient,
@@ -108,6 +112,7 @@ public:
                                              const ProcessInfo& rProcessInfo) override;
 
     double CalculateValue(ModelPart& rModelPart) override;
+
 
     ///@}
     ///@name Access
@@ -169,6 +174,7 @@ private:
     Element::Pointer mpTracedElement;
     StressTreatment mStressTreatment;
     TracedStressType mTracedStressType;
+    bool mAddParticularSolution = false;
 
 
     ///@}
@@ -196,6 +202,12 @@ private:
     void ExtractNodeStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
     void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
+
+    void CalculateParticularSolution();
+
+    Vector CalculateParticularSolutionCrBeam();
+
+    void FindCorrespondingDofLabel(std::string& rDofLabel);
 
     ///@}
     ///@name Private  Access
