@@ -64,6 +64,7 @@ namespace Kratos
 // The member variables related with the MMG library
 MMG5_pMesh mmgMesh;
 MMG5_pSol  mmgSol;
+// MMG5_pSol  mmgDisp;
 
 /************************************* CONSTRUCTOR *********************************/
 /***********************************************************************************/
@@ -78,6 +79,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
     Parameters DefaultParameters = Parameters(R"(
     {
         "filename"                             : "out",
+        "discretization_type"                  : "Standard",
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        :
         {
@@ -134,7 +136,11 @@ MmgProcess<TMMGLibray>::MmgProcess(
     mFilename = new char [mStdStringFilename.length() + 1];
     std::strcpy (mFilename, mStdStringFilename.c_str());
 
+    // The framework type
     mFramework = ConvertFramework(mThisParameters["framework"].GetString());
+
+    // The discretization type
+    mDiscretization = ConvertDiscretization(mThisParameters["discretization_type"].GetString());
 
     mpRefElement.clear();
     mpRefCondition.clear();
@@ -1860,9 +1866,13 @@ void MmgProcess<MMGLibray::MMG2D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
+//     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
 
     InitVerbosity();
 }
@@ -1875,9 +1885,15 @@ void MmgProcess<MMGLibray::MMG3D>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
+//     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+//     else if (mDiscretization == DiscretizationOption::LAGRANGIAN)
+//         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_ppDisp, &mmgDisp, MMG5_ARG_end);
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
 
     InitVerbosity();
 }
@@ -1890,9 +1906,13 @@ void MmgProcess<MMGLibray::MMGS>::InitMesh()
 {
     mmgMesh = nullptr;
     mmgSol = nullptr;
+//     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
 
     InitVerbosity();
 }
@@ -2332,7 +2352,11 @@ void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
         }
     }
 
-    const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
+    int ier = 0;
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
+//     else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+//         ier = MMG2D_mmgsls(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2399,7 +2423,13 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
         }
     }
 
-    const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+    int ier = 0;
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
+//     else if (mDiscretization == DiscretizationOption::LAGRANGIAN)
+//         ier = MMG3D_mmg3dmov(mmgMesh, mmgSol, mmgDisp);
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        ier = MMG3D_mmg3dls(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2466,7 +2496,12 @@ void MmgProcess<MMGLibray::MMGS>::MMGLibCall()
         }
     }
 
-    const int ier = MMGS_mmgslib(mmgMesh, mmgSol);
+    // Compute remesh
+    int ier = 0;
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        ier = MMGS_mmgslib(mmgMesh, mmgSol);
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        ier = MMGS_mmgsls(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;

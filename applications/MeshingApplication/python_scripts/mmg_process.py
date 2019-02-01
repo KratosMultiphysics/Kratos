@@ -66,6 +66,7 @@ class MmgProcess(KratosMultiphysics.Process):
                 "perform_nodal_h_averaging"           : false,
                 "max_iterations"                      : 3
             },
+            "discretization_type"                  : "Standard",
             "framework"                            : "Eulerian",
             "internal_variables_parameters"        :
             {
