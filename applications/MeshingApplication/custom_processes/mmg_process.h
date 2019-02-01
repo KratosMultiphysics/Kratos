@@ -393,7 +393,7 @@ private:
             return DiscretizationOption::LAGRANGIAN;
         else if(rString == "Standard" || rString == "STANDARD")
             return DiscretizationOption::STANDARD;
-        else if(rString == "Isosurface" || rString == "ISOSURFACE")
+        else if(rString == "Isosurface" || rString == "ISOSURFACE" || rString == "IsoSurface")
             return DiscretizationOption::ISOSURFACE;
         else
             return DiscretizationOption::STANDARD;
@@ -407,7 +407,12 @@ private:
     /**
      *@brief This function generates the metric MMG5 structure from a Kratos Model Part
      */
-    void InitializeSolData();
+    void InitializeSolDataMetric();
+
+    /**
+     *@brief This function generates the MMG5 structure for the distance field from a Kratos Model Part
+     */
+    void InitializeSolDataDistance();
 
     /**
      * @brief We execute the MMg library and build the new model part from the old model part
@@ -632,7 +637,12 @@ private:
     /**
      * @brief This loads the solution
      */
-    void MMGLibCall();
+    void MMGLibCallMetric();
+
+    /**
+     * @brief This loads the solution
+     */
+    void MMGLibCallIsoSurface();
 
     /**
      * @brief This frees the MMG structures

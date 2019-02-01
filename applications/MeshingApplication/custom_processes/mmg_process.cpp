@@ -208,7 +208,13 @@ void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
 
     // We initialize the mesh and solution data
     InitializeMeshData();
-    InitializeSolData();
+
+    // We retrieve the data form the Kratos model part to fill sol
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        InitializeSolDataMetric();
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        InitializeSolDataDistance();
+
 
     // Check if the number of given entities match with mesh size
     CheckMeshData();
@@ -494,7 +500,7 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 /***********************************************************************************/
 
 template<MMGLibray TMMGLibray>
-void MmgProcess<TMMGLibray>::InitializeSolData()
+void MmgProcess<TMMGLibray>::InitializeSolDataMetric()
 {
     ////////* SOLUTION FILE *////////
 
@@ -524,6 +530,32 @@ void MmgProcess<TMMGLibray>::InitializeSolData()
 /***********************************************************************************/
 
 template<MMGLibray TMMGLibray>
+void MmgProcess<TMMGLibray>::InitializeSolDataDistance()
+{
+    ////////* SOLUTION FILE for ISOSURFACE*////////
+    // Iterate in the nodes
+    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+
+    // Set size of the solution
+    SetSolSizeScalar( nodes_array.size() );
+    const Variable<double>& scalar_variable = KratosComponents<Variable<double>>::Get("DISTANCE");
+
+    #pragma omp parallel for
+    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        auto it_node = nodes_array.begin() + i;
+
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(scalar_variable)) << " DISTANCE field not found as a non-historical variable " << std::endl;
+        // We get the distance (non-historical variable)
+        const double& dist = it_node->GetValue( scalar_variable );
+        // We set the distance
+        SetMetricScalar(dist, i + 1);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<MMGLibray TMMGLibray>
 void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 {
     // Getting the parameters
@@ -541,7 +573,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     ////////* MMG LIBRARY CALL *////////
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "////////* MMG LIBRARY CALL *////////" << std::endl;
 
-    MMGLibCall();
+    // Calling the library functions
+    if (mDiscretization == DiscretizationOption::STANDARD)
+        MMGLibCallMetric();
+    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+        MMGLibCallIsoSurface();
 
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
@@ -2299,7 +2335,7 @@ void MmgProcess<MMGLibray::MMGS>::OutputSol(
 /***********************************************************************************/
 
 template<>
-void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG2D>::MMGLibCallMetric()
 {
     KRATOS_TRY;
 
@@ -2352,11 +2388,7 @@ void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
         }
     }
 
-    int ier = 0;
-    if (mDiscretization == DiscretizationOption::STANDARD)
-        ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
-//     else if (mDiscretization == DiscretizationOption::ISOSURFACE)
-//         ier = MMG2D_mmgsls(mmgMesh, mmgSol);
+    const int ier = MMG2D_mmg2dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2370,7 +2402,44 @@ void MmgProcess<MMGLibray::MMG2D>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG2D>::MMGLibCallIsoSurface()
+{
+    KRATOS_TRY;
+
+    /**------------------- Level set discretization option ---------------------*/
+    /* Ask for level set discretization */
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_iso, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    // just to see if retrieved from Kratos correctly
+    if ( MMG2D_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
+        exit(EXIT_FAILURE);
+
+    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    if ( MMG2D_Chk_meshData(mmgMesh,mmgSol) != 1 )
+        exit(EXIT_FAILURE);
+
+    /**------------------- level set discretization ---------------------------*/
+
+    /* debug mode ON (default value = OFF) */
+    if ( MMG2D_Set_iparameter(mmgMesh,mmgSol,MMG2D_IPARAM_debug, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    const int ier = MMG2D_mmg2dls(mmgMesh, mmgSol);
+
+    if ( ier == MMG5_STRONGFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+    else if ( ier == MMG5_LOWFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG2DLS. ier: " << ier << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMG3D>::MMGLibCallMetric()
 {
     KRATOS_TRY;
 
@@ -2423,13 +2492,7 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
         }
     }
 
-    int ier = 0;
-    if (mDiscretization == DiscretizationOption::STANDARD)
-        ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
-//     else if (mDiscretization == DiscretizationOption::LAGRANGIAN)
-//         ier = MMG3D_mmg3dmov(mmgMesh, mmgSol, mmgDisp);
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
-        ier = MMG3D_mmg3dls(mmgMesh, mmgSol);
+    const int ier = MMG3D_mmg3dlib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
@@ -2443,7 +2506,43 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCall()
 /***********************************************************************************/
 
 template<>
-void MmgProcess<MMGLibray::MMGS>::MMGLibCall()
+void MmgProcess<MMGLibray::MMG3D>::MMGLibCallIsoSurface()
+{
+    KRATOS_TRY;
+
+    /**------------------- Level set discretization option ---------------------*/
+    /* Ask for level set discretization */
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_iso, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    // just to see if retrieved from Kratos correctly
+    if ( MMG3D_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
+        exit(EXIT_FAILURE);
+
+    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 )
+        exit(EXIT_FAILURE);
+
+    /**------------------- level set discretization ---------------------------*/
+    /* debug mode ON (default value = OFF) */
+    if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_debug, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    const int ier = MMG3D_mmg3dls(mmgMesh, mmgSol);
+
+    if ( ier == MMG5_STRONGFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+    else if ( ier == MMG5_LOWFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMG3DLIB. ier: " << ier << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMGS>::MMGLibCallMetric()
 {
     KRATOS_TRY;
 
@@ -2497,16 +2596,48 @@ void MmgProcess<MMGLibray::MMGS>::MMGLibCall()
     }
 
     // Compute remesh
-    int ier = 0;
-    if (mDiscretization == DiscretizationOption::STANDARD)
-        ier = MMGS_mmgslib(mmgMesh, mmgSol);
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
-        ier = MMGS_mmgsls(mmgMesh, mmgSol);
+    const int ier = MMGS_mmgslib(mmgMesh, mmgSol);
 
     if ( ier == MMG5_STRONGFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
     else if ( ier == MMG5_LOWFAILURE )
         KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLIB. ier: " << ier << std::endl;
+
+    KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void MmgProcess<MMGLibray::MMGS>::MMGLibCallIsoSurface()
+{
+    KRATOS_TRY;
+
+    /**------------------- Level set discretization option ---------------------*/
+    /* Ask for level set discretization */
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_iso, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    // just to see if retrieved from Kratos correctly
+    if ( MMGS_saveSol(mmgMesh,mmgSol,"sol_outname") != 1 )
+        exit(EXIT_FAILURE);
+
+    /** 4) (not mandatory): check if the number of given entities match with mesh size */
+    if ( MMGS_Chk_meshData(mmgMesh,mmgSol) != 1 )
+        exit(EXIT_FAILURE);
+
+    /**------------------- level set discretization ---------------------------*/
+    /* debug mode ON (default value = OFF) */
+    if ( MMGS_Set_iparameter(mmgMesh,mmgSol,MMGS_IPARAM_debug, 1) != 1 )
+       exit(EXIT_FAILURE);
+
+    const int ier = MMGS_mmgsls(mmgMesh, mmgSol);
+
+    if ( ier == MMG5_STRONGFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS: UNABLE TO SAVE MESH. ier: " << ier << std::endl;
+    else if ( ier == MMG5_LOWFAILURE )
+        KRATOS_ERROR << "ERROR: BAD ENDING OF MMGSLS. ier: " << ier << std::endl;
 
     KRATOS_CATCH("");
 }
