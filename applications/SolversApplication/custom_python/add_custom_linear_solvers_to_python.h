@@ -9,7 +9,7 @@
 
 
 #if !defined(KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED )
-#define  KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_PYTHON_TO_H_INCLUDED
+#define  KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED
 
 
 // System includes
@@ -33,4 +33,4 @@ void  AddCustomLinearSolversToPython(pybind11::module& m);
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_PYTHON_TO_H_INCLUDED  defined
+#endif // KRATOS_ADD_CUSTOM_LINEAR_SOLVERS_TO_PYTHON_H_INCLUDED  defined
