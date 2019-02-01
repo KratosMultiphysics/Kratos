@@ -14,8 +14,6 @@
 #define KRATOS_RVE_PERIODICITY_UTILITY_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 #include <tuple>
@@ -23,7 +21,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "includes/linear_master_slave_constraint.h"
 
 namespace Kratos
 {
@@ -49,8 +46,12 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/**
+ * @class RVEPeriodicityUtility
+ * @ingroup StructuralMechanicsApplication
+ * @brief This defines a class to define periodic BC to a RVE
+ * @details It uses MPC in order to set the periodic BC
+ * @author Riccardo Rossi
 */
 class RVEPeriodicityUtility
 {
@@ -61,7 +62,14 @@ class RVEPeriodicityUtility
     /// Pointer definition of RVEPeriodicityUtility
     KRATOS_CLASS_POINTER_DEFINITION(RVEPeriodicityUtility);
 
+    /// Definition of the data tuple type
     typedef std::tuple<std::vector<unsigned int>, std::vector<double>, Vector> DataTupletype;
+
+    /// The DoF type definition
+    typedef Dof<double> DofType;
+
+    /// The DoF pointer vector type definition
+    typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -77,10 +85,10 @@ class RVEPeriodicityUtility
     ///@name Operators
     ///@{
 
-    /** This function assign a pairing condition between two modelparts which contain two flat faces, parallel to 
+    /** This function assign a pairing condition between two modelparts which contain two flat faces, parallel to
      *  each other and separated by a distance rDistance.
      *  Note that this function should be called multiple times to pair the different faces in a box.
-     * 
+     *
      *  @param rMasterModelPart master part to be paired
      *  @param rSlaveModelPart slave in the pairing
      *  @param rStrainTensor strain tensor which will be used in computing the pairing conditions
@@ -97,7 +105,7 @@ class RVEPeriodicityUtility
      * @param rVariable is the value to which the pairing condition will be applied (needs to be a Variable with components)
      */
     void Finalize(const Variable<array_1d<double, 3>> &rVariable);
-    
+
     ///@}
     ///@name Operations
     ///@{
@@ -148,13 +156,15 @@ class RVEPeriodicityUtility
     ///@}
     ///@name Protected Operators
     ///@{
+
     void AppendIdsAndWeights(
         std::map<unsigned int, DataTupletype> &rAux,
         const unsigned int MasterId,
         const double MasterWeight,
         std::vector<unsigned int> &rFinalMastersIds,
         std::vector<double> &rFinalMastersWeights,
-        Vector &rFinalT);
+        Vector &rFinalT
+        );
 
     ///@}
     ///@name Protected Operations
@@ -188,6 +198,7 @@ class RVEPeriodicityUtility
     ///@}
     ///@name Private Operators
     ///@{
+
     void GenerateConstraint(unsigned int& rConstraintId,
                             const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVar,
                             Node<3>::Pointer pSlaveNode,
