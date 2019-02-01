@@ -8,143 +8,407 @@
 //					 Kratos default license:
 //kratos/license.txt
 //
-//  Main authors:    Klaus B Sautter (based on the work of MSantasusana)
+//  Main authors:    Klaus B Sautter (based on the work of JMCarbonel)
 //
 //
 
-#if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED)
-#define KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_HPP_INCLUDED
+#if !defined(KRATOS_MECHANICAL_EXPLICIT_STRATEGY)
+#define KRATOS_MECHANICAL_EXPLICIT_STRATEGY
 
 /* System includes */
 
-/* External includes */
-
 /* Project includes */
-#include "solving_strategies/schemes/scheme.h"
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "structural_mechanics_application_variables.h"
 #include "utilities/variable_utils.h"
-#include "custom_utilities/explicit_integration_utilities.h"
 
 namespace Kratos {
-
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
-
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
-
 /**
- * @class ExplicitCentralDifferencesScheme
+ * @class MechanicalExplicitStrategy
  * @ingroup StructuralMechanicsApplciation
- * @brief An explicit central difference scheme
- * @details This scheme is quite known, and can be consulted from different sources
- * For example from Wikipedia: https://en.wikipedia.org/wiki/Central_differencing_scheme
- * @author Klaus B Sautter
+ * @brief This strategy is used for the explicit time integration
+ * @author Klauss B Sautter (based on the work of JMCarbonel)
  */
 template <class TSparseSpace,
-          class TDenseSpace //= DenseSpace<double>
+          class TDenseSpace,  // = DenseSpace<double>,
+          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
           >
-class ExplicitCentralDifferencesScheme
-    : public Scheme<TSparseSpace, TDenseSpace> {
-
+class MechanicalExplicitStrategy
+    : public SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// The definition of the base type
-    typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
+    // Base class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
-    /// Some definitions related with the base class
+    /// Some definitions from the base class
+    typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
+    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+    typedef typename BaseType::NodesArrayType NodesArrayType;
+    typedef typename BaseType::ElementsArrayType ElementsArrayType;
+    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
 
-    /// The arrays of elements and nodes
-    typedef ModelPart::ElementsContainerType ElementsArrayType;
-    typedef ModelPart::NodesContainerType NodesArrayType;
-
-    /// Definition of the size type
-    typedef std::size_t SizeType;
-
-    /// Definition of the index type
-    typedef std::size_t IndexType;
-
-    /// Definition fo the node iterator
-    typedef typename ModelPart::NodeIterator NodeIterator;
-
-    /// The definition of the numerical limit
-    static constexpr double numerical_limit = std::numeric_limits<double>::epsilon();
-
-    /// Counted pointer of ExplicitCentralDifferencesScheme
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitCentralDifferencesScheme);
+    /// Counted pointer of MechanicalExplicitStrategy
+    KRATOS_CLASS_POINTER_DEFINITION(MechanicalExplicitStrategy);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /**
-     * @brief Default constructor.
-     * @details The ExplicitCentralDifferencesScheme method
-     * @param MaximumDeltaTime The maximum delta time to be considered
-     * @param DeltaTimeFraction The delta ttime fraction
-     * @param DeltaTimePredictionLevel The prediction level
+     * Default constructor
+     * @param rModelPart The model part of the problem
+     * @param pScheme The integration scheme
+     * @param CalculateReactions The flag for the reaction calculation
+     * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
+     * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    ExplicitCentralDifferencesScheme(
-        const double MaximumDeltaTime,
-        const double DeltaTimeFraction,
-        const double DeltaTimePredictionLevel
-        )
-        : Scheme<TSparseSpace, TDenseSpace>()
-    {
-        mDeltaTime.PredictionLevel = DeltaTimePredictionLevel;
-        mDeltaTime.Maximum = MaximumDeltaTime;
-        mDeltaTime.Fraction = DeltaTimeFraction;
-    }
+    MechanicalExplicitStrategy(
+        ModelPart& rModelPart,
+        typename TSchemeType::Pointer pScheme,
+        bool CalculateReactions = false,
+        bool ReformDofSetAtEachStep = false,
+        bool MoveMeshFlag = true)
+        : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag) {
+        KRATOS_TRY
 
-    /**
-     * @brief Constructor with parameters
-     * @details The ExplicitCentralDifferencesScheme method
-     * @param rParameters The parameters containing the configuration parameters
-     * @warning time_step_prediction_level should be an integer
-     */
-    ExplicitCentralDifferencesScheme(Parameters rParameters =  Parameters(R"({})"))
-        : Scheme<TSparseSpace, TDenseSpace>()
-    {
-        Parameters default_parameters = Parameters(R"(
-        {
-            "time_step_prediction_level" : 0.0,
-            "fraction_delta_time"        : 0.9,
-            "max_delta_time"             : 1.0e-5
-        })" );
+        // Set flags to default values
+        this->mCalculateReactionsFlag = CalculateReactions;
+        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        // Saving the scheme
+        this->mpScheme = pScheme;
 
-        mDeltaTime.PredictionLevel = rParameters["time_step_prediction_level"].GetDouble();
-        mDeltaTime.Maximum = rParameters["max_delta_time"].GetDouble();
-        mDeltaTime.Fraction = rParameters["fraction_delta_time"].GetDouble();
+        // Set EchoLevel to the default value (only time is displayed)
+        BaseType::SetEchoLevel(1);
+
+        // Set RebuildLevel to the default value
+        BaseType::SetRebuildLevel(0);
+
+        KRATOS_CATCH("")
     }
 
     /** Destructor.
     */
-    virtual ~ExplicitCentralDifferencesScheme() {}
+    virtual ~MechanicalExplicitStrategy()
+    {
+        Clear();
+    }
 
     ///@}
     ///@name Operators
     ///@{
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Set method for the time scheme
+     * @param pScheme The pointer to the time scheme considered
+     */
+    void SetScheme(typename TSchemeType::Pointer pScheme)
+    {
+        mpScheme = pScheme;
+    };
+
+    /**
+     * @brief Get method for the time scheme
+     * @return mpScheme: The pointer to the time scheme considered
+     */
+    typename TSchemeType::Pointer GetScheme()
+    {
+        return mpScheme;
+    };
+
+    // Set and Get Flags
+
+    /**
+     * @brief This method sets the flag mInitializeWasPerformed
+     * @param InitializePerformedFlag The flag that tells if the initialize has been computed
+     */
+    void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
+    {
+        mInitializeWasPerformed = InitializePerformedFlag;
+    }
+
+    /**
+     * @brief This method gets the flag mInitializeWasPerformed
+     * @return mInitializeWasPerformed: The flag that tells if the initialize has been computed
+     */
+    bool GetInitializePerformedFlag()
+    {
+        return mInitializeWasPerformed;
+    }
+
+    /**
+     * @brief This method sets the flag mCalculateReactionsFlag
+     * @param CalculateReactionsFlag The flag that tells if the reactions are computed
+     */
+    void SetCalculateReactionsFlag(bool CalculateReactionsFlag)
+    {
+        mCalculateReactionsFlag = CalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method returns the flag mCalculateReactionsFlag
+     * @return The flag that tells if the reactions are computed
+     */
+    bool GetCalculateReactionsFlag()
+    {
+        return mCalculateReactionsFlag;
+    }
+
+    /**
+     * @brief This method sets the flag mReformDofSetAtEachStep
+     * @param Flag The flag that tells if each time step the system is rebuilt
+     */
+    void SetReformDofSetAtEachStepFlag(bool Flag)
+    {
+        mReformDofSetAtEachStep = Flag;
+    }
+
+    /**
+     * @brief This method returns the flag mReformDofSetAtEachStep
+     * @return The flag that tells if each time step the system is rebuilt
+     */
+    bool GetReformDofSetAtEachStepFlag()
+    {
+        return mReformDofSetAtEachStep;
+    }
+
+    /**
+     * @brief Initialization of member variables and prior operations
+     */
+    void Initialize() override
+    {
+        KRATOS_TRY
+
+        if (!this->mInitializeWasPerformed){
+            // Pointers needed in the solution
+            typename TSchemeType::Pointer pScheme = GetScheme();
+            ModelPart& r_model_part = BaseType::GetModelPart();
+
+            TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
+
+            // Initialize The Scheme - OPERATIONS TO BE DONE ONCE
+            if (!pScheme->SchemeIsInitialized())pScheme->Initialize(r_model_part);
+
+            // Initialize The Elements - OPERATIONS TO BE DONE ONCE
+            if (!pScheme->ElementsAreInitialized())pScheme->InitializeElements(r_model_part);
+
+            // Initialize The Conditions- OPERATIONS TO BE DONE ONCE
+            if (!pScheme->ConditionsAreInitialized())pScheme->InitializeConditions(r_model_part);
+
+            // Set Nodal Mass to zero
+            NodesArrayType& r_nodes = r_model_part.Nodes();
+            VariableUtils().SetNonHistoricalVariable(NODAL_MASS, 0.0, r_nodes);
+
+            // Iterate over the elements
+            ElementsArrayType& r_elements = r_model_part.Elements();
+            const auto it_elem_begin = r_elements.begin();
+            ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+
+            Vector dummy_vector;
+            // If we consider the rotation DoF
+            const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z) {
+                const array_1d<double, 3> zero_array = ZeroVector(3);
+                VariableUtils().SetNonHistoricalVariable(NODAL_INERTIA, zero_array, r_nodes);
+
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide inertias and nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                }
+            } else { // Only NODAL_MASS is needed
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                }
+            }
+
+            this->mInitializeWasPerformed = true;
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void InitializeSolutionStep() override {
+        KRATOS_TRY
+
+        typename TSchemeType::Pointer pScheme = GetScheme();
+        ModelPart& r_model_part = BaseType::GetModelPart();
+
+        TSystemMatrixType matrix_a_dummy = TSystemMatrixType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
+
+        // initial operations ... things that are constant over the Solution Step
+        pScheme->InitializeSolutionStep(r_model_part, matrix_a_dummy, rDx, rb);
+
+        if (BaseType::mRebuildLevel > 0) {
+            ProcessInfo& r_current_process_info = r_model_part.GetProcessInfo();
+            ElementsArrayType& r_elements = r_model_part.Elements();
+            const auto it_elem_begin = r_elements.begin();
+
+            Vector dummy_vector;
+            // If we consider the rotation DoF
+            const bool has_dof_for_rot_z = r_model_part.Nodes().begin()->HasDofFor(ROTATION_Z);
+            if (has_dof_for_rot_z) {
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide inertias and nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_INERTIA, r_current_process_info);
+                }
+            } else { // Only NODAL_MASS is needed
+                #pragma omp parallel for firstprivate(dummy_vector)
+                for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+                    // Getting nodal mass and inertia from element
+                    // this function needs to be implemented in the respective
+                    // element to provide nodal masses
+                    auto it_elem = it_elem_begin + i;
+                    it_elem->AddExplicitContribution(dummy_vector, RESIDUAL_VECTOR, NODAL_MASS, r_current_process_info);
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method add the contributions of the residual
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model of the problem to solve
+     */
+    void CalculateAndAddRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart
+        )
+    {
+        KRATOS_TRY
+
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        ConditionsArrayType& r_conditions = rModelPart.Conditions();
+        ElementsArrayType& r_elements = rModelPart.Elements();
+
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+        Element::EquationIdVectorType equation_id_vector_dummy; // Dummy
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
+        for (int i = 0; i < static_cast<int>(r_conditions.size()); ++i) {
+            auto it_cond = r_conditions.begin() + i;
+            pScheme->Condition_Calculate_RHS_Contribution((*it_cond.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+        }
+
+        #pragma omp parallel for firstprivate(RHS_Contribution, equation_id_vector_dummy)
+        for (int i = 0; i < static_cast<int>(r_elements.size()); ++i) {
+            auto it_elem = r_elements.begin() + i;
+            pScheme->Calculate_RHS_Contribution((*it_elem.base()), RHS_Contribution, equation_id_vector_dummy, r_current_process_info);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Solves the current step. This function returns true if a solution has been found, false otherwise.
+     */
+    bool SolveSolutionStep() override
+    {
+        typename TSchemeType::Pointer pScheme = GetScheme();
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        DofsArrayType dof_set_dummy;
+        TSystemMatrixType rA = TSystemMatrixType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
+
+        pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+
+        this->CalculateAndAddRHS(pScheme, r_model_part);
+
+        pScheme->Update(r_model_part, dof_set_dummy, rA, rDx, rb); // Explicitly integrates the equation of motion.
+
+        // Calculate reactions if required
+        if (mCalculateReactionsFlag) {
+            CalculateReactions(pScheme, r_model_part, rA, rDx, rb);
+        }
+
+        return true;
+    }
+
+    /**
+     * @brief Performs all the required operations that should be done (for each step) after solving the solution step.
+     * @details A member variable should be used as a flag to make sure this function is called only once per step.
+     */
+    void FinalizeSolutionStep() override
+    {
+        typename TSchemeType::Pointer pScheme = GetScheme();
+        ModelPart& r_model_part = BaseType::GetModelPart();
+        TSystemMatrixType rA = TSystemMatrixType();
+        TSystemVectorType rDx = TSystemVectorType();
+        TSystemVectorType rb = TSystemVectorType();
+        // Finalisation of the solution step,
+        // operations to be done after achieving convergence, for example the
+        // Final Residual Vector (rb) has to be saved in there
+        // to avoid error accumulation
+        pScheme->FinalizeSolutionStep(r_model_part, rA, rDx, rb);
+
+        // Move the mesh if needed
+        if (BaseType::MoveMeshFlag())
+            BaseType::MoveMesh();
+
+        // Cleaning memory after the solution
+        pScheme->Clean();
+    }
+
+    /**
+     * @brief Clears the internal storage
+     */
+    void Clear() override
+    {
+        KRATOS_TRY
+
+        KRATOS_INFO("MechanicalExplicitStrategy") << "Clear function used" << std::endl;
+
+        GetScheme()->Clear();
+        mInitializeWasPerformed = false;
+
+        KRATOS_CATCH("")
+    }
 
     /**
      * @brief This function is designed to be called once to perform all the checks needed
@@ -154,539 +418,18 @@ public:
      * @param rModelPart The model of the problem to solve
      * @return Zero means  all ok
      */
-    int Check(ModelPart& rModelPart) override
+    int Check() override
     {
-        KRATOS_TRY;
+        KRATOS_TRY
 
-        BaseType::Check(rModelPart);
+        BaseType::Check();
 
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size for Central Difference Scheme. It has to be > 2" << std::endl;
-        
-        KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DOMAIN_SIZE)) << "DOMAIN_SIZE not defined on ProcessInfo. Please define" << std::endl;
+        GetScheme()->Check(BaseType::GetModelPart());
 
         return 0;
 
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This is the place to initialize the Scheme. This is intended to be called just once when the strategy is initialized
-     * @param rModelPart The model of the problem to solve
-     */
-    void Initialize(ModelPart& rModelPart) override
-    {
-        KRATOS_TRY
-
-        if ((mDeltaTime.PredictionLevel > 0) && (!BaseType::SchemeIsInitialized())) {
-            Parameters prediction_parameters = Parameters(R"(
-            {
-                "time_step_prediction_level" : 2.0,
-                "max_delta_time"             : 1.0e-3,
-                "safety_factor"              : 0.5
-            })" );
-            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel);
-            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
-            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
-        }
-
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Preparing the time values for the first step (where time = initial_time +
-        // dt)
-        mTime.Current = r_current_process_info[TIME] + r_current_process_info[DELTA_TIME];
-        mTime.Delta = r_current_process_info[DELTA_TIME];
-        mTime.Middle = mTime.Current - 0.5 * mTime.Delta;
-        mTime.Previous = mTime.Current - mTime.Delta;
-        mTime.PreviousMiddle = mTime.Current - 1.5 * mTime.Delta;
-
-        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
-        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
-
-        // Initialize scheme
-        if (!BaseType::SchemeIsInitialized())
-            InitializeExplicitScheme(rModelPart, dim);
-        else
-            SchemeCustomInitialization(rModelPart, dim);
-
-        BaseType::SetSchemeIsInitialized();
-
         KRATOS_CATCH("")
     }
-
-    /**
-     * @brief It initializes time step solution. Only for reasons if the time step solution is restarted
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
-     */
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-
-        BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-        if (mDeltaTime.PredictionLevel > 1) {
-            Parameters prediction_parameters = Parameters(R"(
-            {
-                "time_step_prediction_level" : 2.0,
-                "max_delta_time"             : 1.0e-3,
-                "safety_factor"              : 0.5
-            })" );
-            prediction_parameters["time_step_prediction_level"].SetDouble(mDeltaTime.PredictionLevel); // WARNING This could be problematic if PredictionLevel is a double and not a integer
-            prediction_parameters["max_delta_time"].SetDouble(mDeltaTime.Maximum);
-            ExplicitIntegrationUtilities::CalculateDeltaTime(rModelPart, prediction_parameters);
-        }
-        InitializeResidual(rModelPart);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief It initializes the non-linear iteration
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     * @todo I cannot find the formula for the higher orders with variable time step. I tried to deduce by myself but the result was very unstable
-     */
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY;
-
-        ProcessInfo& current_process_info = rModelPart.GetProcessInfo();
-
-        const auto it_elem_begin = rModelPart.ElementsBegin();
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); ++i) {
-            auto it_elem = it_elem_begin + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
-        }
-
-        const auto it_cond_begin = rModelPart.ConditionsBegin();
-        #pragma omp parallel for
-        for(int i=0; i<static_cast<int>(rModelPart.Conditions().size()); ++i) {
-            auto it_elem = it_cond_begin + i;
-            it_elem->InitializeNonLinearIteration(current_process_info);
-        }
-
-        KRATOS_CATCH( "" );
-    }
-
-    /**
-     * @brief This method initializes the residual in the nodes of the model part
-     * @param rModelPart The model of the problem to solve
-     */
-    void InitializeResidual(ModelPart& rModelPart)
-    {
-        KRATOS_TRY
-
-        // The array of nodes
-        NodesArrayType& r_nodes = rModelPart.Nodes();
-
-        // Auxiliar values
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-        // Initializing the variables
-        VariableUtils().SetVectorVar(FORCE_RESIDUAL, zero_array,r_nodes);
-        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
-        if (has_dof_for_rot_z)
-            VariableUtils().SetVectorVar(MOMENT_RESIDUAL,zero_array,r_nodes);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method initializes some rutines related with the explicit scheme
-     * @param rModelPart The model of the problem to solve
-     * @param DomainSize The current dimention of the problem
-     */
-    void InitializeExplicitScheme(
-        ModelPart& rModelPart,
-        const SizeType DomainSize = 3
-        )
-    {
-        KRATOS_TRY
-
-        /// The array of ndoes
-        NodesArrayType& r_nodes = rModelPart.Nodes();
-
-        // The first iterator of the array of nodes
-        const auto it_begin = rModelPart.NodesBegin();
-
-        /// Initialise the database of the nodes
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_begin + i);
-            it_node->SetValue(NODAL_MASS, 0.0);
-            it_node->SetValue(MIDDLE_VELOCITY, zero_array);
-        }
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
-        if (has_dof_for_rot_z) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                auto it_node = (it_begin + i);
-                it_node->SetValue(MIDDLE_ANGULAR_VELOCITY, zero_array);
-                it_node->SetValue(NODAL_INERTIA, zero_array);
-            }
-        }
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            auto it_node = (it_begin + i);
-
-            array_1d<double, 3>& r_middle_velocity = it_node->GetValue(MIDDLE_VELOCITY);
-            const array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-            array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-//             array_1d<double,3>& r_current_displacement  = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-
-            for (IndexType j = 0; j < DomainSize; j++) {
-                r_middle_velocity[j] = r_current_velocity[j];
-                r_current_residual[j] = 0.0;
-//                 r_current_displacement[j] = 0.0; // this might be wrong for presribed displacement // NOTE: then you should check if the dof is fixed
-            }
-
-            if (has_dof_for_rot_z) {
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->GetValue(MIDDLE_ANGULAR_VELOCITY);
-                const array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-//                 array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
-
-                const IndexType initial_j = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-                for (IndexType j = initial_j; j < 3; j++) {
-                    r_middle_angular_velocity[j] = r_current_angular_velocity[j];
-                    r_current_residual_moment[j] = 0.0;
-                    // current_rotation[j] = 0.0; // this might be wrong for presribed rotations // NOTE: then you should check if the dof is fixed
-                }
-            }
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Performing the update of the solution
-     * @param rModelPart The model of the problem to solve
-     * @param rDofSet Set of all primary variables
-     * @param rA LHS matrix
-     * @param rDx incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void Update(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        KRATOS_TRY
-
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // The array of nodes
-        NodesArrayType& r_nodes = rModelPart.Nodes();
-
-        /// Working in 2D/3D (the definition of DOMAIN_SIZE is check in the Check method)
-        const SizeType dim = r_current_process_info[DOMAIN_SIZE];
-
-        // Step Update
-        // The first step is time =  initial_time ( 0.0) + delta time
-        mTime.Current = r_current_process_info[TIME];
-        mTime.Delta = r_current_process_info[DELTA_TIME];
-
-        mTime.Middle = 0.5 * (mTime.Previous + mTime.Current);
-
-        // The iterator of the first node
-        const auto it_begin = rModelPart.NodesBegin();
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
-
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            this->UpdateTranslationalDegreesOfFreedom(it_begin + i, dim);
-        } // for Node parallel
-
-        if (has_dof_for_rot_z){
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-                this->UpdateRotationalDegreesOfFreedom(it_begin + i, dim);
-            } // for Node parallel
-        }
-
-        mTime.Previous = mTime.Current;
-        mTime.PreviousMiddle = mTime.Middle;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This method updates the translation DoF
-     * @param itCurrentNode The iterator of the current node
-     * @param DomainSize The current dimention of the problem
-     */
-    void UpdateTranslationalDegreesOfFreedom(
-        NodeIterator itCurrentNode,
-        const SizeType DomainSize = 3
-        )
-    {
-        const double& nodal_mass = (itCurrentNode)->GetValue(NODAL_MASS);
-        const array_1d<double, 3>& r_current_residual = (itCurrentNode)->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-        array_1d<double, 3>& r_current_velocity = (itCurrentNode)->FastGetSolutionStepValue(VELOCITY);
-        array_1d<double, 3>& r_current_displacement = (itCurrentNode)->FastGetSolutionStepValue(DISPLACEMENT);
-        array_1d<double, 3>& r_middle_velocity = (itCurrentNode)->GetValue(MIDDLE_VELOCITY);
-
-        array_1d<double, 3>& r_current_acceleration = (itCurrentNode)->FastGetSolutionStepValue(ACCELERATION);
-
-        // Solution of the explicit equation:
-        if (nodal_mass > numerical_limit)
-            r_current_acceleration = r_current_residual / nodal_mass;
-        else
-            r_current_acceleration = ZeroVector(3);
-
-        bool fix_displacements[3] = {false, false, false};
-
-        fix_displacements[0] = ((itCurrentNode)->pGetDof(DISPLACEMENT_X))->IsFixed();
-        fix_displacements[1] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Y))->IsFixed();
-        if (DomainSize == 3)
-            fix_displacements[2] = ((itCurrentNode)->pGetDof(DISPLACEMENT_Z))->IsFixed();
-
-        for (IndexType j = 0; j < DomainSize; j++) {
-            if (fix_displacements[j]) {
-                r_current_acceleration[j] = 0.0;
-                r_middle_velocity[j] = 0.0;
-            }
-
-            r_current_velocity[j] =  r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
-            r_middle_velocity[j] = r_current_velocity[j] + (mTime.Middle - mTime.Previous) * r_current_acceleration[j];
-            r_current_displacement[j] = r_current_displacement[j] + mTime.Delta * r_middle_velocity[j];
-        } // for DomainSize
-    }
-
-    /**
-     * @brief This method updates the rotation DoF
-     * @param itCurrentNode The iterator of the current node
-     * @param DomainSize The current dimention of the problem
-     */
-    void UpdateRotationalDegreesOfFreedom(
-        NodeIterator itCurrentNode,
-        const SizeType DomainSize = 3
-        )
-    {
-        ////// ROTATION DEGRESS OF FREEDOM
-        const array_1d<double, 3>& nodal_inertia = (itCurrentNode)->GetValue(NODAL_INERTIA);
-        const array_1d<double, 3>& r_current_residual_moment = (itCurrentNode)->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-        array_1d<double, 3>& r_current_angular_velocity = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-        array_1d<double, 3>& r_current_rotation = (itCurrentNode)->FastGetSolutionStepValue(ROTATION);
-        array_1d<double, 3>& r_middle_angular_velocity = (itCurrentNode)->GetValue(MIDDLE_ANGULAR_VELOCITY);
-        array_1d<double, 3>& r_current_angular_acceleration = (itCurrentNode)->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-
-        const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-        for (IndexType kk = initial_k; kk < 3; ++kk) {
-            if (nodal_inertia[kk] > numerical_limit)
-                r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
-            else
-                r_current_angular_acceleration[kk] = 0.0;
-        }
-
-        bool fix_rotation[3] = {false, false, false};
-        if (DomainSize == 3) {
-            fix_rotation[0] = ((itCurrentNode)->pGetDof(ROTATION_X))->IsFixed();
-            fix_rotation[1] = ((itCurrentNode)->pGetDof(ROTATION_Y))->IsFixed();
-        }
-        fix_rotation[2] = ((itCurrentNode)->pGetDof(ROTATION_Z))->IsFixed();
-
-        for (IndexType j = initial_k; j < 3; j++) {
-            if (fix_rotation[j]) {
-                r_current_angular_acceleration[j] = 0.0;
-                r_middle_angular_velocity[j] = 0.0;
-            }
-            r_current_angular_velocity[j] = r_middle_angular_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_angular_acceleration[j];
-            r_middle_angular_velocity[j] = r_current_angular_velocity[j] + (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j];
-            r_current_rotation[j] = r_current_rotation[j] + mTime.Delta * r_middle_angular_velocity[j];
-        }
-    }
-
-    /**
-     * @brief This method performs some custom operations to initialize the scheme
-     * @param rModelPart The model of the problem to solve
-     * @param DomainSize The current dimention of the problem
-     */
-    virtual void SchemeCustomInitialization(
-        ModelPart& rModelPart,
-        const SizeType DomainSize = 3
-        )
-    {
-        KRATOS_TRY
-
-        // The array containing the nodes
-        NodesArrayType& r_nodes = rModelPart.Nodes();
-
-        // The fisrt node interator
-        auto it_begin = rModelPart.NodesBegin();
-
-        // If we consider the rotation DoF
-        const bool has_dof_for_rot_z = it_begin->HasDofFor(ROTATION_Z);
-
-        // Auxiliar zero array
-        const array_1d<double, 3> zero_array = ZeroVector(3);
-
-        #pragma omp parallel for firstprivate(it_begin)
-        for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-            // Current step information "N+1" (before step update).
-            auto it_node = (it_begin + i);
-
-            const double& nodal_mass = it_node->GetValue(NODAL_MASS);
-            const array_1d<double, 3>& r_current_residual = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
-
-            array_1d<double, 3>& r_current_velocity = it_node->FastGetSolutionStepValue(VELOCITY);
-//             array_1d<double,3>& r_current_displacement = it_node->FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3>& r_middle_velocity = it_node->GetValue(MIDDLE_VELOCITY);
-
-            array_1d<double, 3>& r_current_acceleration = it_node->FastGetSolutionStepValue(ACCELERATION);
-
-            // Solution of the explicit equation:
-            if (nodal_mass > numerical_limit) {
-                r_current_acceleration = r_current_residual / nodal_mass;
-            } else {
-                r_current_acceleration = zero_array;
-            }
-
-            bool fix_displacements[3] = {false, false, false};
-
-            fix_displacements[0] = (it_node->pGetDof(DISPLACEMENT_X))->IsFixed();
-            fix_displacements[1] = (it_node->pGetDof(DISPLACEMENT_Y))->IsFixed();
-            if (DomainSize == 3)
-                fix_displacements[2] = (it_node->pGetDof(DISPLACEMENT_Z))->IsFixed();
-
-            for (IndexType j = 0; j < DomainSize; j++) {
-                if (fix_displacements[j]) {
-                    r_current_acceleration[j] = 0.0;
-                    r_middle_velocity[j] = 0.0;
-                }
-
-                r_middle_velocity[j] = 0.0 + (mTime.Middle - mTime.Previous) * r_current_acceleration[j];
-                r_current_velocity[j] = r_middle_velocity[j] + (mTime.Previous - mTime.PreviousMiddle) * r_current_acceleration[j]; //+ actual_velocity;
-                // r_current_displacement[j]  = 0.0;
-
-            } // for DomainSize
-
-            ////// ROTATION DEGRESS OF FREEDOM
-            if (has_dof_for_rot_z) {
-                const array_1d<double, 3>& nodal_inertia = it_node->GetValue(NODAL_INERTIA);
-                const array_1d<double, 3>& r_current_residual_moment = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
-                array_1d<double, 3>& r_current_angular_velocity = it_node->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-                // array_1d<double,3>& current_rotation = it_node->FastGetSolutionStepValue(ROTATION);
-                array_1d<double, 3>& r_middle_angular_velocity = it_node->GetValue(MIDDLE_ANGULAR_VELOCITY);
-                array_1d<double, 3>& r_current_angular_acceleration = it_node->FastGetSolutionStepValue(ANGULAR_ACCELERATION);
-
-                const IndexType initial_k = DomainSize == 3 ? 0 : 2; // We do this because in 2D only the rotation Z is needed, then we start with 2, instead of 0
-                for (IndexType kk = initial_k; kk < 3; ++kk) {
-                    if (nodal_inertia[kk] > numerical_limit) {
-                        r_current_angular_acceleration[kk] = r_current_residual_moment[kk] / nodal_inertia[kk];
-                    } else {
-                        r_current_angular_acceleration[kk] = 0.0;
-                    }
-                }
-
-                bool fix_rotation[3] = {false, false, false};
-                if (DomainSize == 3) {
-                    fix_rotation[0] = (it_node->pGetDof(ROTATION_X))->IsFixed();
-                    fix_rotation[1] = (it_node->pGetDof(ROTATION_Y))->IsFixed();
-                }
-                fix_rotation[2] = (it_node->pGetDof(ROTATION_Z))->IsFixed();
-
-                for (IndexType j = initial_k; j < 3; j++) {
-                    if (fix_rotation[j]) {
-                        r_current_angular_acceleration[j] = 0.0;
-                        r_middle_angular_velocity[j] = 0.0;
-                    }
-
-                    r_middle_angular_velocity[j] = 0.0 +  (mTime.Middle - mTime.Previous) * r_current_angular_acceleration[j];
-                    r_current_angular_velocity[j] = r_middle_angular_velocity[j] +  (mTime.Previous - mTime.PreviousMiddle) *  r_current_angular_acceleration[j];
-//                     current_rotation[j] = 0.0;
-                } // trans DoF
-            }   // Rot DoF
-        }     // for node parallel
-
-        mTime.Previous = mTime.Current;
-        mTime.PreviousMiddle = mTime.Middle;
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief This function is designed to calculate just the RHS contribution
-     * @param pElement The element to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the element degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void Calculate_RHS_Contribution(
-        Element::Pointer pCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        KRATOS_TRY
-
-        this->TCalculate_RHS_Contribution(pCurrentElement, RHS_Contribution, rCurrentProcessInfo);
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Functions that calculates the RHS of a "condition" object
-     * @param pCondition The condition to compute
-     * @param RHS_Contribution The RHS vector contribution
-     * @param EquationId The ID's of the condition degrees of freedom
-     * @param rCurrentProcessInfo The current process info instance
-     */
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer pCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        ProcessInfo& rCurrentProcessInfo
-        ) override
-    {
-        KRATOS_TRY
-
-        this->TCalculate_RHS_Contribution(pCurrentCondition, RHS_Contribution, rCurrentProcessInfo);
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rModelPart The model of the problem to solve
-     * @param rA LHS matrix
-     * @param rDx Incremental update of primary variables
-     * @param rb RHS Vector
-     */
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA,
-        TSystemVectorType& rDx,
-        TSystemVectorType& rb
-        ) override
-    {
-        BaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     ///@}
     ///@name Access
@@ -697,49 +440,132 @@ public:
     ///@{
 
     ///@}
-    ///@name Friends
+    ///@name Input and output
     ///@{
 
+    ///@}
+    ///@name Friends
+    ///@{
+private:
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        )
+    {
+        // We iterate over the nodes
+        auto& r_nodes = rModelPart.Nodes();
+
+        // If we consider rotation dofs
+        const bool has_dof_for_rot_z = (r_nodes.begin())->HasDofFor(ROTATION_Z);
+
+        // Auxiliar values
+        array_1d<double, 3> force_residual = ZeroVector(3);
+        array_1d<double, 3> moment_residual = ZeroVector(3);
+
+        // Iterating nodes
+        const auto it_node_begin = r_nodes.begin();
+        #pragma omp parallel for firstprivate(force_residual, moment_residual)
+        for(int i=0; i<static_cast<int>(r_nodes.size()); ++i) {
+            auto it_node = it_node_begin + i;
+
+            noalias(force_residual) = it_node->FastGetSolutionStepValue(FORCE_RESIDUAL);
+            if (has_dof_for_rot_z) {
+                noalias(moment_residual) = it_node->FastGetSolutionStepValue(MOMENT_RESIDUAL);
+            }
+
+            for (auto& r_dof : it_node->GetDofs()) {
+                if (r_dof.IsFixed()) {
+                    const auto& r_var = r_dof.GetVariable();
+                    if (r_var == DISPLACEMENT_X) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_X);
+                        r_reaction = force_residual[0];
+                    } else if (r_var == DISPLACEMENT_Y) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Y);
+                        r_reaction = force_residual[1];
+                    } else if (r_var == DISPLACEMENT_Z) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_Z);
+                        r_reaction = force_residual[2];
+                    } else if (r_var == ROTATION_X) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_X);
+                        r_reaction = moment_residual[0];
+                    } else if (r_var == ROTATION_Y) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Y);
+                        r_reaction = moment_residual[1];
+                    } else if (r_var == ROTATION_Z) {
+                        double& r_reaction = it_node->FastGetSolutionStepValue(REACTION_MOMENT_Z);
+                        r_reaction = moment_residual[2];
+                    }
+                }
+            }
+        }
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
     ///@}
 
 protected:
-
-    ///@}
-    ///@name Protected Structs
-    ///@{
-
-    /**
-     * @brief This struct contains the information related with the increment od time step
-     */
-    struct DeltaTimeParameters {
-        double PredictionLevel; // 0, 1, 2 // NOTE: Should be a integer?
-        double Maximum;         // Maximum delta time
-        double Fraction;        // Fraction of the delta time
-    };
-
-    /**
-     * @brief This struct contains the details of the time variables
-     */
-    struct TimeVariables {
-        double PreviousMiddle; // n-1/2
-        double Previous;       // n
-        double Middle;         // n+1/2
-        double Current;        // n+1
-
-        double Delta;          // Time step
-    };
-
     ///@name Protected static Member Variables
     ///@{
-
-    TimeVariables mTime;            /// This struct contains the details of the time variables
-    DeltaTimeParameters mDeltaTime; /// This struct contains the information related with the increment od time step
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-    ///@}
+    typename TSchemeType::Pointer mpScheme;
+
+    /**
+     * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
+     * @details
+        - true  => reforme at each time step
+        - false => form just one (more efficient)
+        Default = false
+    */
+    bool mReformDofSetAtEachStep;
+
+    /**
+     * @brief Flag telling if it is needed or not to compute the reactions
+     * @details default = true
+     */
+    bool mCalculateReactionsFlag = true;
+
+    /**
+     * @brief Flag telling if the initialize was performed
+     * @details default = false
+     */
+    bool mInitializeWasPerformed = false;
+
+     ///@}
     ///@name Protected Operators
     ///@{
 
@@ -759,66 +585,16 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-    ///@}
-
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    /**
-    * @brief Functions that calculates the RHS of a "TObjectType" object
-    * @param pCurrentEntity The TObjectType to compute
-    * @param RHS_Contribution The RHS vector contribution
-    * @param rCurrentProcessInfo The current process info instance
+    /** Copy constructor.
     */
-    template <typename TObjectType>
-    void TCalculate_RHS_Contribution(
-        TObjectType pCurrentEntity,
-        LocalSystemVectorType& RHS_Contribution,
-        ProcessInfo& rCurrentProcessInfo
-        )
-    {
-        (pCurrentEntity)->CalculateRightHandSide(RHS_Contribution, rCurrentProcessInfo);
-
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, FORCE_RESIDUAL, rCurrentProcessInfo);
-        (pCurrentEntity)->AddExplicitContribution(RHS_Contribution, RESIDUAL_VECTOR, MOMENT_RESIDUAL, rCurrentProcessInfo);
-    }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+    MechanicalExplicitStrategy(const MechanicalExplicitStrategy& Other){};
 
     ///@}
 
-}; /* Class ExplicitCentralDifferencesScheme */
-
-///@}
-
-///@name Type Definitions
-///@{
+}; /* Class MechanicalExplicitStrategy */
 
 ///@}
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME  defined */
+#endif /* KRATOS_EXPLICIT_STRATEGY  defined */
