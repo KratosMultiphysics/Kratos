@@ -5,97 +5,112 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 class TestTimeDiscretization(KratosUnittest.TestCase):
 
+    def _test_bdf_time_discretization(self, bdf, exp_results, *delta_times):
+        test_model = KM.Model()
+        model_part = test_model.CreateModelPart("test_mp")
+        for dt in reversed(delta_times):
+            print(dt)
+            model_part.CloneTimeStep(model_part.ProcessInfo[KM.TIME] + dt) # filling the time-step-info
+
+        exp_size = len(exp_results)
+
+        coeffs = bdf.ComputeBDFCoefficients(*delta_times)
+
+        self.assertEqual(len(coeffs), exp_size)
+        for coeff, exp_coeff in zip(coeffs, exp_results):
+            self.assertAlmostEqual(coeff, exp_coeff)
+
+        self.assertEqual(KM.GetMinimumBufferSize(bdf), exp_size)
+
+        # test with passing a ProcessInfo
+        coeffs = bdf.ComputeBDFCoefficients(model_part.ProcessInfo)
+        self.assertEqual(len(coeffs), exp_size)
+        for coeff, exp_coeff in zip(coeffs, exp_results):
+            self.assertAlmostEqual(coeff, exp_coeff)
+
     def test_BDF1(self):
         bdf = KM.BDF1()
 
         delta_time = 0.11
+        exp_results = [
+            1.0/delta_time,
+            -1.0/delta_time
+        ]
 
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 2)
-        self.assertAlmostEqual(coeffs[0], 1.0/delta_time)
-        self.assertAlmostEqual(coeffs[1], -1.0/delta_time)
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 2)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time)
 
     def test_BDF2(self):
         bdf = KM.BDF2()
 
         delta_time = 0.11
         prev_delta_time = 0.089
-
-        coeffs = bdf.ComputeBDFCoefficients(delta_time, prev_delta_time)
-        self.assertEqual(len(coeffs), 3)
-
         rho = prev_delta_time / delta_time;
         time_coeff = 1.0 / (delta_time * rho * rho + delta_time * rho);
+        exp_results = [
+            time_coeff * (rho * rho + 2.0 * rho),
+            -time_coeff * (rho * rho + 2.0 * rho + 1.0),
+            time_coeff
+        ]
 
-        self.assertAlmostEqual(coeffs[0], time_coeff * (rho * rho + 2.0 * rho))
-        self.assertAlmostEqual(coeffs[1], -time_coeff * (rho * rho + 2.0 * rho + 1.0))
-        self.assertAlmostEqual(coeffs[2], time_coeff)
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 3)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time, prev_delta_time)
 
     def test_BDF3(self):
         bdf = KM.BDF3()
 
         delta_time = 0.11
+        exp_results = [
+            11.0/(6.0*delta_time),
+            -18.0/(6.0*delta_time),
+            9.0/(6.0*delta_time),
+            -2.0/(6.0*delta_time)
+        ]
 
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 4)
-        self.assertAlmostEqual(coeffs[0],  11.0/(6.0*delta_time))
-        self.assertAlmostEqual(coeffs[1], -18.0/(6.0*delta_time))
-        self.assertAlmostEqual(coeffs[2],   9.0/(6.0*delta_time))
-        self.assertAlmostEqual(coeffs[3],  -2.0/(6.0*delta_time))
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 4)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time)
 
     def test_BDF4(self):
         bdf = KM.BDF4()
 
         delta_time = 0.11
+        exp_results = [
+            25.0/(12.0*delta_time),
+            -48.0/(12.0*delta_time),
+            36.0/(12.0*delta_time),
+            -16.0/(12.0*delta_time),
+            3.0/(12.0*delta_time)
+        ]
 
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 5)
-        self.assertAlmostEqual(coeffs[0],  25.0/(12.0*delta_time))
-        self.assertAlmostEqual(coeffs[1], -48.0/(12.0*delta_time))
-        self.assertAlmostEqual(coeffs[2],  36.0/(12.0*delta_time))
-        self.assertAlmostEqual(coeffs[3], -16.0/(12.0*delta_time))
-        self.assertAlmostEqual(coeffs[4],   3.0/(12.0*delta_time))
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 5)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time)
 
     def test_BDF5(self):
         bdf = KM.BDF5()
 
         delta_time = 0.11
+        exp_results = [
+            137.0/(60.0*delta_time),
+            -300.0/(60.0*delta_time),
+            300.0/(60.0*delta_time),
+            -200.0/(60.0*delta_time),
+            75.0/(60.0*delta_time),
+            -12.0/(60.0*delta_time)
+        ]
 
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 6)
-        self.assertAlmostEqual(coeffs[0],  137.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[1], -300.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[2],  300.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[3], -200.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[4],   75.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[5],  -12.0/(60.0*delta_time))
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 6)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time)
 
     def test_BDF6(self):
         bdf = KM.BDF6()
 
         delta_time = 0.11
+        exp_results = [
+            147.0/(60.0*delta_time),
+            -360.0/(60.0*delta_time),
+            450.0/(60.0*delta_time),
+            -400.0/(60.0*delta_time),
+            225.0/(60.0*delta_time),
+            -72.0/(60.0*delta_time),
+            10.0/(60.0*delta_time)
+        ]
 
-        coeffs = bdf.ComputeBDFCoefficients(delta_time)
-        self.assertEqual(len(coeffs), 7)
-        self.assertAlmostEqual(coeffs[0],  147.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[1], -360.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[2],  450.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[3], -400.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[4],  225.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[5],  -72.0/(60.0*delta_time))
-        self.assertAlmostEqual(coeffs[6],   10.0/(60.0*delta_time))
-
-        self.assertEqual(KM.GetMinimumBufferSize(bdf), 7)
+        self._test_bdf_time_discretization(bdf, exp_results, delta_time)
 
     def test_Newmark(self):
         gen_alpha = KM.Newmark()
