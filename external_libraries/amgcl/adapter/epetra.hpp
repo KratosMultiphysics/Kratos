@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 Copyright (c) 2014, Riccardo Rossi, CIMNE (International Center for Numerical Methods in Engineering)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -38,8 +38,10 @@ THE SOFTWARE.
 #include <Epetra_CrsMatrix.h>
 #include <Epetra_IntVector.h>
 #include <Epetra_Import.h>
+#include <Epetra_Comm.h>
 
 #include <amgcl/backend/interface.hpp>
+#include <amgcl/detail/sort_row.hpp>
 
 namespace amgcl {
 namespace adapter {
@@ -88,11 +90,22 @@ class epetra_map {
                         const Epetra_CrsMatrix &A,
                         const Epetra_IntVector &order,
                         int row
-                        ) : order(order)
+                        )
                 {
                     int nnz;
                     A.ExtractMyRowView(row, nnz, m_val, m_col);
                     m_end = m_col + nnz;
+
+                    col_copy.assign(m_col, m_col + nnz);
+                    val_copy.assign(m_val, m_val + nnz);
+
+                    for(auto &c : col_copy) c = order[c];
+
+                    m_col = &col_copy[0];
+                    m_end = m_col + nnz;
+                    m_val = &val_copy[0];
+
+                    amgcl::detail::sort_row(m_col, m_val, nnz);
                 }
 
                 operator bool() const {
@@ -106,7 +119,7 @@ class epetra_map {
                 }
 
                 col_type col() const {
-                    return order[*m_col];
+                    return *m_col;
                 }
 
                 val_type value() const {
@@ -114,11 +127,12 @@ class epetra_map {
                 }
 
             private:
-                const Epetra_IntVector &order;
-
                 col_type * m_col;
                 col_type * m_end;
                 val_type * m_val;
+
+                std::vector<col_type> col_copy;
+                std::vector<val_type> val_copy;
         };
 
         row_iterator row_begin(int row) const {

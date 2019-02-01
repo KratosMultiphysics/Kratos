@@ -198,7 +198,7 @@ protected:
     /**
     * @brief This method returns if the element provides the strain
     */
-    bool UseElementProvidedStrain() override;
+    bool UseElementProvidedStrain() const override;
 
     /**
     * This functions updates the kinematics variables
@@ -218,10 +218,10 @@ protected:
             VectorType& rRightHandSideVector,
             const KinematicVariables& rThisKinematicVariables,
             const ProcessInfo& rCurrentProcessInfo,
-            const Vector& rBodyForce,
+            const array_1d<double, 3>& rBodyForce,
             const Vector& rStressVector,
             const double IntegrationWeight
-            ) override ;
+            ) const override;
 
     /**
      * This functions updates the data structure passed to the CL
@@ -267,12 +267,12 @@ protected:
     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
     */
     void CalculateAll(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
-            const bool CalculateStiffnessMatrixFlag,
-            const bool CalculateResidualVectorFlag
-            ) override;
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
 
     /**
     * Calculation of the Deformation Matrix B

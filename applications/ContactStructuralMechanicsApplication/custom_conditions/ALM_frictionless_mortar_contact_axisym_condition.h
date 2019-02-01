@@ -66,7 +66,7 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition
     KRATOS_CLASS_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition );
 
-    typedef AugmentedLagrangianMethodMortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation> MortarBaseType;
+    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation> MortarBaseType;
 
     typedef AugmentedLagrangianMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
 
@@ -171,6 +171,12 @@ public:
     /******************************************************************/
 
     /**
+     * @brief This functions returns if the computation is axisymmetric or not
+     * @return If axisymmetric or not
+     */
+    bool IsAxisymmetric() const override;
+
+    /**
      * This functions computes the integration weight to consider
      * @param rVariables The kinematic variables
      */
@@ -195,6 +201,28 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition #" << this->Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "AugmentedLagrangianMethodFrictionlessMortarContactAxisymCondition #" << this->Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        PrintInfo(rOStream);
+        this->GetGeometry().PrintData(rOStream);
+        this->GetPairedGeometry().PrintData(rOStream);
+    }
 
     ///@}
     ///@name Friends
