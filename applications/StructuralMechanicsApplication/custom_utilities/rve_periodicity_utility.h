@@ -193,19 +193,7 @@ class RVEPeriodicityUtility
                             Node<3>::Pointer pSlaveNode,
                             const std::vector<unsigned int>& rMasterIds,
                             const Matrix& rRelationMatrix,
-                            const Vector& rTranslationVector)
-    {
-        LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs, master_dofs;
-        slave_dofs.reserve(1);
-        master_dofs.reserve(rMasterIds.size());
-
-        slave_dofs.push_back(pSlaveNode->pGetDof(rVar));
-        for (unsigned int i = 0; i < rMasterIds.size(); ++i)
-            master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
-        mrModelPart.AddMasterSlaveConstraint(
-            Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector));
-        rConstraintId += 1;
-    }
+                            const Vector& rTranslationVector);
 
     ///@}
     ///@name Private Operations
