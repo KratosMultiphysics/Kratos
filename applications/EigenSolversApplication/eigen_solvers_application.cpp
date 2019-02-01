@@ -25,7 +25,7 @@ void KratosEigenSolversApplication::Register()
 {
     // calling base class register to register Kratos components
     KratosApplication::Register();
-    KRATOS_INFO("") << "Initializing KratosEigenSolversApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing KratosEigenSolversApplication..." << std::endl;
 
     EigenSolversApplicationRegisterLinearSolvers();
 }

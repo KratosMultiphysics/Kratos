@@ -428,7 +428,7 @@ class ConstructionUtility
         // Getting CheckTemperature Values
         const double maximum_temperature_increment = CheckTemperatureParameters["maximum_temperature_increment"].GetDouble();
         const double maximum_temperature_aux = CheckTemperatureParameters["maximum_temperature"].GetDouble();
-        const double minimum_temperature = CheckTemperatureParameters["minimum_temperature"].GetDouble();
+        const double minimum_temperature_aux = CheckTemperatureParameters["minimum_temperature"].GetDouble();
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -440,6 +440,7 @@ class ConstructionUtility
             if (it->Is(ACTIVE) && it->IsNot(SOLID))
             {
                 double maximum_temperature = std::max(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE) + maximum_temperature_increment, maximum_temperature_aux);
+                double minimum_temperature = std::min(it->FastGetSolutionStepValue(PLACEMENT_TEMPERATURE), minimum_temperature_aux);
                 double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 
                 if (current_temperature > maximum_temperature)
@@ -454,6 +455,7 @@ class ConstructionUtility
             else if (it->Is(ACTIVE) && it->Is(SOLID))
             {
                 double maximum_temperature = maximum_temperature_aux;
+                double minimum_temperature = minimum_temperature_aux;
                 double current_temperature = it->FastGetSolutionStepValue(TEMPERATURE);
 
                 if (current_temperature > maximum_temperature)
@@ -715,11 +717,12 @@ class ConstructionUtility
         const int nnodes = mrThermalModelPart.Nodes().size();
 
         // Getting Noorzai Values
-        double density = NoorzaiParameters["density"].GetDouble();
-        double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
-        double alpha = NoorzaiParameters["alpha"].GetDouble();
-        double t_max = NoorzaiParameters["t_max"].GetDouble();
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double density = NoorzaiParameters["density"].GetDouble();
+        const double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
+        const double alpha = NoorzaiParameters["alpha"].GetDouble();
+        const double t_max = NoorzaiParameters["t_max"].GetDouble();
+        const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -731,7 +734,7 @@ class ConstructionUtility
             if (current_activation_time >= 0.0 && (it->Is(SOLID) == false))
             {
                 // Computing the value of heat flux according the time
-                double value = density * specific_heat * alpha * t_max * (exp(-alpha * current_activation_time));
+                double value = density * specific_heat * alpha * t_max * (exp(-alpha * (current_activation_time + 0.5 * delta_time)));
                 it->FastGetSolutionStepValue(HEAT_FLUX) = value;
             }
         }
