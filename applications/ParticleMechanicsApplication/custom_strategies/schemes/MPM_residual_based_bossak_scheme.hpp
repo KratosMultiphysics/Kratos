@@ -473,7 +473,7 @@ public:
             const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
             const double & nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
 
-            if (nodal_mass > 1.0e-16 )
+            if (nodal_mass > std::numeric_limits<double>::epsilon())
             {
                 array_1d<double, 3 > & delta_nodal_velocity     = (i)->FastGetSolutionStepValue(AUX_VELOCITY,1);
                 array_1d<double, 3 > & delta_nodal_acceleration = (i)->FastGetSolutionStepValue(AUX_ACCELERATION,1);
@@ -495,7 +495,7 @@ public:
                 }
 
                 // For particle conditions: additional nodal velocity contribution
-                if ( nodal_area > 1.0e-16 )
+                if ( nodal_area > std::numeric_limits<double>::epsilon())
                 {
                     const array_1d<double, 3 > & dirichlet_nodal_velocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,0) / nodal_area;
                     nodal_velocity += dirichlet_nodal_velocity;

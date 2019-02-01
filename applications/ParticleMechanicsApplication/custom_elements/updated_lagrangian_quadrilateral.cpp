@@ -1001,7 +1001,7 @@ void UpdatedLagrangianQuadrilateral::UpdateGaussPoint( GeneralVariables & rVaria
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        if (rVariables.N[i] > 1e-16)
+        if (rVariables.N[i] > std::numeric_limits<double>::epsilon() )
         {
             const array_1d<double, 3 > & nodal_acceleration = rGeom[i].FastGetSolutionStepValue(ACCELERATION);
 
