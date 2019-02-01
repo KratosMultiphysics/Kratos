@@ -84,7 +84,7 @@ namespace Kratos
         }
     }
 
-    void RVEPeriodicityUtility::AppendIdsAndWeights(
+  void RVEPeriodicityUtility::AppendIdsAndWeights(
         std::map<unsigned int, DataTupletype> &rAux,
         const unsigned int MasterId,
         const double MasterWeight,
@@ -114,6 +114,27 @@ namespace Kratos
             }
         }
     }
+
+
+    void RVEPeriodicityUtility::GenerateConstraint(unsigned int& rConstraintId,
+                            const VariableComponent<VectorComponentAdaptor<array_1d<double, 3>>>& rVar,
+                            Node<3>::Pointer pSlaveNode,
+                            const std::vector<unsigned int>& rMasterIds,
+                            const Matrix& rRelationMatrix,
+                            const Vector& rTranslationVector)
+    {
+        LinearMasterSlaveConstraint::DofPointerVectorType slave_dofs, master_dofs;
+        slave_dofs.reserve(1);
+        master_dofs.reserve(rMasterIds.size());
+
+        slave_dofs.push_back(pSlaveNode->pGetDof(rVar));
+        for (unsigned int i = 0; i < rMasterIds.size(); ++i)
+            master_dofs.push_back(mrModelPart.pGetNode(rMasterIds[i])->pGetDof(rVar));
+        mrModelPart.AddMasterSlaveConstraint(
+            Kratos::make_shared<LinearMasterSlaveConstraint>(rConstraintId, master_dofs, slave_dofs, rRelationMatrix, rTranslationVector));
+        rConstraintId += 1;
+    }   
+
 
     void RVEPeriodicityUtility::Finalize(const Variable<array_1d<double, 3>> &rVariable)
     {
