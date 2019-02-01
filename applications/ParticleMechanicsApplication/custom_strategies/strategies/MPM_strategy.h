@@ -856,8 +856,13 @@ public:
                         {
                             if (!rGeom[j].Is(VISITED))
                             {
+                                // Nodal normal vector is used
+                                MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                                const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
+                                if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
+
                                 // Create new material point condition
-                                new_condition_id = last_condition_id + j;
+                                new_condition_id = last_condition_id;
                                 Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
 
                                 mpc_xg.clear();
@@ -877,11 +882,9 @@ public:
                                 mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
 
                                 rGeom[j].Set(VISITED);
+                                last_condition_id ++;
                             }
                         }
-
-                        last_condition_id += rGeom.size();
-
                     }
                 }
             }
