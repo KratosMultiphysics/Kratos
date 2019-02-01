@@ -45,7 +45,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
         for i in range(0,6):
             for j in range(0,6):
                 print(i,j,Cestimated[i,j],Canalytic[i,j])
-                self.assertAlmostEqual(abs(Cestimated[i,j] - Canalytic[i,j])/(l+2*G),0.0,3)
+                self.assertAlmostEqual(abs(Cestimated[i,j] - Canalytic[i,j])/(l+2*G),0.0,5)
 
         print(Canalytic)
         print(Cestimated)
