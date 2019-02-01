@@ -121,9 +121,6 @@ private:
         
         unsigned int mIdOfLocation;
         StressTreatment mStressTreatment;
-        TracedStressType mTracedStressType; 
-        std::vector<TracedStressType> mTracedForcesVector;
-        std::vector<TracedStressType> mTracedMomentsVector; 
         std::vector<TracedStressType> mTracedStressesVector;
               
     ///@}

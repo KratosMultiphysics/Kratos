@@ -34,20 +34,26 @@ namespace Kratos
         KRATOS_TRY;   
 
         // Tell the traced forces 
-        SizeType num_traced_forces = ResponseSettings["stress_types"]["forces"].size();
-        mTracedForcesVector.resize(num_traced_forces);
+        std::vector<TracedStressType> TracedForcesVector;
+        SizeType num_traced_forces = ResponseSettings["compute_on_gp"]["stresses"]["forces"].size();
+        
+        if (TracedForcesVector.size() != num_traced_forces)
+            TracedForcesVector.resize(num_traced_forces);
         
         for ( IndexType i = 0; i < num_traced_forces; i++ )        
-            mTracedForcesVector[i] = 
-                StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_types"]["forces"][i].GetString());
+            TracedForcesVector[i] = 
+                StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["compute_on_gp"]["stresses"]["forces"][i].GetString());
         
         // Tell the traced moments
-        SizeType num_traced_moments = ResponseSettings["stress_types"]["moments"].size();
-        mTracedMomentsVector.resize(num_traced_moments);
+        std::vector<TracedStressType> TracedMomentsVector;
+        SizeType num_traced_moments = ResponseSettings["compute_on_gp"]["stresses"]["moments"].size();
+        
+        if (TracedMomentsVector.size() != num_traced_moments)
+            TracedMomentsVector.resize(num_traced_moments);
         
         for ( IndexType i = 0; i < num_traced_moments; i++ )        
-            mTracedMomentsVector[i] = 
-                StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["stress_types"]["moments"][i].GetString());
+            TracedMomentsVector[i] = 
+                StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["compute_on_gp"]["stresses"]["moments"][i].GetString());
         
         SizeType num_traced_stresses = num_traced_forces + num_traced_moments;
 
@@ -56,17 +62,18 @@ namespace Kratos
 
         for ( IndexType i = 0; i < num_traced_forces; i++ )
         {
-            mTracedStressesVector[i] = mTracedForcesVector[i];
+            mTracedStressesVector[i] = TracedForcesVector[i];
             for ( IndexType j = 0; j < num_traced_moments; j++ )
-            mTracedStressesVector[j+num_traced_forces] = mTracedMomentsVector[j];
+                mTracedStressesVector[j+num_traced_forces] = TracedMomentsVector[j];
         }
                       
         // Get info how and where to treat the stress
-        mStressTreatment = StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["stress_treatment"].GetString() );
+        mStressTreatment = 
+            StressResponseDefinitions::ConvertStringToStressTreatment( ResponseSettings["output_definition"]["stress_treatment"].GetString() );
         
-        if(mStressTreatment == StressTreatment::GaussPoint || mStressTreatment == StressTreatment::Node)
+        if( mStressTreatment == StressTreatment::GaussPoint )
         {
-            mIdOfLocation = ResponseSettings["stress_location"].GetInt();
+            mIdOfLocation = ResponseSettings["output_definition"]["stress_location"].GetInt();
             KRATOS_ERROR_IF(mIdOfLocation < 1) << "Chose a 'stress_location' > 0. Specified 'stress_location': " << mIdOfLocation << std::endl;
         }
         
