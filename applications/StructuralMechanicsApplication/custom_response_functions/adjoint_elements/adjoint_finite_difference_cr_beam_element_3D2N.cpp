@@ -59,6 +59,9 @@ void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Va
         {
             this->CalculateAdjointFieldOnIntegrationPoints(FORCE, rOutput, rCurrentProcessInfo);
 
+            KRATOS_WARNING_IF("ADJOINT_STRAIN", (this->GetProperties().Has(AREA_EFFECTIVE_Y) || this->GetProperties().Has(AREA_EFFECTIVE_Z)))
+                        << "Not available for Timoschenko beam!" << std::endl;
+
             for (IndexType i = 0; i < rOutput.size(); ++i)
             {
                 rOutput[i][0] *= 1.0 / (E * A);
