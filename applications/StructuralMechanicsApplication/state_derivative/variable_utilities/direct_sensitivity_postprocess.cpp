@@ -341,8 +341,19 @@ namespace Kratos
             elem_i.GetValuesVector(displacement_gradient[k]);
             
             // Output of dg/du und du/ds
-            for(IndexType i = 0; i < displacement_gradient[k].size(); ++i)
-                std::cout << "du/ds: " << displacement_gradient[k][i] << "  ::  " << "dg/du: " << response_displacement_gradient[k](0,i) << " , " << response_displacement_gradient[k](1,i) << " , " << response_displacement_gradient[k](2,i) << std::endl; 
+            /*std::cout << "du/ds: "; 
+            for(IndexType i = 0; i < num_dofs; ++i)
+                std::cout << displacement_gradient[k][i] << "  :  ";
+            std::cout << std::endl; 
+            
+            std::cout << "dg/du: " << std::endl;
+            for(IndexType i = 0; i < num_dofs; ++i)
+            {
+                for(IndexType j = 0; j < num_traced_stresses; ++j)
+                    std::cout << response_displacement_gradient[k](j,i) << "  :  ";
+                std::cout << std::endl;
+            }*/
+             
 
             // Sizing of the sensitivity vector 
             if(sensitivity_vector[k].size() != num_traced_stresses)
@@ -363,7 +374,6 @@ namespace Kratos
                         helping_vector[k][j] = response_displacement_gradient[k](i,j); 
 
                     sensitivity_vector[k][i] = MathUtils<double>::Dot(helping_vector[k], displacement_gradient[k]);
-                    std::cout << "product: " << sensitivity_vector[k][i] << std::endl;
 
                     helping_vector[k].clear();
                 }                
@@ -373,13 +383,26 @@ namespace Kratos
                 KRATOS_ERROR_IF_NOT( response_sensitivity_gradient[k].size() == sensitivity_vector[k].size() ) << 
                     "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
                 
+                // Output dg/ds and sensitivity vector
+                std::cout << "dg/ds: ";
                 for(IndexType i = 0; i < sensitivity_vector[k].size(); ++i)
                 {  
-                    std::cout << "dg/ds: " << response_sensitivity_gradient[k][i] << std::endl;
-                    sensitivity_vector[k][i] += response_sensitivity_gradient[k][i];
-                    std::cout << "Sensitivity_vector:  "<< sensitivity_vector[k][i] << std::endl;
-                }              
-            } 
+                    std::cout << response_sensitivity_gradient[k][i] << "  :  ";                     
+                    sensitivity_vector[k][i] += response_sensitivity_gradient[k][i];                    
+                } 
+                std::cout << std::endl;
+                std::cout << "Sensitivity_vector:  "; 
+                for(IndexType i = 0; i < sensitivity_vector[k].size(); ++i)
+                    std::cout << sensitivity_vector[k][i] << "  :  "; 
+                std::cout << std::endl;
+            }
+            else
+            { 
+                std::cout << "Sensitivity_vector:  ";
+                for(IndexType i = 0; i < sensitivity_vector[k].size(); ++i)
+                    std::cout << sensitivity_vector[k][i] << "  :  ";  
+                std::cout << std::endl;                            
+            }
         }
 
         KRATOS_CATCH("")
