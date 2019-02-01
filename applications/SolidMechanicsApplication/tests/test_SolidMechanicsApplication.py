@@ -1,6 +1,7 @@
 # import Kratos
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication
+import KratosMultiphysics.ExternalSolversApplication
 import run_cpp_tests
 
 # Import Kratos "wrapper" for unittests

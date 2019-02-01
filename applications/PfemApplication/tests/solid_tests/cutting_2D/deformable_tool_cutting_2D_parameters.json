@@ -77,7 +77,7 @@
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
-                        "solver_type" : "ks_superlu_direct",
+                        "solver_type" : "super_lu",
 			"tolerance"   : 1e-7,
 			"max_iteration" : 7000,
 			"scaling"     : true
@@ -106,7 +106,7 @@
 			"residual_absolute_tolerance" : 1e-9
 		    },
 		    "linear_solver_settings"    : {
-			"solver_type" : "ks_superlu_direct",
+			"solver_type" : "super_lu",
 			"tolerance"   : 1e-7,
 			"max_iteration" : 5000,
 			"scaling"     : false

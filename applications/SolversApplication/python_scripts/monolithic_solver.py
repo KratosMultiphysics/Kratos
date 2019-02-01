@@ -72,7 +72,7 @@ class MonolithicSolver(object):
                 "max_iteration": 10
             },
             "linear_solver_settings":{
-                "solver_type": "ks_superlu_direct",
+                "solver_type": "super_lu",
                 "max_iteration": 500,
                 "tolerance": 1e-9,
                 "scaling": false
@@ -82,7 +82,7 @@ class MonolithicSolver(object):
         """)
 
         #check existing default linear solver exit
-        if not hasattr(KratosMultiphysics.SolversApplication, "ks_superlu_direct"):
+        if not hasattr(KratosMultiphysics.SolversApplication, "super_lu"):
             default_settings["linear_solver_settings"]["solver_type"].SetString("SkylineLUFactorizationSolver")
 
         # Linear solver settings can have different number of settings
@@ -255,7 +255,6 @@ class MonolithicSolver(object):
             return True
 
     def _set_model_info(self):
-
         # Get solving model part
         self.model_part = self.model[self.settings["solving_model_part"].GetString()]
 

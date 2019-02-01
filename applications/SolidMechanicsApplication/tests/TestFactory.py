@@ -5,6 +5,8 @@ import KratosMultiphysics
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.ExternalSolversApplication
+
 import MainSolid
 
 # Set threads

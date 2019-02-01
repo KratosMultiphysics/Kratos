@@ -7,9 +7,6 @@ include(pybind11Tools)
 
 include_directories(${CMAKE_SOURCE_DIR}/kratos)
 
-set(EXTERNAL_LIBRARIES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries")
-INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/custom_cmake/Solvers.cmake")
-
 # generate variables with the sources
 set( KRATOS_SOLVERS_APPLICATION_CORE
 	${CMAKE_CURRENT_SOURCE_DIR}/solvers_application.cpp
@@ -32,14 +29,13 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 set( KRATOS_SOLVERS_APPLICATION_PYTHON_INTERFACE
         # Custom python
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/solvers_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_linear_solvers_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 )
 
 add_library(KratosSolversCore SHARED ${KRATOS_SOLVERS_APPLICATION_CORE})
-target_link_libraries(KratosSolversCore PUBLIC KratosCore ${SOLVERS_LIBRARIES})
+target_link_libraries(KratosSolversCore PUBLIC KratosCore)
 set_target_properties(KratosSolversCore PROPERTIES COMPILE_DEFINITIONS "SOLVERS_APPLICATION=EXPORT,API")
 
 ###############################################################

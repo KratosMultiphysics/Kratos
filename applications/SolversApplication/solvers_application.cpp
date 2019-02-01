@@ -103,20 +103,5 @@ void KratosSolversApplication::Register()
   KRATOS_REGISTER_VARIABLE(EIGENVALUE_VECTOR)
   KRATOS_REGISTER_VARIABLE(EIGENVECTOR_MATRIX)
 
-  //Register Solver Factories
-
-#ifdef INCLUDE_SUPERLU_MT
-  KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_direct", mSuperLUmtDirectSolverFactory);
-#endif
-
-#ifdef INCLUDE_SUPERLU
-  KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_direct", mSuperLUDirectSolverFactory);
-  KRATOS_REGISTER_LINEAR_SOLVER("ks_superlu_iterative", mSuperLUIterativeSolverFactory);
-#endif
-
-#ifdef INCLUDE_FEAST
-  KRATOS_REGISTER_LINEAR_SOLVER("ks_feast_eigen", mFEASTEigenValueSolverFactory);
-#endif
-
 }
 }  // namespace Kratos.
