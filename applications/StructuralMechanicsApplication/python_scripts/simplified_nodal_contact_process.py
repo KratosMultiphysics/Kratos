@@ -120,7 +120,7 @@ class SimplifiedNodalContactProcess(KratosMultiphysics.Process):
         distance_linear_solver_settings = KratosMultiphysics.Parameters( """{
                                        "solver_type" : "AMGCL"
                                    } """)
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         distance_linear_solver = linear_solver_factory.ConstructSolver(distance_linear_solver_settings)
 
         max_iterations=30

@@ -61,7 +61,7 @@ public:
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
 
-    typedef std::vector<Node<3>*> NodePointerVectorType;
+    typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
     ///@}
     ///@name Life Cycle
     ///@{
@@ -212,11 +212,11 @@ public:
 		  if(vertices.back().Is(RIGID) || vertices.back().Is(SOLID)){
 		    numrigid++;
 
-		    NodePointerVectorType& rN = vertices.back().GetValue(NEIGHBOR_NODES);
+		    NodeWeakPtrVectorType& rN = vertices.back().GetValue(NEIGHBOUR_NODES);
 		    bool localIsolatedWallNode=true;
 		    for(unsigned int i = 0; i < rN.size(); i++)
 		      {
-			if(rN[i]->IsNot(RIGID)){
+			if(rN[i].IsNot(RIGID)){
 			  // isolatedWallElement=false;
 			  localIsolatedWallNode=false;
 			}

@@ -218,7 +218,7 @@ protected:
             VectorType& rRightHandSideVector,
             const KinematicVariables& rThisKinematicVariables,
             const ProcessInfo& rCurrentProcessInfo,
-            const Vector& rBodyForce,
+            const array_1d<double, 3>& rBodyForce,
             const Vector& rStressVector,
             const double IntegrationWeight
             ) const override;

@@ -104,7 +104,7 @@ void FemDem3DElement::InitializeSolutionStep(ProcessInfo &rCurrentProcessInfo)
 void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 {
 	// After the mapping, the thresholds of the edges ( are equal to 0.0) are imposed equal to the IP threshold
-	const double element_threhsold = this->GetValue(STRESS_THRESHOLD);
+	const double element_threhsold = mThreshold;
 	if (mThresholds[0] + mThresholds[1] + mThresholds[2] + mThresholds[3] +
 	    mThresholds[4] + mThresholds[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
@@ -113,7 +113,7 @@ void FemDem3DElement::InitializeInternalVariablesAfterMapping()
 	}
 
 	// IDEM with the edge damages
-	const double damage_element = this->GetValue(DAMAGE_ELEMENT);
+	const double damage_element = mDamage;
 	if (mDamages[0] + mDamages[1] + mDamages[2] + mDamages[3] + mDamages[4] +
 		mDamages[5] < std::numeric_limits<double>::epsilon()) {
 		for (unsigned int edge = 0; edge < this->GetNumberOfEdges(); edge++) {
@@ -220,11 +220,11 @@ void FemDem3DElement::UpdateDataBase()
 		mThresholds[edge] = mNonConvergedThresholds[edge];
 	}
 
-	mDamage = this->CalculateElementalDamage(mDamages);
-	mThreshold = this->CalculateElementalDamage(mThresholds);
-
-	this->SetValue(DAMAGE_ELEMENT, mDamage);
-	this->SetValue(STRESS_THRESHOLD, mThreshold);
+	double converged_damage, converged_threshold;
+	converged_damage = this->CalculateElementalDamage(mDamages);
+	if (converged_damage > mDamage) mDamage = converged_damage;
+	converged_threshold = this->CalculateElementalDamage(mThresholds);
+	if (converged_threshold > mThreshold) mThreshold = converged_threshold;
 }
 
 void FemDem3DElement::FinalizeSolutionStep(ProcessInfo &rCurrentProcessInfo)
@@ -313,7 +313,7 @@ void FemDem3DElement::InitializeNonLinearIteration(ProcessInfo &rCurrentProcessI
 		Values.SetDeformationGradientF(F);
 
 		//set constitutive law flags:
-		Flags &ConstitutiveLawOptions = Values.GetOptions();
+		Flags& ConstitutiveLawOptions = Values.GetOptions();
 
 		//compute stress and constitutive matrix
 		ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
@@ -395,9 +395,7 @@ void FemDem3DElement::CalculateLocalSystem(
 
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
 
-		if (detJ < 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
-
+		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0" << std::endl;
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
 		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
 
@@ -429,7 +427,7 @@ void FemDem3DElement::CalculateLocalSystem(
 		//CALL THE CONSTITUTIVE LAW (for this integration point)
 		//(after calling the constitutive law StressVector and ConstitutiveMatrix are set and can be used)
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
-		const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+		const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 		bool is_damaging = false;
 
 		// Loop over edges of the element
@@ -448,7 +446,7 @@ void FemDem3DElement::CalculateLocalSystem(
 												 average_strain_edge, 
 												 average_stress_edge, 
 												 edge, 
-												 characteristic_lengths[edge],
+												 r_characteristic_lengths[edge],
 												 is_damaging);
 			mNonConvergedDamages[edge] = damage_edge;
 			mNonConvergedThresholds[edge] = threshold;
@@ -543,9 +541,7 @@ void FemDem3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, Pro
 		MathUtils<double>::InvertMatrix(J[PointNumber], InvJ, detJ);
 
 		double integration_weight = integration_points[PointNumber].Weight() * detJ;
-
-		if (detJ < 0)
-			KRATOS_THROW_ERROR(std::invalid_argument, " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 ) detJ = ", detJ)
+		KRATOS_ERROR_IF(detJ < 0) << " SMALL DISPLACEMENT ELEMENT INVERTED: |J|<0 " << std::endl;
 
 		//compute cartesian derivatives for this integration point  [dN/dx_n]
 		noalias(DN_DX) = prod(DN_De[PointNumber], InvJ);
@@ -974,14 +970,14 @@ Vector FemDem3DElement::CalculateCharacteristicLengths()
 	this->SetNodeIndexes(Indexes);
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
-		const double X1 = NodesElem[Indexes(edge, 0)].X();
-		const double X2 = NodesElem[Indexes(edge, 1)].X();
-		const double Y1 = NodesElem[Indexes(edge, 0)].Y();
-		const double Y2 = NodesElem[Indexes(edge, 1)].Y();
-		const double Z1 = NodesElem[Indexes(edge, 0)].Z();
-		const double Z2 = NodesElem[Indexes(edge, 1)].Z();
+		const double X1 = NodesElem[Indexes(edge, 0)].X0();
+		const double X2 = NodesElem[Indexes(edge, 1)].X0();
+		const double Y1 = NodesElem[Indexes(edge, 0)].Y0();
+		const double Y2 = NodesElem[Indexes(edge, 1)].Y0();
+		const double Z1 = NodesElem[Indexes(edge, 0)].Z0();
+		const double Z2 = NodesElem[Indexes(edge, 1)].Z0();
 
-		lengths[edge] = std::sqrt((X1 - X2) * (X1 - X2) + (Y1 - Y2) * (Y1 - Y2) + (Z1 - Z2) * (Z1 - Z2));
+		lengths[edge] = std::sqrt(std::pow((X1 - X2), 2.0) + std::pow((Y1 - Y2), 2.0) + std::pow((Z1 - Z2), 2.0));
 	}
 	return lengths;
 }
@@ -1675,7 +1671,7 @@ void FemDem3DElement::IntegratePerturbedStrain(
 {
 	const Vector& perturbed_predictive_stress = prod(rElasticMatrix, rPerturbedStrainVector);
 	Vector damages_edges = ZeroVector(mNumberOfEdges);
-	const Vector& characteristic_lengths = this->CalculateCharacteristicLengths();
+	const Vector& r_characteristic_lengths = this->CalculateCharacteristicLengths();
 
 	for (unsigned int edge = 0; edge < mNumberOfEdges; edge++) {
 		std::vector<Element*> EdgeNeighbours = this->GetEdgeNeighbourElements(edge);
@@ -1703,7 +1699,7 @@ void FemDem3DElement::IntegratePerturbedStrain(
 											 average_strain_vector, 
 											 average_stress_vector, 
 											 edge, 
-											 characteristic_lengths[edge],
+											 r_characteristic_lengths[edge],
 											 dummy);
 		damages_edges[edge] = damage_edge;
 	} // Loop edges

@@ -95,7 +95,7 @@ class TimeIntegratedFluidElementTest(UnitTest.TestCase):
         self.fluid_solver.conv_criteria.SetEchoLevel(0)
 
         self.fluid_solver.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         self.fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(Parameters(r'''{
                 "solver_type" : "AMGCL"
             }'''))

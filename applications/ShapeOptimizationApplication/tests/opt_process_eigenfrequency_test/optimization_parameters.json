@@ -34,8 +34,7 @@
                 "primal_settings"        : "primal_parameters.json",
                 "gradient_mode"          : "semi_analytic",
                 "step_size"              : 1e-6,
-                "traced_eigenfrequencies": [2],
-                "consider_discretization": false
+                "traced_eigenfrequencies": [2]
             },
             "project_gradient_on_surface_normals" : true
         }],
@@ -60,11 +59,8 @@
             }
         },
         "output" : {
-            "output_directory"        : "Optimization_Results",
-            "response_log_filename"   : "response_log",
-            "design_history_filename" : "design_history",
-            "design_output_mode"      : "WriteOptimizationModelPart",
-            "nodal_results" : [ "SHAPE_CHANGE" ],
+            "design_output_mode" : "WriteOptimizationModelPart",
+            "nodal_results"      : [ "SHAPE_CHANGE" ],
             "output_format" : {
                 "name": "gid"
             }

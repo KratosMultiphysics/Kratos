@@ -133,6 +133,7 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("Rank", &DataCommunicator::Rank)
     .def("Size", &DataCommunicator::Size)
     .def("IsDistributed", &DataCommunicator::IsDistributed)
+    .def_static("GetDefault", &DataCommunicator::GetDefault)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 

@@ -689,7 +689,7 @@ private:
 
 		      new_point.SetId(ic->Id()); //set condition Id
 
-		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
+		      Condition* ContactMasterCondition  = ic->GetValue(MASTER_CONDITION).lock().get();
 
 
 		      if( (rConditionGeometry[0].Is(TO_SPLIT) && rConditionGeometry[1].Is(TO_SPLIT)) )
@@ -955,7 +955,7 @@ private:
 
 	      if (!radius_insert && mrRemesh.Refine->RefiningOptions.Is(MesherUtilities::REFINE_BOUNDARY_ON_THRESHOLD) && vsize>0){
 
-		Element::ElementType& MasterElement = *ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+		Element& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
 		plastic_power=0;
 		std::vector<double> Value(1);
@@ -1005,7 +1005,7 @@ private:
 
 	      if( (!radius_insert || !energy_insert) && vsize>0 ){
 
-		Element::ElementType& MasterElement = *ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+		Element& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
 		//std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
 
