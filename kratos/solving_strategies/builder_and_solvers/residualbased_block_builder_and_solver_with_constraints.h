@@ -119,7 +119,7 @@ class ResidualBasedBlockBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "builder_and_solver_type" : "ResidualBasedBlockBuilderAndSolverWithConstraints"
+            "name" : "ResidualBasedBlockBuilderAndSolverWithConstraints"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
