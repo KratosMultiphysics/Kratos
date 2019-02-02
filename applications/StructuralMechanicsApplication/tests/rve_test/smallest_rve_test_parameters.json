@@ -1,8 +1,8 @@
 {
     "problem_data"     : {
-        "problem_name"  : "smallest_test",
+        "problem_name"  : "smallest_rve_test",
         "parallel_type" : "OpenMP",
-        "echo_level"    : 1,
+        "echo_level"    : 0,
         "start_time"    : 0.0,
         "end_time"      : 1.0
     },
@@ -22,27 +22,18 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "smallest_test"
+            "input_filename" : "smallest_rve_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials.json"
+            "materials_filename" : "smallest_rve_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "linear_solver_settings"             : {
-            "solver_type"         : "SkylineLUFactorizationSolver"
-        },
         "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
-        "processes_sub_model_part_list"      : ["SurfacePressure3D_Pressure_on_surfaces_Auto2"],
-        "rotation_dofs"                      : false
+        "processes_sub_model_part_list"      : ["SurfacePressure3D_Pressure_on_surfaces_Auto2"]
     },
-    "processes"        : {
-        "constraints_process_list" : [],
-        "loads_process_list"       : [],
-        "list_other_processes"     : []
-    },
-    "output_processes" : {
+    "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -50,7 +41,7 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "Structure.computing_domain",
-                "output_name"            : "smallest_test",
+                "output_name"            : "smallest_rve_test",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {

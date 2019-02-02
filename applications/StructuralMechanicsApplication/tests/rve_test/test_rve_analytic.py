@@ -6,10 +6,10 @@ import KratosMultiphysics.kratos_utilities as kratos_utilities
 import RVEAnalysis
 
 
-class TestPatchTestShells(KratosUnittest.TestCase):
+class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
-        with open("ProjectParameters.json", 'r') as parameter_file:
+        with open("smallest_rve_test_parameters.json", 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(True)
@@ -19,7 +19,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
     @KratosUnittest.skip("constraint application not working properly with elimination BuilderAndSolver")
     def test_rve_computation_elimination_version(self):
-        with open("ProjectParameters.json", 'r') as parameter_file:
+        with open("smallest_rve_test_parameters.json", 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(False)
@@ -70,4 +70,5 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
