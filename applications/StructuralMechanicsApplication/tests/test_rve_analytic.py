@@ -9,7 +9,7 @@ import RVEAnalysis
 class TestRVESimplestTest(KratosUnittest.TestCase):
 
     def test_rve_computation_block_version(self):
-        with open("smallest_rve_test_parameters.json", 'r') as parameter_file:
+        with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(True)
@@ -19,7 +19,7 @@ class TestRVESimplestTest(KratosUnittest.TestCase):
 
     @KratosUnittest.skip("constraint application not working properly with elimination BuilderAndSolver")
     def test_rve_computation_elimination_version(self):
-        with open("smallest_rve_test_parameters.json", 'r') as parameter_file:
+        with open("rve_test/smallest_rve_test_parameters.json", 'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         parameters["solver_settings"]["block_builder"].SetBool(False)

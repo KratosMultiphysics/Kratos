@@ -48,6 +48,8 @@ from test_loading_conditions_line import TestLoadingConditionsLine as TTestLoadi
 from test_loading_conditions_surface import TestLoadingConditionsSurface as TTestLoadingConditionsSurface
 # Nodal damping test
 from test_nodal_damping import NodalDampingTests as TNodalDampingTests
+# RVE test
+from test_rve_analytic import TestRVESimplestTest as TTestRVESimplestTest
 # Spring damper element test
 from test_spring_damper_element import SpringDamperElementTests as TSpringDamperElementTests
 # Harmonic analysis tests
@@ -281,6 +283,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestShellThinAdjointElement3D3N]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussAdjointElement]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestTrussLinearAdjointElement]))
+    # RVE tests
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestRVESimplestTest]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)

@@ -22,10 +22,10 @@
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "smallest_rve_test"
+            "input_filename" : "rve_test/smallest_rve_test"
         },
         "material_import_settings"           : {
-            "materials_filename" : "smallest_rve_test_materials.json"
+            "materials_filename" : "rve_test/smallest_rve_test_materials.json"
         },
         "time_stepping"                      : {
             "time_step" : 1.1
