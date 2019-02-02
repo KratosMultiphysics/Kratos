@@ -109,16 +109,27 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** Constructor.
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit SolvingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : mrModelPart(rModelPart)
+    {
+        const bool move_mesh_flag = ThisParameters.Has("move_mesh_flag") ? ThisParameters["move_mesh_flag"].GetBool() : false;
+        SetMoveMeshFlag(move_mesh_flag);
+    }
+
+    /**
+     * @brief Default constructor.
      * @param rModelPart The model part to be computed
      * @param MoveMeshFlag The flag to set if the mesh is moved or not
      */
-
-    SolvingStrategy(
+    explicit SolvingStrategy(
         ModelPart& rModelPart,
         bool MoveMeshFlag = false
-    )
-        : mrModelPart(rModelPart)
+        ) : mrModelPart(rModelPart)
     {
         SetMoveMeshFlag(MoveMeshFlag);
     }
