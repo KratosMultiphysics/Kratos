@@ -17,6 +17,7 @@
 #include "input_output/logger_table_output.h"
 #include "includes/data_communicator.h"
 
+
 namespace Kratos {
     namespace Testing {
 
