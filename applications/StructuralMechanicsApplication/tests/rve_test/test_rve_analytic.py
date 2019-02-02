@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division
 import KratosMultiphysics
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 import RVEAnalysis
 
 
@@ -60,6 +61,10 @@ class TestPatchTestShells(KratosUnittest.TestCase):
             for j in range(0,Cestimated.Size2()):
                 self.assertAlmostEqual(abs(Cestimated[i,j] - Canalytic[i,j])/(l+2*G),0.0,5)
 
+        if not parameters["rve_settings"]["print_rve_post"].GetBool():
+            kratos_utilities.DeleteFileIfExisting("smallest_test.post.bin")
+            kratos_utilities.DeleteFileIfExisting("rve_test.post.lst")
+            kratos_utilities.DeleteFileIfExisting("rve_elasticity_tensor.txt")
 
 if __name__ == '__main__':
     KratosUnittest.main()
