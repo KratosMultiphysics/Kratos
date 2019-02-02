@@ -14,6 +14,7 @@
 //  contributors:    Hoang Giang Bui
 //                   Josep Maria Carbonell
 //                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
 //
 
 #if !defined(KRATOS_GEOMETRY_H_INCLUDED )
@@ -445,8 +446,7 @@ public:
         rResult = ZeroVector(number_of_nodes);
 
         if (LumpingMethod == LumpingMethods::ROW_SUM) {
-            IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
+            const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
             const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
             const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
 
@@ -461,10 +461,7 @@ public:
                 const Vector& rN = row(Ncontainer,point_number);
 
                 for ( IndexType i = 0; i < number_of_nodes; ++i ) {
-                    for ( IndexType j = 0; j < number_of_nodes; ++j ) {
-                        const double NiNj_weight = rN[i] * rN[j] * integration_weight;
-                        rResult[i] += NiNj_weight;
-                    }
+                    rResult[i] += rN[i] * integration_weight;
                 }
             }
 
