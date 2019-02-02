@@ -116,7 +116,8 @@ class FEMDEM_Solution:
 
             if is_remeshing:
                 # Extrapolate the VonMises normalized stress to nodes (remeshing)
-                KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+                # KratosFemDem.StressToNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
+                KratosFemDem.ComputeNormalizedFreeEnergyOnNodesProcess(self.FEM_Solution.main_model_part, 2).Execute()
 
                 # we eliminate the nodal DEM forces
                 self.RemoveDummyNodalForces()
@@ -239,7 +240,7 @@ class FEMDEM_Solution:
 
 
 #============================================================================================================================
-    def GenerateDEM(self):
+    def GenerateDEM(self): # This method creates the DEM elements and remove the damaged FEM, Additionally remove the isolated elements
 
         FEM_elements = self.FEM_Solution.main_model_part.Elements
 
@@ -477,6 +478,9 @@ class FEMDEM_Solution:
                 elif is_active == False and DEM_Generated == True:
                     Element.Set(KratosMultiphysics.TO_ERASE, True)
 
+                # Remove the isolated Elements
+                self.RemoveIsolatedFiniteElements()
+
         # We remove the inactive DEM associated to fem_nodes
         self.RemoveAloneDEMElements()
         element_eliminator = KratosMultiphysics.AuxiliarModelPartUtilities(self.FEM_Solution.main_model_part)
@@ -642,6 +646,37 @@ class FEMDEM_Solution:
         self.FEM_Solution.main_model_part.GetRootModelPart().RemoveNodesFromAllLevels(KratosMultiphysics.TO_ERASE) # added
 
 #============================================================================================================================
+    def RemoveIsolatedFiniteElements(self):
+
+        FEM_Elements = self.FEM_Solution.main_model_part.Elements
+        FEM_Nodes    = self.FEM_Solution.main_model_part.Nodes
+
+        for node in FEM_Nodes:
+            node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, 0)
+
+        for Element in FEM_Elements:
+            is_active = True
+            if Element.IsDefined(KratosMultiphysics.ACTIVE):
+                is_active = Element.Is(KratosMultiphysics.ACTIVE)
+            
+            if is_active == True:
+                for i in range(0,3): # Loop over nodes of the element
+                    node = Element.GetNodes()[i]
+                    number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                    number_active_elements += 1
+                    node.SetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS, number_active_elements)
+
+        for Element in FEM_Elements:
+            total_elements_on_nodes = 0
+            for i in range(0,3): # Loop over nodes of the element
+                node = Element.GetNodes()[i]
+                number_active_elements = node.GetValue(KratosFemDem.NUMBER_OF_ACTIVE_ELEMENTS)
+                total_elements_on_nodes = total_elements_on_nodes + number_active_elements
+            if total_elements_on_nodes == 3:
+                Element.Set(KratosMultiphysics.TO_ERASE, True)
+
+#============================================================================================================================
+
     def TransferNodalForcesToFEM(self):
 
         for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
