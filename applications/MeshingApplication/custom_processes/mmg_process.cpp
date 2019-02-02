@@ -76,10 +76,15 @@ MmgProcess<TMMGLibray>::MmgProcess(
     ):mrThisModelPart(rThisModelPart),
       mThisParameters(ThisParameters)
 {
-    Parameters DefaultParameters = Parameters(R"(
+    Parameters default_parameters = Parameters(R"(
     {
         "filename"                             : "out",
         "discretization_type"                  : "Standard",
+        "isosurface_parameters"                :
+        {
+            "isosurface_variable"              : "DISTANCE",
+            "nonhistorical_variable"           : false
+        },
         "framework"                            : "Eulerian",
         "internal_variables_parameters"        :
         {
@@ -128,7 +133,7 @@ MmgProcess<TMMGLibray>::MmgProcess(
         "buffer_size"                          : 0
     })" );
 
-    mThisParameters.RecursivelyValidateAndAssignDefaults(DefaultParameters);
+    mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mStdStringFilename = mThisParameters["filename"].GetString();
     mEchoLevel = mThisParameters["echo_level"].GetInt();
@@ -210,10 +215,13 @@ void MmgProcess<TMMGLibray>::ExecuteInitializeSolutionStep()
     InitializeMeshData();
 
     // We retrieve the data form the Kratos model part to fill sol
-    if (mDiscretization == DiscretizationOption::STANDARD)
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         InitializeSolDataMetric();
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         InitializeSolDataDistance();
+    } else {
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+    }
 
 
     // Check if the number of given entities match with mesh size
@@ -324,22 +332,22 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     // Build mesh in MMG5 format //
 
     // Iterate over components
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
-    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
 
     /* Manually set of the mesh */
     array_1d<SizeType, ConditionsArraySize> num_array_conditions;
     array_1d<SizeType, ElementsArraySize> num_array_elements;
     if (TMMGLibray == MMGLibray::MMG2D) { // 2D
-        num_array_conditions[0] = conditions_array.size();
-        num_array_elements[0]   = elements_array.size();
+        num_array_conditions[0] = r_conditions_array.size();
+        num_array_elements[0]   = r_elements_array.size();
     } else if (TMMGLibray == MMGLibray::MMG3D) { // 3D
         /* Elements */
         std::size_t num_tetra = 0, num_prisms = 0;
         #pragma omp parallel for reduction(+:num_tetra,num_prisms)
-        for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
-            auto it_elem = elements_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+            auto it_elem = r_elements_array.begin() + i;
 
             if ((it_elem->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) { // Tetrahedron
                 num_tetra += 1;
@@ -352,14 +360,14 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
         num_array_elements[0] = num_tetra;  // Tetrahedron
         num_array_elements[1] = num_prisms; // Prisms
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < elements_array.size()) && mEchoLevel > 0) <<
-        "Number of Elements: " << elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
+        KRATOS_INFO_IF("MmgProcess", ((num_tetra + num_prisms) < r_elements_array.size()) && mEchoLevel > 0) <<
+        "Number of Elements: " << r_elements_array.size() << " Number of Tetrahedron: " << num_tetra << " Number of Prisms: " << num_prisms << std::endl;
 
         /* Conditions */
         std::size_t num_tri = 0, num_quad = 0;
         #pragma omp parallel for reduction(+:num_tri,num_quad)
-        for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i) {
-            auto it_cond = conditions_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i) {
+            auto it_cond = r_conditions_array.begin() + i;
 
             if ((it_cond->GetGeometry()).GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3) { // Triangles
                 num_tri += 1;
@@ -372,25 +380,25 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
         num_array_conditions[0] = num_tri;  // Triangles
         num_array_conditions[1] = num_quad; // Quadrilaterals
 
-        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < conditions_array.size()) && mEchoLevel > 0) <<
-        "Number of Conditions: " << conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
+        KRATOS_INFO_IF("MmgProcess", ((num_tri + num_quad) < r_conditions_array.size()) && mEchoLevel > 0) <<
+        "Number of Conditions: " << r_conditions_array.size() << " Number of Triangles: " << num_tri << " Number of Quadrilaterals: " << num_quad << std::endl;
     } else { // Surfaces
-        num_array_conditions[0] = conditions_array.size();
-        num_array_elements[0]   = elements_array.size();
+        num_array_conditions[0] = r_conditions_array.size();
+        num_array_elements[0]   = r_elements_array.size();
     }
 
-    SetMeshSize(nodes_array.size(), num_array_elements, num_array_conditions);
+    SetMeshSize(r_nodes_array.size(), num_array_elements, num_array_conditions);
 
     /* Nodes */
     // We copy the DOF from the first node (after we release, to avoid problem with previous conditions)
-    mDofs = nodes_array.begin()->GetDofs();
+    mDofs = r_nodes_array.begin()->GetDofs();
     for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
         it_dof->FreeDof();
 
     if (mFramework == FrameworkEulerLagrange::LAGRANGIAN){ // NOTE: The code is repeated due to performance reasons
         #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
 
             SetNodes(it_node->X0(), it_node->Y0(), it_node->Z0(), nodes_colors[it_node->Id()], i + 1);
 
@@ -406,8 +414,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
     }
     else {
         #pragma omp parallel for firstprivate(nodes_colors)
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-            auto it_node = nodes_array.begin() + i;
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+            auto it_node = r_nodes_array.begin() + i;
 
             SetNodes(it_node->X(), it_node->Y(), it_node->Z(), nodes_colors[it_node->Id()], i + 1);
 
@@ -424,8 +432,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 
     /* Conditions */
     #pragma omp parallel for firstprivate(cond_colors)
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)  {
-        auto it_cond = conditions_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
 
         SetConditions(it_cond->GetGeometry(), cond_colors[it_cond->Id()], i + 1);
 
@@ -441,8 +449,8 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 
     /* Elements */
     #pragma omp parallel for firstprivate(elem_colors)
-    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
-        auto it_elem = elements_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
 
         SetElements(it_elem->GetGeometry(), elem_colors[it_elem->Id()], i + 1);
 
@@ -458,16 +466,16 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 
     // Create auxiliar colors maps
     ColorsMapType aux_ref_cond;
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)  {
-        auto it_cond = conditions_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)  {
+        auto it_cond = r_conditions_array.begin() + i;
         const IndexType cond_id = it_cond->Id();
         const IndexType color = cond_colors[cond_id];
         if (!(aux_ref_cond.find(color) != aux_ref_cond.end()))
             aux_ref_cond.insert (IndexPairType(color,cond_id));
     }
     ColorsMapType aux_ref_elem;
-    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i) {
-        auto it_elem = elements_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i) {
+        auto it_elem = r_elements_array.begin() + i;
         const IndexType elem_id = it_elem->Id();
         const IndexType color = elem_colors[elem_id];
         if (!(aux_ref_elem.find(color) != aux_ref_elem.end()))
@@ -476,13 +484,13 @@ void MmgProcess<TMMGLibray>::InitializeMeshData()
 
     /* We clone the first condition and element of each type (we will assume that each sub model part has just one kind of condition, in my opinion it is quite reccomended to create more than one sub model part if you have more than one element or condition) */
     // First we add the main model part
-    if (conditions_array.size() > 0) {
+    if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TMMGLibray == MMGLibray::MMG3D) ? "Condition3D" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), conditions_array.begin()->pGetProperties());
+        mpRefCondition[0] = r_clone_condition.Create(0, r_clone_condition.GetGeometry(), r_conditions_array.begin()->pGetProperties());
     }
-    if (elements_array.size() > 0) {
-        mpRefElement[0] = elements_array.begin()->Create(0, elements_array.begin()->GetGeometry(), elements_array.begin()->pGetProperties());
+    if (r_elements_array.size() > 0) {
+        mpRefElement[0] = r_elements_array.begin()->Create(0, r_elements_array.begin()->GetGeometry(), r_elements_array.begin()->pGetProperties());
     }
 
     // Now we add the reference elements and conditions
@@ -505,21 +513,21 @@ void MmgProcess<TMMGLibray>::InitializeSolDataMetric()
     ////////* SOLUTION FILE *////////
 
     // Iterate in the nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
     // Set size of the solution
-    SetSolSizeTensor(nodes_array.size());
+    SetSolSizeTensor(r_nodes_array.size());
 
-    const Variable<TensorArrayType>& tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(Dimension)+"D");
+    const Variable<TensorArrayType>& r_tensor_variable = KratosComponents<Variable<TensorArrayType>>::Get("METRIC_TENSOR_"+std::to_string(Dimension)+"D");
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
+        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_tensor_variable)) << "METRIC_TENSOR_" + std::to_string(Dimension) + "D  not defined for node " << it_node->Id() << std::endl;
 
         // We get the metric
-        const TensorArrayType& metric = it_node->GetValue(tensor_variable);
+        const TensorArrayType& metric = it_node->GetValue(r_tensor_variable);
 
         // We set the metric
         SetMetricTensor(metric, i + 1);
@@ -534,21 +542,38 @@ void MmgProcess<TMMGLibray>::InitializeSolDataDistance()
 {
     ////////* SOLUTION FILE for ISOSURFACE*////////
     // Iterate in the nodes
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
     // Set size of the solution
-    SetSolSizeScalar( nodes_array.size() );
-    const Variable<double>& scalar_variable = KratosComponents<Variable<double>>::Get("DISTANCE");
+    SetSolSizeScalar( r_nodes_array.size() );
 
-    #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    // GEtting variable for scalar filed
+    const std::string& r_isosurface_variable_name = mThisParameters["isosurface_parameters"]["isosurface_variable"].GetString();
+    const bool nonhistorical_variable = mThisParameters["isosurface_parameters"]["nonhistorical_variable"].GetBool();
+    const Variable<double>& r_scalar_variable = KratosComponents<Variable<double>>::Get(r_isosurface_variable_name);
 
-        KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(scalar_variable)) << " DISTANCE field not found as a non-historical variable " << std::endl;
-        // We get the distance (non-historical variable)
-        const double& dist = it_node->GetValue( scalar_variable );
-        // We set the distance
-        SetMetricScalar(dist, i + 1);
+    // Auxiliar value
+    double isosurface_value = 0.0;
+
+    // We iterate over the nodes
+    #pragma omp parallel for firstprivate(isosurface_value)
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
+
+        if (nonhistorical_variable) {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->Has(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a non-historical variable " << std::endl;
+
+            // We get the isosurface value (non-historical variable)
+            isosurface_value = it_node->GetValue( r_scalar_variable );
+        } else {
+            KRATOS_DEBUG_ERROR_IF_NOT(it_node->SolutionStepsDataHas(r_scalar_variable)) << r_isosurface_variable_name << " field not found as a historical variable " << std::endl;
+
+            // We get the isosurface value (historical variable)
+            isosurface_value = it_node->FastGetSolutionStepValue( r_scalar_variable );
+        }
+
+        // We set the isosurface variable
+        SetMetricScalar(isosurface_value, i + 1);
     }
 }
 
@@ -574,10 +599,13 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     KRATOS_INFO_IF("MmgProcess", mEchoLevel > 0) << "////////* MMG LIBRARY CALL *////////" << std::endl;
 
     // Calling the library functions
-    if (mDiscretization == DiscretizationOption::STANDARD)
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMGLibCallMetric();
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMGLibCallIsoSurface();
+    } else {
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+    }
 
     const SizeType number_of_nodes = mmgMesh->np;
     array_1d<SizeType, 2> n_conditions;
@@ -623,27 +651,27 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
     ModelPart& r_old_model_part = owner_model.CreateModelPart(mrThisModelPart.Name()+"_Old", mrThisModelPart.GetBufferSize());
 
     // First we empty the model part
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i)
-        (nodes_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i)
+        (r_nodes_array.begin() + i)->Set(TO_ERASE, true);
     r_old_model_part.AddNodes( mrThisModelPart.NodesBegin(), mrThisModelPart.NodesEnd() );
     mrThisModelPart.RemoveNodesFromAllLevels(TO_ERASE);
 
-    ConditionsArrayType& conditions_array = mrThisModelPart.Conditions();
+    ConditionsArrayType& r_conditions_array = mrThisModelPart.Conditions();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(conditions_array.size()); ++i)
-        (conditions_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_conditions_array.size()); ++i)
+        (r_conditions_array.begin() + i)->Set(TO_ERASE, true);
     r_old_model_part.AddConditions( mrThisModelPart.ConditionsBegin(), mrThisModelPart.ConditionsEnd() );
     mrThisModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
 
-    ElementsArrayType& elements_array = mrThisModelPart.Elements();
+    ElementsArrayType& r_elements_array = mrThisModelPart.Elements();
 
     #pragma omp parallel for
-    for(int i = 0; i < static_cast<int>(elements_array.size()); ++i)
-        (elements_array.begin() + i)->Set(TO_ERASE, true);
+    for(int i = 0; i < static_cast<int>(r_elements_array.size()); ++i)
+        (r_elements_array.begin() + i)->Set(TO_ERASE, true);
     r_old_model_part.AddElements( mrThisModelPart.ElementsBegin(), mrThisModelPart.ElementsEnd() );
     mrThisModelPart.RemoveElementsFromAllLevels(TO_ERASE);
 
@@ -871,11 +899,11 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         const IndexType step = mThisParameters["remesh_at_non_linear_iteration"].GetBool() ? 1 : 0;
 
         /* We move the mesh */
-        nodes_array = mrThisModelPart.Nodes();
-        const auto it_node_begin = nodes_array.begin();
+        r_nodes_array = mrThisModelPart.Nodes();
+        const auto it_node_begin = r_nodes_array.begin();
 
         #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(nodes_array.size()); ++i) {
+        for(int i = 0; i < static_cast<int>(r_nodes_array.size()); ++i) {
             auto it_node = it_node_begin + i;
 
             noalias(it_node->Coordinates())  = it_node->GetInitialPosition().Coordinates();
@@ -958,10 +986,10 @@ IndexVectorType MmgProcess<TMMGLibray>::CheckNodes()
 
     DoubleVectorType coords(Dimension);
 
-    NodesArrayType& nodes_array = mrThisModelPart.Nodes();
+    NodesArrayType& r_nodes_array = mrThisModelPart.Nodes();
 
-    for(SizeType i = 0; i < nodes_array.size(); ++i) {
-        auto it_node = nodes_array.begin() + i;
+    for(SizeType i = 0; i < r_nodes_array.size(); ++i) {
+        auto it_node = r_nodes_array.begin() + i;
 
         const array_1d<double, 3>& coordinates = it_node->Coordinates();
 
@@ -1674,6 +1702,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateElement0(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
+        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1714,10 +1743,8 @@ ElementType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateElement0(
         exit(EXIT_FAILURE);
 
     // Sometimes MMG creates elements where there are not, then we skip
-    KRATOS_WATCH( mpRefElement.size() )
-
     if (mpRefElement[PropId] == nullptr) {
-        KRATOS_WATCH( "Null pointer returned" )
+        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1761,6 +1788,7 @@ ElementType::Pointer MmgProcess<MMGLibray::MMGS>::CreateElement0(
 
     // Sometimes MMG creates elements where there are not, then we skip
     if (mpRefElement[PropId] == nullptr) {
+        KRATOS_WARNING("MmgProcess") << "Null pointer returned" << std::endl;
         return p_element;
     }
 
@@ -1908,10 +1936,13 @@ void MmgProcess<MMGLibray::MMG2D>::InitMesh()
 //     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (mDiscretization == DiscretizationOption::STANDARD)
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG2D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
+    } else {
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+    }
 
     InitVerbosity();
 }
@@ -1927,12 +1958,15 @@ void MmgProcess<MMGLibray::MMG3D>::InitMesh()
 //     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (mDiscretization == DiscretizationOption::STANDARD)
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
-//     else if (mDiscretization == DiscretizationOption::LAGRANGIAN)
+//     } else if (mDiscretization == DiscretizationOption::LAGRANGIAN) {
 //         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_ppDisp, &mmgDisp, MMG5_ARG_end);
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMG3D_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
+    } else {
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+    }
 
     InitVerbosity();
 }
@@ -1948,10 +1982,13 @@ void MmgProcess<MMGLibray::MMGS>::InitMesh()
 //     mmgDisp = nullptr;
 
     // We init the MMG mesh and sol
-    if (mDiscretization == DiscretizationOption::STANDARD)
+    if (mDiscretization == DiscretizationOption::STANDARD) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppMet, &mmgSol, MMG5_ARG_end);
-    else if (mDiscretization == DiscretizationOption::ISOSURFACE)
+    } else if (mDiscretization == DiscretizationOption::ISOSURFACE) {
         MMGS_Init_mesh( MMG5_ARG_start, MMG5_ARG_ppMesh, &mmgMesh, MMG5_ARG_ppLs, &mmgSol, MMG5_ARG_end);
+    } else {
+        KRATOS_ERROR << "Discretization type: " << static_cast<int>(mDiscretization) << " not fully implemented" << std::endl;
+    }
 
     InitVerbosity();
 }
