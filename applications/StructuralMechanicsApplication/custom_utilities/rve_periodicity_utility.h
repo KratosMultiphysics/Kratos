@@ -53,7 +53,7 @@ namespace Kratos
  * @details It uses MPC in order to set the periodic BC
  * @author Riccardo Rossi
 */
-class RVEPeriodicityUtility
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) RVEPeriodicityUtility
 {
   public:
     ///@name Type Definitions
