@@ -19,7 +19,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "penalty_factor"            : 0,
                 "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
-                "constrained"               : true,
+                "constrained"               : "fixed",
                 "direction"                 : [0.0, 0.0, 0.0],
                 "local_axes"                : {}
             }  """ )
@@ -39,11 +39,26 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             err_msg += "Available option is: \"penalty\"."
             raise Exception(err_msg)
 
+        # check constraint
+        self.constrained = settings["constrained"].GetString()
+        if (self.constrained == "fixed"):
+            self.is_slip_boundary = False
+        elif (self.constrained == "slip"):
+            self.is_slip_boundary = True
+        else:
+            err_msg =  "The requested type of constrain: \"" + self.constrained + "\" is not available!\n"
+            err_msg += "Available options are: \"fixed\" and \"slip\"."
+            raise Exception(err_msg)
+
         # get variable imposed and check
-        self.variable = KratosMultiphysics.KratosGlobals.GetVariable(settings["variable_name"].GetString())
-        if(type(self.variable) != KratosMultiphysics.Array1DVariable3 and type(self.variable) != KratosMultiphysics.VectorVariable):
-            msg = "Error in AssignVectorVariableProcess. Variable type of variable : " + settings["variable_name"].GetString() + " is incorrect . Must be a vector or array3"
-            raise Exception(msg)
+        variable_name = settings["variable_name"].GetString()
+        variable_name_list = ["DISPLACEMENT","VELOCITY","ACCELERATION"]
+        if(variable_name in variable_name_list):
+            self.variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+        else:
+            err_msg =  "The given variable \"" + variable_name + "\" is not available to be imposed with this process.\n"
+            err_msg += "Available options are: " + ", ".join(variable_name_list)
+            raise Exception(err_msg)
 
         self.modulus = settings["modulus"].GetDouble()
         self.vector_direction = settings["direction"].GetVector()
@@ -58,6 +73,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
+                condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)

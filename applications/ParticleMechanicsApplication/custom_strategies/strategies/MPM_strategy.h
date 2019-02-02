@@ -614,7 +614,7 @@ public:
                 mr_mpm_model_part.CreateSubModelPart(submodelpart_name);
 
                 // For regular conditions: straight copy all conditions
-                if (submodelpart.ConditionsBegin()->Is(BOUNDARY) == false){
+                if (!submodelpart.ConditionsBegin()->Is(BOUNDARY)){
                     mr_mpm_model_part.SetConditions(submodelpart.pConditions());
                     mr_mpm_model_part.GetSubModelPart(submodelpart_name).SetConditions(submodelpart.pConditions());
                 }
@@ -809,6 +809,7 @@ public:
                             MPC_Acceleration = i->GetValue(ACCELERATION);
                         if (i->Has(PENALTY_FACTOR))
                             MPC_Penalty_Factor = i->GetValue(PENALTY_FACTOR);
+                        const bool is_slip = i->Is(SLIP);
 
                         // If dirichlet boundary
                         std::string condition_type_name;
@@ -849,6 +850,7 @@ public:
                             }
 
                             // Setting particle condition's initial condition
+                            // NOTE: If any variable is added or remove here, please add and remove also at the second loop below
                             p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
                             p_condition->SetValue(MPC_COORD, mpc_xg);
                             p_condition->SetValue(MPC_AREA, MPC_Area);
@@ -857,6 +859,8 @@ public:
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
                             p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
                             p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
+                            if (is_slip)
+                                p_condition->Set(SLIP);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -885,6 +889,7 @@ public:
                                 }
 
                                 // Setting particle condition's initial condition
+                                // NOTE: If any variable is added or remove here, please add and remove also at the first loop above
                                 p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
                                 p_condition->SetValue(MPC_COORD, mpc_xg);
                                 p_condition->SetValue(MPC_AREA, MPC_Area);
@@ -893,6 +898,8 @@ public:
                                 p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
                                 p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
                                 p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
+                                if (is_slip)
+                                    p_condition->Set(SLIP);
 
                                 // Add the MP Condition to the model part
                                 mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
