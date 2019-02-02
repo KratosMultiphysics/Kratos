@@ -1,0 +1,154 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "test_rayleigh",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 1,
+        "start_time"    : 0.0,
+        "end_time"      : 0.01
+    },
+    "solver_settings"  : {
+        "solver_type"                        : "Dynamic",
+        "model_part_name"                    : "Structure",
+        "domain_size"                        : 2,
+        "echo_level"                         : 0,
+        "analysis_type"                      : "non_linear",
+        "time_integration_method"            : "implicit",
+        "scheme_type"                        : "newmark",
+        "model_import_settings"              : {
+            "input_type"     : "mdpa",
+            "input_filename" : "rayleigh_process_test/test_rayleigh"
+        },
+        "material_import_settings"           : {
+            "materials_filename" : "rayleigh_process_test/test_rayleigh_materials.json"
+        },
+        "time_stepping"                      : {
+            "time_step" : 0.01
+        },
+        "line_search"                        : false,
+        "convergence_criterion"              : "residual_criterion",
+        "displacement_relative_tolerance"    : 0.0001,
+        "displacement_absolute_tolerance"    : 1e-9,
+        "residual_relative_tolerance"        : 0.0001,
+        "residual_absolute_tolerance"        : 1e-9,
+        "max_iteration"                      : 10,
+        "problem_domain_sub_model_part_list" : ["Parts_Parts_Auto1"],
+        "processes_sub_model_part_list"      : ["DISPLACEMENT_Displacement_Auto1","SelfWeight2D_Self_weight_Auto1"],
+        "rotation_dofs"                      : false
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_vector_by_direction_process",
+            "kratos_module" : "KratosMultiphysics",
+            "check"         : "DirectorVectorNonZero direction",
+            "Parameters"    : {
+                "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
+                "variable_name"   : "VOLUME_ACCELERATION",
+                "modulus"         : 9.81,
+                "direction"       : [0.0,-1.0,0.0],
+                "interval"        : [0.0,"End"]
+            }
+        }],
+        "list_other_processes" :[{
+            "kratos_module" : "KratosMultiphysics",
+            "python_module" : "check_scalar_from_process_info_process",
+            "process_name"  : "CheckScalarFromProcessInfoProcess",
+            "Parameters"    : {
+                "model_part_name"  : "Structure",
+                "variable_name"    : "RAYLEIGH_ALPHA",
+                "value"            : 6.5621
+            }
+        },{
+            "kratos_module" : "KratosMultiphysics",
+            "python_module" : "check_scalar_from_process_info_process",
+            "process_name"  : "CheckScalarFromProcessInfoProcess",
+            "Parameters"    : {
+                "model_part_name"  : "Structure",
+                "variable_name"    : "RAYLEIGH_BETA",
+                "value"            : 1.61473e-08
+            }
+        },{
+            "kratos_module" : "KratosMultiphysics",
+            "python_module" : "automatic_rayleigh_parameters_computation_process",
+            "process_name"  : "AutomaticRayleighComputationProcess",
+            "Parameters"    : {
+                "echo_level"          : 0,
+                "write_on_properties" : false,
+                "damping_ratio_0"     : 0.001,
+                "damping_ratio_1"     : -1.0,
+                "eigen_system_settings" : {
+                    "solver_type"                : "feast",
+                    "print_feast_output"         : false,
+                    "perform_stochastic_estimate": true,
+                    "solve_eigenvalue_problem"   : true,
+                    "lambda_min"                 : 0.0,
+                    "lambda_max"                 : 4.0e5,
+                    "number_of_eigenvalues"      : 2,
+                    "search_dimension"           : 15
+                }
+            }
+        }]
+    },
+    "_output_processes" : {
+        "gid_output" : [{
+            "python_module" : "gid_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "GiDOutputProcess",
+            "help"          : "This process writes postprocessing files for GiD",
+            "Parameters"    : {
+                "model_part_name"        : "Structure.computing_domain",
+                "output_name"            : "test_rayleigh",
+                "postprocess_parameters" : {
+                    "result_file_configuration" : {
+                        "gidpost_flags"       : {
+                            "GiDPostMode"           : "GiD_PostBinary",
+                            "WriteDeformedMeshFlag" : "WriteDeformed",
+                            "WriteConditionsFlag"   : "WriteConditions",
+                            "MultiFileFlag"         : "SingleFile"
+                        },
+                        "file_label"          : "step",
+                        "output_control_type" : "step",
+                        "output_frequency"    : 1,
+                        "body_output"         : true,
+                        "node_output"         : false,
+                        "skin_output"         : false,
+                        "plane_output"        : [],
+                        "nodal_results"       : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+                        "gauss_point_results" : ["VON_MISES_STRESS"]
+                    },
+                    "point_data_configuration"  : []
+                }
+            }
+        }],
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VtkOutputProcess",
+            "help"          : "This process writes postprocessing files for Paraview",
+            "Parameters"    : {
+                "model_part_name"                    : "Structure.computing_domain",
+                "output_control_type"                : "step",
+                "output_frequency"                   : 1,
+                "file_format"                        : "ascii",
+                "output_precision"                   : 7,
+                "output_sub_model_parts"             : true,
+                "folder_name"                        : "vtk_output",
+                "save_output_files_in_folder"        : true,
+                "nodal_solution_step_data_variables" : ["DISPLACEMENT","REACTION","VELOCITY","ACCELERATION"],
+                "nodal_data_value_variables"         : [],
+                "element_data_value_variables"       : [],
+                "condition_data_value_variables"     : []
+            }
+        }]
+    }
+}
