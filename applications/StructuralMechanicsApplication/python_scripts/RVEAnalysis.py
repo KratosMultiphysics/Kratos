@@ -5,28 +5,16 @@ import KratosMultiphysics.StructuralMechanicsApplication
 import math
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
-"""
-For user-scripting it is intended that a new class is derived
-from StructuralMechanicsAnalysis to do modifications
-"""
-
 class RVEAnalysis(StructuralMechanicsAnalysis):
-    def __init__(self, model, project_parameters,
-            boundary_mp_name = "Structure.DISPLACEMENT_Displacement_Auto1",
-            averaging_mp_name = "Structure.computing_domain"
-            ):
+    def __init__(self, model, project_parameters):
         
-        #######################################
-        #######################################
-        #######################################
-        ##parameters to be adjusted by the user
+        ##input parameters of the analysis
+        self.boundary_mp_name = project_parameters["rve_settings"]["boundary_mp_name"].GetString()
+        self.averaging_mp_name = project_parameters["rve_settings"]["averaging_mp_name"].GetString()
+        self.print_rve_post =  project_parameters["rve_settings"]["print_rve_post"].GetBool()
+        self.perturbation =  project_parameters["rve_settings"]["perturbation"].GetDouble()
+
         self.averaging_volume = -1.0 #it will be computed in initialize     
-        self.boundary_mp_name = boundary_mp_name
-        self.averaging_mp_name = averaging_mp_name
-        #######################################
-        #######################################
-        #######################################
-                
         domain_size = project_parameters["solver_settings"]["domain_size"].GetInt()
         if(domain_size == 2):
             self.strain_size = 3
@@ -51,6 +39,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
         self._ConstructFaceModelParts(self.min_corner, self.max_corner, boundary_mp)
 
         self.averaging_volume = (self.max_corner[0]-self.min_corner[0]) * (self.max_corner[1]-self.min_corner[1]) * (self.max_corner[2]-self.min_corner[2])
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"RVE undeformed averaging volume = ",self.averaging_volume)
 
     def InitializeSolutionStep(self):
         raise Exception("should use the _CustomInitializeSolutionStep instead of this")
@@ -77,7 +66,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
     def RunSolutionLoop(self):
 
         #super(RVEAnalysis, self).RunSolutionLoop()
-        perturbation = 1e-6
+        perturbation = self.perturbation
         
         boundary_mp = self.model[self.boundary_mp_name]
         averaging_mp = self.model[self.averaging_mp_name]  
@@ -96,7 +85,7 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             stress_and_strain.append( self._ComputeEquivalentStress(0,2,perturbation, boundary_mp, averaging_mp) )
 
         C = self._ComputeEquivalentElasticTensor(stress_and_strain, perturbation)
-        averaging_mp.SetValue(KratosMultiphysics.StructuralMechanicsApplication.EIGENVECTOR_MATRIX, C)
+        averaging_mp.SetValue(KratosMultiphysics.StructuralMechanicsApplication.ELASTICITY_TENSOR, C)
         self._MatrixOutput(C)
 
 
@@ -124,9 +113,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             min_corner[2] = min(min_corner[2], z)
             max_corner[2] = max(max_corner[2], z)
 
-        print("Boundng box detected")
-        print("min corner = ",min_corner)
-        print("max corner = ",max_corner)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"Boundng box detected")
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"min corner = ",min_corner)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"max corner = ",max_corner)
 
         return min_corner, max_corner
 
@@ -152,8 +141,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
                     node_ids.add(node.Id)
                     node.Set(KratosMultiphysics.SLAVE)
 
-
-
         face_mp.AddNodes(list(node_ids))
         return face_mp
 
@@ -166,13 +153,11 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             node.Set(KratosMultiphysics.MASTER,False)
 
         #populate the slave faces
-        print("----------------- populate slave faces")
         self.max_x_face = self.__PopulateMp("max_x_face", max_corner[0], 0, eps, mp)
         self.max_y_face = self.__PopulateMp("max_y_face", max_corner[1], 1, eps, mp)
         self.max_z_face = self.__PopulateMp("max_z_face", max_corner[2], 2, eps, mp)  
 
         #first populate the master faces (min)
-        print("----------------- populate master faces")
         self.min_x_face = self.__PopulateMp("min_x_face", min_corner[0], 0, eps, mp)
         self.min_y_face = self.__PopulateMp("min_y_face", min_corner[1], 1, eps, mp)
         self.min_z_face = self.__PopulateMp("min_z_face", min_corner[2], 2, eps, mp)   
@@ -298,11 +283,9 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             strain_vector[4] = 2.0*strain[1,2]
             strain_vector[5] = 2.0*strain[0,2]
 
-        #self._GetSolver().Initialize()
         self.__CustomInitializeSolutionStep(strain,boundary_mp, averaging_mp)
 
         self._GetSolver().Predict()
-        print(self._GetSolver().GetComputingModelPart())
 
         self._GetSolver().SolveSolutionStep()
         process_info = averaging_mp.ProcessInfo
@@ -321,17 +304,19 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
 
         self._GetSolver().Clear()            
         
-        print("measured volume = ", measured_volume)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"measured volume = ", measured_volume)
      
-                
-        avg_stress /= self.averaging_volume
+        if abs(measured_volume - self.averaging_volume)/self.averaging_volume > 1e-5:
+            raise Exception("too large difference between volume before deformation : ", self.averaging_volume, 
+                " and volume measured after deformation :",measured_volume)
 
-        print("avg_stress = ", avg_stress)
+        avg_stress /= measured_volume
+
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"applied strain = ", strain_vector)
+        KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),"avgerae stress = ", avg_stress)
        
-
-            
-
-        self.OutputSolutionStep()
+        if self.print_rve_post:
+            self.OutputSolutionStep()
 
         #reset position of nodes
         for node in averaging_mp.Nodes:
