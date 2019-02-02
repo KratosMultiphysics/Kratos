@@ -240,19 +240,6 @@ class RVEAnalysis(StructuralMechanicsAnalysis):
             for i in range(6):
                 f.write( str(C[i,0])+ " " + str(C[i,1])+ " " + str(C[i,2])+ " " + str(C[i,3])+ " " + str(C[i,4])+ " " + str(C[i,5])+ "\n" )
 
-        # if(self.strain_size == 3): #2D
-        #     f.write( str(C[0,0])+ " " + str(C[0,1])+ " " + str(C[0,2]) + "\n" )
-        #     f.write( str(C[1,0])+ " " + str(C[1,1])+ " " + str(C[1,2]) + "\n" )
-        #     f.write( str(C[2,0])+ " " + str(C[2,1])+ " " + str(C[2,2]) + "\n" )
-
-        # elif(self.strain_size == 6):
-        #     f.write( str(C[0,0])+ " " + str(C[0,1])+ " " + str(C[0,3])+ " " + str(C[0,2])+ " " + str(C[0,5])+ " " + str(C[0,4])+ "\n" )
-        #     f.write( str(C[1,0])+ " " + str(C[1,1])+ " " + str(C[1,3])+ " " + str(C[1,2])+ " " + str(C[1,5])+ " " + str(C[1,4])+ "\n" )
-        #     f.write( str(C[3,0])+ " " + str(C[3,1])+ " " + str(C[3,3])+ " " + str(C[3,2])+ " " + str(C[3,5])+ " " + str(C[3,4])+ "\n" )
-        #     f.write( str(C[2,0])+ " " + str(C[2,1])+ " " + str(C[2,3])+ " " + str(C[2,2])+ " " + str(C[2,5])+ " " + str(C[2,4])+ "\n" )
-        #     f.write( str(C[5,0])+ " " + str(C[5,1])+ " " + str(C[5,3])+ " " + str(C[5,2])+ " " + str(C[5,5])+ " " + str(C[5,4])+ "\n" )
-        #     f.write( str(C[4,0])+ " " + str(C[4,1])+ " " + str(C[4,3])+ " " + str(C[4,2])+ " " + str(C[4,5])+ " " + str(C[4,4])+ "\n" )
-        
         f.close()
                 
         
