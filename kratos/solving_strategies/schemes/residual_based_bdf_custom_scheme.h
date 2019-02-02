@@ -541,7 +541,7 @@ private:
     {
         Parameters default_parameters = Parameters(R"(
         {
-            "scheme_type"           : "ResidualBasedBDFCustomScheme",
+            "name"                  : "ResidualBasedBDFCustomScheme",
             "integration_order"     : 2,
             "variable"              : ["DISPLACEMENT"],
             "first_derivative"      : ["VELOCITY"],

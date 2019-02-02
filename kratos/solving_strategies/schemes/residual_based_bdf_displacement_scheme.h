@@ -101,7 +101,7 @@ public:
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
-        {   "scheme_type"       : "ResidualBasedBDFDisplacementScheme",
+        {   "name"              : "ResidualBasedBDFDisplacementScheme",
             "integration_order" : 2
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

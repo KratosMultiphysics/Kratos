@@ -73,8 +73,8 @@ public:
         : mpResponseFunction(pResponseFunction)
     {
         Parameters default_parameters(R"({
-            "scheme_type" : "ResidualBasedAdjointBossakScheme",
-            "alpha_bossak": -0.3
+            "name"         : "ResidualBasedAdjointBossakScheme",
+            "alpha_bossak" : -0.3
         })");
         Settings.ValidateAndAssignDefaults(default_parameters);
         mBossak.Alpha = Settings["alpha_bossak"].GetDouble();
