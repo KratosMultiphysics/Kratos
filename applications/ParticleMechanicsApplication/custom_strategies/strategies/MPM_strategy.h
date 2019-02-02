@@ -411,12 +411,7 @@ public:
 
         // Determine element index
         const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
-        const unsigned int number_nodes = mr_grid_model_part.NumberOfNodes();
-        unsigned int last_element_id;
-        if (number_nodes>number_elements)
-            last_element_id = number_nodes + 1;
-        else
-            last_element_id = number_elements + 1;
+        unsigned int last_element_id = number_elements + 1;
 
         // Loop over the submodelpart of mr_initial_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = mr_initial_model_part.SubModelPartsBegin();
