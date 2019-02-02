@@ -415,7 +415,6 @@ public:
 
             // Variables to be cleaned
             double & nodal_mass     = (i)->FastGetSolutionStepValue(NODAL_MASS);
-            double & nodal_area     = (i)->FastGetSolutionStepValue(NODAL_AREA);
             double & nodal_density = (i)->FastGetSolutionStepValue(DENSITY);
             array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
@@ -441,7 +440,6 @@ public:
 
             // Clear
             nodal_mass = 0.0;
-            nodal_area = 0.0;
             nodal_density = 0.0;
             nodal_momentum.clear();
             nodal_inertia.clear();
@@ -470,7 +468,6 @@ public:
         {
             auto i = mr_grid_model_part.NodesBegin() + iter;
             const double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
-            const double & nodal_area = (i)->FastGetSolutionStepValue(NODAL_AREA);
 
             if (nodal_mass > std::numeric_limits<double>::epsilon())
             {
@@ -491,13 +488,6 @@ public:
                 {
                     double & nodal_mpressure = (i)->FastGetSolutionStepValue(NODAL_MPRESSURE);
                     delta_nodal_pressure = nodal_mpressure/nodal_mass;
-                }
-
-                // For particle conditions: additional nodal velocity contribution
-                if ( nodal_area > std::numeric_limits<double>::epsilon())
-                {
-                    const array_1d<double, 3 > & dirichlet_nodal_velocity = (i)->FastGetSolutionStepValue(AUX_VELOCITY,0) / nodal_area;
-                    nodal_velocity += dirichlet_nodal_velocity;
                 }
 
                 delta_nodal_velocity = nodal_momentum/nodal_mass;

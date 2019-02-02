@@ -17,7 +17,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "particles_per_condition"   : 0,
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
-                "variable_name"             : "MPC_DISPLACEMENT",
+                "variable_name"             : "DISPLACEMENT",
                 "modulus"                   : 1.0,
                 "constrained"               : true,
                 "direction"                 : [0.0, 0.0, 0.0],

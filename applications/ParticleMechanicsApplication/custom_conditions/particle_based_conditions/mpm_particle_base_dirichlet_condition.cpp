@@ -40,32 +40,16 @@ void MPMParticleBaseDirichletCondition::InitializeSolutionStep( ProcessInfo& rCu
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
     This function is called by the base scheme class.*/
-    GeometryType& rGeom = GetGeometry();
-    const unsigned int dimension = rGeom.WorkingSpaceDimension();
-    const unsigned int number_of_nodes = rGeom.PointsNumber();
-    const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    GeneralVariables Variables;
-
-    // Calculating shape function
-    Variables.N = this->MPMShapeFunctionPointValues(Variables.N, xg_c);
-
     mFinalizedStep = false;
 
-    const array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
-    array_1d<double,3> aux_nodal_velocity = ZeroVector(3);
+    // Here MPC_DISPLACEMENT is updated in terms of velocity and acceleration is added
+    array_1d<double,3>& MPC_Displacement = this->GetValue(MPC_DISPLACEMENT);
+    array_1d<double,3>& MPC_Velocity = this->GetValue(MPC_VELOCITY);
+    const array_1d<double,3>& MPC_Acceleration = this->GetValue(MPC_ACCELERATION);
+    const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
 
-    // Here MPC contribution in terms of velocity is added
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        for (unsigned int j = 0; j < dimension; j++)
-            aux_nodal_velocity[j] = Variables.N[i] * MPC_Velocity[j] * this->GetIntegrationWeight();
-
-        rGeom[i].SetLock();
-        rGeom[i].FastGetSolutionStepValue(AUX_VELOCITY, 0) += aux_nodal_velocity;
-        rGeom[i].FastGetSolutionStepValue(NODAL_AREA, 0) += Variables.N[i] * this->GetIntegrationWeight();
-        rGeom[i].UnSetLock();
-
-    }
+    MPC_Displacement += (MPC_Velocity * delta_time) + (0.5 * MPC_Acceleration * delta_time * delta_time);
+    MPC_Velocity += (MPC_Acceleration * delta_time);
 }
 
 //************************************************************************************
@@ -93,9 +77,12 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
 
     // Update the MPC Position
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
-    const array_1d<double,3> & displacement = this->GetValue(MPC_DISPLACEMENT);
+    array_1d<double,3> & displacement = this->GetValue(MPC_DISPLACEMENT);
     const array_1d<double,3> & new_xg_c = xg_c + displacement ;
     this -> SetValue(MPC_COORD,new_xg_c);
+
+    // Set displacement to zero (NOTE: to use incremental displacement, use MPC_VELOCITY)
+    displacement.clear();
 
     mFinalizedStep = true;
 
