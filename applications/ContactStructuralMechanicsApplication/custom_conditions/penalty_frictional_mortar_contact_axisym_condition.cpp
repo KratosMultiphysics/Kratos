@@ -57,6 +57,15 @@ PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes, T
 /***********************************************************************************/
 
 template< std::size_t TNumNodes, bool TNormalVariation >
+bool PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::IsAxisymmetric() const
+{
+    return true;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template< std::size_t TNumNodes, bool TNormalVariation >
 double PenaltyMethodLagrangianMethodFrictionalMortarContactAxisymCondition<TNumNodes,TNormalVariation>::GetAxisymmetricCoefficient(const GeneralVariables& rVariables) const
 {
     const double radius = CalculateRadius(rVariables);
