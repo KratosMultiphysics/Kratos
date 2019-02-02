@@ -594,6 +594,7 @@ public:
         array_1d<double,3> MPC_Velocity = ZeroVector(3);
 
         double MPC_Area = 0.0;
+        double MPC_Penalty_Factor = 0.0;
 
         // Determine condition index
         const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
@@ -794,9 +795,17 @@ public:
                         // Number of integration point per condition
                         const unsigned int integration_point_per_conditions = shape_functions_values.size1();
 
-                        // Evaluation of geometric area/volume
+                        // Evaluation of geometric length/area
                         const double area = rGeom.Area();
                         MPC_Area = area / (rGeom.size() + integration_point_per_conditions);
+
+                        // Check condition variables
+                        if (i->Has(MPC_DISPLACEMENT))
+                            MPC_Displacement = i->GetValue(MPC_DISPLACEMENT);
+                        if (i->Has(MPC_VELOCITY))
+                            MPC_Velocity = i->GetValue(MPC_VELOCITY);
+                        if (i->Has(PENALTY_FACTOR))
+                            MPC_Penalty_Factor = i->GetValue(PENALTY_FACTOR);
 
                         // If dirichlet boundary
                         std::string condition_type_name;
@@ -843,6 +852,7 @@ public:
                             p_condition->SetValue(MPC_NORMAL, MPC_Normal);
                             p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
                             p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
+                            p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
 
                             // Add the MP Condition to the model part
                             mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
@@ -877,6 +887,7 @@ public:
                                 p_condition->SetValue(MPC_NORMAL, MPC_Normal);
                                 p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
                                 p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
+                                p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
 
                                 // Add the MP Condition to the model part
                                 mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
