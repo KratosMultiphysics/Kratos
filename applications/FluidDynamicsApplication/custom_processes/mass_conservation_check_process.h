@@ -141,6 +141,19 @@ public:
      */
     double ComputeFlowOverBoundary( const Kratos::Flags boundaryFlag );
 
+
+    /**
+     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
+     * This function requires further explanation:
+     * It is assumed that the interface between water and air is not moving.
+     * Given that, the velocity field would create a volume flux through the stationary interface.
+     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert into air" if the surface
+     * remained stationary.
+     * @return double Volume flow [m3/s] computed over the surface
+     */
+    double OrthogonalFlowIntoAir();
+
+
     /**
      * @brief Initialization of the process including computation of inital volumes
      *
@@ -149,7 +162,7 @@ public:
     std::string Initialize();
 
     /**
-     * @brief Execution of the process in each time step
+     * @brief Execution of the process in each time step (global conservation)
      *
      * @return std::string Output message (can appear in log-file)
      */

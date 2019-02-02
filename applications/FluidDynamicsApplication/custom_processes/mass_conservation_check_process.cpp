@@ -132,6 +132,8 @@ std::string MassConservationCheckProcess::ExecuteInTimeStep(){
     // calculation of the "missing" water volume
     const double water_volume_error = mTheoreticalNegativeVolume - neg_vol;
 
+    double a = OrthogonalFlowIntoAir();
+
     double shift_for_correction = 0.0;
     // check if it is time for a correction (if wished for)
     if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 10e-7){
@@ -250,6 +252,93 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
     positiveVolume = pos_vol;
     negativeVolume = neg_vol;
     interfaceArea = int_area;
+}
+
+double MassConservationCheckProcess::OrthogonalFlowIntoAir()
+{
+    double outflow = 0.0;
+
+    // #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area)
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        // iteration over all elements
+        const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+
+        Matrix shape_functions;
+        GeometryType::ShapeFunctionsGradientsType shape_derivatives;
+
+        const auto rGeom = it_elem->GetGeometry();
+        unsigned int pt_count_pos = 0;
+        unsigned int pt_count_neg = 0;
+        // instead of using data.isCut()
+        for (unsigned int pt = 0; pt < rGeom.Points().size(); pt++){
+            if ( rGeom[pt].FastGetSolutionStepValue(DISTANCE) > 0.0 ){
+                pt_count_pos++;
+            } else {
+                pt_count_neg++;
+            }
+        }
+
+        if ( 0 < pt_count_neg && 0 < pt_count_pos ){
+            // element is cut by the surface (splitting)
+            Kratos::unique_ptr<ModifiedShapeFunctions> p_modified_sh_func = nullptr;
+            Vector w_gauss_interface(3, 0.0);
+
+            Vector Distance( rGeom.PointsNumber(), 0.0 );
+            for (unsigned int i = 0; i < rGeom.PointsNumber(); i++){
+                // Control mechanism to avoid 0.0 ( is necessary because "distance_modification" possibly not yet executed )
+                if ( rGeom[i].FastGetSolutionStepValue(DISTANCE) == 0.0 ){
+                    it_elem->GetGeometry().GetPoint(i).FastGetSolutionStepValue(DISTANCE) = 1.0e-7;
+                }
+                Distance[i] = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+            }
+
+            if ( rGeom.PointsNumber() == 3 ){ p_modified_sh_func = Kratos::make_unique<Triangle2D3ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else if ( rGeom.PointsNumber() == 4 ){ p_modified_sh_func = Kratos::make_unique<Tetrahedra3D4ModifiedShapeFunctions>(it_elem->pGetGeometry(), Distance); }
+            else { KRATOS_ERROR << "The process can not be applied on this kind of element" << std::endl; }
+
+            // Concerning their area, the positive and negative side of the interface are equal
+            p_modified_sh_func->ComputeInterfacePositiveSideShapeFunctionsAndGradientsValues(
+                    shape_functions,                    // N
+                    shape_derivatives,                  // DN
+                    w_gauss_interface,                  // includes the weights of the GAUSS points (!!!)
+                    GeometryData::GI_GAUSS_2);          // second order Gauss integration
+
+            // negative side outwards area normal vector values for the Gauss pts. of given quadrature
+            std::vector<Vector> normal_vectors;
+            p_modified_sh_func->ComputeNegativeSideInterfaceAreaNormals(
+                normal_vectors,
+                GeometryData::GI_GAUSS_2
+            );
+
+            KRATOS_WATCH( shape_functions )     // >> [6 or 3 , 4]
+            KRATOS_WATCH( w_gauss_interface )   // >> [6 or 3]
+            KRATOS_WATCH( normal_vectors )       // >> [6 or 3] times [3]
+
+            // iteration over all 3 or 6 integration points
+            for ( unsigned int i_gauss = 0; i_gauss < w_gauss_interface.size(); i_gauss++)
+            {
+                const double weight = w_gauss_interface[i_gauss];
+                const auto& N = row(shape_functions, i_gauss);
+
+                auto& normal = normal_vectors[i_gauss];
+                normal /= norm_2( normal );
+
+                array_1d<double,3> interpolated_velocity = ZeroVector(3);
+                for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
+                    noalias( interpolated_velocity ) += N[n_node] * rGeom[n_node].FastGetSolutionStepValue(VELOCITY);
+                }
+
+                // checking if it is really an outflow towards the air domain
+                if ( 0.0 < inner_prod( normal, interpolated_velocity ) ){
+
+                    outflow += weight * inner_prod( normal, interpolated_velocity );
+
+                }
+            }
+        }
+    }
+
+    return outflow;
 }
 
 
@@ -568,6 +657,8 @@ double MassConservationCheckProcess::ComputeFlowOverBoundary( const Kratos::Flag
                         r_shape_derivatives,                // DN
                         w_gauss_neg_side,                   // includes the weights of the GAUSS points (!!!)
                         GeometryData::GI_GAUSS_2);          // second order Gauss integration
+
+                    auto i_points = aux_2D_triangle->IntegrationPoints( GeometryData::GI_GAUSS_2 );
 
                     // interating velocity over the negative area of the condition
                     for ( unsigned int i_gauss = 0; i_gauss < w_gauss_neg_side.size(); i_gauss++){
