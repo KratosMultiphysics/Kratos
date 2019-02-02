@@ -2,11 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing the Kratos Library
 import KratosMultiphysics
-import KratosMultiphysics.StructuralMechanicsApplication
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-import structural_mechanics_analysis
 
 # Other imports
 import os
@@ -36,6 +35,20 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
             with open(self.file_name + "_parameters.json",'r') as parameter_file:
                 ProjectParameters = KratosMultiphysics.Parameters(parameter_file.read())
 
+            # The mechanical solver selects automatically the fastest linear-solver available
+            # this might not be appropriate for a test, therefore in case nothing is specified,
+            # the previous default linear-solver is set
+            if not ProjectParameters["solver_settings"].Has("linear_solver_settings"):
+                default_lin_solver_settings = KratosMultiphysics.Parameters("""{
+                "solver_type": "ExternalSolversApplication.SuperLUSolver",
+                    "max_iteration": 500,
+                    "tolerance": 1e-9,
+                    "scaling": false,
+                    "symmetric_scaling": true,
+                    "verbosity": 0
+                }""")
+                ProjectParameters["solver_settings"].AddValue("linear_solver_settings", default_lin_solver_settings)
+
             self.modify_parameters(ProjectParameters)
 
             # To avoid many prints
@@ -44,7 +57,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = structural_mechanics_analysis.StructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -201,9 +214,6 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
-class IsotropicDamageSimoJuPSTest(StructuralMechanicsTestFactory):
-    file_name = "cl_test/IsotropicDamageSimoJu/PlaneStress_FourPointShear_test"
-
 class SimpleSmallDeformationPlasticityMCTest(StructuralMechanicsTestFactory):
     file_name = "cl_test/SimpleSmallDeformationPlasticity/simple_small_deformation_plasticity_MC_test"
 
@@ -312,6 +322,9 @@ class PendulusTLTest(StructuralMechanicsTestFactory):
 
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
+
+class RayleighProcessTest(StructuralMechanicsTestFactory):
+    file_name = "rayleigh_process_test/test_rayleigh"
 
 class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"

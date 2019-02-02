@@ -155,7 +155,7 @@ def CreateSolver(model_part, config):
         conv_diff_solver.toll = config.toll
 
     # linear solver settings
-    import linear_solver_factory
+    import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
         conv_diff_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
 

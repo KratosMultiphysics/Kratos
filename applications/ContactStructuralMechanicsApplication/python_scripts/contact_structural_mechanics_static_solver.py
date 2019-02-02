@@ -167,7 +167,7 @@ class ContactStaticMechanicalSolver(structural_mechanics_static_solver.StaticMec
                     else:
                         builder_and_solver = CSMA.ContactResidualBasedEliminationBuilderAndSolver(linear_solver)
         else:
-            builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
+            builder_and_solver = super(ContactStaticMechanicalSolver, self)._create_builder_and_solver()
 
         return builder_and_solver
 
