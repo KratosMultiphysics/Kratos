@@ -201,3 +201,6 @@ class TrilinosNavierStokesSolverMonolithic(navier_stokes_solver_vmsmonolithic.Na
         if self._IsPrintingRank():
             #TODO: CHANGE THIS ONCE THE MPI LOGGER IS IMPLEMENTED
             KratosMultiphysics.Logger.Print("Monolithic MPI solver initialization finished.")
+
+    def Finalize(self):
+        self.solver.Clear()

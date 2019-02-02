@@ -98,10 +98,10 @@ void CableElement3D2N::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix,
     rRightHandSideVector = ZeroVector(msLocalSize);
     // update Residual
     noalias(rRightHandSideVector) -= internal_forces;
-    // add bodyforces
-
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 
@@ -121,10 +121,10 @@ void CableElement3D2N::CalculateRightHandSide(
 
 
     noalias(rRightHandSideVector) -= prod(transformation_matrix, internal_forces);
-
-    // add bodyforces
-    noalias(rRightHandSideVector) += this->CalculateBodyForces();
   }
+
+  // add bodyforces
+  if (this->HasSelfWeight()) noalias(rRightHandSideVector) += this->CalculateBodyForces();
   KRATOS_CATCH("")
 }
 

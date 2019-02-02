@@ -30,7 +30,7 @@
         "solver_type" : "ale_fluid",
         "ale_boundary_parts" : ["NoSlip2D_FSI_Interface"],
         "mesh_motion_solver_settings"               :   {
-            "solver_type" : "mesh_solver_structural_similarity"
+            "solver_type" : "structural_similarity"
         },
         "fluid_solver_settings" : {
             "solver_type"                 : "Monolithic",
