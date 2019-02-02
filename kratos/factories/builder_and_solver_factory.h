@@ -104,13 +104,13 @@ public:
      */
     virtual typename BuilderAndSolverType::Pointer Create(typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings)
     {
-        const std::string& builder_and_solver_type = Settings["builder_and_solver_type"].GetString();
-        if(Has( builder_and_solver_type ) == false) {
-            KRATOS_ERROR << "Trying to construct a builder and solver with type builder_and_solver_type= " << builder_and_solver_type << std::endl <<
+        const std::string& name = Settings["name"].GetString();
+        if(Has( name ) == false) {
+            KRATOS_ERROR << "Trying to construct a builder and solver with type name= " << name << std::endl <<
                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                          KratosComponents< FactoryType >() << std::endl;
         }
-        const auto& aux = KratosComponents< FactoryType >::Get( builder_and_solver_type );
+        const auto& aux = KratosComponents< FactoryType >::Get( name );
         return aux.CreateBuilderAndSolver(pLinearSolver, Settings);
     }
     ///@}

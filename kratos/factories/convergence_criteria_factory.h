@@ -99,13 +99,13 @@ public:
      */
     virtual typename ConvergenceCriteriaType::Pointer Create(Kratos::Parameters Settings)
     {
-        const std::string& convergence_criterion = Settings["convergence_criterion"].GetString();
-        if(Has( convergence_criterion ) == false) {
-            KRATOS_ERROR << "Trying to construct a convergence criteria with type convergence_criterion= " << convergence_criterion << std::endl <<
+        const std::string& name = Settings["name"].GetString();
+        if(Has( name ) == false) {
+            KRATOS_ERROR << "Trying to construct a convergence criteria with type name= " << name << std::endl <<
                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                          KratosComponents< FactoryType >() << std::endl;
         }
-        const auto& aux = KratosComponents< FactoryType >::Get( convergence_criterion );
+        const auto& aux = KratosComponents< FactoryType >::Get( name );
         return aux.CreateConvergenceCriteria(Settings);
     }
     ///@}

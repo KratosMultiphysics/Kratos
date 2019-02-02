@@ -93,7 +93,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "scheme_type" : "ResidualBasedNewmarkDisplacementScheme"
+            "name" : "ResidualBasedNewmarkDisplacementScheme"
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }

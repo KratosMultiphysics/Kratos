@@ -101,13 +101,13 @@ public:
      */
     virtual typename StrategyType::Pointer Create(ModelPart& rModelPart, Kratos::Parameters Settings)
     {
-        const std::string& strategy_type = Settings["strategy_type"].GetString();
-        if(Has( strategy_type ) == false) {
-            KRATOS_ERROR << "Trying to construct a strategies with type strategy_type= " << strategy_type << std::endl <<
+        const std::string& name = Settings["name"].GetString();
+        if(Has( name ) == false) {
+            KRATOS_ERROR << "Trying to construct a strategies with type name= " << name << std::endl <<
                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                          KratosComponents< FactoryType >() << std::endl;
         }
-        const auto& aux = KratosComponents< FactoryType >::Get( strategy_type );
+        const auto& aux = KratosComponents< FactoryType >::Get( name );
         return aux.CreateStrategy(rModelPart, Settings);
     }
     ///@}

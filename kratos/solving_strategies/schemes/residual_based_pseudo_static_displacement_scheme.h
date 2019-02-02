@@ -95,7 +95,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "scheme_type"            : "ResidualBasedPseudoStaticDisplacementScheme",
+            "name"                   : "ResidualBasedPseudoStaticDisplacementScheme",
             "rayleigh_beta_variable" : "RAYLEIGH_BETA"
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

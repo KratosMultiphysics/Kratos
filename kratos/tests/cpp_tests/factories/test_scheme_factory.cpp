@@ -46,7 +46,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedIncrementalUpdateStaticSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedIncrementalUpdateStaticScheme"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticScheme");
         }
@@ -56,7 +56,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedIncrementalUpdateStaticSchemeSlipFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedIncrementalUpdateStaticSchemeSlip"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedIncrementalUpdateStaticSchemeSlip"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedIncrementalUpdateStaticSchemeSlip");
         }
@@ -66,7 +66,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBossakDisplacementSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBossakDisplacementScheme"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedBossakDisplacementScheme"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBossakDisplacementScheme");
         }
@@ -76,7 +76,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedNewmarkDisplacementSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedNewmarkDisplacementScheme"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedNewmarkDisplacementScheme"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedNewmarkDisplacementScheme");
         }
@@ -86,7 +86,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedPseudoStaticDisplacementSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedPseudoStaticDisplacementScheme", "rayleigh_beta_variable" : "PRESSURE"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedPseudoStaticDisplacementScheme", "rayleigh_beta_variable" : "PRESSURE"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedPseudoStaticDisplacementScheme");
         }
@@ -96,7 +96,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBDFDisplacementSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBDFDisplacementScheme"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedBDFDisplacementScheme"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBDFDisplacementScheme");
         }
@@ -106,7 +106,7 @@ namespace Kratos
          */
         KRATOS_TEST_CASE_IN_SUITE(ResidualBasedBDFCustomSchemeFactory, KratosCoreFastSuite)
         {
-            Parameters this_parameters = Parameters(R"({"scheme_type" : "ResidualBasedBDFCustomScheme"})");
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedBDFCustomScheme"})");
             SchemeType::Pointer p_scheme = SchemeFactoryType().Create(this_parameters);
             KRATOS_CHECK_C_STRING_EQUAL((p_scheme->Info()).c_str(), "ResidualBasedBDFCustomScheme");
         }

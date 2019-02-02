@@ -99,13 +99,13 @@ public:
      */
     virtual typename SchemeType::Pointer Create(Kratos::Parameters Settings)
     {
-        const std::string& scheme_type = Settings["scheme_type"].GetString();
-        if(Has( scheme_type ) == false) {
-            KRATOS_ERROR << "Trying to construct a scheme with type scheme_type= " << scheme_type << std::endl <<
+        const std::string& name = Settings["name"].GetString();
+        if(Has( name ) == false) {
+            KRATOS_ERROR << "Trying to construct a scheme with type name= " << name << std::endl <<
                             "Which does not exist. The list of available options (for currently loaded applications) is: " << std::endl <<
                          KratosComponents< FactoryType >() << std::endl;
         }
-        const auto& aux = KratosComponents< FactoryType >::Get( scheme_type );
+        const auto& aux = KratosComponents< FactoryType >::Get( name );
         return aux.CreateScheme(Settings);
     }
     ///@}

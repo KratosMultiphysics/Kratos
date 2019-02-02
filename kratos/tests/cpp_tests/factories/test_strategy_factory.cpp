@@ -49,18 +49,18 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"strategy_type" : "ResidualBasedLinearStrategy",
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedLinearStrategy",
                                                         "linear_solver_settings" : {
                                                             "solver_type" : "AMGCL"
                                                         },
                                                         "scheme_settings" : {
-                                                            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
+                                                            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
                                                         },
                                                         "convergence_criteria_settings" : {
-                                                            "convergence_criterion" : "DisplacementCriteria"
+                                                            "name" : "DisplacementCriteria"
                                                         },
                                                         "builder_and_solver_settings" : {
-                                                            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
+                                                            "name" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
@@ -74,18 +74,18 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"strategy_type" : "ResidualBasedNewtonRaphsonStrategy",
+            Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedNewtonRaphsonStrategy",
                                                         "linear_solver_settings" : {
                                                             "solver_type" : "AMGCL"
                                                         },
                                                         "scheme_settings" : {
-                                                            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
+                                                            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
                                                         },
                                                         "convergence_criteria_settings" : {
-                                                            "convergence_criterion" : "DisplacementCriteria"
+                                                            "name" : "DisplacementCriteria"
                                                         },
                                                         "builder_and_solver_settings" : {
-                                                            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
+                                                            "name" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
@@ -99,18 +99,18 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"strategy_type" : "AdaptiveResidualBasedNewtonRaphsonStrategy",
+            Parameters this_parameters = Parameters(R"({"name" : "AdaptiveResidualBasedNewtonRaphsonStrategy",
                                                         "linear_solver_settings" : {
                                                             "solver_type" : "AMGCL"
                                                         },
                                                         "scheme_settings" : {
-                                                            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
+                                                            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
                                                         },
                                                         "convergence_criteria_settings" : {
-                                                            "convergence_criterion" : "DisplacementCriteria"
+                                                            "name" : "DisplacementCriteria"
                                                         },
                                                         "builder_and_solver_settings" : {
-                                                            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
+                                                            "name" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
@@ -124,18 +124,18 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"strategy_type" : "LineSearchStrategy",
+            Parameters this_parameters = Parameters(R"({"name" : "LineSearchStrategy",
                                                         "linear_solver_settings" : {
                                                             "solver_type" : "AMGCL"
                                                         },
                                                         "scheme_settings" : {
-                                                            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
+                                                            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
                                                         },
                                                         "convergence_criteria_settings" : {
-                                                            "convergence_criterion" : "DisplacementCriteria"
+                                                            "name" : "DisplacementCriteria"
                                                         },
                                                         "builder_and_solver_settings" : {
-                                                            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
+                                                            "name" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
@@ -149,18 +149,18 @@ namespace Kratos
         {
             Model this_model;
             auto& r_model_part = this_model.CreateModelPart("Main");
-            Parameters this_parameters = Parameters(R"({"strategy_type" : "ExplicitStrategy",
+            Parameters this_parameters = Parameters(R"({"name" : "ExplicitStrategy",
                                                         "linear_solver_settings" : {
                                                             "solver_type" : "AMGCL"
                                                         },
                                                         "scheme_settings" : {
-                                                            "scheme_type" : "ResidualBasedIncrementalUpdateStaticScheme"
+                                                            "name" : "ResidualBasedIncrementalUpdateStaticScheme"
                                                         },
                                                         "convergence_criteria_settings" : {
-                                                            "convergence_criterion" : "DisplacementCriteria"
+                                                            "name" : "DisplacementCriteria"
                                                         },
                                                         "builder_and_solver_settings" : {
-                                                            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolver"
+                                                            "name" : "ResidualBasedEliminationBuilderAndSolver"
                                                         }
                                                         })");
             StrategyType::Pointer p_strategy = StrategyFactoryType().Create(r_model_part, this_parameters);
