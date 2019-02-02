@@ -7,18 +7,32 @@ import RVEAnalysis
 
 class TestPatchTestShells(KratosUnittest.TestCase):
 
-    def test_isotropic_rve(self):
+    def test_rve_computation_block_version(self):
+        with open("ProjectParameters.json",'r') as parameter_file:
+            parameters = KratosMultiphysics.Parameters(parameter_file.read())
+            
+        parameters["solver_settings"]["block_builder"].SetBool(True)
+        parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
+
+        self._aux_rve_computation(parameters)
+
+    @KratosUnittest.skip("constraint application not working properly with elimination BuilderAndSolver")
+    def test_rve_computation_elimination_version(self):
         with open("ProjectParameters.json",'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
-        boundary_mp_name = "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2"
-        averaging_mp_name = "Structure.computing_domain"
+        parameters["solver_settings"]["block_builder"].SetBool(False)
+        parameters["solver_settings"]["multi_point_constraints_used"].SetBool(True)
+
+        self._aux_rve_computation(parameters)
+
+    def _aux_rve_computation(self,parameters):
 
         model = KratosMultiphysics.Model()
-        simulation = RVEAnalysis.RVEAnalysis(model,parameters,boundary_mp_name,averaging_mp_name)
+        simulation = RVEAnalysis.RVEAnalysis(model,parameters)
         simulation.Run()
 
-        Cestimated = model["Structure.computing_domain"].GetValue(StructuralMechanicsApplication.EIGENVECTOR_MATRIX)
+        Cestimated = model["Structure.computing_domain"].GetValue(StructuralMechanicsApplication.ELASTICITY_TENSOR)
 
         Canalytic = KratosMultiphysics.Matrix(6,6)
         Canalytic.fill(0.0)
@@ -44,13 +58,7 @@ class TestPatchTestShells(KratosUnittest.TestCase):
 
         for i in range(0,Cestimated.Size1()):
             for j in range(0,Cestimated.Size2()):
-                print(i,j,Cestimated[i,j],Canalytic[i,j])
                 self.assertAlmostEqual(abs(Cestimated[i,j] - Canalytic[i,j])/(l+2*G),0.0,5)
-
-        print(Canalytic)
-        print(Cestimated)
-
-
 
 
 if __name__ == '__main__':

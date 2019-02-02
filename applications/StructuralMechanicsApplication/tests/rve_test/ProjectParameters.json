@@ -6,13 +6,19 @@
         "start_time"    : 0.0,
         "end_time"      : 1.0
     },
+    "rve_settings"     : {
+        "boundary_mp_name"  : "Structure.SurfacePressure3D_Pressure_on_surfaces_Auto2",
+        "averaging_mp_name" : "Structure.computing_domain",
+        "print_rve_post"    : false,
+        "perturbation"      : 1e-6  
+    },
     "solver_settings"  : {
         "solver_type"                        : "Static",
         "model_part_name"                    : "Structure",
         "block_builder"                      : true,
         "multi_point_constraints_used"       : true,
         "domain_size"                        : 3,
-        "echo_level"                         : 1,
+        "echo_level"                         : 0,
         "analysis_type"                      : "linear",
         "model_import_settings"              : {
             "input_type"     : "mdpa",
@@ -24,13 +30,6 @@
         "time_stepping"                      : {
             "time_step" : 1.1
         },
-        "line_search"                        : false,
-        "convergence_criterion"              : "residual_criterion",
-        "displacement_relative_tolerance"    : 0.0001,
-        "displacement_absolute_tolerance"    : 1e-9,
-        "residual_relative_tolerance"        : 0.0001,
-        "residual_absolute_tolerance"        : 1e-9,
-        "max_iteration"                      : 10,
         "linear_solver_settings"             : {
             "solver_type"         : "SkylineLUFactorizationSolver"
         },
