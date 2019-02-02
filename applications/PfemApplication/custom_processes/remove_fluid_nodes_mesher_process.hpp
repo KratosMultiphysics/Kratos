@@ -19,7 +19,7 @@
 #include "custom_processes/remove_nodes_mesher_process.hpp"
 
 ///VARIABLES used:
-//Data:     NORMAL, MASTER_NODES, NEIGHBOR_NODES, NEIGBOUR_ELEMENTS
+//Data:     NORMAL, MASTER_NODES, NEIGHBOUR_NODES, NEIGBOUR_ELEMENTS
 //StepData: MEAN_ERROR
 //Flags:    (checked) TO_ERASE, BOUNDARY, STRUCTURE, NEW_ENTITY, BLOCKED
 //          (set)     TO_ERASE(conditions,nodes)(set), NEW_ENTITY(conditions,nodes)(set), BLOCKED(nodes)->locally, VISITED(nodes)(set)
@@ -52,10 +52,9 @@ class RemoveFluidNodesMesherProcess
   typedef Tree< KDTreePartition<BucketType> >                          KdtreeType; //Kdtree
   typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
 
-  typedef std::vector<Node<3>*>             NodePointerVectorType;
-  typedef std::vector<Element*>          ElementPointerVectorType;
-  typedef std::vector<Condition*>      ConditionPointerVectorType;
-
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
+  typedef WeakPointerVector<Condition> ConditionWeakPtrVectorType;
   ///@}
   ///@name Life Cycle
   ///@{
@@ -155,7 +154,7 @@ class RemoveFluidNodesMesherProcess
     list_of_nodes.reserve(rModelPart.NumberOfNodes());
     for(ModelPart::NodesContainerType::iterator i_node = rModelPart.NodesBegin() ; i_node != rModelPart.NodesEnd() ; ++i_node)
     {
-      (list_of_nodes).push_back(*(i_node.base()));
+      (list_of_nodes).push_back(*i_node.base());
     }
 
     KdtreeType nodes_tree(list_of_nodes.begin(),list_of_nodes.end(), bucket_size);
@@ -190,21 +189,20 @@ class RemoveFluidNodesMesherProcess
 
         unsigned int FreeSurfaceNeighbours=0;
         unsigned int RigidNeighbours=0;
-        NodePointerVectorType& NeighbourNodes = in->GetValue(NEIGHBOR_NODES);
-        unsigned int NumberOfNeighbourNodes = NeighbourNodes.size();
-        for(NodePointerVectorType::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
+        NodeWeakPtrVectorType& nNodes = in->GetValue(NEIGHBOUR_NODES);
+        for(auto& i_nnode : nNodes)
         {
-          if((*nn)->Is(BLOCKED) || (*nn)->Is(SOLID)){
+          if(i_nnode.Is(BLOCKED) || i_nnode.Is(SOLID)){
             ++RigidNeighbours;
           }
-          if((*nn)->Is(FREE_SURFACE)){
+          if(i_nnode.Is(FREE_SURFACE)){
             ++FreeSurfaceNeighbours;
           }
         }
 
         if(in->Is(FREE_SURFACE)){ // it must be more difficult to erase a free_surface node, otherwise, lot of volume is lost
 
-          if( RigidNeighbours == NumberOfNeighbourNodes ){
+          if( RigidNeighbours == nNodes.size() ){
             radius*=0.25;
           }
           else{
@@ -668,21 +666,21 @@ class RemoveFluidNodesMesherProcess
         double distance = 0;
         unsigned int face = 0;
 
-        ElementPointerVectorType& rNE = it->GetValue(NEIGHBOR_ELEMENTS);
+        ElementWeakPtrVectorType& nElements = it->GetValue(NEIGHBOUR_ELEMENTS);
 
- 	for(ElementPointerVectorType::iterator ie = rNE.begin(); ie!=rNE.end(); ++ie)
+ 	for(auto& i_nelem : nElements)
         {
-          ElementPointerVectorType& rE = (*ie)->GetValue(NEIGHBOR_ELEMENTS);
+          ElementWeakPtrVectorType& inElements = i_nelem.GetValue(NEIGHBOUR_ELEMENTS);
 
           DenseMatrix<unsigned int> lpofa; //connectivities of points defining faces
 
           distance = 0;
           face = 0;
-          for(ElementPointerVectorType::iterator je = rE.begin(); je!=rE.end(); ++je)
+          for(auto& j_nelem : inElements)
           {
-            if ((*ie)->Id() == (*je)->Id()){
+            if (i_nelem.Id() == j_nelem.Id()){
 
-              GeometryType& rGeometry = (*ie)->GetGeometry();
+              GeometryType& rGeometry = i_nelem.GetGeometry();
 
               rGeometry.NodesInFaces(lpofa);
 
@@ -790,20 +788,20 @@ class RemoveFluidNodesMesherProcess
     bool moved_node = false;
     //std::cout<<" Boundary to Move Pre ["<<rNode.Id()<<"] "<<rNode.Coordinates()<<std::endl;
     unsigned int FreeSurfaceNodes = 0;
-    NodePointerVectorType& NeighbourNodes = rNode.GetValue(NEIGHBOR_NODES);
-    NodePointerVectorType FreeNeighbours;
-    for(NodePointerVectorType::iterator nn = NeighbourNodes.begin(); nn != NeighbourNodes.end(); ++nn)
+    NodeWeakPtrVectorType& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
+    NodeWeakPtrVectorType FreeNeighbours;
+    for(auto i_nnodes(nNodes.begin()); i_nnodes != nNodes.end(); ++i_nnodes)
     {
-      if( (*nn)->Is(FREE_SURFACE) ){
-        FreeNeighbours.push_back((*nn));
+      if(i_nnodes->Is(FREE_SURFACE) ){
+        FreeNeighbours.push_back(*i_nnodes.base());
             ++FreeSurfaceNodes;
       }
     }
 
     if( FreeSurfaceNodes == 2 )
     {
-      array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front()->Coordinates()+FreeNeighbours.back()->Coordinates());
-      array_1d<double,3> Direction = (FreeNeighbours.front()->Coordinates()-FreeNeighbours.back()->Coordinates());
+      array_1d<double,3> MidPoint  = 0.5 * (FreeNeighbours.front().Coordinates()+FreeNeighbours.back().Coordinates());
+      array_1d<double,3> Direction = (FreeNeighbours.front().Coordinates()-FreeNeighbours.back().Coordinates());
 
       if(norm_2(Direction))
         Direction/=norm_2(Direction);
@@ -813,15 +811,15 @@ class RemoveFluidNodesMesherProcess
       noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += Displacement;
       noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += Displacement;
 
-      for(NodePointerVectorType::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+      for(auto& i_fnnodes : FreeNeighbours)
       {
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += (*fsn)->FastGetSolutionStepValue(VELOCITY);
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += (*fsn)->FastGetSolutionStepValue(VELOCITY,1);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += (*fsn)->FastGetSolutionStepValue(ACCELERATION);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += (*fsn)->FastGetSolutionStepValue(ACCELERATION,1);
-        rNode.FastGetSolutionStepValue(PRESSURE)                += (*fsn)->FastGetSolutionStepValue(PRESSURE);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += (*fsn)->FastGetSolutionStepValue(PRESSURE_VELOCITY);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += (*fsn)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes.FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes.FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes.FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes.FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes.FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
       }
 
 
@@ -842,17 +840,17 @@ class RemoveFluidNodesMesherProcess
       array_1d<double,3> MidPoint;
       noalias(MidPoint) = ZeroVector(3);
       double quotient = 1.0/double(FreeSurfaceNodes);
-      for(NodePointerVectorType::iterator fsn = FreeNeighbours.begin(); fsn != FreeNeighbours.end(); ++fsn)
+      for(auto& i_fnnodes : FreeNeighbours)
       {
-        MidPoint += (*fsn)->Coordinates();
+        MidPoint += i_fnnodes.Coordinates();
 
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += (*fsn)->FastGetSolutionStepValue(VELOCITY);
-        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += (*fsn)->FastGetSolutionStepValue(VELOCITY,1);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += (*fsn)->FastGetSolutionStepValue(ACCELERATION);
-        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += (*fsn)->FastGetSolutionStepValue(ACCELERATION,1);
-        rNode.FastGetSolutionStepValue(PRESSURE)                += (*fsn)->FastGetSolutionStepValue(PRESSURE);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += (*fsn)->FastGetSolutionStepValue(PRESSURE_VELOCITY);
-        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += (*fsn)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_fnnodes.FastGetSolutionStepValue(VELOCITY);
+        noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_fnnodes.FastGetSolutionStepValue(VELOCITY,1);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_fnnodes.FastGetSolutionStepValue(ACCELERATION);
+        noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_fnnodes.FastGetSolutionStepValue(ACCELERATION,1);
+        rNode.FastGetSolutionStepValue(PRESSURE)                += i_fnnodes.FastGetSolutionStepValue(PRESSURE);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY);
+        rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_fnnodes.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
       }
       MidPoint *= quotient;
       array_1d<double,3> Normal = rNode.FastGetSolutionStepValue(NORMAL);
@@ -895,25 +893,25 @@ class RemoveFluidNodesMesherProcess
 
     KRATOS_TRY
 
-    NodePointerVectorType& NeighbourNodes = rNode.GetValue(NEIGHBOR_NODES);
-    unsigned int NumberOfNeighbourNodes = NeighbourNodes.size();
+    NodeWeakPtrVectorType& nNodes = rNode.GetValue(NEIGHBOUR_NODES);
+    unsigned int NumberOfNeighbourNodes = nNodes.size();
 
     //std::cout<<" Moved Node Pre ["<<rNode.Id()<<"] Displacement"<<rNode.FastGetSolutionStepValue(DISPLACEMENT)<<" Position "<<rNode.Coordinates()<<" Initial Position "<<rNode.GetInitialPosition()<<std::endl;
 
     //array_1d<double,3> CurrentPosition = rNode.Coordinates();
 
-    for(NodePointerVectorType::iterator nn = NeighbourNodes.begin();nn != NeighbourNodes.end(); ++nn)
+    for(auto& i_nnode : nNodes)
     {
-      noalias(rNode.Coordinates())                            += (*nn)->Coordinates();
-      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += (*nn)->FastGetSolutionStepValue(DISPLACEMENT);
-      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += (*nn)->FastGetSolutionStepValue(DISPLACEMENT,1);
-      noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += (*nn)->FastGetSolutionStepValue(VELOCITY);
-      noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += (*nn)->FastGetSolutionStepValue(VELOCITY,1);
-      noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += (*nn)->FastGetSolutionStepValue(ACCELERATION);
-      noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += (*nn)->FastGetSolutionStepValue(ACCELERATION,1);
-      rNode.FastGetSolutionStepValue(PRESSURE)                += (*nn)->FastGetSolutionStepValue(PRESSURE);
-      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += (*nn)->FastGetSolutionStepValue(PRESSURE_VELOCITY);
-      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += (*nn)->FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
+      noalias(rNode.Coordinates())                            += i_nnode.Coordinates();
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT))   += i_nnode.FastGetSolutionStepValue(DISPLACEMENT);
+      noalias(rNode.FastGetSolutionStepValue(DISPLACEMENT,1)) += i_nnode.FastGetSolutionStepValue(DISPLACEMENT,1);
+      noalias(rNode.FastGetSolutionStepValue(VELOCITY))       += i_nnode.FastGetSolutionStepValue(VELOCITY);
+      noalias(rNode.FastGetSolutionStepValue(VELOCITY,1))     += i_nnode.FastGetSolutionStepValue(VELOCITY,1);
+      noalias(rNode.FastGetSolutionStepValue(ACCELERATION))   += i_nnode.FastGetSolutionStepValue(ACCELERATION);
+      noalias(rNode.FastGetSolutionStepValue(ACCELERATION,1)) += i_nnode.FastGetSolutionStepValue(ACCELERATION,1);
+      rNode.FastGetSolutionStepValue(PRESSURE)                += i_nnode.FastGetSolutionStepValue(PRESSURE);
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY)       += i_nnode.FastGetSolutionStepValue(PRESSURE_VELOCITY);
+      rNode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1)     += i_nnode.FastGetSolutionStepValue(PRESSURE_VELOCITY,1);
     }
 
     double quotient = 1.0/double(NumberOfNeighbourNodes+1);

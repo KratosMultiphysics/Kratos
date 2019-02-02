@@ -626,7 +626,7 @@ public:
     Matrix& Jacobian( Matrix& rResult,
                       IndexType IntegrationPointIndex,
                       IntegrationMethod ThisMethod,
-                      Matrix& DeltaPosition ) const override
+                      const Matrix& DeltaPosition ) const override
     {
         array_1d<double, 3> p0 = 0.5 * (BaseType::GetPoint( 0 ) + BaseType::GetPoint( 3 ));
 		array_1d<double, 3> p1 = 0.5 * (BaseType::GetPoint( 1 ) + BaseType::GetPoint( 4 ));

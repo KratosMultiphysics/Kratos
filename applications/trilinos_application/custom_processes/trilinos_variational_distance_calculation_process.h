@@ -60,6 +60,8 @@ class TrilinosVariationalDistanceCalculationProcess
 {
 public:
 
+    KRATOS_DEFINE_LOCAL_FLAG(CALCULATE_EXACT_DISTANCES_TO_PLANE);
+
     ///@name Type Definitions
     ///@{
 
@@ -83,9 +85,12 @@ public:
         Epetra_MpiComm &rComm,
         ModelPart &base_model_part,
         LinearSolverPointerType plinear_solver,
-        unsigned int max_iterations = 10)
-        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations),
-        mrComm(rComm)
+        unsigned int max_iterations = 10,
+        Flags Options = NOT_CALCULATE_EXACT_DISTANCES_TO_PLANE,
+        std::string AuxPartName = "RedistanceCalculationPart" )
+        : VariationalDistanceCalculationProcess<TDim, TSparseSpace, TDenseSpace, TLinearSolver>(base_model_part, max_iterations, Options, AuxPartName ),
+        mrComm(rComm),
+        mAuxModelPartName( AuxPartName )
     {
 
         KRATOS_TRY
@@ -134,7 +139,7 @@ public:
         const bool ReformDofAtEachIteration = false;
         const bool CalculateNormDxFlag = false;
 
-        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart( mAuxModelPartName );
         (this->mp_solving_strategy) = Kratos::make_unique<ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver> >(
             r_distance_model_part,
             pscheme,
@@ -187,10 +192,10 @@ protected:
         KRATOS_TRY
 
         // Generate distance model part
-        if(!base_model_part.GetModel().HasModelPart("RedistanceCalculationPart"))
-            base_model_part.GetModel().CreateModelPart("RedistanceCalculationPart",2);
+        if(!base_model_part.GetModel().HasModelPart( mAuxModelPartName ))
+            base_model_part.GetModel().CreateModelPart( mAuxModelPartName ,2);
 
-        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart("RedistanceCalculationPart");
+        ModelPart& r_distance_model_part = base_model_part.GetModel().GetModelPart( mAuxModelPartName );
 
         r_distance_model_part.Nodes().clear();
         r_distance_model_part.Conditions().clear();
@@ -279,6 +284,8 @@ private:
     ///@{
 
     Epetra_MpiComm& mrComm;
+
+    std::string mAuxModelPartName;
 
     ///@}
     ///@name Private Operators
@@ -465,5 +472,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_TRILINOS_VARIATIONAL_DISTANCE_CALCULATION_PROCESS_INCLUDED  defined
-
-
