@@ -146,11 +146,11 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "builder_and_solver_type" : "ResidualBasedEliminationBuilderAndSolverSlip",
-            "domain_size"             : 3,
-            "variable_x"              : "VELOCITY_X",
-            "variable_y"              : "VELOCITY_Y",
-            "variable_z"              : "VELOCITY_Z"
+            "name"        : "ResidualBasedEliminationBuilderAndSolverSlip",
+            "domain_size" : 3,
+            "variable_x"  : "VELOCITY_X",
+            "variable_y"  : "VELOCITY_Y",
+            "variable_z"  : "VELOCITY_Z"
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);

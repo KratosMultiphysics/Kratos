@@ -143,7 +143,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "builder_and_solver_type"  : "ResidualBasedEliminationBuilderAndSolverComponentwise",
+            "name"                     : "ResidualBasedEliminationBuilderAndSolverComponentwise",
             "components_wise_variable" : "SCALAR_VARIABLE_OR_COMPONENT"
         })" );
 
