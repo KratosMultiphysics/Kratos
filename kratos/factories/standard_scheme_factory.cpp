@@ -33,10 +33,10 @@ namespace Kratos
 {
     void RegisterSchemes()
     {
-        typedef TUblasSparseSpace<double> SpaceType;
+        typedef TUblasSparseSpace<double> SparseSpaceType;
         typedef TUblasDenseSpace<double> LocalSpaceType;
 
-//         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+        typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
         typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeType;
         typedef ResidualBasedIncrementalUpdateStaticSchemeSlip< SparseSpaceType, LocalSpaceType >  ResidualBasedIncrementalUpdateStaticSchemeSlipType;
         typedef ResidualBasedBossakDisplacementScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakDisplacementSchemeType;
@@ -46,14 +46,14 @@ namespace Kratos
         typedef ResidualBasedBDFCustomScheme< SparseSpaceType, LocalSpaceType > ResidualBasedBDFCustomSchemeType;
 
         //NOTE: here we must create persisting objects for the linear solvers
-//         static auto BaseSchemeFactory = StandardSchemeFactory<SpaceType,LocalSpaceType,BaseSchemeType>();
-        static auto ResidualBasedIncrementalUpdateStaticSchemeFactory = StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedIncrementalUpdateStaticSchemeType>();
-        static auto ResidualBasedIncrementalUpdateStaticSchemeSlipFactory = StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedIncrementalUpdateStaticSchemeSlipType>();
-        static auto ResidualBasedBossakDisplacementSchemeFactory = StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedBossakDisplacementSchemeType>();
-        static auto ResidualBasedNewmarkDisplacementSchemeFactory= StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedNewmarkDisplacementSchemeType>();
-        static auto ResidualBasedPseudoStaticDisplacementSchemeFactory= StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedPseudoStaticDisplacementSchemeType>();
-        static auto ResidualBasedBDFDisplacementSchemeFactory= StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedBDFDisplacementSchemeType>();
-        static auto ResidualBasedBDFCustomSchemeFactory= StandardSchemeFactory<SpaceType,LocalSpaceType,ResidualBasedBDFCustomSchemeType>();
+//         static auto BaseSchemeFactory = StandardSchemeFactory<BaseSchemeType, BaseSchemeType>();
+        static auto ResidualBasedIncrementalUpdateStaticSchemeFactory = StandardSchemeFactory<BaseSchemeType, ResidualBasedIncrementalUpdateStaticSchemeType>();
+        static auto ResidualBasedIncrementalUpdateStaticSchemeSlipFactory = StandardSchemeFactory<BaseSchemeType, ResidualBasedIncrementalUpdateStaticSchemeSlipType>();
+        static auto ResidualBasedBossakDisplacementSchemeFactory = StandardSchemeFactory<BaseSchemeType, ResidualBasedBossakDisplacementSchemeType>();
+        static auto ResidualBasedNewmarkDisplacementSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedNewmarkDisplacementSchemeType>();
+        static auto ResidualBasedPseudoStaticDisplacementSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedPseudoStaticDisplacementSchemeType>();
+        static auto ResidualBasedBDFDisplacementSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedBDFDisplacementSchemeType>();
+        static auto ResidualBasedBDFCustomSchemeFactory= StandardSchemeFactory<BaseSchemeType, ResidualBasedBDFCustomSchemeType>();
 
         // Registration of convergence solvers
 //         KRATOS_REGISTER_SCHEME("Scheme", BaseSchemeFactory);

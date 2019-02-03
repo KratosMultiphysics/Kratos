@@ -20,8 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/scheme_factory.h"
-#include "solving_strategies/schemes/scheme.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -50,19 +49,18 @@ namespace Kratos
  * @brief Here we add the functions needed for the registration of convergence criterias
  * @details Defines the standard convergence criteria factory
  * @author Vicente Mataix Ferrandiz
- * @tparam TSparseSpace The sparse space definition
- * @tparam TLocalSpace The dense space definition
  * @tparam TSchemeType The convergence criteria type
+ * @tparam TCustomSchemeType The convergence criteria type (derived class)
  */
-template <typename TSparseSpace, typename TLocalSpace, typename TSchemeType>
+template <typename TSchemeType, typename TCustomSchemeType>
 class StandardSchemeFactory
-    : public SchemeFactory<TSparseSpace,TLocalSpace>
+    : public BaseFactory<TSchemeType>
 {
     ///@name Type Definitions
     ///@{
 
     /// The definition of the scheme
-    typedef Scheme<TSparseSpace,TLocalSpace> SchemeType;
+    typedef TSchemeType SchemeType;
 
     ///@}
 protected:
@@ -74,9 +72,9 @@ protected:
      * @brief This method is an auxiliar method to create a new convergence criteria
      * @return The pointer to the convergence criteria of interest
      */
-    typename SchemeType::Pointer CreateScheme(Kratos::Parameters Settings) const override
+    typename SchemeType::Pointer CreateClass(Kratos::Parameters Settings) const override
     {
-        return typename SchemeType::Pointer(new TSchemeType(Settings));
+        return typename SchemeType::Pointer(new TCustomSchemeType(Settings));
     }
 
     ///@}
@@ -92,9 +90,9 @@ protected:
 ///@{
 
 /// output stream function
-template <typename TSparseSpace, typename TLocalSpace, typename TSchemeType>
+template <typename TSchemeType, typename TCustomSchemeType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const StandardSchemeFactory<TSparseSpace,TLocalSpace,TSchemeType>& rThis)
+                                  const StandardSchemeFactory<TSchemeType, TCustomSchemeType>& rThis)
 {
     rOStream << "StandardSchemeFactory" << std::endl;
     return rOStream;

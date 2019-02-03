@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "factories/builder_and_solver_factory.h"
+#include "factories/base_factory.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -40,7 +40,7 @@ namespace Kratos
         using BuilderAndSolverType = BuilderAndSolver<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        using BuilderAndSolverFactoryType = BuilderAndSolverFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>;
+        using BuilderAndSolverFactoryType = BaseFactory<BuilderAndSolverType, LinearSolverType>;
 
         /**
          * Checks if the ResidualBasedEliminationBuilderAndSolver performs correctly the Factory

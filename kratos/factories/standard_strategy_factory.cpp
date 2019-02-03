@@ -36,7 +36,7 @@ namespace Kratos
         typedef TUblasDenseSpace<double> LocalSpaceType;
         typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-//         typedef SolvingStrategy<SpaceType,  LocalSpaceType, LinearSolverType> SolvingStrategyType;
+        typedef SolvingStrategy<SpaceType,  LocalSpaceType, LinearSolverType> SolvingStrategyType;
         typedef ResidualBasedLinearStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedLinearStrategyType;
         typedef ResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedNewtonRaphsonStrategyType;
         typedef AdaptiveResidualBasedNewtonRaphsonStrategy<SpaceType,  LocalSpaceType, LinearSolverType> AdaptiveResidualBasedNewtonRaphsonStrategyType;
@@ -44,12 +44,12 @@ namespace Kratos
         typedef ExplicitStrategy<SpaceType,  LocalSpaceType, LinearSolverType> ExplicitStrategyType;
 
         //NOTE: here we must create persisting objects for the builder and solvers
-//         static auto SolvingStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType,SolvingStrategyType>();
-        static auto ResidualBasedLinearStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedLinearStrategyType>();
-        static auto ResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedNewtonRaphsonStrategyType>();
-        static auto AdaptiveResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType, AdaptiveResidualBasedNewtonRaphsonStrategyType>();
-        static auto LineSearchStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType, LineSearchStrategyType>();
-        static auto ExplicitStrategyFactory = StandardStrategyFactory<SpaceType,LocalSpaceType, LinearSolverType, ExplicitStrategyType>();
+//         static auto SolvingStrategyFactory = StandardStrategyFactory<SolvingStrategyType>();
+        static auto ResidualBasedLinearStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedLinearStrategyType>();
+        static auto ResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ResidualBasedNewtonRaphsonStrategyType>();
+        static auto AdaptiveResidualBasedNewtonRaphsonStrategyFactory = StandardStrategyFactory< SolvingStrategyType, AdaptiveResidualBasedNewtonRaphsonStrategyType>();
+        static auto LineSearchStrategyFactory = StandardStrategyFactory< SolvingStrategyType, LineSearchStrategyType>();
+        static auto ExplicitStrategyFactory = StandardStrategyFactory< SolvingStrategyType, ExplicitStrategyType>();
 
         // Registration of convergence solvers
 //         KRATOS_REGISTER_STRATEGY("Strategy", StrategyFactory);

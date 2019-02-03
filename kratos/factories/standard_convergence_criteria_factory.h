@@ -20,8 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/convergence_criteria_factory.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -50,19 +49,18 @@ namespace Kratos
  * @brief Here we add the functions needed for the registration of convergence criterias
  * @details Defines the standard convergence criteria factory
  * @author Vicente Mataix Ferrandiz
- * @tparam TSparseSpace The sparse space definition
- * @tparam TLocalSpace The dense space definition
  * @tparam TConvergenceCriteriaType The convergence criteria type
+ * @tparam TCustomConvergenceCriteriaType The convergence criteria type (derived class)
  */
-template <typename TSparseSpace, typename TLocalSpace, typename TConvergenceCriteriaType>
+template <typename TConvergenceCriteriaType, typename TCustomConvergenceCriteriaType>
 class StandardConvergenceCriteriaFactory
-    : public ConvergenceCriteriaFactory<TSparseSpace,TLocalSpace>
+    : public BaseFactory<TConvergenceCriteriaType>
 {
     ///@name Type Definitions
     ///@{
 
     /// The definition of the convergence criteria
-    typedef ConvergenceCriteria<TSparseSpace,TLocalSpace> ConvergenceCriteriaType;
+    typedef TConvergenceCriteriaType ConvergenceCriteriaType;
 
     ///@}
 protected:
@@ -74,9 +72,9 @@ protected:
      * @brief This method is an auxiliar method to create a new convergence criteria
      * @return The pointer to the convergence criteria of interest
      */
-    typename ConvergenceCriteriaType::Pointer CreateConvergenceCriteria(Kratos::Parameters Settings) const override
+    typename ConvergenceCriteriaType::Pointer CreateClass(Kratos::Parameters Settings) const override
     {
-        return typename ConvergenceCriteriaType::Pointer(new TConvergenceCriteriaType(Settings));
+        return typename ConvergenceCriteriaType::Pointer(new TCustomConvergenceCriteriaType(Settings));
     }
 
     ///@}
@@ -92,9 +90,9 @@ protected:
 ///@{
 
 /// output stream function
-template <typename TSparseSpace, typename TLocalSpace, typename TConvergenceCriteriaType>
+template <typename TConvergenceCriteriaType, typename TCustomConvergenceCriteriaType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const StandardConvergenceCriteriaFactory<TSparseSpace,TLocalSpace,TConvergenceCriteriaType>& rThis)
+                                  const StandardConvergenceCriteriaFactory<TConvergenceCriteriaType, TCustomConvergenceCriteriaType>& rThis)
 {
     rOStream << "StandardConvergenceCriteriaFactory" << std::endl;
     return rOStream;

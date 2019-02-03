@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/builtin_timer.h"
 
 //default builder and solver
@@ -28,9 +27,7 @@
 
 /* Factories */
 #include "factories/linear_solver_factory.h"
-#include "factories/convergence_criteria_factory.h"
-#include "factories/builder_and_solver_factory.h"
-#include "factories/scheme_factory.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -107,13 +104,13 @@ class ResidualBasedNewtonRaphsonStrategy
     typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /// Convergence criteria factory
-    typedef ConvergenceCriteriaFactory< TSparseSpace, TDenseSpace > ConvergenceCriteriaFactoryType;
+    typedef BaseFactory< TConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
 
     /// Scheme factory
-    typedef SchemeFactory< TSparseSpace, TDenseSpace > SchemeFactoryType;
+    typedef BaseFactory<TSchemeType> SchemeFactoryType;
 
     /// Builder and solver factory
-    typedef BuilderAndSolverFactory< TSparseSpace, TDenseSpace, TLinearSolver > BuilderAndSolverFactoryType;
+    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
 
     ///@}
     ///@name Life Cycle

@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "factories/convergence_criteria_factory.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -77,9 +77,9 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
-    typedef typename ConvergenceCriteria < TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+    typedef typename BaseType::Pointer ConvergenceCriteriaPointerType;
 
-    typedef ConvergenceCriteriaFactory< TSparseSpace, TDenseSpace > ConvergenceCriteriaFactoryType;
+    typedef BaseFactory< BaseType > ConvergenceCriteriaFactoryType;
 
     ///@}
     ///@name Life Cycle

@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "factories/strategy_factory.h"
+#include "factories/base_factory.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -40,7 +40,7 @@ namespace Kratos
         using StrategyType = SolvingStrategy<SparseSpaceType,LocalSpaceType, LinearSolverType>;
 
         /// The definition of the factory
-        using StrategyFactoryType = StrategyFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>;
+        using StrategyFactoryType = BaseFactory<StrategyType>;
 
         /**
          * Checks if the ResidualBasedLinearStrategy performs correctly the Factory

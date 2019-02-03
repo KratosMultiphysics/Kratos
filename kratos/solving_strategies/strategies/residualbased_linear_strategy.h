@@ -28,8 +28,7 @@
 
 /* Factories */
 #include "factories/linear_solver_factory.h"
-#include "factories/builder_and_solver_factory.h"
-#include "factories/scheme_factory.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -101,10 +100,10 @@ public:
     typedef LinearSolverFactory< TSparseSpace, TDenseSpace > LinearSolverFactoryType;
 
     /// Scheme factory
-    typedef SchemeFactory< TSparseSpace, TDenseSpace > SchemeFactoryType;
+    typedef BaseFactory<TSchemeType> SchemeFactoryType;
 
     /// Builder and solver factory
-    typedef BuilderAndSolverFactory< TSparseSpace, TDenseSpace, TLinearSolver > BuilderAndSolverFactoryType;
+    typedef BaseFactory< TBuilderAndSolverType, TLinearSolver > BuilderAndSolverFactoryType;
 
     ///@}
     ///@name Life Cycle

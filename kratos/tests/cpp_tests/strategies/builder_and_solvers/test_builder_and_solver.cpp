@@ -39,7 +39,7 @@
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
 // The builder and solvers
-#include "factories/builder_and_solver_factory.h"
+#include "factories/base_factory.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver.h"
 #include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_with_constraints.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -322,7 +322,7 @@ namespace Kratos
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedBlockBuilderAndSolverWithConstraints"})");
-            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>().Create(p_solver, this_parameters);
+            BuilderAndSolverType::Pointer p_builder_and_solver = BaseFactory<BuilderAndSolverType, LinearSolverType>().Create(p_solver, this_parameters);
 
             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 
@@ -551,7 +551,7 @@ namespace Kratos
             SchemeType::Pointer p_scheme = SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticSchemeType() );
             LinearSolverType::Pointer p_solver = LinearSolverType::Pointer( new SkylineLUFactorizationSolverType() );
             Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedBlockBuilderAndSolverWithConstraints"})");
-            BuilderAndSolverType::Pointer p_builder_and_solver = BuilderAndSolverFactory<SparseSpaceType,LocalSpaceType, LinearSolverType>().Create(p_solver, this_parameters);
+            BuilderAndSolverType::Pointer p_builder_and_solver = BaseFactory<BuilderAndSolverType, LinearSolverType>().Create(p_solver, this_parameters);
 
             const SparseSpaceType::MatrixType& rA = BuildSystem(r_model_part, p_scheme, p_builder_and_solver);
 

@@ -34,18 +34,18 @@ namespace Kratos
         typedef TUblasDenseSpace<double> LocalSpaceType;
         typedef LinearSolver<SpaceType, LocalSpaceType> LinearSolverType;
 
-//         typedef BuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> BuilderAndSolverType;
+        typedef BuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> BuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverType;
         typedef ResidualBasedEliminationBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
         typedef ResidualBasedBlockBuilderAndSolver<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverType;
         typedef ResidualBasedBlockBuilderAndSolverWithConstraints<SpaceType,  LocalSpaceType, LinearSolverType> ResidualBasedBlockBuilderAndSolverWithConstraintsType;
 
         //NOTE: here we must create persisting objects for the builder and solvers
-//         static auto BuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType,BuilderAndSolverType>();
-        static auto ResidualBasedEliminationBuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverType>();
-        static auto ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType>();
-        static auto ResidualBasedBlockBuilderAndSolverFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>();
-        static auto ResidualBasedBlockBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<SpaceType,LocalSpaceType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsType>();
+//         static auto BuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, BuilderAndSolverType>();
+        static auto ResidualBasedEliminationBuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverType>();
+        static auto ResidualBasedEliminationBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType>();
+        static auto ResidualBasedBlockBuilderAndSolverFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedBlockBuilderAndSolverType>();
+        static auto ResidualBasedBlockBuilderAndSolverWithConstraintsFactory = StandardBuilderAndSolverFactory<BuilderAndSolverType, LinearSolverType, ResidualBasedBlockBuilderAndSolverWithConstraintsType>();
 
         // Registration of convergence solvers
 //         KRATOS_REGISTER_BUILDER_AND_SOLVER("BuilderAndSolver", BuilderAndSolverFactory);

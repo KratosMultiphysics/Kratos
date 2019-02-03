@@ -22,10 +22,7 @@
 #include "includes/master_slave_constraint.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
-#include "factories/strategy_factory.h"
-#include "factories/scheme_factory.h"
-#include "factories/convergence_criteria_factory.h"
-#include "factories/builder_and_solver_factory.h"
+#include "factories/base_factory.h"
 #include "utilities/quaternion.h"
 
 namespace Kratos {
@@ -170,10 +167,10 @@ using LinearSolverType = LinearSolver<RealSparseSpace, RealDenseSpace>;
 template class KratosComponents<LinearSolverFactory<RealSparseSpace, RealDenseSpace>>;
 template class KratosComponents<LinearSolverFactory<ComplexSparseSpace, ComplexDenseSpace>>;
 template class KratosComponents<PreconditionerFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<StrategyFactory<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
-template class KratosComponents<SchemeFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<ConvergenceCriteriaFactory<RealSparseSpace, RealDenseSpace>>;
-template class KratosComponents<BuilderAndSolverFactory<RealSparseSpace, RealDenseSpace, LinearSolverType>>;
+template class KratosComponents<BaseFactory<SolvingStrategy<RealSparseSpace, RealDenseSpace, LinearSolverType>>>;
+template class KratosComponents<BaseFactory<BuilderAndSolver<RealSparseSpace, RealDenseSpace, LinearSolverType>, LinearSolverType>>;
+template class KratosComponents<BaseFactory<Scheme<RealSparseSpace,RealDenseSpace>>>;
+template class KratosComponents<BaseFactory<ConvergenceCriteria<RealSparseSpace,RealDenseSpace>>>;
 
 // Specialize array of compenents for VariableData
 KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;

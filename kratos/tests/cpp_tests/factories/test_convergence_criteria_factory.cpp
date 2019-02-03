@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "factories/convergence_criteria_factory.h"
+#include "factories/base_factory.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -35,11 +35,11 @@ namespace Kratos
         using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
         using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-        /// The definition of the custom class
-        using ConvergenceCriteriaFactoryType = ConvergenceCriteriaFactory<SparseSpaceType,LocalSpaceType>;
-
         /// The definition of the convergence criteria
         using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType,LocalSpaceType>;
+
+        /// The definition of the custom class
+        using ConvergenceCriteriaFactoryType = BaseFactory<ConvergenceCriteriaType>;
 
         /**
          * Checks if the DisplacementCriteria performs correctly the Factory

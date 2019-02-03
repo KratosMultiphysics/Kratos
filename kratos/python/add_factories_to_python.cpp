@@ -21,10 +21,7 @@
 #include "python/add_factories_to_python.h"
 #include "factories/linear_solver_factory.h"
 #include "factories/preconditioner_factory.h"
-#include "factories/convergence_criteria_factory.h"
-#include "factories/scheme_factory.h"
-#include "factories/builder_and_solver_factory.h"
-#include "factories/strategy_factory.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -32,27 +29,50 @@ namespace Kratos
 namespace Python
 {
 
+typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
+typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
+typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
+typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
+
+typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
+typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
+typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
+typedef ConvergenceCriteria< SpaceType, LocalSpaceType > ConvergenceCriteriaType;
+typedef BaseFactory< ConvergenceCriteriaType > ConvergenceCriteriaFactoryType;
+typedef Scheme< SpaceType, LocalSpaceType > SchemeType;
+typedef BaseFactory< SchemeType > SchemeFactoryType;
+typedef BuilderAndSolver< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+typedef BaseFactory< BuilderAndSolverType, LinearSolverType > BuilderAndSolverFactoryType;
+typedef SolvingStrategy< SpaceType, LocalSpaceType, LinearSolverType > SolvingStrategyType;
+typedef BaseFactory< SolvingStrategyType > StrategyFactoryType;
+
+ConvergenceCriteriaType::Pointer CreateConvergenceCriteria(ConvergenceCriteriaFactoryType& rConvergenceCriteriaFactory, Kratos::Parameters Settings)
+{
+    return rConvergenceCriteriaFactory.Create(Settings);
+}
+
+SchemeType::Pointer CreateScheme(SchemeFactoryType& rSchemeFactory, Kratos::Parameters Settings)
+{
+    return rSchemeFactory.Create(Settings);
+}
+
+BuilderAndSolverType::Pointer CreateBuilderAndSolver(BuilderAndSolverFactoryType& rBuilderAndSolverFactory, typename LinearSolverType::Pointer pLinearSolver, Kratos::Parameters Settings)
+{
+    return rBuilderAndSolverFactory.Create(pLinearSolver, Settings);
+}
+
+SolvingStrategyType::Pointer CreateSolvingStrategy(StrategyFactoryType& rStrategyFactory, ModelPart& rModelPart, Kratos::Parameters Settings)
+{
+    return rStrategyFactory.Create(rModelPart, Settings);
+}
+
 void  AddFactoriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-    typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-    typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
-
     //////////////////////////////////////////////////////////////7
     //HERE THE TOOLS TO REGISTER LINEAR SOLVERS
-
-    typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
-    typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
-    typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
-    typedef ConvergenceCriteriaFactory< SpaceType, LocalSpaceType > ConvergenceCriteriaFactoryType;
-    typedef SchemeFactory< SpaceType, LocalSpaceType > SchemeFactoryType;
-    typedef BuilderAndSolverFactory< SpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverFactoryType;
-    typedef StrategyFactory< SpaceType, LocalSpaceType, LinearSolverType > StrategyFactoryType;
-
     py::class_<LinearSolverFactoryType, LinearSolverFactoryType::Pointer>(m, "LinearSolverFactory")
      .def( py::init< >() )
      .def("Create",&LinearSolverFactoryType::Create)
@@ -71,27 +91,35 @@ void  AddFactoriesToPython(pybind11::module& m)
      .def("Has",&PreconditionerFactoryType::Has)
     ;
 
+    //////////////////////////////////////////////////////////////7
+    //HERE THE TOOLS TO REGISTER CONVERGENCE CRITERIA
     py::class_<ConvergenceCriteriaFactoryType, ConvergenceCriteriaFactoryType::Pointer >(m, "ConvergenceCriteriaFactory")
      .def( py::init< >() )
-     .def("Create",&ConvergenceCriteriaFactoryType::Create)
+     .def("Create",CreateConvergenceCriteria)
      .def("Has",&ConvergenceCriteriaFactoryType::Has)
     ;
 
+    //////////////////////////////////////////////////////////////7
+    //HERE THE TOOLS TO REGISTER SCHEMES
     py::class_<SchemeFactoryType, SchemeFactoryType::Pointer >(m, "SchemeFactory")
      .def( py::init< >() )
-     .def("Create",&SchemeFactoryType::Create)
+     .def("Create",CreateScheme)
      .def("Has",&SchemeFactoryType::Has)
     ;
 
+    //////////////////////////////////////////////////////////////7
+    //HERE THE TOOLS TO REGISTER BUILDER AND SOLVERS
     py::class_<BuilderAndSolverFactoryType, BuilderAndSolverFactoryType::Pointer >(m, "BuilderAndSolverFactory")
      .def( py::init< >() )
-     .def("Create",&BuilderAndSolverFactoryType::Create)
+     .def("Create",CreateBuilderAndSolver)
      .def("Has",&BuilderAndSolverFactoryType::Has)
     ;
 
+    //////////////////////////////////////////////////////////////7
+    //HERE THE TOOLS TO REGISTER STRATEGIES
     py::class_<StrategyFactoryType, StrategyFactoryType::Pointer >(m, "StrategyFactory")
      .def( py::init< >() )
-     .def("Create",&StrategyFactoryType::Create)
+     .def("Create",CreateSolvingStrategy)
      .def("Has",&StrategyFactoryType::Has)
     ;
 

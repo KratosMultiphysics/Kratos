@@ -22,7 +22,7 @@
 // Utility includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "factories/scheme_factory.h"
+#include "factories/base_factory.h"
 #include "spaces/ublas_space.h"
 
 namespace Kratos
@@ -39,7 +39,7 @@ namespace Kratos
         using SchemeType = Scheme<SparseSpaceType,LocalSpaceType>;
 
         /// The definition of the factory
-        using SchemeFactoryType = SchemeFactory<SparseSpaceType,LocalSpaceType>;
+        using SchemeFactoryType = BaseFactory<SchemeType>;
 
         /**
          * Checks if the ResidualBasedIncrementalUpdateStaticScheme performs correctly the Factory

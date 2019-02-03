@@ -20,8 +20,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "factories/strategy_factory.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "factories/base_factory.h"
 
 namespace Kratos
 {
@@ -50,20 +49,18 @@ namespace Kratos
  * @brief Here we add the functions needed for the registration of strategys
  * @details Defines the standard strategy factory
  * @author Vicente Mataix Ferrandiz
- * @tparam TSparseSpace The sparse space definition
- * @tparam TLocalSpace The dense space definition
- * @tparam TLinearSolver The linear solver type considered
  * @tparam TStrategyType The strategy type
+ * @tparam TCustomStrategyType The strategy type  (derived class)
  */
-template <typename TSparseSpace, typename TLocalSpace, class TLinearSolver, typename TStrategyType>
+template <typename TStrategyType, typename TCustomStrategyType>
 class StandardStrategyFactory
-    : public StrategyFactory<TSparseSpace,TLocalSpace, TLinearSolver>
+    : public BaseFactory<TStrategyType>
 {
     ///@name Type Definitions
     ///@{
 
     /// The definition of the strategy
-    typedef SolvingStrategy<TSparseSpace,TLocalSpace, TLinearSolver> StrategyType;
+    typedef TStrategyType StrategyType;
 
     ///@}
 protected:
@@ -75,9 +72,9 @@ protected:
      * @brief This method is an auxiliar method to create a new strategy
      * @return The pointer to the strategy of interest
      */
-    typename StrategyType::Pointer CreateStrategy(ModelPart& rModelPart, Kratos::Parameters Settings) const override
+    typename StrategyType::Pointer CreateClass(ModelPart& rModelPart, Kratos::Parameters Settings) const override
     {
-        return typename StrategyType::Pointer(new TStrategyType(rModelPart, Settings));
+        return typename StrategyType::Pointer(new TCustomStrategyType(rModelPart, Settings));
     }
 
     ///@}
@@ -93,9 +90,9 @@ protected:
 ///@{
 
 /// output stream function
-template <typename TSparseSpace, typename TLocalSpace, class TLinearSolver, typename TStrategyType>
+template <typename TStrategyType, typename TCustomStrategyType>
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const StandardStrategyFactory<TSparseSpace,TLocalSpace, TLinearSolver, TStrategyType>& rThis)
+                                  const StandardStrategyFactory<TStrategyType, TCustomStrategyType>& rThis)
 {
     rOStream << "StandardStrategyFactory" << std::endl;
     return rOStream;
