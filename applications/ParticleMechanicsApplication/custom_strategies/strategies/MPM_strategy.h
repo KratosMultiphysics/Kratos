@@ -408,9 +408,10 @@ public:
         double MP_Mass;
         double MP_Volume;
 
-        // Determine element index
+        // Determine element index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements();
-        unsigned int last_element_id = number_elements + 1;
+        const unsigned int number_nodes = mr_grid_model_part.NumberOfNodes();
+        unsigned int last_element_id = (number_nodes > number_elements) ? (number_nodes + 1) : (number_elements+1);
 
         // Loop over the submodelpart of mr_initial_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = mr_initial_model_part.SubModelPartsBegin();
@@ -597,9 +598,17 @@ public:
         double MPC_Area = 0.0;
         double MPC_Penalty_Factor = 0.0;
 
-        // Determine condition index
+        // Determine condition index: This convention is done in order for the purpose of visualization in GiD
         const unsigned int number_conditions = mr_grid_model_part.NumberOfConditions();
-        unsigned int last_condition_id = number_conditions + 1;
+        const unsigned int number_elements = mr_grid_model_part.NumberOfElements() + mr_initial_model_part.NumberOfElements() + mr_mpm_model_part.NumberOfElements();
+        const unsigned int number_nodes = mr_grid_model_part.NumberOfNodes();
+        unsigned int last_condition_id;
+        if (number_elements > number_nodes && number_elements > number_conditions)
+            last_condition_id = number_elements + 1;
+        else if (number_nodes > number_elements && number_nodes > number_conditions)
+            last_condition_id = number_nodes + 1;
+        else
+            last_condition_id = number_conditions + 1;
 
         // Loop over the submodelpart of mr_grid_model_part
         for (ModelPart::SubModelPartIterator submodelpart_it = mr_grid_model_part.SubModelPartsBegin();
