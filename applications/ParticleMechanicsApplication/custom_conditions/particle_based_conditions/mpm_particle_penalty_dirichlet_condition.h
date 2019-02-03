@@ -166,16 +166,6 @@ protected:
         bool CalculateResidualVectorFlag
         ) override;
 
-    /**
-     * This functions calculates rotation matrix from given normal vector
-     * @param rRotationMatrix: Rotation Matrix
-     * @param rNormalVector: Normal Vector at the material point condition
-     */
-    virtual void GetRotationMatrix(
-        MatrixType& rRotationMatrix,
-        const VectorType& rNormalVector
-        );
-
     ///@}
     ///@name Protected  Access
     ///@{
