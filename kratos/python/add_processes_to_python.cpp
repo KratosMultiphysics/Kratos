@@ -41,6 +41,7 @@
 #include "processes/compute_bdfcoefficients_process.h"
 #include "processes/variational_distance_calculation_process.h"
 #include "processes/levelset_convection_process.h"
+#include "processes/levelset_forward_convection_process.h"
 #include "processes/apply_constant_scalarvalue_process.h"
 #include "processes/apply_constant_vectorvalue_process.h"
 #include "processes/check_skin_process.h"
@@ -253,6 +254,21 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
         .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
+    ;
+
+    py::class_<LevelSetForwardConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetForwardConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetForwardConvectionProcess2D")
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
+        .def("ConvectForward", &LevelSetForwardConvectionProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::ConvectForward)
+    ;
+    py::class_<LevelSetForwardConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, LevelSetForwardConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"LevelSetForwardConvectionProcess3D")
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double>())
+        .def(py::init<Variable<double>&, ModelPart&, LinearSolverType::Pointer, const double, const double, const unsigned int>())
+        .def("ConvectForward", &LevelSetForwardConvectionProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::ConvectForward)
     ;
 
     py::class_<ApplyConstantScalarValueProcess, ApplyConstantScalarValueProcess::Pointer, Process>(m,"ApplyConstantScalarValueProcess")
