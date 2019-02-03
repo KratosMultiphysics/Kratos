@@ -126,11 +126,13 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init < ModelPart&, const bool, const int, const bool, const std::string >())
     .def(py::init< ModelPart&, Parameters& >())
     .def("Initialize", &MassConservationCheckProcess::Initialize)
-    .def("ExecuteInTimeStep", &MassConservationCheckProcess::ExecuteInTimeStep)
     .def("ComputePositiveVolume", &MassConservationCheckProcess::ComputePositiveVolume)
     .def("ComputeNegativeVolume", &MassConservationCheckProcess::ComputeNegativeVolume)
     .def("ComputeInterfaceArea", &MassConservationCheckProcess::ComputeInterfaceArea)
     .def("ComputeFlowOverBoundary", &MassConservationCheckProcess::ComputeFlowOverBoundary)
+    .def("ComputeBalancedVolume", &MassConservationCheckProcess::ComputeBalancedVolume)
+    .def("ComputeDtForConvection", &MassConservationCheckProcess::ComputeDtForConvection)
+    .def("CkeckAndCorrectGlobally", &MassConservationCheckProcess::CkeckAndCorrectGlobally)
     ;
 }
 

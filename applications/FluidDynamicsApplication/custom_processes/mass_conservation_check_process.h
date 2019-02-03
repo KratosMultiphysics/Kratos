@@ -67,6 +67,10 @@ public:
     typedef Node<3> NodeType;
     typedef Geometry<NodeType> GeometryType;
 
+    // typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    // typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+    // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -166,7 +170,18 @@ public:
      *
      * @return std::string Output message (can appear in log-file)
      */
-    std::string ExecuteInTimeStep();
+    // std::string ExecuteInTimeStep();
+
+
+    std::string ComputeBalancedVolume();
+
+
+    double ComputeDtForConvection();
+
+
+    double CkeckAndCorrectGlobally( Variable<double>& rAuxDistVar );
+
+
 
     // ///@}
     // ///@name Inquiry
@@ -223,6 +238,7 @@ private:
     // Balance parameter resulting from an integration of the net inflow into the domain over time
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
     double mTheoreticalNegativeVolume = -1.0;
+    double mWaterVolumeError = -1.0;
 
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)

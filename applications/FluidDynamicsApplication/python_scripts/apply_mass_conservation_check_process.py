@@ -29,6 +29,12 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._write_to_log = settings["write_to_log_file"].GetBool()
         self._my_log_file = settings["log_file_name"].GetString()
 
+        print( " ------------- before cosntr ---------------------")
+
+        self.forward_convection_process = self._set_levelset_convection_process_serial()
+
+        print( " ------------- after cosntr ---------------------")
+
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
 
@@ -59,9 +65,48 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
-        log_line_string = self.mass_conservation_check_process.ExecuteInTimeStep()
+        log_line_string = self.mass_conservation_check_process.ComputeBalancedVolume()
 
         # writing first line in file
         if ( self._write_to_log and self._is_printing_rank ):
             with open(self._my_log_file, "a+") as logFile:
                 logFile.write( log_line_string )
+
+        dt = self.mass_conservation_check_process.ComputeDtForConvection()
+        print( "fdsjkjvkldvnjdfklfsnbjklfsbdfjklbfbjkslbfjkblgnjbkglnbjkglnbdjklgvfbnjklbnhjkfgl" )
+
+        if dt < 0.0:
+            dt = 0.0000000000000001
+
+        print( dt )
+
+        self.forward_convection_process.ConvectForward( dt, KratosMultiphysics.AUX_MESH_VAR )
+
+        for node in self._fluid_model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.AUX_MESH_VAR, node.GetValue( KratosMultiphysics.AUX_MESH_VAR ))
+
+        self.mass_conservation_check_process.CkeckAndCorrectGlobally( KratosMultiphysics.AUX_MESH_VAR )
+
+
+    def _set_levelset_convection_process_serial(self):
+        ### for serial and OpenMP
+        serial_settings = KratosMultiphysics.Parameters("""{
+            "linear_solver_settings"   : {
+                "solver_type" : "AMGCL"
+            }
+        }""")
+        import linear_solver_factory
+        self.linear_solver = linear_solver_factory.ConstructSolver(serial_settings["linear_solver_settings"])
+
+        if self._fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
+            level_set_convection_process = KratosMultiphysics.LevelSetForwardConvectionProcess2D(
+                KratosMultiphysics.DISTANCE,
+                self._fluid_model_part,
+                self.linear_solver)
+        else:
+            level_set_convection_process = KratosMultiphysics.LevelSetForwardConvectionProcess3D(
+                KratosMultiphysics.DISTANCE,
+                self._fluid_model_part,
+                self.linear_solver)
+
+        return level_set_convection_process

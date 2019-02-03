@@ -85,6 +85,7 @@ class NavierStokesTwoFluidsSolver(FluidSolver):
 
     def AddVariables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.AUX_MESH_VAR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DYNAMIC_VISCOSITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)

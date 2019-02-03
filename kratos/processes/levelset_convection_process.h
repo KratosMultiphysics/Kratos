@@ -165,7 +165,7 @@ public:
     /// Destructor.
     ~LevelSetConvectionProcess() override
     {
-        mrBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
+        // mrBaseModelPart.GetModel().DeleteModelPart("DistanceConvectionPart");
     }
 
     ///@}
@@ -267,6 +267,7 @@ public:
         mVelocity.clear();
         mVelocityOld.clear();
         mOldDistance.clear();
+        mCurrentDistance.clear();
     }
 
 
@@ -277,11 +278,12 @@ public:
         KRATOS_CHECK_VARIABLE_KEY( rAuxLevelSetVar )
 
         if(mDistancePartIsInitialized == false){
-            ReGenerateConvectionModelPart(mrBaseModelPart);
+            ReGenerateConvectionModelPart2(mrBaseModelPart);
         }
 
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
+        KRATOS_WATCH( n_substep )
 
         // Save the variables to be employed so that they can be restored after the solution
         ProcessInfo& rCurrentProcessInfo = mpDistanceModelPart->GetProcessInfo();
@@ -292,23 +294,28 @@ public:
         // using the required time step for the convection
         const double delta_time = timeStep;
 
+        KRATOS_WATCH( delta_time )
+
         // Save current level set value and current and previous step velocity values (***)
+        // Save current level set value and current and previous step velocity values
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             const auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
-            // in both cases the "new" velocity is used
-            mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY, 0);
-            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(VELOCITY, 1);
-            // also saving the "actual" current distane field
-            mCurrentDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar, 0);
-            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar, 1);
+            mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
+            mVelocityOld[i_node] = it_node->FastGetSolutionStepValue(VELOCITY,1);
+            mCurrentDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar);
+            mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
         }
+
+        KRATOS_WATCH( "CP1" )
 
         const double dt = delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
 
         const int rank = mrBaseModelPart.GetCommunicator().MyPID();
+
+        KRATOS_WATCH( rank )
 
         for(unsigned int step = 1; step <= n_substep; ++step){
 
@@ -338,12 +345,16 @@ public:
             mpSolvingStrategy->Solve();
         }
 
+        KRATOS_WATCH( "CP2" )
+
         // storing the convected distance field
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceModelPart->NodesBegin() + i_node;
             it_node->SetValue( rAuxLevelSetVar, it_node->FastGetSolutionStepValue(mrLevelSetVar) );
         }
+
+        KRATOS_WATCH( "CP3" )
 
         // Reset the processinfo to the original settings
         rCurrentProcessInfo.SetValue(DELTA_TIME, previous_delta_time);
@@ -360,6 +371,8 @@ public:
             it_node->FastGetSolutionStepValue(mrLevelSetVar) = mCurrentDistance[i_node];
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
+
+        KRATOS_WATCH( "CP4" )
 
         KRATOS_CATCH("")
     }
@@ -498,6 +511,71 @@ protected:
         mVelocity.resize(n_nodes);
         mVelocityOld.resize(n_nodes);
         mOldDistance.resize(n_nodes);
+        mCurrentDistance.resize(n_nodes);
+
+        mDistancePartIsInitialized = true;
+
+        KRATOS_CATCH("")
+    }
+
+
+    virtual void ReGenerateConvectionModelPart2(ModelPart& rBaseModelPart){
+
+        KRATOS_TRY
+
+        Model& current_model = rBaseModelPart.GetModel();
+
+        if(current_model.HasModelPart("DistanceConvectionPart2"))
+            current_model.DeleteModelPart("DistanceConvectionPart2");
+
+        mpDistanceModelPart= &(current_model.CreateModelPart("DistanceConvectionPart2"));
+
+
+        // Check buffer size
+        const auto base_buffer_size = rBaseModelPart.GetBufferSize();
+        KRATOS_ERROR_IF(base_buffer_size < 2) <<
+            "Base model part buffer size is " << base_buffer_size << ". Set it to a minimum value of 2." << std::endl;
+
+        // Generate
+        mpDistanceModelPart->Nodes().clear();
+        mpDistanceModelPart->Conditions().clear();
+        mpDistanceModelPart->Elements().clear();
+
+        mpDistanceModelPart->SetProcessInfo(rBaseModelPart.pGetProcessInfo());
+        mpDistanceModelPart->SetBufferSize(base_buffer_size);
+        mpDistanceModelPart->SetProperties(rBaseModelPart.pProperties());
+        mpDistanceModelPart->Tables() = rBaseModelPart.Tables();
+
+        // Assigning the nodes to the new model part
+        mpDistanceModelPart->Nodes() = rBaseModelPart.Nodes();
+
+        // Ensure that the nodes have distance as a DOF
+        VariableUtils().AddDof< Variable < double> >(mrLevelSetVar, rBaseModelPart);
+
+        // Generating the elements
+        mpDistanceModelPart->Elements().reserve(rBaseModelPart.NumberOfElements());
+        for (auto it_elem = rBaseModelPart.ElementsBegin(); it_elem != rBaseModelPart.ElementsEnd(); ++it_elem){
+            Element::Pointer p_element = Kratos::make_shared< LevelSetConvectionElementSimplex < TDim, TDim+1 > >(
+                it_elem->Id(),
+                it_elem->pGetGeometry(),
+                it_elem->pGetProperties());
+
+            // Assign EXACTLY THE SAME GEOMETRY, so that memory is saved!!
+            p_element->pGetGeometry() = it_elem->pGetGeometry();
+
+            mpDistanceModelPart->Elements().push_back(p_element);
+        }
+
+        // Next is for mpi (but mpi would also imply calling an mpi strategy)
+        Communicator::Pointer pComm = rBaseModelPart.GetCommunicator().Create();
+        mpDistanceModelPart->SetCommunicator(pComm);
+
+        // Resize the arrays
+        const auto n_nodes = mpDistanceModelPart->NumberOfNodes();
+        mVelocity.resize(n_nodes);
+        mVelocityOld.resize(n_nodes);
+        mOldDistance.resize(n_nodes);
+        mCurrentDistance.resize(n_nodes);
 
         mDistancePartIsInitialized = true;
 
