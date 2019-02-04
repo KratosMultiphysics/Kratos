@@ -419,10 +419,6 @@ public:
             array_1d<double, 3 > & nodal_momentum = (i)->FastGetSolutionStepValue(NODAL_MOMENTUM);
             array_1d<double, 3 > & nodal_inertia  = (i)->FastGetSolutionStepValue(NODAL_INERTIA);
 
-            double & nodal_aux_R   = (i)->FastGetSolutionStepValue(AUX_R);
-            array_1d<double, 3 > & nodal_aux_R_vel = (i)->FastGetSolutionStepValue(AUX_R_VEL);
-            array_1d<double, 3 > & nodal_aux_R_acc = (i)->FastGetSolutionStepValue(AUX_R_ACC);
-
             array_1d<double, 3 > & nodal_displacement = (i)->FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & nodal_velocity     = (i)->FastGetSolutionStepValue(VELOCITY,1);
             array_1d<double, 3 > & nodal_acceleration = (i)->FastGetSolutionStepValue(ACCELERATION,1);
@@ -443,10 +439,6 @@ public:
             nodal_density = 0.0;
             nodal_momentum.clear();
             nodal_inertia.clear();
-
-            nodal_aux_R = 0.0;
-            nodal_aux_R_vel.clear();
-            nodal_aux_R_acc.clear();
 
             nodal_displacement.clear();
             nodal_velocity.clear();
@@ -615,17 +607,6 @@ public:
                                       ProcessInfo& CurrentProcessInfo) override
     {
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        for (ModelPart::NodeIterator i = mr_grid_model_part.NodesBegin();
-                i != mr_grid_model_part.NodesEnd(); ++i)
-        {
-            if( (i)->SolutionStepsDataHas(EXTERNAL_FORCE) && (i)->SolutionStepsDataHas(INTERNAL_FORCE) )
-            {
-                array_1d<double, 3 > & external_force = (i)->FastGetSolutionStepValue(EXTERNAL_FORCE);
-                array_1d<double, 3 > & internal_force = (i)->FastGetSolutionStepValue(INTERNAL_FORCE);
-                external_force.clear();
-                internal_force.clear();
-            }
-        }
     }
 
     //***************************************************************************
