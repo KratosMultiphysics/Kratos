@@ -447,18 +447,21 @@ public:
 
         if (LumpingMethod == LumpingMethods::ROW_SUM) {
             const IntegrationMethod integration_method = GetDefaultIntegrationMethod();
-            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
-            const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
             // Vector fo jacobians
-            Vector detJ_vector(integration_points.size());
+            Vector detJ_vector(r_integrations_points.size());
             DeterminantOfJacobian(detJ_vector, integration_method);
 
             // Iterate over the integration points
-            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
-                const double detJ = detJ_vector[point_number];
-                const double integration_weight = integration_points[point_number].Weight() * detJ;
-                const Vector& rN = row(Ncontainer,point_number);
+            double domain_size = 0.0;
+            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ_vector[point_number];
+                const Vector& rN = row(r_Ncontainer,point_number);
+
+                // Computing domain size
+                domain_size += integration_weight;
 
                 for ( IndexType i = 0; i < number_of_nodes; ++i ) {
                     rResult[i] += rN[i] * integration_weight;
@@ -466,25 +469,24 @@ public:
             }
 
             // Divide by the domain size
-            const double domain_size = DomainSize();
             for ( IndexType i = 0; i < number_of_nodes; ++i ) {
                 rResult[i] /= domain_size;
             }
         } else if (LumpingMethod == LumpingMethods::DIAGONAL_SCALING) {
             IntegrationMethod integration_method = GetDefaultIntegrationMethod();
             integration_method = static_cast<IntegrationMethod>(static_cast<int>(integration_method) + 1);
-            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
-            const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( integration_method );
+            const Matrix& r_Ncontainer = this->ShapeFunctionsValues(integration_method);
 
             // Vector fo jacobians
-            Vector detJ_vector(integration_points.size());
+            Vector detJ_vector(r_integrations_points.size());
             DeterminantOfJacobian(detJ_vector, integration_method);
 
             // Iterate over the integration points
-            for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
+            for ( IndexType point_number = 0; point_number < r_integrations_points.size(); ++point_number ) {
                 const double detJ = detJ_vector[point_number];
-                const double integration_weight = integration_points[point_number].Weight() * detJ;
-                const Vector& rN = row(Ncontainer,point_number);
+                const double integration_weight = r_integrations_points[point_number].Weight() * detJ;
+                const Vector& rN = row(r_Ncontainer,point_number);
 
                 for ( IndexType i = 0; i < number_of_nodes; ++i ) {
                     rResult[i] += std::pow(rN[i], 2) * integration_weight;
@@ -510,8 +512,8 @@ public:
             array_1d<double, 3>& r_local_coordinates = local_point.Coordinates();
 
             // Iterate over integration points
-            const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
-            const double weight = integration_points[0].Weight()/static_cast<double>(number_of_nodes);
+            const GeometryType::IntegrationPointsArrayType& r_integrations_points = this->IntegrationPoints( GeometryData::GI_GAUSS_1 ); // First order
+            const double weight = r_integrations_points[0].Weight()/static_cast<double>(number_of_nodes);
             for ( IndexType point_number = 0; point_number < number_of_nodes; ++point_number ) {
                 for ( IndexType dim = 0; dim < local_space_dimension; ++dim ) {
                     r_local_coordinates[dim] = local_coordinates(point_number, dim);
