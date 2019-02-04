@@ -41,9 +41,11 @@ namespace Kratos
 /**
  * @class ResidualBasedBossakDisplacementScheme
  * @ingroup KratosCore
- * @brief Bossak integration scheme (for dynamic problems) for displacements
+ * @brief Bossak integration scheme (for linear and nonlinear dynamic problems) for displacements
  * @details This is a dynamic implicit scheme based of the Bossak algorithm for displacements.
- * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.3 (negative)
+ * The parameter Alpha of Bossak introduces damping, the value of Bossak is from 0 to -0.5 (negative)
+ * Implementation according to: "An alpha modification of Newmark's method; W.L. Wood, M. Bossak, O.C. Zienkiewicz;
+ * Numerical Methods in Engineering; 1980"
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
  */
@@ -97,7 +99,7 @@ public:
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "damp_factor_m" : -0.3
+            "damp_factor_m" : -0.3,
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
@@ -111,7 +113,6 @@ public:
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
-        mAlpha.f = 0.0;
         mAlpha.m = rAlpham;
 
         // Default values of the Newmark coefficients
@@ -172,8 +173,8 @@ public:
             double gamma
             )
     {
-        mNewmark.beta  = (1.0 + mAlpha.f - mAlpha.m) * (1.0 + mAlpha.f - mAlpha.m) * beta;
-        mNewmark.gamma = gamma + mAlpha.f - mAlpha.m;
+        mNewmark.beta  = (1.0 - mAlpha.m) * (1.0 - mAlpha.m) * beta;
+        mNewmark.gamma = gamma  - mAlpha.m;
     }
 
     /**
@@ -323,16 +324,12 @@ public:
         const double delta_time = current_process_info[DELTA_TIME];
 
         double beta = 0.25;
-        if (current_process_info.Has(NEWMARK_BETA))
-            beta = current_process_info[NEWMARK_BETA];
         double gamma = 0.5;
-        if (current_process_info.Has(NEWMARK_GAMMA))
-            gamma = current_process_info[NEWMARK_GAMMA];
 
         CalculateNewmarkCoefficients(beta, gamma);
 
         // Initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * std::pow(delta_time, 2)) );
+        mNewmark.c0 = ( 1.0 / (mNewmark.beta * delta_time * delta_time) );
         mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * delta_time) );
         mNewmark.c2 = ( 1.0 / (mNewmark.beta * delta_time) );
         mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
@@ -379,7 +376,7 @@ public:
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         // Check for admissible value of the AlphaBossak
-        KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.3) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is " << mAlpha.m << std::endl;
+        KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.5) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.5. Current value is " << mAlpha.m << std::endl;
 
         return 0;
         KRATOS_CATCH( "" );
@@ -435,14 +432,13 @@ protected:
     ///@{
 
     /**
-     * @brief The Generalized Alpha components
-     * @detail For more about it:
-     * J. Chung, G.M.Hubert. "A Time Integration Algorithm for Structural Dynamics with Improved Numerical Dissipation: The Generalized-α Method" ASME Journal of Applied Mechanics, 60, 371:375, 1993.
+     * @brief The Bossak Alpha components
      */
-    struct GeneralizedAlphaMethod
+    struct BossakAlphaMethod
     {
-        double f; /// Alpha Hilbert
         double m; /// Alpha Bosssak
+        double beta; /// Beta Bosssak
+        double gamma; /// gamme Bosssak
     };
 
     /**
@@ -451,7 +447,8 @@ protected:
     struct NewmarkMethod
     {
         // Newmark constants
-        double beta, gamma;
+        double beta; ///Beta Newmark
+        double gamma; //Gamma Newmark
 
         // System constants
         double c0, c1, c2, c3, c4, c5;
@@ -467,7 +464,7 @@ protected:
         std::vector< Vector > ap; /// Previous acceleration
     };
 
-    GeneralizedAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
+    BossakAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
     NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
     GeneralVectors mVector;        /// The structure containing the velocities and accelerations
 
@@ -535,11 +532,11 @@ protected:
 
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
-            noalias(LHS_Contribution) += D * (1.0 - mAlpha.f) * mNewmark.c1;
+            noalias(LHS_Contribution) += D * mNewmark.c1;
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the elements b - M*a - D*v
+     * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha_m)*M*a_n+1 - alpha_m*M*a_n - D*v_n
      * @param pElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
@@ -576,7 +573,7 @@ protected:
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the condition b - M*a - D*v
+     * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha_m)*M*a_n+1 - alpha_m*M*a_n - D*v_n
      * @param pCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
