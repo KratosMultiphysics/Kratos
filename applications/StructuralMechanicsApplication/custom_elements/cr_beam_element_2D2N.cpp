@@ -156,14 +156,21 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
   const double pre_beam = (rho * A * L) / 420.00;
   const double pre_bar = (rho * A * L) / 6.00;
 
-  // bar part
+
+  bool use_consistent_mass_matrix = true;
+
+  if (this->GetProperties().Has(USE_CONSISTENT_MASS_MATRIX)) {
+    use_consistent_mass_matrix = GetProperties()[USE_CONSISTENT_MASS_MATRIX];
+  }
+
+  if (use_consistent_mass_matrix)
+  {// bar part
   rMassMatrix(0, 0) = 2.00 * pre_bar;
   rMassMatrix(0, 3) = 1.00 * pre_bar;
   rMassMatrix(3, 0) = 1.00 * pre_bar;
   rMassMatrix(3, 3) = 2.00 * pre_bar;
 
   // beam part
-
   rMassMatrix(1, 1) = pre_beam * 156.00;
   rMassMatrix(1, 2) = pre_beam * 22.00 * L;
   rMassMatrix(1, 4) = pre_beam * 54.00;
@@ -184,7 +191,26 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
   rMassMatrix(5, 4) = pre_beam * (-22.00) * L;
   rMassMatrix(5, 5) = pre_beam * (4.00) * L * L;
 
-  this->GlobalizeMatrix(rMassMatrix);
+  this->GlobalizeMatrix(rMassMatrix);}
+
+  else
+  {
+    const double lumped_mass = A * L * rho;
+    double alpha = 0.00;
+
+    if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEF)) {
+      alpha = GetProperties()[LUMPED_MASS_ROTATION_COEF];
+    }
+
+    rMassMatrix(0, 0) = lumped_mass * 0.50;
+    rMassMatrix(1, 1) = lumped_mass * 0.50;
+    rMassMatrix(2, 2) = lumped_mass * L * L * alpha;
+    rMassMatrix(3, 3) = lumped_mass * 0.50;
+    rMassMatrix(4, 4) = lumped_mass * 0.50;
+    rMassMatrix(5, 5) = lumped_mass * L * L * alpha;
+
+  }
+
 
   KRATOS_CATCH("")
 }
