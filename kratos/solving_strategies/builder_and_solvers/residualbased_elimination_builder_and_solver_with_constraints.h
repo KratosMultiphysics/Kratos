@@ -487,7 +487,7 @@ protected:
 
         Timer::Stop("Build");
 
-        // Now we apply the BC (in the elmination B&S does nothing)
+        // Now we apply the BC
         rDx.resize(mDoFToSolveSystemSize, false);
         ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
@@ -535,6 +535,7 @@ protected:
 
         Timer::Stop("Build RHS");
 
+        const SizeType system_size = rb.size();
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: dofs are assumed to be numbered consecutively
@@ -544,7 +545,7 @@ protected:
 
             if (mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
                 const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < BaseType::mEquationSystemSize) {
+                if (equation_id < system_size) {
                     rb[equation_id] = 0.0;
                 }
             }
@@ -1449,7 +1450,7 @@ protected:
         for(int k = 0; k<ndofs; ++k) {
             auto it_dof = it_dof_begin + k;
             const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < BaseType::mEquationSystemSize) {
+            if (equation_id < system_size) {
                 if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end())
                     scaling_factors[equation_id] = 1.0;
             }
