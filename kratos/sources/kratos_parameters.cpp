@@ -1022,7 +1022,7 @@ void Parameters::ValidateAndAssignDefaults(const Parameters& rDefaultParameters)
 }
 
 
-void Parameters::ValidateDefaults(const Parameters& rDefaultParameters)
+void Parameters::ValidateDefaults(const Parameters& rDefaultParameters) const
 {
     KRATOS_TRY
 
@@ -1099,7 +1099,7 @@ void Parameters::RecursivelyValidateAndAssignDefaults(const Parameters& rDefault
     KRATOS_CATCH("")
 }
 
-void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameters)
+void Parameters::RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const
 {
     KRATOS_TRY
 

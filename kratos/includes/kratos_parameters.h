@@ -763,7 +763,7 @@ public:
      * This version of the function only walks one level, without descending in the branches
      * @param rDefaultParameters Parameters of reference which we use to check
      */
-    void ValidateDefaults(const Parameters& rDefaultParameters);
+    void ValidateDefaults(const Parameters& rDefaultParameters) const;
 
     /**
      * @brief This function is designed to verify that the all parameteters in the parameters under testing have a matching parameter prescribed by the rDefaultParameters.
@@ -771,7 +771,7 @@ public:
      * This version walks and validates the entire json tree below the point at which the function is called
      * @param rDefaultParameters Parameters of reference which we use to check
      */
-    void RecursivelyValidateDefaults(const Parameters& rDefaultParameters);
+    void RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const;
 
 
     ///@}
