@@ -104,7 +104,20 @@ defaults = """
 }
 """
 
-incomplete_defaults = """
+incomplete = """
+{
+    "level1": {
+    },
+    "new_default_obj": {
+        "aaa": "string",
+        "bbb": false,
+        "ccc": 22
+    },
+    "new_default_value": -123.0,
+    "string_value": "hello"
+}"""
+
+incomplete_with_extra_parameter = """
 {
     "level1": {
         "new_sublevel": "this should only be assigned in recursive"
@@ -335,7 +348,7 @@ class TestParameters(KratosUnittest.TestCase):
     def test_assign_defaults(self):
         # only missing parameters are added, no complaints if there already exist more than in the defaults
         kp = Parameters(json_string)
-        tmp = Parameters(incomplete_defaults)
+        tmp = Parameters(incomplete_with_extra_parameter)
 
         kp.AssignDefaults(tmp)
 
@@ -346,12 +359,46 @@ class TestParameters(KratosUnittest.TestCase):
     def test_recursively_assign_defaults(self):
         # only missing parameters are added, no complaints if there already exist more than in the defaults
         kp = Parameters(json_string)
-        tmp = Parameters(incomplete_defaults)
+        tmp = Parameters(incomplete_with_extra_parameter)
 
         kp.RecursivelyAssignDefaults(tmp)
 
         self.assertTrue(kp["level1"].Has("new_sublevel"))
         self.assertEqual(kp["level1"]["new_sublevel"].GetString(), "this should only be assigned in recursive")
+
+    def test_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        kp.ValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+    def test_recursively_validate_defaults(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete)
+        tmp = Parameters(defaults)
+
+        kp.RecursivelyValidateDefaults(tmp)
+
+        self.assertFalse(kp.Has("bool_value"))
+        self.assertFalse(kp.Has("double_value"))
+        self.assertTrue(kp.Has("level1"))
+
+
+    def test_recursively_validate_defaults_fails(self):
+        # only parameters from defaults are validated, no new values are added
+        kp = Parameters(incomplete_with_extra_parameter)
+        tmp = Parameters(defaults)
+
+        with self.assertRaises(RuntimeError):
+            kp.RecursivelyValidateDefaults(tmp)
+
+        # sub_level
+        self.assertFalse(kp["level1"].Has("tmp"))
 
     def test_add_value(self):
         kp = Parameters("{}")
