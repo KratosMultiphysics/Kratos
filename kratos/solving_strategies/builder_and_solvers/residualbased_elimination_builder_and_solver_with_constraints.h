@@ -155,22 +155,15 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
-            "reassemble_lhs"     : false
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
-
-        mReassembleLHS = ThisParameters["reassemble_lhs"].GetBool();
     }
 
     /**
      * @brief Default constructor
      */
-    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(
-        typename TLinearSolver::Pointer pNewLinearSystemSolver,
-        const bool ReassembleLHS = false
-        )
-        : BaseType(pNewLinearSystemSolver),
-          mReassembleLHS(ReassembleLHS)
+    explicit ResidualBasedEliminationBuilderAndSolverWithConstraints(typename TLinearSolver::Pointer pNewLinearSystemSolver)
+        : BaseType(pNewLinearSystemSolver)
     {
     }
 
@@ -396,7 +389,6 @@ protected:
     SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
 
     bool mCleared = true;           /// If the system has been reseted
-    bool mReassembleLHS = false;    /// If the LHS must be reconstructed after computing
 
     ///@}
     ///@name Protected Operators
@@ -1427,6 +1419,39 @@ protected:
     }
 
     /**
+     * @brief It computes the reactions of the system
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix of the system of equations
+     * @param rDx The vector of unkowns
+     * @param rb The RHS vector of the system of equations
+     */
+    void CalculateReactions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        // Refresh RHS to have the correct reactions
+        BuildRHS(pScheme, rModelPart, rb);
+
+        KRATOS_WATCH(rb)
+
+        // Adding contribution to reactions
+//         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+        if (BaseType::mCalculateReactionsFlag) {
+            for (auto& r_dof : BaseType::mDofSet) {
+                if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
+                    const IndexType equation_id = r_dof.EquationId();
+                    r_dof.GetSolutionStepReactionValue() = - rb[equation_id];
+                }
+            }
+        }
+    }
+
+    /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely unexpensive depending on the implementation choosen and on how the System Matrix is built.
      * @details In the base ResidualBasedEliminationBuilderAndSolver does nothing, due to the fact that the BC are automatically managed with the elimination. But in the constrints approach the slave DoF depending on fixed DoFs must be reconstructed
      * @param pScheme The integration scheme considered
@@ -1709,31 +1734,13 @@ private:
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
         }
 
-        // We reconstruct the LHS
-        if (mReassembleLHS) {
-            // We compute the transposed matrix of the global relation matrix
-            TSystemMatrixType T_transpose_matrix(mDoFToSolveSystemSize, BaseType::mEquationSystemSize);
-            SparseMatrixMultiplicationUtility::TransposeMatrix<TSystemMatrixType, TSystemMatrixType>(T_transpose_matrix, rTMatrix, 1.0);
-
-            // The auxiliar matrix to store the intermediate matrix multiplication
-            TSystemMatrixType auxiliar_A_matrix(BaseType::mEquationSystemSize, mDoFToSolveSystemSize);
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(rA, T_transpose_matrix, auxiliar_A_matrix);
-
-            // We resize the LHS
-            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-
-            // Final multiplication
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(rTMatrix, auxiliar_A_matrix, rA);
-        } else {
-            // Simply restore old LHS
-            (rA).swap(*mpOldAMatrix);
-            mpOldAMatrix = NULL;
-        }
+        // Simply restore old LHS
+        (rA).swap(*mpOldAMatrix);
+        mpOldAMatrix = NULL;
 
         // Reconstruct the RHS
-        TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
-        TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+        TSparseSpace::Mult(rA, rDx, rb);
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
     }
