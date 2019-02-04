@@ -168,12 +168,23 @@ void ConstitutiveLawUtilities<3>::CalculateJ3Invariant(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+template<>
+void ConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
     rFirstVector = ZeroVector(6);
     for (IndexType i = 0; i < Dimension; ++i)
         rFirstVector[i] = 1.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void ConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
+{
+    rFirstVector = ZeroVector(3);
+	rFirstVector[0] = 1.0;
+	rFirstVector[1] = 1.0;
 }
 
 /***********************************************************************************/
@@ -213,13 +224,13 @@ void ConstitutiveLawUtilities<3>::CalculateSecondVector(
     BoundedVectorType& rSecondVector
     )
 {
-    if (rSecondVector.size() != 6)
-        rSecondVector.resize(6);
+    if (rSecondVector.size() != 3)
+        rSecondVector.resize(3);
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 6; ++i) {
+    for (IndexType i = 0; i < 3; ++i) {
         rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
     }
-    rSecondVector[3] *= 2.0;
+    rSecondVector[2] *= 2.0;
 }
 
 /***********************************************************************************/
@@ -255,8 +266,8 @@ void ConstitutiveLawUtilities<3>::CalculateThirdVector(
     BoundedVectorType& rThirdVector
     )
 {
-    if (rThirdVector.size() != 6)
-        rThirdVector = ZeroVector(6);
+    if (rThirdVector.size() != 3)
+        rThirdVector = ZeroVector(3);
 
     const double J2thirds = J2 / 3.0;
 
@@ -299,11 +310,11 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLength(const
 
     for(IndexType i_node = 0; i_node < rGeometry.PointsNumber(); ++i_node)  {
         const array_1d<double, 3>& aux_vector = r_center.Coordinates() - rGeometry[i_node].Coordinates();
-        const double aux_value = inner_prod(aux_vector, aux_vector);
+        double aux_value = inner_prod(aux_vector, aux_vector);
         if(aux_value > radius) radius = aux_value;
     }
 
-    return radius;
+    return std::sqrt(radius);
 }
 
 /***********************************************************************************/

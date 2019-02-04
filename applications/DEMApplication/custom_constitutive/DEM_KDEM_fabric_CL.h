@@ -23,17 +23,6 @@ namespace Kratos {
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
 
-        virtual void ComputeParticleRotationalMoments(SphericContinuumParticle* element,
-                                              SphericContinuumParticle* neighbor,
-                                              double equiv_young,
-                                              double distance,
-                                              double calculation_area,
-                                              double LocalCoordSystem[3][3],
-                                              double ElasticLocalRotationalMoment[3],
-                                              double ViscoLocalRotationalMoment[3],
-                                              double equiv_poisson,
-                                              double indentation) override;
-
         void AddPoissonContribution(const double equiv_poisson,
                                     double LocalCoordSystem[3][3],
                                     double& normal_force,
