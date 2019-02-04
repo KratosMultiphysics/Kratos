@@ -1422,14 +1422,23 @@ void CrBeamElement3D2N::CalculateLumpedMassMatrix(
   const double total_mass = A * L * rho;
   const double temp = 0.50 * total_mass;
 
+  double alpha = 0.00;
+  if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEF)) {
+    alpha = GetProperties()[LUMPED_MASS_ROTATION_COEF];
+  }
+  const double rotational_inertia_lumped = total_mass * L * L *alpha;
+
   // translatonal mass
   for (int i = 0; i < msNumberOfNodes; ++i) {
     for (int j = 0; j < msDimension; ++j) {
       int index = i * (msDimension * 2) + j;
       rMassMatrix(index, index) = temp;
+
+      // add rotational inertia
+      rMassMatrix(index+msDimension, index+msDimension) = rotational_inertia_lumped;
     }
   }
-  // rotaional mass neglected alpha = 0
+
   KRATOS_CATCH("")
 }
 
