@@ -32,6 +32,7 @@
 
 #include "state_derivative/response_functions/direct_sensitivity_response_function.cpp"
 #include "state_derivative/response_functions/direct_sensitivity_local_stress_response_function.cpp"
+#include "state_derivative/response_functions/direct_sensitivity_nodal_displacement_response_function.cpp"
 
 // Direct Sensitivity variables
 #include "state_derivative/variable_utilities/direct_sensitivity_variable.h"
@@ -108,6 +109,10 @@ void  AddCustomResponseFunctionUtilitiesToPython(pybind11::module& m)
 
     py::class_<DirectSensitivityLocalStressResponseFunction, DirectSensitivityLocalStressResponseFunction::Pointer, DirectSensitivityResponseFunction >
         (m, "DirectSensitivityLocalStressResponseFunction")
+        .def(py::init<ModelPart&, Parameters>());
+
+    py::class_<DirectSensitivityNodalDisplacementResponseFunction, DirectSensitivityNodalDisplacementResponseFunction::Pointer, DirectSensitivityResponseFunction >
+        (m, "DirectSensitivityNodalDisplacementResponseFunction")
         .def(py::init<ModelPart&, Parameters>());
      
     // Adjoint postprocess
