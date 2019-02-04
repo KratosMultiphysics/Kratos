@@ -1426,6 +1426,8 @@ void CrBeamElement3D2N::CalculateLumpedMassMatrix(
   if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEF)) {
     alpha = GetProperties()[LUMPED_MASS_ROTATION_COEF];
   }
+  
+  // w.r.t. Felippa - Chapter 31: LUMPED AND CONSISTENT MASS MATRICES - p.31–10
   const double rotational_inertia_lumped = total_mass * L * L *alpha;
 
   // translatonal mass
