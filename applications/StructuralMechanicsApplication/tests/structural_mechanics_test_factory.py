@@ -323,6 +323,9 @@ class PendulusTLTest(StructuralMechanicsTestFactory):
 class PendulusULTest(StructuralMechanicsTestFactory):
     file_name = "pendulus_test/pendulus_UL_test"
 
+class RayleighProcessTest(StructuralMechanicsTestFactory):
+    file_name = "rayleigh_process_test/test_rayleigh"
+
 class ShellT3AndQ4LinearStaticUnstructScordelisLoRoofTests(StructuralMechanicsTestFactory):
     file_name = "shell_test/Shell_T3andQ4_linear_static_unstruct_scordelis_lo_roof"
 
