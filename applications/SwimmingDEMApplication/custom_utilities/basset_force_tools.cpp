@@ -16,11 +16,11 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
         return;
     }
 
-    std::vector<double>& Ajs = SphericSwimmingParticle<SphericParticle>::mAjs;
-    std::vector<double>& Bns = SphericSwimmingParticle<SphericParticle>::mBns;
-    std::vector<double>& Cns = SphericSwimmingParticle<SphericParticle>::mCns;
-    std::vector<double>& Dns = SphericSwimmingParticle<SphericParticle>::mDns;
-    std::vector<double>& Ens = SphericSwimmingParticle<SphericParticle>::mEns;
+    std::vector<double>& Ajs = SwimmingParticle<SphericParticle>::mAjs;
+    std::vector<double>& Bns = SwimmingParticle<SphericParticle>::mBns;
+    std::vector<double>& Cns = SwimmingParticle<SphericParticle>::mCns;
+    std::vector<double>& Dns = SwimmingParticle<SphericParticle>::mDns;
+    std::vector<double>& Ens = SwimmingParticle<SphericParticle>::mEns;
 
     if (order == 1){
         long double FourThirds = 4.0 / 3;
@@ -143,11 +143,11 @@ void BassetForceTools::FillDaitcheVectors(const int N, const int order, const in
 
     // Filling up the static variables of other versions of swimming particle, since each template instance has their own variables
 
-    std::vector<double>& Ajs_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAjs;
-    std::vector<double>& Bns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mBns;
-    std::vector<double>& Cns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mCns;
-    std::vector<double>& Dns_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mDns;
-    std::vector<double>& Ens_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mEns;
+    std::vector<double>& Ajs_analytic = SwimmingParticle<AnalyticSphericParticle>::mAjs;
+    std::vector<double>& Bns_analytic = SwimmingParticle<AnalyticSphericParticle>::mBns;
+    std::vector<double>& Cns_analytic = SwimmingParticle<AnalyticSphericParticle>::mCns;
+    std::vector<double>& Dns_analytic = SwimmingParticle<AnalyticSphericParticle>::mDns;
+    std::vector<double>& Ens_analytic = SwimmingParticle<AnalyticSphericParticle>::mEns;
 
     Ajs_analytic = Ajs;
     Bns_analytic = Bns;
@@ -171,11 +171,11 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
         return;
     }
     KRATOS_INFO("SwimmingDEM") << "Filling up vectors of coefficients for Hinsberg method with m = " << m << " ..." << std::endl;
-    double & t_win = SphericSwimmingParticle<SphericParticle>::mTimeWindow;
-    std::vector<double>& As = SphericSwimmingParticle<SphericParticle>::mAs;
-    std::vector<double>& Ts = SphericSwimmingParticle<SphericParticle>::mTs;
-    std::vector<double>& Alphas = SphericSwimmingParticle<SphericParticle>::mAlphas;
-    std::vector<double>& Betas = SphericSwimmingParticle<SphericParticle>::mBetas;
+    double & t_win = SwimmingParticle<SphericParticle>::mTimeWindow;
+    std::vector<double>& As = SwimmingParticle<SphericParticle>::mAs;
+    std::vector<double>& Ts = SwimmingParticle<SphericParticle>::mTs;
+    std::vector<double>& Alphas = SwimmingParticle<SphericParticle>::mAlphas;
+    std::vector<double>& Betas = SwimmingParticle<SphericParticle>::mBetas;
 
     mTimeWindow = mNumberOfQuadratureStepsInWindow * r_model_part.GetProcessInfo()[TIME_STEPS_PER_QUADRATURE_STEP] * r_model_part.GetProcessInfo()[DELTA_TIME];
     t_win = mTimeWindow;
@@ -484,11 +484,11 @@ void BassetForceTools::FillHinsbergVectors(ModelPart& r_model_part, const int m,
 
     // Filling up the static variables of other versions of swimming particle, since each template instance has their own variables
 
-     double & t_win_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mTimeWindow;
-     std::vector<double>& As_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAs;
-     std::vector<double>& Ts_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mTs;
-     std::vector<double>& Alphas_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mAlphas;
-     std::vector<double>& Betas_analytic = SphericSwimmingParticle<AnalyticSphericParticle>::mBetas;
+     double & t_win_analytic = SwimmingParticle<AnalyticSphericParticle>::mTimeWindow;
+     std::vector<double>& As_analytic = SwimmingParticle<AnalyticSphericParticle>::mAs;
+     std::vector<double>& Ts_analytic = SwimmingParticle<AnalyticSphericParticle>::mTs;
+     std::vector<double>& Alphas_analytic = SwimmingParticle<AnalyticSphericParticle>::mAlphas;
+     std::vector<double>& Betas_analytic = SwimmingParticle<AnalyticSphericParticle>::mBetas;
 
      t_win_analytic = t_win;
      As_analytic = As;

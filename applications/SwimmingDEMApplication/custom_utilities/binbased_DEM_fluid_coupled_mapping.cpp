@@ -767,7 +767,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     for (int i = 0; i < (int)n_nodes; i++){
         ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
-        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
+        SwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
 
         if (mVectorsOfNeighNodes[i].size()){
             p_particle->Set(INSIDE, true);
@@ -806,7 +806,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::SearchPa
 
     for (int i = 0; i < (int)n_nodes; i++){
         ElementIteratorType i_particle = r_dem_model_part.ElementsBegin() + i;
-        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
+        SwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = dynamic_cast<SwimmingParticle<TBaseTypeOfSwimmingParticle>* >(&(*i_particle));
 
         if (mVectorsOfNeighNodes[i].size()){
             p_particle->Set(INSIDE, true);
@@ -828,7 +828,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Recalcul
     mVectorsOfRadii.resize(n_particles);
 
     for (int i = 0; i != n_particles; ++i){
-        SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = mSwimmingSphereElementPointers[i];
+        SwimmingParticle<TBaseTypeOfSwimmingParticle>* p_particle = mSwimmingSphereElementPointers[i];
         int n_neighbours = (int)p_particle->mNeighbourNodes.size();
         mVectorsOfDistances[i].resize(n_neighbours);
         mVectorsOfRadii[i].resize(n_neighbours);
@@ -2016,14 +2016,14 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::FillVect
     unsigned int i = 0;
 
     for (ElementsArrayType::iterator i_elem = r_dem_model_part.ElementsBegin(); i_elem != r_dem_model_part.ElementsEnd(); ++i_elem){
-        mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>&>(*i_elem));
+        mSwimmingSphereElementPointers[i] = &(dynamic_cast<Kratos::SwimmingParticle<TBaseTypeOfSwimmingParticle>&>(*i_elem));
         ++i;
     }
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
 template <std::size_t TDim, typename TBaseTypeOfSwimmingParticle>
-double inline BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateDistance(Node<3>::Pointer a, SphericSwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
+double inline BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::CalculateDistance(Node<3>::Pointer a, SwimmingParticle<TBaseTypeOfSwimmingParticle>* b){
     array_1d<double, 3> coor_a = a->Coordinates();
     array_1d<double, 3> coor_b = b->GetGeometry()[0].Coordinates();
     return sqrt((coor_a[0] - coor_b[0]) * (coor_a[0] - coor_b[0]) + (coor_a[1] - coor_b[1]) * (coor_a[1] - coor_b[1]) + (coor_a[2] - coor_b[2]) * (coor_a[2] - coor_b[2]));

@@ -10,6 +10,7 @@
 
 #include "../custom_constitutive/hydrodynamic_interaction_law.h"
 #include "../custom_constitutive/power_law_hydrodynamic_interaction_law.h"
+// Drag laws
 #include "../custom_constitutive/drag_laws/drag_law.h"
 #include "../custom_constitutive/drag_laws/stokes_drag_law.h"
 #include "../custom_constitutive/drag_laws/beetstra_drag_law.h"
@@ -18,6 +19,10 @@
 #include "../custom_constitutive/drag_laws/ganser_drag_law.h"
 #include "../custom_constitutive/drag_laws/shah_drag_law.h"
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
+// Inviscid force laws
+#include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
+#include "../custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.h"
+
 
 namespace Kratos {
 namespace Python {
@@ -25,6 +30,7 @@ namespace Python {
 namespace py = pybind11;
 
 typedef DragLaw BaseDragLawType;
+typedef InviscidForceLaw BaseInviscidForceLawType;
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
@@ -35,6 +41,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def("SetHydrodynamicInteractionLawInProperties", &HydrodynamicInteractionLaw::SetHydrodynamicInteractionLawInProperties)
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
         ;
+
+    // Drag laws
 
     py::class_<DragLaw, DragLaw::Pointer>(m, "DragLaw")
         .def(py::init<>())
@@ -68,6 +76,18 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<NewtonDragLaw, NewtonDragLaw::Pointer, BaseDragLawType>(m, "NewtonDragLaw")
+        .def(py::init<>())
+        ;
+
+    // Inviscid force laws
+    py::class_<InviscidForceLaw, InviscidForceLaw::Pointer>(m, "InviscidForceLaw")
+        .def(py::init<>())
+        .def("Clone", &InviscidForceLaw::Clone)
+        .def("SetDragLawInProperties", &InviscidForceLaw::SetInviscidForceLawInProperties)
+        .def("GetTypeOfLaw", &InviscidForceLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<StandardInviscidForceLaw, StandardInviscidForceLaw::Pointer, BaseInviscidForceLawType>(m, "StandardInviscidForceLaw")
         .def(py::init<>())
         ;
   }

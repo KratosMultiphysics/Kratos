@@ -37,6 +37,7 @@
 #include "custom_elements/shell_rigid.h"
 #include "custom_conditions/monolithic_dem_coupled_wall_condition.h"
 #include "custom_conditions/calculate_laplacian_simplex_condition.h"
+#include "custom_elements/swimming_particle.h"
 
 #include "custom_elements/spheric_swimming_particle.h"
 #include "../DEMApplication/custom_elements/spheric_particle.h"
@@ -147,11 +148,13 @@ private:
 
     const ShellRigid mRigidShellElement;
 
-    /// swimming derivation of spheric basic DEM element (SphericParticle)
-    const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
-    const SphericSwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
-    const SphericSwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
+    const SwimmingParticle<SphericParticle> mSwimmingParticle3D;
 
+    /// swimming derivation of spheric basic DEM element (SphericParticle) TODO: deprecated in favour of mSwimmingParticle3D
+    const SphericSwimmingParticle<SphericParticle> mSphericSwimmingParticle3D;
+
+    const SwimmingParticle<NanoParticle> mSwimmingNanoParticle3D;
+    const SwimmingParticle<AnalyticSphericParticle> mSwimmingAnalyticParticle3D;
     /// Assignment operator.
     KratosSwimmingDEMApplication& operator=(KratosSwimmingDEMApplication const& rOther);
 

@@ -36,6 +36,8 @@ KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
 KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
+
 
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   KratosApplication("SwimmingDEMApplication"),
@@ -62,6 +64,7 @@ KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   mComputeLaplacianSimplexCondition2D(0, Element::GeometryType::Pointer(new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType(2)))),
   mComputeLaplacianSimplexCondition3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType(3)))),
   mRigidShellElement(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
+  mSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
   mSphericSwimmingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
   mSwimmingNanoParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1)))),
   mSwimmingAnalyticParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node<3> >(Element::GeometryType::PointsArrayType(1))))
@@ -80,6 +83,8 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_VARIABLE(SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_NAME)
   KRATOS_REGISTER_VARIABLE(SDEM_DRAG_LAW_POINTER)
+  KRATOS_REGISTER_VARIABLE(SDEM_INVISCID_FORCE_LAW_POINTER)
+
   /* Define In Global variables.cpp */
 
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupled2D", mMonolithicDEMCoupled2D)
@@ -87,6 +92,7 @@ void KratosSwimmingDEMApplication::Register()
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak2D", mMonolithicDEMCoupledWeak2D)
   KRATOS_REGISTER_ELEMENT("MonolithicDEMCoupledWeak3D", mMonolithicDEMCoupledWeak3D)
   KRATOS_REGISTER_ELEMENT("RigidShellElement", mRigidShellElement)
+  KRATOS_REGISTER_ELEMENT("SwimmingParticle3D", mSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingNanoParticle3D", mSwimmingNanoParticle3D)
   KRATOS_REGISTER_ELEMENT("SwimmingAnalyticParticle3D", mSwimmingAnalyticParticle3D)

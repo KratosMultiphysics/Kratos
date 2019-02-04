@@ -21,7 +21,7 @@ Begin Nodes // GUI group identifier: DEM celemid SwimmingDEMElement
 253 1.00000 0.00000 99.0000
 End Nodes
 
-Begin Elements SphericSwimmingParticle3D   //  GUI group identifier: DEM
+Begin Elements SwimmingParticle3D   //  GUI group identifier: DEM
 1515 1 253
 End Elements
 
