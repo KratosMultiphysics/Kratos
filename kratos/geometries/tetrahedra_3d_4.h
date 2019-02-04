@@ -758,6 +758,115 @@ public:
       return normFactor * Volume() / std::pow(std::sqrt(1.0/6.0 * (sa + sb + sc + sd + se + sf)), 3.0);
     }
 
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element 
+     * In radians
+     * @return [description]
+     */
+    virtual double MinDihedralAngle() const override {
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles);
+      double min_dihedral_angle = 1000.0;
+      for (unsigned int i = 0; i < 6; i++)
+      {
+         if (dihedral_angles[i]<min_dihedral_angle)  min_dihedral_angle=dihedral_angles[i];
+      } 
+      return min_dihedral_angle;
+    }
+
+
+    /** Calculates the min solid angle quality metric.
+     * Calculates the min solid angle quality metric.
+     * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry
+     * In stereo radians
+     * @return [description]
+     */
+    virtual double MinSolidAngle() const override {
+      Vector solid_angles(4);
+      ComputeSolidAngles(solid_angles);
+      double min_solid_angle = 1000.0;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+        if (solid_angles[i]<min_solid_angle) min_solid_angle = solid_angles[i];
+      }
+      return min_solid_angle;
+
+    }
+
+
+    /** Implements the calculus of the 4 solid angles of the tetra
+     *Implements the calculus of the 4 solid angles of the tetra
+     *
+     * @return   The solid angles of the geometry
+    */
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles) const override
+    {
+      if(rSolidAngles.size() != 4)
+          rSolidAngles.resize(4, false);
+
+      Vector dihedral_angles(6);
+      ComputeDihedralAngles(dihedral_angles); 
+
+      rSolidAngles[0] = dihedral_angles[0] + dihedral_angles[1] + dihedral_angles[2]  - Globals::Pi;     
+      rSolidAngles[1] = dihedral_angles[0] + dihedral_angles[3] + dihedral_angles[4]  - Globals::Pi;     
+      rSolidAngles[2] = dihedral_angles[2] + dihedral_angles[4] + dihedral_angles[5]  - Globals::Pi;     
+      rSolidAngles[3] = dihedral_angles[1] + dihedral_angles[3] + dihedral_angles[5]  - Globals::Pi;     
+    }
+
+
+    /** Implements the calculus of the 6 diheadral angles of the tetra
+     *Implements the calculus of the 6 diheadral angles of the tetra
+     *
+     * @return   The dihedral angles of the geometry
+    */
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles) const override
+    {
+      if(rDihedralAngles.size() != 6)
+          rDihedralAngles.resize(6, false);
+
+
+      BoundedMatrix<double, 4, 3 > coords;
+      for (unsigned int i = 0; i < 4; i++)
+      {
+          const array_1d<double, 3 > & xyz = this->GetPoint(i);
+          for (unsigned int j = 0; j < 3; j++)
+              coords(i, j) = xyz[j];
+      }
+      //we have to check 6 different angles (one per edge)
+      //to get an easy-to-read algorithm, we find the angles by creating the normal planes to each face and then find the angles between them
+      //to do so, we create a list of 3 nodes per angle. face1 is defined with nodes 0,1,2a , and face2 is defined with nodes 0,1,2b
+      const int node0[]  = {0, 0, 0, 1, 1, 2};
+      const int node1[]  = {1, 3, 2, 3, 2, 3};
+      const int node2a[] = {2, 1, 1, 0, 0, 0};
+      const int node2b[] = {3, 2, 3, 2, 3, 1};
+        
+      array_1d<double,3> edge1,edge2a,edge2b,normal1,normal2;
+
+     //now we only loop through the six edges to see which one has the lowest angle
+      for (unsigned int i = 0; i < 6; i++)
+      {
+        //first we find the edges
+        for (unsigned int j = 0; j < 3; ++j)
+        {
+            edge1[j]  = coords(node1[i],j)  - coords(node0[i],j) ;
+            edge2a[j] = coords(node2a[i],j) - coords(node0[i],j) ;
+            edge2b[j] = coords(node2b[i],j) - coords(node0[i],j) ;
+        }
+        //now we find the normals to the planes
+        MathUtils<double>::CrossProduct(normal1,edge1,edge2a);
+        MathUtils<double>::CrossProduct(normal2,edge1,edge2b);
+        normal1 /= std::sqrt(normal1[0]*normal1[0] + normal1[1]*normal1[1] + normal1[2]*normal1[2]);
+        normal2 /= std::sqrt(normal2[0]*normal2[0] + normal2[1]*normal2[1] + normal2[2]*normal2[2]);
+
+        //and finally the cos of the angle:
+        const double angle_cos = (  normal1[0]*normal2[0] + normal1[1]*normal2[1] + normal1[2]*normal2[2] );
+        rDihedralAngles[i] = std::acos(angle_cos);
+      }
+
+    }
+
     /**
     * Returns a matrix of the local coordinates of all points
     * @param rResult a Matrix that will be overwritten by the results
