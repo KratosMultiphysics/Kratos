@@ -23,6 +23,12 @@
 #if !defined (KRATOS_TC_PLASTIC_DAMAGE_3D_LAW_H_INCLUDED)
 #define  KRATOS_TC_PLASTIC_DAMAGE_3D_LAW_H_INCLUDED
 
+// System includes
+#include <iostream>
+
+// External includes
+
+// Project includes
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -155,15 +161,24 @@ namespace Kratos
 		///@}
 		///@name Member Variables
 		///@{
-		static constexpr SizeType VoigtSize = 6;
-
-		double m_compressive_strength;
-		double m_tensile_strength;
+		double m_f_01cc;
+		double m_f_ct;
+		double m_f_02cc;
 
 		Vector m_elastic_strain;
 		Vector m_plastic_strain;
 
 		Matrix m_D0;
+
+		double m_E;
+		double m_nu;
+
+		double K;
+		string usedEquivalentTensionDefinition;
+		string COMPDYN;
+		string ORIGINAL;
+		string HOMOGENOUS;
+
 
 		/** variables not used so far (ML)
 		  Matrix m_Di;
@@ -181,9 +196,6 @@ namespace Kratos
 		  double m_beta;
 		  double m_Gf_t;
 		  double m_Gf_c;
-
-		  double m_E;
-		  double m_nu;
 
 		  double m_K;
 
@@ -227,6 +239,14 @@ namespace Kratos
 			Matrix& rConstitutiveLaw);
 
 		/**
+		* @brief This method calculates the 3D Elasticity Matrix
+		* @details voigt notation, 
+		* note that the shear strains are considered as 2*strain_ij in the strain vector
+		*/ 
+		void TCPlasticDamage3DLaw::CalculateElasticityMatrix(
+    		Matrix& rElasticityMatrix);
+
+		/**
         * @brief This method performs Spectral Decomposition of the Stress Vector/Tensor
         * @details see "An energy-Equivalent" d+/d- Damage model with Enhanced
         * Microcrack Closure/Reopening Capabilities for Cohesive-Frictional
@@ -237,12 +257,18 @@ namespace Kratos
         * @param PMatrixTension The Tensile P Matrix
         * @param PMatrixCompression The Compressive P Matrix
         */
-            static void SpectralDecomposition(
+        void SpectralDecomposition(
 			const Vector& rStressVector,
 			Vector& rStressVectorTension,
 			Vector& rStressVectorCompression,
+			Vector& rStressEigenvalues,
 			Matrix& PMatrixTension,
 			Matrix& PMatrixCompression);
+
+		void ComputeTau(
+			const Vector& rStressEigenvalues,
+			double& tau_n,
+			double& tau_p);
 	};
 }
 

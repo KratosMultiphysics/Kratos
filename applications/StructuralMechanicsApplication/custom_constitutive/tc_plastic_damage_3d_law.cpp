@@ -19,7 +19,6 @@
 //                    2 eps_01   }   <--- note the 2
 
 // System includes
-#include <fstream>						// check later if really needed (ML) !!!!!!
 #include <iostream>
 
 // External includes
@@ -66,13 +65,19 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
-		m_compressive_strength = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
-		m_tensile_strength = rMaterialProperties[UNIAXIAL_STRESS_TENSION];
+		m_f_01cc = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
+		m_f_ct = rMaterialProperties[UNIAXIAL_STRESS_TENSION];
+		m_f_02cc = rMaterialProperties[BIAXIAL_STRESS_COMPRESSION];
+		m_E = rMaterialProperties[YOUNG_MODULUS];
+		m_nu = rMaterialProperties[POISSON_RATIO];
 
 		m_elastic_strain = ZeroVector(6);
 		m_plastic_strain = ZeroVector(6);
 
-		// CalculateElasticityMatrix(m_D0);
+		CalculateElasticityMatrix(m_D0);
+
+		K = sqrt(2.0) * (m_f_02cc - m_f_01cc)/(2 * m_f_02cc - m_f_01cc);
+		usedEquivalentTensionDefinition = COMPDYN;
 
 		/**
 
@@ -84,8 +89,7 @@ namespace Kratos
 		m_compression_parameter_B = rMaterialProperties[COMPRESSION_PARAMETER_B];
 
 
-		m_E = rMaterialProperties[YOUNG_MODULUS];
-		m_nu = rMaterialProperties[POISSON_RATIO];
+
 
 		m_Gf_t = rMaterialProperties[FRACTURE_ENERGY_TENSION];
 		m_Gf_c = rMaterialProperties[FRACTURE_ENERGY_COMPRESSION];
@@ -155,7 +159,7 @@ namespace Kratos
 		{
 			rStressVector.resize(6, false);
 		}
-		const double tolerance = (1.0e-14)* m_compressive_strength;
+		const double tolerance = (1.0e-14)* m_f_01cc;
 
 		// 1.step: elastic stress tensor
 		noalias(rStressVector) = prod(trans(m_D0), (rStrainVector - m_plastic_strain));
@@ -163,67 +167,28 @@ namespace Kratos
 		// 2.step: spectral decomposition
 		Vector StressVectorTension = ZeroVector(6);
 		Vector StressVectorCompression = ZeroVector(6);
+		Vector StressEigenvalues = ZeroVector(3);
 		Matrix PMatrixTension = ZeroMatrix(6, 6);
 		Matrix PMatrixCompression = ZeroMatrix(6, 6);
 
 		SpectralDecomposition(rStressVector,
 			StressVectorTension,
 			StressVectorCompression,
+			StressEigenvalues,
 			PMatrixTension,
 			PMatrixCompression);
 
+		// 3.step: equivalent effective stress tau
+		double tau_n;
+		double tau_p;
+		
+		
+		
+
+
+
 
 		/**
-
-		if (m_beta > 0.0)
-		{
-			Matrix V = ZeroMatrix(2, 2);
-			Vector d = ZeroVector(2);
-			solve_eig(rStressVector(0), rStressVector(2), rStressVector(2), rStressVector(1), V, d);
-
-			Vector d_compression = ZeroVector(2);
-			d_compression(0) = (d(0) - std::abs(d(0))) / 2;
-			d_compression(1) = (d(1) - std::abs(d(1))) / 2;
-
-			Vector d_tension = ZeroVector(2);
-			d_tension(0) = (d(0) + std::abs(d(0))) / 2;
-			d_tension(1) = (d(1) + std::abs(d(1))) / 2;
-
-			// compute the stress measures
-			double treshold_tension = 0.0;
-			double treshold_compression = 0.0;
-
-			CalculateTresholdTension(
-				d_tension,
-				treshold_tension);
-			CalculateTresholdCompression(
-				d_compression,
-				treshold_compression);
-
-			CalculatePlasticStrain(treshold_tension, treshold_compression, rStressVector, m_plastic_strain);
-		}
-
-
-		Matrix V = ZeroMatrix(2, 2);
-		Vector d = ZeroVector(2);
-		solve_eig(rStressVector(0), rStressVector(2), rStressVector(2), rStressVector(1), V, d);
-		m_eigen_values = d;
-		m_eigen_vectors = V;
-		//KRATOS_WATCH(rStressVector)
-		//KRATOS_WATCH(d)
-		Vector d_compression = ZeroVector(2);
-		d_compression(0) = (d(0) - std::abs(d(0))) / 2;
-		d_compression(1) = (d(1) - std::abs(d(1))) / 2;
-
-		if (d_compression(0)>1e-1)
-			KRATOS_WATCH(d_compression(0))
-		if (d_compression(1)>1e-1)
-			KRATOS_WATCH(d_compression(1))
-
-
-		Vector d_tension = ZeroVector(2);
-		d_tension(0) = (d(0) + std::abs(d(0))) / 2;
-		d_tension(1) = (d(1) + std::abs(d(1))) / 2;
 
 		// compute the stress measures
 		double treshold_tension = 0.0;
@@ -392,19 +357,52 @@ namespace Kratos
 		*/
 	}
 
+	void TCPlasticDamage3DLaw::CalculateElasticityMatrix(
+    	Matrix& rElasticityMatrix)
+	{
+    	const double lambda = m_E * m_nu / ((1.0 + m_nu) * (1.0 - 2 * m_nu));
+    	const double mu = lambda / (2 * (1 + m_nu));
+
+		if (rElasticityMatrix.size1() != 6 || rElasticityMatrix.size2() != 6)
+			rElasticityMatrix.resize(6, 6, false);
+		rElasticityMatrix = ZeroMatrix(6,6);
+
+		rElasticityMatrix(0, 0) = 2 * mu + lambda;
+		rElasticityMatrix(0, 1) = mu;
+		rElasticityMatrix(0, 2) = mu;
+
+		rElasticityMatrix(1, 0) = mu;
+		rElasticityMatrix(1, 1) = 2 * mu + lambda;
+		rElasticityMatrix(1, 2) = mu;
+
+		rElasticityMatrix(2, 0) = mu;
+		rElasticityMatrix(2, 1) = mu;
+		rElasticityMatrix(2, 2) = 2 * mu + lambda;
+
+		rElasticityMatrix(3, 3) = mu;
+
+		rElasticityMatrix(4, 4) = mu;
+
+		rElasticityMatrix(5, 5) = mu;
+	};
+
 	void TCPlasticDamage3DLaw::SpectralDecomposition(
 		const Vector& rStressVector,
 		Vector& rStressVectorTension,
 		Vector& rStressVectorCompression,
+		Vector& rStressEigenvalues,
 		Matrix& PMatrixTension,
 		Matrix& PMatrixCompression)
 	{
 		Matrix helpmatrix = ZeroMatrix(6, 6);
 
+		/** necessary if SpectralDecomposition becomes a static member function
 		rStressVectorTension = ZeroVector(6);
 		rStressVectorCompression = ZeroVector(6);
+		rStressEigenvalues = ZeroVector(3);
 		PMatrixTension = ZeroMatrix(6, 6);
 		PMatrixCompression = ZeroMatrix(6, 6);
+		*/
 
 		BoundedMatrix<double, 3, 3> Stress33;
 		BoundedMatrix<double, 3, 3> EigenvalueStress33;
@@ -414,7 +412,11 @@ namespace Kratos
 
 		bool converged = MathUtils<double>::EigenSystem<3>(Stress33, EigenvectorStress33, EigenvalueStress33);
 
-		std::vector<Vector> p_i(3);
+		for (IndexType i = 0; i < 3; ++i){
+			rStressEigenvalues(i) = EigenvalueStress33(i, i);
+		}
+
+		vector<Vector> p_i(3);
 		for (IndexType i = 0; i < 3; ++i) {
 			p_i[i] = ZeroVector(3);
 			for (IndexType j = 0; j < 3; ++j) {
@@ -441,5 +443,62 @@ namespace Kratos
 		}
 		Matrix I = IdentityMatrix(6, 6);
 		PMatrixCompression = I - PMatrixTension;
+	};
+
+	void TCPlasticDamage3DLaw::ComputeTau(
+		const Vector& rStressEigenvalues, 
+		double& tau_n, 
+		double& tau_p)
+	{		
+		Vector dgn(3);
+		Vector dgp(3);
+		for (IndexType i = 0; i < 3; i++)
+			dgn(i) = (rStressEigenvalues(i) - fabs(rStressEigenvalues(i)))/2.0;	
+		for (IndexType i = 0; i < 3; i++)
+			dgp(i) = (rStressEigenvalues(i) + fabs(rStressEigenvalues(i)))/2.0;
+
+		double sigoct = (dgn(0) + dgn(1) + dgn(2))/3.0;
+		double tauoct = sqrt((dgn(0)-dgn(1)) * (dgn(0) - dgn(1)) 
+		+ (dgn(0) - dgn(2)) * (dgn(0) - dgn(2)) 
+		+ (dgn(1) - dgn(2)) * (dgn(1) - dgn(2)))/3.0;
+	
+		if ((usedEquivalentTensionDefinition == ORIGINAL)  || (usedEquivalentTensionDefinition == HOMOGENEOUS))
+			{
+			tau_n = sqrt(3.0) * (K * sigoct + tauoct);
+			if (tau_n >= 0)
+				tau_n = sqrt(tau_n);
+			else
+				tau_n = 0;
+			}
+		else if (usedEquivalentTensionDefinition == COMPDYN)
+			{
+			tau_n = sqrt(3.0) * (K * sigoct + tauoct);
+			}
+
+		double diag = (dgp(0) + dgp(1) + dgp(2)) * m_nu/(-m_E);
+		vector<Vector> elastic_strain_diag_positive(3);
+		for (IndexType i = 0; i < 3; i++)
+			{
+				elastic_strain_diag_positive(i) = dgp(i) * (1 + m_nu)/m_E + diag;
+			}
+	
+		tau_p = 0.0;
+		for (IndexType i = 0; i < 3; i++)
+			{
+				tau_p += elastic_strain_diag_positive(i) * dgp(i);
+			}
+	
+		if (usedEquivalentTensionDefinition == ORIGINAL)
+			{
+			tau_p = sqrt(tau_p);
+			}
+		else if (usedEquivalentTensionDefinition == HOMOGENEOUS)
+			{
+			tau_p = sqrt(sqrt(tau_p * m_E));
+			}
+		else if (usedEquivalentTensionDefinition == COMPDYN)
+			{
+			tau_p = sqrt(tau_p * E);
+			}
 	};
 }
