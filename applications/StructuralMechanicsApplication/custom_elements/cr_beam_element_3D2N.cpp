@@ -1422,6 +1422,7 @@ void CrBeamElement3D2N::CalculateLumpedMassMatrix(
   const double total_mass = A * L * rho;
   const double temp = 0.50 * total_mass;
 
+  // w.r.t. Felippa - Chapter 31: LUMPED AND CONSISTENT MASS MATRICES - p.31–10
   const double rotational_inertia_lumped = total_mass * L * L * GetProperties()[LUMPED_MASS_ROTATION_COEFFICIENT];
 
   // translatonal mass
