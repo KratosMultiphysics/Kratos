@@ -2,13 +2,12 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-# check that KratosMultiphysics was imported in the main script
-CheckForPreviousImport()
+
 
 class variable_plotter:
-    
+
     def __init__(self, model_part, list_of_nodes_ids, benchmark_number):
-        
+
         self.list_of_nodes = []
         self.files = []
         self.model_part = model_part
@@ -26,16 +25,16 @@ class variable_plotter:
                     self.files.append(file_writer)
                     #print("The Id " + str(id) + " was found in the model part")
                     break
-                    
+
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
-            print("Some nodal ids could not be found in the model part! Stopping")                                  
-               
+            print("Some nodal ids could not be found in the model part! Stopping")
+
         self.plot_variables(0.0)
-         
-    def plot_variables(self, time): 
-        
+
+    def plot_variables(self, time):
+
         i = 0
-        
+
         for file_writer in self.files:
             node = self.list_of_nodes[i]
             string = str(time) \
@@ -59,21 +58,21 @@ class variable_plotter:
             + "  " + str(node.GetSolutionStepValue(PARTICLE_MOMENT)[2]) \
             + '\n'
             file_writer.write(string)
-            i = i + 1 
-               
+            i = i + 1
+
     def close_files(self):
-        
+
         for file_writer in self.files:
             file_writer.close()
-            
+
 class tangential_force_plotter:
-    
+
     def __init__(self, model_part, list_of_nodes_ids, iteration):
-        
+
         self.list_of_nodes = []
         self.files = []
         self.model_part = model_part
-        
+
         for node in model_part.Nodes:
             for id in list_of_nodes_ids:
                 if node.Id == id:
@@ -83,17 +82,17 @@ class tangential_force_plotter:
                     self.files.append(file_writer)
                     print("The Id " + str(id) + " was found in the model part")
                     break
-                    
+
         if len(self.list_of_nodes) != len(list_of_nodes_ids):
             print("Some nodal ids could not be found in the model part! Stopping")
-                                     
-               
+
+
         self.plot_tangential_force(0.0)
-         
-    def plot_tangential_force(self, time): 
-        
+
+    def plot_tangential_force(self, time):
+
         i = 0
-        
+
         for file_writer in self.files:
             node = self.list_of_nodes[i]
             string = str(time) \
@@ -102,9 +101,9 @@ class tangential_force_plotter:
             + "  " + str(node.GetSolutionStepValue(ANGULAR_VELOCITY_X)) \
             + '\n'
             file_writer.write(string)
-            i = i + 1 
-               
+            i = i + 1
+
     def close_files(self):
-        
+
         for file_writer in self.files:
-            file_writer.close()            
+            file_writer.close()

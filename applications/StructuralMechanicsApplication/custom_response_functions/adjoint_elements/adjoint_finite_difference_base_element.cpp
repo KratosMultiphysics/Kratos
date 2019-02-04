@@ -230,7 +230,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
 
     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
 
-    GeometryType& r_geom = GetGeometry();
+    const GeometryType& r_geom = GetGeometry();
 
     // verify that the variables are correctly initialized
     KRATOS_CHECK_VARIABLE_KEY(DISPLACEMENT);
@@ -251,7 +251,7 @@ int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProce
     // Check dofs
     for (IndexType i = 0; i < r_geom.size(); ++i)
     {
-        auto& r_node = r_geom[i];
+        const auto& r_node = r_geom[i];
 
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);

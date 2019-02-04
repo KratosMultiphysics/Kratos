@@ -83,8 +83,7 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.model_part_controller.ImportOptimizationModelPart()
-        self.model_part_controller.InitializeMeshController()
+        self.model_part_controller.Initialize()
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 

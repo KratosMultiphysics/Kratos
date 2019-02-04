@@ -94,12 +94,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    double ComputeEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
+    double GetEffectiveViscosity(ConstitutiveLaw::Parameters& rParameters) const override;
 
     ///@}
-
-
-
 private:
 
     ///@name Static Member Variables

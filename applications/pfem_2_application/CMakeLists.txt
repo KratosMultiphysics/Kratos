@@ -5,8 +5,8 @@ message("**** configuring KratosPFEM2Application ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 ## generate variables with the sources
-set( KRATOS_QUIET_WATER_APPLICATION_SOURCES     
-	${CMAKE_CURRENT_SOURCE_DIR}//pfem_2_application.cpp 
+set( KRATOS_QUIET_WATER_APPLICATION_SOURCES
+	${CMAKE_CURRENT_SOURCE_DIR}//pfem_2_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/pfem_2_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
@@ -46,12 +46,12 @@ install(TARGETS KratosPFEM2Application DESTINATION libs )
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
-# changing the .dll suffix to .pyd 
+# changing the .dll suffix to .pyd
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	set_target_properties(KratosPFEM2Application PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-# changing the .dylib suffix to .so 
+# changing the .dylib suffix to .so
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set_target_properties(KratosPFEM2Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -65,4 +65,4 @@ endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 # message("TestApplication subdir inc_dirs = ${inc_dirs}")
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PFEM2Application.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/PFEM2Application.py" DESTINATION "KratosMultiphysics/PFEM2Application" RENAME "__init__.py")
