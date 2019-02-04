@@ -434,7 +434,7 @@ namespace Kratos {
 
       auto criteria = TetGeometryType::QualityCriteria::MAX_DIHEDRAL_ANGLE;
 
-      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  1.570796326, TOLERANCE);
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
     }
 
 
