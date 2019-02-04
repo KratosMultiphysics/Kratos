@@ -543,8 +543,10 @@ protected:
             auto it_dof = BaseType::mDofSet.begin() + k;
 
             if (mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                const std::size_t i = it_dof->EquationId();
-                rb[i] = 0.0;
+                const IndexType equation_id = it_dof->EquationId();
+                if (equation_id < BaseType::mEquationSystemSize) {
+                    rb[equation_id] = 0.0;
+                }
             }
         }
 
@@ -1442,13 +1444,15 @@ protected:
         const int ndofs = static_cast<int>(BaseType::mDofSet.size());
 
         // NOTE: Dofs are assumed to be numbered consecutively
+        const auto it_dof_begin = BaseType::mDofSet.begin();
         #pragma omp parallel for
         for(int k = 0; k<ndofs; ++k) {
-            auto it_dof = BaseType::mDofSet.begin() + k;
-            if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end())
-                scaling_factors[k] = 0.0;
-            else
-                scaling_factors[k] = 1.0;
+            auto it_dof = it_dof_begin + k;
+            const IndexType equation_id = it_dof->EquationId();
+            if (equation_id < BaseType::mEquationSystemSize) {
+                if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end())
+                    scaling_factors[equation_id] = 1.0;
+            }
 
         }
 
