@@ -268,10 +268,10 @@ protected:
     {
         // Adding  damping contribution
         if (rD.size1() != 0 && TDenseSpace::TwoNorm(rD) > ZeroTolerance) // if D matrix declared
-            noalias(rLHSContribution) += rD * DerivedBaseType::mNewmark.c1;
+            noalias(rLHSContribution) += rD * DerivedBaseType::mBossak.c1;
         else if (rM.size1() != 0) {
             const double beta = rCurrentProcessInfo[mRayleighBeta];
-            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mNewmark.c1;
+            noalias(rLHSContribution) += rM * beta * DerivedBaseType::mBossak.c1;
         }
     }
 

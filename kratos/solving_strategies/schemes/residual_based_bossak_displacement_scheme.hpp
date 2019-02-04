@@ -116,12 +116,14 @@ public:
     {
         // For pure Newmark Scheme
         mBossak.alpha = Alpha;
+        mNewmark.beta = NewmarkBeta;
+        mNewmark.gamma = 0.5;
 
         // Default values of the Newmark coefficients
-        double beta  = 0.25;
-        double gamma = 0.5;
+        //double beta  = 0.25;
+        //double newmark_gamma = 0.5;
 
-        CalculateNewmarkCoefficients(beta, gamma);
+        CalculateBossakCoefficients();
 
         // Allocate auxiliary memory
         const std::size_t num_threads = OpenMPUtils::GetNumThreads();
@@ -170,13 +172,10 @@ public:
      * @param beta The Newmark beta coefficient
      * @param gamma The Newmark gamma coefficient
      */
-    void CalculateNewmarkCoefficients(
-            double beta,
-            double gamma
-            )
+    void CalculateBossakCoefficients()
     {
-        mNewmark.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * beta;
-        mNewmark.gamma = gamma  - mBossak.alpha;
+        mBossak.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * mNewmark.beta;
+        mBossak.gamma = mNewmark.gamma  - mBossak.alpha;
     }
 
     /**
@@ -265,7 +264,7 @@ public:
             array_1d<double, 3 > & current_displacement        = (it_node)->FastGetSolutionStepValue(DISPLACEMENT);
 
             if (it_node -> IsFixed(ACCELERATION_X)) {
-                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[0] + mNewmark.beta * current_acceleration[0]);
+                current_displacement[0] = previous_displacement[0] + delta_time * previous_velocity[0] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[0] + mBossak.beta * current_acceleration[0]);
             } else if (it_node -> IsFixed(VELOCITY_X)) {
                 current_displacement[0] = previous_displacement[0] + 0.5 * delta_time * (previous_velocity[0] + current_velocity[0]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[0];
             } else if (it_node -> IsFixed(DISPLACEMENT_X) == false) {
@@ -273,7 +272,7 @@ public:
             }
 
             if (it_node -> IsFixed(ACCELERATION_Y)) {
-                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[1] + mNewmark.beta * current_acceleration[1]);
+                current_displacement[1] = previous_displacement[1] + delta_time * previous_velocity[1] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[1] + mBossak.beta * current_acceleration[1]);
             } else if (it_node -> IsFixed(VELOCITY_Y)) {
                 current_displacement[1] = previous_displacement[1] + 0.5 * delta_time * (previous_velocity[1] + current_velocity[1]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[1] ;
             } else if (it_node -> IsFixed(DISPLACEMENT_Y) == false) {
@@ -283,7 +282,7 @@ public:
             // For 3D cases
             if (it_node -> HasDofFor(DISPLACEMENT_Z)) {
                 if (it_node -> IsFixed(ACCELERATION_Z)) {
-                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mNewmark.beta) * previous_acceleration[2] + mNewmark.beta * current_acceleration[2]);
+                    current_displacement[2] = previous_displacement[2] + delta_time * previous_velocity[2] + std::pow(delta_time, 2) * ( 0.5 * (1.0 -  2.0 * mBossak.beta) * previous_acceleration[2] + mBossak.beta * current_acceleration[2]);
                 } else if (it_node -> IsFixed(VELOCITY_Z)) {
                     current_displacement[2] = previous_displacement[2] + 0.5 * delta_time * (previous_velocity[2] + current_velocity[2]) + 0.5 * std::pow(delta_time, 2) * previous_acceleration[2] ;
                 } else if (it_node -> IsFixed(DISPLACEMENT_Z) == false) {
@@ -325,18 +324,18 @@ public:
 
         const double delta_time = current_process_info[DELTA_TIME];
 
-        double beta = 0.25;
-        double gamma = 0.5;
+        //double beta = 0.25;
+        //double gamma = 0.5;
 
-        CalculateNewmarkCoefficients(beta, gamma);
+        CalculateBossakCoefficients();
 
-        // Initializing Newmark constants
-        mNewmark.c0 = ( 1.0 / (mNewmark.beta * delta_time * delta_time) );
-        mNewmark.c1 = ( mNewmark.gamma / (mNewmark.beta * delta_time) );
-        mNewmark.c2 = ( 1.0 / (mNewmark.beta * delta_time) );
-        mNewmark.c3 = ( 0.5 / (mNewmark.beta) - 1.0 );
-        mNewmark.c4 = ( (mNewmark.gamma / mNewmark.beta) - 1.0  );
-        mNewmark.c5 = ( delta_time * 0.5 * ( ( mNewmark.gamma / mNewmark.beta ) - 2.0 ) );
+        // Initializing Bossak constants
+        mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
+        mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
+        mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
+        mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
+        mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
+        mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
 
         KRATOS_CATCH( "" );
     }
@@ -440,7 +439,10 @@ protected:
     {
         double alpha; /// Alpha Bosssak
         double beta; /// Beta Bosssak
-        double gamma; /// gamme Bosssak
+        double gamma; /// gamma Bosssak
+
+        // System constants
+        double c0, c1, c2, c3, c4, c5;
     };
 
     /**
@@ -451,9 +453,6 @@ protected:
         // Newmark constants
         double beta; ///Beta Newmark
         double gamma; //Gamma Newmark
-
-        // System constants
-        double c0, c1, c2, c3, c4, c5;
     };
 
     /**
@@ -492,8 +491,8 @@ protected:
         const array_1d<double, 3>& PreviousAcceleration
         )
     {
-        noalias(CurrentVelocity) = (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
-                                     - mNewmark.c5 * PreviousAcceleration);
+        noalias(CurrentVelocity) = (mBossak.c1 * DeltaDisplacement - mBossak.c4 * PreviousVelocity
+                                     - mBossak.c5 * PreviousAcceleration);
     }
 
     /**
@@ -510,8 +509,8 @@ protected:
         const array_1d<double, 3>& PreviousAcceleration
         )
     {
-        noalias(CurrentAcceleration) = (mNewmark.c0 * DeltaDisplacement - mNewmark.c2 * PreviousVelocity
-                                         -  mNewmark.c3 * PreviousAcceleration);
+        noalias(CurrentAcceleration) = (mBossak.c0 * DeltaDisplacement - mBossak.c2 * PreviousVelocity
+                                         -  mBossak.c3 * PreviousAcceleration);
     }
 
     /**
@@ -530,15 +529,15 @@ protected:
     {
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
-            noalias(LHS_Contribution) += M * (1.0 - mBossak.alpha) * mNewmark.c0;
+            noalias(LHS_Contribution) += M * (1.0 - mBossak.alpha) * mBossak.c0;
 
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
-            noalias(LHS_Contribution) += D * mNewmark.c1;
+            noalias(LHS_Contribution) += D * mBossak.c1;
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha_m)*M*a_n+1 - alpha_m*M*a_n - D*v_n
+     * @brief It adds the dynamic RHS contribution of the elements b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
      * @param pElement The element to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
@@ -575,7 +574,7 @@ protected:
     }
 
     /**
-     * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha_m)*M*a_n+1 - alpha_m*M*a_n - D*v_n
+     * @brief It adds the dynamic RHS contribution of the condition b - (1-alpha)*M*a_n+1 - alpha*M*a_n - D*v_n
      * @param pCondition The condition to compute
      * @param RHS_Contribution The dynamic contribution for the RHS
      * @param D The damping matrix
