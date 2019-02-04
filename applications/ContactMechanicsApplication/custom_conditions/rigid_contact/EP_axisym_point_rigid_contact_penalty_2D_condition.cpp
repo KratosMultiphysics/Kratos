@@ -70,7 +70,7 @@ namespace Kratos
       NewCondition.mSavedInfo   = this->mSavedInfo;
 
       // in the constructor of NewCondition I create a new friction law and here I clone the this->
-      NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
+      //NewCondition.mpFrictionLaw = this->mpFrictionLaw->Clone();
 
       return Kratos::make_shared<EPAxisymPointRigidContactPenalty2DCondition>(NewCondition);
    }

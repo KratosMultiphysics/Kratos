@@ -408,23 +408,6 @@ void BaseSolidElement::GetSecondDerivativesVector(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void BaseSolidElement::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo
-    )
-{
-    // Calculation flags
-    const bool CalculateStiffnessMatrixFlag = false;
-    const bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-
-    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
-}
-
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void BaseSolidElement::AddExplicitContribution(
     const VectorType& rRHSVector,
     const Variable<VectorType>& rRHSVariable,
@@ -480,7 +463,7 @@ void BaseSolidElement::AddExplicitContribution(
         Vector current_nodal_velocities = ZeroVector(element_size);
         this->GetFirstDerivativesVector(current_nodal_velocities);
 
-        Matrix damping_matrix = ZeroMatrix(element_size, element_size);
+        Matrix damping_matrix(element_size, element_size);
         this->CalculateDampingMatrixWithLumpedMass(damping_matrix, rCurrentProcessInfo);
 
         // Current residual contribution due to damping
@@ -530,6 +513,22 @@ void BaseSolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     VectorType RHS;
     CalculateLocalSystem(rLeftHandSideMatrix, RHS, rCurrentProcessInfo);
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void BaseSolidElement::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    ProcessInfo& rCurrentProcessInfo
+    )
+{
+    // Calculation flags
+    const bool CalculateStiffnessMatrixFlag = false;
+    const bool CalculateResidualVectorFlag = true;
+    MatrixType temp = Matrix();
+
+    CalculateAll( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
 }
 
 /***********************************************************************************/
@@ -1660,25 +1659,29 @@ double BaseSolidElement::CalculateDerivativesOnCurrentConfiguration(
 /***********************************************************************************/
 /***********************************************************************************/
 
-Vector BaseSolidElement::GetBodyForce(
+array_1d<double, 3> BaseSolidElement::GetBodyForce(
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
     const IndexType PointNumber
     ) const
 {
-    Vector body_force = ZeroVector(3);
+    array_1d<double, 3> body_force;
+    for (IndexType i = 0; i < 3; ++i)
+        body_force[i] = 0.0;
 
+    const auto& r_properties = GetProperties();
     double density = 0.0;
-    if (GetProperties().Has( DENSITY ) == true)
-        density = GetProperties()[DENSITY];
+    if (r_properties.Has( DENSITY ))
+        density = r_properties[DENSITY];
 
-    if (GetProperties().Has( VOLUME_ACCELERATION ) == true)
-        body_force += density * GetProperties()[VOLUME_ACCELERATION];
+    if (r_properties.Has( VOLUME_ACCELERATION ))
+        noalias(body_force) += density * r_properties[VOLUME_ACCELERATION];
 
-    if( GetGeometry()[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
+    const auto& r_geometry = this->GetGeometry();
+    if( r_geometry[0].SolutionStepsDataHas(VOLUME_ACCELERATION) ) {
         Vector N;
-        N = GetGeometry().ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
-        for (IndexType i_node = 0; i_node < this->GetGeometry().size(); ++i_node)
-            noalias(body_force) += N[i_node] * density * GetGeometry()[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        N = r_geometry.ShapeFunctionsValues(N, IntegrationPoints[PointNumber].Coordinates());
+        for (IndexType i_node = 0; i_node < r_geometry.size(); ++i_node)
+            noalias(body_force) += N[i_node] * density * r_geometry[i_node].FastGetSolutionStepValue(VOLUME_ACCELERATION);
     }
 
     return body_force;
@@ -1728,7 +1731,7 @@ void BaseSolidElement::CalculateAndAddResidualVector(
     VectorType& rRightHandSideVector,
     const KinematicVariables& rThisKinematicVariables,
     const ProcessInfo& rCurrentProcessInfo,
-    const Vector& rBodyForce,
+    const array_1d<double, 3>& rBodyForce,
     const Vector& rStressVector,
     const double IntegrationWeight
     ) const
@@ -1750,7 +1753,7 @@ void BaseSolidElement::CalculateAndAddResidualVector(
 void BaseSolidElement::CalculateAndAddExtForceContribution(
     const Vector& rN,
     const ProcessInfo& rCurrentProcessInfo,
-    const Vector& rBodyForce,
+    const array_1d<double, 3>& rBodyForce,
     VectorType& rRightHandSideVector,
     const double Weight
     ) const
@@ -1846,13 +1849,10 @@ void BaseSolidElement::CalculateDampingMatrixWithLumpedMass(
 
     // 2.-Calculate mass matrix:
     if (alpha > std::numeric_limits<double>::epsilon()) {
-        MatrixType mass_matrix = ZeroMatrix( mat_size, mat_size );
         VectorType temp_vector(mat_size);
         CalculateLumpedMassVector(temp_vector);
         for (IndexType i = 0; i < mat_size; ++i)
-            mass_matrix(i, i) = temp_vector[i];
-
-        noalias( rDampingMatrix ) += alpha * mass_matrix;
+            rDampingMatrix(i, i) += alpha * temp_vector[i];
     }
 
     // 3.-Calculate StiffnessMatrix:

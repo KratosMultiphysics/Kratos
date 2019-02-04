@@ -99,7 +99,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Check total number of element
         particle_counter = len(material_model_part.Elements)
         self.assertEqual(particle_counter, 1)
-        expected_id = 9
+        expected_id = 3
         for mpm in material_model_part.Elements:
             self.assertEqual(mpm.Id, expected_id)
 
@@ -127,7 +127,7 @@ class TestParticleEraseProcess(KratosUnittest.TestCase):
         # Check total number of element
         particle_counter = len(material_model_part.Elements)
         self.assertEqual(particle_counter, 1)
-        expected_id = 9
+        expected_id = 3
         for mpm in material_model_part.Elements:
             self.assertEqual(mpm.Id, expected_id)
 
