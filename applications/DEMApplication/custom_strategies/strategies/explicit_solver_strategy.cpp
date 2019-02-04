@@ -190,6 +190,8 @@ namespace Kratos {
             ComputeNewRigidFaceNeighboursHistoricalData();
         }
 
+        AttachSpheresToStickyWalls();
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
@@ -211,6 +213,36 @@ namespace Kratos {
 
         KRATOS_CATCH("")
     } // Initialize()
+
+    void ExplicitSolverStrategy::AttachSpheresToStickyWalls() {
+
+        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = GetFemModelPart().SubModelPartsBegin();
+                                                                 sub_model_part != GetFemModelPart().SubModelPartsEnd(); ++sub_model_part) {
+
+            ModelPart& submp = *sub_model_part;
+            if(!submp[IS_STICKY]) continue;
+
+            ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
+
+            #pragma omp parallel for
+            for (int k = 0; k < (int) rConditions.size(); k++) {
+                ConditionsArrayType::iterator it = rConditions.ptr_begin() + k;
+                (it)->Set(DEMFlags::STICKY, true);
+            }
+        }
+
+        const int number_of_particles = (int) mListOfSphericParticles.size();
+
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int i = 0; i < number_of_particles; i++) {
+            auto neighbour_walls = mListOfSphericParticles[i]->mNeighbourRigidFaces;
+            if (neighbour_walls.size()) {
+                if( neighbour_walls[0]->Is(DEMFlags::STICKY) ) {
+                    mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls[0]);
+                }
+            }
+        }
+    }
 
     void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
 
@@ -1577,7 +1609,6 @@ namespace Kratos {
             this->GetRigidFaceResultsDistances().resize(number_of_particles);
 
             //Fast Bins Search
-            //SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
             mpDemFemSearch->SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTConditions, this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
 
 
@@ -1594,9 +1625,7 @@ namespace Kratos {
             }
 
             CheckHierarchyWithCurrentNeighbours();
-            //DoubleHierarchyMethod();
 
-            //typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
             const int number_of_conditions = (int) pTConditions.size();
 
             #pragma omp parallel
@@ -1622,87 +1651,6 @@ namespace Kratos {
         }
         KRATOS_CATCH("")
     }
-
-    void ExplicitSolverStrategy::DoubleHierarchyMethod() {
-        KRATOS_TRY
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-
-        #pragma omp parallel
-        {
-        std::vector< double > Distance_Array; //MACELI: reserve.. or take it out of the loop and have one for every thread
-        std::vector< array_1d<double, 3> > Normal_Array;
-        std::vector< array_1d<double, 4> > Weight_Array;
-        std::vector< int > Id_Array;
-        std::vector< int > ContactType_Array;
-        std::vector<DEMWall*> temporal_neigh;
-        std::vector< array_1d<double, 4> > temporal_contact_weights;
-        std::vector< int > temporal_contact_types;
-
-        #pragma omp for
-        for (int i = 0; i < number_of_particles; i++) {
-            SphericParticle* p_sphere_i = mListOfSphericParticles[i];
-            p_sphere_i->mNeighbourRigidFaces.resize(0);
-            p_sphere_i->mNeighbourPotentialRigidFaces.resize(0);
-            p_sphere_i->mContactConditionWeights.resize(0);
-
-            Distance_Array.clear();
-            Normal_Array.clear();
-            Weight_Array.clear();
-            Id_Array.clear();
-            ContactType_Array.clear();
-
-            std::vector<DEMWall*>& potential_neighbour_rigid_faces = p_sphere_i->mNeighbourPotentialRigidFaces;
-
-            for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[i].begin(); neighbour_it != this->GetRigidFaceResults()[i].end(); ++neighbour_it) {
-
-                Condition* p_neighbour_condition = (*neighbour_it).get();
-                DEMWall* p_wall = dynamic_cast<DEMWall*> (p_neighbour_condition);
-                RigidFaceGeometricalConfigureType::DoubleHierarchyMethod(p_sphere_i,
-                        p_wall,
-                        Distance_Array,
-                        Normal_Array,
-                        Weight_Array,
-                        Id_Array,
-                        ContactType_Array
-                        );
-                potential_neighbour_rigid_faces.push_back(p_wall);
-
-            }//for results iterator
-
-            std::vector<DEMWall*>& neighbour_rigid_faces = p_sphere_i->mNeighbourRigidFaces;
-            std::vector< array_1d<double, 4> >& neighbour_weights = p_sphere_i->mContactConditionWeights;
-            std::vector< int >& neighbor_contact_types = p_sphere_i->mContactConditionContactTypes;
-
-            size_t neigh_size = neighbour_rigid_faces.size();
-
-            temporal_neigh.clear();
-            temporal_contact_weights.clear();
-            temporal_contact_types.clear();
-
-            for (unsigned int n = 0; n < neigh_size; n++) {
-
-                if (ContactType_Array[n] != -1) //if(it is not a -1 contact neighbour, we copy it)
-                {
-                    temporal_neigh.push_back(neighbour_rigid_faces[n]);
-                    temporal_contact_weights.push_back(Weight_Array[n]);
-                    temporal_contact_types.push_back(ContactType_Array[n]);
-
-                }//if(it is not a -1 contact neighbour, we copy it)
-
-            }//loop over temporal neighbours
-
-            //swap
-
-            temporal_neigh.swap(neighbour_rigid_faces);
-            temporal_contact_weights.swap(neighbour_weights);
-            temporal_contact_types.swap(neighbor_contact_types);
-
-            this->GetRigidFaceResults()[i].clear();
-            this->GetRigidFaceResultsDistances()[i].clear();
-        }//for particles
-        } //parallel region
-        KRATOS_CATCH("")
-    }//DoubleHierarchyMethod
 
     void ExplicitSolverStrategy::CheckHierarchyWithCurrentNeighbours()
         {
