@@ -37,8 +37,8 @@ namespace Kratos
   ///@}
   ///@name Type Definitions
   ///@{
-  typedef  ModelPart::ElementsContainerType ElementsContainerType;
-  ///@}
+
+///@}
   ///@name  Enum's
   ///@{
 
@@ -67,6 +67,9 @@ namespace Kratos
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
     typedef ConditionType::GeometryType       GeometryType;
+
+    typedef ModelPart::ElementsContainerType     ElementsContainerType;
+    typedef WeakPointerVector<Element>        ElementWeakPtrVectorType;
 
     ///@}
     ///@name Life Cycle
@@ -430,8 +433,7 @@ namespace Kratos
 
       int facecounter=0;
       int Id = 0;
-      for(ModelPart::ElementsContainerType::const_iterator ie = rModelPart.ElementsBegin();
-	  ie != rModelPart.ElementsEnd(); ++ie)
+      for(auto i_elem(rModelPart.ElementsBegin()); i_elem != rModelPart.ElementsEnd(); ++i_elem)
 	{
 
 	  for(unsigned int i= 0; i<mrRemesh.PreservedElements.size(); ++i)
@@ -442,11 +444,12 @@ namespace Kratos
 	  	break;
 	    }
 
-	  //Id = ie->Id()-1;
+	  //Id = i_elem->Id()-1;
 
-	  unsigned int number_of_faces = ie->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
-	  (ie->GetValue(NEIGHBOR_ELEMENTS)).resize(number_of_faces);
-	  ElementPointerVectorType& neighb = ie->GetValue(NEIGHBOR_ELEMENTS);
+	  unsigned int number_of_faces = i_elem->GetGeometry().FacesNumber(); //defined for triangles and tetrahedra
+
+	  ElementWeakPtrVectorType& nElements = i_elem->GetValue(NEIGHBOUR_ELEMENTS);
+	  nElements.resize(number_of_faces);
 
 	  int index = 0;
 	  for(unsigned int iface = 0; iface<number_of_faces; ++iface)
@@ -464,11 +467,11 @@ namespace Kratos
 
 	      if(index > 0)
 		{
-		  neighb[iface] = (*((element_begin + index -1).base())).get();
+		  nElements(iface) = *(element_begin + index -1).base();
 		}
 	      else
 		{
-		  neighb[iface] = (*((ie).base())).get();
+		  nElements(iface) = *i_elem.base();
 		  facecounter++;
 		}
 	    }

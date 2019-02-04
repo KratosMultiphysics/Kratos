@@ -43,58 +43,51 @@
         "processes_sub_model_part_list"      : ["support","SurfacePressure3D_load"],
         "rotation_dofs"                      : false
     },
-    "constraints_process_list" : [{
-        "python_module" : "assign_vector_variable_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process fixes the selected components of a given vector variable",
-        "process_name"  : "AssignVectorVariableProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Hook.support",
-            "variable_name"   : "DISPLACEMENT",
-            "value"           : [0.0,0.0,0.0]
-        }
-    }],
-    "loads_process_list"       : [{
-        "python_module" : "assign_scalar_variable_to_conditions_process",
-        "kratos_module" : "KratosMultiphysics",
-        "help"          : "This process sets a scalar variable value over a condition",
-        "process_name"  : "AssignScalarVariableToConditionsProcess",
-        "Parameters"    : {
-            "mesh_id"         : 0,
-            "model_part_name" : "3D_Hook.SurfacePressure3D_load",
-            "variable_name"   : "NEGATIVE_FACE_PRESSURE",
-            "value"           : 1000
-        }
-    }],
-    "output_configuration"     : {
-        "result_file_configuration" : {
-            "gidpost_flags"       : {
-                "GiDPostMode"           : "GiD_PostBinary",
-                "WriteDeformedMeshFlag" : "WriteDeformed",
-                "WriteConditionsFlag"   : "WriteConditions",
-                "MultiFileFlag"         : "SingleFile"
-            },
-            "file_label"          : "step",
-            "output_control_type" : "step",
-            "output_frequency"    : 1.0,
-            "body_output"         : true,
-            "node_output"         : false,
-            "skin_output"         : false,
-            "plane_output"        : [],
-            "nodal_results"       : ["DISPLACEMENT","REACTION"],
-            "gauss_point_results" : ["VON_MISES_STRESS"]
-        },
-        "point_data_configuration"  : []
+    "processes": {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process fixes the selected components of a given vector variable",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Hook.support",
+                "variable_name"   : "DISPLACEMENT",
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [{
+            "python_module" : "assign_scalar_variable_to_conditions_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"          : "This process sets a scalar variable value over a condition",
+            "process_name"  : "AssignScalarVariableToConditionsProcess",
+            "Parameters"    : {
+                "mesh_id"         : 0,
+                "model_part_name" : "3D_Hook.SurfacePressure3D_load",
+                "variable_name"   : "NEGATIVE_FACE_PRESSURE",
+                "value"           : 1000
+            }
+        }]
     },
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
+    "output_processes" : {
+        "vtk_output" : [{
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VTKOutputProcess",
+            "Parameters"    : {
+                "model_part_name": "3D_Hook",
+                "file_format": "ascii",
+                "output_precision": 7,
+                "output_control_type": "step",
+                "output_frequency": 1.0,
+                "output_sub_model_parts": true,
+                "folder_name": "Primal_Results",
+                "save_output_files_in_folder": true,
+                "nodal_solution_step_data_variables": [],
+                "nodal_data_value_variables": ["DISPLACEMENT","REACTION"],
+                "element_data_value_variables": ["VON_MISES_STRESS"],
+                "condition_data_value_variables": []
+            }
+        }]
     }
 }

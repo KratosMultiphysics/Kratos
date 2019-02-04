@@ -62,7 +62,7 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIALIZE_MATERIAL_RESPONSE); //Note: this is for nonlocal damage
-    
+
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
         //compute element kinematics B, F, DN_DX ...
@@ -70,7 +70,7 @@ void SmallDisplacementThermoMechanicElement::InitializeNonLinearIteration(Proces
 
         //set general variables to constitutivelaw parameters
         this->SetElementData(Variables,Values,PointNumber);
-        
+
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
     }
@@ -86,7 +86,7 @@ void SmallDisplacementThermoMechanicElement::FinalizeNonLinearIteration(ProcessI
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
-{    
+{
     //create and initialize element variables:
     ElementDataType Variables;
     this->InitializeElementData(Variables,rCurrentProcessInfo);
@@ -115,13 +115,13 @@ void SmallDisplacementThermoMechanicElement::FinalizeSolutionStep( ProcessInfo& 
 
         //set general variables to constitutivelaw parameters
         this->SetElementData(Variables,Values,PointNumber);
-        
+
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy(Values);
-        
+
         this->SaveGPStress(StressContainer,Variables.StressVector,VoigtSize,PointNumber);
     }
-    
+
     this->ExtrapolateGPStress(StressContainer,Dim,VoigtSize);
 }
 
@@ -135,12 +135,12 @@ void SmallDisplacementThermoMechanicElement::SaveGPStress(Matrix& rStressContain
     }
 
     /* INFO: (Quadrilateral_2D_4 with GI_GAUSS_2)
-     * 
+     *
      *                      |S0-0 S1-0 S2-0|
      * rStressContainer =   |S0-1 S1-1 S2-1|
      *                      |S0-2 S1-2 S2-2|
      *                      |S0-3 S1-3 S2-3|
-     * 
+     *
      * S1-0 = S[1] at GP 0
     */
 }
@@ -153,18 +153,18 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
     //const unsigned int& Dim  = rGeom.WorkingSpaceDimension();
     const unsigned int& NumNodes = rGeom.size();
     const double& Area = rGeom.Area(); // In 3D this is Volume
-    
+
     std::vector<Vector> NodalStressVector(NumNodes); //List with stresses at each node
     std::vector<Matrix> NodalStressTensor(NumNodes);
-    
+
     for(unsigned int Node = 0; Node < NumNodes; Node ++)
     {
         NodalStressVector[Node].resize(VoigtSize);
         NodalStressTensor[Node].resize(Dim,Dim);
     }
-    
+
     if (Dim == 2)
-    {    
+    {
         if(NumNodes == 3)
         {
             // Triangle_2d_3 with GI_GAUSS_1
@@ -172,7 +172,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             {
                 noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
                 noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-                
+
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
                 rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -183,18 +183,18 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         {
             // Quadrilateral_2d_4 with GI_GAUSS_2
             BoundedMatrix<double,4,4> ExtrapolationMatrix;
-            PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
-            
+            PoroElementUtilities::Calculate2DExtrapolationMatrix(ExtrapolationMatrix);
+
             BoundedMatrix<double,4,3> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
             /* INFO:
-             * 
+             *
              *                  |S0-0 S1-0 S2-0|
              * AuxNodalStress = |S0-1 S1-1 S2-1|
              *                  |S0-2 S1-2 S2-2|
              *                  |S0-3 S1-3 S2-3|
-             * 
+             *
              * S1-0 = S[1] at node 0
             */
 
@@ -202,7 +202,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             {
                 noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
                 noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-                
+
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
                 rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -219,7 +219,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             {
                 noalias(NodalStressVector[i]) = row(StressContainer,0)*Area;
                 noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-                
+
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
                 rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -230,8 +230,8 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
         {
             // Hexahedra_3d_8 with GI_GAUSS_2
             BoundedMatrix<double,8,8> ExtrapolationMatrix;
-            PoroElementUtilities::CalculateExtrapolationMatrix(ExtrapolationMatrix);
-            
+            PoroElementUtilities::Calculate3DExtrapolationMatrix(ExtrapolationMatrix);
+
             BoundedMatrix<double,8,6> AuxNodalStress;
             noalias(AuxNodalStress) = prod(ExtrapolationMatrix,StressContainer);
 
@@ -239,7 +239,7 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
             {
                 noalias(NodalStressVector[i]) = row(AuxNodalStress,i)*Area;
                 noalias(NodalStressTensor[i]) = MathUtils<double>::StressVectorToTensor(NodalStressVector[i]);
-                
+
                 rGeom[i].SetLock();
                 noalias(rGeom[i].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)) += NodalStressTensor[i];
                 rGeom[i].FastGetSolutionStepValue(NODAL_AREA) += Area;
@@ -297,7 +297,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
-        
+
         if( rVariable == CAUCHY_STRESS_VECTOR){
 	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 	}
@@ -339,10 +339,10 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
 
         //set constitutive law flags:
         Flags &ConstitutiveLawOptions=Values.GetOptions();
-        
+
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
-	
+
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
@@ -405,7 +405,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == THERMAL_STRESS_TENSOR || rVariable == MECHANICAL_STRESS_TENSOR  )
     {
         std::vector<Vector> StressVector;
-	
+
         if( rVariable == CAUCHY_STRESS_TENSOR )
             this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
         else if ( rVariable == THERMAL_STRESS_TENSOR )
@@ -425,7 +425,7 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == THERMAL_STRAIN_TENSOR)
     {
         std::vector<Vector> StrainVector;
-        
+
         if( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
             CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
         else
