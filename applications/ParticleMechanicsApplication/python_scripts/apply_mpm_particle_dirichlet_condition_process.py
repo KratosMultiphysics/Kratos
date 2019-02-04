@@ -41,13 +41,17 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         # check constraint
         self.constrained = settings["constrained"].GetString()
+        self.is_slip_boundary = False
+        self.is_contact_boundary = False
         if (self.constrained == "fixed"):
-            self.is_slip_boundary = False
+            pass
+        elif (self.constrained == "contact"):
+            self.is_contact_boundary = True
         elif (self.constrained == "slip"):
             self.is_slip_boundary = True
         else:
             err_msg =  "The requested type of constrain: \"" + self.constrained + "\" is not available!\n"
-            err_msg += "Available options are: \"fixed\" and \"slip\"."
+            err_msg += "Available options are: \"fixed\", \"contact\" and \"slip\"."
             raise Exception(err_msg)
 
         # get variable imposed and check
@@ -74,6 +78,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
+                condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
