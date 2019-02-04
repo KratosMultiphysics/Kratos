@@ -1505,8 +1505,19 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
+    Properties::Pointer p_prop = nullptr;
+    Condition::Pointer p_base_condition = nullptr;
     if (mpRefCondition[PropId] == nullptr) {
-        return p_condition;
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            return p_condition;
+        } else {
+            PointerVector<NodeType> dummy_nodes;
+            p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Clone(0, dummy_nodes);
+            p_prop = mrThisModelPart.pGetProperties(0);
+        }
+    } else {
+        p_base_condition = mpRefCondition[PropId];
+        p_prop = p_base_condition->pGetProperties();
     }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
@@ -1518,7 +1529,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
         condition_nodes[0] = mrThisModelPart.pGetNode(edge_0);
         condition_nodes[1] = mrThisModelPart.pGetNode(edge_1);
 
-        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
+        p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
     } else if (mEchoLevel > 2)
         KRATOS_INFO("MmgProcess") << "Condition creation avoided" << std::endl;
 
@@ -1546,8 +1557,19 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     }
 
     // Sometimes MMG creates conditions where there are not, then we skip
+    Properties::Pointer p_prop = nullptr;
+    Condition::Pointer p_base_condition = nullptr;
     if (mpRefCondition[PropId] == nullptr) {
-        return p_condition;
+        if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
+            return p_condition;
+        } else {
+            PointerVector<NodeType> dummy_nodes;
+            p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Clone(0, dummy_nodes);
+            p_prop = mrThisModelPart.pGetProperties(0);
+        }
+    } else {
+        p_base_condition = mpRefCondition[PropId];
+        p_prop = p_base_condition->pGetProperties();
     }
 
     // FIXME: This is not the correct solution to the problem, I asked in the MMG Forum
@@ -1561,7 +1583,7 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
         condition_nodes[1] = mrThisModelPart.pGetNode(vertex_1);
         condition_nodes[2] = mrThisModelPart.pGetNode(vertex_2);
 
-        p_condition = mpRefCondition[PropId]->Create(CondId, PointerVector<NodeType>{condition_nodes}, mpRefCondition[PropId]->pGetProperties());
+        p_condition = p_base_condition->Create(CondId, PointerVector<NodeType>{condition_nodes}, p_prop);
     } else if (mEchoLevel > 2)
         KRATOS_WARNING("MmgProcess") << "Condition creation avoided" << std::endl;
 
