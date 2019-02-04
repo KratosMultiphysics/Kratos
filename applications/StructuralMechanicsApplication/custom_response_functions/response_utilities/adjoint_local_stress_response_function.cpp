@@ -17,7 +17,6 @@
 #include "adjoint_local_stress_response_function.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_base_element.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
-#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 namespace Kratos
 {
