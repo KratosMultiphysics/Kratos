@@ -33,10 +33,12 @@
 #include "tests/cpp_tests/bits/adjoint_test_model_part_factory.h"
 #include "tests/cpp_tests/bits/test_model_part_factory.h"
 
-using namespace Kratos;
-
+namespace Kratos
+{
 namespace
 {
+namespace smtsss
+{ // cotire unity guard
 using SparseSpaceType = TUblasSparseSpace<double>;
 using LocalSpaceType = TUblasDenseSpace<double>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
@@ -74,10 +76,9 @@ private:
     ModelPart* mpAdjointModelPart;
     unsigned mResponseNodeId;
 };
+} // namespace smtsss
 } // namespace
 
-namespace Kratos
-{
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructuralMechanicsFastSuite)
@@ -93,12 +94,12 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructural
             pModelPart->GetNode(3).Fix(DISPLACEMENT_Y);
         });
     const unsigned response_node_id = 2;
-    PrimalTestSolver solver{&primal_model_part, response_node_id};
+    smtsss::PrimalTestSolver solver{&primal_model_part, response_node_id};
     const double delta = 1e-7;
     const double response_value0 = solver.CalculateResponseValue();
     ModelPart& adjoint_model_part =
         CreateStructuralMechanicsAdjointTestModelPart(&primal_model_part);
-    AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
+    smtsss::AdjointTestSolver adjoint_solver{&adjoint_model_part, response_node_id};
     for (unsigned i_node : {1, 2, 3})
     {
         for (char dir : {'x', 'y'})
@@ -114,10 +115,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_StaticSensitivity, KratosStructural
     }
 }
 } // namespace Testing
-} // namespace Kratos
 
 namespace
 {
+namespace smtsss
+{ // cotire unity guard
 AdjointResponseFunction::Pointer ResponseFunctionFactory(ModelPart* pModelPart, unsigned ResponseNodeId)
 {
     Parameters params{R"({"traced_dof": "DISPLACEMENT_Y", "gradient_mode": "semi_analytic", "step_size": 1e-2})"};
@@ -201,4 +203,6 @@ SolvingStrategyType::Pointer AdjointTestSolver::CreateAdjointSolvingStrategy(
         *mpAdjointModelPart, p_adjoint_scheme, p_linear_solver);
 }
 
+} // namespace smtsss
 } // namespace
+} // namespace Kratos

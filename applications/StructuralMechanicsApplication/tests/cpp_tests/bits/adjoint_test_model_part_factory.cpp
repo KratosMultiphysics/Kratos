@@ -7,10 +7,12 @@
 #include <string>
 #include <unordered_map>
 
-using namespace Kratos;
-
+namespace Kratos
+{
 namespace
 { // cpp internals
+namespace smatmpf
+{ // cotire unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables = {});
 void CopyNodes(ModelPart* pModelPart, const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
 void CopyProperties(ModelPart* pModelPart,
@@ -21,10 +23,9 @@ void AddDofs(ModelPart* pAdjointModelPart);
 void AssignBCs(ModelPart* pAdjointModelPart, const ModelPart& rPrimalModelPart);
 void CopySolutionStepData(ModelPart* pDestinationModelPart,
                           const PointerVectorSet<Node<3>, IndexedObject>& rNodes);
+} // namespace smatmpf
 } // namespace
 
-namespace Kratos
-{
 ModelPart& CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModelPart)
 {
     const std::string name = pPrimalModelPart->Name() + "(Adjoint)";
@@ -33,27 +34,28 @@ ModelPart& CreateStructuralMechanicsAdjointTestModelPart(ModelPart* pPrimalModel
         pPrimalModelPart->GetModel().DeleteModelPart(name);
     }
     ModelPart& adjoint_model_part = pPrimalModelPart->GetModel().CreateModelPart(name);
-    AddVariables(&adjoint_model_part, pPrimalModelPart->GetNodalSolutionStepVariablesList());
-    CopyNodes(&adjoint_model_part, pPrimalModelPart->Nodes());
+    smatmpf::AddVariables(&adjoint_model_part,
+                          pPrimalModelPart->GetNodalSolutionStepVariablesList());
+    smatmpf::CopyNodes(&adjoint_model_part, pPrimalModelPart->Nodes());
     ProcessInfo& r_process_info = adjoint_model_part.GetProcessInfo();
     r_process_info = pPrimalModelPart->GetProcessInfo();
-    CopyProperties(&adjoint_model_part, pPrimalModelPart->rProperties());
-    CreateAdjointElements(&adjoint_model_part, pPrimalModelPart->Elements());
+    smatmpf::CopyProperties(&adjoint_model_part, pPrimalModelPart->rProperties());
+    smatmpf::CreateAdjointElements(&adjoint_model_part, pPrimalModelPart->Elements());
     adjoint_model_part.SetBufferSize(pPrimalModelPart->GetBufferSize());
     // initialize adjoint time
     adjoint_model_part.CloneTimeStep(r_process_info[TIME] + r_process_info[DELTA_TIME]);
-    AddDofs(&adjoint_model_part);
-    AssignBCs(&adjoint_model_part, *pPrimalModelPart);
+    smatmpf::AddDofs(&adjoint_model_part);
+    smatmpf::AssignBCs(&adjoint_model_part, *pPrimalModelPart);
     VariableUtils().SetNonHistoricalVariable(UPDATE_SENSITIVITIES, true,
                                              adjoint_model_part.Nodes());
-    CopySolutionStepData(&adjoint_model_part, pPrimalModelPart->Nodes());
+    smatmpf::CopySolutionStepData(&adjoint_model_part, pPrimalModelPart->Nodes());
     return adjoint_model_part;
 }
 
-} // namespace Kratos
-
 namespace
 { // cpp internals
+namespace smatmpf
+{ // cotire unity guard
 void AddVariables(ModelPart* pAdjointModelPart, const VariablesList& rCustomVariables)
 {
     pAdjointModelPart->GetNodalSolutionStepVariablesList() = rCustomVariables;
@@ -180,5 +182,6 @@ void CopySolutionStepData(ModelPart* pDestinationModelPart,
     }
     KRATOS_CATCH("");
 }
-
+} // namespace smatmpf
 } // namespace
+} // namespace Kratos

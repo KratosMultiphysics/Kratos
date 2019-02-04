@@ -2,20 +2,21 @@
 
 #include "structural_mechanics_application_variables.h"
 
-using namespace Kratos;
-
+namespace Kratos
+{
 namespace
 { // cpp internals
+namespace smtmpf
+{ // cotire unity guard
 void AddVariables(ModelPart* pModelPart);
 void CreateNodes(ModelPart* pModelPart, const Element& rElementPrototype);
 void CreatePropertiesAndElements(ModelPart* pModelPart,
                                  const Element& rElementPrototype,
                                  const ConstitutiveLaw& rCLPrototype);
 void AddDofs(ModelPart* pModelPart);
+} // namespace smtmpf
 } // namespace
 
-namespace Kratos
-{
 ModelPart& CreateStructuralMechanicsTestModelPart(Model* pModel,
                                                   const Element& rElementPrototype,
                                                   const ConstitutiveLaw& rCLPrototype,
@@ -27,21 +28,21 @@ ModelPart& CreateStructuralMechanicsTestModelPart(Model* pModel,
         pModel->DeleteModelPart(name);
     }
     ModelPart& model_part = pModel->CreateModelPart(name);
-    AddVariables(&model_part);
-    CreateNodes(&model_part, rElementPrototype);
+    smtmpf::AddVariables(&model_part);
+    smtmpf::CreateNodes(&model_part, rElementPrototype);
     model_part.GetProcessInfo()[DOMAIN_SIZE] =
         rElementPrototype.GetGeometry().WorkingSpaceDimension();
-    CreatePropertiesAndElements(&model_part, rElementPrototype, rCLPrototype);
+    smtmpf::CreatePropertiesAndElements(&model_part, rElementPrototype, rCLPrototype);
     model_part.SetBufferSize(2);
-    AddDofs(&model_part);
+    smtmpf::AddDofs(&model_part);
     CustomBC(&model_part);
     return model_part;
 }
 
-} // namespace Kratos
-
 namespace
 { // cpp internals
+namespace smtmpf
+{ // cotire unity guard
 void AddVariables(ModelPart* pModelPart)
 {
     pModelPart->AddNodalSolutionStepVariable(DISPLACEMENT);
@@ -107,5 +108,6 @@ void AddDofs(ModelPart* pModelPart)
         r_node.AddDof(DISPLACEMENT_Z, REACTION_Z);
     }
 }
-
+} // namespace smtmpf
 } // namespace
+} // namespace Kratos

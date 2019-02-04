@@ -35,10 +35,12 @@
 #include "tests/cpp_tests/bits/adjoint_test_model_part_factory.h"
 #include "tests/cpp_tests/bits/test_model_part_factory.h"
 
-using namespace Kratos;
-
+namespace Kratos
+{
 namespace
 {
+namespace smtsts
+{ // cotire unity guard
 struct PrimalTestSolver
 {
     std::function<ModelPart&()> ModelPartFactory;
@@ -61,10 +63,9 @@ struct AdjointTestSolver
     double CalculateSensitivity(unsigned NodeToPerturb, char Direction);
 };
 
+} // namespace smtsts
 } // namespace
 
-namespace Kratos
-{
 namespace Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructuralMechanicsFastSuite)
@@ -85,9 +86,10 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructu
     const double time_step_size = 0.004;
     const double total_time = 0.015; // approx. 1/4 of a period.
     const unsigned response_node_id = 2;
-    PrimalTestSolver solver{model_part_factory, response_node_id, total_time, time_step_size};
-    AdjointTestSolver adjoint_solver{model_part_factory, response_node_id,
-                                     total_time, time_step_size};
+    smtsts::PrimalTestSolver solver{model_part_factory, response_node_id,
+                                    total_time, time_step_size};
+    smtsts::AdjointTestSolver adjoint_solver{
+        model_part_factory, response_node_id, total_time, time_step_size};
     const double delta = 1e-5;
     const double response_value0 = solver.CalculateResponseValue();
     for (unsigned i_node : {1, 2, 3})
@@ -105,10 +107,11 @@ KRATOS_TEST_CASE_IN_SUITE(TotalLagrangian2D3_TransientSensitivity, KratosStructu
     }
 }
 } // namespace Testing
-} // namespace Kratos
 
 namespace // cpp internals
 {
+namespace smtsts
+{ // cotire unity guard
 typedef TUblasSparseSpace<double> SparseSpaceType;
 typedef TUblasDenseSpace<double> LocalSpaceType;
 typedef LinearSolver<SparseSpaceType, LocalSpaceType> LinearSolverType;
@@ -171,7 +174,8 @@ double CalculateResponseValue(ModelPart* pModelPart, double DeltaTime, double To
 double PrimalTestSolver::CalculateResponseValue()
 {
     ModelPart& primal_model_part = ModelPartFactory();
-    return ::CalculateResponseValue(&primal_model_part, TimeStepSize, TotalTime, ResponseNodeId);
+    return smtsts::CalculateResponseValue(&primal_model_part, TimeStepSize,
+                                          TotalTime, ResponseNodeId);
 }
 
 double PrimalTestSolver::CalculateResponseValue(unsigned NodeToPerturb, char Direction, double Perturbation)
@@ -182,7 +186,8 @@ double PrimalTestSolver::CalculateResponseValue(unsigned NodeToPerturb, char Dir
     ModelPart& primal_model_part = ModelPartFactory();
     const unsigned i_dir = (Direction == 'x') ? 0 : 1;
     primal_model_part.GetNode(NodeToPerturb).GetInitialPosition()[i_dir] += Perturbation;
-    return ::CalculateResponseValue(&primal_model_part, TimeStepSize, TotalTime, ResponseNodeId);
+    return smtsts::CalculateResponseValue(&primal_model_part, TimeStepSize,
+                                          TotalTime, ResponseNodeId);
 }
 
 SolvingStrategyType::Pointer CreateAdjointSolvingStrategy(ModelPart* pModelPart,
@@ -265,4 +270,7 @@ double AdjointTestSolver::CalculateSensitivity(unsigned NodeToPerturb, char Dire
     const unsigned i_dir = (Direction == 'x') ? 0 : 1;
     return adjoint_model_part.GetNode(NodeToPerturb).FastGetSolutionStepValue(SHAPE_SENSITIVITY)[i_dir];
 }
+
+} // namespace smtsts
 } // namespace
+} // namespace Kratos
