@@ -56,14 +56,22 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0
             },
             "time_averaging_acceleration"        :{
-            "considered_time"           : 100.0,
-            "minimum_delta_time"        : 0.5,
-            "maximum_delta_time"        : 20.0,
-            "minimum_CFL"               : 1.0,
-            "maximum_CFL"               : 20.0,
-            "start_acceleration_time"   : 100,
-            "end_acceleration_time"     : 5000.0,
-            "end_time"                  : 10000.0
+                "restart" : {
+                    "consider_restart"              : false,
+                    "considered_time"               : 1.0,
+                    "initial_restart_time"          : 0.0,
+                    "end_time"                      : 20
+                },
+                "acceleration" : {
+                    "type"                          : "exponential",
+                    "exponential_factor"            : 1.05,
+                    "minimum_delta_time"            : 0.05,
+                    "maximum_delta_time"            : 1.0,
+                    "minimum_CFL"                   : 1.0,
+                    "maximum_CFL"                   : 40.0,
+                    "start_acceleration_time"       : 1.0,
+                    "end_acceleration_time"         : 10
+                }
             },
             "move_mesh_flag": false,
             "use_slip_conditions": true
@@ -182,29 +190,43 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
         # Compute the fluid domain NODAL_AREA values (required as weight for steady state estimation)
         KratosMultiphysics.CalculateNodalAreaProcess(self.main_model_part, self.domain_size).Execute()
-        # parameters for sample length calculation
-        self.initial_averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
-        self.averaging_time_length = self.initial_averaging_time_length
-        self.restart_time = self.initial_averaging_time_length 
-        self.end_time = self.settings["time_averaging_acceleration"]["end_time"].GetDouble()
-        self.CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
-        self.CFL_max = self.settings["time_averaging_acceleration"]["maximum_CFL"].GetDouble()
-        self.min_dt = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
-        self.max_dt = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
+        
+        self.accelerated = self.settings["time_averaging_acceleration"]["acceleration"]["consider_acceleration"].GetBool()
+        if self.accelerated == True:
+            self.delta_time_acceleration_type = self.settings["time_averaging_acceleration"]["acceleration"]["type"].GetString()
+            # parameters for dt accleration
+            self.start_acceleration_time = self.settings["time_averaging_acceleration"]["acceleration"]["start_acceleration_time"].GetDouble()
+            self.end_acceleration_time = self.settings["time_averaging_acceleration"]["acceleration"]["end_acceleration_time"].GetDouble()
+            self.min_dt = self.settings["time_averaging_acceleration"]["acceleration"]["minimum_delta_time"].GetDouble()
+            self.max_dt = self.settings["time_averaging_acceleration"]["acceleration"]["minimum_delta_time"].GetDouble()
+            self.CFL_min =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_CFL"].GetDouble()          
+            
+            if self.delta_time_acceleration_type == "exponential":
+                self.delta_time_acceleration_factor = self.settings["time_averaging_acceleration"]["acceleration"]["exponential_factor"].GetDouble()
+            if self.delta_time_acceleration_type == "linear":
+                self.CFL_max = self.settings["time_averaging_acceleration"]["acceleration"]["maximum_CFL"].GetDouble()
+        else: 
+            self.delta_time_acceleration_type = "None"
 
-        # parameters for dt accleration
-        self.start_acceleration_time = self.settings["time_averaging_acceleration"]["start_acceleration_time"].GetDouble()
-        self.end_acceleration_time = self.settings["time_averaging_acceleration"]["end_acceleration_time"].GetDouble()
+        self.restart = self.settings["time_averaging_acceleration"]["restart"]["consider_restart"].GetBool()
+        self.end_time = self.settings["time_averaging_acceleration"]["restart"]["end_time"].GetDouble()
 
-        # Sets initial averaging time length
-        self._set_averaging_time_length(self.initial_averaging_time_length)
-
+        if self.restart == True:
+            # parameters for time averaging acceleration
+            self.initial_averaging_time_length = self.settings["time_averaging_acceleration"]["restart"]["considered_time"].GetDouble()
+            self.averaging_time_length = self.initial_averaging_time_length
+            self.restart_time = self.initial_averaging_time_length 
+            self.initial_restart = self.settings["time_averaging_acceleration"]["restart"]["initial_restart_time"].GetDouble()
+            # initial ratio
+            self.initial_ratio = self.initial_averaging_time_length/self.min_dt
+            self.restarted = False
+        else:
+            self.averaging_time_length = self.end_time
+        # sets initial averaging time length
+        self._set_averaging_time_length(self.averaging_time_length)
         # Initializing STEP
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] = 0
 
-        # initial ratio
-        self.initial_ratio = self.initial_averaging_time_length/self.min_dt
-        self.restarted = False
 
         KratosMultiphysics.Logger.PrintInfo("NavierStokesTimeAveragedMonolithicSolver", "Solver initialization finished.")
 
@@ -212,14 +234,20 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
     def AdvanceInTime(self, current_time):   
         self._check_steady_state()
         
-        dt = self._compute_increased_delta_time(current_time)
+        if self.delta_time_acceleration_type == "exponential": 
+            old_dt = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
+            dt = self._compute_increased_exponential_delta_time(current_time, old_dt)
+        elif self.delta_time_acceleration_type == "linear":
+            dt = self._compute_increased_delta_time_with_CFL(current_time)
+        else:
+            dt = self._ComputeDeltaTime()
         new_time = current_time + dt
+
         self.main_model_part.CloneTimeStep(new_time)
         self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
         
         self._compute_averaging_time_length(new_time, dt)
         self._set_averaging_time_length(self.averaging_time_length)
-
         return new_time
 
 
@@ -262,7 +290,26 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
         self.initial_ratio = self.initial_averaging_time_length/self.CFL_min_dt
 
 
-    def _compute_increased_delta_time(self, current_time):
+    def _compute_increased_exponential_delta_time(self, current_time, old_dt):
+        if ( current_time > self.start_acceleration_time): 
+            if (current_time <= self.end_acceleration_time):
+                new_dt = old_dt*1.005 
+                if new_dt > self.max_dt:
+                    new_dt = self.max_dt
+            else:
+                new_dt = self.max_dt
+        else: 
+            if(self.domain_size == 3):
+                EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility3D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+            elif(self.domain_size == 2):
+                EstimateDeltaTimeUtility = KratosCFD.EstimateDtUtility2D(self.computing_model_part, self.CFL_min, self.min_dt, self.max_dt, True)
+            new_dt = EstimateDeltaTimeUtility.EstimateDt()
+
+        print("New dt is: ", new_dt)
+        return new_dt
+
+
+    def _compute_increased_delta_time_with_CFL(self, current_time):
         dt_min = self.settings["time_averaging_acceleration"]["minimum_delta_time"].GetDouble()
         dt_max = self.settings["time_averaging_acceleration"]["maximum_delta_time"].GetDouble()
         CFL_min =  self.settings["time_averaging_acceleration"]["minimum_CFL"].GetDouble()
@@ -287,30 +334,81 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
 
 
     def _compute_averaging_time_length(self, current_time, dt):
-        if (current_time > self.initial_averaging_time_length): # start restarting after initial averaging time length
+        if self.restart == True:
             if ( current_time > self.restart_time):
-                if (self.restarted == False):
-                    # Initializing CFL_min_dt
-                    self._compute_initial_ratio()
-                    self.restarted = True
                 # RESTART -> reset averaging time length to the initial averaging time length
-                self.averaging_time_length = self.initial_ratio * dt
+                self.averaging_time_length = self.initial_averaging_time_length
                 self.restart_time += self.averaging_time_length
-                # At restart, all the previous averaged velocity and pressure should be set to the current one
-                self.main_model_part.CloneSolutionStep()
-                self.main_model_part.CloneSolutionStep()
-                self.main_model_part.CloneSolutionStep()
+                self._restart()
                 print("### RESTART at " + str(current_time) + " ###")
                 print("New Restart Time: " + str(self.restart_time))
             else: 
                 self.averaging_time_length += dt
-            print("Averaging time length set to ", self.averaging_time_length)           
+                if (self.restarted == False):
+                    self._initial_restart(current_time) 
+        else:
+            self.averaging_time_length += dt
+            print("Averaging time length set to " + str(self.averaging_time_length) )           
+        print("=================================================================")
+
+
+
+    def _compute_averaging_time_length_with_const_ratio(self, current_time, dt):
+        if ( current_time > self.restart_time):
+            if (self.restarted == False):
+                # Initializing CFL_min_dt
+                self._compute_initial_ratio()
+                self.restarted = True
+            # RESTART -> reset averaging time length to the initial averaging time length
+            self.averaging_time_length = self.initial_ratio * dt
+            if (self.averaging_time_length > current_time):
+                self.averaging_time_length = current_time - dt
+            self.restart_time += self.averaging_time_length
+            self._restart()
+            print("### RESTART at " + str(current_time) + " ###")
+            print("New Restart Time: " + str(self.restart_time))
+        else: 
+            self.averaging_time_length += dt
+            if (self.restarted == False):
+                self._initial_restart(current_time) 
+        print("Averaging time length set to ", self.averaging_time_length)           
+        print("=================================================================")
+
+
+    def _initial_restart(self, current_time):
+        if current_time > self.initial_restart:
+            print("INITIAL RESTART: DROPPING PREVIOUS INFORMATION")
+            self._restart()
+            self.averaging_time_length = 0.0
+            self.restarted = True
+
+
+    def _restart(self):
+        # At restart, all the previous averaged velocity and pressure should be set to the current one
+        self.main_model_part.CloneSolutionStep()
+        self.main_model_part.CloneSolutionStep()
+        self.main_model_part.CloneSolutionStep()
+
+    
+    def _compute_averaging_time_length_with_ghost_time(self, current_time, dt):
+        if ( current_time > self.restart_time):
+            # RESTART -> reset averaging time length to the initial averaging time length
+            self.averaging_time_length = 2*self.restart_time 
+            self.restart_time += self.initial_averaging_time_length
+            self._restart()
+            print("### RESTART at " + str(current_time) + " ###")
+            print("New Restart Time: " + str(self.restart_time))
+        else:
+            if (self.restarted == False):
+                self._initial_restart(current_time)
+            self.averaging_time_length += dt
+        print("Averaging time length set to ", self.averaging_time_length)           
         print("=================================================================")
 
 
     def _set_averaging_time_length(self, new_averaging_time_length=0.0):
         if new_averaging_time_length==0.0:
-            averaging_time_length = self.settings["time_averaging_acceleration"]["considered_time"].GetDouble()
+            averaging_time_length = self.settings["time_averaging_acceleration"]["restart"]["considered_time"].GetDouble()
         else:
             averaging_time_length = new_averaging_time_length
         self.main_model_part.ProcessInfo.SetValue(KratosCFD.AVERAGING_TIME_LENGTH, averaging_time_length)

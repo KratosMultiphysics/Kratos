@@ -1,12 +1,12 @@
 {
     "problem_data"                     : {
-        "problem_name"    : "cylinder_re100_r_a_long_2000_no_complete_restart",
+        "problem_name"    : "re100_r_a",
         "model_part_name" : "MainModelPart",
         "domain_size"     : 2,
         "parallel_type"   : "OpenMP",
-        "echo_level"      : 3,
+        "echo_level"      : 2,
         "start_time"      : 0.0,
-        "end_time"        : 2000
+        "end_time"        : 100.0
     },
     "output_configuration"             : {
         "result_file_configuration" : {
@@ -18,7 +18,7 @@
             },
             "file_label"          : "time",
             "output_control_type" : "time",
-            "output_frequency"    : 20,
+            "output_frequency"    : 1.0,
             "body_output"         : true,
             "node_output"         : false,
             "skin_output"         : false,
@@ -35,12 +35,12 @@
         "Restart_Step"     : 0
     },
     "solver_settings"                  : {
-        "solver_type"                 : "TimeAveraged",
+        "solver_type"                     : "TimeAveraged",
         "model_part_name"                 : "MainModelPart",
         "domain_size"                     : 2,
-        "model_import_settings"       : {
+        "model_import_settings"           : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder_2d_water"
+            "input_filename" : "back_step_flow"
         },
         "echo_level"                      : 0,
         "compute_reactions"               : false,
@@ -51,39 +51,45 @@
         "relative_pressure_tolerance": 1e-5,
         "absolute_pressure_tolerance": 1e-7,
         "linear_solver_settings" : {
-            "solver_type" : "AMGCL"
+            "solver_type"         : "SuperLUSolver",
+            "verbosity"           : 0
         },
-        "volume_model_part_name"      : "Parts_fluid",
-        "skin_parts"                  : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_wall","NoSlip2D_cylinder"],
-        "no_skin_parts"               : [],
-        "time_stepping"               : {
+        "volume_model_part_name"          : "Parts_fluid",
+        "skin_parts"                      : ["AutomaticInlet2D_inlet","Outlet2D_outlet","NoSlip2D_step","NoSlip2D_top","NoSlip2D_bottom"],
+        "no_skin_parts"                   : [],
+        "time_stepping"                   : {
             "automatic_time_step" : false,
-            "time_step"           : 0.5
+            "time_step"           : 0.1
         },
         "time_averaging_acceleration"        :{
-            "initial_restart_time"      : 10.0,
-            "considered_time"           : 2000.0,
-            "minimum_delta_time"        : 0.01,
-            "maximum_delta_time"        : 2.0,
-            "minimum_CFL"               : 1.0,
-            "maximum_CFL"               : 20.0,
-            "start_acceleration_time"   : 0.0,
-            "end_acceleration_time"     : 2000,
-            "end_time"                  : 2000
+            "restart" : {
+                "consider_restart"              : false,
+                "considered_time"               : 1.0,
+                "initial_restart_time"          : 0.0,
+                "end_time"                      : 20
+            },
+            "acceleration" : {
+                "consider_acceleration"         : true,
+                "type"                          : "linear",
+                "minimum_delta_time"            : 0.05,
+                "maximum_delta_time"            : 1.0,
+                "minimum_CFL"                   : 1.0,
+                "maximum_CFL"                   : 40.0,
+                "start_acceleration_time"       : 1.0,
+                "end_acceleration_time"         : 10
+            }
         }
     },
     "initial_conditions_process_list"  : [],
     "boundary_conditions_process_list" : [{
-        "python_module" : "assign_vector_by_direction_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name": "AssignVectorByDirectionProcess",
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "process_name": "AssignVectorVariableProcess",
         "Parameters"    : {
             "model_part_name" : "AutomaticInlet2D_inlet",
             "variable_name"   : "TIME_AVERAGED_VELOCITY",
-            "modulus"         : 1.0,
-            "constrained"     : true,
-            "direction"       : [1.0,0.0,0.0],
-            "interval"        : [0.0,"End"]
+            "value"           : [0.01,0.0,0.0],
+            "constrained"     : [true,true,true]
         }
     },{
         "python_module" : "apply_outlet_process",
@@ -100,7 +106,7 @@
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name" : "NoSlip2D_wall",
+            "model_part_name" : "NoSlip2D_step",
             "variable_name"   : "TIME_AVERAGED_VELOCITY",
             "value"           : [0.0,0.0,0.0],
             "constrained"     : [true,true,true]
@@ -109,7 +115,16 @@
         "python_module" : "assign_vector_variable_process",
         "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
         "Parameters"    : {
-            "model_part_name" : "NoSlip2D_cylinder",
+            "model_part_name" : "NoSlip2D_top",
+            "variable_name"   : "TIME_AVERAGED_VELOCITY",
+            "value"           : [0.0,0.0,0.0],
+            "constrained"     : [true,true,true]
+        }
+    },{
+        "python_module" : "assign_vector_variable_process",
+        "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
+        "Parameters"    : {
+            "model_part_name" : "NoSlip2D_bottom",
             "variable_name"   : "TIME_AVERAGED_VELOCITY",
             "value"           : [0.0,0.0,0.0],
             "constrained"     : [true,true,true]
@@ -123,8 +138,8 @@
             "model_part_name" : "Parts_fluid",
             "variable_name"   : "BODY_FORCE",
             "modulus"         : 0.0,
-            "constrained"     : false,
             "direction"       : [0.0,-1.0,0.0]
         }
-    }]
+    }],
+    "auxiliar_process_list"            : []
 }

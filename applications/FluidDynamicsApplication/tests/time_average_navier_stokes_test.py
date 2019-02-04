@@ -233,6 +233,8 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
         if (self.print_output):
             self.gid_output.ExecuteFinalize()
+        print("Solver takes in total: " + str(step) + " steps with " + \
+            self.ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString())
         
         #self.solver.ExportModelPart()
 
@@ -251,7 +253,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         return gid_output
 
 if __name__ == '__main__':
-    TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
+    # TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
     # TimeAveragedNavierStokesTest().testCylinderFlow2DAir()
-    # TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    TimeAveragedNavierStokesTest().testBackStepFlow2D()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
