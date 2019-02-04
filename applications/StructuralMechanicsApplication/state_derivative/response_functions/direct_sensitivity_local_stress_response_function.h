@@ -84,7 +84,7 @@ public:
                             Matrix& rSensitivityGradient,
                             const ProcessInfo& rProcessInfo) override;
 
-    int GetNumberOfTracedGaussPoints() override;
+    int GetNumberOfOutputPositions() override;
 
     
 

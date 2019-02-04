@@ -33,7 +33,7 @@ namespace Kratos
     {
         KRATOS_TRY;   
 
-        // Tell the traced forces 
+        // Get list of traced forces 
         std::vector<TracedStressType> TracedForcesVector;
         const SizeType num_traced_forces = ResponseSettings["compute_on_gp"]["stresses"]["forces"].size();
         
@@ -44,7 +44,7 @@ namespace Kratos
             TracedForcesVector[i] = 
                 StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["compute_on_gp"]["stresses"]["forces"][i].GetString());
         
-        // Tell the traced moments
+        // Get list of traced moments
         std::vector<TracedStressType> TracedMomentsVector;
         const SizeType num_traced_moments = ResponseSettings["compute_on_gp"]["stresses"]["moments"].size();
         
@@ -55,6 +55,7 @@ namespace Kratos
             TracedMomentsVector[i] = 
                 StressResponseDefinitions::ConvertStringToTracedStressType(ResponseSettings["compute_on_gp"]["stresses"]["moments"][i].GetString());
         
+        // Get list of all traced stresses
         const SizeType num_traced_stresses = num_traced_forces + num_traced_moments;
 
         if (mTracedStressesVector.size() != num_traced_stresses)
@@ -87,17 +88,17 @@ namespace Kratos
         {
             if (mIdOfLocationVector.size() != 1)
                 mIdOfLocationVector.resize(1, false);
-            // Value is arbitrary. The components of mIdOfLocationVector aren't needed for the computation of the mean value. 
-            mIdOfLocationVector[0] = 0;
+            
+            mIdOfLocationVector.clear();
         }
-
         
         KRATOS_CATCH("");
     }
 
-
+    // Destructor
     DirectSensitivityLocalStressResponseFunction::~DirectSensitivityLocalStressResponseFunction(){}
 
+    
     void DirectSensitivityLocalStressResponseFunction::Initialize()
     {
         KRATOS_TRY;
@@ -112,6 +113,8 @@ namespace Kratos
                                    Matrix& rResponseGradientMatrix, 
                                    const ProcessInfo& rProcessInfo)
     {
+        KRATOS_TRY;
+
         // Define sizes
         const SizeType num_traced_gp = mIdOfLocationVector.size();
         const SizeType num_traced_stresses = mTracedStressesVector.size();
@@ -126,9 +129,9 @@ namespace Kratos
         if ( rResponseGradientMatrix.size1() != total_size || rResponseGradientMatrix.size2() != num_dofs )
             rResponseGradientMatrix.resize(total_size, num_dofs, false);                        
         
+        // Compute rResponseGradientMatrix
         for ( IndexType k = 0; k < num_traced_gp; k++ )
         {
-            //std::cout << "k :" << k << std::endl;
             IndexType index = k * num_traced_stresses;
             for ( IndexType i = 0; i < num_traced_stresses; i++ )
             {  
@@ -141,13 +144,15 @@ namespace Kratos
 
                 this->CalculateElementContributionToGradient(rDirectElement, rLHS, rResponseGradientVector, id_of_gauss_point, process_info);
                 
-                // Assembling of the gradient vectors for different traced stress types into a Matrix that can be given to postprocess
+                // Assembling of the gradient vectors for different traced stress types into a Matrix
                 for (IndexType j = 0; j < num_dofs; j++)
                     rResponseGradientMatrix(index + i, j) = rResponseGradientVector[j];
                 
                 rResponseGradientVector.clear();
             }
         }
+
+        KRATOS_CATCH("");
     }
 
 
@@ -159,8 +164,10 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        // Define working variables
         Matrix stress_displacement_derivative;
 
+        // Compute derivative matrix and extract the traced gauss point values
         if(mStressTreatment == StressTreatment::Mean)
         {
             rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, stress_displacement_derivative, rProcessInfo);
@@ -171,15 +178,16 @@ namespace Kratos
             rDirectElement.Calculate(STRESS_DISP_DERIV_ON_GP, stress_displacement_derivative, rProcessInfo);
             this->ExtractGaussPointStressDerivative(stress_displacement_derivative, rIdOfGaussPoint, rResponseGradientVector);
         }
-    
+
+        // Check if rResponseGradientVector has the right size for the post-process
         KRATOS_ERROR_IF(rResponseGradientVector.size() != rLHS.size1())
             << "Size of stress displacement derivative does not fit!" << std::endl;
 
-        rResponseGradientVector *= (-1);
-
         KRATOS_CATCH("");
     }
-     
+
+
+    // Derivative of the response function "local stress" w.r.t the design variable 
     void DirectSensitivityLocalStressResponseFunction::CalculatePartialSensitivity(Element& rDirectElement, 
                                     DirectSensitivityVariable& rDesignVariable, 
                                     Matrix& rSensitivityGradient, 
@@ -199,39 +207,34 @@ namespace Kratos
         const std::string variable_name = rDesignVariable.GetDesignVariableName();
         ProcessInfo process_info = rProcessInfo;        
 
+        // Compute rSensitivityGradient
         if( rDirectElement.Id() == rDesignVariable.GetTracedElementId() )
-        {
             for ( IndexType j = 0; j < num_traced_gp; j++ )
-            {
                 for ( IndexType i = 0; i < num_traced_stresses; i++ )
                 {   
                     // Define working variables
                     Vector sensitivity_gradient;
                     unsigned int id_of_gauss_point = mIdOfLocationVector[j];
 
-                    // change the stress type for which the sensitivity will be calculated
-                    rDirectElement.SetValue(TRACED_STRESS_TYPE, static_cast<int>(mTracedStressesVector[i]) );
+                    // Change the stress type for which the sensitivity will be calculated
+                    rDirectElement.SetValue( TRACED_STRESS_TYPE, static_cast<int>(mTracedStressesVector[i]) );
                                        
                     this->CalculateElementContributionToPartialSensitivity(rDirectElement, variable_name, sensitivity_gradient,
                                                 id_of_gauss_point, process_info);
 
-                    rSensitivityGradient(j, i) = sensitivity_gradient[0];
-                }
-            }
-        }
+                    rSensitivityGradient(j, i) = -sensitivity_gradient[0];
+                }  
         else
-        {
             if (rSensitivityGradient.size1() != 0  || rSensitivityGradient.size2() != 0)
                 rSensitivityGradient.resize(0, 0, false);
-        }
-
+        
         KRATOS_CATCH("");
     }
 
 
     void DirectSensitivityLocalStressResponseFunction::CalculateElementContributionToPartialSensitivity(Element& rDirectElement,
                                     const std::string& rVariableName,
-                                    Vector& rSensitivityGradient,
+                                    Vector& rSensitivityGradientVector,
                                     unsigned int& rIdOfGaussPoint,
                                     ProcessInfo& rProcessInfo)
     {
@@ -239,20 +242,23 @@ namespace Kratos
 
         rDirectElement.SetValue(DESIGN_VARIABLE_NAME, rVariableName);
 
+        // Define working variables
         Matrix stress_design_variable_derivative;
 
+        // Compute derivative matrix and extract the traced gauss point values
         if(mStressTreatment == StressTreatment::Mean)
         {
             rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradient);
+            this->ExtractMeanStressDerivative(stress_design_variable_derivative, rSensitivityGradientVector);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
             rDirectElement.Calculate(STRESS_DESIGN_DERIVATIVE_ON_GP, stress_design_variable_derivative, rProcessInfo);
-            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rIdOfGaussPoint, rSensitivityGradient);
+            this->ExtractGaussPointStressDerivative(stress_design_variable_derivative, rIdOfGaussPoint, rSensitivityGradientVector);
         }
         
-        KRATOS_ERROR_IF(rSensitivityGradient.size() != 1)
+        // Check if rSensitivityGradientVector is a scalar value
+        KRATOS_ERROR_IF(rSensitivityGradientVector.size() != 1)
              << "Size of partial stress design variable does not fit!" << std::endl;
 
         KRATOS_CATCH("");
@@ -260,17 +266,20 @@ namespace Kratos
 
 
     void DirectSensitivityLocalStressResponseFunction::ExtractMeanStressDerivative(const Matrix& rStressDerivativesMatrix, 
-                                    Vector& rResponseGradient)
+                                    Vector& rOutput)
     {
         KRATOS_TRY;
-
+        
+        // Define sizes
         const SizeType num_of_derivatives_per_stress = rStressDerivativesMatrix.size1();
         const SizeType num_of_stress_positions = rStressDerivativesMatrix.size2();
         double stress_derivative_value = 0.0;
 
-        if(rResponseGradient.size() != num_of_derivatives_per_stress)
-            rResponseGradient.resize(num_of_derivatives_per_stress, false);
+        // Sizing of rOutput
+        if(rOutput.size() != num_of_derivatives_per_stress)
+            rOutput.resize(num_of_derivatives_per_stress, false);
 
+        // Compute mean value of all gauss points
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
         {
             for(IndexType stress_it = 0; stress_it < num_of_stress_positions; ++stress_it)
@@ -278,7 +287,7 @@ namespace Kratos
 
             stress_derivative_value /= num_of_stress_positions;
 
-            rResponseGradient[deriv_it] = stress_derivative_value;
+            rOutput[deriv_it] = stress_derivative_value;
             stress_derivative_value = 0.0;
         }
 
@@ -288,33 +297,36 @@ namespace Kratos
 
     void DirectSensitivityLocalStressResponseFunction::ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, 
                                     unsigned int& rIdOfGaussPoint,
-                                    Vector& rResponseGradient)
+                                    Vector& rOutput)
     {
         KRATOS_TRY;
 
+        // Define sizes
         const SizeType num_of_derivatives_per_stress = rStressDerivativesMatrix.size1();
         const SizeType num_of_stress_positions = rStressDerivativesMatrix.size2();
 
-        if(rResponseGradient.size() != num_of_derivatives_per_stress)
-            rResponseGradient.resize(num_of_derivatives_per_stress, false);
+        // Sizing of rOutput
+        if(rOutput.size() != num_of_derivatives_per_stress)
+            rOutput.resize(num_of_derivatives_per_stress, false);
 
+        // Check if choosen gauss point is available
         KRATOS_ERROR_IF_NOT(num_of_stress_positions >= rIdOfGaussPoint ) <<
                 "Chosen Gauss-Point is not available. Chose 'stress_location' between 1 and " <<
                             num_of_stress_positions  << "!"<< std::endl;
 
+        // Extract the values for the choosen gauss point from the derivative matrix
         for (IndexType deriv_it = 0 ; deriv_it < num_of_derivatives_per_stress; ++deriv_it)
-            rResponseGradient[deriv_it] = rStressDerivativesMatrix(deriv_it, (rIdOfGaussPoint-1));
+            rOutput[deriv_it] = rStressDerivativesMatrix(deriv_it, (rIdOfGaussPoint-1));
 
         KRATOS_CATCH("");
     }
 
-    int DirectSensitivityLocalStressResponseFunction::GetNumberOfTracedGaussPoints()
+
+    int DirectSensitivityLocalStressResponseFunction::GetNumberOfOutputPositions()
     {
-        SizeType num_traced_gp  = mIdOfLocationVector.size();
+        const SizeType num_traced_gp  = mIdOfLocationVector.size();
         return num_traced_gp;
     }
-
-
 };
 
 
