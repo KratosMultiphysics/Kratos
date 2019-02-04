@@ -82,7 +82,7 @@ class MonolithicSolver(object):
         """)
 
         #check existing default linear solver exit
-        if not hasattr(KratosMultiphysics.SolversApplication, "super_lu"):
+        if not hasattr(KratosMultiphysics.ExternalSolversApplication, "super_lu"):
             default_settings["linear_solver_settings"]["solver_type"].SetString("SkylineLUFactorizationSolver")
 
         # Linear solver settings can have different number of settings
