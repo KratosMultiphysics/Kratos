@@ -94,12 +94,14 @@ public:
      * @param ThisParameters The parameters containing the configuration
      */
     explicit ResidualBasedBossakDisplacementScheme(Parameters ThisParameters)
-        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3)
+        : ResidualBasedBossakDisplacementScheme(ThisParameters.Has("damp_factor_m") ? ThisParameters["damp_factor_m"].GetDouble() : -0.3,
+                                                ThisParameters.Has("newmark_beta") ? ThisParameters["newmark_beta"].GetDouble() : 0.25)
     {
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
             "damp_factor_m" : -0.3,
+            "newmark_beta"  : 0.25
         })" );
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
     }
@@ -107,13 +109,13 @@ public:
     /**
      * @brief Constructor.
      * @detail The bossak method
-     * @param rAlpham The Bossak parameter. Default value is 0, which is the Newmark method
+     * @param Alpha The Bossak parameter. Default value is 0, which is the Newmark method
      */
-    explicit ResidualBasedBossakDisplacementScheme(const double rAlpham = 0.0)
+    explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0, const double NewmarkBeta = 0.25)
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
-        mAlpha.m = rAlpham;
+        mBossak.alpha = Alpha;
 
         // Default values of the Newmark coefficients
         double beta  = 0.25;
@@ -128,7 +130,7 @@ public:
         mVector.a.resize(num_threads);
         mVector.ap.resize(num_threads);
 
-        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mAlpha.m << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
+        KRATOS_DETAIL("MECHANICAL SCHEME: The Bossak Time Integration Scheme ") << "[alpha_m= " << mBossak.alpha << " beta= " << mNewmark.beta << " gamma= " << mNewmark.gamma << "]" <<std::endl;
     }
 
     /**
@@ -136,7 +138,7 @@ public:
      */
     explicit ResidualBasedBossakDisplacementScheme(ResidualBasedBossakDisplacementScheme& rOther)
         :ImplicitBaseType(rOther)
-        ,mAlpha(rOther.mAlpha)
+        ,mBossak(rOther.mBossak)
         ,mNewmark(rOther.mNewmark)
         ,mVector(rOther.mVector)
     {
@@ -173,8 +175,8 @@ public:
             double gamma
             )
     {
-        mNewmark.beta  = (1.0 - mAlpha.m) * (1.0 - mAlpha.m) * beta;
-        mNewmark.gamma = gamma  - mAlpha.m;
+        mNewmark.beta  = (1.0 - mBossak.alpha) * (1.0 - mBossak.alpha) * beta;
+        mNewmark.gamma = gamma  - mBossak.alpha;
     }
 
     /**
@@ -376,7 +378,7 @@ public:
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
 
         // Check for admissible value of the AlphaBossak
-        KRATOS_ERROR_IF(mAlpha.m > 0.0 || mAlpha.m < -0.5) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.5. Current value is " << mAlpha.m << std::endl;
+        KRATOS_ERROR_IF(mBossak.alpha > 0.0 || mBossak.alpha < -0.5) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.5. Current value is " << mBossak.alpha << std::endl;
 
         return 0;
         KRATOS_CATCH( "" );
@@ -436,7 +438,7 @@ protected:
      */
     struct BossakAlphaMethod
     {
-        double m; /// Alpha Bosssak
+        double alpha; /// Alpha Bosssak
         double beta; /// Beta Bosssak
         double gamma; /// gamme Bosssak
     };
@@ -464,7 +466,7 @@ protected:
         std::vector< Vector > ap; /// Previous acceleration
     };
 
-    BossakAlphaMethod mAlpha; /// The structure containing the Generalized alpha components
+    BossakAlphaMethod mBossak; /// The structure containing the Generalized alpha components
     NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
     GeneralVectors mVector;        /// The structure containing the velocities and accelerations
 
@@ -528,7 +530,7 @@ protected:
     {
         // Adding mass contribution to the dynamic stiffness
         if (M.size1() != 0) // if M matrix declared
-            noalias(LHS_Contribution) += M * (1.0 - mAlpha.m) * mNewmark.c0;
+            noalias(LHS_Contribution) += M * (1.0 - mBossak.alpha) * mNewmark.c0;
 
         // Adding  damping contribution
         if (D.size1() != 0) // if D matrix declared
@@ -556,10 +558,10 @@ protected:
         // Adding inertia contribution
         if (M.size1() != 0) {
             pElement->GetSecondDerivativesVector(mVector.a[this_thread], 0);
-            mVector.a[this_thread] *= (1.00 - mAlpha.m);
+            mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
             pElement->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
-            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
+            noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
@@ -593,10 +595,10 @@ protected:
         // Adding inertia contribution
         if (M.size1() != 0) {
             pCondition->GetSecondDerivativesVector(mVector.a[this_thread], 0);
-            mVector.a[this_thread] *= (1.00 - mAlpha.m);
+            mVector.a[this_thread] *= (1.00 - mBossak.alpha);
 
             pCondition->GetSecondDerivativesVector(mVector.ap[this_thread], 1);
-            noalias(mVector.a[this_thread]) += mAlpha.m * mVector.ap[this_thread];
+            noalias(mVector.a[this_thread]) += mBossak.alpha * mVector.ap[this_thread];
 
             noalias(RHS_Contribution) -= prod(M, mVector.a[this_thread]);
         }
