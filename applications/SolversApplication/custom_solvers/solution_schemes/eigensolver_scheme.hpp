@@ -1,12 +1,10 @@
 //
-//   Project Name:        KratosSolversApplication $
-//   Created by:          $Author:     JMCarbonell $
-//   Last modified by:    $Co-Author:              $
-//   Date:                $Date:      January 2019 $
-//   Revision:            $Revision:           0.0 $
+//   Project Name:        KratosSolversApplication          $
+//   Developed by:        $Developer:  michael.andre@tum.de $
+//   Maintained by:       $Maintainer:          JMCarbonell $
+//   Date:                $Date:               January 2019 $
 //
 //
-//   (based on the work of michael.andre@tum.de)
 
 #if !defined(KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED)
 #define  KRATOS_EIGENSOLVER_SCHEME_H_INCLUDED

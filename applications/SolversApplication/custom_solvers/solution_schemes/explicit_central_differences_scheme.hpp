@@ -1,12 +1,10 @@
 //
 //   Project Name:        KratosSolversApplication $
-//   Created by:          $Author:     JMCarbonell $
-//   Last modified by:    $Co-Author:              $
+//   Developed by:        $Developer: MSantasusana $
+//   Maintained by:       $Maintainer: JMCarbonell $
 //   Date:                $Date:      January 2019 $
-//   Revision:            $Revision:           0.0 $
 //
 //
-//   (based on the work of Miquel Santasusana)
 
 #if !defined(KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED)
 #define  KRATOS_EXPLICIT_CENTRAL_DIFFERENCES_SCHEME_H_INCLUDED

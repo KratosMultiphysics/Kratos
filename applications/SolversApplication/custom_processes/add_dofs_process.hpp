@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosSolversApplication $
-//   Created by:          $Author:     JMCarbonell $
-//   Last modified by:    $Co-Author:              $
+//   Developed by:        $Developer:  JMCarbonell $
+//   Maintained by:       $Maintainer:        JMC  $
 //   Date:                $Date:      January 2019 $
-//   Revision:            $Revision:           0.0 $
 //
 //
+
 
 #if !defined(KRATOS_ADD_DOFS_PROCESS_H_INCLUDED)
 #define  KRATOS_ADD_DOFS_PROCESS_H_INCLUDED

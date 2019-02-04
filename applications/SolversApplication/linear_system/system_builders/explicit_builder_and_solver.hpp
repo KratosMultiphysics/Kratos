@@ -1,11 +1,11 @@
 //
 //   Project Name:        KratosSolversApplication $
-//   Created by:          $Author:     JMCarbonell $
-//   Last modified by:    $Co-Author:              $
+//   Developed by:        $Developer: MSantasusana $
+//   Maintained by:       $Maintainer: JMCarbonell $
 //   Date:                $Date:      January 2019 $
-//   Revision:            $Revision:           0.0 $
 //
 //
+
 
 #if !defined(KRATOS_EXPLICIT_BUILDER_AND_SOLVER_H_INCLUDED)
 #define  KRATOS_EXPLICIT_BUILDER_AND_SOLVER_H_INCLUDED

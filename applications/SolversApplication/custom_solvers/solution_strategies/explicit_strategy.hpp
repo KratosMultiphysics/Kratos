@@ -1,9 +1,8 @@
 //
 //   Project Name:        KratosSolversApplication $
-//   Created by:          $Author:     JMCarbonell $
-//   Last modified by:    $Co-Author:              $
+//   Developed by:        $Developer: MSantasusana $
+//   Maintained by:       $Maintainer: JMCarbonell $
 //   Date:                $Date:      January 2019 $
-//   Revision:            $Revision:           0.0 $
 //
 //
 
