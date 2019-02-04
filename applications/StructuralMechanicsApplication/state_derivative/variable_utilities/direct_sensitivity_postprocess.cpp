@@ -167,8 +167,6 @@ namespace Kratos
     {
         KRATOS_TRY;
 
-        std::cout << "In UpdateSensitivities!!!!!!!!" << std::endl;
-
         if (mBuildMode == "static")
         {
             // overwrite existing.
@@ -243,15 +241,15 @@ namespace Kratos
                 break;  
 
             elem_i.CalculateLeftHandSide(LHS[k], r_process_info); 
-
+            
             mrResponseFunction.CalculateGradient(elem_i, LHS[k], response_displacement_gradient[k], r_process_info);            
 
             mrResponseFunction.CalculatePartialSensitivity(elem_i, mrDirectSensitivityVariable, response_sensitivity_gradient[k], r_process_info);
 
             // Define Sizes
             const SizeType total_size = response_displacement_gradient[k].size1();
-            const SizeType num_traced_gp = mrResponseFunction.GetNumberOfTracedGaussPoints();
-            const SizeType num_traced_stresses = total_size / num_traced_gp; 
+            const SizeType num_output_positions = mrResponseFunction.GetNumberOfOutputPositions();
+            const SizeType num_traced_results = total_size / num_output_positions;
             const SizeType num_dofs = response_displacement_gradient[k].size2();
                      
             // Get the displacement vector derived wrt. the design parameter
@@ -272,8 +270,8 @@ namespace Kratos
             }*/
             
             // Sizing of the sensitivity vector 
-            if(sensitivity_vector[k].size1() != num_traced_gp || sensitivity_vector[k].size2() != num_traced_stresses)
-                sensitivity_vector[k].resize(num_traced_gp, num_traced_stresses, false);
+            if(sensitivity_vector[k].size1() != num_output_positions || sensitivity_vector[k].size2() != num_traced_results)
+                sensitivity_vector[k].resize(num_output_positions, num_traced_results, false);
             
             if( (num_dofs > 0) && (displacement_gradient[k].size() > 0) )
             {
@@ -284,11 +282,11 @@ namespace Kratos
                 if ( helping_vector[k].size() != num_dofs )
                         helping_vector[k].resize(num_dofs, false);
                 
-                for ( IndexType g = 0; g < num_traced_gp; g++ )
+                for ( IndexType g = 0; g < num_output_positions; g++ )
                 {
-                    IndexType index = g * num_traced_stresses;
+                    IndexType index = g * num_traced_results;
 
-                    for ( IndexType i = 0; i < num_traced_stresses; i++ )
+                    for ( IndexType i = 0; i < num_traced_results; i++ )
                     {
                         for ( IndexType j = 0; j < num_dofs; j++ )
                             helping_vector[k][j] = response_displacement_gradient[k](index + i, j); 
@@ -299,9 +297,9 @@ namespace Kratos
                     }
                 }
                 /*std::cout << "sensitivity_vector: " << std::endl;
-                for(IndexType i = 0; i < num_traced_stresses; ++i)
+                for(IndexType i = 0; i < num_traced_results; ++i)
                 {
-                    for(IndexType j = 0; j < num_traced_gp; ++j)
+                    for(IndexType j = 0; j < num_output_positions; ++j)
                         std::cout << sensitivity_vector[k](j,i) << "  :  ";
                     std::cout << std::endl;
                 }*/                
@@ -313,30 +311,32 @@ namespace Kratos
                     "Sizes of the sensitivity_vector and the response sensitivity gradient do not match!" << std::endl;
                 
                 // Output dg/ds and sensitivity vector
-                std::cout << "dg/ds: " << std::endl;
-                for(IndexType j = 0; j < num_traced_gp; ++j)
+                //std::cout << "dg/ds: " << std::endl;
+                for(IndexType j = 0; j < num_output_positions; ++j)
                 { 
-                    for(IndexType i = 0; i < num_traced_stresses; ++i)
+                    for(IndexType i = 0; i < num_traced_results; ++i)
                     {  
-                        std::cout << response_sensitivity_gradient[k](j, i) << "  :  ";                     
+                        //std::cout << response_sensitivity_gradient[k](j, i) << "  :  ";                     
                         sensitivity_vector[k](j, i) += response_sensitivity_gradient[k](j, i);                    
                     } 
-                    std::cout << std::endl;
+                    //std::cout << std::endl;
                 }
+                // Output sensitivity vector
                 std::cout << "Sensitivity_vector:  " << std::endl; 
-                for(IndexType j = 0; j < num_traced_gp; ++j)
+                for(IndexType j = 0; j < num_output_positions; ++j)
                 { 
-                    for(IndexType i = 0; i < num_traced_stresses; ++i)
+                    for(IndexType i = 0; i < num_traced_results; ++i)
                         std::cout << sensitivity_vector[k](j, i) << "  :  "; 
                     std::cout << std::endl;
                 }
             }
             else
-            { 
+            {   
+                // Output sensitivity vector
                 std::cout << "Sensitivity_vector:  " << std::endl;;
-                for(IndexType j = 0; j < num_traced_gp; ++j)
+                for(IndexType j = 0; j < num_output_positions; ++j)
                 { 
-                    for(IndexType i = 0; i < num_traced_stresses; ++i)
+                    for(IndexType i = 0; i < num_traced_results; ++i)
                         std::cout << sensitivity_vector[k](j, i) << "  :  ";  
                     std::cout << std::endl; 
                 }                           
