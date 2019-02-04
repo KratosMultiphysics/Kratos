@@ -98,7 +98,7 @@ public:
                                             Matrix& rSensitivityGradient, 
                                             const ProcessInfo& rProcessInfo);
 
-    virtual int GetNumberOfTracedGaussPoints();
+    virtual int GetNumberOfOutputPositions();
 
     ///@}
 
@@ -116,7 +116,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
+    
     ///@}
 
 private:

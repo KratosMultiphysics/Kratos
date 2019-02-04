@@ -57,10 +57,11 @@ namespace Kratos
         KRATOS_ERROR << "CalculatePartialGradient needs to be implemented by the derived class.\n";
     }
 
-    int DirectSensitivityResponseFunction::GetNumberOfTracedGaussPoints()
+    int DirectSensitivityResponseFunction::GetNumberOfOutputPositions()
     {
         KRATOS_ERROR << "GetNumberOfTracedGaussPoints() needs to be implemented by the derived class.\n";
         return 0;
     }
+    
 };
 
