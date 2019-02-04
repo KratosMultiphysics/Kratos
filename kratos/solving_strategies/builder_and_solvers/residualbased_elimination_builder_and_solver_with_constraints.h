@@ -1059,6 +1059,11 @@ protected:
     /**
      * @brief This function is exactly same as the Build() function in base class except that the function
      * @details It has the call to ApplyConstraints function call once the LHS or RHS are computed by elements and conditions
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     * @param rCompleteA The LHS without MPC
      */
     void BuildWithConstraints(
         typename TSchemeType::Pointer pScheme,
