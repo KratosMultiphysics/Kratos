@@ -36,18 +36,20 @@ Recommended references for implementation details of MPM in Kratos:
 - Iaconeta, I., Larese, A., Rossi, R., & Zhiming, G. (2016). Comparison of a material point method and a Galerkin meshfree method for the simulation of cohesive-frictional materials. *Materials*, 10(10), p. 1150.
 - Iaconeta, I., Larese, A., Rossi, R., Oñate, E. (2017). An implicit material point method applied to granular flows. *Procedia Engineering: Proceeding of the 1st International Conference on the Material Point Method (MPM2017)*, Vol 175, 226-232 MPM 2017, Delft, Netherlands.
 - Iaconeta, I., Larese, A., Rossi, R., & Oñate, E. (2018). A stabilized mixed implicit Material Point Method for non-linear incompressible solid mechanics. *Computational Mechanics*, 1-18.
-- Chandra, B., Larese, A., Iaconeta, I., Rossi, R., Wüchner, R. (2018). Soil-Structure Interaction Simulation of Landslides Impacting a Structure Using an Implicit Material Point Method. *Accepted for publication by Proceeding of the 2nd International Conference on The Material Point Method (MPM2019)*.
+- Chandra, B., Larese, A., Iaconeta, I., Rossi, R., Wüchner, R. (2018). Soil-Structure Interaction Simulation of Landslides Impacting a Structure Using an Implicit Material Point Method. *Proceeding of the 2nd International Conference on The Material Point Method (MPM2019)*, Cambridge, United Kingdom.
 
 ## Features
 
 The following features are currently available and subject to development within the Particle Mechanics Application:
 
-- A set of *Neumann* conditions:
-    * Grid-Based Conditions: loads applied directly on the background nodes
-        * Static Point load
-        * Static Line load (a distributed load applied over a line)
-        * Static Surface load (a distributed load applied over a face)
-
+- A set of Boundary conditions:
+    * Grid-Based Conditions: applied directly on the background nodes
+        * Neumann: Point load
+        * Neumann: Line load (a distributed load applied over a line)
+        * Neumann: Surface load (a distributed load applied over a face)
+    * Particle-Based Conditions: applied in moveable boundary particles
+        * Dirichlet: Penalty imposition of displacements (homogeneous and inhomogeneous)
+        
 - Solid (background) elements:
     * Updated Lagrangian elements - triangular (2D) and tetrahedral (3D), structured and unstructured
     * Updated Lagrangian UP elements - triangular (2D) and tetrahedral (3D), structured and unstructured, with Mixed Variational Methods of displacement and pressure
