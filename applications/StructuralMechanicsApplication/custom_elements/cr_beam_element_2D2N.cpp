@@ -197,8 +197,9 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
   else
   {
     const double lumped_mass = A * L * rho;
+    
+     // w.r.t. Felippa - Chapter 31: LUMPED AND CONSISTENT MASS MATRICES - p.31–10
     double alpha = 0.00;
-
     if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEFFICIENT)) {
       alpha = GetProperties()[LUMPED_MASS_ROTATION_COEFFICIENT];
     }
