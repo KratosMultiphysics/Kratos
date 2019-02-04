@@ -64,6 +64,10 @@ namespace Kratos
         Matrix  DN_De  = this->GetValue(SHAPE_FUNCTION_LOCAL_DERIVATIVES);
         Matrix DDN_DDe = this->GetValue(SHAPE_FUNCTION_LOCAL_SECOND_DERIVATIVES);
 
+        //KRATOS_WATCH(N)
+        //KRATOS_WATCH(DN_De)
+        //    KRATOS_WATCH(DDN_DDe)
+
 
         MetricVariables actual_metric(3);
         CalculateMetric(actual_metric);
@@ -116,6 +120,8 @@ namespace Kratos
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.S);
             noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.S);
         }
+
+        //KRATOS_WATCH(rLeftHandSideMatrix)
 
         KRATOS_CATCH("");
     }

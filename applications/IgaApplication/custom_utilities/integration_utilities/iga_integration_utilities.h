@@ -46,7 +46,7 @@ namespace IgaIntegrationUtilities
             rElementList[i] = p_element;
         }
 
-        //rModelPart.AddElements(rElementList.begin(), rElementList.end());
+        rModelPart.AddElements(new_element_list.begin(), new_element_list.end());
     }
     static void ChangeConditionType(
         std::vector<Element::Pointer> rElementList,
@@ -62,6 +62,8 @@ namespace IgaIntegrationUtilities
         for (int i = 0; i< static_cast<int>(rElementList.size()); i++)
         {
             auto it_elem = rElementList[i];
+
+            KRATOS_WATCH(rIdCounter)
 
             auto p_condition = rReferenceCondition.Create(rIdCounter, it_elem->pGetGeometry(), it_elem->pGetProperties());
 
@@ -146,6 +148,13 @@ namespace IgaIntegrationUtilities
                     auto point_3d = curve_on_surface_3d_1->PointAt(integration_points[ip].t);
                     auto derivatives_1 = pTrimmingCurve1->DerivativesAt(integration_points[ip].t, 1);
 
+                    //std::cout << "integration_points[ip].t: " << integration_points[ip].t << std::endl;
+                    //std::cout << "derivatives_1[0][0]: " << derivatives_1[0][0] << std::endl;
+                    //std::cout << "derivatives_1[0][1]: " << derivatives_1[0][1] << std::endl;
+
+                    KRATOS_WATCH(pSurface1->Weights().NbCols())
+                    KRATOS_WATCH(pSurface1->Weights().NbRows())
+
                     shape_1.Compute(
                         pSurface1->KnotsU(),
                         pSurface1->KnotsV(),
@@ -155,11 +164,17 @@ namespace IgaIntegrationUtilities
 
                     Element::NodesArrayType non_zero_control_points;
 
-                    Vector shape_function(ShapeFunctionDerivativesOrder);
-                    Matrix shape_function_derivative(ShapeFunctionDerivativesOrder, 2);
-                    Matrix shape_function_second_derivative(ShapeFunctionDerivativesOrder,3);
+                    int number_of_non_zero_cps_1 = shape_1.NonzeroPoleIndices().size();
 
-                    for (int n = 0; n < shape_1.NonzeroPoleIndices().size(); ++n)
+                    Vector shape_function(number_of_non_zero_cps_1);
+                    Matrix shape_function_derivative(number_of_non_zero_cps_1, 2);
+                    Matrix shape_function_second_derivative(number_of_non_zero_cps_1,3);
+
+                    //KRATOS_WATCH(number_of_non_zero_cps_1)
+
+                    array_1d<double, 3> location = ZeroVector(3);
+
+                    for (int n = 0; n < number_of_non_zero_cps_1; ++n)
                     {
                         int indexU = shape_1.NonzeroPoleIndices()[n].first - shape_1.FirstNonzeroPoleU();
                         int indexV = shape_1.NonzeroPoleIndices()[n].second - shape_1.FirstNonzeroPoleV();
@@ -181,13 +196,22 @@ namespace IgaIntegrationUtilities
                             shape_function_second_derivative(n, 1) = shape_1(5, indexU, indexV);
                             shape_function_second_derivative(n, 2) = shape_1(4, indexU, indexV);
                         }
+
+                        location += non_zero_control_points.back().Coordinates()*shape_function(n);
                     }
+                    //KRATOS_WATCH(location)
+
+                    //KRATOS_WATCH(shape_function)
+                    //KRATOS_WATCH(shape_function_derivative)
+                    //KRATOS_WATCH(shape_function_second_derivative)
 
                     //SLAVE
                     projection_2.Compute(point_3d);
-
+                    //std::cout << "point_3d: " << point_3d[0] << ", " << point_3d[1] << ", " << point_3d[2] << std::endl;
+                    //KRATOS_WATCH(projection_2.Parameter())
                     auto derivatives_2 = pTrimmingCurve2->DerivativesAt(projection_2.Parameter(), 1);
-
+                    //std::cout << "derivatives_2[0][0]: " << derivatives_2[0][0] << std::endl;
+                    //std::cout << "derivatives_2[0][1]: " << derivatives_2[0][1] << std::endl;
                     shape_2.Compute(
                         pSurface2->KnotsU(),
                         pSurface2->KnotsV(),
@@ -195,31 +219,33 @@ namespace IgaIntegrationUtilities
                         derivatives_2[0][0],
                         derivatives_2[0][1]);
 
-                    Vector shape_function_slave(ShapeFunctionDerivativesOrder);
-                    Matrix shape_function_derivative_slave(ShapeFunctionDerivativesOrder, 2);
-                    Matrix shape_function_second_derivative_slave(ShapeFunctionDerivativesOrder, 3);
+                    int number_of_non_zero_cps_2 = shape_2.NonzeroPoleIndices().size();
 
-                    for (int n = 0; n < shape_1.NonzeroPoleIndices().size(); ++n)
+                    Vector shape_function_slave(number_of_non_zero_cps_2);
+                    Matrix shape_function_derivative_slave(number_of_non_zero_cps_2, 2);
+                    Matrix shape_function_second_derivative_slave(number_of_non_zero_cps_2, 3);
+
+                    for (int n = 0; n < number_of_non_zero_cps_2; ++n)
                     {
-                        int indexU = shape_1.NonzeroPoleIndices()[n].first - shape_1.FirstNonzeroPoleU();
-                        int indexV = shape_1.NonzeroPoleIndices()[n].second - shape_1.FirstNonzeroPoleV();
+                        int indexU = shape_2.NonzeroPoleIndices()[n].first - shape_2.FirstNonzeroPoleU();
+                        int indexV = shape_2.NonzeroPoleIndices()[n].second - shape_2.FirstNonzeroPoleV();
 
-                        non_zero_control_points.push_back(pSurface1->GetNode(
-                            shape_1.NonzeroPoleIndices()[n].first,
-                            shape_1.NonzeroPoleIndices()[n].second));
+                        non_zero_control_points.push_back(pSurface2->GetNode(
+                            shape_2.NonzeroPoleIndices()[n].first,
+                            shape_2.NonzeroPoleIndices()[n].second));
 
                         if (ShapeFunctionDerivativesOrder>-1)
-                            shape_function_slave[n] = shape_1(0, indexU, indexV);
+                            shape_function_slave[n] = shape_2(0, indexU, indexV);
                         if (ShapeFunctionDerivativesOrder > 0)
                         {
-                            shape_function_derivative_slave(n, 0) = shape_1(1, indexU, indexV);
-                            shape_function_derivative_slave(n, 1) = shape_1(2, indexU, indexV);
+                            shape_function_derivative_slave(n, 0) = shape_2(1, indexU, indexV);
+                            shape_function_derivative_slave(n, 1) = shape_2(2, indexU, indexV);
                         }
                         if (ShapeFunctionDerivativesOrder > 1)
                         {
-                            shape_function_second_derivative_slave(n, 0) = shape_1(3, indexU, indexV);
-                            shape_function_second_derivative_slave(n, 1) = shape_1(5, indexU, indexV);
-                            shape_function_second_derivative_slave(n, 2) = shape_1(4, indexU, indexV);
+                            shape_function_second_derivative_slave(n, 0) = shape_2(3, indexU, indexV);
+                            shape_function_second_derivative_slave(n, 1) = shape_2(5, indexU, indexV);
+                            shape_function_second_derivative_slave(n, 2) = shape_2(4, indexU, indexV);
                         }
                     }
 

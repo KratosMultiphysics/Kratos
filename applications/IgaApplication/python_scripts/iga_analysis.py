@@ -2,23 +2,10 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 # Importing Kratos
 import KratosMultiphysics
-import KratosMultiphysics.IgaApplication as IgaApplication
-
-# Importing the solvers (if available)
-try:
-    import KratosMultiphysics.ExternalSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("ExternalSolversApplication", "not imported")
-try:
-    import KratosMultiphysics.EigenSolversApplication
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "succesfully imported")
-except ImportError:
-    KratosMultiphysics.Logger.PrintInfo("EigenSolversApplication", "not imported")
-
+import KratosMultiphysics.IgaApplication.python_solvers_wrapper_iga as solvers_wrapper
 
 # Importing the base class
-from analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage import AnalysisStage
 
 class IgaAnalysis(AnalysisStage):
     """
@@ -31,8 +18,7 @@ class IgaAnalysis(AnalysisStage):
     def _CreateSolver(self):
         """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
         ## Solver construction
-        import python_solvers_wrapper_iga
-        return python_solvers_wrapper_iga.CreateSolver(self.model, self.project_parameters)
+        return solvers_wrapper.CreateSolver(self.model, self.project_parameters)
 
     def _GetSimulationName(self):
         return "::[IGA Simulation]:: "
