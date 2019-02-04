@@ -185,8 +185,20 @@ namespace Kratos
         // storing the partial derivative partial f_{ext}_i}{\partial u}
         mExternalForceDisplacementDerivative = partial_derivative_matrix;
 
+        // // TODO Mahmoud: This stores rResponseGradient values which is called in adjoint_postprocess.cpp
+        // mResponseGradient[rAdjointCondition.Id()] = rResponseGradient;
+
         KRATOS_CATCH("");
     }
+
+    // void AdjointNonlinearStrainEnergyResponseFunction::GetGradientVector(const Condition& rAdjointCondition, Vector& rResponseGradient)
+    // {
+    //     KRATOS_TRY;
+
+    //     rResponseGradient = mResponseGradient[rAdjointCondition.Id()];
+
+    //     KRATOS_CATCH("");
+    // }
 
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                                 const Variable<array_1d<double, 3>>& rVariable,

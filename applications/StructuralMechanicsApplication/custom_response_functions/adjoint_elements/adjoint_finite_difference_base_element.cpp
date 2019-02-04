@@ -319,7 +319,8 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             rOutput.resize(dimension * number_of_nodes, local_size);
 
         IndexType index = 0;
-        
+        // TODO Mahmoud: commented out as it does not calculate the correct sensitivity matrix for non-linear elements
+
         Vector RHS;
         pGetPrimalElement()->CalculateRightHandSide(RHS, process_info);
         for(auto& node_i : mpPrimalElement->GetGeometry())
@@ -337,6 +338,32 @@ void AdjointFiniteDifferencingBaseElement::CalculateSensitivityMatrix(const Vari
             }
             index++;
         }
+
+        // Mahmoud: Calculation of the sensitivity matrix by ((K(x + delta_x) - K(x)) / delta_x) * u
+
+        // Matrix LHS;
+        // Vector RHS;
+        // Matrix derived_LHS;
+        // Vector disp;
+        // pGetPrimalElement()->CalculateLocalSystem(LHS, RHS, process_info);
+        // pGetPrimalElement()->GetValuesVector(disp,0);
+        // for(auto& node_i : mpPrimalElement->GetGeometry())
+        // {
+        //     for(IndexType coord_dir_i = 0; coord_dir_i < dimension; ++coord_dir_i)
+        //     {
+        //         // Get pseudo-load contribution from utility
+        //         ElementFiniteDifferenceUtility::CalculateLeftHandSideDerivative(*pGetPrimalElement(), LHS, coord_directions[coord_dir_i],
+        //                                                                     node_i, delta, derived_LHS, process_info);
+
+        //        // KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+        //         derived_RHS = prod(derived_LHS, disp);
+
+        //         for(IndexType i = 0; i < derived_RHS.size(); ++i)
+        //             rOutput( (coord_dir_i + index*dimension), i) = derived_RHS[i];
+        //     }
+        //     index++;
+        // }
+        
     }
 
     KRATOS_CATCH("")

@@ -57,7 +57,7 @@
         "Parameters"    : {
             "model_part_name" : "Structure.DISPLACEMENT_BC_DIRICHLET_X_Z",
             "variable_name"   : "DISPLACEMENT",
-            "constrained"     : [true,false,true],
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -72,8 +72,8 @@
         "Parameters"    : {
             "model_part_name" : "Structure.PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "1.0*t",
-            "direction"       : [0.0,1.0,0.0],
+            "modulus"         : "10.0*t",
+            "direction"       : [1.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],

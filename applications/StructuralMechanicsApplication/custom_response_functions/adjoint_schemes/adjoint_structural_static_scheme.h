@@ -308,7 +308,7 @@ public:
 
         std::cout << "condition rRHS_Contribution" << rRHS_Contribution << ":" << std::endl;
 
-        // TODO Mahmoud: why this is negative here
+        // TODO Mahmoud: check the reason for this negative value
        // noalias(rRHS_Contribution) = -rRHS_Contribution;
 
         // TODO consult Mike:

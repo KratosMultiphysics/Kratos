@@ -117,7 +117,9 @@ public:
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
-
+    
+    //void GetGradientVector(const Condition& rAdjointCondition, Vector& rResponseGradient);
+    
     ///@}
     ///@name Access
     ///@{
@@ -174,14 +176,14 @@ private:
     ///@{
     
     double m_response_value = 0;
-
+   
     Matrix mExternalForceDisplacementDerivative;
     Matrix mExternalForceDesignVariableDerivative;
 
-    //std::vector<Vector> mConditionsRHS;
-    //std::vector<Condition::Pointer> mConditions;
+
     std::map<int, Vector> mConditionsRHS;
     std::map<int, Condition::Pointer> mConditions;
+   // std::map<int, Vector> mResponseGradient;
 
     ///@}
     ///@name Private Operators

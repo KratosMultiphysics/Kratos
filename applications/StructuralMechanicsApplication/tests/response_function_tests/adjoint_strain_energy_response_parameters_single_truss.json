@@ -3,9 +3,9 @@
         "problem_name"    : "Non_Linear_Truss",
         "model_part_name" : "Structure",
         "domain_size"     : 3,
-        "time_step"       : 1.0,
+        "time_step"       : 0.1,
         "start_time"      : 0.0,
-        "end_time"        : 1.49,
+        "end_time"        : 1.99,
         "parallel_type"   : "OpenMP",
         "echo_level"      : 0
     },

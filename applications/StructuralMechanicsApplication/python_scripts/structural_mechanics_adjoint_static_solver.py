@@ -107,6 +107,7 @@ class StructuralMechanicsAdjointStaticSolver(structural_mechanics_solver.Mechani
         
         print("Shape sensitivity node 1", self.main_model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
         print("Shape sensitivity node 2", self.main_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
+#        print("Shape sensitivity node 3", self.main_model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.SHAPE_SENSITIVITY))
 
 
     def _SolveSolutionStepSpecialLinearStrainEnergy(self):

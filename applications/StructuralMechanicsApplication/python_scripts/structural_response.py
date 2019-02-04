@@ -6,10 +6,6 @@ from KratosMultiphysics import *
 import structural_mechanics_analysis
 import KratosMultiphysics
 
-#importing python libraries
-import h5py
-import numpy as np
-
 import time as timer
 
 def _GetModelPart(model, solver_settings):
@@ -427,8 +423,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
         ## run the solution loop
         # TODO Mahmoud: this leads to wrong result because calculatevalue() is called twice for the last step
         # import csv
-        # with open('response_values_perturb_single_truss.csv', mode='w') as response_values:
-        #     self.writer = csv.writer(response_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # with open('displacement_curves_perturb_x2_001.csv', mode='w') as displacement_values:
+        #     self.writer = csv.writer(displacement_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         while self.primal_analysis.time < self.primal_analysis.end_time:
             self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
             self.primal_analysis.InitializeSolutionStep()
@@ -437,9 +433,8 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.FinalizeSolutionStep()
             self.primal_analysis.OutputSolutionStep()
             self.CalculateResponseIncrement()
-                
-        #         self.writer.writerow([self.primal_analysis.time, self.response_value])
-        # response_values.close()
+            #self.writer.writerow([ self.primal_analysis.time, self.primal_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X) ])
+        #displacement_values.close()
 
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 

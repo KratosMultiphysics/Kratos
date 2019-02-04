@@ -65,7 +65,7 @@
         "Parameters"    : {
             "model_part_name" : "DISPLACEMENT_BC_DIRICHLET_X_Z",
             "variable_name"   : "ADJOINT_DISPLACEMENT",
-            "constrained"     : [true,false,true],
+            "constrained"     : [false,true,true],
             "value"           : [0.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
@@ -80,8 +80,8 @@
         "Parameters"    : {
             "model_part_name" : "PointLoad3D_BC_NEUMANN",
             "variable_name"   : "POINT_LOAD",
-            "modulus"         : "1.0*t",
-            "direction"       : [0.0,1.0,0.0],
+            "modulus"         : "10.0*t",
+            "direction"       : [1.0,0.0,0.0],
             "interval"        : [0.0,"End"]
         }
     }],
@@ -131,7 +131,7 @@
         "Parameters"    : {
             "output_variables" : ["ADJOINT_DISPLACEMENT", "SHAPE_SENSITIVITY"],
             "gauss_points_output_variables" : ["CROSS_AREA_SENSITIVITY"],
-            "output_file_name" : "nonlinear_truss_test_results.json",
+            "output_file_name" : "double_truss_test_results.json",
             "model_part_name"  : "Structure",
             "time_frequency"   : -2.0
         }

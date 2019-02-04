@@ -219,6 +219,15 @@ namespace Kratos
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
+        //std::map<int, Vector> reponse_gradient_vector;
+
+        // for (auto& cond_i : mrModelPart.Conditions())
+        // {
+        //     Vector ResponseGradient;
+        //     mrResponseFunction.GetGradientVector(cond_i, ResponseGradient);
+
+        //     KRATOS_WATCH(ResponseGradient)      
+        // }
 
         int k = 0;
         for (auto& elem_i : mrModelPart.Elements())
@@ -283,7 +292,7 @@ namespace Kratos
             }
 
             mSensitivityMatrixI[elem_i.Id()] = sensitivity_matrix[k];
-        }
+        }       
         KRATOS_CATCH("");
     }
     template <typename TDataType>
