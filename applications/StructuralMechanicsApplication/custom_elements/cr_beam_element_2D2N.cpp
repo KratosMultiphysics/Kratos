@@ -199,8 +199,8 @@ void CrBeamElement2D2N::CalculateMassMatrix(MatrixType &rMassMatrix,
     const double lumped_mass = A * L * rho;
     double alpha = 0.00;
 
-    if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEF)) {
-      alpha = GetProperties()[LUMPED_MASS_ROTATION_COEF];
+    if (this->GetProperties().Has(LUMPED_MASS_ROTATION_COEFFICIENT)) {
+      alpha = GetProperties()[LUMPED_MASS_ROTATION_COEFFICIENT];
     }
     rMassMatrix(0, 0) = lumped_mass * 0.50;
     rMassMatrix(1, 1) = lumped_mass * 0.50;
