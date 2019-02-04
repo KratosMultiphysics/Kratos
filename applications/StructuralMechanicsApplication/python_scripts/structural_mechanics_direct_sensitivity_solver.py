@@ -79,12 +79,19 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
             raise Exception("invalid variable_type: " + self.direct_settings["variable_type"].GetString())
         
         # Initialize the response function
-        self.response_function = StructuralMechanicsApplication.DirectSensitivityLocalStressResponseFunction(self.main_model_part, self.direct_response_settings)
+        if (self.direct_response_settings["compute_on_gp"]["stresses"]["forces"].size() != 0) or (self.direct_response_settings["compute_on_gp"]["stresses"]["moments"].size() != 0):
+            self.local_stress_response_function = StructuralMechanicsApplication.DirectSensitivityLocalStressResponseFunction(self.main_model_part, self.direct_response_settings)
+            # Initialize the postprocess of the direct sensitivty analysis 
+            self.direct_sensitivity_postprocess_local_stress = StructuralMechanicsApplication.DirectSensitivityPostprocess(self.main_model_part, self.local_stress_response_function, self.variable, self.direct_sensitivity_settings)
         
-
+        if (self.direct_response_settings["compute_on_node"]["dofs"]["displacements"].size() != 0) or (self.direct_response_settings["compute_on_node"]["dofs"]["rotations"].size() != 0):
+            self.nodal_disp_response_function = StructuralMechanicsApplication.DirectSensitivityNodalDisplacementResponseFunction(self.main_model_part, self.direct_response_settings)
+            # Initialize the postprocess of the direct sensitivty analysis 
+            self.direct_sensitivity_postprocess_nodal_disp = StructuralMechanicsApplication.DirectSensitivityPostprocess(self.main_model_part, self.nodal_disp_response_function, self.variable, self.direct_sensitivity_settings)
+        
         # Initialize the postprocess of the direct sensitivty analysis 
-        self.direct_sensitivity_postprocess = StructuralMechanicsApplication.DirectSensitivityPostprocess(self.main_model_part, self.response_function, self.variable, self.direct_sensitivity_settings)
-        self.direct_sensitivity_postprocess.Initialize()
+        #self.direct_sensitivity_postprocess = StructuralMechanicsApplication.DirectSensitivityPostprocess(self.main_model_part, self.response_function, self.variable, self.direct_sensitivity_settings)
+        #self.direct_sensitivity_postprocess.Initialize()
 
         super(StructuralMechanicsDirectSensitivitySolver, self).Initialize()
 
@@ -102,7 +109,13 @@ class StructuralMechanicsDirectSensitivitySolver(structural_mechanics_solver.Mec
     def SolveSolutionStep(self):
         super(StructuralMechanicsDirectSensitivitySolver, self).SolveSolutionStep()
         #after adjoint solution, calculate sensitivities
-        self.direct_sensitivity_postprocess.UpdateSensitivities() # TODO call postprocess here or in FinalizeSolutionStep ?
+        if (self.direct_response_settings["compute_on_node"]["dofs"]["displacements"].size() != 0) or (self.direct_response_settings["compute_on_node"]["dofs"]["rotations"].size() != 0):
+            print("NODAL DISPLACEMENT")
+            self.direct_sensitivity_postprocess_nodal_disp.UpdateSensitivities()
+        if (self.direct_response_settings["compute_on_gp"]["stresses"]["forces"].size() != 0) or (self.direct_response_settings["compute_on_gp"]["stresses"]["moments"].size() != 0):
+            print("LOCAL STRESS") 
+            self.direct_sensitivity_postprocess_local_stress.UpdateSensitivities() 
+        # TODO call postprocess here or in FinalizeSolutionStep ?
         print("All Sensitivities updated")
 
     def _create_mechanical_solution_strategy(self):
