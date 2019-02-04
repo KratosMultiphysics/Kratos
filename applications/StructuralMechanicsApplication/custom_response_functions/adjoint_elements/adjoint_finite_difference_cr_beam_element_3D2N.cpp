@@ -14,6 +14,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "includes/checks.h"
+#include "custom_elements/cr_beam_element_3D2N.hpp"
 
 
 namespace Kratos
@@ -26,6 +27,28 @@ AdjointFiniteDifferenceCrBeamElement::AdjointFiniteDifferenceCrBeamElement(Eleme
 
 AdjointFiniteDifferenceCrBeamElement::~AdjointFiniteDifferenceCrBeamElement()
 {
+}
+
+void AdjointFiniteDifferenceCrBeamElement::Calculate(const Variable<Vector >& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    // The particular soltuion of the influence function is rotated in global direction
+    if (rVariable == ADJOINT_PARTICULAR_DISPLACEMENT)
+    {
+        static constexpr int number_of_nodes = 2;
+        static constexpr int dimension = 3;
+        static constexpr unsigned int local_size = number_of_nodes * dimension;
+        static constexpr unsigned int element_size = local_size * 2;
+
+        KRATOS_ERROR_IF(rOutput.size() != element_size) << "Size of particular solution does not fit!" << std::endl;
+
+        CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(this->pGetPrimalElement());
+        BoundedMatrix<double, element_size, element_size> transformation_matrix = p_primal_beam_element->CalculateInitialLocalCS();
+        rOutput = prod(transformation_matrix, rOutput);
+    }
+
+    KRATOS_CATCH("")
 }
 
 void AdjointFiniteDifferenceCrBeamElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,

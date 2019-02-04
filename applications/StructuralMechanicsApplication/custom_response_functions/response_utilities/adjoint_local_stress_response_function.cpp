@@ -354,11 +354,10 @@ namespace Kratos
         if(element_name == "CrLinearBeamElement3D2N")
         {
             // delifers particular solution of influence function in local coordinates
-            Vector particular_solution = this->CalculateParticularSolutionCrBeam();
+            Vector particular_solution;
+            this->CalculateParticularSolutionCrBeam(particular_solution);
             // transform particular solution into global coordinates
-            CrBeamElement3D2N::Pointer p_primal_beam_element = dynamic_pointer_cast<CrBeamElement3D2N>(p_adjoint_element->pGetPrimalElement());
-            BoundedMatrix<double, 12, 12> transformation_matrix = p_primal_beam_element->CalculateInitialLocalCS();
-            particular_solution = prod(transformation_matrix, particular_solution);
+            mpTracedElement->Calculate(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution, mrModelPart.GetProcessInfo());
 
             mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
         }
@@ -368,80 +367,123 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    Vector AdjointLocalStressResponseFunction::CalculateParticularSolutionCrBeam()
+    void AdjointLocalStressResponseFunction::CalculateParticularSolutionCrBeam(Vector& rResult)
+    {
+        KRATOS_TRY;
+
+        if(mStressTreatment == StressTreatment::Mean)
+        {
+            this->CalculateMeanParticularSolutionCrBeam(rResult);
+        }
+        else if(mStressTreatment == StressTreatment::GaussPoint)
+        {
+            this->CalculateGPParticularSolutionCrBeam(rResult);
+        }
+        else if(mStressTreatment == StressTreatment::Node)
+        {
+            this->CalculateNodeParticularSolutionCrBeam(rResult);
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionCrBeam(Vector& rResult)
     {
         KRATOS_TRY;
 
         DofsVectorType dofs_of_element;
         mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
-        Vector particular_solution = ZeroVector(dofs_of_element.size());
+        rResult = ZeroVector(dofs_of_element.size());
 
         std::string dof_label = "DEFAULT";
         this->FindCorrespondingDofLabel(dof_label);
 
-        if(mStressTreatment == StressTreatment::Mean)
+        const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+        const double prefactor = 1.0 / (1.0 + num_GP);
+
+        const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+        const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+        for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it)
         {
-            const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
-            const double prefactor = 1.0 / (1.0 + num_GP);
-
-            const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
-            const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
-
-            for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it)
-            {
-                for(IndexType i = 0; i < dofs_of_element.size(); ++i)
-                {
-                    if (dofs_of_element[i]->GetVariable().Name() == dof_label)
-                    {
-                        if (dofs_of_element[i]->Id() == id_node_1)
-                            particular_solution[i] += prefactor * (num_GP - gp_it);
-                        else if (dofs_of_element[i]->Id() == id_node_2)
-                            particular_solution[i] += -prefactor * (gp_it + 1);
-                    }
-                }
-            }
-            particular_solution /= num_GP;
-        }
-        else if(mStressTreatment == StressTreatment::GaussPoint)
-        {
-            const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
-            const double prefactor = 1.0 / (1.0 + num_GP);
-
-            const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
-            const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
-
             for(IndexType i = 0; i < dofs_of_element.size(); ++i)
             {
                 if (dofs_of_element[i]->GetVariable().Name() == dof_label)
                 {
                     if (dofs_of_element[i]->Id() == id_node_1)
-                        particular_solution[i] = prefactor * (num_GP + 1 - mIdOfLocation);
+                        rResult[i] += prefactor * (num_GP - gp_it);
                     else if (dofs_of_element[i]->Id() == id_node_2)
-                        particular_solution[i] = -prefactor * mIdOfLocation;
+                        rResult[i] += -prefactor * (gp_it + 1);
                 }
             }
         }
-        else if(mStressTreatment == StressTreatment::Node)
-        {
-            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
-            {
-                if (dofs_of_element[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
-                    dofs_of_element[i]->GetVariable().Name() == dof_label)
-                {
-                    if (mIdOfLocation == 1)
-                        particular_solution[i] = 1.0;
-                    else if (mIdOfLocation == 2)
-                        particular_solution[i] = -1.0;
-                }
-            }
-        }
-        return particular_solution;
+        rResult /= num_GP;
 
         KRATOS_CATCH("");
     }
 
+    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionCrBeam(Vector& rResult)
+    {
+        KRATOS_TRY;
+
+        DofsVectorType dofs_of_element;
+        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        rResult = ZeroVector(dofs_of_element.size());
+
+        std::string dof_label = "DEFAULT";
+        this->FindCorrespondingDofLabel(dof_label);
+
+        const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+        const double prefactor = 1.0 / (1.0 + num_GP);
+
+        const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+        const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+        for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+        {
+            if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+            {
+                if (dofs_of_element[i]->Id() == id_node_1)
+                    rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
+                else if (dofs_of_element[i]->Id() == id_node_2)
+                    rResult[i] = -prefactor * mIdOfLocation;
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionCrBeam(Vector& rResult)
+    {
+        KRATOS_TRY;
+
+        DofsVectorType dofs_of_element;
+        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        rResult = ZeroVector(dofs_of_element.size());
+
+        std::string dof_label = "DEFAULT";
+        this->FindCorrespondingDofLabel(dof_label);
+
+        for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+        {
+            if (dofs_of_element[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
+                dofs_of_element[i]->GetVariable().Name() == dof_label)
+            {
+                if (mIdOfLocation == 1)
+                    rResult[i] = 1.0;
+                else if (mIdOfLocation == 2)
+                    rResult[i] = -1.0;
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+
     void AdjointLocalStressResponseFunction::FindCorrespondingDofLabel(std::string& rDofLabel)
     {
+        KRATOS_TRY;
+
         switch (mTracedStressType)
         {
             case TracedStressType::MX:
@@ -477,6 +519,8 @@ namespace Kratos
             default:
                 KRATOS_ERROR << "Invalid stress type! Stress type not supported for particular solution!" << std::endl;
         }
+
+        KRATOS_CATCH("");
     }
 
 } // namespace Kratos.

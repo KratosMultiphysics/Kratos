@@ -205,7 +205,13 @@ private:
 
     void CalculateParticularSolution();
 
-    Vector CalculateParticularSolutionCrBeam();
+    void CalculateParticularSolutionCrBeam(Vector& rResult);
+
+    void CalculateMeanParticularSolutionCrBeam(Vector& rResult);
+
+    void CalculateGPParticularSolutionCrBeam(Vector& rResult);
+
+    void CalculateNodeParticularSolutionCrBeam(Vector& rResult);
 
     void FindCorrespondingDofLabel(std::string& rDofLabel);
 

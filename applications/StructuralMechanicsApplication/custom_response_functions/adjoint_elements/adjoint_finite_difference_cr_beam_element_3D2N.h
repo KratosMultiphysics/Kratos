@@ -31,9 +31,13 @@ public:
 
     ~AdjointFiniteDifferenceCrBeamElement() override;
 
+    void Calculate(const Variable<Vector >& rVariable,
+               Vector& rOutput,
+               const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo) override;
+                 std::vector< array_1d<double, 3 > >& rOutput,
+                const ProcessInfo& rCurrentProcessInfo) override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) override;
 
