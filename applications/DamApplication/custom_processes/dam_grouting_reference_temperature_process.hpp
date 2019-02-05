@@ -134,7 +134,7 @@ public:
                 for(int i = 0; i<nnodes; i++)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+                    double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
                     it->FastGetSolutionStepValue(var) = current_temp;
 
                 }

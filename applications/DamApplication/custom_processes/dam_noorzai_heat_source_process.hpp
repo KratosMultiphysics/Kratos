@@ -90,8 +90,8 @@ class DamNoorzaiHeatFluxProcess : public Process
         const int nnodes = mrModelPart.GetMesh(0).Nodes().size();
         Variable<double> var = KratosComponents<Variable<double>>::Get(mVariableName);
 
-        const double time = mrModelPart.GetProcessInfo()[TIME];
-        const double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
+        double time = mrModelPart.GetProcessInfo()[TIME];
+        double delta_time = mrModelPart.GetProcessInfo()[DELTA_TIME];
 
         double value = mDensity * mSpecificHeat * mAlpha * mTMax * (exp(-mAlpha * time + 0.5 * delta_time));
 
