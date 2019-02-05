@@ -524,10 +524,16 @@ protected:
     {
         Timer::Start("Build RHS");
 
+        // Resetting to zero the vector of reactions
+        if(BaseType::mCalculateReactionsFlag) {
+            TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
+        }
+
+        // Builing without BC
         TSystemMatrixType auxiliar_A;
         if (mComputeConstantContribution) {
             ConstructMatrixStructure(pScheme, auxiliar_A, rModelPart);
-            BuildWithConstraints(pScheme, rModelPart, auxiliar_A, rb);
+            BuildWithConstraints(pScheme, rModelPart, auxiliar_A, rb, false);
         } else {
             BuildRHSNoDirichlet(pScheme,rModelPart,rb);
         }
@@ -563,6 +569,18 @@ protected:
             TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
             mpOldAMatrix = NULL;
         }
+
+        // Adding contribution to reactions
+//         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+
+//         if (BaseType::mCalculateReactionsFlag) {
+//             for (auto& r_dof : BaseType::mDofSet) {
+//                 if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
+//                     const IndexType equation_id = r_dof.EquationId();
+//                     r_dof.GetSolutionStepReactionValue() = rb[equation_id];
+//                 }
+//             }
+//         }
 
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
@@ -1062,19 +1080,23 @@ protected:
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
      * @param rb The RHS vector
-     * @param rCompleteA The LHS without MPC
+     * @param UseBaseBuild If the abse Build function will be used
      */
     void BuildWithConstraints(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         TSystemMatrixType& rA,
-        TSystemVectorType& rb
+        TSystemVectorType& rb,
+        const bool UseBaseBuild = true
         )
     {
         KRATOS_TRY
 
         // We build the original system
-        BaseType::Build(pScheme, rModelPart, rA, rb);
+        if (UseBaseBuild)
+            BaseType::Build(pScheme, rModelPart, rA, rb);
+        else
+            BuildWithoutConstraints(pScheme, rModelPart, rA, rb);
 
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
@@ -1083,20 +1105,9 @@ protected:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize the constant vector
-        double aux_constant_value = 0.0;
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
         const IndexType step = r_current_process_info[STEP];
         const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
-
-        if (add_constant_vector) {
-            if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
-                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
-                mpConstantVector.swap(pNewConstantVector);
-            }
-            if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
-                mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-            }
-        }
 
         // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -1224,8 +1235,11 @@ protected:
     }
 
     /**
-     * @brief This function is exactly same as the Build() function in base class except that the function
-     * @details
+     * @brief Function to perform the build of the RHS.
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS of the system
      */
     void BuildRHSNoDirichlet(
         typename TSchemeType::Pointer pScheme,
@@ -1246,22 +1260,12 @@ protected:
         const IndexType step = r_current_process_info[STEP];
         const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
 
-        if (add_constant_vector) {
-            if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
-                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
-                mpConstantVector.swap(pNewConstantVector);
-            }
-            if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
-                mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-            }
-        }
-
         // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // Filling constant vector
-        if (add_constant_vector) {
+        if (add_constant_vector && mCleared) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 rConstantVector[i] = 0.0;
@@ -1352,9 +1356,9 @@ protected:
         if (add_constant_vector && mComputeConstantContribution) {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
             ConstructMatrixStructure(pScheme, A, rModelPart);
-            BaseType::Build(pScheme, rModelPart, A, rb);
+            BuildWithoutConstraints(pScheme, rModelPart, A, rb);
         } else {
-            BaseType::BuildRHS(pScheme, rModelPart, rb);
+            BuildRHSNoDirichletWithoutConstraints(pScheme, rModelPart, rb);
         }
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
@@ -1396,6 +1400,13 @@ protected:
     {
         // We resize the basic system
         BaseType::ResizeAndInitializeVectors(pScheme, pA, pDx, pb, rModelPart);
+
+        // If needed resize the vector for the calculation of reactions
+        if (BaseType::mCalculateReactionsFlag) {
+            const SizeType reactions_vector_size = BaseType::mDofSet.size() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
+            if (BaseType::mpReactionsVector->size() != reactions_vector_size)
+                BaseType::mpReactionsVector->resize(reactions_vector_size, false);
+        }
 
         // Now we resize the relation matrix used on the MPC solution
         if(rModelPart.MasterSlaveConstraints().size() > 0) {
@@ -1459,13 +1470,15 @@ protected:
         BuildRHS(pScheme, rModelPart, rb);
 
         // Adding contribution to reactions
-//         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
-        if (BaseType::mCalculateReactionsFlag) {
-            for (auto& r_dof : BaseType::mDofSet) {
-                if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
-                    const IndexType equation_id = r_dof.EquationId();
-                    r_dof.GetSolutionStepReactionValue() = rb[equation_id];
-                }
+        TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+
+        // Updating variables
+        IndexType i;
+        for (auto& r_dof : BaseType::mDofSet) {
+            i = r_dof.EquationId();
+            if ((r_dof.IsFixed()) || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
+                i -= mDoFToSolveSystemSize - mDoFMasterFixedSet.size();
+                r_dof.GetSolutionStepReactionValue() = -r_reactions_vector[i];
             }
         }
     }
@@ -1770,6 +1783,237 @@ private:
         }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
+    }
+
+    /**
+     * @brief Function to perform the build the system without constraints
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     */
+    void BuildWithoutConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb
+        )
+    {
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Getting the array of elements
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
+
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditons_array = rModelPart.Conditions();
+
+        // Contributions to the system
+        LocalSystemMatrixType lhs_contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_id;
+
+        // Assemble all elements and conditions
+        #pragma omp parallel firstprivate( lhs_contribution, rhs_contribution, equation_id)
+        {
+            // Elements
+            const auto it_elem_begin = r_elements_array.begin();
+            const int nelements = static_cast<int>(r_elements_array.size());
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i<nelements; ++i) {
+                auto it_elem = it_elem_begin + i;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
+
+                if (element_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*(it_elem.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_elem.base()));
+                }
+            }
+
+            // Conditions
+            const auto it_cond_begin = r_conditons_array.begin();
+            const int nconditions = static_cast<int>(r_conditons_array.size());
+            #pragma omp  for schedule(guided, 512)
+            for (int i = 0; i<nconditions; ++i) {
+                auto it_cond = it_cond_begin + i;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Condition_CalculateSystemContributions(*(it_cond.base()), lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleWithoutConstraints(rA, rb, lhs_contribution, rhs_contribution, equation_id);
+
+                    // Clean local elemental memory
+                    pScheme->CleanMemory(*(it_cond.base()));
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief Function to perform the build of the RHS without constraints
+     * @details The vector could be sized as the total number of dofs or as the number of unrestrained ones
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rb The RHS of the system
+     */
+    void BuildRHSNoDirichletWithoutConstraints(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
+    {
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Getting the array of elements
+        ElementsArrayType& r_elements_array = rModelPart.Elements();
+
+        // Getting the array of the conditions
+        ConditionsArrayType& r_conditons_array = rModelPart.Conditions();
+
+        // Contributions to the system
+        LocalSystemVectorType rhs_contribution = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType equation_id;
+
+        // Assemble all elements and conditions
+        #pragma omp parallel firstprivate( rhs_contribution, equation_id)
+        {
+            // Elements
+            const auto it_elem_begin = r_elements_array.begin();
+            const int nelements = static_cast<int>(r_elements_array.size());
+            #pragma omp for schedule(guided, 512) nowait
+            for (int i = 0; i<nelements; ++i) {
+                auto it_elem = it_elem_begin + i;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool element_is_active = true;
+                if (it_elem->IsDefined(ACTIVE))
+                    element_is_active = it_elem->Is(ACTIVE);
+
+                if (element_is_active) {
+                    // Calculate elemental Right Hand Side Contribution
+                    pScheme->Calculate_RHS_Contribution(*(it_elem.base()), rhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
+                }
+            }
+
+            // Conditions
+            const auto it_cond_begin = r_conditons_array.begin();
+            const int nconditions = static_cast<int>(r_conditons_array.size());
+            #pragma omp  for schedule(guided, 512)
+            for (int i = 0; i<nconditions; ++i) {
+                auto it_cond = it_cond_begin + i;
+                // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                bool condition_is_active = true;
+                if (it_cond->IsDefined(ACTIVE))
+                    condition_is_active = it_cond->Is(ACTIVE);
+
+                if (condition_is_active) {
+                    // Calculate elemental contribution
+                    pScheme->Condition_Calculate_RHS_Contribution(*(it_cond.base()), rhs_contribution, equation_id, r_current_process_info);
+
+                    // Assemble the elemental contribution
+                    AssembleRHSWithoutConstraints(rb, rhs_contribution, equation_id);
+                }
+            }
+        }
+    }
+
+    /**
+    * @brief This function does the assembling of the LHS and RHS
+    * @note The main difference respect the block builder and solver is the fact that the fixed DoFs are not considered on the assembling
+    */
+    void AssembleWithoutConstraints(
+        TSystemMatrixType& rA,
+        TSystemVectorType& rb,
+        const LocalSystemMatrixType& rLHSContribution,
+        const LocalSystemVectorType& rRHSContribution,
+        const Element::EquationIdVectorType& rEquationId
+        )
+    {
+        const SizeType local_size = rLHSContribution.size1();
+
+        // Assemble RHS
+        AssembleRHSWithoutConstraints(rb, rRHSContribution, rEquationId);
+
+        // Assemble LHS
+        for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType i_global = rEquationId[i_local];
+
+            if (i_global < BaseType::mEquationSystemSize) {
+                BaseType::AssembleRowContributionFreeDofs(rA, rLHSContribution, i_global, i_local, rEquationId);
+            }
+        }
+    }
+
+
+    /**
+     * @brief Assembling local contribution of nodes and elements in the RHS
+     * @param rb The RHS vector
+     */
+    void AssembleRHSWithoutConstraints(
+        TSystemVectorType& rb,
+        const LocalSystemVectorType& rRHSContribution,
+        const Element::EquationIdVectorType& rEquationId
+        )
+    {
+        const SizeType local_size = rRHSContribution.size();
+
+        if (!BaseType::mCalculateReactionsFlag) {
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
+
+                if (i_global < BaseType::mEquationSystemSize) { // free dof
+                    // ASSEMBLING THE SYSTEM VECTOR
+                    double& r_b_value = rb[i_global];
+                    const double rhs_value = rRHSContribution[i_local];
+
+                    #pragma omp atomic
+                    r_b_value += rhs_value;
+                }
+            }
+        } else {
+            TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+            for (IndexType i_local = 0; i_local < local_size; ++i_local) {
+                const IndexType i_global = rEquationId[i_local];
+                auto it_dof = BaseType::mDofSet.begin() + i_global;
+
+                if (!(it_dof->IsFixed()) && mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end()) { // Free dof not in the MPC
+                    // ASSEMBLING THE SYSTEM VECTOR
+                    double& r_b_value = rb[i_global];
+                    const double& rhs_value = rRHSContribution[i_local];
+
+                    #pragma omp atomic
+                    r_b_value += rhs_value;
+                } else { // Fixed or MPC dof
+                    double& r_b_value = r_reactions_vector[i_global - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()];
+                    const double rhs_value = rRHSContribution[i_local];
+
+                    #pragma omp atomic
+                    r_b_value += rhs_value;
+                }
+            }
+        }
     }
 
     /**
