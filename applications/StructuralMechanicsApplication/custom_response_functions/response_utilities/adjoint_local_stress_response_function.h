@@ -205,15 +205,13 @@ private:
 
     void CalculateParticularSolution();
 
-    void CalculateParticularSolutionCrBeam(Vector& rResult);
+    void CalculateParticularSolutionLinearElement2N(Vector& rResult);
 
-    void CalculateMeanParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
-    void CalculateGPParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
-    void CalculateNodeParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
-
-    void CalculateParticularSolutionLinearTruss(Vector& rResult);
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
     void FindCorrespondingDofLabel(std::string& rDofLabel);
 
