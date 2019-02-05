@@ -145,12 +145,99 @@ namespace Kratos
 			const Properties& rMaterialProperties,
 			const GeometryType& rElementGeometry,
 			const Vector& rShapeFunctionsValues);
+		
+		/**
+		 * Computes the material response in terms of 1st Piola-Kirchhoff stresses and constitutive tensor
+		 * @see Parameters
+		 */
+		void CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * Computes the material response in terms of 2nd Piola-Kirchhoff stresses and constitutive tensor
+		 * @see Parameters
+		 */
+		void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * Computes the material response in terms of Kirchhoff stresses and constitutive tensor
+		 * @see Parameters
+		 */
+		void CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
 
 		/**
 		 * Computes the material response in terms of Cauchy stresses and constitutive tensor
 		 * @see Parameters
 		 */
 		void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * to be called at the end of each solution step
+		 * (e.g. from Element::FinalizeSolutionStep)
+		 * @param rMaterialProperties the Properties instance of the current element
+		 * @param rElementGeometry the geometry of the current element
+		 * @param rShapeFunctionsValues the shape functions values in the current integration point
+		 * @param the current ProcessInfo instance
+		 */
+		//void FinalizeSolutionStep(
+		//    const Properties& rMaterialProperties,
+		//    const GeometryType& rElementGeometry,
+		//    const Vector& rShapeFunctionsValues,
+		//    const ProcessInfo& rCurrentProcessInfo) override;
+
+		/**
+		 * Finalize the material response in terms of 1st Piola-Kirchhoff stresses
+		 * @see Parameters
+		 */
+		void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * Finalize the material response in terms of 2nd Piola-Kirchhoff stresses
+		 * @see Parameters
+		 */
+		void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * Finalize the material response in terms of Kirchhoff stresses
+		 * @see Parameters
+		 */
+		void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * Finalize the material response in terms of Cauchy stresses
+		 * @see Parameters
+		 */
+		void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues) override;
+
+		/**
+		 * @brief Calculates the value of a specified variable (Matrix)
+		 * @param rParameterValues the needed parameters for the CL calculation
+		 * @param rThisVariable the variable to be returned
+		 * @param rValue a reference to the returned value
+		 * @param rValue output: the value of the specified variable
+		 */
+		//Matrix& CalculateValue(
+		//    ConstitutiveLaw::Parameters& rParameterValues,
+		//    const Variable<Matrix>& rThisVariable,
+		//    Matrix& rValue
+		//    ) override;
+
+		///@}
+		///@name Access
+		///@{
+
+		///@}
+		///@name Inquiry
+		///@{
+
+		///@}
+		///@name Input and output
+		///@{
+
+		///@}
+		///@name Friends
+		///@{
+
+		///@}
 
 
 	protected:

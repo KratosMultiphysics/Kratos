@@ -66,6 +66,8 @@ namespace Kratos
 		const GeometryType& rElementGeometry,
 		const Vector& rShapeFunctionsValues)
 	{
+		const double blabla=1;         // (ML)
+    	KRATOS_WATCH(blabla)        // (ML)
 		m_f_01cc = rMaterialProperties[UNIAXIAL_STRESS_COMPRESSION];
 		m_f_ct = rMaterialProperties[UNIAXIAL_STRESS_TENSION];
 		m_f_02cc = rMaterialProperties[BIAXIAL_STRESS_COMPRESSION];
@@ -160,6 +162,29 @@ namespace Kratos
 		*/
 	}
 
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+	{
+		this->CalculateMaterialResponseCauchy(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+	{
+		this->CalculateMaterialResponseCauchy(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+	{
+		this->CalculateMaterialResponseCauchy(rValues);
+	}
+	
+	/***********************************************************************************/
+	/***********************************************************************************/
 	void TCPlasticDamage3DLaw::CalculateMaterialResponseCauchy(Parameters& rValues)
 	{
 		const ProcessInfo&  pinfo = rValues.GetProcessInfo();
@@ -173,6 +198,34 @@ namespace Kratos
 		this->CalculateMaterialResponseInternal(rStrainVector, rStressVector, rConstitutiveLaw);
 	}
 
+/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)
+	{
+		BaseType::FinalizeMaterialResponsePK1(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
+	{
+		BaseType::FinalizeMaterialResponsePK2(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters& rValues)
+	{
+		BaseType::FinalizeMaterialResponseKirchhoff(rValues);
+	}
+
+	/***********************************************************************************/
+	/***********************************************************************************/
+	void TCPlasticDamage3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+	{
+		BaseType::FinalizeMaterialResponseCauchy(rValues);
+	}
+
 	void TCPlasticDamage3DLaw::CalculateMaterialResponseInternal(
 		const Vector& rStrainVector,
 		Vector& rStressVector,
@@ -183,7 +236,7 @@ namespace Kratos
 			rStressVector.resize(6, false);
 		}
 		const double tolerance = (1.0e-14)* m_f_01cc;		//move to function "DamageCriterion" if only used once (ML)
-
+		KRATOS_WATCH(tolerance)
 		// 1.step: elastic stress tensor
 		noalias(rStressVector) = prod(trans(m_D0), (rStrainVector - m_plastic_strain));
 
@@ -593,4 +646,5 @@ namespace Kratos
 	};
 	
 	//add formula such as "commitState" in Code from Padua (ML)
-}
+
+} // namespace Kratos
