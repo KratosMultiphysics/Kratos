@@ -421,11 +421,11 @@ class MechanicalSolver(PythonSolver):
                 from KratosMultiphysics import ExternalSolversApplication
 
             linear_solvers_by_speed = [
-                "PardisoLUSolver", # EigenSolversApplication (if compiled with Intel-support)
-                "SparseLUSolver",  # EigenSolversApplication
-                "PastixSolver",    # ExternalSolversApplication (if Pastix is included in compilation)
-                "SuperLUSolver",   # ExternalSolversApplication
-                "SkylineLUFactorizationSolver" # in Core, always available, but slow
+                "pardiso_lu", # EigenSolversApplication (if compiled with Intel-support)
+                "sparse_lu",  # EigenSolversApplication
+                "pastix",     # ExternalSolversApplication (if Pastix is included in compilation)
+                "super_lu",   # ExternalSolversApplication
+                "skyline_lu_factorization" # in Core, always available, but slow
             ]
 
             for solver_name in linear_solvers_by_speed:

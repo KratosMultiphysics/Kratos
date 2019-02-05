@@ -31,7 +31,7 @@ class LaplacianSolver:
                     "input_filename": "unknown_name"
             },
             "linear_solver_settings": {
-                    "solver_type": "AMGCL",
+                    "solver_type": "amgcl",
                     "max_iteration": 400,
                     "gmres_krylov_space_dimension": 100,
                     "smoother_type":"ilu0",
