@@ -367,7 +367,7 @@ public:
         KRATOS_CHECK_VARIABLE_KEY(ACCELERATION)
 
         // Check that variables are correctly allocated
-        for(auto& rnode : rModelPart.Nodes()) {
+        for (const auto& rnode : rModelPart.Nodes()) {
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
