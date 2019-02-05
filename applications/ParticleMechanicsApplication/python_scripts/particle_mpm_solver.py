@@ -65,7 +65,7 @@ class ParticleMPMSolver(PythonSolver):
                 "searching_tolerance"            : 1.0E-5
             },
             "linear_solver_settings"             : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"damped_jacobi",
                 "krylov_type": "cg",
                 "coarsening_type": "aggregation",
