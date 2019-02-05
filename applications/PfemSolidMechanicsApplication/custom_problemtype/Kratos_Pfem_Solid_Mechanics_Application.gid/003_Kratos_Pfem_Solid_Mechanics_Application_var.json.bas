@@ -145,11 +145,11 @@
                    "implex"                      : *tcl(string tolower *GenData(Implex)),
                    "compute_reactions"           : *tcl(string tolower *GenData(Write_Reactions)),
 	           "compute_contact_forces"      : *tcl(string tolower *GenData(Write_Contact_Forces)),
+                   "reform_dofs_at_each_step"    : true,
                    "max_iteration"               : *GenData(Max_Iter,INT)
               },
               "convergence_criterion_settings":{
                    "convergence_criterion"       : "*GenData(Convergence_Criteria)",
-                   "reform_dofs_at_each_step"    : true,
                    "separate_dofs"    : false,
                    "variable_relative_tolerance" : *GenData(Convergence_Tolerance),
                    "variable_absolute_tolerance" : *GenData(Absolute_Tolerance),
@@ -991,6 +991,7 @@
 				      "NONLOCAL_PLASTIC_DEV_DEF",
 				      "PLASTIC_VOL_DEF_ABS",
 				      "NONLOCAL_PLASTIC_VOL_DEF_ABS",
+					"TOTAL_CAUCHY_STRESS",
                                       "PS",
                                       "PM",
                                       "PT"

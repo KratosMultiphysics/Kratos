@@ -159,6 +159,12 @@ class Solution(object):
 
         clock_time = self._start_time_measuring()
 
+        ## do not merge. But now I know the reason why I need it
+        # (if it is not here it calls some processes but the constitutive law has not been set)
+        # so the vector of constitutive laws points to a null
+        # but I need the constitutive law
+        self.solver.InitializeSolutionStep()
+
         # Predict time step
         self.PredictTimeStep()
 
