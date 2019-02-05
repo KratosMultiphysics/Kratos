@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_dirichlet_condition.h"
-#include "includes/variables.h"
+#include "particle_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -83,6 +83,17 @@ public:
     ///@name Operators
     ///@{
 
+    /**
+     * Called at the beginning of each solution step
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Operations

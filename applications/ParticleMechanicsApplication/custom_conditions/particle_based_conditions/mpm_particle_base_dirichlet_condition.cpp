@@ -22,12 +22,7 @@ namespace Kratos
 {
 void MPMParticleBaseDirichletCondition::Initialize()
 {
-    KRATOS_TRY
-
-    // Initialize parameters
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    KRATOS_CATCH( "" )
+    // TODO: Add something if necessary
 }
 
 //************************************************************************************

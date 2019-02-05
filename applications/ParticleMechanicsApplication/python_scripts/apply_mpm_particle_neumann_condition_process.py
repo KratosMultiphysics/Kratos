@@ -62,7 +62,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
 
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
-                condition.Set(KratosMultiphysics.MODIFIED, self.normal_following_load)
+                condition.Set(KratosMultiphysics.MARKER, self.normal_following_load)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(self.variable, self.vector)

@@ -21,6 +21,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
                 "direction"                 : [0.0, 0.0, 0.0],
+                "option"                    : "",
                 "local_axes"                : {}
             }  """ )
 
@@ -30,6 +31,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.imposition_type = settings["imposition_type"].GetString()
         self.is_neumann_boundary = False
+        self.option = settings["option"].GetString()
 
         # set type of boundary
         if (self.imposition_type == "penalty" or self.imposition_type == "Penalty"):
@@ -68,8 +70,11 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
         self.vector_direction = settings["direction"].GetVector()
         self.vector = self.modulus * self.vector_direction
 
-        # Compute the normal on the nodes of interest -
+        # Compute the normal on the nodes of interest
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        self.modified_normal = False
+        if self.option == "flip_normal":
+            self.modified_normal = True
 
         # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
         if self.particles_per_condition >= 0:
@@ -79,6 +84,7 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.Set(KratosMultiphysics.SLIP, self.is_slip_boundary)
                 condition.Set(KratosMultiphysics.CONTACT, self.is_contact_boundary)
+                condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(KratosParticle.PENALTY_FACTOR, self.penalty_factor)
