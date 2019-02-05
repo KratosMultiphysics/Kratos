@@ -36,6 +36,12 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         self.work_folder = "TimeAveragedNavierStokesTest/back_step"
         self.settings = "back_step_flow_100.json"
         self.ExcecuteFlowTest()
+
+
+    def testBackStepFlow2DVTK(self):
+        self.work_folder = "TimeAveragedNavierStokesTest/back_step"
+        self.settings = "back_step_flow_100_vtk.json"
+        self.ExcecuteFlowTest()
         
 
     def testPipeFlow2D(self):
@@ -58,7 +64,8 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
 
     def setUp(self):
         self.check_tolerance = 1e-6
-        self.print_output = True
+        self.print_gid_output = True
+        self.print_vtk_output = True
         self.print_reference_values = False
 
 
@@ -185,8 +192,15 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         for process in self.list_of_processes:
             process.ExecuteInitialize()
 
+        ## Set VTK output
+        if (self.print_vtk_output):
+            self.vtk_output = self.setUpVTKOutput()
+            self.vtk_output.ExecuteInitialize()
+            self.vtk_output.ExecuteBeforeSolutionLoop()
+            print("Print vtk output process intialized")
+
         ## Set results file Configuration
-        if (self.print_output):
+        if (self.print_gid_output):
             self.gid_output = self.setUpGiDOutput()
             self.gid_output.ExecuteInitialize()
             self.gid_output.ExecuteBeforeSolutionLoop()
@@ -212,6 +226,7 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
                 process.ExecuteInitializeSolutionStep()
 
             self.gid_output.ExecuteInitializeSolutionStep()
+            self.vtk_output.ExecuteInitializeSolutionStep()
 
             self.solver.InitializeSolutionStep()
             self.solver.Predict()
@@ -221,9 +236,13 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
             for process in self.list_of_processes:
                 process.ExecuteFinalizeSolutionStep()
 
-            if (self.print_output):
+            if (self.print_gid_output):
                 if self.gid_output.IsOutputStep():
                     self.gid_output.PrintOutput()
+            
+            if (self.print_vtk_output):
+                if self.vtk_output.IsOutputStep():
+                    self.vtk_output.PrintOutput()
             
             time = self.solver.AdvanceInTime(time)
             step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
@@ -231,8 +250,12 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         for process in self.list_of_processes:
             process.ExecuteFinalize()
 
-        if (self.print_output):
+        if (self.print_gid_output):
             self.gid_output.ExecuteFinalize()
+        
+        if (self.print_vtk_output):
+            self.vtk_output.ExecuteFinalize()
+
         print("Solver takes in total: " + str(step) + " steps with " + \
             self.ProjectParameters["solver_settings"]["linear_solver_settings"]["solver_type"].GetString())
         
@@ -249,11 +272,18 @@ class TimeAveragedNavierStokesTest(UnitTest.TestCase):
         gid_output = OutputProcess( self.main_model_part,
                                 self.ProjectParameters["problem_data"]["problem_name"].GetString() ,
                                 self.ProjectParameters["output_configuration"])
-
         return gid_output
+
+
+    def setUpVTKOutput(self):
+        from vtk_output_process import VtkOutputProcess
+        vtk_output = VtkOutputProcess( self.model,
+                                self.ProjectParameters["output_processes"]["vtk_output"]["Parameters"])
+        return vtk_output
 
 if __name__ == '__main__':
     # TimeAveragedNavierStokesTest().testCylinderFlow2DWater()
     # TimeAveragedNavierStokesTest().testCylinderFlow2DAir()
-    TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    # TimeAveragedNavierStokesTest().testBackStepFlow2D()
+    TimeAveragedNavierStokesTest().testBackStepFlow2DVTK()
     # TimeAveragedNavierStokesTest().testPipeFlow2D()
