@@ -48,7 +48,7 @@ namespace Kratos
 
     void AdjointLocalStressResponseFunction::FinalizeSolutionStep()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
         if(mAddParticularSolution)
             this->CalculateParticularSolution();
@@ -372,32 +372,35 @@ namespace Kratos
     {
         KRATOS_TRY;
 
+        DofsVectorType dofs_of_element;
+        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        rResult = ZeroVector(dofs_of_element.size());
+
+        std::string dof_label;
+        this->FindCorrespondingDofLabel(dof_label);
+
         if(mStressTreatment == StressTreatment::Mean)
         {
-            this->CalculateMeanParticularSolutionCrBeam(rResult);
+            this->CalculateMeanParticularSolutionCrBeam(rResult, dofs_of_element, dof_label);
         }
         else if(mStressTreatment == StressTreatment::GaussPoint)
         {
-            this->CalculateGPParticularSolutionCrBeam(rResult);
+            this->CalculateGPParticularSolutionCrBeam(rResult, dofs_of_element, dof_label);
         }
         else if(mStressTreatment == StressTreatment::Node)
         {
-            this->CalculateNodeParticularSolutionCrBeam(rResult);
+            this->CalculateNodeParticularSolutionCrBeam(rResult, dofs_of_element, dof_label);
         }
 
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionCrBeam(Vector& rResult)
+    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
     {
         KRATOS_TRY;
 
-        DofsVectorType dofs_of_element;
-        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
-        rResult = ZeroVector(dofs_of_element.size());
-
-        std::string dof_label = "DEFAULT";
-        this->FindCorrespondingDofLabel(dof_label);
+        if(rResult.size() != rElementalDofList.size())
+            rResult.resize(rElementalDofList.size());
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
         const double prefactor = 1.0 / (1.0 + num_GP);
@@ -407,13 +410,13 @@ namespace Kratos
 
         for(IndexType gp_it = 0; gp_it < num_GP; ++gp_it)
         {
-            for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+            for(IndexType i = 0; i < rElementalDofList.size(); ++i)
             {
-                if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+                if (rElementalDofList[i]->GetVariable().Name() == rDofLabel)
                 {
-                    if (dofs_of_element[i]->Id() == id_node_1)
+                    if (rElementalDofList[i]->Id() == id_node_1)
                         rResult[i] += prefactor * (num_GP - gp_it);
-                    else if (dofs_of_element[i]->Id() == id_node_2)
+                    else if (rElementalDofList[i]->Id() == id_node_2)
                         rResult[i] += -prefactor * (gp_it + 1);
                 }
             }
@@ -423,16 +426,12 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionCrBeam(Vector& rResult)
+    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
     {
         KRATOS_TRY;
 
-        DofsVectorType dofs_of_element;
-        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
-        rResult = ZeroVector(dofs_of_element.size());
-
-        std::string dof_label = "DEFAULT";
-        this->FindCorrespondingDofLabel(dof_label);
+        if(rResult.size() != rElementalDofList.size())
+            rResult.resize(rElementalDofList.size());
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
         const double prefactor = 1.0 / (1.0 + num_GP);
@@ -440,13 +439,13 @@ namespace Kratos
         const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
         const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
 
-        for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i)
         {
-            if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+            if (rElementalDofList[i]->GetVariable().Name() == rDofLabel)
             {
-                if (dofs_of_element[i]->Id() == id_node_1)
+                if (rElementalDofList[i]->Id() == id_node_1)
                     rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
-                else if (dofs_of_element[i]->Id() == id_node_2)
+                else if (rElementalDofList[i]->Id() == id_node_2)
                     rResult[i] = -prefactor * mIdOfLocation;
             }
         }
@@ -454,21 +453,17 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionCrBeam(Vector& rResult)
+    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
     {
         KRATOS_TRY;
 
-        DofsVectorType dofs_of_element;
-        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
-        rResult = ZeroVector(dofs_of_element.size());
+        if(rResult.size() != rElementalDofList.size())
+            rResult.resize(rElementalDofList.size());
 
-        std::string dof_label = "DEFAULT";
-        this->FindCorrespondingDofLabel(dof_label);
-
-        for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+        for(IndexType i = 0; i < rElementalDofList.size(); ++i)
         {
-            if (dofs_of_element[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
-                dofs_of_element[i]->GetVariable().Name() == dof_label)
+            if (rElementalDofList[i]->Id() == mpTracedElement->GetGeometry()[mIdOfLocation-1].Id() &&
+                rElementalDofList[i]->GetVariable().Name() == rDofLabel)
             {
                 if (mIdOfLocation == 1)
                     rResult[i] = 1.0;
@@ -488,7 +483,7 @@ namespace Kratos
         mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
         rResult = ZeroVector(dofs_of_element.size());
 
-        std::string dof_label = "DEFAULT";
+        std::string dof_label;
         this->FindCorrespondingDofLabel(dof_label);
 
         const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());

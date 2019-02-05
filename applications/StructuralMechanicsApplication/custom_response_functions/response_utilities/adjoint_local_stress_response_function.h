@@ -207,11 +207,11 @@ private:
 
     void CalculateParticularSolutionCrBeam(Vector& rResult);
 
-    void CalculateMeanParticularSolutionCrBeam(Vector& rResult);
+    void CalculateMeanParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
-    void CalculateGPParticularSolutionCrBeam(Vector& rResult);
+    void CalculateGPParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
-    void CalculateNodeParticularSolutionCrBeam(Vector& rResult);
+    void CalculateNodeParticularSolutionCrBeam(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
 
     void CalculateParticularSolutionLinearTruss(Vector& rResult);
 
