@@ -7,6 +7,7 @@
 //  License:          BSD License
 //  Main authors:  Josep Maria Carbonell
 //                 Vicente Mataix Ferrandiz
+//                 Andreas Winterstein (refactoring)
 //
 
 #if !defined(KRATOS_RESIDUAL_BASED_BOSSAK_DISPLACEMENT_SCHEME )
@@ -48,6 +49,7 @@ namespace Kratos
  * Numerical Methods in Engineering; 1980"
  * @author Josep Maria Carbonell
  * @author Vicente Mataix Ferrandiz
+ * @author Andreas Winterstein (refactoring)
  */
 template<class TSparseSpace,  class TDenseSpace >
 class ResidualBasedBossakDisplacementScheme
@@ -110,7 +112,7 @@ public:
      * @brief Constructor.
      * @detail The bossak method
      * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
-     * @param  NewarlBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0, const double NewmarkBeta = 0.25)
         :ImplicitBaseType()
@@ -166,8 +168,8 @@ public:
 
     /**
      * @brief Recalculates the Newmark coefficients, taking into account the alpha parameters
-     * @param beta The Newmark beta coefficient
-     * @param gamma The Newmark gamma coefficient
+     * @param beta The Bossak beta coefficient
+     * @param gamma The Bossak gamma coefficient
      */
     void CalculateBossakCoefficients()
     {
@@ -437,9 +439,9 @@ protected:
      */
     struct BossakAlphaMethod
     {
-        double alpha; /// Alpha Bosssak
-        double beta; /// Beta Bosssak
-        double gamma; /// gamma Bosssak
+        double alpha; /// Alpha Bossak
+        double beta; /// Beta Bossak
+        double gamma; /// Gamma Bossak
 
         // System constants
         double c0, c1, c2, c3, c4, c5;
@@ -465,7 +467,7 @@ protected:
         std::vector< Vector > ap; /// Previous acceleration
     };
 
-    BossakAlphaMethod mBossak; /// The structure containing the Generalized alpha components
+    BossakAlphaMethod mBossak;     /// The structure containing the Bossak components
     NewmarkMethod mNewmark;        /// The structure containing the Newmark parameters
     GeneralVectors mVector;        /// The structure containing the velocities and accelerations
 
