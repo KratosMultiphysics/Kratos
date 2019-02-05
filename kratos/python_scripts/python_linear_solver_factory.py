@@ -118,7 +118,7 @@ def __CheckIfPreconditionerTypeIsDeprecated(config):
     '''
 
     if config.Has("preconditioner_type"):
-        preconditioner_type = config["preconditioner_type"]
+        preconditioner_type = config["preconditioner_type"].GetString()
 
         old_new_name_map = {
             "None"                   : "none",
