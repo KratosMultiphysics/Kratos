@@ -9,7 +9,6 @@ class TestTimeDiscretization(KratosUnittest.TestCase):
         test_model = KM.Model()
         model_part = test_model.CreateModelPart("test_mp")
         for dt in reversed(delta_times):
-            print(dt)
             model_part.CloneTimeStep(model_part.ProcessInfo[KM.TIME] + dt) # filling the time-step-info
 
         exp_size = len(exp_results)
