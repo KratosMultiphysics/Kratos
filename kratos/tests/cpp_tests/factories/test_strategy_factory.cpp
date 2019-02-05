@@ -51,7 +51,7 @@ namespace Kratos
             auto& r_model_part = this_model.CreateModelPart("Main");
             Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedLinearStrategy",
                                                         "linear_solver_settings" : {
-                                                            "solver_type" : "AMGCL"
+                                                            "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
                                                             "name" : "ResidualBasedIncrementalUpdateStaticScheme"
@@ -76,7 +76,7 @@ namespace Kratos
             auto& r_model_part = this_model.CreateModelPart("Main");
             Parameters this_parameters = Parameters(R"({"name" : "ResidualBasedNewtonRaphsonStrategy",
                                                         "linear_solver_settings" : {
-                                                            "solver_type" : "AMGCL"
+                                                            "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
                                                             "name" : "ResidualBasedIncrementalUpdateStaticScheme"
@@ -101,7 +101,7 @@ namespace Kratos
             auto& r_model_part = this_model.CreateModelPart("Main");
             Parameters this_parameters = Parameters(R"({"name" : "AdaptiveResidualBasedNewtonRaphsonStrategy",
                                                         "linear_solver_settings" : {
-                                                            "solver_type" : "AMGCL"
+                                                            "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
                                                             "name" : "ResidualBasedIncrementalUpdateStaticScheme"
@@ -126,7 +126,7 @@ namespace Kratos
             auto& r_model_part = this_model.CreateModelPart("Main");
             Parameters this_parameters = Parameters(R"({"name" : "LineSearchStrategy",
                                                         "linear_solver_settings" : {
-                                                            "solver_type" : "AMGCL"
+                                                            "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
                                                             "name" : "ResidualBasedIncrementalUpdateStaticScheme"
@@ -151,7 +151,7 @@ namespace Kratos
             auto& r_model_part = this_model.CreateModelPart("Main");
             Parameters this_parameters = Parameters(R"({"name" : "ExplicitStrategy",
                                                         "linear_solver_settings" : {
-                                                            "solver_type" : "AMGCL"
+                                                            "solver_type" : "amgcl"
                                                         },
                                                         "scheme_settings" : {
                                                             "name" : "ResidualBasedIncrementalUpdateStaticScheme"
