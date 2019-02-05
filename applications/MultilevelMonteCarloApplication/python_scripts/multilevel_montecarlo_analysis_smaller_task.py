@@ -145,7 +145,7 @@ output:
                              finer_level : finest level
                              time_ML     : list of MLMC time for all levels computed in the current simulation
 '''
-@ExaquteTask(returns=1)
+@ExaquteTask(returns=3)
 def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_level,mlmc_results_class):
     '''unpickle model and build Kratos Model object'''
     serialized_model = pickle.loads(pickled_coarse_model)
