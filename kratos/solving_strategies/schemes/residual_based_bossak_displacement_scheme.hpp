@@ -379,19 +379,25 @@ public:
 
         // Check for minimum value of the buffer index
         // Verify buffer size
-        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2) << "Insufficient buffer size. Buffer size should be greater than 2. Current size is" << rModelPart.GetBufferSize() << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+            << "Insufficient buffer size. Buffer size should be greater than 2. Current size is: "
+            << rModelPart.GetBufferSize() << std::endl;
 
         // Check for admissible value of the AlphaBossak
-        KRATOS_ERROR_IF(mBossak.alpha > 0.0 || mBossak.alpha < -0.5) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.5. Current value is " << mBossak.alpha << std::endl;
+        KRATOS_ERROR_IF(mBossak.alpha > 0.0 || mBossak.alpha < -0.5) << "Value not admissible for "
+            << "AlphaBossak. Admissible values are between 0.0 and -0.5\nCurrent value is: "
+            << mBossak.alpha << std::endl;
 
-        KRATOS_ERROR_IF(mNewmark.beta < 0.0 ||
-                        mNewmark.beta > 0.25) << "Value not admissible for NewmarkBeta. Admissible values are 0.0 for central differencing, 0.25 for mean constant acceleration or 0.167 for linear acceleration. Current value is " << mNewmark.beta <<std::endl;
+        const double epsilon = std::numeric_limits<double>::epsilon();
+        KRATOS_ERROR_IF_NOT(std::abs(mNewmark.beta - 0.0)   < epsilon ||
+                            std::abs(mNewmark.beta - 0.167) < epsilon ||
+                            std::abs(mNewmark.beta - 0.25)  < epsilon)
+            << "Value not admissible for NewmarkBeta. Admissible values are:\n"
+            << "0.0 for central-differencing\n"
+            << "0.25 for mean-constant-acceleration\n"
+            << "0.167 for linear-acceleration\n"
+            << "Current value is " << mNewmark.beta << std::endl;
 
-        if (mNewmark.beta > 0.0 && mNewmark.beta < 0.25)
-            {
-             const double epsilon = std::numeric_limits<double>::epsilon();
-             KRATOS_ERROR_IF(std::abs(mNewmark.beta - 0.167) > epsilon) << "Value not admissible for NewmarkBeta. Admissible values are 0.0 for central differencing, 0.25 for mean constant acceleration or 0.167 for linear acceleration. Current value is " << mNewmark.beta <<std::endl;
-            }
         return 0;
         KRATOS_CATCH( "" );
     }
