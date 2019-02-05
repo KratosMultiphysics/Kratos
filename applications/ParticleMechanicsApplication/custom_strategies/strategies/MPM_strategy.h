@@ -631,10 +631,6 @@ public:
                 else{
 
                     // NOTE: To create Particle Condition, we consider both the nodal position as well as the position of integration point
-                    // First reset all nodes' flag to VISITED = false
-                    for (auto& node : submodelpart.Nodes())
-                        node.Reset(VISITED);
-
                     // Loop over the conditions of submodelpart and generate mpm condition to be appended to the mr_mpm_model_part
                     for (ModelPart::ConditionIterator i = submodelpart.ConditionsBegin();
                             i != submodelpart.ConditionsEnd(); i++)
@@ -881,47 +877,42 @@ public:
                         last_condition_id += integration_point_per_conditions;
 
                         // 2. Loop over the nodes associated to each condition to create nodal particle condition
-                        // NOTE: each node should only be translated to particle condition once, otherwise, problem might occur with their integration weight
                         for ( unsigned int j = 0; j < rGeom.size(); j ++)
                         {
-                            if (!rGeom[j].Is(VISITED))
-                            {
-                                // Nodal normal vector is used
-                                MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
-                                const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
-                                if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
+                            // Nodal normal vector is used
+                            MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                            const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
+                            if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
 
-                                // Create new material point condition
-                                new_condition_id = last_condition_id;
-                                Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
+                            // Create new material point condition
+                            new_condition_id = last_condition_id + j;
+                            Condition::Pointer p_condition = new_condition.Create(new_condition_id, mr_grid_model_part.ElementsBegin()->GetGeometry(), properties);
 
-                                mpc_xg.clear();
-                                for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
-                                    mpc_xg[dim] = rGeom[j].Coordinates()[dim];
-                                }
-
-                                // Setting particle condition's initial condition
-                                // TODO: If any variable is added or remove here, please add and remove also at the first loop above
-                                p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
-                                p_condition->SetValue(MPC_COORD, mpc_xg);
-                                p_condition->SetValue(MPC_AREA, MPC_Area);
-                                p_condition->SetValue(MPC_NORMAL, MPC_Normal);
-                                p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
-                                p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
-                                p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
-                                p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
-                                if (is_slip)
-                                    p_condition->Set(SLIP);
-                                if (is_contact)
-                                    p_condition->Set(CONTACT);
-
-                                // Add the MP Condition to the model part
-                                mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
-
-                                rGeom[j].Set(VISITED);
-                                last_condition_id ++;
+                            mpc_xg.clear();
+                            for (unsigned int dim = 0; dim < rGeom.WorkingSpaceDimension(); dim++){
+                                mpc_xg[dim] = rGeom[j].Coordinates()[dim];
                             }
+
+                            // Setting particle condition's initial condition
+                            // TODO: If any variable is added or remove here, please add and remove also at the first loop above
+                            p_condition->SetValue(MPC_CONDITION_ID, MPC_Condition_Id);
+                            p_condition->SetValue(MPC_COORD, mpc_xg);
+                            p_condition->SetValue(MPC_AREA, MPC_Area);
+                            p_condition->SetValue(MPC_NORMAL, MPC_Normal);
+                            p_condition->SetValue(MPC_DISPLACEMENT, MPC_Displacement);
+                            p_condition->SetValue(MPC_VELOCITY, MPC_Velocity);
+                            p_condition->SetValue(MPC_ACCELERATION, MPC_Acceleration);
+                            p_condition->SetValue(PENALTY_FACTOR, MPC_Penalty_Factor);
+                            if (is_slip)
+                                p_condition->Set(SLIP);
+                            if (is_contact)
+                                p_condition->Set(CONTACT);
+
+                            // Add the MP Condition to the model part
+                            mr_mpm_model_part.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
                         }
+
+                        last_condition_id += rGeom.size();
                     }
                 }
             }
