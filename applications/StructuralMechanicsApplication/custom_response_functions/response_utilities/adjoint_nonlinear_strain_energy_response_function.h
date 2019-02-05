@@ -117,9 +117,15 @@ public:
                                              const Matrix& rSensitivityMatrix,
                                              Vector& rSensitivityGradient,
                                              const ProcessInfo& rProcessInfo) override;
+
     
+    void CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                                   const Matrix& rResidualGradient,
+                                                   Vector& rResponseGradient,
+                                                   const ProcessInfo& rProcessInfo) override;
+
     //void GetGradientVector(const Condition& rAdjointCondition, Vector& rResponseGradient);
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -183,7 +189,8 @@ private:
 
     std::map<int, Vector> mConditionsRHS;
     std::map<int, Condition::Pointer> mConditions;
-   // std::map<int, Vector> mResponseGradient;
+    std::map<int, Vector> mResponseGradient_1;
+    std::map<int, Vector> mResponseGradient_0;
 
     ///@}
     ///@name Private Operators

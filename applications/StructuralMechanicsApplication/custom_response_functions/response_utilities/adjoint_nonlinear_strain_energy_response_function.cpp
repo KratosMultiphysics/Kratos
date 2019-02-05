@@ -34,6 +34,9 @@ namespace Kratos
             // This saves a vector of pointers to the model condition as a member variable because I can not use const condition in 
             //mConditions.push_back(rModelPart.pGetCondition(cond_i.Id()));
             mConditions[cond_i.Id()] = rModelPart.pGetCondition(cond_i.Id());
+
+            // initializes a vector that stores the gradient vectors for the last step
+            mResponseGradient_0[cond_i.Id()] = ZeroVector(vec_size);
         }
     }
 
@@ -185,20 +188,39 @@ namespace Kratos
         // storing the partial derivative partial f_{ext}_i}{\partial u}
         mExternalForceDisplacementDerivative = partial_derivative_matrix;
 
-        // // TODO Mahmoud: This stores rResponseGradient values which is called in adjoint_postprocess.cpp
-        // mResponseGradient[rAdjointCondition.Id()] = rResponseGradient;
+        // TODO Mahmoud: This stores rResponseGradient values which is called in adjoint_postprocess.cpp
+        mResponseGradient_1[rAdjointCondition.Id()] = rResponseGradient;
 
         KRATOS_CATCH("");
     }
 
-    // void AdjointNonlinearStrainEnergyResponseFunction::GetGradientVector(const Condition& rAdjointCondition, Vector& rResponseGradient)
-    // {
-    //     KRATOS_TRY;
+    // TODO Mahmoud: This calculate a scaling factor for the current response gradient w.r.t the response gradient of the last step
+    // Later this should be replaced with a function that calculates the derivative of the response gradient 
+    // a scaling factor would give accurate results for non-follower loads, however it should be used carefully for follower loads
+    void AdjointNonlinearStrainEnergyResponseFunction::CalculateFirstDerivativesGradient(const Condition& rAdjointCondition,
+                                                   const Matrix& rResidualGradient,
+                                                   Vector& rResponseGradient,
+                                                   const ProcessInfo& rProcessInfo)
+    {
+        KRATOS_TRY
+        
+        Vector response_gradient_0;
+        Vector response_gradient_1;
+        response_gradient_0 = mResponseGradient_0[rAdjointCondition.Id()];
+        response_gradient_1 = mResponseGradient_1[rAdjointCondition.Id()];
+        rResponseGradient = ZeroVector(response_gradient_1.size());
 
-    //     rResponseGradient = mResponseGradient[rAdjointCondition.Id()];
+        for (IndexType i = 0; i < response_gradient_1.size(); i++)
+        {
+            if( response_gradient_0[i] != 0 )
+                rResponseGradient[i] = response_gradient_1[i] / response_gradient_0[i];
+        }
+       
+        //KRATOS_WATCH(rResponseGradient)
 
-    //     KRATOS_CATCH("");
-    // }
+        mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
+        KRATOS_CATCH("");
+    }
 
     void AdjointNonlinearStrainEnergyResponseFunction::CalculatePartialSensitivity(Element& rAdjointElement,
                                                 const Variable<array_1d<double, 3>>& rVariable,

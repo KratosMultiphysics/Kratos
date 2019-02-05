@@ -70,7 +70,6 @@ namespace Kratos
             SizeType mat_size = number_of_nodes * dimension;
 
             mSensitivityMatrixI[elem_i.Id()] = ZeroMatrix(mat_size,mat_size);
-            KRATOS_WATCH(mat_size)
         }
 
         KRATOS_CATCH("");
@@ -218,16 +217,22 @@ namespace Kratos
         std::vector<Vector> sensitivity_vector(num_threads);
         std::vector<Vector> response_gradient(num_threads);
         std::vector<Vector> adjoint_vector(num_threads);
+        std::vector<Vector> adjoint_vector_0(num_threads);
         std::vector<Matrix> sensitivity_matrix(num_threads);
-        //std::map<int, Vector> reponse_gradient_vector;
+        std::map<int, Vector> approximated_adjoint_vector;
 
-        // for (auto& cond_i : mrModelPart.Conditions())
-        // {
-        //     Vector ResponseGradient;
-        //     mrResponseFunction.GetGradientVector(cond_i, ResponseGradient);
+        for (auto& cond_i : mrModelPart.Conditions())
+        {
+            Matrix ResidualGradient;
+            Vector ResponseGradient;
+            Vector adjoint_values;
+            mrResponseFunction.CalculateFirstDerivativesGradient(cond_i, ResidualGradient,
+                                                            ResponseGradient, r_process_info);
+            cond_i.GetValuesVector(adjoint_values, 1);
 
-        //     KRATOS_WATCH(ResponseGradient)      
-        // }
+            // TODO Mahmoud: I am not sure this is accurate or I should multiply by double only    
+            approximated_adjoint_vector[cond_i.Id()] = element_prod(ResponseGradient, adjoint_values); 
+        } 
 
         int k = 0;
         for (auto& elem_i : mrModelPart.Elements())
@@ -266,14 +271,42 @@ namespace Kratos
                 if (sensitivity_vector[k].size() != sensitivity_matrix[k].size1())
                     sensitivity_vector[k].resize(sensitivity_matrix[k].size1(), false);
 
-                // Get the adjoint displacement field
                 elem_i.GetValuesVector(adjoint_vector[k]);
+                elem_i.GetValuesVector(adjoint_vector_0[k],1);
 
+                // TODO Mahmoud: This approach is too complex, should reduce the complexity
+                int dimension = elem_i.GetGeometry().WorkingSpaceDimension();
+                int i = 0;
+                for (auto& node_i : elem_i.GetGeometry())
+                {
+                    // search for this node in all conditions
+                    for (auto& cond_i : mrModelPart.Conditions())
+                    {
+                        int j = 0;
+                        for (auto& node_j : cond_i.GetGeometry()) 
+                        {
+                            // get corresponding value from approximated adjoint vector
+                            if(node_j.Id() == node_i.Id())
+                                project(adjoint_vector_0[k], range( i * dimension, (i*dimension) + dimension) ) = subrange(approximated_adjoint_vector[cond_i.Id()], j, dimension);
+                            j++ ;
+                        }
+                    }
+                    i++ ;
+                }
                 // TODO Mahmoud: this is modified to work for nonlinear analysis
                 // It should be modified to work for both linear and non-linear
                 // Compute the adjoint variable times the sensitivity_matrix (pseudo load)
                 //noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
-               noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k] - mSensitivityMatrixI[elem_i.Id()], adjoint_vector[k]);
+                // TODO Mahmoud: The scaling factor is hard coded and should be modified
+                if(mSolutionStep == 1)
+                {
+                    noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]);
+                }   
+                else
+                {
+                    noalias(sensitivity_vector[k]) = prod(sensitivity_matrix[k], adjoint_vector[k]) - 
+                                                            prod(mSensitivityMatrixI[elem_i.Id()], adjoint_vector_0[k]);
+                }                
             }
 
             if(response_gradient[k].size() > 0)
@@ -293,6 +326,8 @@ namespace Kratos
 
             mSensitivityMatrixI[elem_i.Id()] = sensitivity_matrix[k];
         }       
+
+        mSolutionStep++;
         KRATOS_CATCH("");
     }
     template <typename TDataType>

@@ -162,6 +162,8 @@ private:
     
     // map that stores sensitivity matrices for each element in the previous step
     std::map<int, Matrix> mSensitivityMatrixI;
+
+    int mSolutionStep = 1;
     ///@}
     ///@name Private Operators
     ///@{

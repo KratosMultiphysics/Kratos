@@ -400,7 +400,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             ProjectParametersAdjoint = Parameters( parameter_file.read() )
         ProjectParametersAdjoint["solver_settings"].AddValue("response_function_settings", project_parameters)
 
-        adjoint_model = Model()
+        adjoint_model = KratosMultiphysics.Model()
 
         self.adjoint_model_part = _GetModelPart(adjoint_model, ProjectParametersAdjoint["solver_settings"])
 
@@ -426,20 +426,20 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.end_time += 1
         
         ## run the solution loop
-        # TODO Mahmoud: this leads to wrong result because calculatevalue() is called twice for the last step
-        # import csv
-        # with open('displacement_curves_perturb_x2_001.csv', mode='w') as displacement_values:
-        #     self.writer = csv.writer(displacement_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        while self.primal_analysis.time < self.primal_analysis.end_time:
-            self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-            self.primal_analysis.InitializeSolutionStep()
-            self.primal_analysis._GetSolver().Predict()
-            self.primal_analysis._GetSolver().SolveSolutionStep()
-            self.primal_analysis.FinalizeSolutionStep()
-            self.primal_analysis.OutputSolutionStep()
-            self.CalculateResponseIncrement()
-            #self.writer.writerow([ self.primal_analysis.time, self.primal_model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X) ])
-        #displacement_values.close()
+        import csv
+        with open('reponse_value_3D_truss_perturb_node3_z_00001.csv', mode='w') as response_values:
+            self.writer = csv.writer(response_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            while self.primal_analysis.time < self.primal_analysis.end_time:
+                self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+                self.primal_analysis.InitializeSolutionStep()
+                self.primal_analysis._GetSolver().Predict()
+                self.primal_analysis._GetSolver().SolveSolutionStep()
+                self.primal_analysis.FinalizeSolutionStep()
+                self.primal_analysis.OutputSolutionStep()
+                self.CalculateResponseIncrement()
+
+                self.writer.writerow([ self.primal_analysis.time, self.response_value ])
+        response_values.close()
 
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
