@@ -213,6 +213,8 @@ private:
 
     void CalculateNodeParticularSolutionCrBeam(Vector& rResult);
 
+    void CalculateParticularSolutionLinearTruss(Vector& rResult);
+
     void FindCorrespondingDofLabel(std::string& rDofLabel);
 
     ///@}

@@ -350,18 +350,20 @@ namespace Kratos
         std::string element_name;
         CompareElementsAndConditionsUtility::GetRegisteredName(*(p_adjoint_element->pGetPrimalElement()), element_name);
 
-        if(element_name == "CrLinearBeamElement3D2N")
-        {
-            // delifers particular solution of influence function in local coordinates
-            Vector particular_solution;
-            this->CalculateParticularSolutionCrBeam(particular_solution);
-            // transform particular solution into global coordinates
-            mpTracedElement->Calculate(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution, mrModelPart.GetProcessInfo());
+        Vector particular_solution;
 
-            mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
-        }
+        // delifers particular solution of influence function in local coordinates
+        if(element_name == "CrLinearBeamElement3D2N")
+            this->CalculateParticularSolutionCrBeam(particular_solution);
+        else if(element_name == "TrussLinearElement3D2N")
+            this->CalculateParticularSolutionLinearTruss(particular_solution);
         else
-            KRATOS_WARNING("CalculateParticularSolution, Warning") << "Not available for " << element_name << "!" << std::endl;
+            KRATOS_ERROR << "CalculateParticularSolution not available for " << element_name << "!" << std::endl;
+
+        // transform particular solution into global coordinates
+        mpTracedElement->Calculate(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution, mrModelPart.GetProcessInfo());
+
+        mpTracedElement->SetValue(ADJOINT_PARTICULAR_DISPLACEMENT, particular_solution);
 
         KRATOS_CATCH("");
     }
@@ -472,6 +474,43 @@ namespace Kratos
                     rResult[i] = 1.0;
                 else if (mIdOfLocation == 2)
                     rResult[i] = -1.0;
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
+
+    void AdjointLocalStressResponseFunction::CalculateParticularSolutionLinearTruss(Vector& rResult)
+    {
+        KRATOS_TRY;
+
+        DofsVectorType dofs_of_element;
+        mpTracedElement->GetDofList(dofs_of_element, mrModelPart.GetProcessInfo());
+        rResult = ZeroVector(dofs_of_element.size());
+
+        std::string dof_label = "DEFAULT";
+        this->FindCorrespondingDofLabel(dof_label);
+
+        const unsigned int num_GP = mpTracedElement->GetGeometry().IntegrationPointsNumber(mpTracedElement->GetIntegrationMethod());
+
+        // Since the truss has only one GP and a constant stress distrubution over the element lenght
+        // the particular solution is the same for all cases (node, GP, mean)
+        KRATOS_ERROR_IF(num_GP != 1 && mStressTreatment == StressTreatment::Mean)
+                << "Computation of particular soltion supposes only one Gauss Point!" << std::endl;
+
+        const double prefactor = 1.0 / (1.0 + num_GP);
+
+        const IndexType id_node_1 = mpTracedElement->GetGeometry()[0].Id();
+        const IndexType id_node_2 = mpTracedElement->GetGeometry()[1].Id();
+
+        for(IndexType i = 0; i < dofs_of_element.size(); ++i)
+        {
+            if (dofs_of_element[i]->GetVariable().Name() == dof_label)
+            {
+                if (dofs_of_element[i]->Id() == id_node_1)
+                    rResult[i] = prefactor * (num_GP + 1 - mIdOfLocation);
+                else if (dofs_of_element[i]->Id() == id_node_2)
+                    rResult[i] = -prefactor * mIdOfLocation;
             }
         }
 
