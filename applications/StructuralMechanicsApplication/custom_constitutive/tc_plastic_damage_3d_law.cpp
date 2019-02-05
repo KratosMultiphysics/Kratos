@@ -20,6 +20,7 @@
 
 // System includes
 #include <iostream>
+#include <math.h>
 
 // External includes
 
@@ -76,9 +77,31 @@ namespace Kratos
 
 		CalculateElasticityMatrix(m_D0);
 
-		K = sqrt(2.0) * (m_f_02cc - m_f_01cc)/(2 * m_f_02cc - m_f_01cc);
+		m_K = sqrt(2.0) * (m_f_02cc - m_f_01cc)/(2 * m_f_02cc - m_f_01cc);
 		usedEquivalentTensionDefinition = COMPDYN;
 
+		if (usedEquivalentTensionDefinition == ORIGINAL)
+			{
+				r_0n = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3);
+				r_0p = sqrt(m_f_ct / sqrt(m_E));
+			}
+		else if (usedEquivalentTensionDefinition == HOMOGENEOUS)
+			{
+				r_0n = sqrt(sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3);
+				r_0p = sqrt(m_f_ct);
+			}
+		else if (usedEquivalentTensionDefinition == COMPDYN)
+			{
+				r_0n = sqrt(3.0)*(m_K - sqrt(2.0))*m_f_01cc / 3;
+				r_0p = m_f_ct;
+			}
+
+		d_n = 0.0;
+		d_p = 0.0;
+		r_n = r_0n;
+		r_n1 = r_n;
+		r_p = r_0p;
+		r_p1 = r_p;
 		/**
 
 		m_rate_biaxial_uniaxial = rMaterialProperties[RATE_BIAXIAL_UNIAXIAL];
@@ -159,7 +182,7 @@ namespace Kratos
 		{
 			rStressVector.resize(6, false);
 		}
-		const double tolerance = (1.0e-14)* m_f_01cc;
+		const double tolerance = (1.0e-14)* m_f_01cc;		//move to function "DamageCriterion" if only used once (ML)
 
 		// 1.step: elastic stress tensor
 		noalias(rStressVector) = prod(trans(m_D0), (rStrainVector - m_plastic_strain));
@@ -182,12 +205,15 @@ namespace Kratos
 		double tau_n;
 		double tau_p;
 		
+		ComputeTau(StressEigenvalues,
+			tau_n, 
+			tau_p);
+
+		// 4.step: check damage criterion and update damage threshold
+		DamageCriterion(tau_n, 
+			tau_p,
+			tolerance);
 		
-		
-
-
-
-
 		/**
 
 		// compute the stress measures
@@ -447,8 +473,8 @@ namespace Kratos
 
 	void TCPlasticDamage3DLaw::ComputeTau(
 		const Vector& rStressEigenvalues, 
-		double& tau_n, 
-		double& tau_p)
+		double& rtau_n, 
+		double& rtau_p)
 	{		
 		Vector dgn(3);
 		Vector dgp(3);
@@ -464,15 +490,15 @@ namespace Kratos
 	
 		if ((usedEquivalentTensionDefinition == ORIGINAL)  || (usedEquivalentTensionDefinition == HOMOGENEOUS))
 			{
-			tau_n = sqrt(3.0) * (K * sigoct + tauoct);
-			if (tau_n >= 0)
-				tau_n = sqrt(tau_n);
+			rtau_n = sqrt(3.0) * (m_K * sigoct + tauoct);
+			if (rtau_n >= 0)
+				rtau_n = sqrt(rtau_n);
 			else
-				tau_n = 0;
+				rtau_n = 0;
 			}
 		else if (usedEquivalentTensionDefinition == COMPDYN)
 			{
-			tau_n = sqrt(3.0) * (K * sigoct + tauoct);
+			rtau_n = sqrt(3.0) * (m_K * sigoct + tauoct);
 			}
 
 		double diag = (dgp(0) + dgp(1) + dgp(2)) * m_nu/(-m_E);
@@ -482,23 +508,89 @@ namespace Kratos
 				elastic_strain_diag_positive(i) = dgp(i) * (1 + m_nu)/m_E + diag;
 			}
 	
-		tau_p = 0.0;
+		rtau_p = 0.0;
 		for (IndexType i = 0; i < 3; i++)
 			{
-				tau_p += elastic_strain_diag_positive(i) * dgp(i);
+				rtau_p += elastic_strain_diag_positive(i) * dgp(i);
 			}
 	
 		if (usedEquivalentTensionDefinition == ORIGINAL)
 			{
-			tau_p = sqrt(tau_p);
+			rtau_p = sqrt(rtau_p);
 			}
 		else if (usedEquivalentTensionDefinition == HOMOGENEOUS)
 			{
-			tau_p = sqrt(sqrt(tau_p * m_E));
+			rtau_p = sqrt(sqrt(rtau_p * m_E));
 			}
 		else if (usedEquivalentTensionDefinition == COMPDYN)
 			{
-			tau_p = sqrt(tau_p * m_E);
+			rtau_p = sqrt(rtau_p * m_E);
 			}
 	};
+
+	void TCPlasticDamage3DLaw::DamageCriterion(
+		const double& rtau_n, 
+		const double& rtau_p,
+		const double& rtolerance)
+	{
+		double g = (rtau_p/r_p)*(rtau_p/r_p)+(rtau_n/r_n)*(rtau_n/r_n)-1;
+		
+		if (g>rtolerance)
+			{
+			double rhoQ = sqrt(rtau_p*rtau_p+rtau_n*rtau_n);
+			double thetaQ;
+			if (rtau_n > 1e-15) 
+				{
+				thetaQ=atan(rtau_p/rtau_n);
+				} 
+			else 
+				{
+				thetaQ=std::atan(1)*4/2.0;		//atan(1)*4=Pi -> replace maybe (ML)
+				}
+			double rhoP = r_p*r_n*sqrt((rtau_n*rtau_n+rtau_p*rtau_p)/((rtau_n*r_p)*(rtau_n*r_p)+(rtau_p*r_n)*(rtau_p*r_n)));
+			if (r_n >= r_p)
+				{
+				if (rhoP<r_p)
+					rhoP =r_p;
+				if (rhoP>r_n)
+					rhoP = r_n;
+				}
+			else if (r_n < r_p)
+				{
+				if (rhoP>r_p)
+					rhoP =r_p;
+				if (rhoP<r_n)
+					rhoP = r_n;
+				}
+			double alfa=rhoQ/rhoP;
+			double thetaL = atan((r_p*r_p)/(r_n*r_n));
+			double rhoL=sqrt((r_p*r_p*r_n*r_n)/(r_n*r_n*sin(thetaL)*sin(thetaL)+r_p*r_p*cos(thetaL)*cos(thetaL)));
+			double alfasn;
+			if (((rhoP>rhoL) && (rhoP<=r_n)) || ((rhoP>=r_n) && (rhoP<rhoL))) 
+				{
+					double alfasp=1+(alfa-1)*(r_n-rhoP)/(r_n-rhoL);
+					r_p1=r_p*alfasp;
+					r_n1=sqrt((r_p1*r_p1*rtau_n*rtau_n)/(r_p1*r_p1-rtau_p*rtau_p));
+				} 
+			else if (((rhoP>rhoL) && (rhoP<=r_p)) || ((rhoP>=r_p) && (rhoP<rhoL))) 
+				{
+				alfasn=1+(alfa-1)*(rhoP-r_p)/(rhoL-r_p);
+				r_n1=r_n*alfasn;
+				r_p1=sqrt((r_n1*r_n1*rtau_p*rtau_p)/(r_n1*r_n1-rtau_n*rtau_n));
+				} 				
+			else 
+				{
+				alfasn=1+(alfa-1)*(rhoP-r_p)/(rhoL-r_p);
+				r_n1=r_n*alfasn;
+				r_p1=sqrt((r_n1*r_n1*rtau_p*rtau_p)/(r_n1*r_n1-rtau_n*rtau_n));
+				}
+			} 
+		else
+			{
+			r_n1=r_n;
+			r_p1=r_p;
+			};
+	};
+	
+	//add formula such as "commitState" in Code from Padua (ML)
 }

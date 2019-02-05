@@ -173,12 +173,12 @@ namespace Kratos
 		double m_E;
 		double m_nu;
 
-		double K;
+		double m_K;
 		std::string usedEquivalentTensionDefinition;
 		std::string COMPDYN;
 		std::string ORIGINAL;
 		std::string HOMOGENEOUS;
-
+		double d_n, d_p, r_0n, r_0p, r_n, r_p, r_n1, r_p1;
 
 		/** variables not used so far (ML)
 		  Matrix m_Di;
@@ -190,8 +190,6 @@ namespace Kratos
 
 		  double m_compressive_strength_plastic;
 		  double m_compressive_strength_elastic;
-
-		  double m_rate_biaxial_uniaxial;
 
 		  double m_beta;
 		  double m_Gf_t;
@@ -209,9 +207,6 @@ namespace Kratos
 		  double m_treshold_tension;
 
 		  double m_gamma_C;
-
-		  double m_damage_t;
-		  double m_damage_c;
 
 		  int model;
 
@@ -267,8 +262,13 @@ namespace Kratos
 
 		void ComputeTau(
 			const Vector& rStressEigenvalues,
-			double& tau_n,
-			double& tau_p);
+			double& rtau_n,
+			double& rtau_p);
+
+		void DamageCriterion(
+			const double& rtau_n,
+			const double& rtau_p,
+			const double& rtolerance);
 	};
 }
 
