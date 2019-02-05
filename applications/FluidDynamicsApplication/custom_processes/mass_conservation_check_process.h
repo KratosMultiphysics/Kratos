@@ -79,14 +79,16 @@ public:
      * @brief Constructor with separate paramters
      *
      * @param rModelPart Complete model part (including boundaries) for the process to operate on
-     * @param PerformCorrections Choice if only logging is required (false) or if corrections by shifting the distance field shall be performed (true)
+     * @param PerformLocalCorrections Choice if corrections by locally convecting the distance field shall be performed
+     * @param PerformGlobalCorrections Choice if corrections by globally shifting the distance field shall be performed
      * @param CorrectionFreq Frequency of the correction (if wished) in time steps
      * @param WriteToLogFile Choice if results shall be written to a log file in every time step
      * @param LogFileName Name of the log file (if wished)
      */
     MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const bool PerformCorrections,
+        const bool PerformLocalCorrections,
+        const bool PerformGlobalCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
         const std::string LogFileName);
@@ -147,18 +149,6 @@ public:
 
 
     /**
-     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
-     * This function requires further explanation:
-     * It is assumed that the interface between water and air is not moving.
-     * Given that, the velocity field would create a volume flux through the stationary interface.
-     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert into air" if the surface
-     * remained stationary.
-     * @return double Volume flow [m3/s] computed over the surface
-     */
-    double OrthogonalFlowIntoAir();
-
-
-    /**
      * @brief Initialization of the process including computation of inital volumes
      *
      * @return std::string Output message (can appear in log-file)
@@ -170,16 +160,16 @@ public:
      *
      * @return std::string Output message (can appear in log-file)
      */
-    // std::string ExecuteInTimeStep();
-
-
     std::string ComputeBalancedVolume();
 
 
     double ComputeDtForConvection();
 
+    void ApplyLocalCorrection( Variable<double>& rAuxDistVar );
 
-    double CkeckAndCorrectGlobally( Variable<double>& rAuxDistVar );
+    void ReCheckTheMassConservation();
+
+    void ApplyGlobalCorrection();
 
 
 
@@ -227,7 +217,8 @@ private:
     // Process parameters
     int mCorrectionFreq = 1;
     bool mWriteToLogFile = true;
-    bool mPerformCorrections = true;
+    bool mPerformGlobalCorrections = true;
+    bool mPerformLocalCorrections = true;
     std::string mLogFileName = "mass_conservation.log";
 
     // Inital volume with negative distance field ("water" volume)
@@ -239,6 +230,10 @@ private:
     // The initial value is the "mInitialNegativeVolume" meaning "water" is considered here
     double mTheoreticalNegativeVolume = -1.0;
     double mWaterVolumeError = -1.0;
+    double mInterfaceArea = -1.0;
+
+    // Remember the necessary operation
+    bool mAddWater = true;
 
     // Net inflow into the domain (please consider that inflow at the outlet and outflow at the inlet are possible)
     double mQNet0 = 0.0;      // for the current time step (t)
@@ -307,6 +302,19 @@ private:
                             Line3D2<IndexedPoint>::Pointer& p_aux_line,
                             array_1d<double, 3>& aux_velocity1,
                             array_1d<double, 3>& aux_velocity2 );
+
+    /**
+     * @brief Function to compute flow orthogonal to the current surface from the water sub domain into the air sub domain
+     * This function requires further explanation:
+     * It is assumed that the interface between water and air is not moving.
+     * Given that, the velocity field would create a theoretical volume flux through the stationary interface.
+     * Of this volume flux, we only measure the part where fluid would leave the water domain and "convert water into air" if the surface
+     * remained stationary.
+     * @param factor Value 1.0 for function is described, value -1.0 to compute flow INTO the water domain under the same assumptions
+     * @return double Volume flow [3D: m3/s] computed over the surface
+     */
+
+    double OrthogonalFlowIntoAir( const double factor = 1.0 );
 
     ///@}
     ///@name Private  Access

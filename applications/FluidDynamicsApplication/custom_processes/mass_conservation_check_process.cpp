@@ -32,7 +32,8 @@ namespace Kratos
 /// constructor
 MassConservationCheckProcess::MassConservationCheckProcess(
         ModelPart& rModelPart,
-        const bool PerformCorrections,
+        const bool PerformLocalCorrections,
+        const bool PerformGlobalCorrections,
         const int CorrectionFreq,
         const bool WriteToLogFile,
         const std::string LogFileName)
@@ -41,7 +42,8 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     mCorrectionFreq = CorrectionFreq;
     mWriteToLogFile = WriteToLogFile;
     mLogFileName = LogFileName;
-    mPerformCorrections = PerformCorrections;
+    mPerformLocalCorrections = PerformLocalCorrections;
+    mPerformGlobalCorrections = PerformGlobalCorrections;
 }
 
 
@@ -54,7 +56,8 @@ MassConservationCheckProcess::MassConservationCheckProcess(
     Parameters default_parameters( R"(
     {
         "model_part_name"                        : "default_model_part_name",
-        "perform_corrections"                    : true,
+        "perform_local_corrections"              : true,
+        "perform_global_corrections"             : true,
         "correction_frequency_in_time_steps"     : 20,
         "write_to_log_file"                      : true,
         "log_file_name"                          : "mass_conservation.log"
@@ -64,7 +67,8 @@ MassConservationCheckProcess::MassConservationCheckProcess(
 
     mCorrectionFreq = rParameters["correction_frequency_in_time_steps"].GetInt();
     mWriteToLogFile = rParameters["write_to_log_file"].GetBool();
-    mPerformCorrections = rParameters["perform_corrections"].GetBool();
+    mPerformLocalCorrections = rParameters["perform_local_corrections"].GetBool();
+    mPerformGlobalCorrections = rParameters["perform_global_corrections"].GetBool();
     mLogFileName = rParameters["log_file_name"].GetString();
 }
 
@@ -111,6 +115,7 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
     double net_inflow_inlet = ComputeFlowOverBoundary(INLET);
     double net_inflow_outlet = ComputeFlowOverBoundary(OUTLET);
+    mInterfaceArea = inter_area;
 
     // computing global quantities via MPI communication
     const auto& comm = mrModelPart.GetCommunicator();
@@ -132,8 +137,6 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
 
     mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
 
-    KRATOS_WATCH( mTheoreticalNegativeVolume )
-
     // assembly of the log message
     std::string output_line_timestep =  std::to_string(current_time) + "\t\t";
     output_line_timestep +=             std::to_string(neg_vol) + "\t\t";
@@ -149,33 +152,64 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
 
 double MassConservationCheckProcess::ComputeDtForConvection(){
 
-    const double water_outflow_over_boundary = OrthogonalFlowIntoAir();
+    // a small step is set to avoid numerical problems
     double time_step_for_convection = 1.0e-7;
-    if ( std::abs( water_outflow_over_boundary ) > 1.0e-7){
-        time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
+
+    if ( mWaterVolumeError > 0.0 ){
+        // case: water volume was lost by mistake
+        const double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
+        mAddWater = true;
+
+        // checking if flow is sufficient (avoid division by 0)
+        if ( water_outflow_over_boundary > 1.0e-7 ){
+            time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
+        }
+    }
+    else if ( mWaterVolumeError < 0.0 ){
+        // case: water volume was gained by mistake
+        const double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
+        mAddWater = false;
+
+        // checking if flow is sufficient (avoid division by 0)
+        if ( water_inflow_over_boundary > 1.0e-7 ){
+            time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
+        }
+    }
+    else {
+        // case: Exactly the correct volume of water is present
+        mAddWater = true;
     }
 
-    KRATOS_WATCH("For calculation of Dt for the convection")
-    KRATOS_WATCH( mTheoreticalNegativeVolume )
-    KRATOS_WATCH( mWaterVolumeError )
-    KRATOS_WATCH( water_outflow_over_boundary )
+    KRATOS_WARNING_IF("MassConservationCheckProcess", time_step_for_convection < 0.0) << "A time step smaller than 0.0 was computed." << std::endl;
 
     return time_step_for_convection;
-
 }
 
 
-double MassConservationCheckProcess::CkeckAndCorrectGlobally( Variable<double>& rAuxDistVar ){
+void MassConservationCheckProcess::ApplyLocalCorrection( Variable<double>& rAuxDistVar ){
 
-    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-        // iteration over all elements
-        auto it_node = mrModelPart.NodesBegin() + i_node;
+    if ( mPerformLocalCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 ){
 
-        const double original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
-        const double aux_dist = it_node->GetValue( rAuxDistVar );
+        for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+            // iteration over all nodes
+            auto it_node = mrModelPart.NodesBegin() + i_node;
 
-        it_node->FastGetSolutionStepValue(DISTANCE, 0) = std::min( original_dist, aux_dist );
+            const double original_dist = it_node->FastGetSolutionStepValue( DISTANCE, 0 );
+            const double aux_dist = it_node->GetValue( rAuxDistVar );
+
+            if ( mAddWater ){
+                // choosing minimum to extend water domain
+                it_node->FastGetSolutionStepValue(DISTANCE, 0) = std::min( original_dist, aux_dist );
+            } else {
+                // choosing maximum to extend water domain
+                it_node->FastGetSolutionStepValue(DISTANCE, 0) = std::max( original_dist, aux_dist );
+            }
+        }
     }
+}
+
+
+void MassConservationCheckProcess::ReCheckTheMassConservation(){
 
     // recomputation based on the new distance field.
     double pos_vol = 0.0;
@@ -183,21 +217,23 @@ double MassConservationCheckProcess::CkeckAndCorrectGlobally( Variable<double>& 
     double inter_area = 0.0;
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    const double water_volume_error = mTheoreticalNegativeVolume - neg_vol;
-    const double shift_for_correction = - water_volume_error / inter_area;
+    mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
+    mInterfaceArea = inter_area;
 
-    KRATOS_WATCH("For the global conservation process")
-    KRATOS_WATCH( mTheoreticalNegativeVolume )
-    KRATOS_WATCH( water_volume_error )
-    KRATOS_WATCH( shift_for_correction )
+}
+
+void MassConservationCheckProcess::ApplyGlobalCorrection(){
+
+    const double inter_area = mInterfaceArea;
 
     // check if it is time for a correction (if wished for)
-    if ( mPerformCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
+    if ( mPerformGlobalCorrections && mrModelPart.GetProcessInfo()[STEP] % mCorrectionFreq == 0 && inter_area > 1e-7){
         // if water is missing, a shift into negative direction increases the water volume
-        // ShiftDistanceField( shift_for_correction );
+        const double shift_for_correction = - mWaterVolumeError / inter_area;
+
+        ShiftDistanceField( shift_for_correction );
     }
 
-    return shift_for_correction;
 }
 
 
@@ -300,9 +336,11 @@ void MassConservationCheckProcess::ComputeVolumesAndInterface( double& positiveV
     interfaceArea = int_area;
 }
 
-double MassConservationCheckProcess::OrthogonalFlowIntoAir()
+double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double factor )
 {
     double outflow = 0.0;
+
+    KRATOS_ERROR_IF( std::abs( factor ) != 1.0 ) << "MassConservationPocess: Given value of argument 'factor' is not plausible." << std::endl;
 
     // #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
@@ -356,10 +394,6 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir()
                 GeometryData::GI_GAUSS_2
             );
 
-            // KRATOS_WATCH( shape_functions )     // >> [6 or 3 , 4]
-            // KRATOS_WATCH( w_gauss_interface )   // >> [6 or 3]
-            // KRATOS_WATCH( normal_vectors )       // >> [6 or 3] times [3]
-
             // iteration over all 3 or 6 integration points
             for ( unsigned int i_gauss = 0; i_gauss < w_gauss_interface.size(); i_gauss++)
             {
@@ -368,6 +402,7 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir()
 
                 auto& normal = normal_vectors[i_gauss];
                 normal /= norm_2( normal );
+                normal *= factor;
 
                 array_1d<double,3> interpolated_velocity = ZeroVector(3);
                 for (unsigned int n_node = 0; n_node < rGeom.PointsNumber(); n_node++){
@@ -380,8 +415,6 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir()
                     outflow += weight * inner_prod( normal, interpolated_velocity );
 
                 }
-
-                KRATOS_WATCH( outflow )
             }
         }
     }

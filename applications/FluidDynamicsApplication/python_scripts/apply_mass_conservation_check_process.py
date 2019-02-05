@@ -16,11 +16,12 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
         default_parameters = KratosMultiphysics.Parameters( """
         {
-            "model_part_name"                        : "default_model_part_name",
-            "perform_corrections"                    : true,
-            "correction_frequency_in_time_steps"     : 20,
-            "write_to_log_file"                      : true,
-            "log_file_name"                          : "mass_conservation.log"
+            "model_part_name"                           : "default_model_part_name",
+            "perform_local_corrections"                 : true,
+            "perform_global_corrections"                : false,
+            "correction_frequency_in_time_steps"        : 20,
+            "write_to_log_file"                         : true,
+            "log_file_name"                             : "mass_conservation.log"
         }  """ )
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -29,11 +30,11 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
         self._write_to_log = settings["write_to_log_file"].GetBool()
         self._my_log_file = settings["log_file_name"].GetString()
 
-        print( " ------------- before cosntr ---------------------")
+        self._perform_local_corr  = settings["perform_local_corrections"].GetBool()
+        self._perform_global_corr = settings["perform_global_corrections"].GetBool()
 
+        # construction of the forward convection process
         self.forward_convection_process = self._set_levelset_convection_process_serial()
-
-        print( " ------------- after cosntr ---------------------")
 
         self._is_printing_rank = ( self._fluid_model_part.GetCommunicator().MyPID() == 0 )
         self.mass_conservation_check_process = KratosFluid.MassConservationCheckProcess(self._fluid_model_part, settings)
@@ -65,27 +66,30 @@ class ApplyMassConservationCheckProcess(KratosMultiphysics.Process):
 
     def ExecuteFinalizeSolutionStep(self):
 
+        ### always necessary to keep track of the balanced volume
         log_line_string = self.mass_conservation_check_process.ComputeBalancedVolume()
 
-        # writing first line in file
+        ### writing first line in file
         if ( self._write_to_log and self._is_printing_rank ):
             with open(self._my_log_file, "a+") as logFile:
                 logFile.write( log_line_string )
 
-        dt = self.mass_conservation_check_process.ComputeDtForConvection()
-        print( "fdsjkjvkldvnjdfklfsnbjklfsbdfjklbfbjkslbfjkblgnjbkglnbjkglnbdjklgvfbnjklbnhjkfgl" )
+        # (1) #
+        if ( self._perform_local_corr ):
+            ### perform the local conservation procedure
+            dt = self.mass_conservation_check_process.ComputeDtForConvection()
+            self.forward_convection_process.ConvectForward( dt, KratosMultiphysics.AUX_MESH_VAR )
+            self.mass_conservation_check_process.ApplyLocalCorrection( KratosMultiphysics.AUX_MESH_VAR )
 
-        if dt < 0.0:
-            dt = 0.0000000000000001
+        # (2) #
+        if ( self._perform_local_corr and self._perform_global_corr ):
+            ### check how much work has already been done by the local correction process
+            self.mass_conservation_check_process.ReCheckTheMassConservation()
 
-        print( dt )
-
-        self.forward_convection_process.ConvectForward( dt, KratosMultiphysics.AUX_MESH_VAR )
-
-        for node in self._fluid_model_part.Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.AUX_MESH_VAR, node.GetValue( KratosMultiphysics.AUX_MESH_VAR ))
-
-        self.mass_conservation_check_process.CkeckAndCorrectGlobally( KratosMultiphysics.AUX_MESH_VAR )
+        # (3) #
+        if ( self._perform_global_corr ):
+            ### perform the global correction
+            self.mass_conservation_check_process.ApplyGlobalCorrection()
 
 
     def _set_levelset_convection_process_serial(self):
