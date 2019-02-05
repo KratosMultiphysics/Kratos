@@ -112,7 +112,7 @@ public:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void ExecuteInitializeSolutionStep() override
+    void ExecuteFinalizeSolutionStep() override
     {
 
         KRATOS_TRY;
@@ -134,7 +134,7 @@ public:
                 for(int i = 0; i<nnodes; i++)
                 {
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
-                    double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+                    const double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
                     it->FastGetSolutionStepValue(var) = current_temp;
 
                 }

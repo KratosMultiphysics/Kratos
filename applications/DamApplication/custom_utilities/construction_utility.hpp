@@ -720,8 +720,8 @@ class ConstructionUtility
         const double specific_heat = NoorzaiParameters["specific_heat"].GetDouble();
         const double alpha = NoorzaiParameters["alpha"].GetDouble();
         const double t_max = NoorzaiParameters["t_max"].GetDouble();
-        double time = mrThermalModelPart.GetProcessInfo()[TIME];
-        double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+        const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+        const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
         ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
 
@@ -752,18 +752,18 @@ class ConstructionUtility
             const int nnodes = mrThermalModelPart.Nodes().size();
 
             // Getting Azenha Values
-            double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
-            double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
-            double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
-            double q_total = AzenhaParameters["q_total"].GetDouble();
-            double a_coef = AzenhaParameters["A"].GetDouble();
-            double b_coef = AzenhaParameters["B"].GetDouble();
-            double c_coef = AzenhaParameters["C"].GetDouble();
-            double d_coef = AzenhaParameters["D"].GetDouble();
+            const double activation_energy = AzenhaParameters["activation_energy"].GetDouble();
+            const double gas_constant = AzenhaParameters["gas_constant"].GetDouble();
+            const double constant_rate = AzenhaParameters["constant_rate"].GetDouble();
+            const double q_total = AzenhaParameters["q_total"].GetDouble();
+            const double a_coef = AzenhaParameters["A"].GetDouble();
+            const double b_coef = AzenhaParameters["B"].GetDouble();
+            const double c_coef = AzenhaParameters["C"].GetDouble();
+            const double d_coef = AzenhaParameters["D"].GetDouble();
 
             // Temporal variables
-            double time = mrThermalModelPart.GetProcessInfo()[TIME];
-            double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
+            const double time = mrThermalModelPart.GetProcessInfo()[TIME];
+            const double delta_time = mrThermalModelPart.GetProcessInfo()[DELTA_TIME];
 
             ModelPart::NodesContainerType::iterator it_begin = mrThermalModelPart.NodesBegin();
             #pragma omp parallel for
