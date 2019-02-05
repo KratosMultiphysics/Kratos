@@ -90,7 +90,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
             "residual_absolute_tolerance": 1.0e-9,
             "max_iteration": 10,
             "linear_solver_settings":{
-                "solver_type": "AMGCL",
+                "solver_type": "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type":"gmres",
                 "coarsening_type":"aggregation",
@@ -563,7 +563,7 @@ class ConvectionDiffusionBaseSolver(PythonSolver):
         return convergence_criterion.convergence_criterion
 
     def _create_linear_solver(self):
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         linear_solver = linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
         return linear_solver
 

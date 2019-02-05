@@ -179,7 +179,7 @@ CrBeamElement3D2N::CalculateBodyForces() const {
 
   const double A = this->GetProperties()[CROSS_AREA];
   const double l = StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-  const double rho = this->GetProperties()[DENSITY];
+  const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
   // calculating equivalent line load
   for (int i = 0; i < msNumberOfNodes; ++i) {
@@ -1422,14 +1422,20 @@ void CrBeamElement3D2N::CalculateLumpedMassMatrix(
   const double total_mass = A * L * rho;
   const double temp = 0.50 * total_mass;
 
+  // w.r.t. Felippa - Chapter 31: LUMPED AND CONSISTENT MASS MATRICES - p.31–10
+  const double rotational_inertia_lumped = total_mass * L * L * GetProperties()[LUMPED_MASS_ROTATION_COEFFICIENT];
+
   // translatonal mass
   for (int i = 0; i < msNumberOfNodes; ++i) {
     for (int j = 0; j < msDimension; ++j) {
       int index = i * (msDimension * 2) + j;
       rMassMatrix(index, index) = temp;
+
+      // add rotational inertia
+      rMassMatrix(index+msDimension, index+msDimension) = rotational_inertia_lumped;
     }
   }
-  // rotaional mass neglected alpha = 0
+
   KRATOS_CATCH("")
 }
 

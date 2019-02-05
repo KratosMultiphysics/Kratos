@@ -121,7 +121,7 @@ make install -j2 -k > ${LOG_DIR}/compile_clang.log 2>&1
 
 # UnitTesting
 cd ${HOME}/Kratos/kratos/python_scripts
-python3 run_tests.py -l nightly > ${LOG_DIR}/unittest_clang.log 2>&1
+python3 run_tests.py -l nightly -c python3 > ${LOG_DIR}/unittest_clang.log 2>&1
 
 # # Benchmarking
 # cd ${HOME}/Kratos/benchmarking

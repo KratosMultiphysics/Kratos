@@ -861,9 +861,7 @@ public:
     void Clear() override
     {
         this->mDofSet = DofsArrayType();
-
-        if (this->mpReactionsVector != NULL)
-            TSparseSpace::Clear((this->mpReactionsVector));
+        this->mpReactionsVector.reset();
 //             this->mReactionsVector = TSystemVectorType();
 
         this->mpLinearSystemSolver->Clear();

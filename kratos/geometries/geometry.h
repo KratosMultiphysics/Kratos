@@ -91,7 +91,9 @@ public:
       VOLUME_TO_SURFACE_AREA,
       VOLUME_TO_EDGE_LENGTH,
       VOLUME_TO_AVERAGE_EDGE_LENGTH,
-      VOLUME_TO_RMS_EDGE_LENGTH
+      VOLUME_TO_RMS_EDGE_LENGTH,
+      MIN_DIHEDRAL_ANGLE,
+      MIN_SOLID_ANGLE
     };
 
 
@@ -773,10 +775,34 @@ public:
          quality = VolumeToAverageEdgeLength();
        } else if(qualityCriteria == QualityCriteria::VOLUME_TO_RMS_EDGE_LENGTH) {
          quality = VolumeToRMSEdgeLength();
+       } else if(qualityCriteria == QualityCriteria::MIN_DIHEDRAL_ANGLE) {
+         quality = MinDihedralAngle();
+       } else if(qualityCriteria == QualityCriteria::MIN_SOLID_ANGLE) {
+         quality = MinSolidAngle();
        }
 
        return quality;
      }
+
+    /** Calculates the dihedral angles of the geometry.
+     * Calculates the dihedral angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeDihedralAngles(Vector& rDihedralAngles )  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
+
+    /** Calculates the solid angles of the geometry.
+     * Calculates the solid angles of the geometry.
+     *
+     * @return a vector of dihedral angles of the geometry..
+     */
+    virtual inline void ComputeSolidAngles(Vector& rSolidAngles )  const
+    {
+        KRATOS_ERROR << "Called the virtual function for ComputeDihedralAngles " << *this << std::endl;
+    }
 
     ///@}
     ///@name Access
@@ -2395,6 +2421,28 @@ protected:
      */
     virtual double VolumeToRMSEdgeLength() const {
       KRATOS_ERROR << "Calling base class 'VolumeToRMSEdgeLength' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the min dihedral angle quality metric.
+     * Calculates the min dihedral angle quality metric.
+     * The min dihedral angle is min angle between two faces of the element 
+     * In radians
+     * @return [description]
+     */
+    virtual double MinDihedralAngle() const {
+      KRATOS_ERROR << "Calling base class 'MinDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+      return 0.0;
+    }
+
+    /** Calculates the min solid angle quality metric.
+     * Calculates the min solid angle quality metric.
+     * The min solid angle  [stereoradians] is the lowest solid angle "seen" from any of the 4 nodes of the geometry. Valid only for 3d elems!
+     * In stereo radians
+     * @return [description]
+     */
+    virtual double MinSolidAngle() const {
+      KRATOS_ERROR << "Calling base class 'MinSolidAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
     }
 

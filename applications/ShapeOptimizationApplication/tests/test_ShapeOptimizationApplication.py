@@ -7,26 +7,23 @@ from __future__ import print_function, absolute_import, division
 
 # Import Kratos core and apps
 from KratosMultiphysics import *
-from KratosMultiphysics import ShapeOptimizationApplication
-from KratosMultiphysics import StructuralMechanicsApplication
-from KratosMultiphysics import ExternalSolversApplication
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import necessary external applications
-try:
-    from KratosMultiphysics import EigenSolversApplication
+from KratosMultiphysics.kratos_utilities import IsApplicationAvailable
+
+# Check if external Apps are available
+if IsApplicationAvailable("EigenSolversApplication"):
     is_eigen_app_missing = False
-except ImportError as e:
-    print("WARNING: EigenSolversApplication is not available, skip related tests!")
+else:
+    print("WARNING: EigenSolversApplication is not available, skipping related tests!")
     is_eigen_app_missing = True
 
-try:
-    from KratosMultiphysics import MeshMovingApplication
+if IsApplicationAvailable("MeshMovingApplication"):
     is_mesh_moving_app_missing = False
-except ImportError as e:
-    print("WARNING: MeshMovingApplication is not available, skip related tests!")
+else:
+    print("WARNING: MeshMovingApplication is not available, skipping related tests!")
     is_mesh_moving_app_missing = True
 
 # ==============================================================================

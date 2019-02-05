@@ -197,16 +197,30 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
+     * @brief Default constructor with Parameters
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
+     * @param ThisParameters The configuration parameters
+     */
+    explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver, Parameters ThisParameters)
+    {
+        // Validate default parameters
+        Parameters default_parameters = Parameters(R"(
+        {
+        })" );
+
+        ThisParameters.ValidateAndAssignDefaults(default_parameters);
+
+        // We set the other member variables
+        mpLinearSystemSolver = pNewLinearSystemSolver;
+    }
+
+    /** 
+     * @brief Default constructor. 
+     * @param pNewLinearSystemSolver The linear solver for the system of equations
      */
     explicit BuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
-
-        mDofSetIsInitialized = false;
-
-        mReshapeMatrixFlag = false; //by default the matrix is shaped just once
-        //        mVectorsAreInitialized = false;
     }
 
     /** Destructor.
@@ -602,7 +616,7 @@ public:
     virtual void Clear()
     {
         this->mDofSet = DofsArrayType();
-        if (this->mpReactionsVector != nullptr) TSparseSpace::Clear(this->mpReactionsVector);
+        this->mpReactionsVector.reset();
         if (this->mpLinearSystemSolver != nullptr) this->mpLinearSystemSolver->Clear();
 
         KRATOS_INFO_IF("BuilderAndSolver", this->GetEchoLevel() > 0)
@@ -699,12 +713,11 @@ protected:
 
     DofsArrayType mDofSet; /// The set containing the DoF of the system
 
-    bool mReshapeMatrixFlag;  /// If the matrix is reshaped each step
-//     bool mVectorsAreInitialized;
+    bool mReshapeMatrixFlag = false;  /// If the matrix is reshaped each step
 
-    bool mDofSetIsInitialized; /// Flag taking care if the dof set was initialized ot not
+    bool mDofSetIsInitialized = false; /// Flag taking care if the dof set was initialized ot not
 
-    bool mCalculateReactionsFlag; /// Flag taking in account if it is needed or not to calculate the reactions
+    bool mCalculateReactionsFlag = false; /// Flag taking in account if it is needed or not to calculate the reactions
 
     unsigned int mEquationSystemSize; /// Number of degrees of freedom of the problem to be solve
 
