@@ -47,6 +47,10 @@ class MmgProcess(KratosMultiphysics.Process):
             "filename"                         : "out",
             "model_part_name"                  : "MainModelPart",
             "blocking_threshold_size"          : false,
+            "threshold_sizes" : {
+                "minimal_size"                     : 0.1,
+                "maximal_size"                     : 10.0
+            },
             "strategy"                         : "LevelSet",
             "level_set_strategy_parameters"              :{
                 "scalar_variable"                  : "DISTANCE",
@@ -308,10 +312,7 @@ class MmgProcess(KratosMultiphysics.Process):
                     if self.step >= self.step_frequency:
                         if self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.initial_step:
                             if self.settings["blocking_threshold_size"].GetBool():
-                                utilities_parameters = KratosMultiphysics.Parameters("""{}""")
-                                utilities_parameters.AddValue("minimal_size",self.settings["maximal_size"])
-                                utilities_parameters.AddValue("maximal_size",self.settings["maximal_size"])
-                                MeshingApplication.BlockThresholdSizeElements(self.model_part, utilities_parameters)
+                                MeshingApplication.BlockThresholdSizeElements(self.model_part, self.settings["threshold_sizes"])
                             self._ExecuteRefinement()
                             self.step = 0  # Reset
 
