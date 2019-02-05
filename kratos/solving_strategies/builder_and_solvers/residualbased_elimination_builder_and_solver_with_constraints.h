@@ -1095,8 +1095,9 @@ protected:
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
-
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+        } else {
+            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1163,6 +1164,8 @@ protected:
         if (mCleared) {
             mCleared = false;
             ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
+        } else {
+            ComputeConstraintContribution(pScheme, rModelPart, false, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1255,14 +1258,12 @@ protected:
             // Resizing the system vector
             if (mpConstantVector->size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
                 mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-                const double aux_constant_value = ComputeConstraintContribution(pScheme, rModelPart);
-                mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
+                mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
             } else {
                 if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                     mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-                    const double aux_constant_value = ComputeConstraintContribution(pScheme, rModelPart);
-                    mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
+                    mComputeConstantContribution = ComputeConstraintContribution(pScheme, rModelPart);
                 }
             }
         }
@@ -1863,9 +1864,9 @@ private:
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
      * @param rb The RHS vector
-     * @return Absolute constant contribution
+     * @return If there are constant constraints
      */
-    double ComputeConstraintContribution(
+    bool ComputeConstraintContribution(
         typename TSchemeType::Pointer pScheme,
         ModelPart& rModelPart,
         const bool ComputeTranslationMatrix = false,
@@ -1916,8 +1917,13 @@ private:
 
         const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
 
+        std::unordered_set<IndexType> auxiliar_constant_equations_ids;
+
         #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
         {
+            std::unordered_set<IndexType> auxiliar_temp_constant_equations_ids;
+            auxiliar_temp_constant_equations_ids.reserve(2000);
+
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
@@ -1941,12 +1947,13 @@ private:
                         for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
                             const IndexType i_global = slave_equation_id[i];
                             if (i_global < BaseType::mEquationSystemSize) {
-                                double& r_value = rConstantVector[i_global];
                                 const double constant_value = constant_vector[i];
-                                #pragma omp atomic
-                                r_value += constant_value;
-                                #pragma omp atomic
-                                aux_constant_value += std::abs(constant_value);
+                                if (std::abs(constant_value) > 0.0) {
+                                    auxiliar_temp_constant_equations_ids.insert(i_global);
+                                    double& r_value = rConstantVector[i_global];
+                                    #pragma omp atomic
+                                    r_value += constant_value;
+                                }
                             }
                         }
                     } else {
@@ -1966,9 +1973,50 @@ private:
                     }
                 }
             }
+
+            // We merge all the sets in one thread
+            #pragma omp critical
+            {
+                auxiliar_constant_equations_ids.insert(auxiliar_temp_constant_equations_ids.begin(), auxiliar_temp_constant_equations_ids.end());
+            }
         }
 
-        return aux_constant_value;
+        // Compute the effective constant vector
+        if (ComputeConstantVector) {
+            TSystemVectorType u(BaseType::mEquationSystemSize);
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                auto it_dof = BaseType::mDofSet.begin() + i;
+                u[i] = it_dof->GetSolutionStepValue();
+            }
+            TSystemVectorType u_bar(mDoFToSolveSystemSize);
+            IndexType counter = 0;
+            for (IndexType i = 0; i < BaseType::mEquationSystemSize; ++i) {
+                auto it_dof = BaseType::mDofSet.begin() + i;
+
+                auto it = mDoFSlaveSet.find(*it_dof);
+                if (it == mDoFSlaveSet.end()) {
+                    u_bar[counter] = it_dof->GetSolutionStepValue();
+                    counter += 1;
+                }
+            }
+            TSystemVectorType u_bar_translated(BaseType::mEquationSystemSize);
+            TSparseSpace::Mult(rTMatrix, u_bar, u_bar_translated);
+            TSparseSpace::UnaliasedAdd(u, -1.0, u_bar_translated);
+
+            TSystemVectorType effective_delta_u(BaseType::mEquationSystemSize);
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                effective_delta_u[i] = 0.0;
+            }
+            for (IndexType equation_id : auxiliar_constant_equations_ids) {
+                effective_delta_u[equation_id] = u[equation_id];
+            }
+
+            TSparseSpace::UnaliasedAdd(rConstantVector, -1.0, u);
+        }
+
+        return aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
     }
 
     ///@}
