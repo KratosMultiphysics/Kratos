@@ -6,7 +6,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return AssignGravityToParticleProcess(Model, settings["Parameters"])
 
-##all the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class AssignGravityToParticleProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
@@ -49,4 +49,5 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
     def ExecuteBeforeSolutionLoop(self):
         # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
         for element in self.model_part.Elements:
-            element.SetValue(KratosParticle.MP_VOLUME_ACCELERATION,self.gravity_acceleration) 
+            element.SetValue(KratosParticle.MP_VOLUME_ACCELERATION,self.gravity_acceleration)
+            element.SetValue(KratosParticle.MP_ACCELERATION,self.gravity_acceleration)

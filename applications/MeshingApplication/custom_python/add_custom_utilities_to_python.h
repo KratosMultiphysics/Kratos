@@ -1,11 +1,14 @@
+// KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
+//        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
+//        | |\/| |  _| \___ \| |_| || ||  \| | |  _
+//        | |  | | |___ ___) |  _  || || |\  | |_| |
+//        |_|  |_|_____|____/|_| |_|___|_| \_|\____| APPLICATION
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: antonia $
-//   Date:                $Date: 2008-10-02 09:16:31 $
-//   Revision:            $Revision: 1.1 $
+//  License:		 BSD License
+//                       license: MeshingApplication/license.txt
 //
+//  Main authors:    Antonia Larese
 //
-
 
 #if !defined(KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED )
 #define  KRATOS_ADD_UTILITIES_TO_PYTHON_H_INCLUDED

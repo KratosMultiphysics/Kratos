@@ -1,10 +1,10 @@
-// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___ 
+// KRATOS ___ ___  _  ___   __   ___ ___ ___ ___
 //       / __/ _ \| \| \ \ / /__|   \_ _| __| __|
-//      | (_| (_) | .` |\ V /___| |) | || _|| _| 
+//      | (_| (_) | .` |\ V /___| |) | || _|| _|
 //       \___\___/|_|\_| \_/    |___/___|_| |_|  APPLICATION
 //
 //  License: BSD License
-//   license: convection_diffusion_application/license.txt
+//					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -24,16 +24,13 @@
 #include "includes/kratos_application.h"
 #include "convection_diffusion_application_variables.h"
 
-#include "custom_elements/eulerian_conv_diff.h"
-
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
-#include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/eulerian_diff.h"
-
+#include "custom_elements/eulerian_conv_diff.h"
 #include "custom_elements/laplacian_element.h"
-#include "custom_conditions/thermal_face2D.h"
-#include "custom_conditions/thermal_face3D.h"
+
+#include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
 
 #include "includes/variables.h"
@@ -62,11 +59,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** 
+/**
  * @class KratosConvectionDiffusionApplication
  * @ingroup KratosConvectionDiffusionApplication
- * @brief The Convection DIffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
- * @details The application includes tests to check the proper functioning of the application. Features:  
+ * @brief The Convection Diffusion Application contains a series of elements and conditions and the corresponding strategies and solvers within Kratos Multiphysics necesaries in order to simulate a convection-diffusion problem
+ * @details The application includes tests to check the proper functioning of the application. Features:
 - A set of *Neumann* conditions:
      * Flux conditions
      * Thermal conditions
@@ -234,8 +231,9 @@ private:
     const LaplacianElement mLaplacian3D4N;
     const LaplacianElement mLaplacian3D8N;
     const LaplacianElement mLaplacian3D27N;
-    const ThermalFace2D  mThermalFace2D;
-    const ThermalFace3D  mThermalFace3D;
+    const ThermalFace mThermalFace2D2N;
+    const ThermalFace mThermalFace3D3N;
+    const ThermalFace mThermalFace3D4N;
     const FluxCondition<2>  mFluxCondition2D2N;
     const FluxCondition<3>  mFluxCondition3D3N;
     const FluxCondition<4>  mFluxCondition3D4N;
@@ -292,5 +290,3 @@ private:
 }  // namespace Kratos.
 
 #endif // KRATOS_KRATOS_CONVECTION_DIFFUSION_APPLICATION_H_INCLUDED  defined
-
-

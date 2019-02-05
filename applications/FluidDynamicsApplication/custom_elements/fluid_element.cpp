@@ -16,7 +16,10 @@
 
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
+#include "custom_utilities/fic_data.h"
+#include "custom_utilities/time_integrated_fic_data.h"
 #include "custom_utilities/symbolic_navier_stokes_data.h"
+#include "custom_utilities/two_fluid_navier_stokes_data.h"
 #include "custom_utilities/element_size_calculator.h"
 #include "custom_utilities/vorticity_utilities.h"
 
@@ -124,10 +127,9 @@ void FluidElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
-            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
-                shape_derivatives[g]);
-
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),shape_derivatives[g]);
 
             this->AddTimeIntegratedSystem(
                 data, rLeftHandSideMatrix, rRightHandSideVector);
@@ -159,10 +161,9 @@ void FluidElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSide
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
-                shape_derivatives[g]);
-
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),shape_derivatives[g]);
 
             this->AddTimeIntegratedLHS(data, rLeftHandSideMatrix);
         }
@@ -192,10 +193,9 @@ void FluidElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSi
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
-                shape_derivatives[g]);
-
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),shape_derivatives[g]);
 
             this->AddTimeIntegratedRHS(data, rRightHandSideVector);
         }
@@ -231,10 +231,9 @@ void FluidElement<TElementData>::CalculateLocalVelocityContribution(
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
             const auto& r_dndx = shape_derivatives[g];
-            data.UpdateGeometryValues(
-                g, gauss_weights[g], row(shape_functions, g), r_dndx);
-            
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),r_dndx);
 
             this->AddVelocitySystem(data, rDampMatrix, rRightHandSideVector);
         }
@@ -265,10 +264,9 @@ void FluidElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
 
         // Iterate over integration points to evaluate local contribution
         for (unsigned int g = 0; g < number_of_gauss_points; g++) {
-            data.UpdateGeometryValues(g, gauss_weights[g], row(shape_functions, g),
-                shape_derivatives[g]);
-
-            this->CalculateMaterialResponse(data);
+            this->UpdateIntegrationPointData(
+                data, g, gauss_weights[g],
+                row(shape_functions, g),shape_derivatives[g]);
 
             this->AddMassLHS(data, rMassMatrix);
         }
@@ -473,6 +471,11 @@ void FluidElement<TElementData>::GetValueOnIntegrationPoints(
 
         VorticityUtilities<Dim>::CalculateVorticityMagnitude(this->GetGeometry(),shape_function_gradients,rValues);
     }
+    else if (rVariable == UPDATE_STATISTICS)
+    {
+        KRATOS_DEBUG_ERROR_IF(!rCurrentProcessInfo.Has(STATISTICS_CONTAINER)) << "Trying to compute turbulent statistics, but ProcessInfo does not have STATISTICS_CONTAINER defined." << std::endl;
+        rCurrentProcessInfo.GetValue(STATISTICS_CONTAINER)->UpdateStatistics(this);
+    }
 }
 
 template <class TElementData>
@@ -538,7 +541,7 @@ array_1d<double, 3> FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
-    array_1d<double, 3> result(3, 0.0);
+    array_1d<double, 3> result = ZeroVector(3);
 
     for (size_t i = 0; i < NumNodes; i++) {
         for (size_t j = 0; j < Dim; j++) {
@@ -555,6 +558,19 @@ double FluidElement<TElementData>::GetAtCoordinate(
     const typename TElementData::ShapeFunctionsType& rN) const
 {
     return Value;
+}
+
+template <class TElementData>
+void FluidElement<TElementData>::UpdateIntegrationPointData(
+    TElementData& rData,
+    unsigned int IntegrationPointIndex,
+    double Weight,
+    const typename TElementData::MatrixRowType& rN,
+    const typename TElementData::ShapeDerivativesType& rDN_DX) const
+{
+    rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
+
+    this->CalculateMaterialResponse(rData);
 }
 
 template <class TElementData>
@@ -686,12 +702,12 @@ void FluidElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
-void FluidElement<TElementData>::AddBoundaryIntegral(TElementData& rData,
+void FluidElement<TElementData>::AddBoundaryTraction(TElementData& rData,
     const Vector& rUnitNormal, MatrixType& rLHS, VectorType& rRHS) {
 
     KRATOS_TRY;
 
-    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryIntegral "
+    KRATOS_ERROR << "Calling base FluidElement::AddBoundaryTraction "
                     "implementation. This method is not supported by your "
                     "element."
                  << std::endl;
@@ -703,7 +719,7 @@ template <class TElementData>
 void FluidElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
-        
+
     int local_index = 0;
 
     const auto& r_velocities = rData.Velocity;
@@ -799,6 +815,18 @@ template class FluidElement< QSVMSData<3,8> >;
 
 template class FluidElement< TimeIntegratedQSVMSData<2,3> >;
 template class FluidElement< TimeIntegratedQSVMSData<3,4> >;
+
+template class FluidElement< FICData<2,3> >;
+template class FluidElement< FICData<3,4> >;
+
+template class FluidElement< FICData<2,4> >;
+template class FluidElement< FICData<3,8> >;
+
+template class FluidElement< TimeIntegratedFICData<2,3> >;
+template class FluidElement< TimeIntegratedFICData<3,4> >;
+
+template class FluidElement< TwoFluidNavierStokesData<2, 3> >;
+template class FluidElement< TwoFluidNavierStokesData<3, 4> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

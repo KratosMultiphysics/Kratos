@@ -3,9 +3,10 @@ from KratosMultiphysics.@{APP_NAME_CAMEL}Application import *
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
+import os
 
 def GetFilePath(fileName):
-    return os.path.dirname(__file__) + "/" + fileName
+    return os.path.join(os.path.dirname(__file__), fileName)
 
 
 class Kratos@{APP_NAME_CAMEL}GeneralTests(KratosUnittest.TestCase):
@@ -19,10 +20,10 @@ class Kratos@{APP_NAME_CAMEL}GeneralTests(KratosUnittest.TestCase):
         pass
 
     def testSmallExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)
 
     def testNightlyFirstExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)
 
     def testNightlySecondExample(self):
-        self.AssertEqual(True, True)
+        self.assertEqual(True, True)

@@ -1,9 +1,16 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:              L Gracia $
-//   Date:                $Date:              March 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//                   Lorenzo Gracia
+//
+
 
 // Application includes
 #include "custom_elements/small_displacement_interface_element.hpp" 
@@ -173,7 +180,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateMassMatrix( Mat
     const double Density = Prop[DENSITY];
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nut = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -245,7 +252,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::FinalizeSolutionStep( Pr
     const GeometryType& Geom = this->GetGeometry();
     const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     BoundedMatrix<double,TDim, TDim> RotationMatrix;
     this->CalculateRotationMatrix(RotationMatrix,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -675,7 +682,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
         BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
         BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -720,7 +727,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
             
             noalias(LocalStressVector) = StressVectorDynamic;
             
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalStressVector);
         }
     }
     else if(rVariable == LOCAL_RELATIVE_DISPLACEMENT_VECTOR)
@@ -729,7 +736,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
         const GeometryType& Geom = this->GetGeometry();
         const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
         array_1d<double,TNumNodes*TDim> DisplacementVector;
-        ElementUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+        PoroElementUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
         BoundedMatrix<double,TDim, TDim> RotationMatrix;
         this->CalculateRotationMatrix(RotationMatrix,Geom);
         BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
@@ -745,7 +752,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateOnIntegrationPo
             
             noalias(LocalRelDispVector) = prod(RotationMatrix,RelDispVector);
                         
-            ElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
+            PoroElementUtilities::FillArray1dOutput(rOutput[GPoint],LocalRelDispVector);
         }
     }
         
@@ -961,7 +968,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateAll( MatrixType
         this->CheckAndCalculateJointWidth(Variables.JointWidth,ConstitutiveParameters,Variables.StrainVector[TDim-1], MinimumJointWidth, GPoint);
         
         //Compute BodyAcceleration
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
                
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1024,7 +1031,7 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::CalculateRHS( VectorType
 
         
         //Compute BodyAcceleration
-        ElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
+        PoroElementUtilities::InterpolateVariableWithComponents(Variables.BodyAcceleration,NContainer,Variables.VolumeAcceleration,GPoint);
 
         //Compute constitutive tensor and stresses
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(ConstitutiveParameters);
@@ -1050,8 +1057,8 @@ void SmallDisplacementInterfaceElement<TDim,TNumNodes>::InitializeElementVariabl
     //Properties variables    
     rVariables.Density = Prop[DENSITY];
 
-    ElementUtilities::GetDisplacementsVector(rVariables.DisplacementVector,Geom);
-    ElementUtilities::GetVolumeAccelerationVector(rVariables.VolumeAcceleration,Geom);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.DisplacementVector,Geom,DISPLACEMENT);
+    PoroElementUtilities::GetNodalVariableVector(rVariables.VolumeAcceleration,Geom,VOLUME_ACCELERATION);
     
     //General Variables
     this->CalculateRotationMatrix(rVariables.RotationMatrix,Geom);

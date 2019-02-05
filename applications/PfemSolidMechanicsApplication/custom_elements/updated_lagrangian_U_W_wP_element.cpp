@@ -380,9 +380,9 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::InitializeElementVariables (ElementVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void UpdatedLagrangianUWwPElement::InitializeElementData (ElementDataType & rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
-      UpdatedLagrangianElement::InitializeElementVariables(rVariables,rCurrentProcessInfo);
+      UpdatedLagrangianElement::InitializeElementData(rVariables,rCurrentProcessInfo);
 
       // SAVE THE TIME STEP, THAT WILL BE USED; BUT IS A BAD IDEA TO DO IT THIS WAY.
       mTimeStep = rCurrentProcessInfo[DELTA_TIME];
@@ -402,7 +402,7 @@ namespace Kratos
          initial_porosity = GetProperties()[INITIAL_POROSITY];
       }
       else if( rCurrentProcessInfo.Has(INITIAL_POROSITY) ){
-         KozenyCarman = rCurrentProcessInfo[INITIAL_POROSITY];
+         initial_porosity = rCurrentProcessInfo[INITIAL_POROSITY];
       }
       GetProperties().SetValue(INITIAL_POROSITY, initial_porosity);
 
@@ -451,7 +451,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       KRATOS_TRY
@@ -477,7 +477,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Matrix due to the the water pressure contribution to the internal forces   
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddKUwP( MatrixType & rLeftHandSide, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -519,7 +519,7 @@ namespace Kratos
 
    //************************************************************************************
    //         Material stiffness matrix
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddKuum( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -549,7 +549,7 @@ namespace Kratos
 
    //************************************************************************************
    //      Water material Matrix
-   void UpdatedLagrangianUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementVariables& rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddKWwP( MatrixType & rLeftHandSide, ElementDataType& rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -587,7 +587,7 @@ namespace Kratos
 
    // ***********************************************************************************
    // ***********************************************************************************
-   void UpdatedLagrangianUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -622,7 +622,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    mass balance equation of the mixture (aka: Darcy's Law ) 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddMassBalanceEquation( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
       // a convective term may go here. not coded yet. 
@@ -631,7 +631,7 @@ namespace Kratos
 
    // **********************************************************************************
    //    linear momentum balance equation of the fluid phase (aka: Darcy's Law ) 
-   void UpdatedLagrangianUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementVariables & rVariables, double & rIntegrationWeight)
+   void UpdatedLagrangianUWwPElement::CalculateAndAddFluidLinearMomentum( VectorType & rRightHandSideVector, ElementDataType & rVariables, double & rIntegrationWeight)
    {
       KRATOS_TRY
 
@@ -669,7 +669,7 @@ namespace Kratos
 
    // **************************************************************************
    // Calculate and Add volumetric loads
-   void UpdatedLagrangianUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementVariables & rVariables, 
+   void UpdatedLagrangianUWwPElement::CalculateAndAddExternalForces( VectorType & rRightHandSideVector, ElementDataType & rVariables, 
          Vector & rVolumeForce, double & rIntegrationWeight)
    {
       KRATOS_TRY
@@ -699,6 +699,7 @@ namespace Kratos
       for (unsigned int i = 0; i < number_of_nodes; i++) {
          for (unsigned int iDim = 0; iDim < dimension; iDim++) {
             rRightHandSideVector(i*dofs_per_node + iDim) += rIntegrationWeight * density_mixture *  rN(i) * rVolumeForce(iDim);
+            rRightHandSideVector(i*dofs_per_node + dimension + iDim) += rIntegrationWeight * density_water *  rN(i) * rVolumeForce(iDim);
          }
       }
 
@@ -713,7 +714,7 @@ namespace Kratos
    // **********************************************************************************
    //         CalculateAndAddInternalForces
    void UpdatedLagrangianUWwPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
+         ElementDataType & rVariables,
          double& rIntegrationWeight
          )
    {
@@ -768,8 +769,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
       double density_mixture0 = GetProperties()[DENSITY];
       double WaterDensity =GetProperties().GetValue(DENSITY_WATER);
@@ -805,13 +806,20 @@ namespace Kratos
                }
             }
          }
-
+         this->CalculateAndAddMassStabilizationMatrix( rMassMatrix, Variables, IntegrationWeight);
       }
 
       KRATOS_CATCH("")
    }
 
+   // ********************************************************************************
+   //      part of the mass matrix that steams from the stabilization factor
+   void UpdatedLagrangianUWwPElement::CalculateAndAddMassStabilizationMatrix( MatrixType & rMassMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
 
+      KRATOS_CATCH("")
+   }
    // *********************************************************************************
    //         Calculate the Damping matrix
    void UpdatedLagrangianUWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
@@ -834,8 +842,8 @@ namespace Kratos
 
       const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( CurrentIntegrationMethod  );
 
-      ElementVariables Variables;
-      this->InitializeElementVariables(Variables,rCurrentProcessInfo);
+      ElementDataType Variables;
+      this->InitializeElementData(Variables,rCurrentProcessInfo);
 
 
 
@@ -905,46 +913,64 @@ namespace Kratos
             }
          }
 
+         this->CalculateAndAddDampingStabilizationMatrix(rDampingMatrix, Variables, IntegrationWeight);
+
+      } // end point
+      KRATOS_CATCH("")
+   }
 
 
-         // Stabilization of the mass balance equation
-         const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
-         if ( ( fabs(rStabilizationFactor) > 1.0e-6) && dimension==2)  {
+   // ********************************************************************************
+   //      part of the damping matrix that steams from the stabilization factor
+   void UpdatedLagrangianUWwPElement::CalculateAndAddDampingStabilizationMatrix( MatrixType & rDampingMatrix, ElementDataType & rVariables, double & rIntegrationWeight)
+   {
+      KRATOS_TRY
 
-            double StabFactor = CalculateStabilizationFactor( Variables, StabFactor);
+      
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int number_of_nodes = GetGeometry().size();
+      const unsigned int dofs_per_node = 2*dimension + 1;
+      
+      
+      const double & rStabilizationFactor = GetProperties()[STABILIZATION_FACTOR_WP];
+      if  ( fabs(rStabilizationFactor) > 1.0e-6)   {
+
+         double StabFactor = CalculateStabilizationFactor( rVariables, StabFactor);
 
 
-            Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
+         Matrix SmallMatrix = ZeroMatrix(number_of_nodes, number_of_nodes);
 
-            double consistent;
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
-               for (unsigned int j = 0; j < number_of_nodes; j++) {
+         double consistent;
+         for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               if ( dimension == 2) {
                   consistent = -1.0 * StabFactor / 18.0;
                   if ( i == j)
                      consistent = 2.0 * StabFactor / 18.0;
-                  SmallMatrix(i,j) += consistent * IntegrationWeight ;
+               } else if (dimension == 3) {
+                  consistent = -1.0 * StabFactor / 80.0;
+                  if ( i == j)
+                     consistent = 3.0 * StabFactor / 80.0;
+               } else {
+                  consistent = 0;
                }
+               SmallMatrix(i,j) += consistent * rIntegrationWeight ;
             }
-
-            for (unsigned int i = 0; i < number_of_nodes; i++) {
-               for (unsigned int j = 0; j < number_of_nodes; j++) {
-                  rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
-               }
-            }
-
-
          }
 
+         for (unsigned int i = 0; i < number_of_nodes; i++) {
+            for (unsigned int j = 0; j < number_of_nodes; j++) {
+               rDampingMatrix( (i+1)*dofs_per_node-1, (j+1)*dofs_per_node-1) += SmallMatrix(i,j);
+            }
+         }
+      }
 
-
-
-      } // end point
       KRATOS_CATCH("")
    }
    //************************************************************************************
    //************************************************************************************
 
-   double & UpdatedLagrangianUWwPElement::CalculateStabilizationFactor( ElementVariables & rVariables, double & rStabFactor)
+   double & UpdatedLagrangianUWwPElement::CalculateStabilizationFactor( ElementDataType & rVariables, double & rStabFactor)
    {
       KRATOS_TRY
 
@@ -978,6 +1004,7 @@ namespace Kratos
       double StabilizationFactor = GetProperties().GetValue( STABILIZATION_FACTOR_WP);
 
       rStabFactor = 2.0 / ConstrainedModulus - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
+      rStabFactor = 2.0 / ConstrainedModulus; // - 12.0 * rPermeability * mTimeStep / pow(ElementSize, 2); 
 
       if ( rStabFactor < 0.0)
          rStabFactor = 0.0; 

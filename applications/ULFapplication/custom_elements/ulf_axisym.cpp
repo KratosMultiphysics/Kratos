@@ -103,10 +103,10 @@ void UlfAxisym::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType
 {
     KRATOS_TRY
 
-    boost::numeric::ublas::bounded_matrix<double,4,6> msB;
-    boost::numeric::ublas::bounded_matrix<double,4,4> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,4,6> ms_temp;
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    BoundedMatrix<double,4,6> msB;
+    BoundedMatrix<double,4,4> ms_constitutive_matrix;
+    BoundedMatrix<double,4,6> ms_temp;
+    BoundedMatrix<double,3,2> msDN_Dx;
     array_1d<double,3> msN; //dimension = number of nodes
 
     const double& density = 0.333333333*(GetGeometry()[0].FastGetSolutionStepValue(DENSITY)+
@@ -349,10 +349,10 @@ void UlfAxisym::CalculateDampingMatrix(MatrixType& rDampMatrix, ProcessInfo& rCu
     is_wall += GetGeometry()[2].FastGetSolutionStepValue(IS_STRUCTURE);
 
     //KRATOS_WATCH("ULF_AXiSYM")
-    boost::numeric::ublas::bounded_matrix<double,4,6> msB;
-    boost::numeric::ublas::bounded_matrix<double,4,4> ms_constitutive_matrix;
-    boost::numeric::ublas::bounded_matrix<double,4,6> ms_temp;
-    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_Dx;
+    BoundedMatrix<double,4,6> msB;
+    BoundedMatrix<double,4,4> ms_constitutive_matrix;
+    BoundedMatrix<double,4,6> ms_temp;
+    BoundedMatrix<double,3,2> msDN_Dx;
     array_1d<double,3> msN; //dimension = number of nodes
 
     unsigned int number_of_nodes = GetGeometry().size();

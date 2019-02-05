@@ -187,7 +187,7 @@ protected:
         array_1d<double,2> velocity;
         array_1d<double,2> momentum;
         array_1d<double,2> height_grad;
-        bounded_matrix<double,2,2> velocity_grad;
+        BoundedMatrix<double,2,2> velocity_grad;
         double velocity_div;
 
         array_1d<double, TNumNodes*3> depth;
@@ -198,13 +198,13 @@ protected:
 
     void InitializeElement(ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateGeometry(bounded_matrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
+    void CalculateGeometry(BoundedMatrix<double, TNumNodes, 2>& rDN_DX, double& rArea);
 
-    double ComputeElemSize(const bounded_matrix<double, TNumNodes, 2>& rDN_DX);
+    double ComputeElemSize(const BoundedMatrix<double, TNumNodes, 2>& rDN_DX);
 
     void GetNodalValues(ElementVariables& rVariables);
 
-    void GetElementValues(const bounded_matrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
+    void GetElementValues(const BoundedMatrix<double,TNumNodes, 2>& rDN_DX, ElementVariables& rVariables);
 
     void ComputeStabilizationParameters(const ElementVariables& rVariables,
                                         const double& rElemSize,
@@ -213,15 +213,15 @@ protected:
                                         double& rKdc);
 
     void ComputeAuxMatrices(
-            const bounded_matrix<double,TNumNodes, TNumNodes>& rNcontainer,
-            const bounded_matrix<double,TNumNodes,2>& rDN_DX,
+            const BoundedMatrix<double,TNumNodes, TNumNodes>& rNcontainer,
+            const BoundedMatrix<double,TNumNodes,2>& rDN_DX,
             const ElementVariables& rVariables,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
-            bounded_matrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff );
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixScalar,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rMassMatrixVector,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarGrad,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiv,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rScalarDiff,
+            BoundedMatrix<double,TNumNodes*3,TNumNodes*3>& rVectorDiff );
 
     ///@}
     ///@name Protected  Access

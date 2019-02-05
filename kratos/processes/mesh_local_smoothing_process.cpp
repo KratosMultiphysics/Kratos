@@ -34,14 +34,9 @@ namespace Kratos
         ModelPart &rModelPart,
         double AptQuality,
         std::size_t IterationsNumber,
-        const Flags rBoundaryFlag)
-        : mrModelPart(rModelPart),
-          mAptQuality(AptQuality),
-          mMaxIterationsNumber(IterationsNumber),
-          mrBoundaryFlag(rBoundaryFlag),
-          mNumberOfLowQualityElements(0),
-          mMeshMinQuality(0.00),
-          mMeshQualityNorm(0.00)
+        const Flags& rBoundaryFlag)
+		:mrModelPart(rModelPart), mMaxIterationsNumber(IterationsNumber), mAptQuality(AptQuality), mNumberOfLowQualityElements(0)
+		,mMeshMinQuality(0.00), mMeshQualityNorm(0.00), mrBoundaryFlag(rBoundaryFlag)
 	{
 
 	}

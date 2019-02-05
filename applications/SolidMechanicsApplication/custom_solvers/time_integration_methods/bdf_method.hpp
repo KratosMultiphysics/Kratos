@@ -81,7 +81,7 @@ namespace Kratos
 
     /// Constructor.
     BdfMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative) : BaseType(rVariable,rFirstDerivative,rSecondDerivative) {}
-    
+
     /// Constructor.
     BdfMethod(const TVariableType& rVariable, const TVariableType& rFirstDerivative, const TVariableType& rSecondDerivative, const TVariableType& rPrimaryVariable) : BaseType(rVariable,rFirstDerivative,rSecondDerivative,rPrimaryVariable) {}
 
@@ -101,7 +101,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~BdfMethod(){}
+    ~BdfMethod() override{}
 
     ///@}
     ///@name Operators
@@ -115,9 +115,9 @@ namespace Kratos
     void CalculateParameters(ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
-            
+
      const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-     
+
      if (delta_time < 1.0e-24)
         {
 	  KRATOS_ERROR << " ERROR: detected delta_time = 0 in the Solution Method DELTA_TIME. PLEASE : check if the time step is created correctly for the current model part " << std::endl;
@@ -135,12 +135,12 @@ namespace Kratos
        if( mBDF.size() > 1 && (order + 1) != mBDF.size() )
          order = mBDF.size()-1;
      }
-     
+
      if (mBDF.size() == 0 ){
-       
+
        //if (mBDF.size() != (order + 1))
        mBDF.resize(order + 1,false);
-     
+
        // Compute the BDF coefficients from order
        switch(order) {
          case 1 :
@@ -188,21 +188,21 @@ namespace Kratos
 
      }
 
-     rCurrentProcessInfo[TIME_INTEGRATION_ORDER] = order;     
+     rCurrentProcessInfo[TIME_INTEGRATION_ORDER] = order;
      rCurrentProcessInfo[BDF_COEFFICIENTS] = mBDF;
-     
+
      this->SetParameters(rCurrentProcessInfo);
-     
+
      KRATOS_CATCH( "" )
     }
-    
+
     // set parameters (do not calculate parameters here, only read them)
     void SetParameters(const ProcessInfo& rCurrentProcessInfo) override
     {
      KRATOS_TRY
 
      const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-     
+
      mOrder = 1;
      if (rCurrentProcessInfo.Has(TIME_INTEGRATION_ORDER))
      {
@@ -215,7 +215,7 @@ namespace Kratos
        if( mBDF.size() > 1 && (mOrder + 1) != mBDF.size() )
          mOrder = mBDF.size()-1;
      }
-     
+
      mDeltaTime = delta_time;
 
      KRATOS_CATCH( "" )
@@ -227,7 +227,7 @@ namespace Kratos
      KRATOS_TRY
 
      rCurrentProcessInfo[BDF_COEFFICIENTS] = mBDF;
-     
+
      KRATOS_CATCH( "" )
     }
 
@@ -246,7 +246,7 @@ namespace Kratos
       int ErrorCode = 0;
       ErrorCode = BaseType::Check(rCurrentProcessInfo);
 
-      // Check that all required variables have been registered               
+      // Check that all required variables have been registered
       if( this->mpFirstDerivative == nullptr ){
         KRATOS_ERROR << " time integration method FirstDerivative not set " <<std::endl;
       }
@@ -260,31 +260,16 @@ namespace Kratos
       else{
         KRATOS_CHECK_VARIABLE_KEY((*this->mpSecondDerivative));
       }
-      
+
       return ErrorCode;
-      
+
       KRATOS_CATCH("")
     }
-    
+
 
     ///@}
     ///@name Access
     ///@{
-
-    // get parameters
-    double& GetFirstDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0];
-      return rParameter;
-    }
-
-    double& GetSecondDerivativeInertialParameter(double& rParameter) override
-    {
-      rParameter = mBDF[0]*mBDF[0];
-      return rParameter;
-    }
-
-
 
     ///@}
     ///@name Inquiry
@@ -353,7 +338,7 @@ namespace Kratos
       // const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
       // const TValueType& PreviousSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 1);
       // CurrentVariable = PreviousVariable + mDeltaTime * PreviousFirstDerivetive + 0.5 * mDeltaTime * mDeltaTime * PreviousSecondDerivative;
-      
+
       CurrentFirstDerivative  -= CurrentFirstDerivative;
       CurrentSecondDerivative -= CurrentSecondDerivative;
 
@@ -368,14 +353,14 @@ namespace Kratos
       // predict variable from first derivative
       TValueType& CurrentVariable                = rNode.FastGetSolutionStepValue(*this->mpVariable,         0);
       const TValueType& PreviousVariable         = rNode.FastGetSolutionStepValue(*this->mpVariable,         1);
-      
+
       TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
-     
+
       CurrentVariable = (CurrentFirstDerivative - mBDF[1] * PreviousVariable)/mBDF[0];
-      
+
       TValueType& CurrentSecondDerivative        = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative, 0);
-      
+
       CurrentFirstDerivative   = PreviousFirstDerivative;
       CurrentSecondDerivative -= CurrentSecondDerivative;
 
@@ -397,7 +382,7 @@ namespace Kratos
 
       CurrentFirstDerivative = (CurrentSecondDerivative - mBDF[1] * PreviousFirstDerivative)/mBDF[0];
       CurrentVariable = (CurrentFirstDerivative - mBDF[1] * PreviousVariable)/mBDF[0];
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -405,19 +390,21 @@ namespace Kratos
     {
       KRATOS_TRY
 
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
       this->PredictVariable(rNode);
       this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 
       KRATOS_CATCH( "" )
     }
-    
+
     void PredictFromFirstDerivative(NodeType& rNode) override
     {
       KRATOS_TRY
 
       this->PredictVariable(rNode);
-      this->PredictFirstDerivative(rNode);
+      //if(this->Is(TimeIntegrationLocalFlags::NOT_PREDICT_PRIMARY_VARIABLE))
+      //this->PredictFirstDerivative(rNode);
       this->PredictSecondDerivative(rNode);
 
       KRATOS_CATCH( "" )
@@ -447,7 +434,7 @@ namespace Kratos
       TValueType& CurrentFirstDerivative         = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  0);
 
       CurrentFirstDerivative = mBDF[0] * CurrentVariable + mBDF[1] * PreviousVariable;
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -461,11 +448,11 @@ namespace Kratos
       const TValueType& PreviousFirstDerivative  = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative,  1);
 
       CurrentSecondDerivative =  mBDF[0] * CurrentFirstDerivative + mBDF[1] * PreviousFirstDerivative;
-      
+
       KRATOS_CATCH( "" )
     }
 
-    
+
     void UpdateFromVariable(NodeType& rNode) override
     {
       KRATOS_TRY
@@ -474,7 +461,7 @@ namespace Kratos
       CurrentFirstDerivative = mBDF[0] * rNode.FastGetSolutionStepValue(*this->mpVariable, 0);
       for(unsigned int i= 1; i<=mOrder; ++i)
         CurrentFirstDerivative += mBDF[i] * rNode.FastGetSolutionStepValue(*this->mpVariable, i);
-      
+
       TValueType& CurrentSecondDerivative = rNode.FastGetSolutionStepValue(*this->mpSecondDerivative,  0);
       CurrentSecondDerivative = mBDF[0] * rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
       for(unsigned int i= 1; i<=mOrder; ++i)
@@ -488,8 +475,8 @@ namespace Kratos
     {
       KRATOS_TRY
 
-      TValueType& CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpVariable,  0);      
-      CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);      
+      TValueType& CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpVariable,  0);
+      CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
       for(unsigned int i= 1; i<=mOrder; ++i)
         CurrentVariable -= mBDF[i] * rNode.FastGetSolutionStepValue(*this->mpVariable, i);
       CurrentVariable /= mBDF[0];
@@ -499,7 +486,7 @@ namespace Kratos
       for(unsigned int i= 1; i<=mOrder; ++i)
         CurrentSecondDerivative += mBDF[i] * rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, i);
 
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -513,12 +500,12 @@ namespace Kratos
         CurrentFirstDerivative -= mBDF[i] * rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, i);
       CurrentFirstDerivative /= mBDF[0];
 
-      TValueType& CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpVariable,  0);      
-      CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);      
+      TValueType& CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpVariable,  0);
+      CurrentVariable = rNode.FastGetSolutionStepValue(*this->mpFirstDerivative, 0);
       for(unsigned int i= 1; i<=mOrder; ++i)
         CurrentVariable -= mBDF[i] * rNode.FastGetSolutionStepValue(*this->mpVariable, i);
       CurrentVariable /= mBDF[0];
-      
+
       KRATOS_CATCH( "" )
     }
 
@@ -561,6 +548,19 @@ namespace Kratos
     ///@}
     ///@name Protected  Access
     ///@{
+
+    // get parameters
+    double& GetFirstDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0];
+      return rParameter;
+    }
+
+    double& GetSecondDerivativeInertialParameter(double& rParameter) override
+    {
+      rParameter = mBDF[0]*mBDF[0];
+      return rParameter;
+    }
 
     ///@}
     ///@name Protected Inquiry

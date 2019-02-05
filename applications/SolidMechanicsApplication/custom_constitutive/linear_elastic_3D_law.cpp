@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -43,8 +40,7 @@ LinearElastic3DLaw::LinearElastic3DLaw(const LinearElastic3DLaw& rOther)
 
 ConstitutiveLaw::Pointer LinearElastic3DLaw::Clone() const
 {
-    LinearElastic3DLaw::Pointer p_clone(new LinearElastic3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<LinearElastic3DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -69,14 +65,14 @@ double& LinearElastic3DLaw::CalculateValue(Parameters& rParameterValues, const V
   return (this->GetValue(rThisVariable,rValue ));
 
 }
-  
+
 double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     if (rThisVariable == STRAIN_ENERGY)
     {
-      rValue = mStrainEnergy; 
+      rValue = mStrainEnergy;
     }
-            
+
   return( rValue );
 }
 
@@ -90,7 +86,7 @@ double& LinearElastic3DLaw::GetValue( const Variable<double>& rThisVariable, dou
 //   this->CalculateMaterialResponseKirchhoff (rValues);
 
 //   //1.- Obtain parameters
-//   Flags & Options                    = rValues.GetOptions();    
+//   Flags & Options                    = rValues.GetOptions();
 
 //   Vector& StressVector               = rValues.GetStressVector();
 //   Vector& StrainVector               = rValues.GetStrainVector();
@@ -131,8 +127,8 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
     mStrainEnergy = 0.0; //When it is not calculated, a zero will be returned
-    
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
@@ -187,7 +183,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
           this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
           this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
         }
-      
+
     }
     else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
@@ -196,7 +192,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
     }
-    
+
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
     {
 
@@ -239,7 +235,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 //   this->CalculateMaterialResponsePK2 (rValues);
 
 //   //1.- Obtain parameters
-//   Flags & Options                    = rValues.GetOptions();    
+//   Flags & Options                    = rValues.GetOptions();
 
 //   Vector& StressVector               = rValues.GetStressVector();
 //   Vector& StrainVector               = rValues.GetStrainVector();
@@ -314,7 +310,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
         //e= 0.5*(1-invFT*invF)
         this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
 
-	
+
 	//LARGE STRAINS OBJECTIVE MESURE KIRCHHOFF MATERIAL:
 
 	// Kirchhoff model is set with S = CE
@@ -348,16 +344,16 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 	{
 	  mStrainEnergy *= DeterminantF;
 	}
-      
+
       }
     else{ //small strains
 
       //7.-Calculate total Kirchhoff stress
 
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-      
+
 	if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-	
+
 	  Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
 	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
@@ -366,17 +362,17 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
 	}
 	else {
-	
+
 	  Matrix ConstitutiveMatrix( StrainVector.size() ,StrainVector.size());
 
 	  noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size() ,StrainVector.size());
-		  
+
 	  this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-      
+
 	  this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-      
+
 	}
-      
+
       }
       else if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
 	{
@@ -389,29 +385,29 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRAIN_ENERGY ) )
 	{
-     
+
 	  if( Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) ){
-	    
-	    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){	    
+
+	    if(Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR )){
 	      Matrix ConstitutiveMatrix( StrainVector.size(), StrainVector.size());
 	      noalias(ConstitutiveMatrix) = ZeroMatrix( StrainVector.size(), StrainVector.size());
-		      
+
 	      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 	      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 	    }
 	    else{
-	      Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();    
+	      Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();
 	      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-	    }    
-	    
-	    
+	    }
+
+
 	  }
-     
+
 	  mStrainEnergy = 0.5 * inner_prod(StrainVector,StressVector); //Belytschko Nonlinear Finite Elements pag 226 (5.4.3) : w = 0.5*E:C:E
 	}
 
     }
-    
+
     //std::cout<<" Strain "<<StrainVector<<std::endl;
     //std::cout<<" Stress "<<StressVector<<std::endl;
     //Matrix& ConstitutiveMatrix = rValues.GetConstitutiveMatrix();

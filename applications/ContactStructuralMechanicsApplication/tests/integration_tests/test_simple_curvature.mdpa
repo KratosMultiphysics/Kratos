@@ -403,7 +403,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements MembraneElement3D3N// GUI group identifier: Parts Auto1
+Begin Elements PreStressMembraneElement3D3N// GUI group identifier: Parts Auto1
         1	0	4	3	1
         2	0	315	311	272
         3	0	7	4	10
@@ -716,7 +716,7 @@ Begin Elements MembraneElement3D3N// GUI group identifier: Parts Auto1
         310	0	213	240	211 
 End Elements
 
-Begin Elements MembraneElement3D3N// GUI group identifier: Parts Auto2
+Begin Elements PreStressMembraneElement3D3N// GUI group identifier: Parts Auto2
        311          0          2          5          6 
        312          0        280        317        320 
        313          0         12          6          8 

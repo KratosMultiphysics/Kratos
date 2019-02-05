@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 import sys
 
 def CreateParametricWall(main_model_part, custom_settings):
@@ -17,7 +14,7 @@ class ParametricWall(object):
     ##and the pointer to the main_model part.
     ##
     ##real construction shall be delayed to the function "Initialize" which
-    ##will be called once the modeler is already filled
+    ##will be called once the mesher is already filled
     def __init__(self, main_model_part, custom_settings):
 
         self.main_model_part = main_model_part
@@ -27,12 +24,11 @@ class ParametricWall(object):
         {
             "python_module": "parametric_wall",
             "model_part_name" : "WallDomain",
-            "rigid_body_settings":{
-               "rigid_body_element_type": "TranslatoryRigidElement3D1N",
-               "fixed_body": true,
-               "compute_body_parameters": false,
-               "rigid_body_model_part_name": "RigidBodyDomain",
-               "rigid_body_parameters":{
+            "body_settings":{
+               "element_type": "TranslatoryRigidElement3D1N",
+               "constrained": true,
+               "compute_parameters": false,
+               "body_parameters":{
                    "center_of_gravity": [0.0 ,0.0, 0.0],
                    "mass":0.0,
                    "main_inertias": [0.0, 0.0, 0.0],
@@ -83,21 +79,21 @@ class ParametricWall(object):
         self.wall_model_part = self.main_model_part.GetSubModelPart(self.settings["model_part_name"].GetString())
         self.wall_model_part.Set(KratosMultiphysics.RIGID)
         for node in self.wall_model_part.Nodes:
-            node.Set(KratosMultiphysics.RIGID,True)
-            node.Set(KratosMultiphysics.BOUNDARY,False)
+            node.Set(KratosMultiphysics.RIGID, True)
+            node.Set(KratosMultiphysics.BOUNDARY, False)
 
         for node in self.wall_model_part.Conditions:
-            node.Set(KratosMultiphysics.ACTIVE,False)
+            node.Set(KratosMultiphysics.ACTIVE, False)
 
-        box_module    = self.settings["bounding_box_settings"]["kratos_module"].GetString()
+        box_module = self.settings["bounding_box_settings"]["kratos_module"].GetString()
         box_type_name = self.settings["bounding_box_settings"]["bounding_box_type"].GetString()
 
-        #import module if not previously imported
+        # import module if not previously imported
         module = __import__(box_module)
         module_name = (box_module.split("."))[-1]
         BoundingBox = getattr(getattr(module, module_name), box_type_name)
 
-        #check for the bounding box of a compound wall
+        # check for the bounding box of a compound wall
         box_settings = self.settings["bounding_box_settings"]["bounding_box_parameters"]
 
         self.wall_bounding_box = BoundingBox(self.settings["bounding_box_settings"]["bounding_box_parameters"])
@@ -109,7 +105,7 @@ class ParametricWall(object):
 
             # construct rigid element // must pass an array of nodes to the element, create a node (CG) and a rigid element set them in the model_part, set the node CG as the reference node of the wall_bounding_box, BLOCKED, set in the wall_model_part for imposed movements processes.
             creation_utility = KratosContact.RigidBodyCreationUtility()
-            creation_utility.CreateRigidBodyElement(self.main_model_part, self.wall_bounding_box, self.settings["rigid_body_settings"])
+            creation_utility.CreateRigidBody(self.wall_model_part, self.wall_bounding_box, self.settings["body_settings"])
 
             # create a contact model part
             self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
@@ -121,14 +117,15 @@ class ParametricWall(object):
         else:
 
             # next must be tested:
-            self.rigid_body_model_part_name = self.settings["rigid_body_settings"]["rigid_body_model_part_name"].GetString()
-            self.rigid_body_model_part = self.main_model_part.GetSubModelPart(self.rigid_body_model_part_name)
+            self.body_model_part_name = self.settings["model_part_name"].GetString()
+            self.body_model_part = self.main_model_part.GetSubModelPart(self.body_model_part_name)
 
             #RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes()-1)
-            for node in self.rigid_body_model_part.GetNodes():
+            for node in self.body_model_part.GetNodes():
                 RigidBodyCenter = node
+                break
 
-            self.wall_bounding_box.SetRigidBodyCenter(RigidBodyCenter);
+            self.wall_bounding_box.SetRigidBodyCenter(RigidBodyCenter)
 
             # get contact model part
             self.contact_model_part_name =  "contact_"+self.settings["model_part_name"].GetString()
@@ -147,11 +144,25 @@ class ParametricWall(object):
         smodule_name = (search_module.split("."))[-1]
         SearchProcess = getattr(getattr(smodule, smodule_name), search_type_name)
 
-        print("::[Parametric_Wall]:: Contact Model Part",self.contact_model_part_name)
+        print(self._class_prefix()+" Contact Part ("+self.contact_model_part_name+")")
 
         self.SearchStrategy = SearchProcess(self.main_model_part, self.contact_model_part_name, self.wall_bounding_box, self.settings["contact_search_settings"]["contact_parameters"])
 
-        print("::[Parametric_Wall]:: -BUILT-")
+        # set friction law to properties:
+        prop_id = len(self.main_model_part.Properties)-1  # stored in last property
+        # print(" Number of Properties", prop_id)
+
+        prop = self.main_model_part.Properties[prop_id]
+        friction_law_name = self.settings["contact_search_settings"]["contact_parameters"]["friction_law_type"].GetString()
+
+        # print(" Friction law name ", friction_law_name)
+        material_law = search_module+"."+friction_law_name+"()"
+        FrictionLaw = eval(material_law)
+
+        # print(" FrictionLaw ", FrictionLaw)
+        FrictionLaw.AddToProperties(KratosContact.FRICTION_LAW, FrictionLaw.Clone(), prop)
+
+        print(self._class_prefix()+" Ready")
 
     ####
 
@@ -164,21 +175,30 @@ class ParametricWall(object):
         number_of_angular_partitions = 20
 
         bounding_box.CreateBoundingBoxBoundaryMesh(model_part, number_of_linear_partitions, number_of_angular_partitions)
+        # set flag RIGID to the mesh elements and nodes
+        for node in model_part.Nodes:
+            node.Set(KratosMultiphysics.RIGID)
+        for element in model_part.Elements:
+            element.Set(KratosMultiphysics.RIGID)
+            #in order to write them
+            element.Set(KratosMultiphysics.ACTIVE)
 
         # set mesh upper and lower points
         upper_point = KratosMultiphysics.Array3()
         upper = self.GetUpperPoint(model_part)
-        print("upper",upper)
+        #print("upper",upper)
         for i in range(0,len(upper)):
             upper_point[i] = upper[i]
             bounding_box.SetUpperPoint(upper_point)
 
         lower_point = KratosMultiphysics.Array3()
         lower = self.GetLowerPoint(model_part)
-        print("lower",lower)
+        #print("lower",lower)
         for i in range(0,len(lower)):
             lower_point[i] = lower[i]
             bounding_box.SetLowerPoint(lower_point)
+
+        print(self._class_prefix()+" Bounding Box Mesh Created")
 
     #
     def GetUpperPoint(self, model_part):
@@ -242,3 +262,9 @@ class ParametricWall(object):
     def ExecuteSearch(self):
 
         self.SearchStrategy.Execute()
+
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[--Parametric Wall--]::"
+        return header

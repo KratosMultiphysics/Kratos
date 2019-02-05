@@ -35,12 +35,13 @@
     },
     "solver_settings"                  : {
         "solver_type"                  : "Embedded",
+        "model_part_name" : "MainModelPart",
+        "domain_size"     : 2,
         "model_import_settings"        : {
             "input_type"     : "mdpa",
             "input_filename" : "cavity_compressibility"
         },
         "maximum_iterations"           : 10,
-        "dynamic_tau"                  : 1.0,
         "echo_level"                   : 0,
         "time_order"                   : 2,
         "compute_reactions"            : false,
@@ -69,6 +70,10 @@
         },
         "distance_reading_settings"    : {
             "import_mode"         : "from_mdpa"
+        },
+        "formulation": {
+            "element_type": "embedded_navier_stokes",
+            "dynamic_tau": 1.0
         }
     },
     "initial_conditions_process_list"  : [],

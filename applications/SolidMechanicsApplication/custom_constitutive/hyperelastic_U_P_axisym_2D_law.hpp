@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticUPAxisym2DLaw();
+    ~HyperElasticUPAxisym2DLaw() override;
 
     /**
      * Operators
@@ -228,4 +228,4 @@ private:
 
 }; // Class HyperElasticUPAxisym2DLaw
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_U_P_AXISYM_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_U_P_AXISYM_2D_LAW_H_INCLUDED  defined

@@ -3,28 +3,25 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 # Importing the Kratos Library
 import KratosMultiphysics
 
-# Check that applications were imported in the main script
-KratosMultiphysics.CheckRegisteredApplications("MeshMovingApplication", "TrilinosApplication")
-
 # Import applications
 import KratosMultiphysics.TrilinosApplication as TrilinosApplication
 
-# Other imports
-import trilinos_mesh_solver_base
+# Import baseclass
+from KratosMultiphysics.MeshMovingApplication.trilinos_mesh_solver_base import TrilinosMeshSolverBase
 
 
 def CreateSolver(mesh_model_part, custom_settings):
     return TrilinosMeshSolverStructuralSimilarity(mesh_model_part, custom_settings)
 
 
-class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosMeshSolverBase):
+class TrilinosMeshSolverStructuralSimilarity(TrilinosMeshSolverBase):
     def __init__(self, mesh_model_part, custom_settings):
         super(TrilinosMeshSolverStructuralSimilarity, self).__init__(mesh_model_part, custom_settings)
         self.print_on_rank_zero("::[TrilinosMeshSolverStructuralSimilarity]:: Construction finished")
 
     #### Private functions ####
 
-    def _create_mesh_motion_solver(self):
+    def _create_mesh_motion_solving_strategy(self):
         linear_solver = self.get_linear_solver()
         communicator = self.get_communicator()
         time_order = self.settings["time_order"].GetInt()
@@ -32,7 +29,7 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
         compute_reactions = self.settings["compute_reactions"].GetBool()
         calculate_mesh_velocities = self.settings["calculate_mesh_velocities"].GetBool()
         echo_level = self.settings["echo_level"].GetInt()
-        solver = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
+        solving_strategy = TrilinosApplication.TrilinosStructuralMeshMovingStrategy(
             communicator,
             self.mesh_model_part,
             linear_solver,
@@ -41,4 +38,4 @@ class TrilinosMeshSolverStructuralSimilarity(trilinos_mesh_solver_base.TrilinosM
             compute_reactions,
             calculate_mesh_velocities,
             echo_level)
-        return solver
+        return solving_strategy

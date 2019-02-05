@@ -69,9 +69,9 @@ namespace Kratos
 
     /// Assignment operator.
     LinearAssociativePlasticFlowRule& operator=(LinearAssociativePlasticFlowRule const& rOther);
-	
+
     /// Destructor.
-    virtual ~LinearAssociativePlasticFlowRule();
+    ~LinearAssociativePlasticFlowRule() override;
 
 
     ///@}
@@ -87,7 +87,7 @@ namespace Kratos
     ///@}
     ///@name Operations
     ///@{
-    
+
     //void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
     ///@}
@@ -130,7 +130,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -168,8 +168,8 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-	
-	
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -250,6 +250,6 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined 
+#endif // KRATOS_ASSOCIATIVE_PLASTIC_FLOW_RULE_H_INCLUDED  defined
 
 

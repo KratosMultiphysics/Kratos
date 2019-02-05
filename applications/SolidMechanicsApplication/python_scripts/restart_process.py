@@ -3,8 +3,6 @@ import os
 # importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
-KratosMultiphysics.CheckForPreviousImport()
-
 
 def Factory(settings, Model):
     if( not isinstance(settings,KratosMultiphysics.Parameters) ):
@@ -17,8 +15,6 @@ class RestartProcess(KratosMultiphysics.Process):
     def __init__(self, Model, custom_settings ):
 
         KratosMultiphysics.Process.__init__(self)
-
-        self.model_part = Model[custom_settings["model_part_name"].GetString()]
 
         ##settings string in json format
         default_settings = KratosMultiphysics.Parameters("""
@@ -39,7 +35,10 @@ class RestartProcess(KratosMultiphysics.Process):
 
         self.save_restart = self.settings["save_restart"].GetBool()
 
-        # Set up output frequency and format
+        # set up model
+        self.model = Model
+
+        # set up output frequency and format
         self.output_frequency  = self.settings["output_frequency"].GetDouble()
 
         self.output_label_is_time = False
@@ -67,12 +66,14 @@ class RestartProcess(KratosMultiphysics.Process):
 
         self.echo_level  = 1
         if( self.echo_level > 0 ):
-            print("::[------Restart------]:: -BUILT-")
+            print(self._class_prefix()+" Ready")
     #
     def ExecuteInitialize(self):
 
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
+
         # Set current time parameters
-        if( self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] == True ):
+        if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.step_count = self.model_part.ProcessInfo[KratosMultiphysics.STEP]
             self.printed_step_count = self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_RESTART_STEP]
 
@@ -130,7 +131,7 @@ class RestartProcess(KratosMultiphysics.Process):
             label = self.printed_step_count
 
         if( self.echo_level > 0 ):
-            print("::[------Restart------]:: Save [ step:", step,"] [ label:", label,"]")
+            print(self._class_prefix()+" SAVE [step:"+str(step)+"] [label:"+str(label)+"]")
 
         current_restart_path = self.restart_path + "__" + str(label)
 
@@ -139,7 +140,7 @@ class RestartProcess(KratosMultiphysics.Process):
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ERROR # ascii
         # self.serializer_flag = KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL   # ascii
 
-        serializer = KratosMultiphysics.Serializer(current_restart_path, self.serializer_flag)
+        serializer = KratosMultiphysics.FileSerializer(current_restart_path, self.serializer_flag)
 
         serializer.Save(self.model_part.Name, self.model_part)
 
@@ -173,7 +174,7 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def CleanPreviousFiles(self):
 
-        print(" ::[------Restart------]:: Remove Previous Files")
+        print(self._class_prefix()+" Remove Previous Files")
 
         # remove previous results:
         file_ending_type = ".post.bin"
@@ -204,7 +205,7 @@ class RestartProcess(KratosMultiphysics.Process):
     #
     def CleanPosteriorFiles(self, restart_step):
 
-        print(" ::[------Restart------]:: Clean Post Restart Files) [ STEP:",restart_step," ]")
+        print(self._class_prefix()+" Clean Post Restart Files [STEP:"+str(restart_step)+"]")
 
         # remove posterior results after restart:
         file_ending_type = ".post.bin"
@@ -230,7 +231,7 @@ class RestartProcess(KratosMultiphysics.Process):
     def CleanPreviousFileType(self, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print("::[------Restart------]:: Problem Path does not exist , check the Problem Path selected ")
+            print(self._class_prefix()+" Problem path does not exist, check the problem path selected ")
         else:
             filelist = [f for f in os.listdir(self.problem_path) if f.endswith(file_ending_type)]
 
@@ -252,7 +253,7 @@ class RestartProcess(KratosMultiphysics.Process):
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
         if(os.path.exists(self.problem_path) == False):
-            print(" ::[------Restart------]:: Problem Path does not exist , check the Problem Path selected ")
+            print(self._class_prefix()+" Problem path does not exist, check the problem path selected ")
         else:
             filelist = []
             for f in os.listdir(self.problem_path):
@@ -273,3 +274,8 @@ class RestartProcess(KratosMultiphysics.Process):
                     os.remove(f)
                 except OSError:
                     pass
+    #
+    @classmethod
+    def _class_prefix(self):
+        header = "::[------Restart------]::"
+        return header

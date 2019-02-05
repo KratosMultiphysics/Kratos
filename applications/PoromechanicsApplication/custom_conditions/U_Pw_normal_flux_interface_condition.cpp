@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
@@ -37,7 +43,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     
     //Condition variables
     array_1d<double,TNumNodes*TDim> DisplacementVector;
-    ConditionUtilities::GetDisplacementsVector(DisplacementVector,Geom);
+    PoroConditionUtilities::GetNodalVariableVector(DisplacementVector,Geom,DISPLACEMENT);
     array_1d<double,TNumNodes> NormalFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
@@ -81,7 +87,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
                 
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;
-        ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
+        PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,PVector,TDim,TNumNodes);
     }
 }
 

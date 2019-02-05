@@ -95,17 +95,12 @@
         }
     },
     "solver_settings"          : {
+        "kratos_module": "KratosMultiphysics.SolidMechanicsApplication",
 *if(strcmp(GenData(Solver_Type),"DynamicSolver")==0)
 *if(strcmp(GenData(Time_Integration_Method),"Explicit")==0)
         "solver_type" : "solid_mechanics_explicit_dynamic_solver",
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
-*if(strcmp(GenData(DOFS),"U-W")==0)
-        "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
-*elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
-        "solver_type" : "pfem_solid_mechanics_implicit_dynamic_solver",
-*else
         "solver_type" : "solid_mechanics_implicit_dynamic_solver",
-*endif
 *endif
 *else
         "solver_type" : "solid_mechanics_static_solver",
@@ -120,20 +115,27 @@
 *elseif(strcmp(GenData(Time_Integration_Method),"Implicit")==0)
 *if(strcmp(GenData(DOFS),"U-W")==0)
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *elseif(strcmp(GenData(DOFS),"U-W-wP")==0)
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *else
                    "time_integration"      : "Implicit",
-                   "integration_method"    : "Bossak"
+                   "integration_method"    : "Bossak",
+		   "lumped_matrix": false,
+		   "consistent_mass_matrix": true
 *endif
 *endif
 *else
-                   "solution_type"         : "Static",
 *if(strcmp(GenData(Solver_Type),"StaticSolver")==0)
+                   "solution_type"         : "Static",
                    "integration_method"    : "Static"
 *elseif(strcmp(GenData(Solver_Type),"QuasiStaticSolver")==0)
+                   "solution_type"         : "Quasi-static",
                    "integration_method"    : "Static"
 *endif
 *endif
@@ -143,14 +145,12 @@
                    "implex"                      : *tcl(string tolower *GenData(Implex)),
                    "compute_reactions"           : *tcl(string tolower *GenData(Write_Reactions)),
 	           "compute_contact_forces"      : *tcl(string tolower *GenData(Write_Contact_Forces)),
-*if( strcmp(GenData(DOFS),"U-P")==0 || strcmp(GenData(DOFS),"U-wP")==0)
-                   "stabilization_factor"        : *GenData(Stabilization_Factor),
-*endif
                    "max_iteration"               : *GenData(Max_Iter,INT)
               },
               "convergence_criterion_settings":{
                    "convergence_criterion"       : "*GenData(Convergence_Criteria)",
                    "reform_dofs_at_each_step"    : true,
+                   "separate_dofs"    : false,
                    "variable_relative_tolerance" : *GenData(Convergence_Tolerance),
                    "variable_absolute_tolerance" : *GenData(Absolute_Tolerance),
                    "residual_relative_tolerance" : *GenData(Convergence_Tolerance),
@@ -196,12 +196,30 @@
 						"WATER_DISPLACEMENT",
                                                 "WATER_PRESSURE"
 *endif
+*if(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                                "DISPLACEMENT",
+						"JACOBIAN",
+						"WATER_DISPLACEMENT",
+                                                "WATER_PRESSURE"
+*endif
 					       ]
         }
     },
-    "problem_process_list" : [{
+    "problem_process_list" : [
+*if(strcmp(GenData(NonLocal_Plasticity),"True")==0)
+     {
         "help"            : "This process applies meshing to the problem domains",
-        "kratos_module"   : "KratosMultiphysics.PfemApplication",
+        "kratos_module"   : "KratosMultiphysics.ConstitutiveModelsApplication",
+        "python_module"   : "non_local_plasticity_process",
+        "process_name"    : "NonLocalPlasticityProcess",
+        "Parameters"      : {
+		"characteristic_length": *GenData(Characteristic_length)
+                             }
+     },
+*endif
+      {
+        "help"            : "This process applies meshing to the problem domains",
+        "kratos_module"   : "KratosMultiphysics.DelaunayMeshingApplication",
         "python_module"   : "remesh_domains_process",
         "process_name"    : "RemeshDomainsProcess",
         "Parameters"      : {
@@ -263,21 +281,21 @@
 			"on_error": true
 		},
 		"remove_boundary": {
-			"apply_removal": false,
+			"apply_removal": true,
 			"on_distance": true,
-			"on_threshold": false,
+			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_elements": {
-			"apply_refinement": false,
+			"apply_refinement": true,
 			"on_distance": true,
 			"on_threshold": true,
 			"on_error": false
 		},
 		"refine_boundary": {
-			"apply_refinement": false,
-			"on_distance": false,
-			"on_threshold": false,
+			"apply_refinement": true,
+			"on_distance": true,
+			"on_threshold": true,
 			"on_error": false
 		},              
 		"refining_box":{
@@ -381,12 +399,11 @@
 		{
 		    "python_module": "parametric_wall",
 		    "model_part_name" : "*cond(Structural_Type)_*GroupName",
-		    "rigid_body_settings":{
-			"rigid_body_element_type": "*cond(Rigid_Element)",
-			"fixed_body": true,
-			"compute_body_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
-			"rigid_body_model_part_name": "*cond(Structural_Type)_*GroupName",
-			"rigid_body_parameters":{
+		    "body_settings":{
+			"element_type": "*cond(Rigid_Element)",
+			"constrained": true,
+			"compute_parameters": *tcl(string tolower *cond(Compute_Weight_Centroid_and_Inertia)),
+			"body_parameters":{
 			    "center_of_gravity": [*tcl(JoinByComma *cond(Centroid))],
 			    "mass": *cond(Mass),
 			    "main_inertias": [*cond(LocalInertiaTensor,1), *cond(LocalInertiaTensor,2), *cond(LocalInertiaTensor,3)],
@@ -471,9 +488,16 @@
 		    },		    
 		    "contact_search_settings":{
 			"kratos_module": "KratosMultiphysics.ContactMechanicsApplication",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			"contact_search_type": "HMParametricWallContactSearch",
+*else
 			"contact_search_type": "ParametricWallContactSearch",
+*endif
 			"contact_parameters":{
 			    "contact_condition_type": "*cond(Contact_Condition)",
+*if(strcmp(cond(Hydraulic_Condition),"True")==0)
+			    "hydraulic_condition_type": "*cond(Hydraulic_Contact_Condition)",
+*endif
 			    "kratos_module": "KratosMultiphysics.ContactMechanicsApplication",			    
 			    "friction_law_type": "HardeningCoulombFrictionLaw",
 			    "variables_of_properties":{
@@ -544,6 +568,18 @@
 *endif
     }],
     "constraints_process_list" : [
+        {
+	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "cavity_process",
+        "process_name"    : "CavityProcess",
+        "Parameters"      : {}
+	},
+        {
+	"kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",
+        "python_module"   : "footing_problem_process",
+        "process_name"    : "FootingProblemProcess",
+        "Parameters"      : {}
+	},
 *set var numberconstraints= 0
 *set cond group_WATER_MOVEMENT *groups 
 *add cond group_LINEAR_MOVEMENT *groups
@@ -778,7 +814,7 @@
 *add cond group_SURFACE_PRESSURE *groups
 *loop groups *OnlyInCond    
 *set var Counter=operation(Counter+1)
-        }
+        {
         "help"            : "This process applies a pressure load",	
         "kratos_module"   : "KratosMultiphysics.SolidMechanicsApplication",
         "python_module"   : "assign_scalar_to_conditions_process",
@@ -824,6 +860,39 @@
             "output_frequency"    : *GenData(Restart_Frequency),
             "json_output"         : false
         }
+*if(strcmp(GenData(CPT_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes cptu files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "cone_penetration_utility",
+        "process_name"    : "ConePenetrationUtility",
+        "Parameters": {
+             "cone_radius":      *GenData(CPT_Radius),
+             "u2_initial_depth": *GenData(Initial_u2_position),
+             "velocity":         *GenData(CPT_Velocity)
+         }
+*endif
+*if(strcmp(GenData(Ploughing_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes information_related_to_ploughing files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "ploughing_utility",
+        "process_name"    : "PloughingUtility",
+        "Parameters": {
+         }
+*endif
+*if(strcmp(GenData(GaussPoint_PostProcess),"True")==0)
+    },
+    {
+        "help"            : "This process writes information of the first Gauss point files",    
+        "kratos_module"   : "KratosMultiphysics.PfemSolidMechanicsApplication",    
+        "python_module"   : "gauss_point_utility",
+        "process_name"    : "GaussPointUtility",
+        "Parameters": {
+         }
+*endif
     }],
     "output_configuration"     : {
         "result_file_configuration" : {
@@ -867,14 +936,25 @@
 				      "WATER_PRESSURE",
 				      "WATER_PRESSURE_VELOCITY",
 				      "WATER_PRESSURE_ACCELERATION",
+*elseif(strcmp(GenData(DOFS),"U-J-W-wP")==0)
+                                      "JACOBIAN",
+                                      "WATER_DISPLACEMENT",
+                                      "WATER_VELOCITY",
+				      "WATER_ACCELERATION",
+				      "WATER_PRESSURE",
+				      "WATER_PRESSURE_VELOCITY",
+				      "WATER_PRESSURE_ACCELERATION",
 *endif
 *endif
 *if(strcmp(GenData(Write_Reactions),"True")==0)
-				      "REACTION",
+				      "DISPLACEMENT_REACTION",
 *endif
 *if(strcmp(GenData(Write_Contact_Forces),"True")==0)
 				      "NORMAL",
 				      "CONTACT_FORCE",
+*endif
+*if( strcmp(GenData(DOFS),"U-J")==0 )
+						"JACOBIAN",
 *endif
 *if(strcmp(GenData(DOFS),"U-P")==0)
 				      "PRESSURE",
@@ -900,7 +980,20 @@
 *if(strcmp(GenData(DOFS),"U-W")==0)
 				      "WATER_PRESSURE",
 *endif
-				      "VON_MISES_STRESS"
+                                      "STRESS_INV_P",
+                                      "STRESS_INV_J2",
+                                      "STRESS_INV_THETA",
+                                      "PLASTIC_STRAIN",
+                                      "DELTA_PLASTIC_STRAIN",
+				      "PLASTIC_VOL_DEF",
+				      "NONLOCAL_PLASTIC_VOL_DEF",
+				      "PLASTIC_DEV_DEF",
+				      "NONLOCAL_PLASTIC_DEV_DEF",
+				      "PLASTIC_VOL_DEF_ABS",
+				      "NONLOCAL_PLASTIC_VOL_DEF_ABS",
+                                      "PS",
+                                      "PM",
+                                      "PT"
 				    ],
 	    "additional_list_files": [
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)

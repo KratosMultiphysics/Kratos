@@ -1,9 +1,16 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #if !defined(KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED )
 #define  KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED
@@ -70,6 +77,8 @@ KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_DAM
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_AREA )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_WIDTH )
 KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, NODAL_JOINT_DAMAGE )
+
+KRATOS_DEFINE_APPLICATION_VARIABLE( POROMECHANICS_APPLICATION, double, SHEAR_FRACTURE_ENERGY )
 }
 
 #endif	/* KRATOS_POROMECHANICS_APPLICATION_VARIABLES_H_INCLUDED */

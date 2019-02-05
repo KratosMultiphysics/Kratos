@@ -8,7 +8,7 @@ def Factory(settings, Model):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ImposeWaterLoadsConditionProcess(Model, settings["Parameters"])
 
-## All the processes python processes should be derived from "python_process"
+## All the processes python should be derived from "Process"
 class ImposeWaterLoadsConditionProcess(Process):
     def __init__(self, Model, settings ):
         Process.__init__(self)

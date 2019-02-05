@@ -53,7 +53,7 @@ public:
     IsotropicDamageSimoJu3DLaw();
 
 
-    IsotropicDamageSimoJu3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    IsotropicDamageSimoJu3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -76,7 +76,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~IsotropicDamageSimoJu3DLaw();
+    ~IsotropicDamageSimoJu3DLaw() override;
 
     /**
      * Operators
@@ -135,9 +135,9 @@ protected:
      * @param rCharacteristicSize, the diameter of the sphere
      * @param DomainGeometry geometric information of the element
      */
-     
+
     void CalculateCharacteristicSize( double& rCharacteristicSize, const GeometryType& DomainGeometry ) override;
-    
+
     ///@}
 
 private:

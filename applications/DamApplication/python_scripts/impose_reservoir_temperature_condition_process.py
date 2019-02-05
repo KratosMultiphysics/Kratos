@@ -26,6 +26,8 @@ class ImposeReservoirTemperatureConditionProcess(Process):
         if "CONSTANTRESERVOIRTEMPERATURE" in settings["model_part_name"].GetString():
             self.components_process_list.append(DamReservoirConstantTemperatureProcess(model_part, settings))
 
+        if "MONITORINGRESERVOIRTEMPERATURE" in settings["model_part_name"].GetString():
+            self.components_process_list.append(DamReservoirMonitoringTemperatureProcess(model_part, settings))
 
     def ExecuteInitialize(self):
 

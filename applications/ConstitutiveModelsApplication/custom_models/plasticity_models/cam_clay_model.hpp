@@ -100,11 +100,11 @@ namespace Kratos
          /// Clone.
          ConstitutiveModel::Pointer Clone() const override
          {
-            return ( CamClayModel::Pointer(new CamClayModel(*this)) );
+            return Kratos::make_shared<CamClayModel>(*this);
          }
 
          /// Destructor.
-         virtual ~CamClayModel() {}
+         ~CamClayModel() override {}
 
 
          ///@}
@@ -118,8 +118,8 @@ namespace Kratos
 
          /**
           * Check
-          */    
-         virtual int Check(const Properties& rMaterialProperties, const ProcessInfo& rCurrentProcessInfo) override
+          */
+         int Check(const Properties& rProperties, const ProcessInfo& rCurrentProcessInfo) override
          {
             KRATOS_TRY
 
@@ -136,8 +136,8 @@ namespace Kratos
 
          /**
           * Has Values
-          */   
-         virtual bool Has(const Variable<double>& rThisVariable) override
+          */
+         bool Has(const Variable<double>& rThisVariable) override
          {
             if(rThisVariable == PLASTIC_STRAIN || rThisVariable == DELTA_PLASTIC_STRAIN )
                return true;
@@ -145,11 +145,26 @@ namespace Kratos
             return false;
          }
 
+         /**
+          * Set Values
+          */
+         void SetValue(const Variable<double>& rVariable,
+               const double& rValue,
+               const ProcessInfo& rCurrentProcessInfo) override 
+         {
+            KRATOS_TRY
+
+            if ( rVariable == NONLOCAL_PLASTIC_VOL_DEF) {
+               mInternal.Variables[4] = rValue;
+            }
+
+            KRATOS_CATCH("")
+         }
 
          /**
           * Get Values
           */
-         virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+         double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
          {
 
             rValue=0;
@@ -158,14 +173,17 @@ namespace Kratos
             {
                rValue = this->mInternal.Variables[0];
             }
-
-
-            if (rThisVariable==DELTA_PLASTIC_STRAIN)
+            else if (rThisVariable==DELTA_PLASTIC_STRAIN)
             {
                rValue = this->mInternal.Variables[0]-mPreviousInternal.Variables[0];
             }
-
-
+            else if (rThisVariable==PRE_CONSOLIDATION_STRESS)
+            {
+               rValue = this->mInternal.Variables[3];
+            }
+            else {
+               rValue = NonAssociativePlasticityModel::GetValue( rThisVariable, rValue);
+            }
             return rValue;
          }
 
@@ -179,7 +197,7 @@ namespace Kratos
          ///@{
 
          /// Turn back information as a string.
-         virtual std::string Info() const override
+         std::string Info() const override
          {
             std::stringstream buffer;
             buffer << "CamClayModel" ;
@@ -187,16 +205,17 @@ namespace Kratos
          }
 
          /// Print information about this object.
-         virtual void PrintInfo(std::ostream& rOStream) const override
+         void PrintInfo(std::ostream& rOStream) const override
          {
             rOStream << "CamClayModel";
          }
 
          /// Print object's data.
-         virtual void PrintData(std::ostream& rOStream) const override
+         void PrintData(std::ostream& rOStream) const override
          {
             rOStream << "CamClayModel Data";
          }
+
 
          ///@}
          ///@name Friends
@@ -274,15 +293,15 @@ namespace Kratos
 
          ///@}
          ///@name Serialization
-         ///@{    
+         ///@{
          friend class Serializer;
 
-         virtual void save(Serializer& rSerializer) const override
+         void save(Serializer& rSerializer) const override
          {
             KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
          }
 
-         virtual void load(Serializer& rSerializer) override
+         void load(Serializer& rSerializer) override
          {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
          }
@@ -307,8 +326,8 @@ namespace Kratos
    ///@{
 
 
-   ///@} 
-   ///@name Input and output 
+   ///@}
+   ///@name Input and output
    ///@{
 
 
@@ -319,6 +338,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CAM_CLAY_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_CAM_CLAY_MODEL_H_INCLUDED  defined

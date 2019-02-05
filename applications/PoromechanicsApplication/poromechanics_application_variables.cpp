@@ -1,9 +1,16 @@
+
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 #include "poromechanics_application_variables.h"
 
@@ -58,4 +65,6 @@ KRATOS_CREATE_VARIABLE( double, NODAL_DAMAGE_VARIABLE )
 KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_AREA )
 KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_WIDTH )
 KRATOS_CREATE_VARIABLE( double, NODAL_JOINT_DAMAGE )
+
+KRATOS_CREATE_VARIABLE( double, SHEAR_FRACTURE_ENERGY )
 }

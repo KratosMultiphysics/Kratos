@@ -21,17 +21,17 @@
 #include "spatial_containers/spatial_containers.h"
 
 #include "custom_processes/split_elements_process.hpp"
-#include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/mesher_utilities.hpp"
 #include "includes/model_part.h"
 
 
 ///VARIABLES used:
-//Data:     
-//StepData: 
-//Flags:    (checked) 
-//          (set)     
-//          (modified)  
-//          (reset)   
+//Data:
+//StepData:
+//Flags:    (checked)
+//          (set)
+//          (modified)
+//          (reset)
 
 
 namespace Kratos
@@ -47,7 +47,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
- 
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -81,7 +82,7 @@ namespace Kratos
     SplitElementsProcess(ModelPart& rModelPart,
 				 int EchoLevel)
       : mrModelPart(rModelPart)
-    { 
+    {
       mEchoLevel = EchoLevel;
     }
 
@@ -100,7 +101,7 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    virtual void Execute()
+    void Execute() override
     {
       std::cout<<" Execute() in SplitElementsProcess"<<std::endl;
 
@@ -110,7 +111,7 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-   
+
 
     ///@}
     ///@name Access
@@ -127,32 +128,32 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
       return "SplitElementsProcess";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SplitElementsProcess";
     }
 
-    virtual void ExecuteInitialize()
+    void ExecuteInitialize() override
     {
 
       KRATOS_TRY
-	
+
       for(ModelPart::SubModelPartIterator i_mp= mrModelPart.SubModelPartsBegin() ; i_mp!=mrModelPart.SubModelPartsEnd(); i_mp++)
       	{
-      	  if(  (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)) ){ 
+      	  if(  (i_mp->Is(ACTIVE) && i_mp->Is(SOLID)) || (i_mp->Is(ACTIVE) && i_mp->Is(FLUID)) ){
 
 	    std::string ComputingModelPartName;
 	    ComputingModelPartName = i_mp->Name();
 	    ModelPart& rComputingModelPart = mrModelPart.GetSubModelPart(ComputingModelPartName);
 	    const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
-	    ModelerUtilities ModelerUtils;
-	    double modelPartVolume=ModelerUtils.ComputeModelPartVolume(rComputingModelPart);
+	    MesherUtilities MesherUtils;
+	    double modelPartVolume=MesherUtils.ComputeModelPartVolume(rComputingModelPart);
 	    double criticalVolume=0.5*modelPartVolume/double(rComputingModelPart.Elements().size());
 
       	    for(ElementsContainerType::iterator i_elem = rComputingModelPart.Elements().begin() ; i_elem != rComputingModelPart.Elements().end() ; i_elem++)
@@ -211,9 +212,9 @@ namespace Kratos
 		    unsigned int rElementId = 0;
 		    ModelPart::PropertiesType::Pointer pProp = i_elem->pGetProperties();
 		    if(dimension==2){
-		    
+
 		      Triangle2D3<Node < 3 > > firstGeom(newNode,vertices(0),vertices(1));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      Element::Pointer newElement = i_elem->Create(rElementId,firstGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -222,7 +223,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Triangle2D3<Node < 3 > > secondGeom(newNode,vertices(2),vertices(0));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,secondGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -231,7 +232,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Triangle2D3<Node < 3 > > thirdGeom(newNode,vertices(1),vertices(2));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,thirdGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -242,7 +243,7 @@ namespace Kratos
 		    }else if(dimension==3){
 
 		      Tetrahedra3D4<Node < 3 > > firstGeom(newNode,vertices(1),vertices(2),vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      Element::Pointer newElement = i_elem->Create(rElementId,firstGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -251,7 +252,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > secondGeom(vertices(0),newNode,vertices(2),vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,secondGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -260,7 +261,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > thirdGeom(vertices(0),vertices(1),newNode,vertices(3));
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,thirdGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -269,7 +270,7 @@ namespace Kratos
 		      rComputingModelPart.AddElement(newElement);
 
 		      Tetrahedra3D4<Node < 3 > > fourthGeom(vertices(0),vertices(1),vertices(2),newNode);
-		      rElementId = ModelerUtilities::GetMaxElementId(mrModelPart)+1;
+		      rElementId = MesherUtilities::GetMaxElementId(mrModelPart)+1;
 		      newElement = i_elem->Create(rElementId,fourthGeom,pProp);
 		      newElement->Set(ACTIVE,true);
 		      newElement->Set(FLUID);
@@ -302,21 +303,19 @@ namespace Kratos
       KRATOS_CATCH(" ")
 	}
 
-
-
-    template< class TDataType > void  AddUniqueWeakPointer
-    (WeakPointerVector< TDataType >& v, const typename TDataType::WeakPointer candidate)
+    template<class TDataType> void  AddUniquePointer
+    (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
     {
       typename WeakPointerVector< TDataType >::iterator i = v.begin();
       typename WeakPointerVector< TDataType >::iterator endit = v.end();
       while ( i != endit && (i)->Id() != (candidate.lock())->Id())
-	{
-	  i++;
-	}
+      {
+        i++;
+      }
       if( i == endit )
-	{
-	  v.push_back(candidate);
-	}
+      {
+        v.push_back(candidate);
+      }
 
     }
 
@@ -328,7 +327,7 @@ namespace Kratos
 
       unsigned int numNodes=vertices.size();
       std::vector<std::vector<double> > ElementPointCoordinates(numNodes);
-      std::vector<double> PointCoordinates(3);      
+      std::vector<double> PointCoordinates(3);
       array_1d<double, 3> rPoint=ZeroVector(3);
       unsigned int masterNode=0;
       for(unsigned int i=0; i<vertices.size(); i++)
@@ -339,19 +338,19 @@ namespace Kratos
 	  PointCoordinates[2] = vertices[i].Z();
 	  ElementPointCoordinates[i] = PointCoordinates;
 	  if(vertices[i].IsNot(RIGID)){
-	    masterNode=i;	
+	    masterNode=i;
 	  }
 	}
       PointCoordinates[0] =rPoint[0];
       PointCoordinates[1] =rPoint[1];
       PointCoordinates[2] =rPoint[2];
-      unsigned int rNodeId = ModelerUtilities::GetMaxNodeId(mrModelPart)+1;
+      unsigned int rNodeId = MesherUtilities::GetMaxNodeId(mrModelPart)+1;
 
-      ModelPart::NodeType::Pointer newNode = i_mp->CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]); 
+      ModelPart::NodeType::Pointer newNode = i_mp->CreateNewNode( rNodeId, rPoint[0], rPoint[1], rPoint[2]);
 
       //generating the dofs
       ModelPart::NodeType::DofsContainerType& reference_dofs = vertices[masterNode].GetDofs();
-           
+
       for(ModelPart::NodeType::DofsContainerType::iterator iii = reference_dofs.begin(); iii != reference_dofs.end(); iii++)
 	{
 	  ModelPart::NodeType::DofType& rDof = *iii;
@@ -360,22 +359,22 @@ namespace Kratos
 	}
 
       MeshDataTransferUtilities DataTransferUtilities;
-      std::vector<double> ShapeFunctionsN;    
+      std::vector<double> ShapeFunctionsN;
       VariablesList&  variables_list = i_mp->GetNodalSolutionStepVariablesList();
 
       // //giving model part variables list to the node
       newNode->SetSolutionStepVariablesList(vertices[masterNode].pGetVariablesList());
-		    
+
       // //set buffer size
       newNode->SetBufferSize(vertices[masterNode].GetBufferSize());
       newNode->Set(FLUID);
       newNode->Reset(FREE_SURFACE);
       bool is_inside = false;
-      is_inside = ModelerUtilities::CalculatePosition(ElementPointCoordinates,PointCoordinates,ShapeFunctionsN );
+      is_inside = MesherUtilities::CalculatePosition(ElementPointCoordinates,PointCoordinates,ShapeFunctionsN );
       if(is_inside == true)
 	{
 	  double alpha = 1; //1 to interpolate, 0 to leave the original data
-	  DataTransferUtilities.Interpolate( i_elem->GetGeometry(), ShapeFunctionsN, variables_list, newNode, alpha );	
+	  DataTransferUtilities.Interpolate( i_elem->GetGeometry(), ShapeFunctionsN, variables_list, newNode, alpha );
 	  newNode->Set(TO_ERASE);
 	  newNode->Set(ACTIVE);
 	  newNode->Set(FLUID);
@@ -384,59 +383,57 @@ namespace Kratos
 	  newNode->Y0() = newNode->Y() - displacement[1];
 	  newNode->Z0() = newNode->Z() - displacement[2];
 
-	  WeakPointerVector<Node<3> >& rN = newNode->GetValue(NEIGHBOUR_NODES);
+	  NodeWeakPtrVectorType& rN = newNode->GetValue(NEIGHBOUR_NODES);
 	  for(unsigned int spn=0; spn<numNodes; spn++)
 	    {
-	      ModelPart::NodeType::WeakPointer temp = i_elem->GetGeometry()(spn);
-	      this->AddUniqueWeakPointer< Node<3> >(rN,temp);
-
+	      this->AddUniquePointer< Node<3> >(rN, i_elem->GetGeometry()(spn));
 	    }
 
 	  i_mp->Nodes().push_back(newNode);
-	  addedNode=true;	
+	  addedNode=true;
 	  // std::cout<<"    NEW NODE "<<rNodeId<<")"<<rPoint[0]<<" "<<rPoint[1]<<" "<<rPoint[2]<<std::endl;
 
 	}else{
-	addedNode=false;	
+	addedNode=false;
 	// std::cout<<"NODE IS OUTSIDE "<<rNodeId<<")"<<rPoint[0]<<" "<<rPoint[1]<<" "<<rPoint[2]<<std::endl;
       }
       return newNode;
 
     }
 
-   virtual void ExecuteFinalize()
+   void ExecuteFinalize() override
     {
 
       KRATOS_TRY
 
 	NodesContainerType temporal_nodes;
-      temporal_nodes.reserve(mrModelPart.Nodes().size()); 
-      temporal_nodes.swap(mrModelPart.Nodes());	
+      temporal_nodes.reserve(mrModelPart.Nodes().size());
+      temporal_nodes.swap(mrModelPart.Nodes());
       mrModelPart.Nodes().clear();
 
       for(NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
       	{
       	  if( i_node->IsNot(TO_ERASE) ){
-      	    (mrModelPart.Nodes()).push_back(*(i_node.base()));	
+      	    (mrModelPart.Nodes()).push_back(*(i_node.base()));
       	  }
       	}
       mrModelPart.Nodes().Sort();
 
       ElementsContainerType temporal_elements;
       temporal_elements.reserve(mrModelPart.Elements().size());
-      temporal_elements.swap(mrModelPart.Elements());	
+      temporal_elements.swap(mrModelPart.Elements());
       mrModelPart.Elements().clear();
       for(ElementsContainerType::iterator i_elem = temporal_elements.begin() ; i_elem != temporal_elements.end() ; i_elem++)
       	{
       	  if( i_elem->IsNot(TO_ERASE) ){
-      	    (mrModelPart.Elements()).push_back(*(i_elem.base()));	
+      	    (mrModelPart.Elements()).push_back(*(i_elem.base()));
       	  }
 
       	}
-	
+
       mrModelPart.Elements().Sort();
 
-      
+
       KRATOS_CATCH(" ")
 	}
 
@@ -453,7 +450,7 @@ namespace Kratos
     ///@name Protected member Variables
     ///@{
 
- 
+
 
     //*******************************************************************************************
     //*******************************************************************************************
@@ -554,5 +551,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SPLIT_ELEMENTS_PROCESS_H_INCLUDED  defined 
-
+#endif // KRATOS_SPLIT_ELEMENTS_PROCESS_H_INCLUDED  defined

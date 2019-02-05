@@ -31,6 +31,7 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 #include "processes/find_nodal_neighbours_process.h"
+#include "element_finite_difference_utility.h"
 
 // ==============================================================================
 
@@ -91,7 +92,6 @@ public:
 		else
 			KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
 
-		mConsiderDiscretization =  responseSettings["consider_discretization"].GetBool();
 	}
 
 	/// Destructor.
@@ -170,9 +170,6 @@ public:
 		CalculateResponseDerivativePartByFiniteDifferencing();
 		CalculateAdjointField();
 		CalculateStateDerivativePartByFiniteDifferencing();
-
-		if (mConsiderDiscretization)
-			this->ConsiderDiscretization();
 
 		KRATOS_CATCH("");
 	}
@@ -266,31 +263,19 @@ protected:
 			for (auto& node_i : elem_i.GetGeometry())
 			{
 				array_3d gradient_contribution(3, 0.0);
-				Vector perturbed_RHS = Vector(0);
+				Vector derived_RHS = Vector(0);
 
-				// Pertubation, gradient analysis and recovery of x
-				node_i.X0() += mDelta;
-				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[0] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.X0() -= mDelta;
+				// x-direction
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_X, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				gradient_contribution[0] = inner_prod(lambda, derived_RHS);
 
-				// Reset pertubed vector
-				perturbed_RHS = Vector(0);
+                // y-direction
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_Y, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				gradient_contribution[1] = inner_prod(lambda, derived_RHS);
 
-				// Pertubation, gradient analysis and recovery of y
-				node_i.Y0() += mDelta;
-				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[1] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.Y0() -= mDelta;
-
-				// Reset pertubed vector
-				perturbed_RHS = Vector(0);
-
-				// Pertubation, gradient analysis and recovery of z
-				node_i.Z0() += mDelta;
-				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				gradient_contribution[2] = inner_prod(lambda, (perturbed_RHS - RHS) / mDelta);
-				node_i.Z0() -= mDelta;
+                // z-direction
+				ElementFiniteDifferenceUtility::CalculateRightHandSideDerivative(elem_i, RHS, SHAPE_Z, node_i, mDelta, derived_RHS, CurrentProcessInfo);
+				gradient_contribution[2] = inner_prod(lambda, derived_RHS);
 
 				// Assemble sensitivity to node
 				noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
@@ -420,33 +405,6 @@ protected:
 		KRATOS_CATCH("");
 	}
 
-	// --------------------------------------------------------------------------
-  	virtual void ConsiderDiscretization()
-	{
-
-
-		// Start process to identify element neighbors for every node
-		FindNodalNeighboursProcess neigbhorFinder = FindNodalNeighboursProcess(mrModelPart, 10, 10);
-		neigbhorFinder.Execute();
-
-		std::cout<< "> Considering discretization size!" << std::endl;
-		for(auto& node_i : mrModelPart.Nodes())
-		{
-			WeakPointerVector<Element >& ng_elem = node_i.GetValue(NEIGHBOUR_ELEMENTS);
-
-			double scaling_factor = 0.0;
-			for(std::size_t i = 0; i < ng_elem.size(); i++)
-			{
-				Kratos::Element& ng_elem_i = ng_elem[i];
-				Element::GeometryType& element_geometry = ng_elem_i.GetGeometry();
-
-				scaling_factor += element_geometry.DomainSize();
-			}
-
-			node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY) /= scaling_factor;
-		}
-	}
-
 	// ==============================================================================
 
 	///@}
@@ -473,7 +431,6 @@ private:
 
 	ModelPart &mrModelPart;
 	double mDelta;
-	bool mConsiderDiscretization;
 
 	///@}
 ///@name Private Operators

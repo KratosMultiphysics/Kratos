@@ -5,9 +5,6 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 import KratosMultiphysics.SolidMechanicsApplication as KratosSolid
 
-# Check that KratosMultiphysics was imported in the main script
-KratosMultiphysics.CheckForPreviousImport()
-
 # SolutionScheme class
 class SolutionScheme:
 
@@ -63,7 +60,7 @@ class SolutionScheme:
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
 
                 integration_method_name   = self._get_integration_method_name(dof)
-                vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
+                vector_integration_method = None
 
                 variable_names = self._get_integration_method_variables(dof)
                 variables = []
@@ -72,8 +69,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    vector_integration_method = getattr(KratosSolid, integration_method_name+'VectorIntegration')
                     integration_method = vector_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        vector_integration_method = getattr(KratosSolid, 'StaticStepVectorIntegration')
+                    else:
+                        vector_integration_method = getattr(KratosSolid, 'StaticVectorIntegration')
                     integration_method = vector_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -88,7 +90,7 @@ class SolutionScheme:
             elif( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
 
                 integration_method_name   = self._get_integration_method_name(dof)
-                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                scalar_integration_method = None
 
                 variable_names = self._get_integration_method_variables(dof)
                 variables = []
@@ -97,8 +99,13 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
+                    if(integration_method_name.find("Step") != -1):
+                        scalar_integration_method = getattr(KratosSolid,'StaticStepScalarIntegration')
+                    else:
+                        scalar_integration_method = getattr(KratosSolid,'StaticScalarIntegration')
                     integration_method = scalar_integration_method(variables[0])
                 else:
                     raise Exception('len(variables) = ' + str(len(variables)))
@@ -118,15 +125,24 @@ class SolutionScheme:
             if(self.settings["time_integration"].GetString() == "Implicit"):
                 if(len(vector_integration_methods)):
                     if(len(scalar_integration_methods)):
-                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods)
-                    else:
                         solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods)
+                    else:
+                        solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods)
+                elif(len(scalar_integration_methods)):
+                    solution_scheme = KratosSolid.DynamicScheme(vector_integration_methods,scalar_integration_methods)
+                else:
+                    print("WARNING: no integration methods")
+
         elif(self.settings["solution_type"].GetString() == "Static" or self.settings["solution_type"].GetString() == "Quasi-static"):
             if(len(vector_integration_methods)):
                 if(len(scalar_integration_methods)):
-                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods)
-                else:
                     solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods)
+                else:
+                    solution_scheme = KratosSolid.StaticScheme(vector_integration_methods)
+            elif(len(scalar_integration_methods)):
+                solution_scheme = KratosSolid.StaticScheme(vector_integration_methods,scalar_integration_methods)
+            else:
+                print("WARNING: no integration methods")
 
         return solution_scheme
 
@@ -145,7 +161,7 @@ class SolutionScheme:
             kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
             if( isinstance(kratos_variable,KratosMultiphysics.Array1DVariable3) ):
 
-                component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
+                component_integration_method = None
 
                 variable_components = ['_X','_Y','_Z']
                 for component in variable_components:
@@ -155,8 +171,13 @@ class SolutionScheme:
 
                     integration_method = None
                     if( len(variables) == 4 ):
+                        component_integration_method = getattr(KratosSolid, integration_method_name+'ComponentIntegration')
                         integration_method = component_integration_method(variables[0],variables[1],variables[2],variables[3])
                     elif( len(variables) == 1 ):
+                        if(integration_method_name.find("Step") != -1):
+                            component_integration_method = getattr(KratosSolid, 'StaticStepComponentIntegration')
+                        else:
+                            component_integration_method = getattr(KratosSolid, 'StaticComponentIntegration')
                         integration_method = component_integration_method(variables[0])
                     else:
                         raise Exception('len(variables) = ' + str(len(variables)))
@@ -166,7 +187,7 @@ class SolutionScheme:
                         integration_method.SetStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(step_variable_name))
 
                     integration_methods.update({variables[0].Name(): integration_method})
-                    if( len(variables) == 4 ):    
+                    if( len(variables) == 4 ):
                         integration_methods.update({variables[1].Name(): integration_method})
                         integration_methods.update({variables[2].Name(): integration_method})
 
@@ -191,7 +212,7 @@ class SolutionScheme:
             kratos_variable = KratosMultiphysics.KratosGlobals.GetVariable(dof)
             if( isinstance(kratos_variable,KratosMultiphysics.DoubleVariable) ):
 
-                scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
+                scalar_integration_method = None
 
                 variables = []
                 for variable in variable_names:
@@ -199,6 +220,7 @@ class SolutionScheme:
 
                 integration_method = None
                 if( len(variables) == 4 ):
+                    scalar_integration_method = getattr(KratosSolid, integration_method_name+'ScalarIntegration')
                     integration_method = scalar_integration_method(variables[0],variables[1],variables[2],variables[3])
                 elif( len(variables) == 1 ):
                     if(integration_method_name.find("Step") != -1):
@@ -235,8 +257,14 @@ class SolutionScheme:
 
         integration_method_name = self.settings["integration_method"].GetString()
 
-        if(dof == 'ROTATION' and integration_method_name.find("Step") != -1):
-            integration_method_name  = integration_method_name+'Rotation'
+        if integration_method_name.find("Step") != -1:
+            if dof == 'ROTATION':
+                integration_method_name  = integration_method_name+'Rotation'
+            elif dof != 'DISPLACEMENT':
+                start = 0
+                end   = integration_method_name.find("Step")
+                integration_method_name = integration_method_name[start:end]
+                #print("::[---Scheme Factory--]:: Step Method Changed ("+integration_method_name+":"+dof+")")
 
         return integration_method_name
 
@@ -249,6 +277,14 @@ class SolutionScheme:
                 variables = variables + ['DISPLACEMENT','VELOCITY','ACCELERATION',dof]
             elif(dof == 'ROTATION' or dof == 'ANGULAR_VELOCITY' or dof == 'ANGULAR_ACCELERATION'):
                 variables = variables + ['ROTATION','ANGULAR_VELOCITY','ANGULAR_ACCELERATION',dof]
+            elif(dof == 'WATER_DISPLACEMENT'):
+                variables = variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION',dof]
+            elif(dof == 'WATER_PRESSURE'):
+                variables = variables + ['WATER_PRESSURE','WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION',dof]
+            elif(dof == 'PRESSURE'):
+                variables = variables + ['PRESSURE','PRESSURE_VELOCITY','PRESSURE_ACCELERATION',dof]
+            elif(dof == 'FLUID_PRESSURE'):
+                variables = variables + ['FLUID_PRESSURE','FLUID_PRESSURE_VELOCITY','FLUID_PRESSURE_ACCELERATION',dof]
             else:
                 variables = variables + [dof]
         else:
@@ -271,7 +307,11 @@ class SolutionScheme:
             self.dof_reactions = self.dof_reactions + ['DISPLACEMENT_REACTION']
 
             # Add dynamic variables
-            self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['VELOCITY','ACCELERATION']
+
+            if self.settings["integration_method"].GetString().find("Step") != -1:
+                self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT']
 
         if self._check_input_dof("VELOCITY"):
             # Add specific variables for the problem (velocity dofs)
@@ -288,15 +328,33 @@ class SolutionScheme:
             self.dof_variables = self.dof_variables + ['ROTATION']
             self.dof_reactions = self.dof_reactions + ['ROTATION_REACTION']
 
-            self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['ANGULAR_VELOCITY','ANGULAR_ACCELERATION']
             # Add large rotation variables
-            self.nodal_variables = self.nodal_variables + ['STEP_DISPLACEMENT','STEP_ROTATION','DELTA_ROTATION']
+            if self.settings["integration_method"].GetString().find("Step") != -1:
+                self.nodal_variables = self.nodal_variables + ['STEP_ROTATION']
 
         # Add pressure variables
         if self._check_input_dof("PRESSURE"):
             # Add specific variables for the problem (pressure dofs)
             self.dof_variables = self.dof_variables + ['PRESSURE']
             self.dof_reactions = self.dof_reactions + ['PRESSURE_REACTION']
+
+            if(self.settings["solution_type"].GetString() == "Dynamic"):
+                self.dof_derivatives = self.dof_derivatives + ['PRESSURE_VELOCITY','PRESSURE_ACCELERATION']
+
+        # Add fluid pressure variables
+        if self._check_input_dof("FLUID_PRESSURE"):
+            # Add specific variables for the problem (pressure dofs)
+            self.dof_variables = self.dof_variables + ['FLUID_PRESSURE']
+            self.dof_reactions = self.dof_reactions + ['FLUID_PRESSURE_REACTION']
+
+            self.dof_derivatives = self.dof_derivatives + ['FLUID_PRESSURE_VELOCITY','FLUID_PRESSURE_ACCELERATION']
+
+        # Ass thermal variables
+        if self._check_input_dof("TEMPERATURE"):
+            self.dof_variables = self.dof_variables + ['TEMPERATURE']
+            self.dof_reactions = self.dof_reactions + ['TEMPERATURE_REACTION']
 
         # Add contat variables
         if self._check_input_dof("LAGRANGE_MULTIPLIER"):
@@ -307,12 +365,12 @@ class SolutionScheme:
         # Add water displacement variables
         if self._check_input_dof("WATER_DISPLACEMENT"):
             self.dof_variables = self.dof_variables + ['WATER_DISPLACEMENT','WATER_VELOCITY','WATER_ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','WATER_VELOCITY_REACTION','WATER_ACCELERATION_REACTION']
+            self.dof_reactions = self.dof_reactions + ['WATER_DISPLACEMENT_REACTION','NOT_DEFINED','NOT_DEFINED']
 
         # Add water pressure variables
         if self._check_input_dof("WATER_PRESSURE"):
             self.dof_variables = self.dof_variables + ['WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY','WATER_PRESSURE_ACCELERATION']
-            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'WATER_PRESSURE_VELOCITY_REACTION', 'WATER_PRESSURE_ACCELERATION_REACTION']
+            self.dof_reactions = self.dof_reactions + ['REACTION_WATER_PRESSURE', 'NOT_DEFINED', 'NOT_DEFINED']
 
         # Add jacobian variables
         if self._check_input_dof("JACOBIAN"):

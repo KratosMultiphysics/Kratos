@@ -74,7 +74,7 @@ namespace Kratos
 
 
     /// Execute method is used to execute the TransferModelPartElementsProcess algorithms.
-    virtual void Execute() 
+    void Execute() override
     {
      KRATOS_TRY;
 
@@ -99,51 +99,6 @@ namespace Kratos
     }
 
 
-    /// this function is designed for being called at the beginning of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteInitialize()
-    {
- 
-    }
-
-    /// this function is designed for being execute once before the solution loop but after all of the
-    /// solvers where built
-    virtual void ExecuteBeforeSolutionLoop()
-    {
-
-    }
-
-
-    /// this function will be executed at every time step BEFORE performing the solve phase
-    virtual void ExecuteInitializeSolutionStep()
-    {
-    }
-
-    /// this function will be executed at every time step AFTER performing the solve phase
-    virtual void ExecuteFinalizeSolutionStep()
-    {
-    }
-
-
-    /// this function will be executed at every time step BEFORE  writing the output
-    virtual void ExecuteBeforeOutputStep()
-    {
-    }
-
-
-    /// this function will be executed at every time step AFTER writing the output
-    virtual void ExecuteAfterOutputStep()
-    {
-    }
-
-
-    /// this function is designed for being called at the end of the computations
-    /// right after reading the model and the groups
-    virtual void ExecuteFinalize()
-    {
-    }
-
-
     ///@}
     ///@name Access
     ///@{
@@ -159,20 +114,15 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+   std::string Info() const override
       {
         return "TransferModelPartElementsProcess";
       }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "TransferModelPartElementsProcess";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
     }
 
 

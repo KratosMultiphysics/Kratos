@@ -8,13 +8,10 @@
 //
 
 // System includes
-#include <iostream>
 
 // External includes
-#include<cmath>
 
 // Project includes
-#include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
 
 #include "solid_mechanics_application_variables.h"
@@ -54,8 +51,7 @@ HyperElasticPlasticAxisym2DLaw::HyperElasticPlasticAxisym2DLaw(const HyperElasti
 
 ConstitutiveLaw::Pointer HyperElasticPlasticAxisym2DLaw::Clone() const
 {
-    HyperElasticPlasticAxisym2DLaw::Pointer p_clone(new HyperElasticPlasticAxisym2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<HyperElasticPlasticAxisym2DLaw>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -143,7 +139,7 @@ void HyperElasticPlasticAxisym2DLaw::CalculateVolumetricConstitutiveMatrix ( con
     rConstitutiveMatrix.clear();
 
     Vector Factors(3);
-    noalias(Factors) = ZeroVector(3);   
+    noalias(Factors) = ZeroVector(3);
     Factors =this-> CalculateVolumetricPressureFactors( rElasticVariables, Factors );
 
     for(unsigned int i=0; i<3; i++)
@@ -202,7 +198,7 @@ void HyperElasticPlasticAxisym2DLaw::GetLawFeatures(Features& rFeatures)
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
-	
+
 	//Set the strain size
 	rFeatures.mStrainSize = GetStrainSize();
 

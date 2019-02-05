@@ -25,7 +25,10 @@
 
 
 // Project includes
+#include <pybind11/pybind11.h>
 #include "includes/define.h"
+#include "includes/define_python.h"
+
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "utilities/math_utils.h"
@@ -88,7 +91,7 @@ namespace Kratos
     }
 
     /// Destructor.
-    virtual ~CalculateContactAngle()
+    ~CalculateContactAngle() override
     {
     }
 
@@ -107,16 +110,21 @@ namespace Kratos
     ///@name Operations
     ///@{
 
-    void CalculateContactAngle2D(ModelPart& ThisModelPart)
+   void CalculateContactAngle2D(ModelPart& ThisModelPart)
     {
 	KRATOS_TRY
 	
 	double theta = 0.0;
 	double pi = 3.14159265359;
 	
+// 	ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
+// 	double theta_s = CurrentProcessInfo[CONTACT_ANGLE_STATIC];
+// 	double delta_t = CurrentProcessInfo[DELTA_TIME];
+// 	double theta_adv = theta_s + 10.0;
+// 	double theta_rec = theta_s - 10.0;
 	
 	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ;
-	    im != ThisModelPart.NodesEnd() ; ++im)
+	    im != ThisModelPart.NodesEnd() ; im++)
 	    {
 	      //Find the neighbours of TRIPLE_POINT at the boundary
 	      if ((im->FastGetSolutionStepValue(TRIPLE_POINT))*1000 != 0.0)
@@ -134,7 +142,8 @@ namespace Kratos
 		{
 		  if (neighb[i].FastGetSolutionStepValue(IS_BOUNDARY) != 0.0)
 		  {
-		    if (neighnum == 0)
+//  		    if (neighnum == 0)
+		    if (neighnum < 1e-15)
 		    {
 		      x1 = neighb[i].X();
 		      y1 = neighb[i].Y();
@@ -145,7 +154,10 @@ namespace Kratos
 		      y2 = neighb[i].Y();
 		    }
 		    neighnum++;
-
+// 		    if (neighb[i].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
+// 		    {
+// 		      vx1 = neighb[i].FastGetSolutionStepValue(VELOCITY_X);
+// 		    }
 		  }
 		}
 		
@@ -163,11 +175,58 @@ namespace Kratos
 		theta = acos(costheta)*180.0/pi;
 		im->FastGetSolutionStepValue(CONTACT_ANGLE) = theta;
 		
+// 		if(theta > theta_adv || theta < theta_rec)
+// 		{
+// 		  im->FastGetSolutionStepValue(DISPLACEMENT_X) = vx1*delta_t;
+// 		}
 	      }
 	      else
 		im->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
 	    }
-	    
+	    /*
+	    //Now we check that there are only TWO nodes with CONTACT_ANGLE != 0.0
+	    int num_trip = 0;
+	    double min_x = 0.0;
+	    double max_x = 0.0;
+	    for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+	    {
+		if (im->FastGetSolutionStepValue(CONTACT_ANGLE) != 0.0)
+		{
+		    ++num_trip;
+		    if (num_trip < 2)
+		    {
+			min_x = im->X();
+			max_x = min_x;
+		    }
+		}
+	    }
+	    if (num_trip > 2)
+	    {
+		for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+		{
+		    if (im->FastGetSolutionStepValue(CONTACT_ANGLE) != 0.0)
+		    {
+			if (im->X() < min_x) //left triple point
+			{
+			    min_x = im->X();
+			}
+			if (im->X() > max_x) //right triple point
+			{
+			    max_x = im->X();
+			}
+		    }
+		}
+		//Now we have the coordinates of the true left and right triple points -> remove others
+		for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
+		{
+		    if (im->FastGetSolutionStepValue(CONTACT_ANGLE) != 0.0)
+		    {
+			if (im->X() >  min_x && im->X() < max_x)
+			      im->FastGetSolutionStepValue(CONTACT_ANGLE) = 0.0;
+		    }
+		}
+	    }
+	    */
 	
 	KRATOS_CATCH("")
     }
@@ -178,10 +237,10 @@ namespace Kratos
 	
 	double theta = 0.0;
 	double pi = 3.14159265359;
-	///////double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
-	///////double theta_rad = theta_eq*pi/180.0;
+	double theta_eq = ThisModelPart.GetProcessInfo()[CONTACT_ANGLE_STATIC];
+	double theta_rad = theta_eq*pi/180.0;
 
-	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; ++im)
+	for(ModelPart::NodesContainerType::iterator im = ThisModelPart.NodesBegin() ; im != ThisModelPart.NodesEnd() ; im++)
 	{
 	      if (im->FastGetSolutionStepValue(TRIPLE_POINT) != 0.0)
 	      {
@@ -198,35 +257,29 @@ namespace Kratos
 		double zi = im->Z();
 		double xj, yj, zj, xk, yk, zk;
 		xj = yj = zj = xk = yk = zk = 0.0;		
-		/////int idx_j = 6;
-		/////int idx_k = 7;
+		int idx_j = 6;
+		int idx_k = 7;
 		
 		array_1d<double,3> rij = ZeroVector(3);
 		array_1d<double,3> rik = ZeroVector(3);
 		array_1d<double,3> cross_prod_ijk = ZeroVector(3);
 		array_1d<double,3> normal_geom = ZeroVector(3);
+		array_1d<double,3> normal_tp = ZeroVector(3);
 		normal_geom = im->FastGetSolutionStepValue(NORMAL_GEOMETRIC);
-                array_1d<double,3> normal_tp = ZeroVector(3);
-		/////double dot_prod = 0.0;
+		double dot_prod = 0.0;
 		
 		im->FastGetSolutionStepValue(NORMAL_CONTACT_LINE) = ZeroVector(3);
 		array_1d<double,2> aux = ZeroVector(2);
 		array_1d<double,3> temp = ZeroVector(3);
 		
-		/////int neighnum_tp = 0;
-		/////int neighnum_caf = 0; //caf == contact angle face
-		/////int visited = 0;
+		int neighnum_tp = 0;
+		int neighnum_caf = 0; //caf == contact angle face
+		int visited = 0;
 		double num_faces = 0.0;
 		WeakPointerVector< Condition >& neighb_faces = im->GetValue(NEIGHBOUR_CONDITIONS);
 		//Loop over faces -> find faces that two IS_FREE_SURFACE nodes
 		for (unsigned int i = 0; i < neighb_faces.size(); i++)
 		{
-                    
-                  double dot_prod = 0.0;
-                  int neighnum_tp = 0;
-                  int neighnum_caf = 0; //caf == contact angle face
-                  int visited = 0;
-                  
 		  neighnum_tp = 0;
 		  neighnum_caf = 0;
 		  visited = 0;
@@ -245,21 +298,20 @@ namespace Kratos
 		    {
 			if (neighb_faces[i].GetGeometry()[j].FastGetSolutionStepValue(IS_FREE_SURFACE) != 0.0)
 			{
-			  if (visited == 0)
+//  			  if (visited == 0)
+			  if (visited < 1e-15)
 			  {
-                            ///////int idx_j = 6;
 			    xj = neighb_faces[i].GetGeometry()[j].X();
 			    yj = neighb_faces[i].GetGeometry()[j].Y();
 			    zj = neighb_faces[i].GetGeometry()[j].Z();
-			    ///////idx_j = j;
+			    idx_j = j;
 			  }
 			  else
 			  {
-                            ///////int idx_k = 7;
 			    xk = neighb_faces[i].GetGeometry()[j].X();
 			    yk = neighb_faces[i].GetGeometry()[j].Y();
 			    zk = neighb_faces[i].GetGeometry()[j].Z();	
-			    ///////idx_k = j;
+			    idx_k = j;
 			  }
 			  visited++;
 			}
@@ -337,7 +389,6 @@ namespace Kratos
 	KRATOS_CATCH("")
     }
     
-    
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     /// AUXILIAR FUNCTIONS ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -404,37 +455,6 @@ namespace Kratos
       }
     }    
     
-    
-///@}
-    ///@name Access
-    ///@{
-
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        return "CalculateContactAngle";
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "CalculateContactAngle";
-    }
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const
-    {
-    }
 
 
     ///@}

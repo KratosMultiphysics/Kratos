@@ -29,9 +29,26 @@
 namespace Kratos
 {
 /**
- * An eight node hexahedra geometry with linear shape functions
+ * @class Tetrahedra3D10
+ * @ingroup KratosCore
+ * @brief A ten node tetrahedra geometry with quadratic shape functions
+ * @details The node ordering corresponds with:       
+ *                     3                              
+ *                   ,/|`\                          
+ *                 ,/  |  `\       
+ *               ,7    '.   `9     
+ *             ,/       8     `\   
+ *          ,/          |       `\ 
+ *         0--------6--'.--------2
+ *          `\.         |      ,/ 
+ *             `\.      |    ,5   
+ *                `4.   '. ,/     
+ *                   `\. |/       
+ *                      `1         
+ * @author Riccardo Rossi
+ * @author Janosch Stascheit
+ * @author Felix Nagel
  */
-
 template<class TPointType> class Tetrahedra3D10 : public Geometry<TPointType>
 {
 public:
@@ -401,14 +418,14 @@ public:
     }
 
     /**
-     * Returns whether given arbitrary point is inside the Geometry and the respective 
+     * @brief Returns whether given arbitrary point is inside the Geometry and the respective
      * local point for the given global point
      * @param rPoint The point to be checked if is inside o note in global coordinates
      * @param rResult The local coordinates of the point
      * @param Tolerance The  tolerance that will be considered to check if the point is inside or not
      * @return True if the point is inside, false otherwise
      */
-    virtual bool IsInside( 
+    bool IsInside(
         const CoordinatesArrayType& rPoint, 
         CoordinatesArrayType& rResult, 
         const double Tolerance = std::numeric_limits<double>::epsilon() 

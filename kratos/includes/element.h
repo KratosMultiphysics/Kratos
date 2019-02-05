@@ -10,29 +10,21 @@
 //  Main authors:    Pooyan Dadvand
 //
 
-
 #if !defined(KRATOS_ELEMENT_H_INCLUDED )
 #define  KRATOS_ELEMENT_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "utilities/indexed_object.h"
 #include "containers/flags.h"
-#include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
+#include "containers/weak_pointer_vector.h"
+
 
 namespace Kratos
 {
@@ -107,8 +99,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsElementalDataContainerType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -207,7 +197,7 @@ public:
 	@return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
          return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -222,7 +212,7 @@ public:
      */
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -232,12 +222,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer
+     * @brief It creates a new element pointer
      * @param NewId the ID of the new element
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new element
@@ -248,12 +239,13 @@ public:
                            PropertiesType::Pointer pProperties) const
     {
         KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Element" << Info() << std::endl;
         return Kratos::make_shared<Element>(NewId, pGeom, pProperties);
         KRATOS_CATCH("");
     }
 
     /**
-     * creates a new element pointer and clones the previous element data
+     * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element
      * @param pProperties the properties assigned to the new element
@@ -262,8 +254,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class element Clone "<<std::endl;
-        return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        KRATOS_WARNING("Element") << " Call base class element Clone " << std::endl;
+        Element::Pointer p_new_elem = Kratos::make_shared<Element>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_elem->SetData(this->GetData());
+        p_new_elem->Set(Flags(*this));
+        return p_new_elem;
         KRATOS_CATCH("");
     }
 
@@ -446,7 +441,7 @@ public:
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
-    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -674,31 +669,57 @@ public:
     }
 
     /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the double version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector input variable containing the RHS vector to be assembled
      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable variable in the database to which the rRHSVector will be assembled
-      * @param rCurrentProcessInfo the current process info instance
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+        KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+         KRATOS_ERROR << "Base element class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
-    virtual void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief This function is designed to make the element to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void AddExplicitContribution(
+        const MatrixType& rLHSMatrix,
+        const Variable<MatrixType>& rLHSVariable,
+        Variable<Matrix>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rLHS to the desired variable. destination variable is ",rDestinationVariable)
+         KRATOS_ERROR << "Base element class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
     /**
@@ -747,6 +768,12 @@ public:
     {
     }
 
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+					      std::vector<int>& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
@@ -789,6 +816,11 @@ public:
      */
 
     //SET ON INTEGRATION POINTS - METHODS
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+					     std::vector<bool>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
     virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
 					     std::vector<int>& rValues,
 					     const ProcessInfo& rCurrentProcessInfo)
@@ -904,17 +936,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * ELEMENTS inherited from this class must implement this methods
-     * if they need to add dynamic element contributions
-     * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
 
     /**
      * this is called during the assembling process in order
@@ -1266,7 +1287,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element const& ThisComponent);
 
@@ -1285,4 +1306,3 @@ KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, FATHER_ELEMENTS)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined
-

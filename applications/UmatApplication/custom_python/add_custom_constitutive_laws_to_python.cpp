@@ -17,6 +17,7 @@
 
 //models
 #include "custom_models/hypoplastic_umat_small_strain_model.hpp"
+#include "custom_models/fabric_umat_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_small_strain_model.hpp"
 #include "custom_models/von_mises_umat_large_strain_model.hpp"
 
@@ -26,24 +27,24 @@ namespace Kratos
 namespace Python
 {
 
-using namespace pybind11;
+namespace py = pybind11;
 
 
 void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
 
   // models
-  class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<VonMisesSmallStrainUmatModel, typename VonMisesSmallStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "VonMisesSmallStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
-  class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<VonMisesLargeStrainUmatModel, typename VonMisesLargeStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "VonMisesLargeStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
-  class_<HypoplasticSmallStrainUmatModel, typename HypoplasticSmallStrainUmatModel::Pointer, ConstitutiveModel>
+  py::class_<HypoplasticSmallStrainUmatModel, typename HypoplasticSmallStrainUmatModel::Pointer, ConstitutiveModel>
       (m, "HypoplasticSmallStrainUmatModel")
-      .def( init<>() )
+      .def( py::init<>() )
       ;
 }
 

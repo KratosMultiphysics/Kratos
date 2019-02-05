@@ -19,7 +19,7 @@
 /* External includes */
 
 /* Project includes */
-#include "mesh_moving_application.h"
+#include "includes/mesh_moving_variables.h"
 #include "custom_elements/laplacian_meshmoving_element.h"
 #include "custom_utilities/move_mesh_utilities.h"
 #include "processes/find_nodal_neighbours_process.h"
@@ -277,7 +277,7 @@ private:
   /*@} */
   /**@name Member Variables */
   /*@{ */
-  ModelPart::Pointer mpmesh_model_part;
+  ModelPart* mpmesh_model_part;
 
   typename BaseType::Pointer mstrategy_x;
   typename BaseType::Pointer mstrategy_y;

@@ -247,6 +247,23 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     ~ResidualBasedNewtonRaphsonStrategy() override
     {
+        // If the linear solver has not been deallocated, clean it before
+        // deallocating mpA. This prevents a memory error with the the ML
+        // solver (which holds a reference to it).
+        auto p_linear_solver = GetBuilderAndSolver()->GetLinearSystemSolver();
+        if (p_linear_solver != nullptr) p_linear_solver->Clear();
+
+        // Deallocating system vectors to avoid errors in MPI. Clear calls
+        // TrilinosSpace::Clear for the vectors, which preserves the Map of
+        // current vectors, performing MPI calls in the process. Due to the
+        // way Python garbage collection works, this may happen after
+        // MPI_Finalize has already been called and is an error. Resetting
+        // the pointers here prevents Clear from operating with the
+        // (now deallocated) vectors.
+        mpA.reset();
+        mpDx.reset();
+        mpb.reset();
+
         Clear();
     }
 
@@ -468,6 +485,7 @@ class ResidualBasedNewtonRaphsonStrategy
         GetScheme()->Clear();
 
         mInitializeWasPerformed = false;
+        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }
@@ -546,9 +564,7 @@ class ResidualBasedNewtonRaphsonStrategy
                 //setting up the Vectors involved to the correct size
                 BuiltinTimer system_matrix_resize_time;
                 p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 BaseType::GetModelPart().Elements(),
-                                                                 BaseType::GetModelPart().Conditions(),
-                                                                 BaseType::GetModelPart().GetProcessInfo());
+                                                                 BaseType::GetModelPart());
                 KRATOS_INFO_IF("System Matrix Resize Time", BaseType::GetEchoLevel() > 0 && rank == 0)
                     << system_matrix_resize_time.ElapsedSeconds() << std::endl;
             }
@@ -818,13 +834,27 @@ class ResidualBasedNewtonRaphsonStrategy
     }
 
     /**
-     * @brief This method directly sets the input as the LHS
-     * @param A The LHS matrix
+     * @brief This method returns the RHS vector
+     * @return The RHS vector
      */
-    void GetDirectSystemMatrix(TSystemMatrixType& A)
+    TSystemVectorType& GetSystemVector()
     {
-        A = *mpA;
+        TSystemVectorType& mb = *mpb;
+
+        return mb;
     }
+
+    /**
+     * @brief This method returns the solution vector
+     * @return The Dx vector
+     */
+    TSystemVectorType& GetSolutionVector()
+    {
+        TSystemVectorType& mDx = *mpDx;
+
+        return mDx;
+    }
+
 
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
@@ -847,6 +877,28 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@}
     ///@name Inquiry
     ///@{
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "ResidualBasedNewtonRaphsonStrategy";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        rOStream << Info();
+    }
 
     ///@}
     ///@name Friends

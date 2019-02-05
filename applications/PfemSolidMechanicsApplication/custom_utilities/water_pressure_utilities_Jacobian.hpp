@@ -23,7 +23,7 @@ namespace Kratos
 {
 
 
-   class WaterPressureJacobianUtilities
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) WaterPressureJacobianUtilities
       : public WaterPressureUtilities
    {
 

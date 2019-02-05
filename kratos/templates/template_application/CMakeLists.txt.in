@@ -2,19 +2,23 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring Kratos@{APP_NAME_CAMEL}Application ****")
 
+################### PYBIND11
+include(pybind11Tools)
+
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 # generate variables with the sources
 set( KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_LOW}_application.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_LOW}_application_variables.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/@{APP_NAME_LOW}_python_application.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp@{APP_SOURCE_LIST}
+    ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_LOW}_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_LOW}_application_variables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/@{APP_NAME_LOW}_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp@{APP_SOURCE_LIST}
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp@{APP_SOURCE_LIST}
 )
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos@{APP_NAME_CAMEL}Application MODULE THIN_LTO ${KRATOS_@{APP_NAME_CAPS}_APPLICATION_SOURCES})
-target_link_libraries(Kratos@{APP_NAME_CAMEL}Application KratosCore @{APP_DEPEND_LIST})
+target_link_libraries(Kratos@{APP_NAME_CAMEL}Application PRIVATE KratosCore @{APP_DEPEND_LIST})
 set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES PREFIX "")
 
 if(USE_COTIRE MATCHES ON)
@@ -25,12 +29,12 @@ install(TARGETS Kratos@{APP_NAME_CAMEL}Application DESTINATION libs )
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-	set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .pyd)
+    set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .pyd)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dylib suffix to .so (OS X)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .so)
+    set_target_properties(Kratos@{APP_NAME_CAMEL}Application PROPERTIES SUFFIX .so)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # install the python files
@@ -40,4 +44,4 @@ if(${INSTALL_PYTHON_FILES} MATCHES ON)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
 
 # Add to the KratosMultiphisics Python module
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/@{APP_NAME_CAMEL}Application.py" DESTINATION "KratosMultiphysics/@{APP_NAME_CAMEL}Application" RENAME "__init__.py")

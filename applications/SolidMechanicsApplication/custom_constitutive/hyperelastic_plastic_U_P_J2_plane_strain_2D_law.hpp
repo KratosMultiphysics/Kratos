@@ -22,11 +22,11 @@
 namespace Kratos
 {
 /**
- * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D 
+ * Defines a hyperelastic-plastic isotropic constitutive law J2 in plane strain 2D
  * With stress split in an isochoric and volumetric parts
  * This material law is defined by the parameters needed by the yield criterion:
 
- * The functionality is limited to large displacements 
+ * The functionality is limited to large displacements
  */
 
 class KRATOS_API(SOLID_MECHANICS_APPLICATION) HyperElasticPlasticUPJ2PlaneStrain2DLaw : public HyperElasticPlasticUPPlaneStrain2DLaw
@@ -60,7 +60,7 @@ public:
     HyperElasticPlasticUPJ2PlaneStrain2DLaw();
 
 
-    HyperElasticPlasticUPJ2PlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    HyperElasticPlasticUPJ2PlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -83,7 +83,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~HyperElasticPlasticUPJ2PlaneStrain2DLaw();
+    ~HyperElasticPlasticUPJ2PlaneStrain2DLaw() override;
 
     /**
      * Operators
@@ -130,7 +130,7 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-	
+
     ///@}
     ///@name Protected Operators
     ///@{

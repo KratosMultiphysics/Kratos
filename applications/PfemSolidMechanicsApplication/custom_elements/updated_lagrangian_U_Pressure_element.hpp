@@ -41,7 +41,7 @@ namespace Kratos
    // the constitutive equation should not be the UP version
 
 
-   class UpdatedLagrangianUPressureElement
+   class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) UpdatedLagrangianUPressureElement
       : public UpdatedLagrangianUPElement
    {
 
@@ -57,7 +57,7 @@ namespace Kratos
 
             Matrix DeviatoricTensor; 
             
-         } ThisElementVariables;
+         } ThisElementData;
       
       public:
 
@@ -71,6 +71,10 @@ namespace Kratos
          typedef ConstitutiveLawType::StressMeasure StressMeasureType;
          ///Type definition for integration methods
          typedef GeometryData::IntegrationMethod IntegrationMethod;
+         ///Type for size
+         typedef GeometryData::SizeType SizeType;
+         ///Type for element variables
+         typedef UpdatedLagrangianUPElement::ElementDataType ElementDataType;
 
          /// Counted pointer of LargeDisplacementUPElement
          KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPressureElement );
@@ -198,7 +202,7 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                double& rIntegrationWeight) override;
 
          /**
@@ -206,14 +210,14 @@ namespace Kratos
           */
 
          virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
-               ElementVariables& rVariables,
+               ElementDataType& rVariables,
                Vector& rVolumeForce,
                double& rIntegrationWeight) override;
 
          /**
           * Initialize Element General Variables
           */
-         virtual void InitializeElementVariables(ElementVariables & rVariables, 
+         virtual void InitializeElementData(ElementDataType & rVariables, 
                const ProcessInfo& rCurrentProcessInfo) override;
 
 
@@ -222,8 +226,8 @@ namespace Kratos
           * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
           */
          virtual void CalculateAndAddKuumElemUP(MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -231,8 +235,8 @@ namespace Kratos
           * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
           */
          virtual void CalculateAndAddKuugElemUP(MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -240,8 +244,8 @@ namespace Kratos
           * Calculation of the Kup matrix
           */
          virtual void CalculateAndAddKupElemUP (MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -249,8 +253,8 @@ namespace Kratos
           * Calculation of the Kpu matrix
           */
          virtual void CalculateAndAddKpuElemUP(MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -259,8 +263,8 @@ namespace Kratos
           * Calculation of the Kpp matrix
           */
          virtual void CalculateAndAddKppElemUP(MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -269,8 +273,8 @@ namespace Kratos
           * Calculation of the Kpp Stabilization Term matrix
           */
          virtual void CalculateAndAddKppStabElemUP(MatrixType& rK,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -278,8 +282,8 @@ namespace Kratos
           * Calculation of the Internal Forces due to sigma. Fi = B * sigma
           */
          void CalculateAndAddInternalForcesElemUP(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -287,8 +291,8 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
@@ -297,15 +301,15 @@ namespace Kratos
           * Calculation of the Internal Forces due to Pressure-Balance
           */
          virtual void CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
-               ElementVariables & rVariables,
-               ThisElementVariables & rElementVariables,
+               ElementDataType & rVariables,
+               ThisElementData & rElementVariables,
                double& rIntegrationWeight
                );
 
          /**
-           * Calculate ThisElementVariables ( variables that are easy computations that are performed several times 
+           * Calculate ThisElementData ( variables that are easy computations that are performed several times 
            */
-         virtual void CalculateThisElementVariables( ThisElementVariables& rElementVariables, const ElementVariables & rVariables);
+         virtual void CalculateThisElementData( ThisElementData& rElementVariables, const ElementDataType & rVariables);
 
 
          ///@}

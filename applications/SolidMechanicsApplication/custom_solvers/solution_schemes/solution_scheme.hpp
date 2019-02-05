@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/checks.h"
 #include "includes/model_part.h"
+#include "custom_processes/solver_process.hpp"
 #include "custom_solvers/time_integration_methods/time_integration_method.hpp"
 
 namespace Kratos
@@ -41,29 +42,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/** @brief Solver local flags class definition
- *  @details This is the base class for solver local flags
- */
-class SolverLocalFlags
-{
- public:
-  /// Flags for the solution control:
-  KRATOS_DEFINE_LOCAL_FLAG( INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONVERGED );
-  KRATOS_DEFINE_LOCAL_FLAG( DOFS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( ELEMENTS_INITIALIZED );
-  KRATOS_DEFINE_LOCAL_FLAG( CONDITIONS_INITIALIZED );
-
-  /// Flags for the solution options:
-  KRATOS_DEFINE_LOCAL_FLAG( REFORM_DOFS );
-  KRATOS_DEFINE_LOCAL_FLAG( INCREMENTAL_SOLUTION );
-  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_REACTIONS );
-  KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_SYSTEM_MATRIX );
-  KRATOS_DEFINE_LOCAL_FLAG( RAYLEIGH_DAMPING );
-  KRATOS_DEFINE_LOCAL_FLAG( IMPLEX );
-};
-
 
 /** @brief Solution scheme base class
  *  @details This is the base class for the schemes
@@ -98,12 +76,15 @@ class SolutionScheme : public Flags
   typedef TimeIntegrationMethod<VariableVectorType,VectorType>  IntegrationVectorType;
   typedef typename IntegrationVectorType::Pointer        IntegrationVectorPointerType;
   typedef std::vector<IntegrationVectorPointerType>      IntegrationMethodsVectorType;
-  
+
   typedef Variable<double>                                         VariableScalarType;
   typedef TimeIntegrationMethod<VariableScalarType, double>     IntegrationScalarType;
   typedef typename IntegrationScalarType::Pointer        IntegrationScalarPointerType;
   typedef std::vector<IntegrationScalarPointerType>      IntegrationMethodsScalarType;
-  
+
+  typedef typename SolverProcess::Pointer                          ProcessPointerType;
+  typedef std::vector<ProcessPointerType>                    ProcessPointerVectorType;
+
   /// Pointer definition of SolutionScheme
   KRATOS_CLASS_POINTER_DEFINITION(SolutionScheme);
 
@@ -112,30 +93,37 @@ class SolutionScheme : public Flags
   ///@{
 
   /// Default Constructor.
-  SolutionScheme() : Flags() {}
+  SolutionScheme() : Flags() {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {}
+  SolutionScheme(Flags& rOptions) : Flags(), mOptions(rOptions) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
-  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {}
+  SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods) : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods) {SetDefaultFlags();}
+
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods, Flags& rOptions) : Flags(), mOptions(rOptions), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
+
+  /// Constructor.
+  SolutionScheme(IntegrationMethodsScalarType& rTimeScalarIntegrationMethods) : Flags(), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods,
                  Flags& rOptions)
-      : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
+      : Flags(), mOptions(rOptions), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
 
   /// Constructor.
   SolutionScheme(IntegrationMethodsVectorType& rTimeVectorIntegrationMethods,
                  IntegrationMethodsScalarType& rTimeScalarIntegrationMethods)
-      : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {}
-  
+      : Flags(), mTimeVectorIntegrationMethods(rTimeVectorIntegrationMethods), mTimeScalarIntegrationMethods(rTimeScalarIntegrationMethods) {SetDefaultFlags();}
+
   /// Copy contructor.
   SolutionScheme(SolutionScheme& rOther) : mOptions(rOther.mOptions)
+                                         , mProcesses(rOther.mProcesses)
   {
     std::copy(std::begin(rOther.mTimeVectorIntegrationMethods), std::end(rOther.mTimeVectorIntegrationMethods), std::back_inserter(mTimeVectorIntegrationMethods));
   }
@@ -147,7 +135,7 @@ class SolutionScheme : public Flags
   }
 
   /// Destructor.
-  virtual ~SolutionScheme() {}
+  ~SolutionScheme() override {}
 
   ///@}
   ///@name Operators
@@ -157,6 +145,25 @@ class SolutionScheme : public Flags
   ///@name Operations
   ///@{
 
+  /**
+   * @brief SetDefaultSchemeFlags.
+   * @details This is intended to be called with the constructor
+   */
+  void SetDefaultFlags()
+  {
+    KRATOS_TRY
+
+    if( this->mOptions.IsNotDefined(LocalFlagType::MOVE_MESH) )
+      mOptions.Set(LocalFlagType::MOVE_MESH,true); //default : lagrangian mesh update
+
+    if( this->mOptions.IsNotDefined(LocalFlagType::UPDATE_VARIABLES) )
+      mOptions.Set(LocalFlagType::UPDATE_VARIABLES,true); //default : derivatives update
+
+    if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
+      mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION,true); //default : dof is the variable increment
+
+    KRATOS_CATCH("")
+  }
 
   /**
    * @brief Performs all the required operations that should be done (for each step) before solving the solution step.
@@ -166,21 +173,18 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    if( this->mOptions.IsNotDefined(LocalFlagType::INCREMENTAL_SOLUTION) )
-      mOptions.Set(LocalFlagType::INCREMENTAL_SOLUTION); //default : dof is the variable increment
+    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+        it!=mTimeVectorIntegrationMethods.end(); ++it)
+      (*it)->SetParameters(rModelPart.GetProcessInfo());
+
+    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
+        it!=mTimeScalarIntegrationMethods.end(); ++it)
+      (*it)->SetParameters(rModelPart.GetProcessInfo());
 
     this->InitializeElements(rModelPart);
 
     this->InitializeConditions(rModelPart);
 
-    for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
-        it!=mTimeVectorIntegrationMethods.end(); ++it)
-      (*it)->SetParameters(rModelPart.GetProcessInfo());
-    
-    for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
-        it!=mTimeScalarIntegrationMethods.end(); ++it)
-      (*it)->SetParameters(rModelPart.GetProcessInfo());
-    
     this->Set(LocalFlagType::INITIALIZED, true);
 
     KRATOS_CATCH("")
@@ -195,6 +199,9 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteInitializeSolutionStep();
 
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
@@ -225,6 +232,10 @@ class SolutionScheme : public Flags
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteFinalizeSolutionStep();
+
+
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
     {
@@ -252,6 +263,9 @@ class SolutionScheme : public Flags
     KRATOS_TRY
 
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteInitialize(); //corresponds to ExecuteInitializeNonLinearIteration()
 
 #pragma omp parallel for
     for(int i=0; i<static_cast<int>(rModelPart.Elements().size()); i++)
@@ -281,6 +295,9 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
+    for(typename ProcessPointerVectorType::iterator it=mProcesses.begin(); it!=mProcesses.end(); ++it)
+      (*it)->ExecuteFinalize(); //corresponds to ExecuteFinalizeNonLinearIteration()
+
     ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
 #pragma omp parallel for
@@ -297,7 +314,6 @@ class SolutionScheme : public Flags
       auto itCond = rModelPart.ConditionsBegin() + i;
       itCond->FinalizeNonLinearIteration(rCurrentProcessInfo);
     }
-
 
     KRATOS_CATCH("")
   }
@@ -426,20 +442,23 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    // Updating time derivatives (nodally for efficiency)
-    const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector NodePartition;
-    OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
+    if( this->mOptions.Is(LocalFlagType::UPDATE_VARIABLES) ){
 
-    const int nnodes = static_cast<int>(rModelPart.Nodes().size());
-    NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
+      // Updating time derivatives (nodally for efficiency)
+      const unsigned int NumThreads = OpenMPUtils::GetNumThreads();
+      OpenMPUtils::PartitionVector NodePartition;
+      OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
 
-    #pragma omp parallel for firstprivate(NodeBegin)
-    for(int i = 0;  i < nnodes; i++)
-    {
-      NodesContainerType::iterator itNode = NodeBegin + i;
+      const int nnodes = static_cast<int>(rModelPart.Nodes().size());
+      NodesContainerType::iterator NodeBegin = rModelPart.Nodes().begin();
 
-      this->IntegrationMethodUpdate(*itNode);
+      #pragma omp parallel for firstprivate(NodeBegin)
+      for(int i = 0;  i < nnodes; i++)
+      {
+        NodesContainerType::iterator itNode = NodeBegin + i;
+
+        this->IntegrationMethodUpdate(*itNode);
+      }
     }
 
     KRATOS_CATCH("")
@@ -481,21 +500,40 @@ class SolutionScheme : public Flags
   {
     KRATOS_TRY
 
-    if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-    {
-      KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
-    }
+    if( this->mOptions.Is(LocalFlagType::MOVE_MESH) ){
 
-    const int nnodes = rModelPart.NumberOfNodes();
-    ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
+      if (rModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
+      {
+        KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT variable is not in the Model Part. Add DISPLACEMENT to the list of variables" << std::endl;
+      }
+
+      bool DisplacementIntegration = false;
+      for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
+          it!=mTimeVectorIntegrationMethods.end(); ++it)
+      {
+        if( "DISPLACEMENT" == (*it)->GetVariableName() ){
+          DisplacementIntegration = true;
+          break;
+        }
+      }
+
+      if(DisplacementIntegration == true){
+
+        // Update mesh positions : node coordinates
+        const int nnodes = rModelPart.NumberOfNodes();
+        ModelPart::NodesContainerType::iterator it_begin = rModelPart.NodesBegin();
 
 #pragma omp parallel for
-    for(int i = 0; i<nnodes; i++)
-    {
-      ModelPart::NodesContainerType::iterator it_node = it_begin + i;
+        for(int i = 0; i<nnodes; i++)
+        {
+          ModelPart::NodesContainerType::iterator it_node = it_begin + i;
 
-      noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
-      noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+          noalias(it_node->Coordinates()) = it_node->GetInitialPosition().Coordinates();
+          noalias(it_node->Coordinates()) += it_node->FastGetSolutionStepValue(DISPLACEMENT);
+        }
+
+      }
+
     }
 
     KRATOS_CATCH("")
@@ -545,11 +583,11 @@ class SolutionScheme : public Flags
     for(typename IntegrationMethodsVectorType::iterator it=mTimeVectorIntegrationMethods.begin();
         it!=mTimeVectorIntegrationMethods.end(); ++it)
       (*it)->Check(rModelPart.GetProcessInfo());
-    
+
     for(typename IntegrationMethodsScalarType::iterator it=mTimeScalarIntegrationMethods.begin();
         it!=mTimeScalarIntegrationMethods.end(); ++it)
       (*it)->Check(rModelPart.GetProcessInfo());
-    
+
     KRATOS_CATCH("")
 
     return 0;
@@ -607,6 +645,7 @@ class SolutionScheme : public Flags
                                           Element::EquationIdVectorType& rEquationId,
                                           ProcessInfo& rCurrentProcessInfo)
   {
+    std::cout<< " it is C_LHS "<<std::endl;
     pCurrentElement->CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
     pCurrentElement->EquationIdVector(rEquationId, rCurrentProcessInfo);
   }
@@ -723,6 +762,22 @@ class SolutionScheme : public Flags
     return mOptions;
   }
 
+  /**
+   * @brief Set process to execute after move_mesh
+   */
+  void SetProcess( ProcessPointerType pProcess )
+  {
+    mProcesses.push_back(pProcess); //NOTE: order set = order of execution
+  }
+
+  /**
+   * @brief Set list of processes to execute after move_mesh
+   */
+  void SetProcessVector( ProcessPointerVectorType& rProcessVector )
+  {
+    mProcesses = rProcessVector;
+  }
+
   ///@}
   ///@name Inquiry
   ///@{
@@ -744,8 +799,11 @@ class SolutionScheme : public Flags
   Flags mOptions;
 
   // Time integration methods
-  IntegrationMethodsVectorType  mTimeVectorIntegrationMethods;
-  IntegrationMethodsScalarType  mTimeScalarIntegrationMethods;
+  IntegrationMethodsVectorType mTimeVectorIntegrationMethods;
+  IntegrationMethodsScalarType mTimeScalarIntegrationMethods;
+
+  // Processes called after move mesh is called
+  ProcessPointerVectorType mProcesses;
 
   ///@}
   ///@name Protected Operators
@@ -907,24 +965,7 @@ class SolutionScheme : public Flags
 ///@name Type Definitions
 ///@{
 
-/**
- * Flags for the Strategy control
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INITIALIZED,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONVERGED,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, DOFS_INITIALIZED,          2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, ELEMENTS_INITIALIZED,      3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONDITIONS_INITIALIZED,    4 );
 
-/**
- * Flags for the Strategy options
- */
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, REFORM_DOFS,               0 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, INCREMENTAL_SOLUTION,      1 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, COMPUTE_REACTIONS,         2 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, CONSTANT_SYSTEM_MATRIX,    3 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, RAYLEIGH_DAMPING,          4 );
-KRATOS_CREATE_LOCAL_FLAG( SolverLocalFlags, IMPLEX,                    5 );
 ///@}
 ///@name Input and output
 ///@{

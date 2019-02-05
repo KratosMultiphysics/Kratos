@@ -31,7 +31,7 @@ namespace Python
 void  AddMatrixMarketInterfaceToPython(pybind11::module& m)
 {
 
-    using namespace pybind11;
+    namespace py = pybind11;
 
     m.def("ReadMatrixMarketMatrix", ReadMatrixMarketMatrix <Kratos::CompressedMatrix>);
     m.def("WriteMatrixMarketMatrix", WriteMatrixMarketMatrix <Kratos::CompressedMatrix>);

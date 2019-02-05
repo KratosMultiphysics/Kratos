@@ -11,10 +11,8 @@
 //                   Pooyan Dadvand
 //
 
-
 #if !defined(KRATOS_MODEL_H_INCLUDED )
 #define  KRATOS_MODEL_H_INCLUDED
-
 
 // System includes
 #include <string>
@@ -23,218 +21,305 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup KratosCore
+///@{
 
-  ///@name Kratos Globals
-  ///@{
+///@name Kratos Globals
+///@{
 
-  ///@}
-  ///@name Type Definitions
-  ///@{
+///@}
+///@name Type Definitions
+///@{
 
-  ///@}
-  ///@name  Enum's
-  ///@{
+///@}
+///@name  Enum's
+///@{
 
-  ///@}
-  ///@name  Functions
-  ///@{
+///@}
+///@name  Functions
+///@{
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class KRATOS_API(KRATOS_CORE)  Model
+/**
+* @class Model
+* @ingroup KratosCore
+* @brief This class aims to manage different model parts across multi-physics simulations
+* @details The class behaves as a manager of the different model parts. It uses unordered_maps of the variables and the model parts for that purpose
+* @author Riccardo Rossi
+*/
+class KRATOS_API(KRATOS_CORE) Model
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Definition of the index type
+    typedef ModelPart::IndexType IndexType;
+
+    /// Pointer definition of Model
+    KRATOS_CLASS_POINTER_DEFINITION(Model);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    Model(){};
+
+    /// Destructor.
+    virtual ~Model()
     {
-    public:
-      ///@name Type Definitions
-      ///@{
+        mRootModelPartMap.clear();
+        //mListOfVariablesLists.clear(); //this has to be done AFTER clearing the RootModelParts
+    }
 
-      /// Pointer definition of Model
-      KRATOS_CLASS_POINTER_DEFINITION(Model);
+    Model(const Model&) = delete;
 
-      ///@}
-      ///@name Life Cycle
-      ///@{
+    ///@}
+    ///@name Operators
+    ///@{
 
-      /// Default constructor.
-      Model(){};
+    Model & operator=(const Model&) = delete;
 
-      /// Destructor.
-      virtual ~Model(){};
+    ///@}
+    ///@name Operations
+    ///@{
 
+    /**
+     * @brief This method clears the database of modelparts
+     * @details Executes a clear on the model part map
+     */
+    void Reset();
 
-      ///@}
-      ///@name Operators
-      ///@{
-      void AddModelPart(ModelPart::Pointer pModelPart); //TODO: change this conveniently
+    /**
+     * @brief This method creates a new model part contained in the current Model with a given name and buffer size
+     * @param ModelPartName The name of the new model part to be created
+     * @param NewBufferSize The size of the buffer of the new model part created
+     */
+    ModelPart& CreateModelPart( const std::string ModelPartName, IndexType NewBufferSize=1 );
 
-      ModelPart& GetModelPart(const std::string& rFullModelPartName);
+    /**
+     * @brief This method deletes a modelpart with a given name
+     * @details Raises a warning in case the model part does not exists
+     * @param ModelPartName The name of the model part to be removed
+     */
+    void DeleteModelPart( const std::string ModelPartName );
 
-      bool HasModelPart(const std::string& rFullModelPartName);
+    /**
+     * @brief This method renames a modelpart with a given name
+     * @details Raises an error in case the model part does not exists as root model part
+     * @param OldName The name of the model part to be renamed
+     * @param NewName The new name for the model part to be renamed
+     */
+    void RenameModelPart( const std::string OldName, const std::string NewName );
 
-      ///@}
-      ///@name Operations
-      ///@{
+    /**
+     * @brief This method returns a model part given a certain name
+     * @details Iterates over the list of submodelparts of the root model part
+     * @param rFullModelPartName The name of the model part to be returned
+     * @return Reference to the model part of interest
+     */
+    ModelPart& GetModelPart(const std::string& rFullModelPartName);
 
+    /**
+     * @brief This method checks if a certain a model part exists given a certain name
+     * @details Iterates over the list of submodelparts of the root model part
+     * @param rFullModelPartName The name of the model part to be checked
+     * @return True if the model part exists, false otherwise
+     */
+    bool HasModelPart(const std::string& rFullModelPartName) const;
 
-      ///@}
-      ///@name Access
-      ///@{
+    /**
+     * @brief This returns a vector containing a list of model parts names contained on the model
+     * @details Iterates over the list of submodelparts of the root model part
+     * @return A vector of strings containing the model parts names
+     */
+    std::vector<std::string> GetModelPartNames();
 
-
-      ///@}
-      ///@name Inquiry
-      ///@{
-
-
-      ///@}
-      ///@name Input and output
-      ///@{
-
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
-
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-
-
-      ///@}
-      ///@name Friends
-      ///@{
-
-
-      ///@}
-
-    protected:
-      ///@name Protected static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Protected Operators
-      ///@{
-      void AddModelPartRawPointer(ModelPart* pModelPart); //TODO: change this conveniently
-
-      ///@}
-      ///@name Protected Operations
-      ///@{
+    ///@}
+    ///@name Access
+    ///@{
 
 
-      ///@}
-      ///@name Protected  Access
-      ///@{
+    ///@}
+    ///@name Inquiry
+    ///@{
 
 
-      ///@}
-      ///@name Protected Inquiry
-      ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
 
 
-      ///@}
-      ///@name Protected LifeCycle
-      ///@{
+    ///@}
+    ///@name Friends
+    ///@{
 
 
-      ///@}
+    ///@}
 
-    private:
-      ///@name Static Member Variables
-      ///@{
-
-
-      ///@}
-      ///@name Member Variables
-      ///@{
-      std::unordered_map< std::string, ModelPart* > mflat_map; //TODO: deprecate this
-      std::unordered_map< std::string, ModelPart* > mRootModelPartMap;
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operators
-      ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-      ///@}
-      ///@name Private Operations
-      ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
-      void GetSubPartsList(const std::string& rFullModelPartName,
-                           std::vector<std::string>& rSubPartsList);
-
-
-      ///@}
-      ///@name Private  Access
-      ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
 
-      ///@}
-      ///@name Private Inquiry
-      ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-      ///@}
-      ///@name Un accessible methods
-      ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
-      /// Assignment operator.
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    std::map< std::string, std::unique_ptr<ModelPart> > mRootModelPartMap; /// The map containing the list of model parts
+
+    std::set< std::unique_ptr<VariablesList> > mListOfVariablesLists;      /// The set containing the list of variables
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method searchs recursively a sub model part in a model part
+     * @param rModelPartName The name to be search
+     * @param pModelPart Pointer of the model part where search recursively
+     * @return The pointer of the model part of interest
+     */
+    ModelPart* RecursiveSearchByName(const std::string& rModelPartName, ModelPart* pModelPart);
+
+    /**
+     * @brief This method splits the name of the model part using "." to define the hierarchy
+     * @param rFullModelPartName The name with the full hierarchy
+     * @return The vector containing each part of the name defining the model part hierarchy
+     */
+    std::vector<std::string> SplitSubModelPartHierarchy(const std::string& rFullModelPartName) const;
+
+    /**
+     * @brief This method returns the list of variables considered on the model
+     * @return The list of variables contained on the model
+     */
+    const std::set< std::unique_ptr<VariablesList> >& GetListOfVariableLists() const
+    {
+        return mListOfVariablesLists;
+    }
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
 //       Model& operator=(Model const& rOther);
 
-      /// Copy constructor.
+    /// Copy constructor.
 //       Model(Model const& rOther);
 
 
-      ///@}
+    ///@}
+    ///@name Serialization
+    ///@{
 
-    }; // Class Model
+    friend class Serializer;
 
-  ///@}
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
-  ///@name Type Definitions
-  ///@{
+    ///@}
+
+}; // Class Model
+
+///@}
+
+///@name Type Definitions
+///@{
 
 
-  ///@}
-  ///@name Input and output
-  ///@{
+///@}
+///@name Input and output
+///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    Model& rThis);
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                Model& rThis);
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const Model& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                const Model& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+    return rOStream;
+}
+///@}
 
-  ///@} addtogroup block
+///@} addtogroup block
 
 }  // namespace Kratos.
 

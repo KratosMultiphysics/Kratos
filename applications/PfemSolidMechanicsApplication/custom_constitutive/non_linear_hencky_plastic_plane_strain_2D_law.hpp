@@ -17,18 +17,17 @@
 
 // Project includes
 #include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
-#include "includes/ublas_interface.h"
 
 
 namespace Kratos
 {
-/** 
+/**
   *
 
  */
 
 
-class NonLinearHenckyElasticPlasticPlaneStrain2DLaw: public NonLinearHenckyElasticPlastic3DLaw
+class KRATOS_API(PFEM_SOLID_MECHANICS_APPLICATION) NonLinearHenckyElasticPlasticPlaneStrain2DLaw: public NonLinearHenckyElasticPlastic3DLaw
 {
 
 public:
@@ -60,7 +59,7 @@ public:
     NonLinearHenckyElasticPlasticPlaneStrain2DLaw();
 
 
-    NonLinearHenckyElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    NonLinearHenckyElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -133,21 +132,6 @@ public:
 */    /**
      * Material parameters are inizialized
      */
-//    void InitializeMaterial( const Properties& rProps,
-//                             const GeometryType& rGeom,
-//                             const Vector& rShapeFunctionsValues );
-
-
-/*    void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom, //this is just to give the array of nodes
-                               const Vector& ShapeFunctionsValues ,
-                               const ProcessInfo& CurrentProcessInfo);
-*/
    /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -251,15 +235,15 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-  
+
 //    Matrix mElasticLeftCauchyGreen;
-    
+
 //    FlowRulePointer mpFlowRule;
 
 //    YieldCriterionPointer mpYieldCriterion;
-	
+
 //    HardeningLawPointer   mpHardeningLaw;
-	
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -291,13 +275,13 @@ protected:
      */
     void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector ) override;
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in a pullback fashion
     */
-    
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS 
+
+    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in the actual configuration
     */
 
@@ -400,7 +384,7 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
 /*    virtual void CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						     FlowRule::RadialReturnVariables & rReturnMappingVariables,		     
+						     FlowRule::RadialReturnVariables & rReturnMappingVariables,
 						     Matrix& rConstitutiveMatrix);
 */
 
@@ -425,7 +409,7 @@ protected:
 /*    double& PlasticConstitutiveComponent( double & rCabcd,
             const MaterialResponseVariables& rElasticVariables,
             const Matrix & rIsoStressMatrix,
-            const FlowRule::PlasticFactors & rScalingFactors,			 
+            const FlowRule::PlasticFactors & rScalingFactors,
             const unsigned int& a, const unsigned int& b,
             const unsigned int& c, const unsigned int& d);
 */
@@ -543,4 +527,3 @@ private:
 } //namespace Kratos
 
 #endif  //KRATOS_HENCKY_PLASTIC_3D_LAW_H_INCLUDED
-

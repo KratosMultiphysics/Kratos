@@ -7,6 +7,6 @@
 #define KRATOS_SHA1_NUMBER  @KratosMultiphysics_SHA1_NUMBER@
 
 //cmake build type
-#define KRATOS_BUILD_TYPE @KratosMultiphysics_BUILD_TYPE@
+#define KRATOS_BUILD_TYPE "@KratosMultiphysics_BUILD_TYPE@"
 
 #define KRATOS_VERSION  "@KratosMultiphysics_MAJOR_VERSION@.@KratosMultiphysics_MINOR_VERSION@.@KratosMultiphysics_PATCH_VERSION@-@KratosMultiphysics_SHA1_NUMBER@@KratosMultiphysics_BUILD_SUFFIX@"

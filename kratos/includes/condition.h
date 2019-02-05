@@ -4,33 +4,25 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                     Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
-
 
 #if !defined(KRATOS_CONDITION_H_INCLUDED )
 #define  KRATOS_CONDITION_H_INCLUDED
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/node.h"
-#include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
 #include "includes/geometrical_object.h"
-#include "utilities/indexed_object.h"
 #include "containers/flags.h"
+#include "containers/weak_pointer_vector.h"
 
 
 namespace Kratos
@@ -107,8 +99,6 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
-
-    typedef VectorMap<IndexType, DataValueContainer> SolutionStepsConditionalDataContainerType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -209,10 +199,10 @@ public:
     ///@{
 
     /** Dimensional space of the element geometry
-	@return SizeType, working space dimension of this geometry.
+    @return SizeType, working space dimension of this geometry.
     */
 
-    SizeType WorkingSpaceDimension() const
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please ask directly the Geometry") SizeType WorkingSpaceDimension() const
     {
         return pGetGeometry()->WorkingSpaceDimension();
     }
@@ -228,20 +218,23 @@ public:
      */
 
     /**
-     * creates a new condition pointer
+     * @brief It creates a new condition pointer
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
      * @param pProperties the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
     virtual Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
-			   PropertiesType::Pointer pProperties) const
+               PropertiesType::Pointer pProperties) const
     {
+        KRATOS_TRY
+        KRATOS_ERROR << "Please implement the First Create method in your derived Condition" << Info() << std::endl;
         return Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pProperties);
+        KRATOS_CATCH("");
     }
 
     /**
-     * creates a new condition pointer
+     * @brief It creates a new condition pointer
      * @param NewId the ID of the new condition
      * @param pGeom the geometry to be employed
      * @param pProperties the properties assigned to the new condition
@@ -251,11 +244,14 @@ public:
                            GeometryType::Pointer pGeom,
                            PropertiesType::Pointer pProperties) const
     {
+        KRATOS_TRY
+        KRATOS_ERROR << "Please implement the Second Create method in your derived Condition" << Info() << std::endl;
         return Kratos::make_shared<Condition>(NewId, pGeom, pProperties);
+        KRATOS_CATCH("");
     }
 
     /**
-     * creates a new condition pointer and clones the previous condition data
+     * @brief It creates a new condition pointer and clones the previous condition data
      * @param NewId the ID of the new condition
      * @param ThisNodes the nodes of the new condition
      * @param pProperties the properties assigned to the new condition
@@ -264,8 +260,11 @@ public:
     virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
     {
         KRATOS_TRY
-	std::cout<<" Call base class condition Clone "<<std::endl;
-        return Condition::Pointer(new Condition(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        KRATOS_WARNING("Condition") << " Call base class condition Clone " << std::endl;
+        Condition::Pointer p_new_cond = Kratos::make_shared<Condition>(NewId, GetGeometry().Create(ThisNodes), pGetProperties());
+        p_new_cond->SetData(this->GetData());
+        p_new_cond->Set(Flags(*this));
+        return p_new_cond;
         KRATOS_CATCH("");
     }
 
@@ -281,7 +280,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void EquationIdVector(EquationIdVectorType& rResult,
-				  ProcessInfo& rCurrentProcessInfo)
+                  ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)
             rResult.resize(0);
@@ -293,7 +292,7 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void GetDofList(DofsVectorType& rConditionDofList,
-			    ProcessInfo& rCurrentProcessInfo)
+                ProcessInfo& rCurrentProcessInfo)
     {
         if (rConditionDofList.size() != 0)
             rConditionDofList.resize(0);
@@ -425,13 +424,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-				      VectorType& rRightHandSideVector,
-				      ProcessInfo& rCurrentProcessInfo)
+                      VectorType& rRightHandSideVector,
+                      ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -443,7 +442,7 @@ public:
      * @param rRightHandSideVectors container for the desired RHS output
      * @param rRHSVariables parameter describing the expected RHSs
      */
-    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version, please use the other overload of this function") virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
@@ -458,10 +457,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
-				       ProcessInfo& rCurrentProcessInfo)
+                       ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
     /**
@@ -472,8 +471,8 @@ public:
      * @param rLHSVariables parameter describing the expected LHSs
      */
     virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
-					const std::vector< Variable< MatrixType > >& rLHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< MatrixType > >& rLHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -484,10 +483,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
-					ProcessInfo& rCurrentProcessInfo)
+                    ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -498,8 +497,8 @@ public:
      * @param rRHSVariables parameter describing the expected RHSs
      */
     virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
-					const std::vector< Variable< VectorType > >& rRHSVariables,
-					ProcessInfo& rCurrentProcessInfo)
+                    const std::vector< Variable< VectorType > >& rRHSVariables,
+                    ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -523,13 +522,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							ProcessInfo& rCurrentProcessInfo)
+                            VectorType& rRightHandSideVector,
+                            ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
     /**
@@ -539,10 +538,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -553,10 +552,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
-					      ProcessInfo& rCurrentProcessInfo)
+                          ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -579,13 +578,13 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo)
+                             VectorType& rRightHandSideVector,
+                             ProcessInfo& rCurrentProcessInfo)
     {
        if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -596,10 +595,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rLeftHandSideMatrix.size1() != 0)
-	  rLeftHandSideMatrix.resize(0, 0, false);
+      rLeftHandSideMatrix.resize(0, 0, false);
     }
 
 
@@ -610,10 +609,10 @@ public:
      * @param rCurrentProcessInfo the current process info instance
      */
     virtual void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
-					       ProcessInfo& rCurrentProcessInfo)
+                           ProcessInfo& rCurrentProcessInfo)
     {
         if (rRightHandSideVector.size() != 0)
-	  rRightHandSideVector.resize(0, false);
+      rRightHandSideVector.resize(0, false);
     }
 
 
@@ -632,7 +631,7 @@ public:
     virtual void CalculateMassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
 
@@ -645,7 +644,7 @@ public:
     virtual void CalculateDampingMatrix(MatrixType& rDampingMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
     }
 
 
@@ -670,32 +669,59 @@ public:
     }
 
     /**
-     * this function is designed to make the condition to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @brief This function is designed to make the condition to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the double version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
      * @param rRHSVector input variable containing the RHS vector to be assembled
      * @param rRHSVariable variable describing the type of the RHS vector to be assembled
      * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
-      * @param rCurrentProcessInfo the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    virtual void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-        KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+        KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
-    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief This function is designed to make the condition to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the vector version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void AddExplicitContribution(
+        const VectorType& rRHS,
+        const Variable<VectorType>& rRHSVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-         KRATOS_THROW_ERROR(std::logic_error, "base condition classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+         KRATOS_ERROR << "Base condition class is not able to assemble rRHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
 
-    virtual void AddExplicitContribution(const MatrixType& rLHSMatrix, const Variable<MatrixType>& rLHSVariable, Variable<Matrix>& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    /**
+     * @brief This function is designed to make the condition to assemble an rRHS vector identified by a variable rRHSVariable by assembling it to the nodes on the variable rDestinationVariable. (This is the matrix version)
+     * @details The "AddExplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH A CONDITION IS ALLOWED TO WRITE ON ITS NODES. The caller is expected to ensure thread safety hence SET-/UNSET-LOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector input variable containing the RHS vector to be assembled
+     * @param rRHSVariable variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable variable in the database to which the rRHSvector will be assembled
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    virtual void AddExplicitContribution(
+        const MatrixType& rLHSMatrix,
+        const Variable<MatrixType>& rLHSVariable,
+        Variable<Matrix>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
     {
-         KRATOS_THROW_ERROR(std::logic_error, "base element class is not able to assemble rLHS to the desired variable. destination variable is ",rDestinationVariable)
+         KRATOS_ERROR << "Base condition class is not able to assemble rLHS to the desired variable. destination variable is " << rDestinationVariable << std::endl;
     }
+
     /**
      * Calculate a Condition variable usually associated to a integration point
      * the Output is given on integration points and characterizes the condition
@@ -703,26 +729,26 @@ public:
      */
 
     virtual void Calculate(const Variable<double >& rVariable,
-			   double& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               double& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable< array_1d<double,3> >& rVariable,
-			   array_1d<double,3>& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               array_1d<double,3>& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Vector >& rVariable,
-			   Vector& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               Vector& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void Calculate(const Variable<Matrix >& rVariable,
-			   Matrix& Output,
-			   const ProcessInfo& rCurrentProcessInfo)
+               Matrix& Output,
+               const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -736,27 +762,39 @@ public:
      * these methods are: OPTIONAL
      */
 
+    virtual void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+                          std::vector<bool>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+                          std::vector<int>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& rOutput,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector<double>& rOutput,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					      std::vector< array_1d<double, 3 > >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< array_1d<double, 3 > >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-					      std::vector< Vector >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Vector >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-					      std::vector< Matrix >& Output,
-					      const ProcessInfo& rCurrentProcessInfo)
+                          std::vector< Matrix >& Output,
+                          const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -773,65 +811,83 @@ public:
 
     //SET ON INTEGRATION POINTS - METHODS
 
+    virtual void SetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void SetValueOnIntegrationPoints(const Variable<int>& rVariable,
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > > rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > > rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     //GET ON INTEGRATION POINTS METHODS
 
-    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-					     std::vector<double>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+    virtual void GetValueOnIntegrationPoints(const Variable<bool>& rVariable,
+                         std::vector<bool>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<int>& rVariable,
-					     std::vector<int>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<int>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                         std::vector<double>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-					     std::vector<array_1d<double, 3 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 3 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-					     std::vector<array_1d<double, 6 > >& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<array_1d<double, 6 > >& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-					     std::vector<Vector>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Vector>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-					     std::vector<Matrix>& rValues,
-					     const ProcessInfo& rCurrentProcessInfo)
+                         std::vector<Matrix>& rValues,
+                         const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -860,18 +916,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //METHODS TO BE CLEANED: DEPRECATED start
-
-
-    //NOTE: They will be deleted in December, 2015
-
-
-    /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions
-     * MassMatrix, AddMassMatrix, DampingMatrix, AddInertiaForces methods are: OPTIONAL and OBSOLETE
-     */
-
     /**
      * this is called during the assembling process in order
      * to calculate the condition mass matrix
@@ -881,7 +925,7 @@ public:
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rMassMatrix.size1() != 0)
-	  rMassMatrix.resize(0, 0, false);
+      rMassMatrix.resize(0, 0, false);
     }
 
     /**
@@ -903,7 +947,7 @@ public:
     virtual void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampMatrix.size1() != 0)
-	  rDampMatrix.resize(0, 0, false);
+      rDampMatrix.resize(0, 0, false);
     }
 
     /**
@@ -924,7 +968,7 @@ public:
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampingMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
         if (rDampingMatrix.size1() != 0)
-	  rDampingMatrix.resize(0, 0, false);
+      rDampingMatrix.resize(0, 0, false);
     }
 
     /**
@@ -1058,7 +1102,7 @@ public:
 
     Flags& GetFlags()
       {
-	return *this;
+    return *this;
       }
 
     Flags const& GetFlags() const
@@ -1218,7 +1262,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Condition >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Condition const& ThisComponent);
 

@@ -50,7 +50,7 @@ namespace Kratos
   class KRATOS_API(CONSTITUTIVE_MODELS_APPLICATION) SimoJuExponentialDamageModel : public DamageModel<LinearElasticModel, SimoJuYieldSurface<ExponentialDamageHardeningRule> >
   {
   public:
-    
+
     ///@name Type Definitions
     ///@{
 
@@ -86,7 +86,7 @@ namespace Kratos
 
     /// Default constructor.
     SimoJuExponentialDamageModel() : BaseType() {}
-    
+
     /// Copy constructor.
     SimoJuExponentialDamageModel(SimoJuExponentialDamageModel const& rOther)
       :BaseType(rOther) {}
@@ -101,11 +101,11 @@ namespace Kratos
     /// Clone.
     ConstitutiveModel::Pointer Clone() const override
     {
-      return ( SimoJuExponentialDamageModel::Pointer(new SimoJuExponentialDamageModel(*this)) );
+      return Kratos::make_shared<SimoJuExponentialDamageModel>(*this);
     }
-    
+
     /// Destructor.
-    virtual ~SimoJuExponentialDamageModel() {}
+    ~SimoJuExponentialDamageModel() override {}
 
 
     ///@}
@@ -124,24 +124,24 @@ namespace Kratos
 
     /**
      * Has Values
-     */   
-    virtual bool Has(const Variable<double>& rThisVariable) override
+     */
+    bool Has(const Variable<double>& rThisVariable) override
     {
       return false;
     }
-    
+
 
     /**
      * Get Values
      */
-    virtual double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
+    double& GetValue(const Variable<double>& rThisVariable, double& rValue) override
     {
-      
+
       rValue=0;
-           
+
       return rValue;
     }
-    
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -152,7 +152,7 @@ namespace Kratos
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
       std::stringstream buffer;
       buffer << "SimoJuExponentialDamageModel" ;
@@ -160,13 +160,13 @@ namespace Kratos
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
       rOStream << "SimoJuExponentialDamageModel";
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
       rOStream << "SimoJuExponentialDamageModel Data";
     }
@@ -186,8 +186,8 @@ namespace Kratos
     ///@}
     ///@name Protected member Variables
     ///@{
-    
-    
+
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -224,7 +224,7 @@ namespace Kratos
     ///@name Member Variables
     ///@{
 
-	
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -247,15 +247,15 @@ namespace Kratos
 
     ///@}
     ///@name Serialization
-    ///@{    
+    ///@{
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override
+    void save(Serializer& rSerializer) const override
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseType )
     }
-    
-    virtual void load(Serializer& rSerializer) override
+
+    void load(Serializer& rSerializer) override
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseType )
     }
@@ -279,12 +279,12 @@ namespace Kratos
   ///@name Input and output
   ///@{
 
-  
-  ///@} 
-  ///@name Input and output 
+
+  ///@}
+  ///@name Input and output
   ///@{
 
-  
+
   ///@}
 
   ///@} addtogroup block
@@ -292,6 +292,4 @@ namespace Kratos
 
 }  // namespace Kratos.
 
-#endif // KRATOS_SIMO_JU_EXPONENTIAL_DAMAGE_MODEL_H_INCLUDED  defined 
-
-
+#endif // KRATOS_SIMO_JU_EXPONENTIAL_DAMAGE_MODEL_H_INCLUDED  defined

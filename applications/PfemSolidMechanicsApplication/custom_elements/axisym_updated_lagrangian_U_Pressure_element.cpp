@@ -168,7 +168,7 @@ namespace Kratos
 	      }
       } else {
 	     this->GetProperties()[THICKNESS] = 1.0;
-      } 
+      }
 
       return correct;
 
@@ -178,7 +178,7 @@ namespace Kratos
 
 
    //********************** COMPUTE LHS **********************************************************
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, double& rIntegrationWeight)
    {
 
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
@@ -190,7 +190,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+   void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, ElementDataType& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
    {
       double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
@@ -202,8 +202,8 @@ namespace Kratos
    //*************************************************************************
 
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddPressureForcesElemUP(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -241,8 +241,8 @@ namespace Kratos
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddStabilizedPressureElemUP(VectorType& rRightHandSideVector,
-         ElementVariables & rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -255,7 +255,7 @@ namespace Kratos
       // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
       //use of this variable for the complete parameter: (deffault: 4)
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_P];
       AlphaStabilization *= StabilizationFactor;
 
@@ -314,8 +314,8 @@ namespace Kratos
    // ******************************** KUUM **************************************************
    // ****************************************************************************************
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuumElemUP ( MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -327,7 +327,7 @@ namespace Kratos
 
 
       Matrix ECConstitutiveMatrix = rVariables.ConstitutiveMatrix;
-      Matrix ConstitutiveMatrix = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize); 
+      Matrix ConstitutiveMatrix = ZeroMatrix(rElementVariables.voigtsize,rElementVariables.voigtsize);
 
       ECConstitutiveMatrix = prod( rElementVariables.DeviatoricTensor, ECConstitutiveMatrix);
 
@@ -374,7 +374,7 @@ namespace Kratos
          }
       }
 
-      Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) ); 
+      Matrix Kuu = prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( ConstitutiveMatrix, rVariables.B ) ) );
 
       // MatrixType Kh=rLeftHandSideMatrix;
 
@@ -407,8 +407,8 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKuugElemUP ( MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
 
@@ -488,8 +488,8 @@ namespace Kratos
    //*************************************************************************
 
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKupElemUP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType& rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -513,7 +513,7 @@ namespace Kratos
 
                // axi term
                if ( k == 0)
-                  rLeftHandSideMatrix(indexup+k, indexp) += rVariables.N[i] * rVariables.N[j] * ( 1.0 / rVariables.CurrentRadius) * rIntegrationWeight; 
+                  rLeftHandSideMatrix(indexup+k, indexp) += rVariables.N[i] * rVariables.N[j] * ( 1.0 / rVariables.CurrentRadius) * rIntegrationWeight;
             }
             indexp += (dimension + 1);
          }
@@ -529,8 +529,8 @@ namespace Kratos
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKpuElemUP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType& rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
 
    {
@@ -549,7 +549,7 @@ namespace Kratos
 
       Matrix Identity = ZeroMatrix(1,rElementVariables.voigtsize);
       for (unsigned int i = 0; i < 3 ; ++i) {
-         Identity(0,i) = 1.0; 
+         Identity(0,i) = 1.0;
       }
 
       Matrix AuxConstitutiveVector = prod( Identity, ECConstitutiveMatrix);
@@ -618,8 +618,8 @@ namespace Kratos
    //************************************************************************************
 
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKppElemUP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables& rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType& rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -661,8 +661,8 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
    void AxisymUpdatedLagrangianUPressureElement::CalculateAndAddKppStabElemUP (MatrixType& rLeftHandSideMatrix,
-         ElementVariables & rVariables,
-         ThisElementVariables& rElementVariables, 
+         ElementDataType & rVariables,
+         ThisElementData& rElementVariables,
          double& rIntegrationWeight)
    {
       KRATOS_TRY
@@ -676,7 +676,7 @@ namespace Kratos
       //contributions to stiffness matrix calculated on the reference configuration
       double consistent = 1.0;
 
-      double AlphaStabilization  = 4.0; 
+      double AlphaStabilization  = 4.0;
       double StabilizationFactor = GetProperties()[STABILIZATION_FACTOR_P];
       AlphaStabilization *= StabilizationFactor;
       if ( StabilizationFactor < 0.0001)
@@ -1008,7 +1008,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateKinematics(ElementVariables& rVariables,
+   void AxisymUpdatedLagrangianUPressureElement::CalculateKinematics(ElementDataType& rVariables,
          const double& rPointNumber)
 
    {
@@ -1026,7 +1026,7 @@ namespace Kratos
       Matrix InvJ;
       MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-      //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;  
+      //std::cout<<" detJ "<<rVariables.detJ<<" Area "<<2*GetGeometry().DomainSize()<<std::endl;
 
       //Compute cartesian derivatives [dN/dx_n]
       noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
@@ -1062,7 +1062,7 @@ namespace Kratos
    }
 
 
-   void AxisymUpdatedLagrangianUPressureElement::InitializeElementVariables (ElementVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+   void AxisymUpdatedLagrangianUPressureElement::InitializeElementData (ElementDataType& rVariables, const ProcessInfo& rCurrentProcessInfo)
    {
 
       // copy with modifications since I use everything
@@ -1104,7 +1104,7 @@ namespace Kratos
 
 
       //Calculate Delta Position
-      rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+      ElementUtilities::CalculateDeltaPosition(rVariables.DeltaPosition,this->GetGeometry());
 
       //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
       rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
@@ -1112,7 +1112,7 @@ namespace Kratos
 
    }
 
-   void AxisymUpdatedLagrangianUPressureElement::CalculateThisElementVariables( ThisElementVariables& rElementVariables, const ElementVariables & rVariables)
+   void AxisymUpdatedLagrangianUPressureElement::CalculateThisElementData( ThisElementData& rElementVariables, const ElementDataType & rVariables)
    {
 
       const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1129,7 +1129,7 @@ namespace Kratos
       rElementVariables.ElementalMeanStress /= 3.0;
 
       Vector AuxStress = ZeroVector(6);
-      AuxStress = rVariables.StressVector; 
+      AuxStress = rVariables.StressVector;
       for (unsigned int i = 0; i < 3; i++)
          AuxStress(i) += ( rElementVariables.NodalMeanStress - rElementVariables.ElementalMeanStress);
 

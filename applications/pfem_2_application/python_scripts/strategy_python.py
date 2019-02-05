@@ -27,9 +27,14 @@ class SolvingStrategyPython:
         self.pDx = self.space_utils.CreateEmptyVectorPointer()
         self.pb = self.space_utils.CreateEmptyVectorPointer()
 
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
+        #self.A = (self.pA).GetReference()
+        #self.Dx = (self.pDx).GetReference()
+        #self.b = (self.pb).GetReference()
+
+        self.A = (self.pA)
+        self.Dx = (self.pDx)
+        self.b = (self.pb)
+
 
         #initialize flags
         self.SolutionStepIsInitialized = False
@@ -136,12 +141,16 @@ class SolvingStrategyPython:
             #reorder the list of degrees of freedom to identify fixity and system size                                  
             self.builder_and_solver.SetUpSystem(self.model_part)
             #allocate memory for the system and preallocate the structure of the matrix
-            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA,self.pDx,self.pb,self.model_part.Elements,self.model_part.Conditions,self.model_part.ProcessInfo);
+            self.builder_and_solver.ResizeAndInitializeVectors(self.scheme, self.pA,self.pDx,self.pb,self.model_part);
 
             #updating references
-            self.A = (self.pA).GetReference()
-            self.Dx = (self.pDx).GetReference()
-            self.b = (self.pb).GetReference()
+            #self.A = (self.pA).GetReference()
+            #self.Dx = (self.pDx).GetReference()
+            #self.b = (self.pb).GetReference()
+
+            self.A = (self.pA)
+            self.Dx = (self.pDx)
+            self.b = (self.pb)
 
 
             
@@ -223,9 +232,13 @@ class SolvingStrategyPython:
         self.space_utils.ResizeVector(self.b,0)
 
         #updating references
-        self.A = (self.pA).GetReference()
-        self.Dx = (self.pDx).GetReference()
-        self.b = (self.pb).GetReference()
+        #self.A = (self.pA).GetReference()
+        #self.Dx = (self.pDx).GetReference()
+        #self.b = (self.pb).GetReference()
+
+        self.A = (self.pA)
+        self.Dx = (self.pDx)
+        self.b = (self.pb)
         
         self.builder_and_solver.SetDofSetIsInitializedFlag(False)
         self.builder_and_solver.Clear()

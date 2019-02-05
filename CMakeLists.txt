@@ -144,9 +144,9 @@ else(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Print the message with the custom compiler flags
-message("-- Additional default options were set for ${CMAKE_CXX_COMPILER_ID} compiler:")
-message("\tCMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
-message("\tCMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
+message(STATUS "additional default options were set for gcc")
+message(STATUS "CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
+message(STATUS "CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 
 # Old non-compatible versions of VS
 if(${MSVC80})
@@ -245,7 +245,7 @@ if(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -diag-disable 3180 ") # Disabling warning abt unrecognized omp pragmas
     endif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
 else(${KRATOS_EXCLUDE_OPENMP} MATCHES ON)
-    message("-- OpenMP included")
+    message("OpenMP included")
     find_package(OpenMP)
     if (OPENMP_FOUND)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
@@ -278,8 +278,8 @@ set(Boost_REALPATH ON)
 
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
-message("-- Boost Include: ${Boost_INCLUDE_DIRS}")
-message("-- Boost Linkdir: ${Boost_LIBRARY_DIRS}")
+message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Boost Linkdir: ${Boost_LIBRARY_DIRS}")
 
 # Find CUDA
 if(${USE_CUDA} MATCHES ON)
@@ -340,7 +340,7 @@ find_package(ZLIB)
 if( ZLIB_FOUND )
     include_directories( ${ZLIB_INCLUDE_DIRS} )
 else( ZLIB_FOUND )
-    message( "-- Preparing local ZLIB compilation.")
+    message(STATUS "Preparing local ZLIB compilation.")
     include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
     # Compile our own
     add_subdirectory(external_libraries/zlib)
@@ -351,11 +351,12 @@ endif( ZLIB_FOUND )
 
 # including the AMatrix
 if( DEFINED ENV{AMATRIX_DIR} )
-    message("-- AMatrix found : ${AMATRIX_DIR}")
-    include_directories ( "${AMATRIX_DIR}/include" )
+    message(STATUS "AMatrix found : ${AMATRIX_DIR}")
+    include_directories ("${AMATRIX_DIR}/include")
+    add_definitions(-DAMATRIX_NO_IO_OPERATOR)
     add_definitions(-DKRATOS_USE_AMATRIX)
 else()
-    message( "-- AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
+    message(STATUS "AMatrix not found. Please define the AMATRIX_DIR pointing to the AMatrix root directory.")
 endif()
 
 ######################################################################################
@@ -462,10 +463,8 @@ endif(${MPI_NEEDED} MATCHES ON )
 
 # Install Files
 install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
 install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
-install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/kratos_unittest.py" DESTINATION KratosMultiphysics RENAME KratosUnittest.py )
 install(FILES "${KRATOS_SOURCE_DIR}/kratos/python_interface/KratosLoader.py" DESTINATION KratosMultiphysics RENAME KratosLoader.py )
 
 # Install the libraries in the libs folder

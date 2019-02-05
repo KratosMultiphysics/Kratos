@@ -59,7 +59,7 @@ public:
     LineElasticCondition( LineElasticCondition const& rOther);
 
     /// Destructor
-    virtual ~LineElasticCondition();
+    ~LineElasticCondition() override;
 
     ///@}
     ///@name Operators
@@ -89,7 +89,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
+    Condition::Pointer Clone(IndexType NewId,
 			     NodesArrayType const& ThisNodes) const override;
 
 
@@ -104,7 +104,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo ) override;
+    int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
     ///@}
     ///@name Access
@@ -137,27 +137,27 @@ protected:
     /**
      * Initialize System Matrices
      */
-    virtual void InitializeConditionVariables(ConditionVariables& rVariables, 
+    void InitializeConditionVariables(ConditionVariables& rVariables,
 					    const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * Calculate Condition Kinematics
      */
-    virtual void CalculateKinematics(ConditionVariables& rVariables, 
+    void CalculateKinematics(ConditionVariables& rVariables,
 				     const double& rPointNumber) override;
 
     /**
      * Calculate the External Load of the Condition
      */
-    virtual void CalculateExternalStiffness(ConditionVariables& rVariables) override;
+    void CalculateExternalStiffness(ConditionVariables& rVariables) override;
 
     /**
      * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 				     ConditionVariables& rVariables,
 				     double& rIntegrationWeight) override;
-    
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -209,13 +209,13 @@ private:
 
     friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const override;
+    void save(Serializer& rSerializer) const override;
 
-    virtual void load(Serializer& rSerializer) override;
+    void load(Serializer& rSerializer) override;
 
 
 }; // class LineElasticCondition.
 
 } // namespace Kratos.
 
-#endif // KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED defined 
+#endif // KRATOS_LINE_ELASTIC_CONDITION_H_INCLUDED defined

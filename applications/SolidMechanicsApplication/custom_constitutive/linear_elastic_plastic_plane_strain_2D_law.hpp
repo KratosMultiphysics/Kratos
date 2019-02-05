@@ -54,7 +54,7 @@ public:
     LinearElasticPlasticPlaneStrain2DLaw();
 
 
-    LinearElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
+    LinearElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw);
 
     /**
      * Copy constructor.
@@ -77,7 +77,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlasticPlaneStrain2DLaw();
+    ~LinearElasticPlasticPlaneStrain2DLaw() override;
 
     /**
      * Operators

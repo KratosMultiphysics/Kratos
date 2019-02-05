@@ -1,5 +1,5 @@
 Applications Available:
-Import_MeshMovingApplication: False
+Import_ALEApplication: False
 Import_IncompressibleFluidApplication: False
 Import_StructuralApplication: False
 Import_ConvectionDiffusionApplication: False
@@ -8,7 +8,7 @@ Import_ExternalSolversApplication: False
 Import_ULFApplication: False
 Import_MeshingApplication: False
 Applications Available:
-Import_MeshMovingApplication: False
+Import_ALEApplication: False
 Import_IncompressibleFluidApplication: True
 Import_StructuralApplication: False
 Import_ConvectionDiffusionApplication: False
@@ -20,23 +20,23 @@ importing KratosR1IncompressibleFluidApplication ...
 KratosR1IncompressibleFluidApplication lib loaded
 KratosR1IncompressibleFluidApplication application created
 "kerneal entered in AddApplication" : kerneal entered in AddApplication
-Initializing KratosR1IncompressibleFluidApplication...
-Initializing KratosR1IncompressibleFluidApplication...Register completed
-Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered
-Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered
+Initializing KratosR1IncompressibleFluidApplication... 
+Initializing KratosR1IncompressibleFluidApplication...Register completed 
+Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered 
 "Application Registered" : Application Registered
 "Variables Registered Registered" : Variables Registered Registered
 "Elements Registered" : Elements Registered
 "Conditions Registered" : Conditions Registered
 KratosR1IncompressibleFluidApplication Succesfully imported
 "kerneal entered in AddApplication" : kerneal entered in AddApplication
-Initializing KratosR1 MeshingApplication...
+Initializing KratosR1 MeshingApplication... 
 "Application Registered" : Application Registered
 "Variables Registered Registered" : Variables Registered Registered
 "Elements Registered" : Elements Registered
 "Conditions Registered" : Conditions Registered
 Applications Available:
-Import_MeshMovingApplication: False
+Import_ALEApplication: False
 Import_IncompressibleFluidApplication: True
 Import_StructuralApplication: False
 Import_ConvectionDiffusionApplication: False
@@ -48,10 +48,10 @@ importing KratosR1IncompressibleFluidApplication ...
 KratosR1IncompressibleFluidApplication lib loaded
 KratosR1IncompressibleFluidApplication application created
 "kerneal entered in AddApplication" : kerneal entered in AddApplication
-Initializing KratosR1IncompressibleFluidApplication...
-Initializing KratosR1IncompressibleFluidApplication...Register completed
-Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered
-Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered
+Initializing KratosR1IncompressibleFluidApplication... 
+Initializing KratosR1IncompressibleFluidApplication...Register completed 
+Initializing KratosR1IncompressibleFluidApplication...variables succesfully registered 
+Initializing KratosR1IncompressibleFluidApplication...elements succesfully registered 
 "Application Registered" : Application Registered
 "Variables Registered Registered" : Variables Registered Registered
 "Elements Registered" : Elements Registered
@@ -74,8 +74,8 @@ Properties succesfully read
 reading Conditions
 Properties succesfully read
 reading Initial Values
- reading initiali values
- finished reading initial values
+ reading initiali values 
+ finished reading initial values 
 Initial Values succesfully read
 Reading completed succesfully
 time =  0.005  new_Dt=  0.005  step =  0
@@ -202,7 +202,7 @@ Memory allocation statistics:
   Approximate heap memory used by the mesh (K bytes): 4889.36
 
 mesh recreation time0.44
-During refinement we added 1663nodes
+During refinement we added 1663nodes 
 properties : 0xf0d0a0
 ln334
 time for adding elems0.07
@@ -333,7 +333,7 @@ Memory allocation statistics:
   Approximate heap memory used by the mesh (K bytes): 5649.23
 
 mesh recreation time0.43
-During refinement we added 0nodes
+During refinement we added 0nodes 
 properties : 0xf0d0a0
 ln334
 time for adding elems0.06
@@ -464,7 +464,7 @@ Memory allocation statistics:
   Approximate heap memory used by the mesh (K bytes): 5649.23
 
 mesh recreation time0.43
-During refinement we added 0nodes
+During refinement we added 0nodes 
 properties : 0xf0d0a0
 ln334
 time for adding elems0.06

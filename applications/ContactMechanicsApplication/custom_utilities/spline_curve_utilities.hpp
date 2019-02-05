@@ -40,15 +40,15 @@ namespace Kratos
   /** Computes the energy
    */
 
-  class KRATOS_API(CONTACT_MECHANICS_APPLICATION) SplineCurveUtilities
+  class SplineCurveUtilities
   {
   public:
 
     ///@name Type Definitions
     ///@{
-    
+
     typedef ModelPart::NodesContainerType          NodesContainerType;
-    
+
     //definitions for spatial search
     typedef array_1d<double, 3>                             PointType;
     typedef Node<3>                                          NodeType;
@@ -63,15 +63,15 @@ namespace Kratos
 
     //structure for a spline segment type
     typedef struct
-    {   
-      int        id;       // Spline Knot number 
+    {
+      int        id;       // Spline Knot number
       PointType  P0;       // First auxiliar point
       PointType  P1;       // First curve point
       PointType  P2;       // Second curve point
       PointType  P3;       // Second auxiliar point
-      
+
     } SplineType;
-    
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -112,11 +112,11 @@ namespace Kratos
       double X = 2.0 * nodes_begin->X() - (nodes_begin + 1)->X();
       double Y = 2.0 * nodes_begin->Y() - (nodes_begin + 1)->Y();
       double Z = 2.0 * nodes_begin->Z() - (nodes_begin + 1)->Z();
-      
-      NodePointerType KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );     
-      rKnotsList.push_back( KnotPoint );      
+
+      NodePointerType KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
+      rKnotsList.push_back( KnotPoint );
       id+=1;
- 
+
       //Set generatrix control points (knots) from the initial control stations
       for(NodePointerTypeVector::iterator in = rGeneratrixPoints.begin(); in!=rGeneratrixPoints.end(); in++)
 	{
@@ -135,12 +135,12 @@ namespace Kratos
 
       KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
       rKnotsList.push_back( KnotPoint );
-   
+
 
       //Definition of the Parametrized Spline Curve Q(s):
 
-      //Compute an approximate Arch-Length Parametrized Curve 
-      
+      //Compute an approximate Arch-Length Parametrized Curve
+
       double TotalLength = 0;
       std::vector<double> SegmentArchLengths;
 
@@ -152,17 +152,17 @@ namespace Kratos
 
       for(int i=1; i<size; i++)
 	{
-	  
+
 	  SetSpline(Spline, rKnotsList, i);
-	  
+
 	  //Get Segment Arch-Length by the adaptative gaussian integration method
 	  S = AdaptiveIntegration(Spline);
-	  
+
 	  //std::cout<<" SegmentArchLength "<<S<<std::endl;
 
 	  //Set Segment Length
 	  SegmentArchLengths.push_back(S);
-	  
+
 	  //Add Segment to the Total Arch Length
 	  TotalLength += S;
 
@@ -174,7 +174,7 @@ namespace Kratos
 
       //Find m+1 equally spaced points along Q(s)
       double Length = TotalLength / double(m);
-      
+
       NodePointerTypeVector NewKnotsList;
 
       nodes_begin = rKnotsList.begin();
@@ -183,8 +183,8 @@ namespace Kratos
       X = nodes_begin->X();
       Y = nodes_begin->Y();
       Z = nodes_begin->Z();
-      
-      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );     
+
+      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
       NewKnotsList.push_back( KnotPoint );   //reserve space for the initial auxiliar node
 
       id+=1;
@@ -192,9 +192,9 @@ namespace Kratos
       Y = (nodes_begin + 1)->Y();
       Z = (nodes_begin + 1)->Z();
 
-      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) ); 
+      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
       NewKnotsList.push_back( KnotPoint );  //first node
- 
+
       id+=1; //start with 2;
       for(int i=1; i < m; i++)
 	{
@@ -207,16 +207,16 @@ namespace Kratos
 	      S += SegmentArchLengths[k];
 	      //std::cout<<" k "<<k<<std::endl;
 	      if( S >= i*Length ){
-		j  = k+1; 
+		j  = k+1;
 		S -= SegmentArchLengths[k];
-		break;		
+		break;
 	      }
-	      
+
 	    }
-	  
+
 	  if( (i*Length - S) < 0 )
 	    std::cout<<" Something is wrong in the index search KNOT["<<j<<"]: length "<<i*Length<<" S "<<S<<std::endl;
-	  
+
 
 	  //std::cout<<" KNOT ["<<j<<"]"<<std::endl;
 
@@ -235,18 +235,18 @@ namespace Kratos
 
 	  double DeltaS = 0;
 	  int iters = 0;
-	  
+
 	  double rj     = 0;
 	  double left   = 0;
 	  double right  = 1;
 	  double middle = 0.5;
 
 	  //std::cout<<" Tolerance "<<tolerance<<std::endl;
-	  
+
 	  //std::cout<<" LENGTH "<<Length<<" S "<<S<<" i "<<i<<" diff "<<(i*Length - S)<<std::endl;
 
 	  while ( fabs(error) > tolerance && iters < max_iters )
-	    {     
+	    {
 	      middle = 0.5 * (left + right);
 
 	      //Get Segment Arch-Length by the numerical integration method
@@ -260,14 +260,14 @@ namespace Kratos
 	      else{//solution in the first half
 	       	right = middle;
      	      }
-	      
+
 	      error  = (DeltaS) - (i*Length - S);
 
 	      //std::cout<<DeltaS<<" :: "<<error<<std::endl;
-	      //std::cout<<DeltaS<<std::endl;		
+	      //std::cout<<DeltaS<<std::endl;
 
 	      if( left == middle )
-	
+
 	      iters++;
 	    }
 
@@ -276,7 +276,7 @@ namespace Kratos
 
 	  PointType Point;
 	  Point = PointOnCurve(Point,Spline,middle);
-	    
+
 	  //std::cout<<" Knot Point "<<Point<<" middle "<<middle<<std::endl;
 
 	  X = Point[0];
@@ -337,13 +337,13 @@ namespace Kratos
       X = 2.0 * nodes_begin->X() - (nodes_begin + 1)->X();
       Y = 2.0 * nodes_begin->Y() - (nodes_begin + 1)->Y();
       Z = 2.0 * nodes_begin->Z() - (nodes_begin + 1)->Z();
-      
+
       // std::cout<<"First  Node Reflection: X "<<X<<" Y "<<Y<<" Z "<<Z<<std::endl;
       // std::cout<<"Second Node Reflection: X "<<nodes_begin->X()<<" Y "<<nodes_begin->Y()<<" Z "<<nodes_begin->Z()<<std::endl;
       // std::cout<<"Third  Node Reflection: X "<<(nodes_begin + 1)->X()<<" Y "<<(nodes_begin + 1)->Y()<<" Z "<<(nodes_begin + 1)->Z()<<std::endl;
 
       id = 0;
-      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );     
+      KnotPoint = NodePointerType( new NodeType(id,X,Y,Z) );
       NewKnotsList.front() =  KnotPoint;
       //NewKnotsList[0] = KnotPoint;
 
@@ -370,7 +370,7 @@ namespace Kratos
     //************************************************************************************
     double AdaptiveIntegration(SplineType& rSpline)
     {
-                
+
       //Compute the numerical integration of the arch length for the Spline segment or interval (rSpline)
       double S = 0;
       S = IntegrateSubInterval(rSpline);
@@ -381,7 +381,7 @@ namespace Kratos
       int max_iters    = 40;
       double tolerance = S * 1e-2;
       double error     = tolerance * 10;
-      
+
       double Sk = 0;
       int iters = 1;
 
@@ -390,17 +390,17 @@ namespace Kratos
 
       while( fabs(error) > tolerance && iters < max_iters )
 	{
-	  Sk = 0;		
+	  Sk = 0;
 
 	  //Compute SubIntervals arch length Sk and store SubIntervals Splines
-	  Sk = IntegrateSubInterval(rSpline, iters+1); 
-	    	  
+	  Sk = IntegrateSubInterval(rSpline, iters+1);
+
 	  //Compute error
 	  error = Sk - S;
 
 	  //std::cout<<" SubInterval Arch Length "<<Sk<<" error "<<error<<" tol "<<tolerance<<std::endl;
 
-	  //Update Total arch length S = Sk 
+	  //Update Total arch length S = Sk
 	  S = Sk;
 
 	  iters++;
@@ -423,14 +423,14 @@ namespace Kratos
 
     double IntegrateSubInterval(SplineType& rSpline, int n = 0)
     {
-      
+
       double t = 1.0 / double(n + 1.0) ;
 
       double S  = 0;
       double a = 0;
       double b = t;
 
-      for(int i=0; i<n+1; i++) 
+      for(int i=0; i<n+1; i++)
 	{
 	  S += ArchLengthGeometricIntegration(rSpline, a, b);
 	  //std::cout<<" S "<<S<<" a "<<a<<" b "<<b<<std::endl;
@@ -439,7 +439,7 @@ namespace Kratos
 	}
 
       return S;
-      
+
     }
 
 
@@ -452,7 +452,7 @@ namespace Kratos
 
       //apply numerical integration:: simpson rule
       return SimpsonRuleIntegration(rSpline, a, b, 7);
-      
+
     }
 
     //************************************************************************************
@@ -467,7 +467,7 @@ namespace Kratos
       double IntegralValue = 0;
 
       double h = (b - a) / n;
-      
+
       double s = SplineGeometricLength(rSpline, a) + SplineGeometricLength(rSpline, b);
 
       double t = 0;
@@ -477,14 +477,14 @@ namespace Kratos
 	  s += 4 * SplineGeometricLength(rSpline, t);
 	}
 
-      
+
       for(int i=2; i<n-1; i+=2)
 	{
 	  t = (a + i * h);
 	  s += 2 * SplineGeometricLength(rSpline, t);
 	}
- 
-      
+
+
       IntegralValue = (s * h / 3.0);
 
       return IntegralValue;
@@ -498,7 +498,7 @@ namespace Kratos
 
       PointType PointA = ZeroVector(3);
       PointA = PointOnCurveFirstDerivative(rSpline, t);
-      
+
       return (norm_2(PointA));
     }
 
@@ -515,7 +515,7 @@ namespace Kratos
       rOutputSpline.P1 = rInputSpline.P1;
       rOutputSpline.P2 = rInputSpline.P2;
       rOutputSpline.P3 = rInputSpline.P3;
-      
+
     }
 
     //************************************************************************************
@@ -529,7 +529,7 @@ namespace Kratos
       rSpline.P1 = P1;
       rSpline.P2 = P2;
       rSpline.P3 = P3;
-      
+
     }
 
     //************************************************************************************
@@ -558,12 +558,12 @@ namespace Kratos
       rSpline.P3[0] = rKnotsList[id+2]->X();
       rSpline.P3[1] = rKnotsList[id+2]->Y();
       rSpline.P3[2] = rKnotsList[id+2]->Z();
-      
+
     }
 
    //************************************************************************************
     //************************************************************************************
-    
+
     PointType& CalculatePointProjection(const PointType& rPoint, KdtreeType& rKnotsKdtree, const NodePointerTypeVector& rKnotsList, PointType& rPointProjection )
     {
       KRATOS_TRY
@@ -572,11 +572,11 @@ namespace Kratos
 	double PointDistance = 0;
 
         int id = rKnotsList.front()->Id(); // starting with the first Knot
-	
+
 	id = GetClosestKnotId( rPoint, rKnotsKdtree, PointDistance ); //starting with the closest Knot
-		
+
         SplineType Spline;
-		
+
 	SetSpline(Spline, rKnotsList, id);
 
 	//2.- Find the closest point on a spline curve:  (Sk := NormalizedArchLength)
@@ -584,15 +584,15 @@ namespace Kratos
 
 	//2.1-Projected Point:
 	rPointProjection = PointOnCurve(rPointProjection,Spline,Sk);
-	
+
 	//std::cout<<"CD: KnotPoint "<<Spline.P1<<" ProjectedPoint "<<rPointProjection<<" BeamPoint "<<rPoint<<std::endl;
 
 	return rPointProjection;
-	
+
       KRATOS_CATCH( "" )
     }
 
-    
+
     //************************************************************************************
     //************************************************************************************
     int GetClosestKnotId(const PointType& rPoint, KdtreeType& rKnotsKdtree, double& rPointDistance)
@@ -602,15 +602,15 @@ namespace Kratos
       rPointDistance = 0;
 
       NodePointerType NearestPoint = rKnotsKdtree.SearchNearestPoint(WorkPoint, rPointDistance);
-	
+
       // get the id of the closest point i
       return NearestPoint->Id();
-    
+
     }
 
     //************************************************************************************
     //************************************************************************************
-  
+
     double CombinedMethod(const PointType& rPoint, const NodePointerTypeVector& rKnotsList, SplineType& rSpline, double s = 0.5)
     {
       //1.2.- Combined Method:
@@ -635,7 +635,7 @@ namespace Kratos
 
     //************************************************************************************
     //************************************************************************************
-  
+
     double NewtonsMethod(const PointType& rPoint, const NodePointerTypeVector& rKnotsList, SplineType& rSpline, double Spredict = 0, double iters = 20, double s = 0.5)
     {
 
@@ -650,7 +650,7 @@ namespace Kratos
 	{
 
 	  if( Sk<0 ){ //previous adjacent segment
-	    
+
 	    int new_id = rSpline.id - 1;
 
 	    if(new_id <= 0)
@@ -659,42 +659,42 @@ namespace Kratos
 	    //std::cout<<" NewId R "<<new_id<<std::endl;
 
 	    Sk = 1 - Sk;
-	    
+
 	    SetSpline(rSpline, rKnotsList, new_id);
-	    
+
 	  }
 
 	  if( Sk>1 ){ //posterior adjacent segment
-	    
+
 	    int new_id = rSpline.id + 1;
 
 	    if( new_id > (int)rKnotsList.size()-3 )
 	      new_id = rKnotsList.size()-3;
 
 	    //std::cout<<" NewId I "<<new_id<<std::endl;
-	    
+
 	    Sk = Sk - 1;
 
 	    SetSpline(rSpline, rKnotsList, new_id);
-	    
+
 	  }
 
 	  //std::cout<<" SPLINE ID "<<rSpline.id<<std::endl;
 
 	  //Iterative Parameters
 	  double tolerance = 1e-7; //1e-8
-      
+
 	  iter = 0;
 	  double distance = tolerance*10;
-     
+
 	  while( iter<dist_iters && distance>=tolerance )
 	    {
 
 	      distance  = FirstDerivativeSquareDistancePointToSpline(rPoint,rSpline, Sk);
 	      distance /= SecondDerivativeSquareDistancePointToSpline(rPoint,rSpline, Sk);
-	    
+
 	      Sk -= distance;
-	  
+
 	      //std::cout<<" Sk newton  "<<Sk<<" distance "<<distance<<std::endl;
 
 	      distance = fabs(distance);
@@ -723,43 +723,43 @@ namespace Kratos
       if( Sk < 0 && Sk > -0.1)
 	Sk = 0;
 
-      return Sk;    
+      return Sk;
 
     }
 
     //************************************************************************************
     //************************************************************************************
-  
+
     double QuadraticMinimizationMethod(const PointType& rPoint, const NodePointerTypeVector& rKnotsList, SplineType& rSpline, double iters, double s = 0.5)
     {
 
       int max_iters = iters;
       double Skj = 0; //to start with the iteration
-      
+
       int segment_iter = 0;
       while( ((Skj < 0 || Skj >1) && segment_iter<max_iters) || segment_iter == 0 )
 	{
 
 	  if( Skj<0 ){ //previous adjacent segment
-	    
+
 	    int new_id = rSpline.id - 1;
 
 	    if(new_id <= 0)
 	      new_id = 1;
 
 	    SetSpline(rSpline, rKnotsList, new_id);
-	    
+
 	  }
 
 	  if( Skj>1 ){ //posterior adjacent segment
-	    
+
 	    int new_id = rSpline.id + 1;
 
 	    if( new_id > (int)rKnotsList.size()-3 )
 	      new_id = rKnotsList.size()-3;
 
 	    SetSpline(rSpline, rKnotsList, new_id);
-	    
+
 	  }
 
 	  //std::cout<<" Q SPLINE ID "<<rSpline.id<<std::endl;
@@ -778,8 +778,8 @@ namespace Kratos
 
 	  //Arch Length square difference between the estimates splines
 	  Vector SquareDifference = ZeroVector(3);
-    
-	  //2:      
+
+	  //2:
 	  //Square Distances to the estimates splines
 	  Vector Function = ZeroVector(3);
 
@@ -805,38 +805,38 @@ namespace Kratos
 
 	      //Arch Length square difference between the estimates splines
 	      SquareDifference = CalculateSquareArchLengthDifferences(SquareDifference,Estimates);
-	  
+
 	      //Square Distances to the estimates splines
 	      Function[0] = SquareDistancePointToSpline(rPoint, rSpline, Estimates[0]);
 	      Function[1] = SquareDistancePointToSpline(rPoint, rSpline, Estimates[1]);
 	      Function[2] = SquareDistancePointToSpline(rPoint, rSpline, Estimates[2]);
-	  
+
 	      Skj  = 0.5 * (SquareDifference[1]*Function[0] + SquareDifference[2]*Function[1] + SquareDifference[0]*Function[2]);
 	      Skj /= (Difference[1]*Function[0] + Difference[2]*Function[1] + Difference[0]*Function[2]);
-	  
+
 	      InterpolatedDistance[0] = EvaluateDistancePolynomial(Function, Estimates, Estimates[0]);
 	      InterpolatedDistance[1] = EvaluateDistancePolynomial(Function, Estimates, Estimates[1]);
 	      InterpolatedDistance[2] = EvaluateDistancePolynomial(Function, Estimates, Estimates[2]);
-	  
+
 	      distance = EvaluateDistancePolynomial(Function, Estimates, Skj);
-	  
+
 	      double larger_distance = fabs(InterpolatedDistance[0]);
 
 	      int largest = 0;
 	      for( unsigned int i=1; i<3; i++)
-		{	      
+		{
 		  if(larger_distance<fabs(InterpolatedDistance[i])){
 		    larger_distance = fabs(InterpolatedDistance[i]);
 		    largest = i;
-		  }		        
+		  }
 		}
-	  
+
 	      if(fabs(InterpolatedDistance[largest])>distance)
 		{
 		  Estimates[largest] = Skj;
 		}
-	  
-	  
+
+
 	      //tolerance
 	      distance = fabs(Skj-Ski);
 
@@ -851,13 +851,13 @@ namespace Kratos
 	  segment_iter++;
 	}
 
- 	
+
       return Skj;
 
       //Projected Point:
       //PointType ProjectedPoint;
       //ProjectedPoint = PointOnCurve(ProjectedPoint,rSpline,Sk)
-      
+
 
     }
 
@@ -868,7 +868,7 @@ namespace Kratos
     {
       //Polynomial to interpolate D(S) coefficients:
       Vector PolynomialBasis =  ZeroVector(3);
-	    
+
       //S1, S2, S3
       PolynomialBasis  = CalculateDistancePolynomialBasis(PolynomialBasis, rEstimates, Sk);
       double PolynomialValue = PolynomialBasis[0]*rFunction[0] + PolynomialBasis[1]*rFunction[1] + PolynomialBasis[2]*rFunction[2];
@@ -884,8 +884,8 @@ namespace Kratos
       rDifference[0] = rEstimates[0]-rEstimates[1]; //12 (1-2)
       rDifference[1] = rEstimates[1]-rEstimates[2]; //23 (2-3)
       rDifference[2] = rEstimates[2]-rEstimates[0]; //31 (3-1)
-      
-      return rDifference;      
+
+      return rDifference;
     }
 
     //************************************************************************************
@@ -896,39 +896,39 @@ namespace Kratos
       rSquareDifference[0] = rEstimates[0] * rEstimates[0] - rEstimates[1] * rEstimates[1]; //12 (1-2)
       rSquareDifference[1] = rEstimates[1] * rEstimates[1] - rEstimates[2] * rEstimates[2]; //23 (2-3)
       rSquareDifference[2] = rEstimates[2] * rEstimates[2] - rEstimates[0] * rEstimates[0]; //31 (3-1)
-      
-      return rSquareDifference;      
+
+      return rSquareDifference;
     }
 
     //************************************************************************************
     //************************************************************************************
 
     // Values of the coefficients for the polynomial that interpolates the square distance function
-  
+
     Vector& CalculateDistancePolynomialBasis(Vector& rPolynomialBasis, const Vector& rEstimates, double& rValue)
     {
       rPolynomialBasis[0] = (rValue-rEstimates[1]) * (rValue-rEstimates[2]) / ((rEstimates[0]-rEstimates[1]) * (rEstimates[0]-rEstimates[2]));
       rPolynomialBasis[1] = (rValue-rEstimates[0]) * (rValue-rEstimates[2]) / ((rEstimates[1]-rEstimates[0]) * (rEstimates[1]-rEstimates[2]));
       rPolynomialBasis[2] = (rValue-rEstimates[0]) * (rValue-rEstimates[1]) / ((rEstimates[2]-rEstimates[0]) * (rEstimates[2]-rEstimates[1]));
 
-      return rPolynomialBasis;      
+      return rPolynomialBasis;
     }
 
 
     //************************************************************************************
     //************************************************************************************
-  
-   
+
+
     double SquareDistancePointToSpline(const PointType& rPoint,const SplineType& rSpline, double& t)
     {
-      //compute spline on t, normalized distance       
-      PointType SplinePoint = ZeroVector(3); 
+      //compute spline on t, normalized distance
+      PointType SplinePoint = ZeroVector(3);
       SplinePoint = PointOnCurve(SplinePoint, rSpline, t);
-      
+
       //compute square distance
       SplinePoint -= rPoint;
       double Distance = inner_prod(SplinePoint,SplinePoint);
-      
+
       return Distance;
     }
 
@@ -938,16 +938,16 @@ namespace Kratos
     double FirstDerivativeSquareDistancePointToSpline(const PointType& rPoint,const SplineType& rSpline, double& t)
     {
       //compute spline on t, normalized distance
-      PointType SplinePoint = ZeroVector(3); 
+      PointType SplinePoint = ZeroVector(3);
       SplinePoint = PointOnCurve(SplinePoint, rSpline, t);
-      
+
       SplinePoint -= rPoint;
-     
-      //compute spline first derivative on t, normalized distance  
+
+      //compute spline first derivative on t, normalized distance
       PointType SplinePointFirstDerivative = PointOnCurveFirstDerivative(rSpline, t);
 
       double Distance = 2.0 * inner_prod(SplinePoint,SplinePointFirstDerivative);
-      
+
       return Distance;
     }
 
@@ -957,16 +957,16 @@ namespace Kratos
 
     double SecondDerivativeSquareDistancePointToSpline(const PointType& rPoint,const SplineType& rSpline, double& t)
     {
-      //compute spline on t, normalized distance       
-      PointType SplinePoint = ZeroVector(3); 
+      //compute spline on t, normalized distance
+      PointType SplinePoint = ZeroVector(3);
       SplinePoint = PointOnCurve(SplinePoint, rSpline, t);
-      
+
       SplinePoint -= rPoint;
-      
-      //compute spline first derivative on t, normalized distance  
+
+      //compute spline first derivative on t, normalized distance
       PointType SplinePointFirstDerivative = PointOnCurveFirstDerivative(rSpline, t);
 
-      //compute spline second derivative on t, normalized distance  
+      //compute spline second derivative on t, normalized distance
       PointType SplinePointSecondDerivative = PointOnCurveSecondDerivative(rSpline, t);
 
       double Distance = inner_prod(SplinePointFirstDerivative,SplinePointFirstDerivative);
@@ -983,15 +983,15 @@ namespace Kratos
 
     /// Return a point on the curve between P1 and P2 with P0 and P3 describing curvature, at
     /// the normalized distance t, and the spline parameter s
-   
+
     inline PointType& PointOnCurve(PointType& rPoint, const SplineType& rSpline, double& t, double s = 0.5)
     {
       Vector Basis = ZeroVector(4);
-      
+
       Basis = SplineBasis( Basis, t, s );
-      
+
       rPoint = Basis[0] * rSpline.P0 + Basis[1] * rSpline.P1 + Basis[2] * rSpline.P2 + Basis[3] * rSpline.P3;
-      
+
       return rPoint;
     }
 
@@ -1002,15 +1002,15 @@ namespace Kratos
 
     /// Return a point on the curve between P1 and P2 with P0 and P3 describing curvature, at
     /// the normalized distance t, and the spline parameter s
-   
+
     PointType PointOnCurveFirstDerivative(const SplineType& rSpline, double& t, double s = 0.5)
     {
       Vector Basis = ZeroVector(4);
-      
+
       Basis = FirstDerivativeSplineBasis( Basis, t, s );
-      
+
       PointType Result = Basis[0] * rSpline.P0 + Basis[1] * rSpline.P1 + Basis[2] * rSpline.P2 + Basis[3] * rSpline.P3;
-      
+
       return Result;
     }
 
@@ -1020,15 +1020,15 @@ namespace Kratos
 
     /// Return a point on the curve between P1 and P2 with P0 and P3 describing curvature, at
     /// the normalized distance t, and the spline parameter s
-   
+
     PointType PointOnCurveSecondDerivative(const SplineType& rSpline, double& t, double s = 0.5)
     {
       Vector Basis = ZeroVector(4);
-      
+
       Basis = SecondDerivativeSplineBasis( Basis, t, s );
-      
+
       PointType Result = Basis[0] * rSpline.P0 + Basis[1] * rSpline.P1 + Basis[2] * rSpline.P2 + Basis[3] * rSpline.P3;
-      
+
       return Result;
     }
 
@@ -1038,27 +1038,27 @@ namespace Kratos
 
     /// Return the cubic basis for a Catmull-Rom spline
     /// set spline general coefficients for a given segment
-   
+
     static inline std::vector<Vector>& SplineCoefficients(const SplineType& rSpline, std::vector<Vector>& rCoefficients, double s = 0.5)
     {
       if( rCoefficients.size() != 4 )
 	rCoefficients.resize(4);
 
       rCoefficients[0] = (rSpline.P2 - rSpline.P0) * s + rSpline.P1 * (2.0 - s) + rSpline.P1 * (s - 2.0);
-      rCoefficients[1] = (2.0 * rSpline.P0 - rSpline.P2) * s + rSpline.P1 * (s - 3.0) + rSpline.P1 * (3.0 - 2.0 * s); 
+      rCoefficients[1] = (2.0 * rSpline.P0 - rSpline.P2) * s + rSpline.P1 * (s - 3.0) + rSpline.P1 * (3.0 - 2.0 * s);
       rCoefficients[2] = (rSpline.P1 - rSpline.P0) * s;
       rCoefficients[3] = rSpline.P0;
 
       return rCoefficients;
     }
 
-  
+
     //************************************************************************************
     //************************************************************************************
 
     /// Return the cubic basis for a Catmull-Rom spline
     /// set a normalized distance t, and the spline parameter s
-   
+
     static inline Vector& SplineBasis(Vector& Basis, double& t, double s = 0.5)
     {
       if( Basis.size() != 4 )
@@ -1068,7 +1068,7 @@ namespace Kratos
       Basis[1] = ((((2.0/s - 1.0) * t + (1.0 - 3.0/s)) * t) * t + 1.0/s) * s;
       Basis[2] = (((1.0 - 2.0/s) * t + (3.0/s - 2.0)) * t + 1.0) * t * s;
       Basis[3] = ((t - 1.0) * t * t) * s;
-      
+
       return Basis;
     }
 
@@ -1078,7 +1078,7 @@ namespace Kratos
 
     /// Return the cubic basis for a Catmull-Rom spline first derivative
     /// set a normalized distance t, and the spline parameter s
-   
+
     static inline Vector& FirstDerivativeSplineBasis(Vector& Basis, double& t, double s = 0.5)
     {
       if( Basis.size() != 4 )
@@ -1088,7 +1088,7 @@ namespace Kratos
       Basis[1] = (((6.0/s - 3.0) * t + (2.0 - 6.0/s)) * t) * s;
       Basis[2] = (((3.0 - 6.0/s) * t + (6.0/s - 4.0)) * t + 1.0) * s;
       Basis[3] = (3.0 * t - 2.0) * t * s;
-      
+
       return Basis;
     }
 
@@ -1097,7 +1097,7 @@ namespace Kratos
 
     /// Return the cubic basis for a Catmull-Rom spline second derivative
     /// set a normalized distance t, and the spline parameter s
-   
+
     static inline Vector& SecondDerivativeSplineBasis(Vector& Basis, double& t, double s = 0.5)
     {
       if( Basis.size() != 4 )
@@ -1107,11 +1107,11 @@ namespace Kratos
       Basis[1] = ((12.0/s - 6.0) * t + (2.0 - 6.0/s)) * s;
       Basis[2] = ((6.0 - 12.0/s) * t + (6.0/s - 4.0)) * s;
       Basis[3] = (6.0 * t - 2.0) * s;
-      
+
       return Basis;
     }
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -1178,7 +1178,7 @@ namespace Kratos
     ///@}
     ///@name Member Variables
     ///@{
-    
+
     int mEchoLevel;
 
     bool mParallel;
@@ -1191,7 +1191,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
 
-    
+
     ///@}
     ///@name Private  Access
     ///@{

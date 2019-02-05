@@ -24,7 +24,7 @@ def StopTimeMeasuring(time_ip, process, report):
 # Import kratos core and applications
 import KratosMultiphysics
 
-        
+
 #### PARSING THE PARAMETERS ####
 
 # Import input

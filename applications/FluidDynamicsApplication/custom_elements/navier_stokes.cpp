@@ -15,23 +15,25 @@
 namespace Kratos {
 
 template<>
-void NavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<3>::EquationIdVector(
+    EquationIdVectorType& rResult, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    constexpr unsigned int dim = 3;
+    constexpr unsigned int num_nodes = 4;
+    constexpr unsigned int dof_size = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
-        rResult[i*(Dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(VELOCITY_Z).EquationId();
+        rResult[i*(dim+1)+3]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -39,22 +41,24 @@ void NavierStokes<3>::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
 
 
 template<>
-void NavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<2>::EquationIdVector(
+    EquationIdVectorType& rResult, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    constexpr unsigned int dim = 2;
+    constexpr unsigned int num_nodes = 3;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (rResult.size() != DofSize)
-        rResult.resize(DofSize, false);
+    if (rResult.size() != dof_size){
+        rResult.resize(dof_size, false);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        rResult[i*(Dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
-        rResult[i*(Dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
-        rResult[i*(Dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
+    for(unsigned int i=0; i<num_nodes; i++){
+        rResult[i*(dim+1)  ]  =  this->GetGeometry()[i].GetDof(VELOCITY_X).EquationId();
+        rResult[i*(dim+1)+1]  =  this->GetGeometry()[i].GetDof(VELOCITY_Y).EquationId();
+        rResult[i*(dim+1)+2]  =  this->GetGeometry()[i].GetDof(PRESSURE).EquationId();
     }
 
     KRATOS_CATCH("")
@@ -62,23 +66,25 @@ void NavierStokes<2>::EquationIdVector(EquationIdVectorType& rResult, ProcessInf
 
 
 template<>
-void NavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<3>::GetDofList(
+    DofsVectorType& ElementalDofList, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 3;
-    unsigned int NumNodes = 4;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    constexpr unsigned int dim = 3;
+    constexpr unsigned int num_nodes = 4;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
-        ElementalDofList[i*(Dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Z);
+        ElementalDofList[i*(dim+1)+3]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -86,22 +92,24 @@ void NavierStokes<3>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
+void NavierStokes<2>::GetDofList(
+    DofsVectorType& ElementalDofList, 
+    ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int Dim = 2;
-    unsigned int NumNodes = 3;
-    unsigned int DofSize  = NumNodes*(Dim+1);
+    constexpr unsigned int dim = 2;
+    constexpr unsigned int num_nodes = 3;
+    constexpr unsigned int dof_size  = num_nodes*(dim+1);
 
-    if (ElementalDofList.size() != DofSize)
-        ElementalDofList.resize(DofSize);
+    if (ElementalDofList.size() != dof_size){
+        ElementalDofList.resize(dof_size);
+    }
 
-    for(unsigned int i=0; i<NumNodes; i++)
-    {
-        ElementalDofList[i*(Dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
-        ElementalDofList[i*(Dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
-        ElementalDofList[i*(Dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
+    for(unsigned int i=0; i<num_nodes; i++){
+        ElementalDofList[i*(dim+1)  ]  =  this->GetGeometry()[i].pGetDof(VELOCITY_X);
+        ElementalDofList[i*(dim+1)+1]  =  this->GetGeometry()[i].pGetDof(VELOCITY_Y);
+        ElementalDofList[i*(dim+1)+2]  =  this->GetGeometry()[i].pGetDof(PRESSURE);
     }
 
     KRATOS_CATCH("");
@@ -109,11 +117,12 @@ void NavierStokes<2>::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& 
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,16>& lhs, const ElementDataStruct& data)
+void NavierStokes<3>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,16,16>& lhs, 
+    const ElementDataStruct& data)
 {
-    const int nnodes = 4;
-    const int dim = 3;
-    //~ const int strain_size = 6;
+    constexpr int dim = 3;
+    constexpr int nnodes = 4;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -122,20 +131,11 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,1
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    // const double& bdf1 = data.bdf1;
-    // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
     const BoundedMatrix<double,nnodes,dim>& v = data.v;
-    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
-    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
-    // const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
     const Matrix& C = data.C;
@@ -144,15 +144,9 @@ void NavierStokes<3>::ComputeGaussPointLHSContribution(BoundedMatrix<double,16,1
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double clhs0 =             C(0,0)*DN(0,0) + C(0,3)*DN(0,1) + C(0,5)*DN(0,2);
 const double clhs1 =             C(0,3)*DN(0,0);
@@ -163,7 +157,7 @@ const double clhs5 =             pow(DN(0,0), 2);
 const double clhs6 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
 const double clhs7 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double clhs8 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
-const double clhs9 =             stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
+const double clhs9 =             rho*stab_c2*sqrt(pow(clhs6, 2) + pow(clhs7, 2) + pow(clhs8, 2));
 const double clhs10 =             clhs9*h/stab_c1 + mu;
 const double clhs11 =             pow(N[0], 2);
 const double clhs12 =             bdf0*rho;
@@ -172,7 +166,7 @@ const double clhs14 =             DN(0,0)*clhs6 + DN(0,1)*clhs7 + DN(0,2)*clhs8;
 const double clhs15 =             N[0]*bdf0 + clhs14;
 const double clhs16 =             pow(rho, 2);
 const double clhs17 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
-const double clhs18 =             1.0/(clhs9*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs18 =             1.0/(clhs9/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs19 =             1.0*N[0]*clhs16*clhs17*clhs18;
 const double clhs20 =             1.0*clhs14*clhs16*clhs18;
 const double clhs21 =             clhs11*clhs12 + clhs13*clhs14 + clhs15*clhs19 + clhs15*clhs20;
@@ -754,11 +748,12 @@ const double clhs337 =             N[3] + clhs108*clhs40;
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>& lhs, const ElementDataStruct& data)
+void NavierStokes<2>::ComputeGaussPointLHSContribution(
+    BoundedMatrix<double,9,9>& lhs, 
+    const ElementDataStruct& data)
 {
-    const int nnodes = 3;
-    const int dim = 2;
-    //~ const int strain_size = 3;
+    constexpr int dim = 2;
+    constexpr int nnodes = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -767,20 +762,11 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
-    // const double& bdf1 = data.bdf1;
-    // const double& bdf2 = data.bdf2;
     const double& dyn_tau = data.dyn_tau;
 
     const BoundedMatrix<double,nnodes,dim>& v = data.v;
-    // const BoundedMatrix<double,nnodes,dim>& vn = data.vn;
-    // const BoundedMatrix<double,nnodes,dim>& vnn = data.vnn;
     const BoundedMatrix<double,nnodes,dim>& vmesh = data.vmesh;
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
-    // const BoundedMatrix<double,nnodes,dim>& f = data.f;
-    // const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
-    //~ const array_1d<double,strain_size>& stress = data.stress;
 
     // Get constitutive matrix
     const Matrix& C = data.C;
@@ -789,15 +775,9 @@ void NavierStokes<2>::ComputeGaussPointLHSContribution(BoundedMatrix<double,9,9>
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
 
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double clhs0 =             C(0,0)*DN(0,0) + C(0,2)*DN(0,1);
 const double clhs1 =             C(0,2)*DN(0,0);
@@ -805,7 +785,7 @@ const double clhs2 =             C(2,2)*DN(0,1) + clhs1;
 const double clhs3 =             pow(DN(0,0), 2);
 const double clhs4 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double clhs5 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
-const double clhs6 =             stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
+const double clhs6 =             rho*stab_c2*sqrt(pow(clhs4, 2) + pow(clhs5, 2));
 const double clhs7 =             clhs6*h/stab_c1 + mu;
 const double clhs8 =             pow(N[0], 2);
 const double clhs9 =             bdf0*rho;
@@ -814,7 +794,7 @@ const double clhs11 =             DN(0,0)*clhs4 + DN(0,1)*clhs5;
 const double clhs12 =             N[0]*bdf0 + clhs11;
 const double clhs13 =             pow(rho, 2);
 const double clhs14 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
-const double clhs15 =             1.0/(clhs6*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double clhs15 =             1.0/(clhs6/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double clhs16 =             1.0*N[0]*clhs13*clhs14*clhs15;
 const double clhs17 =             1.0*clhs11*clhs13*clhs15;
 const double clhs18 =             clhs10*clhs11 + clhs12*clhs16 + clhs12*clhs17 + clhs8*clhs9;
@@ -1018,11 +998,13 @@ const double clhs131 =             N[2] + clhs28*clhs57;
 
 
 template<>
-void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs, const ElementDataStruct& data)
+void NavierStokes<3>::ComputeGaussPointRHSContribution(
+    array_1d<double,16>& rhs, 
+    const ElementDataStruct& data)
 {
-    const int nnodes = 4;
-    const int dim = 3;
-    const int strain_size = 6;
+    constexpr int dim = 3;
+    constexpr int nnodes = 4;
+    constexpr int strain_size = 6;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -1046,9 +1028,6 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     const array_1d<double,nnodes>& pnn = data.pnn;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get constitutive matrix
-    // const Matrix& C = data.C;
-
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -1056,20 +1035,10 @@ void NavierStokes<3>::ComputeGaussPointRHSContribution(array_1d<double,16>& rhs,
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
-    //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-    //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-    //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2] + N[3]*p[3];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0) + N[3]*f(3,0));
@@ -1082,7 +1051,7 @@ const double crhs7 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(
 const double crhs8 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double crhs9 =             N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
 const double crhs10 =             rho*(crhs7*(crhs3 + crhs4 + crhs5 + crhs6) + crhs8*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0) + DN(3,1)*v(3,0)) + crhs9*(DN(0,2)*v(0,0) + DN(1,2)*v(1,0) + DN(2,2)*v(2,0) + DN(3,2)*v(3,0)));
-const double crhs11 =             stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
+const double crhs11 =             rho*stab_c2*sqrt(pow(crhs7, 2) + pow(crhs8, 2) + pow(crhs9, 2));
 const double crhs12 =             DN(0,2)*v(0,2) + DN(1,2)*v(1,2) + DN(2,2)*v(2,2) + DN(3,2)*v(3,2);
 const double crhs13 =             DN(0,1)*v(0,1);
 const double crhs14 =             DN(1,1)*v(1,1);
@@ -1093,7 +1062,7 @@ const double crhs18 =             (N[0]*(bdf0*p[0] + bdf1*pn[0] + bdf2*pnn[0]) +
 const double crhs19 =             (crhs17 + crhs18)*(crhs11*h/stab_c1 + mu);
 const double crhs20 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(0,2)*vconv(0,2) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(1,2)*vconv(1,2) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1) + DN(2,2)*vconv(2,2) + DN(3,0)*vconv(3,0) + DN(3,1)*vconv(3,1) + DN(3,2)*vconv(3,2);
 const double crhs21 =             N[0]*crhs20*rho;
-const double crhs22 =             1.0/(crhs11*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs22 =             1.0/(crhs11/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs23 =             1.0*crhs22*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] + DN(3,0)*p[3] - crhs1 + crhs10 + crhs2);
 const double crhs24 =             rho*(DN(0,0)*crhs7 + DN(0,1)*crhs8 + DN(0,2)*crhs9);
 const double crhs25 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1) + N[3]*f(3,1));
@@ -1127,15 +1096,18 @@ const double crhs38 =             rho*(DN(3,0)*crhs7 + DN(3,1)*crhs8 + DN(3,2)*c
             rhs[14]=-DN(3,0)*stress[5] - DN(3,1)*stress[4] + DN(3,2)*crhs0 - DN(3,2)*crhs19 - DN(3,2)*stress[2] + N[3]*crhs29 - N[3]*crhs30 - N[3]*crhs31 - crhs32*crhs37 - crhs32*crhs38;
             rhs[15]=-DN(3,0)*crhs23 - DN(3,1)*crhs28 - DN(3,2)*crhs32 - N[3]*crhs17 - N[3]*crhs18;
 
+
 }
 
 
 template<>
-void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, const ElementDataStruct& data)
+void NavierStokes<2>::ComputeGaussPointRHSContribution(
+    array_1d<double,9>& rhs, 
+    const ElementDataStruct& data)
 {
-    const int nnodes = 3;
-    const int dim = 2;
-    const int strain_size = 3;
+    constexpr int dim = 2;
+    constexpr int nnodes = 3;
+    constexpr int strain_size = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -1159,9 +1131,6 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     const array_1d<double,nnodes>& pnn = data.pnn;
     const array_1d<double,strain_size>& stress = data.stress;
 
-    // Get constitutive matrix
-    // const Matrix& C = data.C;
-
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
     const BoundedMatrix<double,nnodes,dim>& DN = data.DN_DX;
@@ -1169,20 +1138,10 @@ void NavierStokes<2>::ComputeGaussPointRHSContribution(array_1d<double,9>& rhs, 
     // Auxiliary variables used in the calculation of the RHS
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-    //~ const double p_gauss = inner_prod(N,p);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
-
-    //~ array_1d<double,dim> accel_gauss = bdf0*v_gauss;
-    //~ noalias(accel_gauss) += bdf1*prod(trans(vn), N);
-    //~ noalias(accel_gauss) += bdf2*prod(trans(vnn), N);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     const double crhs0 =             N[0]*p[0] + N[1]*p[1] + N[2]*p[2];
 const double crhs1 =             rho*(N[0]*f(0,0) + N[1]*f(1,0) + N[2]*f(2,0));
@@ -1191,14 +1150,14 @@ const double crhs3 =             DN(0,0)*v(0,0) + DN(1,0)*v(1,0) + DN(2,0)*v(2,0
 const double crhs4 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double crhs5 =             N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crhs6 =             rho*(crhs3*crhs4 + crhs5*(DN(0,1)*v(0,0) + DN(1,1)*v(1,0) + DN(2,1)*v(2,0)));
-const double crhs7 =             stab_c2*sqrt(pow(crhs4, 2) + pow(crhs5, 2));
+const double crhs7 =             rho*stab_c2*sqrt(pow(crhs4, 2) + pow(crhs5, 2));
 const double crhs8 =             DN(0,1)*v(0,1) + DN(1,1)*v(1,1) + DN(2,1)*v(2,1);
 const double crhs9 =             crhs3 + crhs8;
 const double crhs10 =             (N[0]*(bdf0*p[0] + bdf1*pn[0] + bdf2*pnn[0]) + N[1]*(bdf0*p[1] + bdf1*pn[1] + bdf2*pnn[1]) + N[2]*(bdf0*p[2] + bdf1*pn[2] + bdf2*pnn[2]))/(pow(c, 2)*rho);
 const double crhs11 =             (crhs10 + crhs9)*(crhs7*h/stab_c1 + mu);
 const double crhs12 =             DN(0,0)*vconv(0,0) + DN(0,1)*vconv(0,1) + DN(1,0)*vconv(1,0) + DN(1,1)*vconv(1,1) + DN(2,0)*vconv(2,0) + DN(2,1)*vconv(2,1);
 const double crhs13 =             N[0]*crhs12*rho;
-const double crhs14 =             1.0/(crhs7*rho/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
+const double crhs14 =             1.0/(crhs7/h + mu*stab_c1/pow(h, 2) + dyn_tau*rho/dt);
 const double crhs15 =             1.0*crhs14*(DN(0,0)*p[0] + DN(1,0)*p[1] + DN(2,0)*p[2] - crhs1 + crhs2 + crhs6);
 const double crhs16 =             rho*(DN(0,0)*crhs4 + DN(0,1)*crhs5);
 const double crhs17 =             rho*(N[0]*f(0,1) + N[1]*f(1,1) + N[2]*f(2,1));
@@ -1219,15 +1178,15 @@ const double crhs24 =             rho*(DN(2,0)*crhs4 + DN(2,1)*crhs5);
             rhs[7]=-DN(2,0)*stress[2] + DN(2,1)*crhs0 - DN(2,1)*crhs11 - DN(2,1)*stress[1] + N[2]*crhs17 - N[2]*crhs18 - N[2]*crhs19 - crhs20*crhs23 - crhs20*crhs24;
             rhs[8]=-DN(2,0)*crhs15 - DN(2,1)*crhs20 - N[2]*crhs10 - N[2]*crhs9;
 
+
 }
 
 
 template<>
 double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
 {
-    const int nnodes = 4;
-    const int dim = 3;
-    // const int strain_size = 3;
+    constexpr int dim = 3;
+    constexpr int nnodes = 4;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
@@ -1247,12 +1206,6 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
     const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
-    // const array_1d<double,strain_size>& stress = data.stress;
-
-    // // Get constitutive matrix
-    // const Matrix& C = data.C;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -1263,15 +1216,10 @@ double NavierStokes<3>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     // Gauss point velocity subscale value computation
     const double cv_s_gauss0 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3]*vconv(3,0);
@@ -1293,13 +1241,12 @@ const double cv_s_gauss3 =             1.0/(rho*stab_c2*sqrt(pow(cv_s_gauss0, 2)
 template<>
 double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
 {
-    const int nnodes = 3;
-    const int dim = 2;
+    constexpr int dim = 2;
+    constexpr int nnodes = 3;
 
     const double rho = inner_prod(data.N, data.rho);        // Density
     const double mu = inner_prod(data.N, data.mu);          // Dynamic viscosity
     const double h = data.h;                                // Characteristic element size
-    // const double c = data.c;                                // Wave velocity
 
     const double& dt = data.dt;
     const double& bdf0 = data.bdf0;
@@ -1314,8 +1261,6 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const BoundedMatrix<double,nnodes,dim>& vconv = v - vmesh;
     const BoundedMatrix<double,nnodes,dim>& f = data.f;
     const array_1d<double,nnodes>& p = data.p;
-    // const array_1d<double,nnodes>& pn = data.pn;
-    // const array_1d<double,nnodes>& pnn = data.pnn;
 
     // Get shape function values
     const array_1d<double,nnodes>& N = data.N;
@@ -1326,15 +1271,10 @@ double NavierStokes<2>::SubscaleErrorEstimate(const ElementDataStruct& data)
     const array_1d<double,dim> v_gauss = prod(trans(v), N);
     const array_1d<double,dim> f_gauss = prod(trans(f), N);
     const array_1d<double,dim> grad_p = prod(trans(DN), p);
-    // const array_1d<double,dim> vconv_gauss = prod(trans(vconv), N);
-
-    // const double vconv_norm = norm_2(vconv_gauss);
 
     // Stabilization parameters
-    const double stab_c1 = 4.0;
-    const double stab_c2 = 2.0;
-    // const double tau1 = 1.0/((rho*dyn_tau_coeff)/delta_t + (c2*rho*vconv_norm)/h + (c1*mu)/(h*h));
-    // // const double tau2 = (h*h)/(c1*tau1);
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
 
     // Gauss point velocity subscale value computation
     const double cv_s_gauss0 =             N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);

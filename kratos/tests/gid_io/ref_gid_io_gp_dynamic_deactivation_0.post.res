@@ -39,6 +39,18 @@ Values
 1 0 0 0
 2 0 0 0
 End Values
+Result "ACTIVE" "Kratos" 0 Scalar OnGaussPoints "tri1_element_gp"
+Values
+1 0
+2 0
+3 0
+4 0
+End Values
+Result "ACTIVE" "Kratos" 0 Scalar OnGaussPoints "tet1_element_gp"
+Values
+1 0
+2 0
+End Values
 Result "VELOCITY" "Kratos" 1 Vector OnNodes
 Values
 1 0.707107 0 -0.707107
@@ -64,4 +76,16 @@ End Values
 Result "NORMAL" "Kratos" 1 Vector OnGaussPoints "tet1_element_gp"
 Values
 1 0 0 0
+End Values
+Result "ACTIVE" "Kratos" 1 Scalar OnGaussPoints "tri1_element_gp"
+Values
+1 0
+2 0
+3 0
+4 0
+End Values
+Result "ACTIVE" "Kratos" 1 Scalar OnGaussPoints "tet1_element_gp"
+Values
+1 0
+2 0
 End Values

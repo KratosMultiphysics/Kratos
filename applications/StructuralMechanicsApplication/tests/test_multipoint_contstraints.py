@@ -8,7 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
+    
     def _add_variables(self, mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
@@ -245,7 +245,9 @@ class TestMultipointConstraints(KratosUnittest.TestCase):
 
     def test_MPC_Constraints(self):
         dim = 2
-        mp = KratosMultiphysics.ModelPart("solid_part")
+        current_model = KratosMultiphysics.Model()
+        mp = current_model.CreateModelPart("solid_part")
+
         self._add_variables(mp)
         self._setup_model_part(mp)
         self._add_dofs(mp)

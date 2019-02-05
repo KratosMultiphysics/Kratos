@@ -21,13 +21,11 @@
 #include "includes/define_python.h"
 
 namespace Kratos {
-
 namespace Python {
 
 void AddCustomStrategiesToPython(pybind11::module& m);
 
 } // namespace Python.
-
 } // namespace Kratos.
 
 #endif // KRATOS_STRATEGIES_PYTHON_H_INCLUDED  defined

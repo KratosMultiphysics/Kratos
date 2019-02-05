@@ -1,9 +1,15 @@
-//   
-//   Project Name:        KratosPoromechanicsApplication $
-//   Last Modified by:    $Author:    Ignasi de Pouplana $
-//   Date:                $Date:           February 2016 $
-//   Revision:            $Revision:                 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Ignasi de Pouplana
+//
+
 
 // Application includes
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
@@ -72,7 +78,7 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(VectorType& rRig
 {
     noalias(rVariables.PVector) = -rVariables.NormalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
     
-    ElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
+    PoroElementUtilities::AssemblePBlockVector< array_1d<double,TNumNodes> >(rRightHandSideVector,rVariables.PVector,TDim,TNumNodes);
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

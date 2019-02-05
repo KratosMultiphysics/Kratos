@@ -4,7 +4,7 @@
 /*
 The MIT License
 
-Copyright (c) 2012-2018 Denis Demidov <dennis.demidov@gmail.com>
+Copyright (c) 2012-2019 Denis Demidov <dennis.demidov@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -387,7 +387,8 @@ class QR {
 
             if (math::is_zero(xnorm2)) return tau;
 
-            scalar_type beta = -std::copysign(sqrt(sqr(math::norm(alpha)) + xnorm2), amgcl::detail::real(alpha));
+            scalar_type beta = -std::abs(sqrt(sqr(math::norm(alpha)) + xnorm2));
+            if (amgcl::detail::real(alpha) < 0) beta = -beta;
 
             tau = math::identity<value_type>() - math::inverse(beta) * alpha;
             alpha = math::inverse(alpha - beta * math::identity<value_type>());

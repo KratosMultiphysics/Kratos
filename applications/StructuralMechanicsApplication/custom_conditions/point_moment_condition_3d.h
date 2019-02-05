@@ -16,9 +16,7 @@
 
 // External includes
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/base_load_condition.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -41,7 +39,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
+
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION)  PointMomentCondition3D
     : public BaseLoadCondition
 {
@@ -49,7 +47,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    
+
     // Counted pointer of PointMomentCondition3D
     KRATOS_CLASS_POINTER_DEFINITION( PointMomentCondition3D );
 
@@ -58,15 +56,15 @@ public:
     ///@{
 
     /// Default constructor.
-    PointMomentCondition3D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry 
+    PointMomentCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
         );
-    
-    PointMomentCondition3D( 
-        IndexType NewId, 
-        GeometryType::Pointer pGeometry,  
-        PropertiesType::Pointer pProperties 
+
+    PointMomentCondition3D(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
         );
 
     /// Destructor.
@@ -80,17 +78,42 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new condition pointer
+     * @param NewId the ID of the new condition
+     * @param pGeom the geometry to be employed
+     * @param pProperties the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(
         IndexType NewId,
         GeometryType::Pointer pGeom,
         PropertiesType::Pointer pProperties
         ) const override;
-    
-    Condition::Pointer Create( 
-        IndexType NewId, 
-        NodesArrayType const& rThisNodes,  
-        PropertiesType::Pointer pProperties 
+
+    /**
+     * @brief Creates a new condition pointer and clones the previous condition data
+     * @param NewId the ID of the new condition
+     * @param ThisNodes the nodes of the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
         ) const override;
 
     /**
@@ -100,9 +123,9 @@ public:
      */
     void EquationIdVector(
         EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo 
+        ProcessInfo& rCurrentProcessInfo
         ) override;
-    
+
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      * @param rElementalDofList: The vector containing the dof of the element
@@ -120,7 +143,7 @@ public:
      */
     void GetValuesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
     /**
@@ -130,9 +153,9 @@ public:
      */
     void GetFirstDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
-    
+
     /**
      * Sets on rValues the nodal accelerations
      * @param rValues: The values of accelerations
@@ -140,7 +163,7 @@ public:
      */
     void GetSecondDerivativesVector(
         Vector& rValues,
-        int Step = 0 
+        int Step = 0
         ) override;
 
 
@@ -153,7 +176,7 @@ public:
      */
     int Check( const ProcessInfo& rCurrentProcessInfo ) override;
 
-    
+
     ///@}
     ///@name Access
     ///@{
@@ -168,12 +191,33 @@ public:
     ///@name Input and output
     ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "PointMomentCondition3D #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "PointMomentCondition3D #" << Id();
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
     ///@}
     ///@name Friends
     ///@{
-    
+
 protected:
-    
+
     ///@name Protected static Member Variables
     ///@{
 
@@ -188,7 +232,7 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-    
+
     /**
      * This functions calculates both the RHS and the LHS
      * @param rLeftHandSideMatrix: The LHS
@@ -198,18 +242,18 @@ protected:
      * @param CalculateResidualVectorFlag: The flag to set if compute the RHS
      */
     void CalculateAll(
-        MatrixType& rLeftHandSideMatrix, 
+        MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
+        const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag
         ) override;
-        
+
     /**
-     * It calcules the integration weight for the point moment 
+     * It calcules the integration weight for the point moment
      */
-    virtual double GetPointMomentIntegrationWeight();
-    
+    virtual double GetPointMomentIntegrationWeight() const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -221,7 +265,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    
+
     // A protected default constructor necessary for serialization
     PointMomentCondition3D() {};
 
@@ -239,7 +283,7 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -283,4 +327,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined 
+#endif // KRATOS_POINT_MOMENT_CONDITION_3D_H_INCLUDED  defined

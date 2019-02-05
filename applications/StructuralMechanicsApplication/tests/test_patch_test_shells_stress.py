@@ -8,8 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
     def setUp(self):
         pass
-
-
+        
     def _add_variables(self,mp):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
@@ -140,8 +139,8 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         self.assertAlmostEqual(stress[2,2], reference_stress_results[5])
 
 
-    def execute_shell_test(self, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
-        mp = KratosMultiphysics.ModelPart("solid_part")
+    def execute_shell_test(self, current_model, element_name, displacement_results, rotation_results, shell_stress_middle_surface_results, shell_stress_top_surface_results, shell_stress_bottom_surface_results, shell_von_mises_result,do_post_processing):
+        mp = current_model.CreateModelPart("solid_part")
         mp.SetBufferSize(2)
 
         self._add_variables(mp)
@@ -193,7 +192,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [3.888985866804 , 0.097812523361 , 0.0 , 11.637319716442 , 0.0 , 0.0]
         shell_von_mises_result = 6.84404599900034
 
-        self.execute_shell_test(element_name,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -212,7 +213,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [4.804700641385 , 9.266646216307 , 0.0 , 3.6549100298 , 0.0 , 0.0]
         shell_von_mises_result = 16.628137698179042
 
-        self.execute_shell_test(element_name,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -231,7 +234,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [-13.651424771092 , -26.94646007236 , 0.0 , 15.346485670044 , 0.0 , 0.0]
         shell_von_mises_result = 53.00672171174518
 
-        self.execute_shell_test(element_name,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,
@@ -250,7 +255,9 @@ class TestPatchTestShellsStressRec(KratosUnittest.TestCase):
         shell_stress_bottom_surface_results = [-3.664971093553 , -7.523144598382 , 0.0 , 56.246647754966 , 0.0 , 0.0]
         shell_von_mises_result = 59.607489872219794
 
-        self.execute_shell_test(element_name,
+        current_model = KratosMultiphysics.Model()
+        self.execute_shell_test(current_model,
+                                element_name, 
                                 displacement_results,
                                 rotation_results,
                                 shell_stress_middle_surface_results,

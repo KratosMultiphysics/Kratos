@@ -20,7 +20,6 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
 #include "includes/define.h"
@@ -32,6 +31,7 @@
 #include "utilities/math_utils.h"
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
+#include "includes/kratos_parameters.h"
 #include "containers/data_value_container.h"
 #include "containers/flags.h"
 
@@ -510,6 +510,13 @@ public:
     virtual ConstitutiveLaw::Pointer Clone() const;
 
     /**
+     * creates a new constitutive law pointer
+     * @param NewParameters The configuration parameters of the new constitutive law
+     * @return a Pointer to the new constitutive law
+     */
+    virtual Pointer Create(Kratos::Parameters NewParameters) const;
+
+    /**
      * @return The working space dimension of the current constitutive law
      * @note This function HAS TO BE IMPLEMENTED by any derived class
      */
@@ -700,7 +707,16 @@ public:
                           const ProcessInfo& rCurrentProcessInfo);
 
     /**
-     * calculates the value of a specified variable
+     * @brief Calculates the value of a specified variable (bool)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    virtual bool& CalculateValue(Parameters& rParameterValues, const Variable<bool>& rThisVariable, bool& rValue);
+
+    /**
+     * @brief Calculates the value of a specified variable (int)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -709,7 +725,7 @@ public:
     virtual int& CalculateValue(Parameters& rParameterValues, const Variable<int>& rThisVariable, int& rValue);
 
     /**
-     * calculates the value of a specified variable
+     * @brief Calculates the value of a specified variable (double)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -718,7 +734,7 @@ public:
     virtual double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue);
 
     /**
-     * calculates the value of a specified variable
+     * @brief Calculates the value of a specified variable (Vector)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -727,7 +743,7 @@ public:
     virtual Vector& CalculateValue(Parameters& rParameterValues, const Variable<Vector>& rThisVariable, Vector& rValue);
 
     /**
-     * calculates the value of a specified variable
+     * @brief Calculates the value of a specified variable (Matrix)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -736,7 +752,7 @@ public:
     virtual Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue);
 
     /**
-     * calculates the value of a specified variable
+     * @brief Calculates the value of a specified variable (array of 3 components)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
@@ -746,7 +762,7 @@ public:
 						  array_1d<double, 3 > & rValue);
 
     /**
-     * returns the value of a specified variable
+     * returns the value of a specified variable (array of 6 components)
      * @param rThisVariable the variable to be returned
      * @param rValue a reference to the returned value
      * @return the value of the specified variable
@@ -805,6 +821,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
     virtual void InitializeSolutionStep(const Properties& rMaterialProperties,
                                         const GeometryType& rElementGeometry, //this is just to give the array of nodes
                                         const Vector& rShapeFunctionsValues,
@@ -818,6 +835,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use FinalizeMaterialResponse instead\"")
     virtual void FinalizeSolutionStep(const Properties& rMaterialProperties,
                                       const GeometryType& rElementGeometry,
                                       const Vector& rShapeFunctionsValues,
@@ -833,6 +851,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
     virtual void InitializeNonLinearIteration(const Properties& rMaterialProperties,
 					      const GeometryType& rElementGeometry,
 					      const Vector& rShapeFunctionsValues,
@@ -848,6 +867,7 @@ public:
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      * @param the current ProcessInfo instance
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
     virtual void FinalizeNonLinearIteration(const Properties& rMaterialProperties,
 					    const GeometryType& rElementGeometry,
 					    const Vector& rShapeFunctionsValues,
@@ -991,7 +1011,7 @@ public:
      * @param rStrainInitial the measure of stress of the given  rStrainVector
      * @param rStrainFinal the measure of stress of the returned rStrainVector
      */
-    Vector& TransformStrains        (Vector& rStrainVector,
+    virtual Vector& TransformStrains (Vector& rStrainVector,
 				     const Matrix &rF,
 				     StrainMeasure rStrainInitial,
 				     StrainMeasure rStrainFinal);
@@ -1137,6 +1157,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - Use version with ConstitutiveLaw::Parameters instead \"")
     virtual void CalculateMaterialResponse(const Vector& StrainVector,
                                            const Matrix& DeformationGradient,
                                            Vector& StressVector,
@@ -1165,6 +1186,7 @@ public:
      * NOTE: the CalculateTangent flag is defined as int to allow for distinctive variants of the tangent
      * @param SaveInternalVariables flag whether or not to store internal (history) variables
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method - use CalculateMaterialResponse instead\"")
     virtual void CalculateVolumetricResponse(const double VolumetricStrain,
 					     const Matrix& DeformationGradient,
 					     double& VolumetricStress,
@@ -1195,6 +1217,7 @@ public:
 
      * TODO: add proper definition for algorithmic tangent
      */
+    KRATOS_DEPRECATED_MESSAGE("Please do not use this method\"")
     virtual void CalculateDeviatoricResponse(const Vector& StrainVector,
 					     const Matrix& DeformationGradient,
 					     Vector& StressVector,
@@ -1215,6 +1238,23 @@ public:
                                          const Vector& PK2_StressVector,
                                          const Vector& GreenLagrangeStrainVector);
 
+    /**
+     * @brief This method is used to check that tow Constitutive Laws are the same type (references)
+     * @param rLHS The first argument
+     * @param rRHS The second argument
+     */
+    inline static bool HasSameType(const ConstitutiveLaw& rLHS, const ConstitutiveLaw& rRHS) {
+        return (typeid(rLHS) == typeid(rRHS));
+    }
+
+    /**
+     * @brief This method is used to check that tow Constitutive Laws are the same type (pointers)
+     * @param rLHS The first argument
+     * @param rRHS The second argument
+     */
+    inline static bool HasSameType(const ConstitutiveLaw* rLHS, const ConstitutiveLaw* rRHS) {
+        return ConstitutiveLaw::HasSameType(*rLHS, *rRHS);
+    }
 
     ///@}
     ///@}
@@ -1426,8 +1466,8 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} addtogroup block
 
-template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
-template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<ConstitutiveLaw::Pointer> >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<ConstitutiveLaw >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents< Variable<ConstitutiveLaw::Pointer> >;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Variable<ConstitutiveLaw::Pointer> const& ThisComponent);
@@ -1447,4 +1487,3 @@ KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_CONSTITUTIVE_LAW  defined */
-

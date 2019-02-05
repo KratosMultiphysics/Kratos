@@ -1,5 +1,5 @@
-#LyX 2.2 created this file. For more info see http://www.lyx.org/
-\lyxformat 508
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
 \begin_document
 \begin_header
 \save_transient_properties true
@@ -34,6 +34,8 @@
 \font_osf false
 \font_sf_scale 100 100
 \font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
 \graphics default
 \default_output_format default
 \output_sync 0
@@ -72,6 +74,7 @@
 \suppress_date false
 \justification true
 \use_refstyle 0
+\use_minted 0
 \index Index
 \shortcut idx
 \color #008000
@@ -80,7 +83,10 @@
 \tocdepth 3
 \paragraph_separation indent
 \paragraph_indentation default
-\quotes_language english
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
@@ -731,7 +737,7 @@ the stabilization coefficients
 \begin_inset Formula 
 \begin{eqnarray*}
 \tau_{1} & = & \left(\frac{c_{1}\mu}{h^{2}}+\frac{c_{2}\rho||\mathbf{a}||}{h}\right)^{-1}\\
-\tau_{2} & = & \frac{h\text{²}}{c_{1}\tau_{1}}=\mu+\frac{c_{2}h||\mathbf{a}||}{c_{1}}
+\tau_{2} & = & \frac{h\text{²}}{c_{1}\tau_{1}}=\mu+\frac{c_{2}\rho h||\mathbf{a}||}{c_{1}}
 \end{eqnarray*}
 
 \end_inset

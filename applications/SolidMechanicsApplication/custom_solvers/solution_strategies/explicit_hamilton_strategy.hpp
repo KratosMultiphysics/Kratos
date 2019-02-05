@@ -5,7 +5,7 @@
 //   Date:                $Date:            November 2015 $
 //   Revision:            $Revision:                  0.0 $
 //
-// 
+//
 
 #if !defined(KRATOS_EXPLICIT_HAMILTON_STRATEGY)
 #define  KRATOS_EXPLICIT_HAMILTON_STRATEGY
@@ -14,11 +14,10 @@
 
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
+//#include "boost/smart_ptr.hpp"
 
 
 /* Project includes */
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
@@ -111,7 +110,7 @@ public:
         SetEchoLevel(1);
 
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
-	
+
 	rCurrentProcessInfo[ALPHA_TRAPEZOIDAL_RULE] = 0.5; //Alpha [0,1]  trapezoidal rule
 	rCurrentProcessInfo[POSITION_UPDATE_LABEL] = false;
 	rCurrentProcessInfo[ROTATION_UPDATE_LABEL] = false;
@@ -142,7 +141,7 @@ public:
     {
         return mpScheme;
     };
-    
+
      //Set and Get the BuilderAndSolver
 
     void SetBuilderAndSolver(typename BuilderAndSolverType::Pointer pNewBuilderAndSolver)
@@ -154,9 +153,9 @@ public:
     {
         return mpBuilderAndSolver;
     };
-    
+
     //Ser and Get Flags
-  
+
     void SetInitializePerformedFlag(bool InitializePerformedFlag = true)
     {
       mInitializeWasPerformed = InitializePerformedFlag;
@@ -231,7 +230,7 @@ public:
             pScheme->InitializeConditions(BaseType::GetModelPart());
 
         pBuilderAndSolver->BuildLHS(pScheme, r_model_part, mA); //calculate and store nodal variables: NODAL_MASS and INERTIA_DYADIC
-       
+
         mInitializeWasPerformed = true;
 
         KRATOS_CATCH( "" )
@@ -239,7 +238,7 @@ public:
 
     //**********************************************************************
     //**********************************************************************
-    
+
     void InitializeSolutionStep()
     {
         KRATOS_TRY
@@ -288,7 +287,7 @@ public:
     double Solve()
     {
         KRATOS_TRY
-        
+
         DofsArrayType rDofSet; //dummy initialization. Not used in builder and solver
         SystemMatrixType mA  = SystemMatrixType();
         SystemVectorType mDx = SystemVectorType();
@@ -297,12 +296,12 @@ public:
         //pointers needed in the solution
         typename SchemeType::Pointer pScheme = GetScheme();
         typename BuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        
+
         //OPERATIONS THAT SHOULD BE DONE ONCE - internal check to avoid repetitions
         //if the operations needed were already performed this does nothing
         if(mInitializeWasPerformed == false)
             Initialize();
-            
+
         //prints informations about the current time
         if (this->GetEchoLevel() != 0 && BaseType::GetModelPart().GetCommunicator().MyPID() == 0 )
         {
@@ -315,7 +314,7 @@ public:
 	  InitializeSolutionStep();
 
 	//1) Position explicit strategy:
-	
+
 	//1.1) Update nodal displacements:
 	bool update_at_start = false;
 	if( update_at_start ){
@@ -354,7 +353,7 @@ public:
 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
 	//3) Update momentum equations:
-	
+
 	//3.1) Build RHS (redual forces and moments update):
 	pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb); //fills FORCE_RESIDUAL and MOMENT_RESIDUAL nodal variables
 
@@ -364,7 +363,7 @@ public:
 	BaseType::GetModelPart().GetProcessInfo()[MOMENTUM_UPDATE_LABEL] = true;
 	pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb); //SECOND CALL: updates Nodal  Momentum Variables ->POSITION_MOMENTUM,ROTATION_MOMENTUM :: (FORCE_RESIDUAL,MOMENT_RESIDUAL) needed -> (Scheme::mUpdateMomentumFlag = true)
 
-	if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();	
+	if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
 
  	//Finalisation of the solution step,
         //operations to be done after achieving convergence, for example the
@@ -401,9 +400,9 @@ public:
 
         KRATOS_CATCH( "" )
     }
-    
-    
-    
+
+
+
 
     /*@} */
     /**@name Operators
@@ -512,18 +511,18 @@ protected:
     bool mSolutionStepIsInitialized;
 
     bool mInitializeWasPerformed;
-    
-    bool mComputeTime; 
-    
+
+    bool mComputeTime;
+
 
     /*@} */
     /**@name Private Operators*/
     /*@{ */
-    
+
       //**********************************************************************
     //**********************************************************************
 
-    
+
     void CalculateReactions()
     {
 
@@ -531,16 +530,16 @@ protected:
 
     //**********************************************************************
     //**********************************************************************
-    
+
     /**
      * function to perform expensive checks.
      * It is designed to be called ONCE to verify that the input is correct.
      */
-    
+
     int Check()
     {
         KRATOS_TRY
-        
+
         BaseType::Check();
 
         GetScheme()->Check(BaseType::GetModelPart());
@@ -550,7 +549,7 @@ protected:
         KRATOS_CATCH( "" )
     }
 
-    
+
 //***************************************************************************
 //***************************************************************************
 

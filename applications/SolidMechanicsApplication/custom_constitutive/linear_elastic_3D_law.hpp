@@ -23,7 +23,7 @@ namespace Kratos
  * Defines a linear isotropic constitutive law in 2D (Plane Strain)
  * This material law is defined by the parameters:
  * 1) YOUNG MODULUS
- * 2) POISSON RATIO 
+ * 2) POISSON RATIO
  * As there are no further parameters the functionality is valid
  * for small and large displacements elasticity.
  */
@@ -74,7 +74,7 @@ public:
     /**
      * Destructor.
      */
-    virtual ~LinearElastic3DLaw();
+    ~LinearElastic3DLaw() override;
 
     /**
      * Operators
@@ -185,7 +185,7 @@ protected:
     bool CheckParameters(Parameters& rValues) override;
 
     double& CalculateValue(Parameters& rParameterValues, const Variable<double>& rThisVariable, double& rValue) override;
-    
+
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
 
@@ -231,4 +231,4 @@ private:
 
 }; // Class LinearElastic3DLaw
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined
