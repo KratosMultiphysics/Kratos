@@ -6,7 +6,7 @@
 #include "includes/model_part.h"
 #include "containers/flags.h"
 
-#include "drag_laws/drag_law.h"
+#include "buoyancy_laws/buoyancy_law.h"
 #include "drag_laws/drag_law.h"
 #include "inviscid_force_laws/standard_inviscid_force_law.h"
 
@@ -21,9 +21,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
 
     HydrodynamicInteractionLaw();
+    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law);
     HydrodynamicInteractionLaw(const DragLaw& r_drag_law);
     HydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law);
+    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law);
+    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const InviscidForceLaw& r_inviscid_force_law);
     HydrodynamicInteractionLaw(const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law);
+    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law);
     HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw);
 
     virtual void Initialize(const ProcessInfo& r_process_info);
@@ -38,12 +42,20 @@ public:
 
     HydrodynamicInteractionLaw::Pointer Clone() const;
 
+    virtual BuoyancyLaw::Pointer CloneBuoyancyLaw() const;
     virtual DragLaw::Pointer CloneDragLaw() const;
     virtual InviscidForceLaw::Pointer CloneInviscidForceLaw() const;
 
     double ComputeParticleReynoldsNumber(const double particle_radius,
                                          const double fluid_kinematic_viscosity,
                                          const double modulus_of_slip_velocity);
+
+    virtual void ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
+                                      const double fluid_density,
+                                      const double displaced_volume,
+                                      const array_1d<double, 3>& body_force,
+                                      array_1d<double, 3>& buoyancy,
+                                      const ProcessInfo& r_current_process_info);
 
     virtual void ComputeDragForce(Geometry<Node<3> >& r_geometry,
                                   double particle_radius,
@@ -64,6 +76,7 @@ public:
                                         const ProcessInfo& r_current_process_info);
 
 protected:
+    BuoyancyLaw::Pointer mpBuoyancyLaw;
     DragLaw::Pointer mpDragLaw;
     InviscidForceLaw::Pointer mpInviscidForceLaw;
 

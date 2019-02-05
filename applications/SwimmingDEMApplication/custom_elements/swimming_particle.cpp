@@ -107,12 +107,20 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     array_1d<double, 3> magnus_lift_force;
     array_1d<double, 3> brownian_motion_force;
     array_1d<double, 3>& basset_force = node.FastGetSolutionStepValue(BASSET_FORCE);
+    Geometry<Node<3> >& r_geometry = GetGeometry();
 
     // The decomposition of forces that is considered here follows Jackson (The Dynamics of Fluidized Particles, 2000);
     // so that the role of f_n1 therein is played by non_contact_force here
     TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could be adding something else apart from weight
-    ComputeBuoyancy(node, buoyancy, gravity, r_current_process_info);
-    mHydrodynamicInteractionLaw->ComputeDragForce(GetGeometry(),
+
+    mHydrodynamicInteractionLaw->ComputeBuoyancyForce(r_geometry,
+                                                      mFluidDensity,
+                                                      CalculateVolume(),
+                                                      gravity,
+                                                      buoyancy,
+                                                      r_current_process_info);
+
+    mHydrodynamicInteractionLaw->ComputeDragForce(r_geometry,
                                                   mRadius,
                                                   mFluidDensity,
                                                   mKinematicViscosity,
@@ -120,13 +128,12 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                                   drag_force,
                                                   r_current_process_info);
 
-    mHydrodynamicInteractionLaw->ComputeInviscidForce(GetGeometry(),
+    mHydrodynamicInteractionLaw->ComputeInviscidForce(r_geometry,
                                                       mFluidDensity,
                                                       CalculateVolume(),
                                                       virtual_mass_plus_undisturbed_flow_force,
                                                       r_current_process_info);
 
-    //ComputeVirtualMassPlusUndisturbedFlowForce(node, virtual_mass_plus_undisturbed_flow_force, r_current_process_info);
     ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);

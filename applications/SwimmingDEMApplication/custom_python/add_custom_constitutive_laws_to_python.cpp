@@ -8,8 +8,14 @@
 // Project includes
 #include "includes/define_python.h"
 
+// Hydrodynamic Laws
 #include "../custom_constitutive/hydrodynamic_interaction_law.h"
 #include "../custom_constitutive/power_law_hydrodynamic_interaction_law.h"
+
+// Buoyancy Laws
+#include "../custom_constitutive/buoyancy_laws/buoyancy_law.h"
+#include "../custom_constitutive/buoyancy_laws/standard_buoyancy_law.h"
+
 // Drag laws
 #include "../custom_constitutive/drag_laws/drag_law.h"
 #include "../custom_constitutive/drag_laws/stokes_drag_law.h"
@@ -19,6 +25,7 @@
 #include "../custom_constitutive/drag_laws/ganser_drag_law.h"
 #include "../custom_constitutive/drag_laws/shah_drag_law.h"
 #include "../custom_constitutive/drag_laws/newton_drag_law.h"
+
 // Inviscid force laws
 #include "../custom_constitutive/inviscid_force_laws/inviscid_force_law.h"
 #include "../custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.h"
@@ -29,6 +36,7 @@ namespace Python {
 
 namespace py = pybind11;
 
+typedef BuoyancyLaw BaseBuoyancyLawType;
 typedef DragLaw BaseDragLawType;
 typedef InviscidForceLaw BaseInviscidForceLawType;
 
@@ -36,12 +44,28 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
 
     py::class_<HydrodynamicInteractionLaw, HydrodynamicInteractionLaw::Pointer>(m, "HydrodynamicInteractionLaw")
         .def(py::init<>())
+        .def(py::init<const BuoyancyLaw&>())
         .def(py::init<const DragLaw&>())
         .def(py::init<const InviscidForceLaw&>())
+        .def(py::init<const BuoyancyLaw&, const DragLaw&>())
+        .def(py::init<const BuoyancyLaw&, const InviscidForceLaw&>())
         .def(py::init<const DragLaw&, const InviscidForceLaw&>())
+        .def(py::init<const BuoyancyLaw&, const DragLaw&, const InviscidForceLaw&>())
         .def("Clone", &HydrodynamicInteractionLaw::Clone)
         .def("SetHydrodynamicInteractionLawInProperties", &HydrodynamicInteractionLaw::SetHydrodynamicInteractionLawInProperties)
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
+        ;
+
+    // Buoyancy laws
+    py::class_<BuoyancyLaw, BuoyancyLaw::Pointer>(m, "BuoyancyLaw")
+        .def(py::init<>())
+        .def("Clone", &BuoyancyLaw::Clone)
+        .def("SetBuoyancyLawInProperties", &BuoyancyLaw::SetBuoyancyLawInProperties)
+        .def("GetTypeOfLaw", &BuoyancyLaw::GetTypeOfLaw)
+        ;
+
+    py::class_<StandardBuoyancyLaw, StandardBuoyancyLaw::Pointer, BaseBuoyancyLawType>(m, "StandardBuoyancyLaw")
+        .def(py::init<>())
         ;
 
     // Drag laws

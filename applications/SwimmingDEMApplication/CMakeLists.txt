@@ -38,6 +38,10 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hydrodynamic_interaction_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/power_law_hydrodynamic_interaction_law.cpp
 
+    # Buoyancy laws
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/buoyancy_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/buoyancy_laws/standard_buoyancy_law.cpp
+
     # Drag Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/drag_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/drag_laws/stokes_drag_law.cpp

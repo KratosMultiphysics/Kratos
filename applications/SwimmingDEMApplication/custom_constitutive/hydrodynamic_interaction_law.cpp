@@ -4,19 +4,32 @@
 namespace Kratos {
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw():
-        mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law):
+        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law):
-        mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law):
-        mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
+        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law):
+        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const InviscidForceLaw& r_inviscid_force_law):
+        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law):
-        mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
+        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law):
+        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
     {
+        mpBuoyancyLaw = rHydrodynamicInteractionLaw.CloneBuoyancyLaw();
         mpDragLaw = rHydrodynamicInteractionLaw.CloneDragLaw();
         mpInviscidForceLaw = rHydrodynamicInteractionLaw.CloneInviscidForceLaw();
     }
@@ -38,6 +51,10 @@ namespace Kratos {
         return p_clone;
     }
 
+    BuoyancyLaw::Pointer HydrodynamicInteractionLaw::CloneBuoyancyLaw() const {
+        return mpBuoyancyLaw->Clone();
+    }
+
     DragLaw::Pointer HydrodynamicInteractionLaw::CloneDragLaw() const {
         return mpDragLaw->Clone();
     }
@@ -53,6 +70,21 @@ namespace Kratos {
                                                                      const double modulus_of_slip_velocity)
     {
         return 2 * particle_radius * modulus_of_slip_velocity / fluid_kinematic_viscosity;
+    }
+
+    void HydrodynamicInteractionLaw::ComputeBuoyancyForce(Geometry<Node<3> >& r_geometry,
+                                                          const double fluid_density,
+                                                          const double displaced_volume,
+                                                          const array_1d<double, 3>& body_force,
+                                                          array_1d<double, 3>& buoyancy,
+                                                          const ProcessInfo& r_current_process_info)
+    {
+        mpBuoyancyLaw->ComputeForce(r_geometry,
+                                    fluid_density,
+                                    displaced_volume,
+                                    body_force,
+                                    buoyancy,
+                                    r_current_process_info);
     }
 
     void HydrodynamicInteractionLaw::ComputeDragForce(Geometry<Node<3> >& r_geometry,
