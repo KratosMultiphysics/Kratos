@@ -118,20 +118,29 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
     // Check contact: Check contact penetration: if <0 apply constraint, otherwise no
     bool apply_constraints = true;
-    if (Is(CONTACT)){
+    if (Is(CONTACT))
+    {
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
         const array_1d<double, 3 > & unit_normal_vector = this->GetValue(MPC_NORMAL);
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
             if (Variables.N[i] > std::numeric_limits<double>::epsilon() )
-                for ( unsigned int j = 0; j < dimension; j++ )
+            {
+                for ( unsigned int j = 0; j < dimension; j++)
+                {
                     field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
+                }
+            }
+        }
 
         const double penetration = MathUtils<double>::Dot((field_displacement - imposed_displacement), unit_normal_vector);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
+        {
             apply_constraints = false;
+        }
     }
 
     if (apply_constraints)
@@ -139,19 +148,25 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         // Arrange shape function
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
+        {
             if (Variables.N[i] > std::numeric_limits<double>::epsilon())
+            {
                 for (unsigned int j = 0; j < dimension; j++)
+                {
                     shape_function(j, block_size * i + j) = Variables.N[i];
-
-        if (Is(SLIP)){
-            //TODO: SLIP/FRICTION condition to be implemented
+                }
+            }
         }
 
         // Calculate gap_function: nodal_displacement - imposed_displacement
         Vector gap_function = ZeroVector(matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
-            for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            for ( unsigned int j = 0; j < dimension; j++)
+            {
                 gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - imposed_displacement[j]);
+            }
+        }
 
         // Calculate LHS Matrix and RHS Vector
         noalias(rLeftHandSideMatrix)  += prod(trans(shape_function), shape_function);

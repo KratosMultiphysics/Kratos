@@ -26,8 +26,6 @@ void MPMParticleBaseDirichletCondition::Initialize()
 
     // Initialize parameters
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    mDeterminantF0 = 1;
-    mDeformationGradientF0 = IdentityMatrix(dimension);
 
     KRATOS_CATCH( "" )
 }
@@ -79,7 +77,7 @@ void MPMParticleBaseDirichletCondition::FinalizeSolutionStep( ProcessInfo& rCurr
     const array_1d<double,3> & xg_c = this->GetValue(MPC_COORD);
     array_1d<double,3> & displacement = this->GetValue(MPC_DISPLACEMENT);
     const array_1d<double,3> & new_xg_c = xg_c + displacement ;
-    this -> SetValue(MPC_COORD,new_xg_c);
+    this->SetValue(MPC_COORD,new_xg_c);
 
     // Set displacement to zero (NOTE: to use incremental displacement, use MPC_VELOCITY)
     displacement.clear();

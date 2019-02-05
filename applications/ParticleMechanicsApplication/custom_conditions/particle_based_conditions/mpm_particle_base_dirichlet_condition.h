@@ -57,12 +57,6 @@ protected:
 
     struct GeneralVariables
     {
-    private:
-
-        // Variables including all integration points
-        const Matrix* pDN_De;
-        const Vector* pNcontainer;
-
     public:
 
         // For axisymmetric use only
@@ -70,22 +64,18 @@ protected:
         double  ReferenceRadius;
 
         // General variables for large displacement use
-        double  detF;
         double  detF0;
+        double  detF;
         double  detFT;
-        Vector  StrainVector;
-        Vector  StressVector;
         Vector  N;
-        Matrix  B;
+        Matrix  F0;
         Matrix  F;
         Matrix  FT;
-        Matrix  F0;
         Matrix  DN_DX;
         Matrix  DN_De;
-        Matrix  PenaltyConstitutiveMatrix;
 
         // Variables including all integration points
-        Matrix CurrentDisp;
+        Matrix  CurrentDisp;
     };
 
 public:
@@ -311,10 +301,6 @@ protected:
     ///@{
 
     bool mFinalizedStep;
-
-    double mDeterminantF0;
-
-    Matrix mDeformationGradientF0;
 
     ///@}
     ///@name Protected Operators
