@@ -342,7 +342,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateParticularSolution()
+    void AdjointLocalStressResponseFunction::CalculateParticularSolution() const
     {
         KRATOS_TRY;
 
@@ -365,7 +365,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateParticularSolutionLinearElement2N(Vector& rResult)
+    void AdjointLocalStressResponseFunction::CalculateParticularSolutionLinearElement2N(Vector& rResult) const
     {
         KRATOS_TRY;
 
@@ -392,7 +392,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
+    void AdjointLocalStressResponseFunction::CalculateMeanParticularSolutionLinearElement2N(Vector& rResult,
+                        DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
     {
         KRATOS_TRY;
 
@@ -423,7 +424,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
+    void AdjointLocalStressResponseFunction::CalculateGPParticularSolutionLinearElement2N(Vector& rResult,
+                            DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
     {
         KRATOS_TRY;
 
@@ -450,7 +452,8 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)
+    void AdjointLocalStressResponseFunction::CalculateNodeParticularSolutionLinearElement2N(Vector& rResult,
+                     DofsVectorType &rElementalDofList, const std::string& rDofLabel) const
     {
         KRATOS_TRY;
 
@@ -472,7 +475,7 @@ namespace Kratos
         KRATOS_CATCH("");
     }
 
-    void AdjointLocalStressResponseFunction::FindCorrespondingDofLabel(std::string& rDofLabel)
+    void AdjointLocalStressResponseFunction::FindCorrespondingDofLabel(std::string& rDofLabel) const
     {
         KRATOS_TRY;
 

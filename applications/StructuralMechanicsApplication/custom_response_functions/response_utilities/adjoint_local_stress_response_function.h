@@ -203,17 +203,17 @@ private:
 
     void ExtractGaussPointStressDerivative(const Matrix& rStressDerivativesMatrix, Vector& rResponseGradient);
 
-    void CalculateParticularSolution();
+    void CalculateParticularSolution() const;
 
-    void CalculateParticularSolutionLinearElement2N(Vector& rResult);
+    void CalculateParticularSolutionLinearElement2N(Vector& rResult) const;
 
-    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
+    void CalculateMeanParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel)const;
 
-    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
+    void CalculateGPParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel) const;
 
-    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel);
+    void CalculateNodeParticularSolutionLinearElement2N(Vector& rResult, DofsVectorType &rElementalDofList, const std::string& rDofLabel) const;
 
-    void FindCorrespondingDofLabel(std::string& rDofLabel);
+    void FindCorrespondingDofLabel(std::string& rDofLabel) const;
 
     ///@}
     ///@name Private  Access
