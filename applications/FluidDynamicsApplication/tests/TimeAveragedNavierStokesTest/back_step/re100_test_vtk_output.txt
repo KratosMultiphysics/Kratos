@@ -1,0 +1,886 @@
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-04af0dc605
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication...
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication...
+NavierStokesVMSMonolithicSolver: Input JSON data contains deprecated setting 'dynamic_tau' (float).
+Please define 'formulation/element_type' (set it to 'vms') and 
+set 'formulation/dynamic_tau' (float) instead. 
+NavierStokesSolverMonolithic: Construction of NavierStokesSolverMonolithic finished. 
+NavierStokesSolverMonolithic: Fluid solver variables added correctly. 
+::[PythonSolver]:: Reading model part.: 
+::[PythonSolver]:: Reading model part from file: /home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/back_step_flow.mdpa: 
+ModelPartIO:   [Reading Nodes    : 1079 nodes read]
+ModelPartIO:   [Reading Elements : 1936 elements read] [Type: Element2D3N]
+ModelPartIO:   [Reading Conditions : 5 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 10 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 25 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 100 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 80 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Total Lines Read : 6778]
+::[PythonSolver]:: Finished reading model part from mdpa file.: 
+ModelPart -MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+
+    Mesh 0 :
+        Number of Nodes       : 1079
+        Number of Properties  : 2
+        Number of Elements    : 1936
+        Number of Conditions  : 220
+        Number of Constraints : 0
+
+    -NoSlip2D_top- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 101
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -NoSlip2D_step- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 26
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 25
+            Number of Constraints : 0
+    -NoSlip2D_bottom- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 81
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 80
+            Number of Constraints : 0
+    -Outlet2D_outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 11
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 10
+            Number of Constraints : 0
+    -Parts_fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 1079
+            Number of Properties  : 0
+            Number of Elements    : 1936
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -AutomaticInlet2D_inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 6
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 5
+            Number of Constraints : 0
+: 
+::[PythonSolver]::  Finished reading model part.: 
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+FluidSolver: Model reading finished. 
+FluidSolver: Fluid solver DOFs added correctly. 
+NavierStokesSolverMonolithic: Solver initialization finished. 
+DE/home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/time_average_navier_stokes_test.py
+Monolithic Initialization Step:  0
+Monolithic Initialization Step:  1
+Monolithic Initialization Step:  2
+Monolithic Initialization Step:  3
+Monolithic Initialization Step:  4
+Monolithic Initialization Step:  5
+Monolithic Initialization Step:  6
+Monolithic Initialization Step:  7
+Monolithic Initialization Step:  8
+Monolithic Initialization Step:  9
+Monolithic Initialization Step:  10
+Print vtk output process intialized
+TIME:  0.0
+STEP:  0
+Change in velocity in percentage: 0.0
+Change in pressure in percentage: 0.0
+New dt is:  0.05
+Averaging time length set to 20.05
+=================================================================
+TIME:  0.05
+STEP:  1
+Change in velocity in percentage: 0.0
+Change in pressure in percentage: 0.0
+New dt is:  0.052500000000000005
+Averaging time length set to 20.1025
+=================================================================
+TIME:  0.10250000000000001
+STEP:  2
+Change in velocity in percentage: 0.0
+Change in pressure in percentage: 0.0
+New dt is:  0.05512500000000001
+Averaging time length set to 20.157625
+=================================================================
+TIME:  0.15762500000000002
+STEP:  3
+Change in velocity in percentage: 0.0
+Change in pressure in percentage: 0.0
+New dt is:  0.05788125000000001
+Averaging time length set to 20.21550625
+=================================================================
+TIME:  0.21550625
+STEP:  4
+Change in velocity in percentage: 0.002148734666228872
+Change in pressure in percentage: 0.23024570664534172
+New dt is:  0.0607753125
+Averaging time length set to 20.2762815625
+=================================================================
+TIME:  0.2762815625
+STEP:  5
+Change in velocity in percentage: 0.003195908830141738
+Change in pressure in percentage: 0.10209244821493262
+New dt is:  0.06381407812500002
+Averaging time length set to 20.340095640624998
+=================================================================
+TIME:  0.34009564062500003
+STEP:  6
+Change in velocity in percentage: 0.0035723463025175194
+Change in pressure in percentage: 14.384774404335696
+New dt is:  0.06700478203125002
+Averaging time length set to 20.40710042265625
+=================================================================
+TIME:  0.40710042265625
+STEP:  7
+Change in velocity in percentage: 0.004203026099687284
+Change in pressure in percentage: 0.051951085125030896
+New dt is:  0.07035502113281249
+Averaging time length set to 20.47745544378906
+=================================================================
+TIME:  0.4774554437890625
+STEP:  8
+Change in velocity in percentage: 0.0044296158975336295
+Change in pressure in percentage: 0.051471178792892425
+New dt is:  0.07387277218945312
+Averaging time length set to 20.551328215978515
+=================================================================
+TIME:  0.5513282159785157
+STEP:  9
+Change in velocity in percentage: 0.004574910679421485
+Change in pressure in percentage: 0.06434792325656856
+New dt is:  0.07756641079892582
+Averaging time length set to 20.62889462677744
+=================================================================
+TIME:  0.6288946267774415
+STEP:  10
+Change in velocity in percentage: 0.004684025703635883
+Change in pressure in percentage: 0.03500162440766593
+New dt is:  0.08144473133887208
+Averaging time length set to 20.710339358116315
+=================================================================
+TIME:  0.7103393581163135
+STEP:  11
+Change in velocity in percentage: 0.004808441584571282
+Change in pressure in percentage: 0.028769228247699976
+New dt is:  0.0855169679058157
+Averaging time length set to 20.79585632602213
+=================================================================
+TIME:  0.7958563260221292
+STEP:  12
+Change in velocity in percentage: 0.004904529752395467
+Change in pressure in percentage: 0.026716478175337285
+New dt is:  0.08979281630110643
+Averaging time length set to 20.885649142323235
+=================================================================
+TIME:  0.8856491423232357
+STEP:  13
+Change in velocity in percentage: 0.005107591954237447
+Change in pressure in percentage: 0.03258179822048277
+New dt is:  0.0942824571161618
+Averaging time length set to 20.979931599439396
+=================================================================
+TIME:  0.9799315994393974
+STEP:  14
+Change in velocity in percentage: 0.005044220495390273
+Change in pressure in percentage: 0.033087706383129925
+New dt is:  0.09899657997196988
+Averaging time length set to 21.078928179411367
+=================================================================
+TIME:  1.0789281794113674
+STEP:  15
+Change in velocity in percentage: 0.0050751322858431395
+Change in pressure in percentage: 0.02223092294215392
+New dt is:  0.10394640897056848
+Averaging time length set to 21.182874588381935
+=================================================================
+TIME:  1.1828745883819358
+STEP:  16
+Change in velocity in percentage: 0.005126405871252644
+Change in pressure in percentage: 0.020037614081227964
+New dt is:  0.10914372941909682
+Averaging time length set to 21.29201831780103
+=================================================================
+TIME:  1.2920183178010327
+STEP:  17
+Change in velocity in percentage: 0.005201852262049935
+Change in pressure in percentage: 0.024206623726535006
+New dt is:  0.11460091589005174
+Averaging time length set to 21.40661923369108
+=================================================================
+TIME:  1.4066192336910845
+STEP:  18
+Change in velocity in percentage: 0.005085679599579123
+Change in pressure in percentage: 0.01778708473576535
+New dt is:  0.12033096168455443
+Averaging time length set to 21.526950195375637
+=================================================================
+TIME:  1.526950195375639
+STEP:  19
+Change in velocity in percentage: 0.005240155777915708
+Change in pressure in percentage: 0.017069134767873646
+New dt is:  0.1263475097687822
+Averaging time length set to 21.653297705144418
+=================================================================
+TIME:  1.6532977051444213
+STEP:  20
+Change in velocity in percentage: 0.005200619110366716
+Change in pressure in percentage: 0.017189512111849742
+New dt is:  0.1326648852572214
+Averaging time length set to 21.78596259040164
+=================================================================
+TIME:  1.7859625904016427
+STEP:  21
+Change in velocity in percentage: 0.005063520329953661
+Change in pressure in percentage: 0.020921579778064338
+New dt is:  0.1392981295200825
+Averaging time length set to 21.92526071992172
+=================================================================
+TIME:  1.9252607199217253
+STEP:  22
+Change in velocity in percentage: 0.005116805801424192
+Change in pressure in percentage: 0.02587129431433023
+New dt is:  0.14626303599608673
+Averaging time length set to 22.071523755917806
+=================================================================
+TIME:  2.071523755917812
+STEP:  23
+Change in velocity in percentage: 0.004984740877423453
+Change in pressure in percentage: 0.018374490350060838
+New dt is:  0.1535761877958909
+Averaging time length set to 22.225099943713698
+=================================================================
+TIME:  2.225099943713703
+STEP:  24
+Change in velocity in percentage: 0.004963896091739306
+Change in pressure in percentage: 0.014603977656877844
+New dt is:  0.16125499718568556
+Averaging time length set to 22.386354940899384
+=================================================================
+TIME:  2.3863549408993885
+STEP:  25
+Change in velocity in percentage: 0.004850760052411378
+Change in pressure in percentage: 0.013604935145326107
+New dt is:  0.16931774704496988
+Averaging time length set to 22.555672687944355
+=================================================================
+TIME:  2.5556726879443583
+STEP:  26
+Change in velocity in percentage: 0.004753051813148529
+Change in pressure in percentage: 0.013077075167720982
+New dt is:  0.1777836343972183
+Averaging time length set to 22.733456322341574
+=================================================================
+TIME:  2.7334563223415764
+STEP:  27
+Change in velocity in percentage: 0.0046780628127895425
+Change in pressure in percentage: 0.012984193936809683
+New dt is:  0.18667281611707903
+Averaging time length set to 22.920129138458652
+=================================================================
+TIME:  2.9201291384586554
+STEP:  28
+Change in velocity in percentage: 0.00461794047696256
+Change in pressure in percentage: 0.015292972954908383
+New dt is:  0.19600645692293292
+Averaging time length set to 23.116135595381586
+=================================================================
+TIME:  3.1161355953815884
+STEP:  29
+Change in velocity in percentage: 0.004472670764388913
+Change in pressure in percentage: 0.01400503033688149
+New dt is:  0.2058067797690796
+Averaging time length set to 23.321942375150666
+=================================================================
+TIME:  3.321942375150668
+STEP:  30
+Change in velocity in percentage: 0.00417299299042024
+Change in pressure in percentage: 0.012085334973218244
+New dt is:  0.21609711875753346
+Averaging time length set to 23.5380394939082
+=================================================================
+TIME:  3.5380394939082014
+STEP:  31
+Change in velocity in percentage: 0.004217829469290935
+Change in pressure in percentage: 0.010578605443685924
+New dt is:  0.22690197469541026
+Averaging time length set to 23.76494146860361
+=================================================================
+TIME:  3.764941468603612
+STEP:  32
+Change in velocity in percentage: 0.004074403464203924
+Change in pressure in percentage: 0.00987674880242993
+New dt is:  0.23824707343018092
+Averaging time length set to 24.00318854203379
+=================================================================
+TIME:  4.003188542033793
+STEP:  33
+Change in velocity in percentage: 0.003934779099072759
+Change in pressure in percentage: 0.00933966127832925
+New dt is:  0.25015942710169
+Averaging time length set to 24.25334796913548
+=================================================================
+TIME:  4.253347969135483
+STEP:  34
+Change in velocity in percentage: 0.0037980437956831605
+Change in pressure in percentage: 0.008877441056551078
+New dt is:  0.26266739845677456
+Averaging time length set to 24.516015367592253
+=================================================================
+TIME:  4.516015367592257
+STEP:  35
+Change in velocity in percentage: 0.0036737073122708364
+Change in pressure in percentage: 0.008462051947447364
+New dt is:  0.2758007683796134
+Averaging time length set to 24.791816135971867
+=================================================================
+TIME:  4.791816135971871
+STEP:  36
+Change in velocity in percentage: 0.0035519881222795223
+Change in pressure in percentage: 0.008083189295054546
+New dt is:  0.2895908067985942
+Averaging time length set to 25.08140694277046
+=================================================================
+TIME:  5.081406942770466
+STEP:  37
+Change in velocity in percentage: 0.0034208814927924477
+Change in pressure in percentage: 0.007738753437335226
+New dt is:  0.3040703471385244
+Averaging time length set to 25.385477289908984
+=================================================================
+TIME:  5.38547728990899
+STEP:  38
+Change in velocity in percentage: 0.003310548664953534
+Change in pressure in percentage: 0.00743368516088743
+New dt is:  0.31927386449545064
+Averaging time length set to 25.704751154404434
+=================================================================
+TIME:  5.70475115440444
+STEP:  39
+Change in velocity in percentage: 0.0031969277402036913
+Change in pressure in percentage: 0.007183044492204353
+New dt is:  0.3352375577202228
+Averaging time length set to 26.039988712124657
+=================================================================
+TIME:  6.039988712124663
+STEP:  40
+Change in velocity in percentage: 0.003027582800077275
+Change in pressure in percentage: 0.007030782800428609
+New dt is:  0.3519994356062343
+Averaging time length set to 26.391988147730892
+=================================================================
+TIME:  6.391988147730897
+STEP:  41
+Change in velocity in percentage: 0.0029168290116260557
+Change in pressure in percentage: 0.007138968504036707
+New dt is:  0.3695994073865456
+Averaging time length set to 26.761587555117437
+=================================================================
+TIME:  6.761587555117443
+STEP:  42
+Change in velocity in percentage: 0.0027383789680171682
+Change in pressure in percentage: 0.00940282009975525
+New dt is:  0.38807937775587314
+Averaging time length set to 27.14966693287331
+=================================================================
+TIME:  7.149666932873316
+STEP:  43
+Change in velocity in percentage: 0.002603378611903655
+Change in pressure in percentage: 0.011072576538678916
+New dt is:  0.40748334664366676
+Averaging time length set to 27.557150279516975
+=================================================================
+TIME:  7.557150279516983
+STEP:  44
+Change in velocity in percentage: 0.0024769916036050865
+Change in pressure in percentage: 0.006720040780251307
+New dt is:  0.42785751397585003
+Averaging time length set to 27.985007793492827
+=================================================================
+TIME:  7.985007793492833
+STEP:  45
+Change in velocity in percentage: 0.002360272475347907
+Change in pressure in percentage: 0.005586229335968743
+New dt is:  0.4492503896746423
+Averaging time length set to 28.43425818316747
+=================================================================
+TIME:  8.434258183167476
+STEP:  46
+Change in velocity in percentage: 0.002251803456820838
+Change in pressure in percentage: 0.005051096006811099
+New dt is:  0.4717129091583751
+Averaging time length set to 28.905971092325842
+=================================================================
+TIME:  8.905971092325851
+STEP:  47
+Change in velocity in percentage: 0.002148796881259775
+Change in pressure in percentage: 0.004667934501730093
+New dt is:  0.4952985546162942
+Averaging time length set to 29.401269646942136
+=================================================================
+TIME:  9.401269646942145
+STEP:  48
+Change in velocity in percentage: 0.0020496074295919247
+Change in pressure in percentage: 0.004353464621866257
+New dt is:  0.520063482347109
+Averaging time length set to 29.921333129289245
+=================================================================
+TIME:  9.921333129289254
+STEP:  49
+Change in velocity in percentage: 0.0019541635717172053
+Change in pressure in percentage: 0.0040796380024724944
+New dt is:  0.5460666564644638
+Averaging time length set to 30.46739978575371
+=================================================================
+TIME:  10.467399785753717
+STEP:  50
+Change in velocity in percentage: 0.0018695870890909788
+Change in pressure in percentage: 0.003834019410304836
+New dt is:  0.5733699892876861
+Averaging time length set to 31.040769775041397
+=================================================================
+TIME:  11.040769775041403
+STEP:  51
+Change in velocity in percentage: 0.0017498214214186833
+Change in pressure in percentage: 0.0036101140772727314
+New dt is:  0.6020384887520703
+Averaging time length set to 31.64280826379347
+=================================================================
+TIME:  11.642808263793473
+STEP:  52
+Change in velocity in percentage: 0.0016687238887241596
+Change in pressure in percentage: 0.0034042605963036324
+New dt is:  0.6321404131896737
+Averaging time length set to 32.27494867698314
+=================================================================
+TIME:  12.274948676983147
+STEP:  53
+Change in velocity in percentage: 0.0015957633527489575
+Change in pressure in percentage: 0.003214404903172332
+New dt is:  0.6637474338491579
+Averaging time length set to 32.9386961108323
+=================================================================
+TIME:  12.938696110832305
+STEP:  54
+Change in velocity in percentage: 0.00144528965496828
+Change in pressure in percentage: 0.003039301985593206
+New dt is:  0.6969348055416161
+Averaging time length set to 33.63563091637392
+=================================================================
+TIME:  13.635630916373922
+STEP:  55
+Change in velocity in percentage: 0.0014378329635349075
+Change in pressure in percentage: 0.0028776957821029037
+New dt is:  0.731781545818697
+Averaging time length set to 34.36741246219262
+=================================================================
+TIME:  14.367412462192618
+STEP:  56
+Change in velocity in percentage: 0.001361123678964473
+Change in pressure in percentage: 0.0027276658270545145
+New dt is:  0.7683706231096316
+Averaging time length set to 35.13578308530225
+=================================================================
+TIME:  15.13578308530225
+STEP:  57
+Change in velocity in percentage: 0.0012903389950418218
+Change in pressure in percentage: 0.0025866331357960667
+New dt is:  0.806789154265114
+Averaging time length set to 35.94257223956736
+=================================================================
+TIME:  15.942572239567365
+STEP:  58
+Change in velocity in percentage: 0.0012209887849299933
+Change in pressure in percentage: 0.002439793183901133
+New dt is:  0.8471286119783704
+Averaging time length set to 36.78970085154573
+=================================================================
+TIME:  16.789700851545735
+STEP:  59
+Change in velocity in percentage: 0.001156914165385921
+Change in pressure in percentage: 0.002310212548465442
+New dt is:  0.8894850425772884
+Averaging time length set to 37.67918589412302
+=================================================================
+TIME:  17.679185894123023
+STEP:  60
+Change in velocity in percentage: 0.001095148718975
+Change in pressure in percentage: 0.002191596413716001
+New dt is:  0.9339592947061525
+Averaging time length set to 38.61314518882917
+=================================================================
+TIME:  18.613145188829176
+STEP:  61
+Change in velocity in percentage: 0.001037154608992425
+Change in pressure in percentage: 0.0020825284677848223
+New dt is:  0.9806572594414602
+Averaging time length set to 39.59380244827063
+=================================================================
+TIME:  19.593802448270637
+STEP:  62
+Change in velocity in percentage: 0.0009826389620825582
+Change in pressure in percentage: 0.0019832915018702228
+New dt is:  1.0296901224135342
+Averaging time length set to 40.623492570684164
+=================================================================
+TIME:  20.62349257068417
+STEP:  63
+Change in velocity in percentage: 0.0009316900144206841
+Change in pressure in percentage: 0.001892627005743306
+New dt is:  1.0811746285342108
+Averaging time length set to 41.70466719921838
+=================================================================
+TIME:  21.70466719921838
+STEP:  64
+Change in velocity in percentage: 0.0008848239692793341
+Change in pressure in percentage: 0.0018088880891783876
+New dt is:  1.1352333599609208
+Averaging time length set to 42.8399005591793
+=================================================================
+TIME:  22.839900559179302
+STEP:  65
+Change in velocity in percentage: 0.0008409403594687227
+Change in pressure in percentage: 0.001730861997927321
+New dt is:  1.191995027958967
+Averaging time length set to 44.031895587138266
+=================================================================
+TIME:  24.03189558713827
+STEP:  66
+Change in velocity in percentage: 0.0007878158823719329
+Change in pressure in percentage: 0.0016591364312058023
+New dt is:  1.2515947793569155
+Averaging time length set to 45.28349036649518
+=================================================================
+TIME:  25.283490366495183
+STEP:  67
+Change in velocity in percentage: 0.0007488863715046055
+Change in pressure in percentage: 0.0015954848270005974
+New dt is:  1.3141745183247597
+Averaging time length set to 46.59766488481994
+=================================================================
+TIME:  26.59766488481994
+STEP:  68
+Change in velocity in percentage: 0.000712589832497557
+Change in pressure in percentage: 0.0015419701123393955
+New dt is:  1.3798832442409965
+Averaging time length set to 47.977548129060935
+=================================================================
+TIME:  27.97754812906094
+STEP:  69
+Change in velocity in percentage: 0.0006780137688661257
+Change in pressure in percentage: 0.0015013081019770232
+New dt is:  1.4488774064530465
+Averaging time length set to 49.42642553551398
+=================================================================
+TIME:  29.426425535513985
+STEP:  70
+Change in velocity in percentage: 0.0006452501428206049
+Change in pressure in percentage: 0.0014789730477000607
+New dt is:  1.5213212767756992
+Averaging time length set to 50.94774681228968
+=================================================================
+TIME:  30.947746812289683
+STEP:  71
+Change in velocity in percentage: 0.0006142069524356115
+Change in pressure in percentage: 0.0014878897004766333
+New dt is:  1.5973873406144827
+Averaging time length set to 52.54513415290416
+=================================================================
+TIME:  32.54513415290417
+STEP:  72
+Change in velocity in percentage: 0.0005848142738109875
+Change in pressure in percentage: 0.0015642889431579736
+New dt is:  1.6772567076452098
+Averaging time length set to 54.22239086054937
+=================================================================
+TIME:  34.22239086054938
+STEP:  73
+Change in velocity in percentage: 0.0005569858716004352
+Change in pressure in percentage: 0.0018574976537583875
+New dt is:  1.7611195430274742
+Averaging time length set to 55.983510403576844
+=================================================================
+TIME:  35.98351040357686
+STEP:  74
+Change in velocity in percentage: 0.000530736148827853
+Change in pressure in percentage: 0.004678748653032514
+New dt is:  1.84917552017885
+Averaging time length set to 57.83268592375569
+=================================================================
+TIME:  37.832685923755704
+STEP:  75
+Change in velocity in percentage: 0.0005060155743302672
+Change in pressure in percentage: 0.0022594324559848155
+New dt is:  1.9416342961877888
+Averaging time length set to 59.774320219943476
+=================================================================
+TIME:  39.77432021994349
+STEP:  76
+Change in velocity in percentage: 0.0004827633093917629
+Change in pressure in percentage: 0.0013981745044223436
+New dt is:  2.038716010997175
+Averaging time length set to 61.813036230940654
+=================================================================
+TIME:  41.81303623094067
+STEP:  77
+Change in velocity in percentage: 0.0004601238229474683
+Change in pressure in percentage: 0.0011374161645525429
+New dt is:  2.1406518115470363
+Averaging time length set to 63.95368804248769
+=================================================================
+TIME:  43.953688042487705
+STEP:  78
+Change in velocity in percentage: 0.00043865734146451016
+Change in pressure in percentage: 0.0009952421643435096
+New dt is:  2.24768440212439
+Averaging time length set to 66.20137244461208
+=================================================================
+TIME:  46.2013724446121
+STEP:  79
+Change in velocity in percentage: 0.00041826599678347083
+Change in pressure in percentage: 0.0008974483372979564
+New dt is:  2.3600686222306115
+Averaging time length set to 68.56144106684269
+=================================================================
+TIME:  48.56144106684271
+STEP:  80
+Change in velocity in percentage: 0.00039844390108127585
+Change in pressure in percentage: 0.0008218115588129814
+New dt is:  2.4780720533421445
+Averaging time length set to 71.03951312018484
+=================================================================
+TIME:  51.03951312018486
+STEP:  81
+Change in velocity in percentage: 0.00037995238889073344
+Change in pressure in percentage: 0.000759314051454684
+New dt is:  2.601975656009253
+Averaging time length set to 73.6414887761941
+=================================================================
+TIME:  53.64148877619411
+STEP:  82
+Change in velocity in percentage: 0.00036263889015807527
+Change in pressure in percentage: 0.0007056986569732543
+New dt is:  2.7320744388097142
+Averaging time length set to 76.37356321500381
+=================================================================
+TIME:  56.37356321500382
+STEP:  83
+Change in velocity in percentage: 0.0003459534852178126
+Change in pressure in percentage: 0.0006584906456239677
+New dt is:  2.8686781607501968
+Averaging time length set to 79.242241375754
+=================================================================
+TIME:  59.24224137575402
+STEP:  84
+Change in velocity in percentage: 0.00033006973122686183
+Change in pressure in percentage: 0.0006160519530131135
+New dt is:  3.01211206878771
+Averaging time length set to 82.25435344454172
+=================================================================
+TIME:  62.25435344454173
+STEP:  85
+Change in velocity in percentage: 0.0003149468643934614
+Change in pressure in percentage: 0.0005774220802201102
+New dt is:  3.1627176722270938
+Averaging time length set to 85.41707111676881
+=================================================================
+TIME:  65.41707111676882
+STEP:  86
+Change in velocity in percentage: 0.0003005491214573648
+Change in pressure in percentage: 0.0005419484527214071
+New dt is:  3.320853555838451
+Averaging time length set to 88.73792467260726
+=================================================================
+TIME:  68.73792467260728
+STEP:  87
+Change in velocity in percentage: 0.00028675710320450327
+Change in pressure in percentage: 0.0005092230555467031
+New dt is:  3.486896233630377
+Averaging time length set to 92.22482090623764
+=================================================================
+TIME:  72.22482090623765
+STEP:  88
+Change in velocity in percentage: 0.00027365810510498567
+Change in pressure in percentage: 0.00047883704843405665
+New dt is:  3.661241045311894
+Averaging time length set to 95.88606195154954
+=================================================================
+TIME:  75.88606195154955
+STEP:  89
+Change in velocity in percentage: 0.0002612167763111258
+Change in pressure in percentage: 0.00045050705189779135
+New dt is:  3.844303097577492
+Averaging time length set to 99.73036504912703
+=================================================================
+TIME:  79.73036504912704
+STEP:  90
+Change in velocity in percentage: 0.00024936450898269173
+Change in pressure in percentage: 0.0004240158782664011
+New dt is:  4.03651825245637
+Averaging time length set to 103.7668833015834
+=================================================================
+TIME:  83.76688330158342
+STEP:  91
+Change in velocity in percentage: 0.0002380764213327311
+Change in pressure in percentage: 0.0003994940093897191
+New dt is:  4.2383441650791935
+Averaging time length set to 108.0052274666626
+=================================================================
+TIME:  88.00522746666262
+STEP:  92
+Change in velocity in percentage: 0.00021287496548458166
+Change in pressure in percentage: 0.0006004237092360728
+New dt is:  4.450261373333158
+Averaging time length set to 112.45548883999577
+=================================================================
+TIME:  92.45548883999578
+STEP:  93
+Change in velocity in percentage: 0.0001954645115749893
+Change in pressure in percentage: 0.0005426481609946323
+New dt is:  4.672774441999821
+Averaging time length set to 117.12826328199559
+=================================================================
+TIME:  97.1282632819956
+STEP:  94
+Change in velocity in percentage: 0.0001852846170810093
+Change in pressure in percentage: 0.0004917856433027104
+New dt is:  4.906413164099812
+Averaging time length set to 122.0346764460954
+=================================================================
+Solver takes in total: 95 steps with SuperLUSolver
+PRECATION: "CheckRegisteredApplications" is not needed any more and can be safely removed
+It does nothing any more 
+NavierStokesTimeAveragedMonolithicSolver: Construction of NavierStokesTimeAveragedMonolithicSolver finished. 
+NavierStokesTimeAveragedMonolithicSolver: Fluid solver variables added correctly. 
+::[PythonSolver]:: Reading model part.: 
+::[PythonSolver]:: Reading model part from file: /home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/back_step_flow.mdpa: 
+ModelPartIO:   [Reading Nodes    : 1079 nodes read]
+ModelPartIO:   [Reading Elements : 1936 elements read] [Type: Element2D3N]
+ModelPartIO:   [Reading Conditions : 5 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 10 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 25 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 100 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 80 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Total Lines Read : 6778]
+::[PythonSolver]:: Finished reading model part from mdpa file.: 
+ModelPart -MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+
+    Mesh 0 :
+        Number of Nodes       : 1079
+        Number of Properties  : 2
+        Number of Elements    : 1936
+        Number of Conditions  : 220
+        Number of Constraints : 0
+
+    -NoSlip2D_top- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 101
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -NoSlip2D_step- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 26
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 25
+            Number of Constraints : 0
+    -NoSlip2D_bottom- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 81
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 80
+            Number of Constraints : 0
+    -Outlet2D_outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 11
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 10
+            Number of Constraints : 0
+    -Parts_fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 1079
+            Number of Properties  : 0
+            Number of Elements    : 1936
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -AutomaticInlet2D_inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 6
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 5
+            Number of Constraints : 0
+: 
+::[PythonSolver]::  Finished reading model part.: 
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+FluidSolver: Model reading finished. 
+NavierStokesTimeAveragedMonolithicSolver: Fluid solver DOFs added correctly. 
+NavierStokesTimeAveragedMonolithicSolver: Solver initialization finished. 
+VtkOutput: Modelpart "MainModelPart" has both elements and conditions.
+Giving precedence to elements and writing only elements!
+VtkOutput: Modelpart "fluid_computational_model_part" has both elements and conditions.
+Giving precedence to elements and writing only elements!
+EstimateDtUtility: Setting minimum delta time 0.05 as current time step.

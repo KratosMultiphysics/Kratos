@@ -123,118 +123,27 @@
         "Parameters"    : {
             "model_part_name" : "Parts_fluid"
         }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.020, 0.01, 0.0],
-            "end_point"         : [0.020, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "0h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
+    }],
+    "output_processes"     :    {
+        "vtk_output" : {
+            "python_module" : "vtk_output_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "VTKOutputProcess",
+            "Parameters"    : {
+                "model_part_name": "MainModelPart",
+                "file_format": "ascii",
+                "output_precision": 7,
+                "output_control_type": "time",
+                "output_frequency": 20,
+                "output_sub_model_parts": true,
+                "folder_name": "vtk_results_ref",
+                "save_output_files_in_folder": true,
+                "nodal_solution_step_data_variables": ["VELOCITY","PRESSURE","TIME_AVERAGED_VELOCITY","TIME_AVERAGED_PRESSURE"],
+                "nodal_data_value_variables": [],
+                "element_data_value_variables": [],
+                "condition_data_value_variables": []
+            }
         }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.025, 0.01, 0.0],
-            "end_point"         : [0.025, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "1h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.030, 0.01, 0.0],
-            "end_point"         : [0.030, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "3h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.035, 0.01, 0.0],
-            "end_point"         : [0.035, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "4h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.040, 0.01, 0.0],
-            "end_point"         : [0.040, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "5h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.045, 0.01, 0.0],
-            "end_point"         : [0.045, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "6h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    },{
-        "python_module"  : "line_output_process",
-        "kratos_module"  : "KratosMultiphysics",
-        "process_name"   : "LineOutputProcess",
-        "Parameters"            : {
-            "start_point"       : [0.050, 0.01, 0.0],
-            "end_point"         : [0.050, 0.0, 0.0],
-            "entity_type"       : "element",
-            "sampling_points"   : 10,
-            "model_part_name"  : "Parts_fluid",
-            "output_file_settings": {
-                "folder_name" : "ref_profiles",
-                "file_name" : "7h"
-            },
-            "output_variables" : ["TIME_AVERAGED_VELOCITY", "TIME_AVERAGED_PRESSURE"]
-        }
-    }]
+    }
 }
 

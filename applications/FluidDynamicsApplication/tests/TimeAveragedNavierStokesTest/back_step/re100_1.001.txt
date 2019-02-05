@@ -1,0 +1,324 @@
+ |  /           |
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 6.0.0-04af0dc605
+Importing    KratosFluidDynamicsApplication 
+Initializing KratosFluidDynamicsApplication...
+Importing    KratosExternalSolversApplication 
+Initializing KratosExternalSolversApplication...
+NavierStokesVMSMonolithicSolver: Input JSON data contains deprecated setting 'dynamic_tau' (float).
+Please define 'formulation/element_type' (set it to 'vms') and 
+set 'formulation/dynamic_tau' (float) instead. 
+NavierStokesSolverMonolithic: Construction of NavierStokesSolverMonolithic finished. 
+NavierStokesSolverMonolithic: Fluid solver variables added correctly. 
+::[PythonSolver]:: Reading model part.: 
+::[PythonSolver]:: Reading model part from file: /home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/back_step_flow.mdpa: 
+ModelPartIO:   [Reading Nodes    : 1079 nodes read]
+ModelPartIO:   [Reading Elements : 1936 elements read] [Type: Element2D3N]
+ModelPartIO:   [Reading Conditions : 5 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 10 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 25 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 100 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 80 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Total Lines Read : 6778]
+::[PythonSolver]:: Finished reading model part from mdpa file.: 
+ModelPart -MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+
+    Mesh 0 :
+        Number of Nodes       : 1079
+        Number of Properties  : 2
+        Number of Elements    : 1936
+        Number of Conditions  : 220
+        Number of Constraints : 0
+
+    -NoSlip2D_top- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 101
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -NoSlip2D_step- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 26
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 25
+            Number of Constraints : 0
+    -NoSlip2D_bottom- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 81
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 80
+            Number of Constraints : 0
+    -Outlet2D_outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 11
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 10
+            Number of Constraints : 0
+    -Parts_fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 1079
+            Number of Properties  : 0
+            Number of Elements    : 1936
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -AutomaticInlet2D_inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 6
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 5
+            Number of Constraints : 0
+: 
+::[PythonSolver]::  Finished reading model part.: 
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+FluidSolver: Model reading finished. 
+FluidSolver: Fluid solver DOFs added correctly. 
+NavierStokesSolverMonolithic: Solver initialization finished. 
+DEPRECATION: "CheckRegisteredApplications" is not needed any more and can be safely removed
+It does nothing any more 
+NavierStokesTimeAveragedMonolithicSolver: Construction of NavierStokesTimeAveragedMonolithicSolver finished. 
+NavierStokesTimeAveragedMonolithicSolver: Fluid solver variables added correctly. 
+::[PythonSolver]:: Reading model part.: 
+::[PythonSolver]:: Reading model part from file: /home/mengjie/Kratos/applications/FluidDynamicsApplication/tests/TimeAveragedNavierStokesTest/back_step/back_step_flow.mdpa: 
+ModelPartIO:   [Reading Nodes    : 1079 nodes read]
+ModelPartIO:   [Reading Elements : 1936 elements read] [Type: Element2D3N]
+ModelPartIO:   [Reading Conditions : 5 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 10 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 25 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 100 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Reading Conditions : 80 conditions read] [Type: WallCondition2D2N]
+ModelPartIO:   [Total Lines Read : 6778]
+::[PythonSolver]:: Finished reading model part from mdpa file.: 
+ModelPart -MainModelPart- model part
+    Buffer Size : 1
+    Number of tables : 0
+    Number of sub model parts : 6
+    Current solution step index : 0
+    DOMAIN_SIZE : 2
+
+    Mesh 0 :
+        Number of Nodes       : 1079
+        Number of Properties  : 2
+        Number of Elements    : 1936
+        Number of Conditions  : 220
+        Number of Constraints : 0
+
+    -NoSlip2D_top- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 101
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 100
+            Number of Constraints : 0
+    -NoSlip2D_step- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 26
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 25
+            Number of Constraints : 0
+    -NoSlip2D_bottom- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 81
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 80
+            Number of Constraints : 0
+    -Outlet2D_outlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 11
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 10
+            Number of Constraints : 0
+    -Parts_fluid- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 1079
+            Number of Properties  : 0
+            Number of Elements    : 1936
+            Number of Conditions  : 0
+            Number of Constraints : 0
+    -AutomaticInlet2D_inlet- model part
+        Number of tables : 0
+        Number of sub model parts : 0
+
+        Mesh 0 :
+            Number of Nodes       : 6
+            Number of Properties  : 0
+            Number of Elements    : 0
+            Number of Conditions  : 5
+            Number of Constraints : 0
+: 
+::[PythonSolver]::  Finished reading model part.: 
+TetrahedralMeshOrientationCheck: No inverted elements found
+No inverted conditions found
+FluidSolver: Model reading finished. 
+NavierStokesTimeAveragedMonolithicSolver: Fluid solver DOFs added correctly. 
+NavierStokesTimeAveragedMonolithicSolver: Solver initialization finished. 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/0h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/1h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/2h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/3h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/4h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_1.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_2.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_3.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_4.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_5.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_6.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_7.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_8.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_9.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFileWriterUtility output file solved_profiles/5h_10.dat 
+TimeBasedAsciiFileWriterUtility: File output buffer size set to 1 
+for TimeBasedAsciiFil
