@@ -7,10 +7,5 @@ def ConstructSolver(configuration):
     depr_msg += 'Please use "kratos/python_scripts/python_linear_solver_factory.py" instead!'
     KratosMultiphysics.Logger.PrintWarning('DEPRECATION-WARNING', depr_msg)
 
-    if(type(configuration) != KratosMultiphysics.Parameters):
-        raise Exception("input is expected to be provided as a Kratos Parameters object")
-
-    if KratosMultiphysics.ComplexLinearSolverFactory().Has(configuration["solver_type"].GetString()):
-        return KratosMultiphysics.ComplexLinearSolverFactory().Create(configuration)
-    else:
-        return KratosMultiphysics.LinearSolverFactory().Create(configuration)
+    from KratosMultiphysics import python_linear_solver_factory
+    return python_linear_solver_factory.ConstructSolver(configuration)

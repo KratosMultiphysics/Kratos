@@ -409,6 +409,71 @@ namespace Kratos {
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.769800, TOLERANCE);
     }
 
+
+
+
+
+
+
+    /** Checks if the min dihedral angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinDihedralAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MIN_DIHEDRAL_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
+    }
+
+
+    /** Checks if the min solid angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MinSolidAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MIN_SOLID_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.339836909, TOLERANCE);
+    }
+
+
+    /** Checks if the dihedral angles are correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AllDihedralAngles, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      Vector dihedral_angles(6);
+      geomTriRect->ComputeDihedralAngles(dihedral_angles); 
+
+      KRATOS_CHECK_NEAR(dihedral_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[1],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[2],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[3],  0.955316618, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[4],  0.955316618, TOLERANCE);
+      KRATOS_CHECK_NEAR(dihedral_angles[5],  0.955316618, TOLERANCE);
+
+    }
+
+
+    /** Checks if the solid angles are correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4AllSolidAngles, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      Vector solid_angles(6);
+      geomTriRect->ComputeSolidAngles(solid_angles); 
+
+      KRATOS_CHECK_NEAR(solid_angles[0],  Globals::Pi *0.5, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[1],  0.339836909, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[2],  0.339836909, TOLERANCE);
+      KRATOS_CHECK_NEAR(solid_angles[3],  0.339836909, TOLERANCE);
+    }
+
+
     /**
      * This test performs the check of the box intersection method
      */

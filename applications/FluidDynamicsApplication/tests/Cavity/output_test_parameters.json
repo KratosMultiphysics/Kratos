@@ -32,7 +32,7 @@
             "time_step"           : 0.1
         },
         "linear_solver_settings" : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "max_iteration"       : 500,
             "tolerance"           : 1e-9,
             "provide_coordinates" : false,
