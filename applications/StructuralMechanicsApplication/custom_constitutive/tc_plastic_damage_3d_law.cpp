@@ -41,7 +41,7 @@ namespace Kratos
 		//    rValue = m_damage_c;
 		return rValue;
 	}
-
+	
 	Vector& TCPlasticDamage3DLaw::GetValue(
 		const Variable<Vector>& rThisVariable,
 		Vector& rValue)
@@ -476,7 +476,7 @@ namespace Kratos
 			}
 
 		double diag = (dgp(0) + dgp(1) + dgp(2)) * m_nu/(-m_E);
-		vector<Vector> elastic_strain_diag_positive(3);
+		Vector elastic_strain_diag_positive(3);
 		for (IndexType i = 0; i < 3; i++)
 			{
 				elastic_strain_diag_positive(i) = dgp(i) * (1 + m_nu)/m_E + diag;
@@ -498,7 +498,7 @@ namespace Kratos
 			}
 		else if (usedEquivalentTensionDefinition == COMPDYN)
 			{
-			tau_p = sqrt(tau_p * E);
+			tau_p = sqrt(tau_p * m_E);
 			}
 	};
 }

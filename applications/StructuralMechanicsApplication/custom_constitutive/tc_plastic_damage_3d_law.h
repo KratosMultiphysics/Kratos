@@ -174,10 +174,10 @@ namespace Kratos
 		double m_nu;
 
 		double K;
-		string usedEquivalentTensionDefinition;
-		string COMPDYN;
-		string ORIGINAL;
-		string HOMOGENOUS;
+		std::string usedEquivalentTensionDefinition;
+		std::string COMPDYN;
+		std::string ORIGINAL;
+		std::string HOMOGENEOUS;
 
 
 		/** variables not used so far (ML)
