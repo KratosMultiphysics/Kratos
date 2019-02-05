@@ -405,16 +405,12 @@ protected:
     * @param rTransformationMatrix The local transformation contribution
     * @param rSlaveEquationId The equation id of the slave dofs
     * @param rMasterEquationId The equation id of the master dofs
-    * @param rLockArray The lock of the dof
     */
     void AssembleRelationMatrix(
         TSystemMatrixType& rT,
         const LocalSystemMatrixType& rTransformationMatrix,
         const EquationIdVectorType& rSlaveEquationId,
         const EquationIdVectorType& rMasterEquationId
-#ifdef USE_LOCKS_IN_ASSEMBLY
-        ,std::vector< omp_lock_t >& rLockArray
-#endif
         )
     {
         const SizeType local_size_1 = rTransformationMatrix.size1();
@@ -423,17 +419,8 @@ protected:
             IndexType i_global = rSlaveEquationId[i_local];
 
             if (i_global < BaseType::mEquationSystemSize) {
-            #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_set_lock(&rLockArray[i_global]);
-            #endif
-
                 BaseType::AssembleRowContributionFreeDofs(rT, rTransformationMatrix, i_global, i_local, rMasterEquationId);
-
-            #ifdef USE_LOCKS_IN_ASSEMBLY
-                omp_unset_lock(&rLockArray[i_global]);
-            #endif
             }
-            //note that computation of reactions is not performed here!
         }
     }
 
@@ -1101,99 +1088,15 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Initialize the constant vector
-        const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
-        const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
-
         // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
-
-        // Filling constant vector
-        if (add_constant_vector && mCleared) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
-        }
 
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
 
-            // Auxiliar set to reorder master DoFs
-            std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
-
-            // Filling with "ones"
-            typedef std::pair<IndexType, IndexType> IndexIndexPairType;
-            IndexType counter = 0;
-            for (auto& dof : BaseType::mDofSet) {
-                if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                    const IndexType equation_id = dof.EquationId();
-                    auto it = mDoFSlaveSet.find(dof);
-                    if (it == mDoFSlaveSet.end()) {
-                        solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
-                        ++counter;
-                    }
-                }
-            }
-
-            // Contributions to the system
-            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
-            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-
-            // Vector containing the localization in the system of the different terms
-            EquationIdVectorType slave_equation_id, master_equation_id;
-
-            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
-            {
-                #pragma omp for schedule(guided, 512)
-                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
-                    bool constraint_is_active = true;
-                    if (it_const->IsDefined(ACTIVE))
-                        constraint_is_active = it_const->Is(ACTIVE);
-
-                    if (constraint_is_active) {
-                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-
-                        it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
-
-                        // Reassign reordered dofs to the master side
-                        for (auto& id : master_equation_id) {
-                            id = solvable_dof_reorder[id];
-                        }
-
-                        if (add_constant_vector) {
-                            for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
-                                const IndexType i_global = slave_equation_id[i];
-                                if (i_global < BaseType::mEquationSystemSize) {
-                                    double& value = rConstantVector[i_global];
-                                    const double constant_value = constant_vector[i];
-                                    #pragma omp atomic
-                                    value += constant_value;
-                                }
-                            }
-                        }
-
-                        // Assemble the constraint contribution
-                    #ifdef USE_LOCKS_IN_ASSEMBLY
-                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
-                    #else
-                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
-                    #endif
-                    }
-                }
-            }
+            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1202,7 +1105,7 @@ protected:
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
-        if (add_constant_vector && mComputeConstantContribution) {
+        if (mComputeConstantContribution) {
             TSystemVectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
@@ -1252,99 +1155,14 @@ protected:
         // Assemble the constraints
         const double start_build = OpenMPUtils::GetCurrentTime();
 
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // Initialize the constant vector
-        const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
-        const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
-
         // We build the global T matrix and the g constant vector
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
-        // Filling constant vector
-        if (add_constant_vector && mCleared) {
-            #pragma omp parallel for
-            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-                rConstantVector[i] = 0.0;
-            }
-        }
-
         // We compute only once (or if cleared)
         if (mCleared) {
             mCleared = false;
-
-            // Auxiliar set to reorder master DoFs
-            std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
-
-            // Filling with "ones"
-            typedef std::pair<IndexType, IndexType> IndexIndexPairType;
-            IndexType counter = 0;
-            for (auto& dof : BaseType::mDofSet) {
-                if (dof.EquationId() < BaseType::mEquationSystemSize) {
-                    const IndexType equation_id = dof.EquationId();
-                    auto it = mDoFSlaveSet.find(dof);
-                    if (it == mDoFSlaveSet.end()) {
-                        solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
-                        ++counter;
-                    }
-                }
-            }
-
-            // Contributions to the system
-            LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
-            LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
-
-            // Vector containing the localization in the system of the different terms
-            EquationIdVectorType slave_equation_id, master_equation_id;
-
-            const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
-
-            #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
-            {
-                #pragma omp for schedule(guided, 512)
-                for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
-                    auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
-
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
-                    bool constraint_is_active = true;
-                    if (it_const->IsDefined(ACTIVE))
-                        constraint_is_active = it_const->Is(ACTIVE);
-
-                    if (constraint_is_active) {
-                        it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-
-                        it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
-
-                        // Reassign reordered dofs to the master side
-                        for (auto& id : master_equation_id) {
-                            id = solvable_dof_reorder[id];
-                        }
-
-                        if (add_constant_vector) {
-                            for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
-                                const IndexType i_global = slave_equation_id[i];
-                                if (i_global < BaseType::mEquationSystemSize) {
-                                    double& value = rConstantVector[i_global];
-                                    const double constant_value = constant_vector[i];
-                                    #pragma omp atomic
-                                    value += constant_value;
-                                }
-                            }
-                        }
-
-                        // Assemble the constraint contribution
-                    #ifdef USE_LOCKS_IN_ASSEMBLY
-                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id, BaseType::mLockArray);
-                    #else
-                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
-                    #endif
-                    }
-                }
-            }
+            ComputeConstraintContribution(pScheme, rModelPart, true, mComputeConstantContribution);
         }
 
         // We compute the transposed matrix of the global relation matrix
@@ -1353,7 +1171,7 @@ protected:
 
         // We build the original system
         TSystemMatrixType A; // Dummy auxiliar matrix we ned to build anyway because are needed to impose the rigid displacements
-        if (add_constant_vector && mComputeConstantContribution) {
+        if (mComputeConstantContribution) {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
             ConstructMatrixStructure(pScheme, A, rModelPart);
             BuildWithoutConstraints(pScheme, rModelPart, A, rb);
@@ -1363,7 +1181,7 @@ protected:
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
-        if (add_constant_vector && mComputeConstantContribution) {
+        if (mComputeConstantContribution) {
             TSystemVectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(A, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
@@ -1437,13 +1255,13 @@ protected:
             // Resizing the system vector
             if (mpConstantVector->size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
                 mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-                const double aux_constant_value = ComputeAbsoluteConstantContribution(rModelPart);
+                const double aux_constant_value = ComputeConstraintContribution(pScheme, rModelPart);
                 mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
             } else {
                 if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                     mpConstantVector->resize(BaseType::mEquationSystemSize, false);
-                    const double aux_constant_value = ComputeAbsoluteConstantContribution(rModelPart);
+                    const double aux_constant_value = ComputeConstraintContribution(pScheme, rModelPart);
                     mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
                 }
             }
@@ -1750,19 +1568,13 @@ private:
         TSystemMatrixType& rTMatrix = *mpTMatrix;
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
-        // The current process info
-        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-
         // We reconstruct the complete vector of Unknowns
         TSystemVectorType Dx_copy = rDx;
         rDx.resize(BaseType::mEquationSystemSize);
         TSparseSpace::Mult(rTMatrix, Dx_copy, rDx);
-        // Add the constant vector
-        const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
-        const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
 
-        if (add_constant_vector) {
+        // Add the constant vector
+        if (mComputeConstantContribution) {
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
         }
 
@@ -1776,7 +1588,7 @@ private:
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
 
         // Adding constant contribution
-        if (add_constant_vector) {
+        if (mComputeConstantContribution) {
             TSystemVectorType rigid_rb_copy = rb;
             TSparseSpace::Mult(rA, rConstantVector, rigid_rb_copy);
             TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
@@ -2047,11 +1859,31 @@ private:
 
     /**
      * @brief This method computes the absolute constant contribution of the MPC
-     * @param rModelPart The model part to compute
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
      * @return Absolute constant contribution
      */
-    double ComputeAbsoluteConstantContribution(ModelPart& rModelPart)
+    double ComputeConstraintContribution(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        const bool ComputeTranslationMatrix = false,
+        const bool ComputeConstantVector = false
+        )
     {
+        // We build the global T matrix and the g constant vector
+        TSystemMatrixType& rTMatrix = *mpTMatrix;
+        TSystemVectorType& rConstantVector = *mpConstantVector;
+
+        // Filling constant vector
+        if (ComputeConstantVector) {
+            #pragma omp parallel for
+            for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+                rConstantVector[i] = 0.0;
+            }
+        }
+
         // Auxiliar set to reorder master DoFs
         std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
 
@@ -2074,15 +1906,6 @@ private:
 
         // Initialize the constant vector
         double aux_constant_value = 0.0;
-
-        // We build the g constant vector
-        TSystemVectorType& rConstantVector = *mpConstantVector;
-
-        // Filling constant vector
-        #pragma omp parallel for
-        for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
-            rConstantVector[i] = 0.0;
-        }
 
         // Contributions to the system
         LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
@@ -2107,7 +1930,6 @@ private:
 
                 if (constraint_is_active) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-
                     it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
 
                     // Reassign reordered dofs to the master side
@@ -2115,16 +1937,32 @@ private:
                         id = solvable_dof_reorder[id];
                     }
 
-                    for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
-                        const IndexType i_global = slave_equation_id[i];
-                        if (i_global < BaseType::mEquationSystemSize) {
-                            double& value = rConstantVector[i_global];
-                            const double constant_value = constant_vector[i];
-                            #pragma omp atomic
-                            value += constant_value;
-                            #pragma omp atomic
-                            aux_constant_value += std::abs(constant_value);
+                    if (ComputeConstantVector) {
+                        for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
+                            const IndexType i_global = slave_equation_id[i];
+                            if (i_global < BaseType::mEquationSystemSize) {
+                                double& r_value = rConstantVector[i_global];
+                                const double constant_value = constant_vector[i];
+                                #pragma omp atomic
+                                r_value += constant_value;
+                                #pragma omp atomic
+                                aux_constant_value += std::abs(constant_value);
+                            }
                         }
+                    } else {
+                        for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
+                            const IndexType i_global = slave_equation_id[i];
+                            if (i_global < BaseType::mEquationSystemSize) {
+                                const double constant_value = constant_vector[i];
+                                #pragma omp atomic
+                                aux_constant_value += std::abs(constant_value);
+                            }
+                        }
+                    }
+
+                    if (ComputeTranslationMatrix) {
+                        // Assemble the constraint contribution
+                        AssembleRelationMatrix(rTMatrix, transformation_matrix, slave_equation_id, master_equation_id);
                     }
                 }
             }
