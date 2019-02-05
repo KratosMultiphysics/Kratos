@@ -29,9 +29,6 @@ M. Pisaroni, S. Krumscheid, F. Nobile; Quantifying uncertain system outputs via 
 
 
 '''
-TODO: create a class for the values ValueClass in order to directly modify the values inside functions
-e.g. mean = [1,2,4,5]  ---> mean = [Value, Value, Value, Value]
-     to modify this inside a task I need it to be an object
 TODO: insert distinction between scalar and field Quantity of Interests
 '''
 
@@ -42,7 +39,9 @@ auxiliary function of AddResults of the MultilevelMonteCarlo class
 @ExaquteTask(returns=2)
 def AddResultsAux_Task(simulation_results,level):
     if (level == 0):
-        difference_QoI_value = simulation_results.QoI[level][0] # need "[0]" since each value is inside a list, i.e. results = [[value_level_0],[value_level_1]]
+        '''each value is inside the relative level list, and only one value per level is computed
+        i.e. results = [[value_level_0],[value_level_1],...]'''
+        difference_QoI_value = simulation_results.QoI[level][0]
     else:
         difference_QoI_value = simulation_results.QoI[level][0] - simulation_results.QoI[level - 1][0]
     return difference_QoI_value,simulation_results.time_ML[level]
