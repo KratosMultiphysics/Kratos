@@ -274,6 +274,12 @@ class ShellT3AndQ4NonLinearDynamicStructOscillatingPlateLumpedTests(StructuralMe
 class RigidFaceTestWithImposeRigidMovementProcess(StructuralMechanicsTestFactory):
     file_name = "rigid_test/rigid_test"
 
+class RigidBlockTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_block_mpc"
+
+class RigidEliminationTest(StructuralMechanicsTestFactory):
+    file_name = "rigid_test/test_elimination_mpc"
+
 class RigidSphereFailing(StructuralMechanicsTestFactory):
     file_name = "rigid_test/sphere_failing"
 
