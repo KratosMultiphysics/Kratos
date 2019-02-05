@@ -186,6 +186,27 @@ namespace Testing
         KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
     }
 
+    /** Checks the point local coordinates for a given point respect to the
+    * triangle. The baricentre of the triangle is selected due to its known
+    * solution.
+    */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D3PointLocalCoordinates, KratosCoreGeometriesFastSuite) {
+        auto geom = GenerateEquilateralTriangle3D3<NodeType>();
+
+        // Compute the global coordinates of the baricentre
+        const Geometry<NodeType>::PointsArrayType geom_pts = geom->Points();
+        Point baricentre = geom_pts[0].Coordinates() + geom_pts[1].Coordinates() + geom_pts[2].Coordinates();
+        baricentre *= 1.0/3.0;
+
+        // Compute the baricentre local coordinates
+        array_1d<double, 3> baricentre_local_coords;
+        geom->PointLocalCoordinates(baricentre_local_coords, baricentre);
+
+        KRATOS_CHECK_NEAR(baricentre_local_coords(0), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(1), 1.0/3.0, TOLERANCE);
+        KRATOS_CHECK_NEAR(baricentre_local_coords(2), 0.0, TOLERANCE);
+    }
+
     /** Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     * Tests the Jacobian determinants using 'GI_GAUSS_1' integration method.
     */

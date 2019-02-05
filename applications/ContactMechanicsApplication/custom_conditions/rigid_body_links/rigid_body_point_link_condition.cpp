@@ -84,19 +84,18 @@ void RigidBodyPointLinkCondition::GetDofList(DofsVectorType& rConditionDofList,
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementPointerVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for(ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-
     DofsVectorType SlaveDofList;
-    (*ie)->GetDofList(SlaveDofList, rCurrentProcessInfo);
+    ie.GetDofList(SlaveDofList, rCurrentProcessInfo);
 
     for(SizeType i=0; i<SlaveDofList.size(); i++)
       rConditionDofList.push_back(SlaveDofList[i]);
   }
 
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   DofsVectorType MasterDofList;
   MasterElement.GetDofList(MasterDofList, rCurrentProcessInfo);
@@ -119,19 +118,18 @@ void RigidBodyPointLinkCondition::EquationIdVector(EquationIdVectorType& rResult
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementPointerVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     EquationIdVectorType SlaveResult;
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
 
     for(SizeType i=0; i<SlaveResult.size(); i++)
       rResult.push_back(SlaveResult[i]);
-
   }
 
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   EquationIdVectorType MasterResult;
   MasterElement.EquationIdVector(MasterResult, rCurrentProcessInfo);
@@ -154,14 +152,14 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementPointerVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    (*ie)->GetValuesVector(SlaveValues,Step);
+    ie.GetValuesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -172,7 +170,7 @@ void RigidBodyPointLinkCondition::GetValuesVector(Vector& rValues, int Step)
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetValuesVector(MasterValues, Step);
@@ -197,14 +195,14 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementPointerVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (ElementPointerVectorType::iterator ie = SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    (*ie)->GetFirstDerivativesVector(SlaveValues,Step);
+    ie.GetFirstDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -215,7 +213,7 @@ void RigidBodyPointLinkCondition::GetFirstDerivativesVector( Vector& rValues, in
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetFirstDerivativesVector(MasterValues, Step);
@@ -242,14 +240,14 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
 
   const SizeType inode = GetGeometry().PointsNumber()-1;
 
-  ElementPointerVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements  = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   SizeType indexi = 0;
   SizeType sizei  = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     Vector SlaveValues;
-    (*ie)->GetSecondDerivativesVector(SlaveValues,Step);
+    ie.GetSecondDerivativesVector(SlaveValues,Step);
 
     sizei += SlaveValues.size();
     rValues.resize(sizei,true);
@@ -260,7 +258,7 @@ void RigidBodyPointLinkCondition::GetSecondDerivativesVector( Vector& rValues, i
     indexi += SlaveValues.size();
   }
 
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
 
   Vector MasterValues;
   MasterElement.GetSecondDerivativesVector(MasterValues, Step);
@@ -420,7 +418,7 @@ void RigidBodyPointLinkCondition::InitializeGeneralVariables(GeneralVariables& r
   rVariables.SlaveAngularBlockSize = SizeType(rVariables.SlaveAngularBlockSize/double(SlaveGeometry.size()));
 
   //compute distance from the slave node to the master rigid body element node (center of gravity)
-  Element& MasterElement = *(GetGeometry()[inode].GetValue(MASTER_ELEMENTS)).back();
+  Element& MasterElement = GetGeometry()[inode].GetValue(MASTER_ELEMENTS).back();
   MasterElement.GetDofList(ElementalDofList, rCurrentProcessInfo);
   rVariables.MasterLinearBlockSize = 0;
   rVariables.MasterAngularBlockSize = 0;
@@ -564,16 +562,16 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 {
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
-  ElementPointerVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   // std::cout<<" LocalSystem [ID:"<<this->Id()<<"] [SlaveElements: "<<SlaveElements.size()<<"] [NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
   SizeType master_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
     element_dofs.push_back(SlaveResult.size());
     master_index += element_dofs.back();
   }
@@ -588,7 +586,7 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
   SizeType counter = 0;
   SizeType local_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     //std::cout<<" ["<<this->Id()<<"] SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
@@ -614,14 +612,14 @@ void RigidBodyPointLinkCondition::CalculateLocalSystem( MatrixType& rLeftHandSid
 
     MatrixType SlaveLeftHandSideMatrix;
     VectorType SlaveRightHandSideVector;
-    (*ie)->CalculateLocalSystem(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
+    ie.CalculateLocalSystem(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //std::cout<<"[LINK]: "<<ie->Id()<<std::endl;
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo);
 
     //assemble the local system into the global system
 
@@ -729,16 +727,16 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
-  ElementPointerVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   //std::cout<<" System2ndDerivatives [ID:"<<this->Id()<<"] [SlaveElements: "<<SlaveElements.size()<<"] [NodeId "<<GetGeometry()[0].Id()<<"]"<<std::endl;
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
   SizeType master_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
     element_dofs.push_back(SlaveResult.size());
     master_index += element_dofs.back();
   }
@@ -753,7 +751,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
 
   SizeType counter = 0;
   SizeType local_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     //std::cout<<" ["<<this->Id()<<"] 2nd SLAVE ELEMENT "<<ie->Id()<<" nodes "<<ie->GetGeometry().size()<<std::endl;
 
@@ -780,13 +778,13 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesContributions(Matrix
     MatrixType SlaveLeftHandSideMatrix;
     VectorType SlaveRightHandSideVector;
     //std::cout<<"[DERIVATIVE_LINK]: "<<ie->Id()<<std::endl;
-    (*ie)->CalculateSecondDerivativesContributions(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
+    ie.CalculateSecondDerivativesContributions(SlaveLeftHandSideMatrix,SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -814,14 +812,14 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandS
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
-  ElementPointerVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
   SizeType master_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
     element_dofs.push_back(SlaveResult.size());
     master_index += element_dofs.back();
   }
@@ -834,7 +832,7 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandS
 
   SizeType counter = 0;
   SizeType local_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
 
     //create local system components
@@ -854,12 +852,12 @@ void RigidBodyPointLinkCondition::CalculateRightHandSide(VectorType& rRightHandS
     LocalSystemComponents LinkedSystem;
 
     VectorType SlaveRightHandSideVector;
-    (*ie)->CalculateRightHandSide(SlaveRightHandSideVector,rCurrentProcessInfo);
+    ie.CalculateRightHandSide(SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -885,14 +883,14 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
-  ElementPointerVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
   SizeType master_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
     element_dofs.push_back(SlaveResult.size());
     master_index += element_dofs.back();
   }
@@ -905,7 +903,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
 
   SizeType counter = 0;
   SizeType local_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -927,12 +925,12 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesLHS(MatrixType& rLef
     LocalSystemComponents LinkedSystem;
 
     MatrixType SlaveLeftHandSideMatrix;
-    (*ie)->CalculateSecondDerivativesLHS(SlaveLeftHandSideMatrix,rCurrentProcessInfo);
+    ie.CalculateSecondDerivativesLHS(SlaveLeftHandSideMatrix,rCurrentProcessInfo);
 
     LinkedSystem.SetLeftHandSideMatrix(SlaveLeftHandSideMatrix);
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 
@@ -958,14 +956,14 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 
   //Ask to the linked deformable element the LocalRightHandSide (only one element link)
   const SizeType inode = GetGeometry().PointsNumber()-1;
-  ElementPointerVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOR_ELEMENTS));
+  ElementWeakPtrVectorType& SlaveElements = (GetGeometry()[inode].GetValue(NEIGHBOUR_ELEMENTS));
 
   EquationIdVectorType SlaveResult;
   std::vector<SizeType> element_dofs;
   SizeType master_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
-    (*ie)->EquationIdVector(SlaveResult, rCurrentProcessInfo);
+    ie.EquationIdVector(SlaveResult, rCurrentProcessInfo);
     element_dofs.push_back(SlaveResult.size());
     master_index += element_dofs.back();
   }
@@ -978,7 +976,7 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
 
   SizeType counter = 0;
   SizeType local_index = 0;
-  for (ElementPointerVectorType::iterator ie= SlaveElements.begin(); ie!=SlaveElements.end(); ++ie)
+  for(auto& ie : SlaveElements)
   {
     //create local system components
     LocalSystemComponents LocalSystem;
@@ -997,12 +995,12 @@ void RigidBodyPointLinkCondition::CalculateSecondDerivativesRHS(VectorType& rRig
     LocalSystemComponents LinkedSystem;
 
     VectorType SlaveRightHandSideVector;
-    (*ie)->CalculateSecondDerivativesRHS(SlaveRightHandSideVector,rCurrentProcessInfo);
+    ie.CalculateSecondDerivativesRHS(SlaveRightHandSideVector,rCurrentProcessInfo);
 
     LinkedSystem.SetRightHandSideVector(SlaveRightHandSideVector);
 
     //Calculate condition system
-    this->CalculateConditionSystem( LocalSystem, LinkedSystem, (*ie), rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, LinkedSystem, &ie, rCurrentProcessInfo );
 
     //assemble the local system into the global system
 

@@ -54,17 +54,17 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief A four node 2D quadrilateral geometry with bi-linear shape functions
  * @details While the shape functions are only defined in 2D it is possible to define an arbitrary orientation in space. Thus it can be used for defining surfaces on 3D elements.
- * The node ordering corresponds with: 
+ * The node ordering corresponds with:
  *            v
  *            ^
  *            |
- *      3-----------2 
- *      |     |     |         
- *      |     |     |          
- *      |     +---- | --> u    
- *      |           |          
- *      |           |          
- *      0-----------1      
+ *      3-----------2
+ *      |     |     |
+ *      |     |     |
+ *      |     +---- | --> u
+ *      |           |
+ *      |           |
+ *      0-----------1
  * @author Riccardo Rossi
  * @author Janosch Stascheit
  * @author Felix Nagel
@@ -332,7 +332,7 @@ public:
         return typename BaseType::Pointer( new Quadrilateral2D4( ThisPoints ) );
     }
 
-    
+
     // Geometry< Point<3> >::Pointer Clone() const override
     // {
     //     Geometry< Point<3> >::PointsArrayType NewPoints;
@@ -341,8 +341,8 @@ public:
     //     for ( IndexType i = 0 ; i < this->size() ; i++ )
     //     {
     //             NewPoints.push_back(Kratos::make_shared< Point<3> >(( *this )[i]));
-    //     }   
-        
+    //     }
+
     //     //creating a geometry with the new points
     //     Geometry< Point<3> >::Pointer p_clone( new Quadrilateral2D4< Point<3> >( NewPoints ) );
 
@@ -367,15 +367,6 @@ public:
 		rResult(3, 1) = 1.0;
 		return rResult;
 	}
-
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-        if(rResult.size() != 4)
-            rResult.resize( 4, false );
-        std::fill( rResult.begin(), rResult.end(), 1.00 / 4.00 );
-        return rResult;
-    }
 
     ///@}
     ///@name Information
@@ -417,6 +408,7 @@ public:
      * @see Length()
      * @see Volume()
      * @see DomainSize()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
@@ -451,6 +443,7 @@ public:
      * @see Length()
      * @see Area()
      * @see Volume()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {

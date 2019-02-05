@@ -158,7 +158,7 @@ class ContactImplicitMechanicalSolver(structural_mechanics_implicit_dynamic_solv
                 else:
                     builder_and_solver = CSMA.ContactResidualBasedBlockBuilderAndSolver(linear_solver)
             else:
-                raise Exception("Contact not compatible with EliminationBuilderAndSolver")
+                builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
         else:
             builder_and_solver = super(ContactImplicitMechanicalSolver, self)._create_builder_and_solver()
 

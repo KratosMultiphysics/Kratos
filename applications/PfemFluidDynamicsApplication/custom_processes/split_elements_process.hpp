@@ -47,8 +47,8 @@ namespace Kratos
   typedef  ModelPart::ElementsContainerType                ElementsContainerType;
   typedef  ModelPart::MeshType::GeometryType::PointsArrayType    PointsArrayType;
 
-  typedef  std::vector<Node<3>*> NodePointerVectorType;
-  typedef  std::vector<Element*> ElementPointerVectorType;
+  typedef WeakPointerVector<Node<3> > NodeWeakPtrVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
   ///@}
   ///@name  Enum's
   ///@{
@@ -303,21 +303,22 @@ namespace Kratos
       KRATOS_CATCH(" ")
 	}
 
-    template< class TDataType > void  AddUniquePointer
-    (std::vector< TDataType* >& v, const typename TDataType::Pointer candidate)
+    template<class TDataType> void  AddUniquePointer
+    (WeakPointerVector<TDataType>& v, const typename TDataType::WeakPointer candidate)
     {
-      typename std::vector< TDataType* >::iterator i = v.begin();
-      typename std::vector< TDataType* >::iterator endit = v.end();
-      while ( i != endit && (*i)->Id() != (candidate)->Id())
-	{
-	  i++;
-	}
+      typename WeakPointerVector< TDataType >::iterator i = v.begin();
+      typename WeakPointerVector< TDataType >::iterator endit = v.end();
+      while ( i != endit && (i)->Id() != (candidate.lock())->Id())
+      {
+        i++;
+      }
       if( i == endit )
-	{
-	  v.push_back(candidate.get());
-	}
+      {
+        v.push_back(candidate);
+      }
 
     }
+
 
     ModelPart::NodeType::Pointer CreateAndAddNewNodeToSubModelPart(ModelPart::SubModelPartIterator i_mp,
 								   ElementsContainerType::iterator i_elem,
@@ -382,7 +383,7 @@ namespace Kratos
 	  newNode->Y0() = newNode->Y() - displacement[1];
 	  newNode->Z0() = newNode->Z() - displacement[2];
 
-	  NodePointerVectorType& rN = newNode->GetValue(NEIGHBOR_NODES);
+	  NodeWeakPtrVectorType& rN = newNode->GetValue(NEIGHBOUR_NODES);
 	  for(unsigned int spn=0; spn<numNodes; spn++)
 	    {
 	      this->AddUniquePointer< Node<3> >(rN, i_elem->GetGeometry()(spn));

@@ -65,7 +65,7 @@ class ParticleMPMSolver(PythonSolver):
                 "searching_tolerance"            : 1.0E-5
             },
             "linear_solver_settings"             : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"damped_jacobi",
                 "krylov_type": "cg",
                 "coarsening_type": "aggregation",
@@ -102,7 +102,7 @@ class ParticleMPMSolver(PythonSolver):
         self.settings.ValidateAndAssignDefaults(default_settings)
 
         # Construct the linear solvers
-        import linear_solver_factory
+        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
         if(self.settings["linear_solver_settings"]["solver_type"].GetString() == "AMGCL"):
             self.block_builder = True
         else:
@@ -297,11 +297,6 @@ class ParticleMPMSolver(PythonSolver):
         # Add reactions for the displacements
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
-        # Add nodal force variables
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.INTERNAL_FORCE)
-        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_FORCE)
-        # model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CONTACT_FORCE)
-
         # Add specific variables for the problem conditions
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
@@ -311,9 +306,6 @@ class ParticleMPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_VELOCITY)
         model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_VEL)
-        model_part.AddNodalSolutionStepVariable(KratosParticle.AUX_R_ACC)
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DENSITY)
 
         # Add variables for arbitrary slope with slip
@@ -351,7 +343,7 @@ class ParticleMPMSolver(PythonSolver):
         # Specify domain size
         self.domain_size = self.material_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
 
-         # Read material property
+        # Read material property
         materials_imported = self._import_constitutive_laws()
         if materials_imported:
             self.print_on_rank_zero("::[ParticleMPMSolver]:: ","Constitutive law was successfully imported.")
@@ -364,10 +356,10 @@ class ParticleMPMSolver(PythonSolver):
     def _import_constitutive_laws(self):
         materials_filename = self.settings["material_import_settings"]["materials_filename"].GetString()
         if (materials_filename != ""):
-            import read_materials_process
             # Add constitutive laws and material properties from json file to model parts.
-            read_materials_process.ReadMaterialsProcess(self.model, self.settings["material_import_settings"])
-
+            material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+            material_settings["Parameters"]["materials_filename"].SetString(materials_filename)
+            KratosMultiphysics.ReadMaterialsUtility(material_settings, self.model)
             materials_imported = True
         else:
             materials_imported = False

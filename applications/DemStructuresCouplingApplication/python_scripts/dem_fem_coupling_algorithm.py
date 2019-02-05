@@ -55,10 +55,10 @@ class Algorithm(object):
 
     def Initialize(self):
         self.structural_solution.Initialize() # Reading mdpa
-        self.dem_solution.Initialize() # Adding DEM variables and reading
-
         self._DetectStructuresSkin()
         self._TransferStructuresSkinToDem()
+
+        self.dem_solution.Initialize() # Adding DEM variables and reading
 
         mixed_mp = self.model.CreateModelPart('MixedPart')
         filename = os.path.join(self.dem_solution.post_path, self.dem_solution.DEM_parameters["problem_name"].GetString())
@@ -158,8 +158,8 @@ class Algorithm(object):
                 self.dem_solution.step += 1
 
                 self.dem_solution.DEMFEMProcedures.UpdateTimeInModelParts(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt, self.dem_solution.step)
-                
-                self.dem_solution.BeforeSolveOperations(self.dem_solution.time)
+
+                self.dem_solution._BeforeSolveOperations(self.dem_solution.time)
 
                 DemFem.InterpolateStructuralSolutionForDEM().InterpolateStructuralSolution(self.structural_mp, self.Dt_structural, self.structural_solution.time, self.dem_solution.time)
 
@@ -168,7 +168,7 @@ class Algorithm(object):
                 self.dem_solution.AfterSolveOperations()
 
                 DemFem.ComputeDEMFaceLoadUtility().CalculateDEMFaceLoads(self.skin_mp, self.dem_solution.solver.dt, self.Dt_structural)
-                
+
                 self.dem_solution.DEMFEMProcedures.MoveAllMeshes(self.dem_solution.all_model_parts, self.dem_solution.time, self.dem_solution.solver.dt)
                 #DEMFEMProcedures.MoveAllMeshesUsingATable(rigid_face_model_part, time, dt)
 

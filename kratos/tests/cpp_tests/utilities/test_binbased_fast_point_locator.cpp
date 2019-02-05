@@ -42,7 +42,7 @@ namespace Kratos
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -123,7 +123,7 @@ namespace Kratos
             ModelPart& this_model_part = current_model.CreateModelPart("Main");
             this_model_part.SetBufferSize(2);
             
-            Properties::Pointer p_elem_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_elem_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;
@@ -282,7 +282,7 @@ namespace Kratos
             Model current_model;
             ModelPart& this_model_part = current_model.CreateModelPart("test_model_part",2);
             
-            Properties::Pointer p_cond_prop = this_model_part.pGetProperties(0);
+            Properties::Pointer p_cond_prop = this_model_part.CreateNewProperties(0);
             
             auto& process_info = this_model_part.GetProcessInfo();
             process_info[STEP] = 1;

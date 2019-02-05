@@ -89,9 +89,6 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
         self.main_path = os.getcwd()
         self.nodeplotter = False
 
-    def GetProblemTypeFilename(self):
-        return benchmark
-
     def model_part_reader(self, modelpart, nodeid=0, elemid=0, condid=0):
         return ModelPartIO(modelpart)
 
@@ -159,8 +156,8 @@ class DEMBenchamarksAnalysisStage(DEMAnalysisStage):
     def GetProblemTypeFilename(self):
         return 'benchmark' + str(benchmark_number)
 
-    def BeforeSolveOperations(self, time):
-        super(DEMBenchamarksAnalysisStage, self).BeforeSolveOperations(time)
+    def _BeforeSolveOperations(self, time):
+        super(DEMBenchamarksAnalysisStage, self)._BeforeSolveOperations(time)
         benchmark.ApplyNodalRotation(time, self.solver.dt, self.spheres_model_part)
 
     def BeforePrintingOperations(self, time):

@@ -48,7 +48,24 @@ class TestGeometry(KratosUnittest.TestCase):
         model_part= current_model.CreateModelPart("Main")
         tester = GeometryTesterUtility()
         self.assertTrue( tester.TestHexahedra3D20N(model_part) )
-        
+
+    def test_quadrilateral_interface_2D4N(self):
+        current_model = Model()
+        model_part= current_model.CreateModelPart("Main")
+        tester = GeometryTesterUtility()
+        self.assertTrue( tester.TestQuadrilateralInterface2D4N(model_part) )
+
+    def test_prism_interface_2D4N(self):
+        current_model = Model()
+        model_part= current_model.CreateModelPart("Main")
+        tester = GeometryTesterUtility()
+        self.assertTrue( tester.TestPrismInterface3D6N(model_part) )
+
+    def test_hexahedra_interface_2D4N(self):
+        current_model = Model()
+        model_part= current_model.CreateModelPart("Main")
+        tester = GeometryTesterUtility()
+        self.assertTrue( tester.TestHexahedraInterface3D8N(model_part) )
 
 
 if __name__ == '__main__':

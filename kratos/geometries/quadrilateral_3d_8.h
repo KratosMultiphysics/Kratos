@@ -336,24 +336,6 @@ public:
     // }
 
     /**
-     * :TODO: the lumpig factors need to be reviewed and
-     * probably reimplemented
-     * (comment by janosch)
-     */
-    //lumping factors for the calculation of the lumped mass matrix
-    Vector& LumpingFactors( Vector& rResult ) const override
-    {
-	    if(rResult.size() != 8)
-            rResult.resize( 8, false );
-
-        for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
-
-        for ( int i = 4; i < 8; i++ ) rResult[i] = 1.00 / 9.00;
-
-        return rResult;
-    }
-
-    /**
      * Information
      */
     /**
@@ -378,48 +360,61 @@ public:
         return std::sqrt( std::abs( this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** 
-     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension. 
-     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
+    /** This method calculates and returns area or surface area of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     * @return double value contains area or surface area
+     *
+     * @return double value contains area or surface
+     * area.N
      * @see Length()
      * @see Volume()
      * @see DomainSize()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double Area() const override
     {
         Vector temp;
         this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
         const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.0;
+        double Area = 0.0;
 
         for ( unsigned int i = 0; i < integration_points.size(); i++ ) {
-            area += temp[i] * integration_points[i].Weight();
+            Area += temp[i] * integration_points[i].Weight();
         }
 
-        return area;
+        return Area;
     }
 
     /**
-     * @brief This method calculates and returns the volume of this geometry.
-     * @return Zero, the volume of a 2D geometry is 0
+     * This method calculates and returns the volume of this geometry.
+     * This method calculates and returns the volume of this geometry.
+     *
+     * This method uses the V = (A x B) * C / 6 formula.
+     *
+     * @return double value contains length, area or volume.
+     *
      * @see Length()
      * @see Area()
      * @see Volume()
+     *
+     * @todo might be necessary to reimplement
      */
     double Volume() const override
     {
-        return 0.0;
+        return Area();
     }
 
-    /** 
-     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension. 
-     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
+    /** This method calculates and returns length, area or volume of
+     * this geometry depending to it's dimension. For one dimensional
+     * geometry it returns its length, for two dimensional it gives area
+     * and for three dimensional geometries it gives its volume.
+     *
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
+     * @todo could be replaced by something more suitable (comment by janosch)
      */
     double DomainSize() const override
     {
