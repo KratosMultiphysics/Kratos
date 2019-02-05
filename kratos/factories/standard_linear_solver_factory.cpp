@@ -66,17 +66,15 @@ namespace Kratos
 
         //registration of linear solvers
 //         KRATOS_REGISTER_LINEAR_SOLVER("LinearSolver", StandardLinearSolverFactory<SpaceType,LocalSpaceType,LinearSolverType>());
-        KRATOS_REGISTER_LINEAR_SOLVER("CGSolver", CGSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("BICGSTABSolver", BICGSTABSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("DeflatedCGSolver", DeflatedCGSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("TFQMRSolver", TFQMRSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("SkylineLUFactorizationSolver",SkylineLUFactorizationSolverFactory );
-        KRATOS_REGISTER_LINEAR_SOLVER("AMGCL", AMGCLSolverFactory);
-        KRATOS_REGISTER_LINEAR_SOLVER("AMGCLSolver", AMGCLSolverFactory); //registered with two different names
-        KRATOS_REGISTER_LINEAR_SOLVER("AMGCL_NS_Solver",AMGCL_NS_SolverFactory );
-        KRATOS_REGISTER_LINEAR_SOLVER("ScalingSolver",ScalingSolverFactory );
-        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("SkylineLUComplexSolver", SkylineLUComplexSolverFactory);
-        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("complex_skyline_lu_solver", SkylineLUComplexSolverFactory); // NOTE: Name duplicated for retrocompatibility
+        KRATOS_REGISTER_LINEAR_SOLVER("cg", CGSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("bicgstab", BICGSTABSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("deflated_cg", DeflatedCGSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("tfqmr", TFQMRSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("skyline_lu_factorization",SkylineLUFactorizationSolverFactory );
+        KRATOS_REGISTER_LINEAR_SOLVER("amgcl", AMGCLSolverFactory);
+        KRATOS_REGISTER_LINEAR_SOLVER("amgcl_ns",AMGCL_NS_SolverFactory );
+        KRATOS_REGISTER_LINEAR_SOLVER("scaling",ScalingSolverFactory );
+        KRATOS_REGISTER_COMPLEX_LINEAR_SOLVER("skyline_lu_complex", SkylineLUComplexSolverFactory);
 
     };
 } // Namespace Kratos
