@@ -2585,6 +2585,33 @@ void MmgProcess<MMGLibray::MMG3D>::MMGLibCallIsoSurface()
     if ( MMG3D_Chk_meshData(mmgMesh,mmgSol) != 1 )
         exit(EXIT_FAILURE);
 
+    /**------------------- Including surface options ---------------------------*/
+
+    // Global hausdorff value (default value = 0.01) applied on the whole boundary
+    if (mThisParameters["advanced_parameters"]["force_hausdorff_value"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hausd, mThisParameters["advanced_parameters"]["hausdorff_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the Hausdorff parameter" << std::endl;
+    }
+
+    // Set the gradation
+    if (mThisParameters["advanced_parameters"]["force_gradation_value"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hgrad, mThisParameters["advanced_parameters"]["gradation_value"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set gradation" << std::endl;
+    }
+
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_min"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmin, mThisParameters["force_sizes"]["minimal_size"].GetDouble()) != 1 )
+            KRATOS_ERROR << "Unable to set the minimal edge size " << std::endl;
+    }
+
+    // Minimal edge size
+    if (mThisParameters["force_sizes"]["force_max"].GetBool()) {
+        if ( MMG3D_Set_dparameter(mmgMesh,mmgSol,MMG3D_DPARAM_hmax, mThisParameters["force_sizes"]["maximal_size"].GetDouble()) != 1 ) {
+            KRATOS_ERROR << "Unable to set the maximal edge size " << std::endl;
+        }
+    }
+
     /**------------------- level set discretization ---------------------------*/
     /* debug mode ON (default value = OFF) */
     if ( MMG3D_Set_iparameter(mmgMesh,mmgSol,MMG3D_IPARAM_debug, 1) != 1 )
