@@ -15,7 +15,6 @@
 
 // Project includes
 #include "adjoint_finite_difference_base_element.h"
-#include "structural_mechanics_application_variables.h"
 #include "custom_response_functions/response_utilities/stress_response_definitions.h"
 #include "custom_response_functions/response_utilities/element_finite_difference_utility.h"
 #include "includes/checks.h"
@@ -221,14 +220,21 @@ void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Va
     KRATOS_CATCH("")
 }
 
-void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+/*void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
                       std::vector< array_1d<double, 3 > >& rOutput,
                       const ProcessInfo& rCurrentProcessInfo)
 {
     this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
 }
 
-template <typename TDataType>
+void AdjointFiniteDifferencingBaseElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                      std::vector<Vector>& rOutput,
+                      const ProcessInfo& rCurrentProcessInfo)
+{
+    this->CalculateAdjointFieldOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+}*/
+
+/*template <typename TDataType>
 void AdjointFiniteDifferencingBaseElement::CalculateAdjointFieldOnIntegrationPoints(const Variable<TDataType>& rVariable,
                                                 std::vector< TDataType >& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -295,7 +301,7 @@ void AdjointFiniteDifferencingBaseElement::CalculateAdjointFieldOnIntegrationPoi
     }
 
     KRATOS_CATCH("")
-}
+}*/
 
 int AdjointFiniteDifferencingBaseElement::Check(const ProcessInfo& rCurrentProcessInfo)
 {
