@@ -6,27 +6,6 @@ namespace Kratos {
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw():
         mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
 
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law):
-        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law):
-        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law):
-        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law):
-        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const InviscidForceLaw& r_inviscid_force_law):
-        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law):
-        mpBuoyancyLaw(BuoyancyLaw().Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
-
-    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law):
-        mpBuoyancyLaw(r_buoyancy_law.Clone()), mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
-
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
     {
         mpBuoyancyLaw = rHydrodynamicInteractionLaw.CloneBuoyancyLaw();

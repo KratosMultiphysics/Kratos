@@ -21,14 +21,11 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(HydrodynamicInteractionLaw);
 
     HydrodynamicInteractionLaw();
-    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law);
-    HydrodynamicInteractionLaw(const DragLaw& r_drag_law);
-    HydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law);
-    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law);
-    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const InviscidForceLaw& r_inviscid_force_law);
-    HydrodynamicInteractionLaw(const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law);
-    HydrodynamicInteractionLaw(const BuoyancyLaw& r_buoyancy_law, const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law);
     HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw);
+
+    void SetBuoyancyLaw(const BuoyancyLaw& r_law){mpBuoyancyLaw = r_law.Clone();}
+    void SetDragLaw(const DragLaw& r_law){mpDragLaw = r_law.Clone();}
+    void SetInviscidForceLaw(const InviscidForceLaw& r_law){mpInviscidForceLaw = r_law.Clone();}
 
     virtual void Initialize(const ProcessInfo& r_process_info);
 

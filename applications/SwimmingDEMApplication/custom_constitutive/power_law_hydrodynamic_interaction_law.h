@@ -20,13 +20,6 @@ public:
 
     PowerLawFluidHydrodynamicInteractionLaw(): HydrodynamicInteractionLaw(){}
 
-    PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law): HydrodynamicInteractionLaw(r_drag_law){}
-
-    PowerLawFluidHydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law): HydrodynamicInteractionLaw(r_inviscid_force_law){}
-
-    PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law,
-                                            const InviscidForceLaw& r_inviscid_force_law): HydrodynamicInteractionLaw(r_drag_law, r_inviscid_force_law){}
-
     PowerLawFluidHydrodynamicInteractionLaw(const PowerLawFluidHydrodynamicInteractionLaw &rPowerLawFluidHydrodynamicInteractionLaw)
         : HydrodynamicInteractionLaw(rPowerLawFluidHydrodynamicInteractionLaw){}
 
