@@ -388,7 +388,8 @@ protected:
     DofsArrayType mDoFSlaveSet;                       /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
 
-    bool mCleared = true;           /// If the system has been reseted
+    bool mComputeConstantContribution = false;        /// If we compute the constant contribution of the MPC
+    bool mCleared = true;                             /// If the system has been reseted
 
     ///@}
     ///@name Protected Operators
@@ -523,24 +524,21 @@ protected:
     {
         Timer::Start("Build RHS");
 
-        BuildRHSNoDirichlet(pScheme,rModelPart,rb);
+        TSystemMatrixType auxiliar_A;
+        if (mComputeConstantContribution) {
+            ConstructMatrixStructure(pScheme, auxiliar_A, rModelPart);
+            BuildWithConstraints(pScheme, rModelPart, auxiliar_A, rb);
+        } else {
+            BuildRHSNoDirichlet(pScheme,rModelPart,rb);
+        }
 
         Timer::Stop("Build RHS");
 
-        const SizeType system_size = rb.size();
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
-        // NOTE: dofs are assumed to be numbered consecutively
-        #pragma omp parallel for
-        for (int k = 0; k<ndofs; ++k) {
-            auto it_dof = BaseType::mDofSet.begin() + k;
-
-            if (mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < system_size) {
-                    rb[equation_id] = 0.0;
-                }
-            }
+        if (mComputeConstantContribution) {
+            TSystemVectorType auxiliar_Dx(mDoFToSolveSystemSize);
+            ApplyDirichletConditions(pScheme, rModelPart, auxiliar_A, auxiliar_Dx, rb);
+        } else {
+            ApplyDirichletConditionsRHS(pScheme, rModelPart, rb);
         }
 
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
@@ -556,6 +554,15 @@ protected:
         TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+
+        // Adding constant contribution
+        if (mComputeConstantContribution) {
+            TSystemVectorType& rConstantVector = *mpConstantVector;
+            TSystemVectorType rigid_rb_copy = rb;
+            TSparseSpace::Mult(*mpOldAMatrix, rConstantVector, rigid_rb_copy);
+            TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
+            mpOldAMatrix = NULL;
+        }
 
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
@@ -1079,7 +1086,7 @@ protected:
         double aux_constant_value = 0.0;
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
         const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = (nl_iteration_number == 1 && step == 1) ? true : false;
+        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
 
         if (add_constant_vector) {
             if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
@@ -1096,7 +1103,7 @@ protected:
         TSystemVectorType& rConstantVector = *mpConstantVector;
 
         // Filling constant vector
-        if (add_constant_vector) {
+        if (add_constant_vector && mCleared) {
             #pragma omp parallel for
             for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
                 rConstantVector[i] = 0.0;
@@ -1163,8 +1170,6 @@ protected:
                                     const double constant_value = constant_vector[i];
                                     #pragma omp atomic
                                     value += constant_value;
-                                    #pragma omp atomic
-                                    aux_constant_value += std::abs(constant_value);
                                 }
                             }
                         }
@@ -1186,7 +1191,7 @@ protected:
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
-        if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
+        if (add_constant_vector && mComputeConstantContribution) {
             TSystemVectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(rA, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
@@ -1237,10 +1242,9 @@ protected:
         ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
         // Initialize the constant vector
-        double aux_constant_value = 0.0;
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
         const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = (nl_iteration_number == 1 && step == 1) ? true : false;
+        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
 
         if (add_constant_vector) {
             if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
@@ -1324,8 +1328,6 @@ protected:
                                     const double constant_value = constant_vector[i];
                                     #pragma omp atomic
                                     value += constant_value;
-                                    #pragma omp atomic
-                                    aux_constant_value += std::abs(constant_value);
                                 }
                             }
                         }
@@ -1347,7 +1349,7 @@ protected:
 
         // We build the original system
         TSystemMatrixType A; // Dummy auxiliar matrix we ned to build anyway because are needed to impose the rigid displacements
-        if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
+        if (add_constant_vector && mComputeConstantContribution) {
             A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
             ConstructMatrixStructure(pScheme, A, rModelPart);
             BaseType::Build(pScheme, rModelPart, A, rb);
@@ -1357,7 +1359,7 @@ protected:
 
         // The proper way to include the constants is in the RHS as T^t(f - A * g)
         TSystemVectorType rb_copy = rb;
-        if (add_constant_vector && aux_constant_value > std::numeric_limits<double>::epsilon()) {
+        if (add_constant_vector && mComputeConstantContribution) {
             TSystemVectorType aux_constant_vector(rConstantVector);
             TSparseSpace::Mult(A, rConstantVector, aux_constant_vector);
             TSparseSpace::UnaliasedAdd(rb_copy, -1.0, aux_constant_vector);
@@ -1402,9 +1404,14 @@ protected:
                 mpTMatrix.swap(pNewT);
             }
 
+            if (mpConstantVector == NULL) { // If the pointer is not initialized initialize it to an empty vector
+                TSystemVectorPointerType pNewConstantVector = TSystemVectorPointerType(new TSystemVectorType(0));
+                mpConstantVector.swap(pNewConstantVector);
+            }
+
             TSystemMatrixType& rTMatrix = *mpTMatrix;
 
-            // Resizing the system vectors and matrix
+            // Resizing the system matrix
             if (rTMatrix.size1() == 0 || BaseType::GetReshapeMatrixFlag() || mCleared) { // If the matrix is not initialized
                 rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, false);
                 ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
@@ -1413,6 +1420,20 @@ protected:
                     KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
                     rTMatrix.resize(BaseType::mEquationSystemSize, mDoFToSolveSystemSize, true);
                     ConstructRelationMatrixStructure(pScheme, rTMatrix, rModelPart);
+                }
+            }
+
+            // Resizing the system vector
+            if (mpConstantVector->size() != BaseType::mEquationSystemSize || BaseType::GetReshapeMatrixFlag() || mCleared) {
+                mpConstantVector->resize(BaseType::mEquationSystemSize, false);
+                const double aux_constant_value = ComputeAbsoluteConstantContribution(rModelPart);
+                mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
+            } else {
+                if (mpConstantVector->size() != BaseType::mEquationSystemSize) {
+                    KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                    mpConstantVector->resize(BaseType::mEquationSystemSize, false);
+                    const double aux_constant_value = ComputeAbsoluteConstantContribution(rModelPart);
+                    mComputeConstantContribution = aux_constant_value > std::numeric_limits<double>::epsilon() ? true : false;
                 }
             }
         }
@@ -1437,15 +1458,13 @@ protected:
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
-        KRATOS_WATCH(rb)
-
         // Adding contribution to reactions
 //         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
         if (BaseType::mCalculateReactionsFlag) {
             for (auto& r_dof : BaseType::mDofSet) {
                 if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
                     const IndexType equation_id = r_dof.EquationId();
-                    r_dof.GetSolutionStepReactionValue() = - rb[equation_id];
+                    r_dof.GetSolutionStepReactionValue() = rb[equation_id];
                 }
             }
         }
@@ -1728,7 +1747,7 @@ private:
         // Add the constant vector
         const IndexType nl_iteration_number = r_current_process_info[NL_ITERATION_NUMBER];
         const IndexType step = r_current_process_info[STEP];
-        const bool add_constant_vector = (nl_iteration_number == 1 && step == 1) ? true : false;
+        const bool add_constant_vector = true; // (nl_iteration_number == 1 && step == 1) ? true : false;
 
         if (add_constant_vector) {
             TSparseSpace::UnaliasedAdd(rDx, 1.0, rConstantVector);
@@ -1739,10 +1758,135 @@ private:
         mpOldAMatrix = NULL;
 
         // Reconstruct the RHS
+        TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
-        TSparseSpace::Mult(rA, rDx, rb);
+        TSparseSpace::Mult(rTMatrix, rb_copy, rb);
+
+        // Adding constant contribution
+        if (add_constant_vector) {
+            TSystemVectorType rigid_rb_copy = rb;
+            TSparseSpace::Mult(rA, rConstantVector, rigid_rb_copy);
+            TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
+        }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::ReconstructSlaveSolutionAfterSolve failed ..");
+    }
+
+    /**
+     * @brief This method applies the BC, only in the RHS
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rb The RHS vector of the system of equations
+     */
+    void ApplyDirichletConditionsRHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rb
+        )
+    {
+        const SizeType system_size = rb.size();
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        // NOTE: dofs are assumed to be numbered consecutively
+        #pragma omp parallel for
+        for (int k = 0; k<ndofs; ++k) {
+            auto it_dof = BaseType::mDofSet.begin() + k;
+
+            if (mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
+                const IndexType equation_id = it_dof->EquationId();
+                if (equation_id < system_size) {
+                    rb[equation_id] = 0.0;
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief This method computes the absolute constant contribution of the MPC
+     * @param rModelPart The model part to compute
+     * @return Absolute constant contribution
+     */
+    double ComputeAbsoluteConstantContribution(ModelPart& rModelPart)
+    {
+        // Auxiliar set to reorder master DoFs
+        std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
+
+        // Filling with "ones"
+        typedef std::pair<IndexType, IndexType> IndexIndexPairType;
+        IndexType counter = 0;
+        for (auto& dof : BaseType::mDofSet) {
+            if (dof.EquationId() < BaseType::mEquationSystemSize) {
+                const IndexType equation_id = dof.EquationId();
+                auto it = mDoFSlaveSet.find(dof);
+                if (it == mDoFSlaveSet.end()) {
+                    solvable_dof_reorder.insert(IndexIndexPairType(equation_id, counter));
+                    ++counter;
+                }
+            }
+        }
+
+        // The current process info
+        ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // Initialize the constant vector
+        double aux_constant_value = 0.0;
+
+        // We build the g constant vector
+        TSystemVectorType& rConstantVector = *mpConstantVector;
+
+        // Filling constant vector
+        #pragma omp parallel for
+        for (int i = 0; i < static_cast<int>(BaseType::mEquationSystemSize); ++i) {
+            rConstantVector[i] = 0.0;
+        }
+
+        // Contributions to the system
+        LocalSystemMatrixType transformation_matrix = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType constant_vector = LocalSystemVectorType(0);
+
+        // Vector containing the localization in the system of the different terms
+        EquationIdVectorType slave_equation_id, master_equation_id;
+
+        const int number_of_constraints = static_cast<int>(rModelPart.MasterSlaveConstraints().size());
+
+        #pragma omp parallel firstprivate(transformation_matrix, constant_vector, slave_equation_id, master_equation_id)
+        {
+            #pragma omp for schedule(guided, 512)
+            for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
+                auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint
+                // It is active by default
+                bool constraint_is_active = true;
+                if (it_const->IsDefined(ACTIVE))
+                    constraint_is_active = it_const->Is(ACTIVE);
+
+                if (constraint_is_active) {
+                    it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+
+                    it_const->EquationIdVector(slave_equation_id, master_equation_id, r_current_process_info);
+
+                    // Reassign reordered dofs to the master side
+                    for (auto& id : master_equation_id) {
+                        id = solvable_dof_reorder[id];
+                    }
+
+                    for (IndexType i = 0; i < slave_equation_id.size(); ++i) {
+                        const IndexType i_global = slave_equation_id[i];
+                        if (i_global < BaseType::mEquationSystemSize) {
+                            double& value = rConstantVector[i_global];
+                            const double constant_value = constant_vector[i];
+                            #pragma omp atomic
+                            value += constant_value;
+                            #pragma omp atomic
+                            aux_constant_value += std::abs(constant_value);
+                        }
+                    }
+                }
+            }
+        }
+
+        return aux_constant_value;
     }
 
     ///@}
