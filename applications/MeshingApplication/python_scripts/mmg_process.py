@@ -267,7 +267,7 @@ class MmgProcess(KratosMultiphysics.Process):
         mmg_parameters.AddValue("extrapolate_contour_values",self.settings["extrapolate_contour_values"])
         mmg_parameters.AddValue("search_parameters",self.settings["search_parameters"])
         mmg_parameters["force_sizes"].AddValue("force_min",self.settings["force_min"])
-        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["maximal_size"])
+        mmg_parameters["force_sizes"].AddValue("minimal_size",self.settings["minimal_size"])
         mmg_parameters["force_sizes"].AddValue("force_max",self.settings["force_max"])
         mmg_parameters["force_sizes"].AddValue("maximal_size",self.settings["maximal_size"])
         mmg_parameters.AddValue("advanced_parameters",self.settings["advanced_parameters"])
