@@ -109,7 +109,8 @@ public:
     /**
      * @brief Constructor.
      * @detail The bossak method
-     * @param Alpha The Bossak parameter. Default value is 0, which is the Newmark method
+     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
+     * @param  NewarlBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
     explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0, const double NewmarkBeta = 0.25)
         :ImplicitBaseType()
@@ -118,10 +119,6 @@ public:
         mBossak.alpha = Alpha;
         mNewmark.beta = NewmarkBeta;
         mNewmark.gamma = 0.5;
-
-        // Default values of the Newmark coefficients
-        //double beta  = 0.25;
-        //double newmark_gamma = 0.5;
 
         CalculateBossakCoefficients();
 
@@ -324,11 +321,6 @@ public:
 
         const double delta_time = current_process_info[DELTA_TIME];
 
-        //double beta = 0.25;
-        //double gamma = 0.5;
-
-        CalculateBossakCoefficients();
-
         // Initializing Bossak constants
         mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
         mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
@@ -379,6 +371,14 @@ public:
         // Check for admissible value of the AlphaBossak
         KRATOS_ERROR_IF(mBossak.alpha > 0.0 || mBossak.alpha < -0.5) << "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.5. Current value is " << mBossak.alpha << std::endl;
 
+        KRATOS_ERROR_IF(mNewmark.beta < 0.0 ||
+                        mNewmark.beta > 0.25) << "Value not admissible for NewmarkBeta. Admissible values are 0.0 for central differencing, 0.25 for mean constant acceleration or 0.167 for linear acceleration. Current value is " << mNewmark.beta <<std::endl;
+
+        if (mNewmark.beta > 0.0 && mNewmark.beta < 0.25)
+            {
+             const double epsilon = std::numeric_limits<double>::epsilon();
+             KRATOS_ERROR_IF(std::abs(mNewmark.beta - 0.167) > epsilon) << "Value not admissible for NewmarkBeta. Admissible values are 0.0 for central differencing, 0.25 for mean constant acceleration or 0.167 for linear acceleration. Current value is " << mNewmark.beta <<std::endl;
+            }
         return 0;
         KRATOS_CATCH( "" );
     }

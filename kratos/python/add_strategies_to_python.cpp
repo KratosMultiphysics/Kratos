@@ -256,7 +256,7 @@ namespace Kratos
                 typename ResidualBasedBossakDisplacementSchemeType::Pointer,
                 BaseSchemeType  >
                 (m,"ResidualBasedBossakDisplacementScheme")
-                .def(py::init< double >() )
+                .def(py::init< double, double >())
                 ;
 
 	         // Residual Based Newmark Scheme Type
