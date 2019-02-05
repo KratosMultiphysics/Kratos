@@ -19,6 +19,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
                 "modulus"                   : 1.0,
                 "constrained"               : "fixed",
                 "direction"                 : [0.0, 0.0, 0.0],
+                "option"                    : "",
                 "local_axes"                : {}
             }  """ )
 
@@ -27,6 +28,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
         self.particles_per_condition = settings["particles_per_condition"].GetInt()
         self.is_neumann_boundary = True
+        self.option = settings["option"].GetString()
 
         # check constraint
         self.constrained = settings["constrained"].GetString()
@@ -55,6 +57,9 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
 
         # Compute the normal on the nodes of interest -
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
+        self.modified_normal = False
+        if self.option == "flip_normal":
+            self.modified_normal = True
 
         # Set Flag BOUNDARY and variables PARTICLES_PER_CONDITION
         if self.particles_per_condition >= 0:
@@ -63,6 +68,7 @@ class ApplyMPMParticleNeumannConditionProcess(KratosMultiphysics.Process):
             for condition in self.model_part.Conditions:
                 condition.Set(KratosMultiphysics.BOUNDARY, True)
                 condition.Set(KratosMultiphysics.MARKER, self.normal_following_load)
+                condition.Set(KratosMultiphysics.MODIFIED, self.modified_normal)
                 condition.SetValue(KratosParticle.PARTICLES_PER_CONDITION, self.particles_per_condition)
                 condition.SetValue(KratosParticle.MPC_IS_NEUMANN, self.is_neumann_boundary)
                 condition.SetValue(self.variable, self.vector)
