@@ -114,7 +114,18 @@ public:
      * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
      * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
      */
-    explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0, const double NewmarkBeta = 0.25)
+    explicit ResidualBasedBossakDisplacementScheme(const double Alpha = 0.0)
+    : ResidualBasedBossakDisplacementScheme(Alpha, 0.25)
+    {
+    }
+
+    /**
+     * @brief Constructor.
+     * @detail The bossak method
+     * @param Alpha is the Bossak parameter. Default value is 0, which is the Newmark method
+     * @param NewarkBeta the Newmark parameter. Default value is 0.25, for mean constant acceleration.
+     */
+    explicit ResidualBasedBossakDisplacementScheme(const double Alpha, const double NewmarkBeta)
         :ImplicitBaseType()
     {
         // For pure Newmark Scheme
