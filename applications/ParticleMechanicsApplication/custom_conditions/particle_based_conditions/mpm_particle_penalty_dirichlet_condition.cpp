@@ -89,8 +89,6 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( ProcessInfo& 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             rGeom[i].SetLock();
-            rGeom[i].SetValue(IS_STRUCTURE, 1.0);
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 1.0;
             rGeom[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * unit_normal_vector;
             rGeom[i].UnSetLock();
         }
@@ -232,8 +230,6 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( ProcessInfo& rC
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
             rGeom[i].SetLock();
-            rGeom[i].SetValue(IS_STRUCTURE, 0.0);
-            rGeom[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
             rGeom[i].FastGetSolutionStepValue(NORMAL).clear();
             rGeom[i].UnSetLock();
         }
