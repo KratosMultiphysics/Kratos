@@ -31,7 +31,7 @@
         "lambda_max": 2.5e3,
         "search_dimension": 6,
         "linear_solver_settings":{
-            "solver_type": "SkylineLUComplexSolver"
+            "solver_type": "skyline_lu_complex"
         }
 	},
         "problem_domain_sub_model_part_list" : ["Parts_Solid"],
