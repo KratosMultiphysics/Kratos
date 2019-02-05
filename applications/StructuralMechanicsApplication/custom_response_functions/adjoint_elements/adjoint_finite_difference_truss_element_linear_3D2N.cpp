@@ -58,7 +58,6 @@ void AdjointFiniteDifferenceTrussElementLinear::CalculateOnIntegrationPoints(con
 
     if (rVariable == ADJOINT_STRAIN)
     {
-        //MFusseder TODO check if this works also for prestressed problems
         std::vector<Vector> strain_vector;
         this->CalculateAdjointFieldOnIntegrationPoints(STRAIN, strain_vector, rCurrentProcessInfo);
         if (rOutput.size() != strain_vector.size())
