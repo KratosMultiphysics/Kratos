@@ -25,6 +25,7 @@
 #include "custom_constitutive/hydrodynamic_interaction_law.h"
 #include "custom_constitutive/power_law_hydrodynamic_interaction_law.h"
 #include "custom_constitutive/drag_laws/drag_law.h"
+#include "custom_constitutive/inviscid_force_laws/standard_inviscid_force_law.h"
 
 namespace Kratos
 {
@@ -36,7 +37,7 @@ KRATOS_CREATE_VARIABLE(std::string, SDEM_HYDRODYNAMIC_INTERACTION_LAW_NAME)
 KRATOS_CREATE_VARIABLE(HydrodynamicInteractionLaw::Pointer, SDEM_HYDRODYNAMIC_INTERACTION_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(std::string, SDEM_DRAG_LAW_NAME)
 KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_DRAG_LAW_POINTER)
-KRATOS_CREATE_VARIABLE(DragLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
+KRATOS_CREATE_VARIABLE(InviscidForceLaw::Pointer, SDEM_INVISCID_FORCE_LAW_POINTER)
 
 
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():

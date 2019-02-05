@@ -1,14 +1,24 @@
-#include "hydrodynamic_interaction_law.h"
 #include "swimming_DEM_application.h"
+#include "hydrodynamic_interaction_law.h"
 
 namespace Kratos {
 
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw():
+        mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law):
-        mpDragLaw(r_drag_law.Clone()) {}
+        mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(InviscidForceLaw().Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law):
+        mpDragLaw(DragLaw().Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
+
+    HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const DragLaw& r_drag_law, const InviscidForceLaw& r_inviscid_force_law):
+        mpDragLaw(r_drag_law.Clone()), mpInviscidForceLaw(r_inviscid_force_law.Clone()) {}
 
     HydrodynamicInteractionLaw::HydrodynamicInteractionLaw(const HydrodynamicInteractionLaw &rHydrodynamicInteractionLaw)
     {
         mpDragLaw = rHydrodynamicInteractionLaw.CloneDragLaw();
+        mpInviscidForceLaw = rHydrodynamicInteractionLaw.CloneInviscidForceLaw();
     }
 
     void HydrodynamicInteractionLaw::Initialize(const ProcessInfo& r_process_info) {
@@ -30,6 +40,10 @@ namespace Kratos {
 
     DragLaw::Pointer HydrodynamicInteractionLaw::CloneDragLaw() const {
         return mpDragLaw->Clone();
+    }
+
+    InviscidForceLaw::Pointer HydrodynamicInteractionLaw::CloneInviscidForceLaw() const {
+        return mpInviscidForceLaw->Clone();
     }
 
     HydrodynamicInteractionLaw::~HydrodynamicInteractionLaw(){}
@@ -61,6 +75,28 @@ namespace Kratos {
                                 drag_force,
                                 r_current_process_info);
 
+    }
+
+    void HydrodynamicInteractionLaw::ComputeInviscidForce(Geometry<Node<3> >& r_geometry,
+                                                          const double fluid_density,
+                                                          const double displaced_volume,
+                                                          array_1d<double, 3>& virtual_mass_plus_undisturbed_flow_force,
+                                                          const ProcessInfo& r_current_process_info)
+    {
+        mpInviscidForceLaw->ComputeForce(r_geometry,
+                                         fluid_density,
+                                         displaced_volume,
+                                         virtual_mass_plus_undisturbed_flow_force,
+                                         r_current_process_info);
+    }
+
+    double HydrodynamicInteractionLaw::GetInviscidAddedMass(Geometry<Node<3> >& r_geometry,
+                                                            double fluid_density,
+                                                            const ProcessInfo& r_current_process_info)
+    {
+        return mpInviscidForceLaw->GetAddedMass(r_geometry,
+                                                fluid_density,
+                                                r_current_process_info);
     }
 
 } // Namespace Kratos

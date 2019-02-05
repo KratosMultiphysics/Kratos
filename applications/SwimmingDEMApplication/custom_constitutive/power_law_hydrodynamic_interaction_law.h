@@ -7,7 +7,6 @@
 #include "containers/flags.h"
 
 #include "hydrodynamic_interaction_law.h"
-#include "drag_laws/drag_law.h"
 
 namespace Kratos {
 
@@ -19,9 +18,17 @@ public:
     // Pointer types for PowerLawFluidHydrodynamicInteractionLaw
     KRATOS_CLASS_POINTER_DEFINITION(PowerLawFluidHydrodynamicInteractionLaw);
 
-    PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law=DragLaw());
+    PowerLawFluidHydrodynamicInteractionLaw(): HydrodynamicInteractionLaw(){}
 
-    PowerLawFluidHydrodynamicInteractionLaw(const PowerLawFluidHydrodynamicInteractionLaw &rPowerLawFluidHydrodynamicInteractionLaw);
+    PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law): HydrodynamicInteractionLaw(r_drag_law){}
+
+    PowerLawFluidHydrodynamicInteractionLaw(const InviscidForceLaw& r_inviscid_force_law): HydrodynamicInteractionLaw(r_inviscid_force_law){}
+
+    PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law,
+                                            const InviscidForceLaw& r_inviscid_force_law): HydrodynamicInteractionLaw(r_drag_law, r_inviscid_force_law){}
+
+    PowerLawFluidHydrodynamicInteractionLaw(const PowerLawFluidHydrodynamicInteractionLaw &rPowerLawFluidHydrodynamicInteractionLaw)
+        : HydrodynamicInteractionLaw(rPowerLawFluidHydrodynamicInteractionLaw){}
 
     void Initialize(const ProcessInfo& r_process_info) override;
 
@@ -32,8 +39,6 @@ public:
     virtual ~PowerLawFluidHydrodynamicInteractionLaw();
 
     PowerLawFluidHydrodynamicInteractionLaw::Pointer Clone() const;
-
-    DragLaw::Pointer CloneDragLaw() const override;
 
     double ComputeShahParticleReynoldsNumber(const double particle_radius,
                                              const double fluid_density,

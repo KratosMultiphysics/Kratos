@@ -20,4 +20,5 @@ namespace Kratos {
         InviscidForceLaw::Pointer p_clone(new InviscidForceLaw(*this));
         return p_clone;
     }
+
 } // namespace Kratos

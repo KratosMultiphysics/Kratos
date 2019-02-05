@@ -113,13 +113,20 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
     TBaseElement::ComputeAdditionalForces(weight, non_contact_moment, r_current_process_info, gravity); // Could be adding something else apart from weight
     ComputeBuoyancy(node, buoyancy, gravity, r_current_process_info);
     mHydrodynamicInteractionLaw->ComputeDragForce(GetGeometry(),
-                                                mRadius,
-                                                mFluidDensity,
-                                                mKinematicViscosity,
-                                                mSlipVel,
-                                                drag_force,
-                                                r_current_process_info);
-    ComputeVirtualMassPlusUndisturbedFlowForce(node, virtual_mass_plus_undisturbed_flow_force, r_current_process_info);
+                                                  mRadius,
+                                                  mFluidDensity,
+                                                  mKinematicViscosity,
+                                                  mSlipVel,
+                                                  drag_force,
+                                                  r_current_process_info);
+
+    mHydrodynamicInteractionLaw->ComputeInviscidForce(GetGeometry(),
+                                                      mFluidDensity,
+                                                      CalculateVolume(),
+                                                      virtual_mass_plus_undisturbed_flow_force,
+                                                      r_current_process_info);
+
+    //ComputeVirtualMassPlusUndisturbedFlowForce(node, virtual_mass_plus_undisturbed_flow_force, r_current_process_info);
     ComputeSaffmanLiftForce(node, saffman_lift_force, r_current_process_info);
     ComputeMagnusLiftForce(node, magnus_lift_force, r_current_process_info);
     ComputeHydrodynamicTorque(node, non_contact_moment, r_current_process_info);
@@ -135,7 +142,11 @@ void SwimmingParticle<TBaseElement>::ComputeAdditionalForces(array_1d<double, 3>
                                 + buoyancy
                                 + weight;
 
-    const double force_reduction_coeff = mRealMass / (mRealMass + mLastVirtualMassAddedMass + mLastBassetForceAddedMass);
+    const double inviscid_added_mass =  mHydrodynamicInteractionLaw->GetInviscidAddedMass(GetGeometry(),
+                                                                                          mFluidDensity,
+                                                                                          r_current_process_info);
+
+    const double force_reduction_coeff = mRealMass / (mRealMass + inviscid_added_mass + mLastBassetForceAddedMass);
 
     array_1d<double, 3> non_contact_force_not_altered = non_contact_force;
 

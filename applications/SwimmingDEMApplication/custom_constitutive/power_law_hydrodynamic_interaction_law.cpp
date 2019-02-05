@@ -3,14 +3,6 @@
 
 namespace Kratos {
 
-    PowerLawFluidHydrodynamicInteractionLaw::PowerLawFluidHydrodynamicInteractionLaw(const DragLaw& r_drag_law):
-        HydrodynamicInteractionLaw(r_drag_law)
-    {}
-
-    PowerLawFluidHydrodynamicInteractionLaw::PowerLawFluidHydrodynamicInteractionLaw(const PowerLawFluidHydrodynamicInteractionLaw &rPowerLawFluidHydrodynamicInteractionLaw)
-        :HydrodynamicInteractionLaw(rPowerLawFluidHydrodynamicInteractionLaw)
-    {}
-
     void PowerLawFluidHydrodynamicInteractionLaw::Initialize(const ProcessInfo& r_process_info)
     {}
 
@@ -22,10 +14,6 @@ namespace Kratos {
     PowerLawFluidHydrodynamicInteractionLaw::Pointer PowerLawFluidHydrodynamicInteractionLaw::Clone() const {
         PowerLawFluidHydrodynamicInteractionLaw::Pointer p_clone(new PowerLawFluidHydrodynamicInteractionLaw(*this));
         return p_clone;
-    }
-
-    DragLaw::Pointer PowerLawFluidHydrodynamicInteractionLaw::CloneDragLaw() const {
-        return mpDragLaw->Clone();
     }
 
     PowerLawFluidHydrodynamicInteractionLaw::~PowerLawFluidHydrodynamicInteractionLaw(){}

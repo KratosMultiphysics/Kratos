@@ -37,6 +37,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<HydrodynamicInteractionLaw, HydrodynamicInteractionLaw::Pointer>(m, "HydrodynamicInteractionLaw")
         .def(py::init<>())
         .def(py::init<const DragLaw&>())
+        .def(py::init<const InviscidForceLaw&>())
+        .def(py::init<const DragLaw&, const InviscidForceLaw&>())
         .def("Clone", &HydrodynamicInteractionLaw::Clone)
         .def("SetHydrodynamicInteractionLawInProperties", &HydrodynamicInteractionLaw::SetHydrodynamicInteractionLawInProperties)
         .def("GetTypeOfLaw", &HydrodynamicInteractionLaw::GetTypeOfLaw)
