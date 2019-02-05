@@ -93,6 +93,7 @@ public:
       VOLUME_TO_AVERAGE_EDGE_LENGTH,
       VOLUME_TO_RMS_EDGE_LENGTH,
       MIN_DIHEDRAL_ANGLE,
+      MAX_DIHEDRAL_ANGLE,
       MIN_SOLID_ANGLE
     };
 
@@ -777,6 +778,8 @@ public:
          quality = VolumeToRMSEdgeLength();
        } else if(qualityCriteria == QualityCriteria::MIN_DIHEDRAL_ANGLE) {
          quality = MinDihedralAngle();
+       } else if (qualityCriteria == QualityCriteria::MAX_DIHEDRAL_ANGLE) {
+         quality = MaxDihedralAngle();
        } else if(qualityCriteria == QualityCriteria::MIN_SOLID_ANGLE) {
          quality = MinSolidAngle();
        }
@@ -2433,6 +2436,17 @@ protected:
     virtual double MinDihedralAngle() const {
       KRATOS_ERROR << "Calling base class 'MinDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
       return 0.0;
+    }
+
+    /** Calculates the max dihedral angle quality metric.
+     * Calculates the max dihedral angle quality metric.
+     * The max dihedral angle is max angle between two faces of the element
+     * In radians
+     * @return [description]
+     */
+    virtual double MaxDihedralAngle() const {
+        KRATOS_ERROR << "Calling base class 'MaxDihedralAngle' method instead of derived class one. Please check the definition of derived class. " << *this << std::endl;
+        return 0.0;
     }
 
     /** Calculates the min solid angle quality metric.
