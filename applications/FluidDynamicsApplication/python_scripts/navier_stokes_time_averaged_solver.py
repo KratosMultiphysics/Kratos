@@ -198,7 +198,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
             self.start_acceleration_time = self.settings["time_averaging_acceleration"]["acceleration"]["start_acceleration_time"].GetDouble()
             self.end_acceleration_time = self.settings["time_averaging_acceleration"]["acceleration"]["end_acceleration_time"].GetDouble()
             self.min_dt = self.settings["time_averaging_acceleration"]["acceleration"]["minimum_delta_time"].GetDouble()
-            self.max_dt = self.settings["time_averaging_acceleration"]["acceleration"]["minimum_delta_time"].GetDouble()
+            self.max_dt = self.settings["time_averaging_acceleration"]["acceleration"]["maximum_delta_time"].GetDouble()
             self.CFL_min =  self.settings["time_averaging_acceleration"]["acceleration"]["minimum_CFL"].GetDouble()          
             
             if self.delta_time_acceleration_type == "exponential":
@@ -293,7 +293,7 @@ class NavierStokesTimeAveragedMonolithicSolver(FluidSolver):
     def _compute_increased_exponential_delta_time(self, current_time, old_dt):
         if ( current_time > self.start_acceleration_time): 
             if (current_time <= self.end_acceleration_time):
-                new_dt = old_dt*1.005 
+                new_dt = old_dt*self.delta_time_acceleration_factor 
                 if new_dt > self.max_dt:
                     new_dt = self.max_dt
             else:
