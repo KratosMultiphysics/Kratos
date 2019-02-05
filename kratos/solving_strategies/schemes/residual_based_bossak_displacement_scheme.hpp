@@ -396,7 +396,7 @@ public:
             << "0.0 for central-differencing\n"
             << "0.25 for mean-constant-acceleration\n"
             << "0.167 for linear-acceleration\n"
-            << "Current value is " << mNewmark.beta << std::endl;
+            << "Current value is: " << mNewmark.beta << std::endl;
 
         return 0;
         KRATOS_CATCH( "" );
