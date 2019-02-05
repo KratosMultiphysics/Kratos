@@ -478,6 +478,7 @@ protected:
         const double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
+
         Timer::Stop("Solve");
         const double stop_solve = OpenMPUtils::GetCurrentTime();
 
@@ -558,16 +559,16 @@ protected:
         }
 
         // Adding contribution to reactions
-//         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
+        TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
 
-//         if (BaseType::mCalculateReactionsFlag) {
-//             for (auto& r_dof : BaseType::mDofSet) {
-//                 if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
-//                     const IndexType equation_id = r_dof.EquationId();
-//                     r_dof.GetSolutionStepReactionValue() = rb[equation_id];
-//                 }
-//             }
-//         }
+        if (BaseType::mCalculateReactionsFlag) {
+            for (auto& r_dof : BaseType::mDofSet) {
+                if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
+                    const IndexType equation_id = r_dof.EquationId();
+                    r_reactions_vector[equation_id - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()] += rb[equation_id];
+                }
+            }
+        }
 
         const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
@@ -1294,9 +1295,8 @@ protected:
         // Updating variables
         IndexType i;
         for (auto& r_dof : BaseType::mDofSet) {
-            i = r_dof.EquationId();
             if ((r_dof.IsFixed()) || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
-                i -= mDoFToSolveSystemSize - mDoFMasterFixedSet.size();
+                i = r_dof.EquationId() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
                 r_dof.GetSolutionStepReactionValue() = -r_reactions_vector[i];
             }
         }
@@ -1320,31 +1320,30 @@ protected:
         ) override
     {
         // We apply the same method as in the block builder and solver but instead of fixing the fixed Dofs, we just fix the master fixed Dofs
-        const SizeType system_size = rA.size1();
-        std::vector<double> scaling_factors (system_size, 0.0);
-
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+        std::vector<double> scaling_factors (mDoFToSolveSystemSize, 0.0);
 
         // NOTE: Dofs are assumed to be numbered consecutively
         const auto it_dof_begin = BaseType::mDofSet.begin();
         #pragma omp parallel for
-        for(int k = 0; k<ndofs; ++k) {
+        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
             auto it_dof = it_dof_begin + k;
-            const IndexType equation_id = it_dof->EquationId();
-            if (equation_id < system_size) {
-                if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end())
-                    scaling_factors[equation_id] = 1.0;
+            if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+                auto it = mDoFSlaveSet.find(*it_dof);
+                if (it == mDoFSlaveSet.end()) {
+                    if(mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end()) {
+                        scaling_factors[k] = 1.0;
+                    }
+                }
             }
-
         }
 
         double* Avalues = rA.value_data().begin();
         IndexType* Arow_indices = rA.index1_data().begin();
         IndexType* Acol_indices = rA.index2_data().begin();
 
-        //detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
         #pragma omp parallel for
-        for(int k = 0; k < static_cast<int>(system_size); ++k) {
+        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
             IndexType col_begin = Arow_indices[k];
             IndexType col_end = Arow_indices[k+1];
             bool empty = true;
@@ -1362,7 +1361,7 @@ protected:
         }
 
         #pragma omp parallel for
-        for (int k = 0; k < static_cast<int>(system_size); ++k) {
+        for (int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
             IndexType col_begin = Arow_indices[k];
             IndexType col_end = Arow_indices[k+1];
             double k_factor = scaling_factors[k];
@@ -1841,18 +1840,17 @@ private:
         TSystemVectorType& rb
         )
     {
-        const SizeType system_size = rb.size();
-        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
-
         // NOTE: dofs are assumed to be numbered consecutively
+        const auto it_dof_begin = BaseType::mDofSet.begin();
         #pragma omp parallel for
-        for (int k = 0; k<ndofs; ++k) {
-            auto it_dof = BaseType::mDofSet.begin() + k;
-
-            if (mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
-                const IndexType equation_id = it_dof->EquationId();
-                if (equation_id < system_size) {
-                    rb[equation_id] = 0.0;
+        for(int k = 0; k < static_cast<int>(mDoFToSolveSystemSize); ++k) {
+            auto it_dof = it_dof_begin + k;
+            if (k < static_cast<int>(BaseType::mEquationSystemSize)) {
+                auto it = mDoFSlaveSet.find(*it_dof);
+                if (it == mDoFSlaveSet.end()) {
+                    if(mDoFMasterFixedSet.find(*it_dof) != mDoFMasterFixedSet.end()) {
+                        rb[k] = 0.0;
+                    }
                 }
             }
         }
