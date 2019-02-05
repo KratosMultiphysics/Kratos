@@ -167,7 +167,7 @@ def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_m
             '''refine if current lev > 0'''
             if (lev > 0):
                 '''refine the model Kratos object'''
-                model_refined = refinement.compute_refinement_hessian_metric(simulation,size_meshes[lev+1],size_meshes[lev],current_settings_metric_refinement,current_settings_remesh_refinement)
+                model_refined = refinement.compute_refinement_hessian_metric(simulation,size_meshes[lev],size_meshes[lev-1],current_settings_metric_refinement,current_settings_remesh_refinement)
                 '''initialize the model Kratos object'''
                 simulation = MultilevelMonteCarloAnalysis(model_refined,current_parameters,sample)
                 simulation.Initialize()
@@ -311,7 +311,7 @@ if __name__ == '__main__':
         "tol0"                            : 0.25,
         "tolF"                            : 0.1,
         "cphi"                            : 1.0,
-        "number_samples_screening"        : 2,
+        "number_samples_screening"        : 15,
         "Lscreening"                      : 2,
         "Lmax"                            : 6,
         "initial_mesh_size"               : 0.5
