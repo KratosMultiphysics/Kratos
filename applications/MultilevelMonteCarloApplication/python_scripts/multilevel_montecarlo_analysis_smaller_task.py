@@ -122,8 +122,8 @@ def ExecuteMultilevelMonteCarloAnalisys(current_MLMC_level,pickled_coarse_model,
     if (current_MLMC_level == 0):
         mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,current_MLMC_level,mlmc_results_class)
     else:
-        for lev in range(current_MLMC_level+1):
-            mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,lev,mlmc_results_class)
+        for level in range(current_MLMC_level+1):
+            mlmc_results_class,pickled_current_model,pickled_current_parameters = ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_model,pickled_coarse_parameters,size_meshes,pickled_settings_metric_refinement,pickled_settings_remesh_refinement,sample,level,mlmc_results_class)
             del(pickled_coarse_model,pickled_coarse_parameters)
             pickled_coarse_model = pickled_current_model
             pickled_coarse_parameters = pickled_current_parameters
@@ -159,7 +159,7 @@ def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_m
     del(serialized_parameters)
     '''start time'''
     start_MLMC_time = time.time()
-    '''refine if current lev > 0, it means the model constains a solution to exploit for the adaptive refinement'''
+    '''refine if current current_level > 0, adaptive refinement based on the solution of previous level'''
     if (current_level > 0):
         '''unpickle metric and remesh refinement parameters and build Kratos Parameters objects'''
         settings_metric_refinement_serializer = pickle.loads(pickled_settings_metric_refinement)
@@ -170,7 +170,7 @@ def ExecuteMultilevelMonteCarloAnalisys_Task(current_MLMC_level,pickled_coarse_m
         settings_remesh_refinement_serializer.Load("RemeshRefinementParametersSerialization",current_settings_remesh_refinement)
         del(settings_metric_refinement_serializer,settings_remesh_refinement_serializer)
         '''refine the model Kratos object'''
-        refined_model,refined_parameters = refinement.compute_refinement_hessian_metric(current_model,current_parameters,size_meshes[lev+1],size_meshes[lev],current_settings_metric_refinement,current_settings_remesh_refinement)
+        refined_model,refined_parameters = refinement.compute_refinement_hessian_metric(current_model,current_parameters,size_meshes[current_level],size_meshes[current_level-1],current_settings_metric_refinement,current_settings_remesh_refinement)
         '''initialize the model Kratos object'''
         simulation = MultilevelMonteCarloAnalysis(refined_model,refined_parameters,sample)
         simulation.Initialize()
@@ -357,9 +357,9 @@ if __name__ == '__main__':
     '''contruct MultilevelMonteCarlo class'''
     mlmc_class = mlmc.MultilevelMonteCarlo(settings_ML_simulation)
     ''''start screening phase'''
-    for lev in range(mlmc_class.current_number_levels+1):
-        for instance in range (mlmc_class.number_samples[lev]):
-            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+    for level in range(mlmc_class.current_number_levels+1):
+        for instance in range (mlmc_class.number_samples[level]):
+            mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
     '''finalize screening phase'''
     mlmc_class.FinalizeScreeningPhase()
     mlmc_class.ScreeningInfoScreeningPhase()
@@ -369,9 +369,9 @@ if __name__ == '__main__':
         mlmc_class.InitializeMLMCPhase()
         mlmc_class.ScreeningInfoInitializeMLMCPhase()
         '''MLMC execution phase'''
-        for lev in range (mlmc_class.current_number_levels+1):
-            for instance in range (mlmc_class.difference_number_samples[lev]):
-                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(lev,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
+        for level in range (mlmc_class.current_number_levels+1):
+            for instance in range (mlmc_class.difference_number_samples[level]):
+                mlmc_class.AddResults(ExecuteMultilevelMonteCarloAnalisys(level,pickled_model,pickled_parameters,mlmc_class.sizes_mesh,pickled_settings_metric_refinement,pickled_settings_remesh_refinement))
         '''finalize MLMC phase'''
         mlmc_class.FinalizeMLMCPhase()
         mlmc_class.ScreeningInfoFinalizeMLMCPhase()
