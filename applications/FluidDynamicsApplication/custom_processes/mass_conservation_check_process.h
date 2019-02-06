@@ -162,13 +162,32 @@ public:
      */
     std::string ComputeBalancedVolume();
 
-
+    /**
+     * @brief Function to compute the time step for the forward convection of the current distance field to find the auxiliary distance field
+     *
+     * @return double Time step
+     */
     double ComputeDtForConvection();
 
+    /**
+     * @brief Function to apply the local corrections based on the auxiliary distance field coming from a convection process
+     *
+     * @param rAuxDistVar Non-historical variable of the auxiliary distance field
+     */
     void ApplyLocalCorrection( Variable<double>& rAuxDistVar );
 
+
+    /**
+     * @brief Function to re-evaluate the mass conservation status after the local correction and before the global correction
+     *
+     */
     void ReCheckTheMassConservation();
 
+
+    /**
+     * @brief Function to perform the global correction by means of a shift in the entire distance field
+     *
+     */
     void ApplyGlobalCorrection();
 
 
