@@ -1263,6 +1263,8 @@ protected:
         TSystemVectorType& rb
         ) override
     {
+        KRATOS_TRY
+
         // Refresh RHS to have the correct reactions
         BuildRHS(pScheme, rModelPart, rb);
 
@@ -1270,13 +1272,13 @@ protected:
         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
 
         // Updating variables
-        IndexType i;
         for (auto& r_dof : BaseType::mDofSet) {
             if ((r_dof.IsFixed()) || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
-                i = r_dof.EquationId() - mDoFToSolveSystemSize + mDoFMasterFixedSet.size();
-                r_dof.GetSolutionStepReactionValue() = -r_reactions_vector[i];
+                r_dof.GetSolutionStepReactionValue() = -r_reactions_vector[mReactionEquationIdMap[r_dof.EquationId()]];
             }
         }
+
+        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::CalculateReactions failed ..");
     }
 
     /**
@@ -1536,7 +1538,7 @@ private:
             }
         }
 
-        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
+        KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::SetUpSystemWithConstraints failed ..");
     }
 
     /**
