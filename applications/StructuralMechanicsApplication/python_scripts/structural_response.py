@@ -414,7 +414,7 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
 
     def InitializeSolutionStep(self):
         # synchronize the modelparts # TODO this should happen automatically
-       # Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
+        Logger.PrintInfo("\n> Synchronize primal and adjoint modelpart for response:", self.identifier)
 
        # self._SynchronizeAdjointFromPrimal()
 
@@ -426,20 +426,14 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             self.primal_analysis.end_time += 1
         
         ## run the solution loop
-        import csv
-        with open('reponse_value_3D_truss_perturb_node3_z_00001.csv', mode='w') as response_values:
-            self.writer = csv.writer(response_values, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            while self.primal_analysis.time < self.primal_analysis.end_time:
-                self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
-                self.primal_analysis.InitializeSolutionStep()
-                self.primal_analysis._GetSolver().Predict()
-                self.primal_analysis._GetSolver().SolveSolutionStep()
-                self.primal_analysis.FinalizeSolutionStep()
-                self.primal_analysis.OutputSolutionStep()
-                self.CalculateResponseIncrement()
-
-                self.writer.writerow([ self.primal_analysis.time, self.response_value ])
-        response_values.close()
+        while self.primal_analysis.time < self.primal_analysis.end_time:
+            self.primal_analysis.time = self.primal_analysis._GetSolver().AdvanceInTime(self.primal_analysis.time)
+            self.primal_analysis.InitializeSolutionStep()
+            self.primal_analysis._GetSolver().Predict()
+            self.primal_analysis._GetSolver().SolveSolutionStep()
+            self.primal_analysis.FinalizeSolutionStep()
+            self.primal_analysis.OutputSolutionStep()
+            self.CalculateResponseIncrement()
 
         Logger.PrintInfo("> Time needed for solving the primal analysis = ",round(timer.time() - startTime,2),"s")
 
@@ -520,48 +514,4 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
             adjoint_node.X = primal_node.X
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
-
-    # ## this function calculates the response only in the python interface
-    # def CalculateStrainEnergy(self):
-    #     for element in self.primal_model_part.Elements:
-    #         element.CalculateLocalSystem(self.LHS, self.RHS,self.primal_model_part.ProcessInfo)
-    #         LHS_numpy = np.zeros([6,6]) 
-    #         for i in range(0,6):
-    #             for j in range(0,6):
-    #                 LHS_numpy[i][j] = self.LHS[i , j]
-    #         displacement_increment = self.element_displacement_vector[element.Id - 1] - self.elements_displacement_vector_previous_step[element.Id - 1]
-    #         load_increment = np.inner(LHS_numpy , displacement_increment)
-    #         self.elements_load_vectors[element.Id - 1] += load_increment
-    #         self.strain_energy += np.dot(self.elements_load_vectors[element.Id - 1] - (0.5 * load_increment) , displacement_increment)
-    #     print("strain energy" ,  self.strain_energy)
-    #     print("load vector" ,  self.elements_load_vectors)
-    #     print("RHS" ,self.RHS )
-    #     print("LHS")
-        
-    # # function that reads in the HDF5 file data
-    # def ReadDisplacementData(self , time_step):
-    #     time_step_string = f"{time_step:.4f}"
-    #     file_name = "primal_output_truss-" + time_step_string + ".h5" 
-            
-    #     element_connectivities = []
-    #     for element in self.primal_model_part.Elements:
-    #         Nodes = element.GetNodes()
-    #         node_Ids = []
-    #         for node in Nodes:
-    #             node_Ids.append(node.Id)
-    #         element_connectivities.append(node_Ids)
-        
-    #     import copy
-    #     self.elements_displacement_vector_previous_step = copy.copy(self.element_displacement_vector)
-    #     # reading the hdf file data
-    #     hdf5_file = h5py.File(file_name, 'r')
-    #     nodal_data = hdf5_file["ResultsData/NodalSolutionStepData"]
-    #     nodal_displacement_hdf = np.array(nodal_data['DISPLACEMENT'])
-    #     hdf5_file.close()
-    #     for element in self.primal_model_part.Elements:
-    #         node_displacement = []
-    #         for i in range(0,2):
-    #             node_displacement.append(nodal_displacement_hdf[element_connectivities[element.Id - 1][i] - 1])
-    #         element_displacement = np.concatenate([node_displacement[0], node_displacement[1]])
-    #         self.element_displacement_vector[element.Id - 1] = element_displacement     
 

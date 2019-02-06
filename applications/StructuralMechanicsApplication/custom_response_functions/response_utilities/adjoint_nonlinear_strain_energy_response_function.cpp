@@ -215,8 +215,6 @@ namespace Kratos
             if( response_gradient_0[i] != 0 )
                 rResponseGradient[i] = response_gradient_1[i] / response_gradient_0[i];
         }
-       
-        //KRATOS_WATCH(rResponseGradient)
 
         mResponseGradient_0[rAdjointCondition.Id()] = response_gradient_1;
         KRATOS_CATCH("");
@@ -232,8 +230,6 @@ namespace Kratos
 
         if (rSensitivityGradient.size() != 0)
             rSensitivityGradient.resize(0, false);
-        
-        //KRATOS_WATCH(rSensitivityGradient)
 
         KRATOS_CATCH("");
     }

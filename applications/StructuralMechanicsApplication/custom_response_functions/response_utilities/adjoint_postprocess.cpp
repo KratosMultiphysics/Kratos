@@ -227,7 +227,7 @@ namespace Kratos
             Vector ResponseGradient;
             Vector adjoint_values;
             mrResponseFunction.CalculateFirstDerivativesGradient(cond_i, ResidualGradient,
-                                                            ResponseGradient, r_process_info);
+                                                                ResponseGradient, r_process_info);
             cond_i.GetValuesVector(adjoint_values, 1);
 
             // TODO Mahmoud: I am not sure this is accurate or I should multiply by double only    
@@ -287,7 +287,8 @@ namespace Kratos
                         {
                             // get corresponding value from approximated adjoint vector
                             if(node_j.Id() == node_i.Id())
-                                project(adjoint_vector_0[k], range( i * dimension, (i*dimension) + dimension) ) = subrange(approximated_adjoint_vector[cond_i.Id()], j, dimension);
+                                project(adjoint_vector_0[k],range( i * dimension,(i*dimension) + dimension)) = 
+                                                                subrange(approximated_adjoint_vector[cond_i.Id()], j, dimension);
                             j++ ;
                         }
                     }
