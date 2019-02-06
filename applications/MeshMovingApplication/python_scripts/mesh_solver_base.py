@@ -37,7 +37,7 @@ class MeshSolverBase(PythonSolver):
                 "input_filename" : "unknown_name"
             },
             "mesh_motion_linear_solver_settings" : {
-                "solver_type" : "AMGCL",
+                "solver_type" : "amgcl",
                 "smoother_type":"ilu0",
                 "krylov_type": "gmres",
                 "coarsening_type": "aggregation",
