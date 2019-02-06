@@ -100,7 +100,7 @@ namespace Testing {
     {
         // Set the partitioned FSI utilities
         typedef UblasSpace<double, Matrix, Vector > TSpace;
-        PartitionedFSIUtilities<TSpace, 2> partitioned_fsi_utilities;
+        PartitionedFSIUtilities<TSpace,array_1d<double,3>,2> partitioned_fsi_utilities;
 
         // Set the model part that contains the condition based skin
         Model model;
@@ -121,7 +121,7 @@ namespace Testing {
     {
         // Set the partitioned FSI utilities
         typedef UblasSpace<double, Matrix, Vector > TSpace;
-        PartitionedFSIUtilities<TSpace, 2> partitioned_fsi_utilities;
+        PartitionedFSIUtilities<TSpace,array_1d<double,3>,2> partitioned_fsi_utilities;
 
         // Set the model part in where the error is to be computed
         Model model;

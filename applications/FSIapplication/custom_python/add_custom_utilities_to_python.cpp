@@ -80,7 +80,7 @@ void AddCustomUtilitiesToPython(pybind11::module &m)
 
     py::class_<PartitionedFSIUtilities<TSpace,double,3>, PartitionedFSIUtilities<TSpace,double,3>::Pointer>(m,"PartitionedFSIUtilitiesDouble3D")
         .def(py::init<>())
-        .def("CopySkinToElements", &PartitionedFSIUtilities<TSpace,double,2>::CopySkinToElements)
+        .def("CopySkinToElements", &PartitionedFSIUtilities<TSpace,double,3>::CopySkinToElements)
         .def("GetInterfaceArea", &PartitionedFSIUtilities<TSpace,double,3>::GetInterfaceArea)
         .def("GetInterfaceResidualSize", &PartitionedFSIUtilities<TSpace,double,3>::GetInterfaceResidualSize)
         .def("UpdateInterfaceValues", &PartitionedFSIUtilities<TSpace,double,3>::UpdateInterfaceValues)
