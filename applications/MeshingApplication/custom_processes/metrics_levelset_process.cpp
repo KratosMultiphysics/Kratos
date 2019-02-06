@@ -29,6 +29,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     Parameters default_parameters = Parameters(R"(
     {
         "minimal_size"                         : 0.1,
+        "maximal_size"                         : 1.0,
         "enforce_current"                      : true,
         "anisotropy_remeshing"                 : true,
         "anisotropy_parameters":
@@ -42,6 +43,7 @@ ComputeLevelSetSolMetricProcess<TDim>::ComputeLevelSetSolMetricProcess(
     ThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
 
     mMinSize = ThisParameters["minimal_size"].GetDouble();
+    mMaxSize = ThisParameters["maximal_size"].GetDouble();
     mEnforceCurrent = ThisParameters["enforce_current"].GetBool();
 
     // In case we have isotropic remeshing (default values)
@@ -102,8 +104,10 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
 
         double element_size = mMinSize;
         const double nodal_h = it_node->GetValue(NODAL_H);
+        const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
         if (it_node->SolutionStepsDataHas(reference_var)) {
-            const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
+            // const double ratio_reference = it_node->FastGetSolutionStepValue(reference_var);
+            element_size = CalculateElementSize(ratio_reference, nodal_h);
             ratio = CalculateAnisotropicRatio(ratio_reference, mAnisotropicRatio, mBoundLayer, mInterpolation);
             if (((element_size > nodal_h) && (mEnforceCurrent)) || (std::abs(ratio_reference) > mBoundLayer))
                 element_size = nodal_h;
@@ -112,6 +116,7 @@ void ComputeLevelSetSolMetricProcess<TDim>::Execute()
                 element_size = nodal_h;
         }
 
+        std::cout << it_node->Id() << "  "<<element_size<<" "<<ratio_reference<<std::endl;  //output to the file out.txt
         // For postprocess pourposes
         it_node->SetValue(ANISOTROPIC_RATIO, ratio);
 
@@ -223,6 +228,27 @@ double ComputeLevelSetSolMetricProcess<TDim>::CalculateAnisotropicRatio(
     return ratio;
 }
 
+template<SizeType TDim>
+double ComputeLevelSetSolMetricProcess<TDim>::CalculateElementSize(
+    const double Distance,
+    const double NodalH
+    )
+{
+    double size = NodalH;
+    if (std::abs(Distance) <= mBoundLayer) {
+        if (mInterpolation == Interpolation::CONSTANT)
+            size = mMinSize;
+        else if (mInterpolation == Interpolation::LINEAR)
+            size = mMinSize + (std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize);
+        else if (mInterpolation == Interpolation::EXPONENTIAL) {
+            size = - std::log(1-std::abs(Distance)/mBoundLayer) * (mMaxSize-mMinSize) + mMinSize;
+            if (size > mMaxSize) size = mMaxSize;
+        }
+    }
+    
+
+    return size;
+}
 /***********************************************************************************/
 /***********************************************************************************/
 
