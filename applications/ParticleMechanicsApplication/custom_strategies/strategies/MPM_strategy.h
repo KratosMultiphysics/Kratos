@@ -654,7 +654,7 @@ public:
 
                         // Get condition variables:
                         // Normal vector (normalized)
-                        MPC_Normal = i->GetValue(NORMAL);
+                        if (i->Has(NORMAL)) MPC_Normal = i->GetValue(NORMAL);
                         const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
                         if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
 
@@ -884,7 +884,7 @@ public:
                         for ( unsigned int j = 0; j < rGeom.size(); j ++)
                         {
                             // Nodal normal vector is used
-                            MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
+                            if (rGeom[j].Has(NORMAL)) MPC_Normal = rGeom[j].FastGetSolutionStepValue(NORMAL);
                             const double denominator = std::sqrt(MPC_Normal[0]*MPC_Normal[0] + MPC_Normal[1]*MPC_Normal[1] + MPC_Normal[2]*MPC_Normal[2]);
                             if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) MPC_Normal *= 1.0 / denominator;
 
