@@ -855,7 +855,7 @@ void AddCustomUtilitiesToPython(
         // .def("PrintGaussPoints", &EmbeddedIgaModeler::PrintGaussPoints)
         // .def("PrintMappedGaussPoints", &EmbeddedIgaModeler::PrintMappedGaussPoints)
         // .def("Triangulate", &EmbeddedIgaModeler::Triangulate)
-        // .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
+        .def("TestTriangle", &EmbeddedIgaModeler::TestTriangle)
         ;
 
     

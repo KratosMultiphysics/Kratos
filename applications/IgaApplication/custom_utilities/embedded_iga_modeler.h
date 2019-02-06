@@ -73,7 +73,7 @@ namespace Kratos
 
         // std::vector<std::vector<double>> Triangulate();  
         
-        // std::vector<std::vector<double>> TestTriangle(); 
+        std::vector<std::vector<double>> TestTriangle(); 
 
 
 

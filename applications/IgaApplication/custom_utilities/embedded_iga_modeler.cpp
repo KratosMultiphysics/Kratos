@@ -126,15 +126,15 @@ namespace Kratos
         in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
         
         unsigned int vertex_id = 1;
+        in_data.segmentlist[0] = 0; 
         for (unsigned int seg_idx = 1; seg_idx < in_data.numberofsegments * 2 - 1;)
         {
             for (unsigned int j = 0; j < 2; ++j)    in_data.segmentlist[seg_idx++] =  vertex_id;
             vertex_id += 1; 
         }
-        in_data.segmentlist[0] = 0; 
         in_data.segmentlist[in_data.numberofsegments * 2 - 1] = 0; 
 
-        char trigenOptsVerbose[] = "qz"; 
+        char trigenOptsVerbose[] = "Dpza1"; 
         char* trigenOpts = trigenOptsVerbose; 
 
         triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
@@ -308,82 +308,86 @@ namespace Kratos
 
     
 
-    // std::vector<std::vector<double>> EmbeddedIgaModeler::TestTriangle()
-    // {
-    //     std::vector<array_1d<double,2>> polygon;
+    std::vector<std::vector<double>> EmbeddedIgaModeler::TestTriangle()
+    {
+        std::vector<array_1d<double,2>> polygon;
 
-    //     polygon.resize(5); 
+        polygon.resize(8); 
 
-    //     polygon[0][0] = 0;
-    //     polygon[0][1] = 0; 
-    //     polygon[1][0] = 10;
-    //     polygon[1][1] = 0; 
-    //     polygon[2][0] = 10;
-    //     polygon[2][1] = 5; 
-    //     polygon[3][0] = 0;
-    //     polygon[3][1] = 5;
-    //     polygon[4][0] = 7; 
-    //     polygon[4][1] = 3; 
+        polygon[0][0] = 0;
+        polygon[0][1] = 0; 
+        polygon[1][0] = 10;
+        polygon[1][1] = 0; 
+        polygon[2][0] = 10;
+        polygon[2][1] = 5; 
+        polygon[3][0] = 7;
+        polygon[3][1] = 5;
+        polygon[4][0] = 7; 
+        polygon[4][1] = 3; 
+        polygon[5][0] = 3; 
+        polygon[5][1] = 3;
+        polygon[6][0] = 3; 
+        polygon[6][1] = 5;
+        polygon[7][0] = 0; 
+        polygon[7][1] = 5;
 
+        // initializing the i/o containers
+        struct triangulateio in_data; 
+        struct triangulateio out_data; 
+        struct triangulateio vor_out_data;
 
+        vor_out_data.numberofpoints = 0; 
+        vor_out_data.pointlist = (REAL*) malloc(vor_out_data.numberofpoints * 2 * sizeof(REAL));
+         
+        InitTriangulationDataStructure(in_data); 
+        InitTriangulationDataStructure(out_data); 
+        InitTriangulationDataStructure(vor_out_data); 
 
+        // Initialize the pointlist (1d list) with the number of points and the position 
+        in_data.numberofpoints = polygon.size(); 
+        in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
+        in_data.pointmarkerlist = (int*) malloc(in_data.numberofpoints * sizeof(int));
 
-    //     // initializing the i/o containers
-    //     struct triangulateio in_data; 
-    //     struct triangulateio out_data; 
-    //     struct triangulateio vor_out_data;
-
-    //     vor_out_data.numberofpoints = 1; 
-    //     vor_out_data.pointlist = (REAL*) malloc(vor_out_data.numberofpoints * 2 * sizeof(REAL));
-    //     vor_out_data.pointlist[0] = 8; 
-    //     vor_out_data.pointlist[1] = 3; 
-
-    //     InitTriangulationDataStructure(in_data); 
-    //     InitTriangulationDataStructure(out_data); 
-    //     InitTriangulationDataStructure(vor_out_data); 
-
-    //     // Initialize the pointlist (1d list) with the number of points and the position 
-    //     in_data.numberofpoints = polygon.size(); 
-    //     in_data.pointlist = (REAL*) malloc(in_data.numberofpoints * 2 * sizeof(REAL));
-
-    //     unsigned int point_idx = 0;
-    //     for (unsigned int i = 0; i < in_data.numberofpoints; ++i)
-    //     {
-    //         for (unsigned int j = 0; j < 2; ++j)    in_data.pointlist[point_idx++] = polygon[i][j];
-    //     }
+        unsigned int point_idx = 0;
+        for (unsigned int i = 0; i < in_data.numberofpoints; ++i)
+        {
+            for (unsigned int j = 0; j < 2; ++j)    in_data.pointlist[point_idx++] = polygon[i][j];
+        }
         
-    //     // Initilize the segment list with the number of boundary edges and the start and end node id
-    //     // For closed polygons the number of segments is equal to the number of points
-    //     in_data.numberofsegments = in_data.numberofpoints; 
-    //     in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
+        // Initilize the segment list with the number of boundary edges and the start and end node id
+        // For closed polygons the number of segments is equal to the number of points
+        in_data.numberofsegments = in_data.numberofpoints; 
+        in_data.segmentlist = (int*) malloc(in_data.numberofsegments * 2 * sizeof(int));
         
-    //     unsigned int vertex_id = 1;
-    //     for (unsigned int seg_idx = 1; seg_idx < in_data.numberofsegments * 2 - 1;)
-    //     {
-    //         for (unsigned int j = 0; j < 2; ++j)    in_data.segmentlist[seg_idx++] =  vertex_id;
-    //         vertex_id += 1; 
-    //     }
-    //     in_data.segmentlist[0] = 0; 
-    //     in_data.segmentlist[in_data.numberofsegments * 2 - 1] = 0; 
+        unsigned int vertex_id = 1;
+        in_data.segmentlist[0] = 0; 
+        for (unsigned int seg_idx = 1; seg_idx < in_data.numberofsegments * 2 - 1;)
+        {
+            for (unsigned int j = 0; j < 2; ++j)    in_data.segmentlist[seg_idx++] =  vertex_id;
+            vertex_id += 1; 
+        }
+        in_data.segmentlist[in_data.numberofsegments * 2 - 1] = 0; 
 
-    //     char trigenOptsVerbose[] = "Vvpz"; 
-    //     char* trigenOpts = trigenOptsVerbose; 
+        
 
-    //     triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
+        char trigenOptsVerbose[] = "qpza0.5"; 
+        char* trigenOpts = trigenOptsVerbose; 
 
-    //     std::vector<std::vector<double>> tri_coords (out_data.numberoftriangles * 3 , std::vector<double>(2,0)); 
-    //     unsigned int id = 0; 
-    //     for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
-    //     {
-    //         for (unsigned int j = 0; j < 3; ++j)
-    //         {
-    //             tri_coords[id + j][0] = out_data.pointlist[out_data.trianglelist[id + j] * 2];
-    //             tri_coords[id + j][1] = out_data.pointlist[out_data.trianglelist[id + j] * 2 + 1]; 
-    //         }
-    //         id += 3; 
-    //     }
-    //     return tri_coords; 
-    // }
+        triangulate(trigenOpts, &in_data, &out_data, &vor_out_data);
+
+        std::vector<std::vector<double>> tri_coords (out_data.numberoftriangles * 3 , std::vector<double>(2,0)); 
+        unsigned int id = 0; 
+        for (unsigned int i = 0; i < out_data.numberoftriangles; ++i)
+        {
+            for (unsigned int j = 0; j < 3; ++j)
+            {
+                tri_coords[id + j][0] = out_data.pointlist[out_data.trianglelist[id + j] * 2];
+                tri_coords[id + j][1] = out_data.pointlist[out_data.trianglelist[id + j] * 2 + 1]; 
+            }
+            id += 3; 
+        }
+        return tri_coords; 
+    }
 
     // std::vector<std::vector<double>> EmbeddedIgaModeler::Triangulate()
     // {
