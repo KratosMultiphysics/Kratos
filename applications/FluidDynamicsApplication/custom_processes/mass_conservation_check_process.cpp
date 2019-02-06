@@ -99,7 +99,7 @@ std::string MassConservationCheckProcess::Initialize(){
     output_line +=              "  fluid interface (area)  = " + std::to_string(inter_area) + "\n\n";
     output_line +=              "------ Time step values --------------- \n";
     output_line +=              "sim_time \t\twater_vol \t\tair_vol \t\twater_err \t\tnet_inf \t\t";
-    output_line +=              "net_outf \t\tint_area \t\tcorr_shift \n";
+    output_line +=              "net_outf \t\tint_area \n";
 
     return output_line;
 }
@@ -131,6 +131,7 @@ std::string MassConservationCheckProcess::ComputeBalancedVolume(){
     mQNet1 = mQNet0;
     mQNet0 = net_inflow_inlet + net_inflow_outlet;
 
+    // ### Here all already global quantities ###
     // adding time-integrated net inflow ( = new water volume ) to the theoretical value
     // The value of the integral is evaluated following the idea of the Adams-Moulton-Procedure (s=2)
     mTheoreticalNegativeVolume += current_dt * ( 5.0*mQNet0 + 8.0*mQNet1 - 1.0*mQNet2 ) / 12.0;
@@ -154,25 +155,34 @@ double MassConservationCheckProcess::ComputeDtForConvection(){
 
     // a small step is set to avoid numerical problems
     double time_step_for_convection = 1.0e-7;
+    const auto& comm = mrModelPart.GetCommunicator();
 
     if ( mWaterVolumeError > 0.0 ){
         // case: water volume was lost by mistake
-        const double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
         mAddWater = true;
-
-        // checking if flow is sufficient (avoid division by 0)
-        if ( water_outflow_over_boundary > 1.0e-7 ){
-            time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
+        double water_outflow_over_boundary = OrthogonalFlowIntoAir( 1.0 );
+        comm.Barrier();
+        if ( comm.SumAll( water_outflow_over_boundary ) ){
+            // checking if flow is sufficient (avoid division by 0)
+            if ( water_outflow_over_boundary > 1.0e-7 ){
+                time_step_for_convection = mWaterVolumeError / water_outflow_over_boundary;
+            }
+        } else {
+            KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
         }
     }
     else if ( mWaterVolumeError < 0.0 ){
         // case: water volume was gained by mistake
-        const double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
         mAddWater = false;
-
-        // checking if flow is sufficient (avoid division by 0)
-        if ( water_inflow_over_boundary > 1.0e-7 ){
-            time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
+        double water_inflow_over_boundary = OrthogonalFlowIntoAir( -1.0 );
+        comm.Barrier();
+        if ( comm.SumAll( water_inflow_over_boundary ) ){
+            // checking if flow is sufficient (avoid division by 0)
+            if ( water_inflow_over_boundary > 1.0e-7 ){
+                time_step_for_convection = - mWaterVolumeError / water_inflow_over_boundary;
+            }
+        } else {
+            KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ComputeDtForConvection()";
         }
     }
     else {
@@ -217,8 +227,18 @@ void MassConservationCheckProcess::ReCheckTheMassConservation(){
     double inter_area = 0.0;
     ComputeVolumesAndInterface( pos_vol, neg_vol, inter_area );
 
-    mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
-    mInterfaceArea = inter_area;
+    const auto& comm = mrModelPart.GetCommunicator();
+
+    comm.Barrier();
+    if ( comm.SumAll(neg_vol) && comm.SumAll(inter_area)  ){
+        // if communication was successful
+        mWaterVolumeError = mTheoreticalNegativeVolume - neg_vol;
+        mInterfaceArea = inter_area;
+    } else {
+        KRATOS_DEBUG_ERROR << "Communication failed in MassConservationCheckProcess::ReCheckTheMassConservation()";
+    }
+
+
 
 }
 
@@ -340,9 +360,9 @@ double MassConservationCheckProcess::OrthogonalFlowIntoAir( const double factor 
 {
     double outflow = 0.0;
 
-    KRATOS_ERROR_IF( std::abs( factor ) != 1.0 ) << "MassConservationPocess: Given value of argument 'factor' is not plausible." << std::endl;
+    KRATOS_ERROR_IF( std::abs( factor ) != 1.0 ) << "MassConservationPocess: Given value of argument 'factor' is not plausible. Consider '1' or '-1'." << std::endl;
 
-    // #pragma omp parallel for reduction(+: pos_vol, neg_vol, int_area)
+    #pragma omp parallel for reduction(+: outflow)
     for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
         // iteration over all elements
         const auto it_elem = mrModelPart.ElementsBegin() + i_elem;
