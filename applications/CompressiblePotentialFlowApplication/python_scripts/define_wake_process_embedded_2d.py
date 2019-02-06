@@ -111,6 +111,7 @@ class DefineWakeProcess(KratosMultiphysics.Process):
                 if(elnode.Is(KratosMultiphysics.STRUCTURE)):
                     elem.Set(KratosMultiphysics.STRUCTURE, True)
                     elem.Set(KratosMultiphysics.MARKER,True)
+                    # elem.Set(KratosMultiphysics.BOUNDARY,False)
                     self.trailing_edge_model_part.Elements.append(elem)
                     break
         
