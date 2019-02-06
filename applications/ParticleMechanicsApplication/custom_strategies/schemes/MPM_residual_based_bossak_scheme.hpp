@@ -645,7 +645,7 @@ public:
 
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
+        mRotationTool.ElementApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -683,7 +683,7 @@ public:
 
         // If there is a slip condition, apply it on a rotated system of coordinates
         mRotationTool.RotateRHS(RHS_Contribution,rCurrentElement->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
+        mRotationTool.ElementApplySlipCondition(RHS_Contribution,rCurrentElement->GetGeometry());
 
         KRATOS_CATCH( "" )
 
@@ -728,7 +728,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
@@ -765,7 +765,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(RHS_Contribution,rCurrentCondition->GetGeometry());
-        mRotationTool.ApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition->GetGeometry());
 
         KRATOS_CATCH( "" )
     }
