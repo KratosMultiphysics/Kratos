@@ -129,17 +129,21 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         if parameter_name == "processes":
             processes_block_names = ["constraints_process_list", "loads_process_list", "list_other_processes", "json_output_process",
                 "json_check_process", "check_analytic_results_process", "contact_process_list"]
-            if len(list_of_processes) == 0: # Processes are given in the old format
-                info_msg  = "Using the old way to create the processes, this will be removed!\n"
-                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
-                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
-                info_msg += "for a description of the new format"
-                KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                deprecation_warning_issued = False
                 from KratosMultiphysics.process_factory import KratosProcessFactory
                 factory = KratosProcessFactory(self.model)
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
-                        list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
+                        if not deprecation_warning_issued:
+                            info_msg  = "Using the old way to create the processes, this will be removed!\n"
+                            info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                            info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                            info_msg += "for a description of the new format"
+                            KratosMultiphysics.Logger.PrintWarning("StructuralMechanicsAnalysis", info_msg)
+                            deprecation_warning_issued = True
+
+                            list_of_processes += factory.ConstructListOfProcesses(self.project_parameters[process_name])
             else: # Processes are given in the new format
                 for process_name in processes_block_names:
                     if self.project_parameters.Has(process_name):
