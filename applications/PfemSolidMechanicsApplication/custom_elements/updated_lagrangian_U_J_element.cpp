@@ -331,6 +331,7 @@ namespace Kratos
          if ( fabs(Values[0]) > 1e-6)
             mElementStabilizationNumber *= Values[0];
       }
+      mElementStabilizationNumber = 1.0;
 
       this->Set(SolidElement::FINALIZED_STEP, false);
 
@@ -1419,9 +1420,9 @@ namespace Kratos
 
       Vector KuJ(number_of_nodes*dimension);
       noalias( KuJ ) = prod( trans( rVariables.B), (ConstVector) );
+      
 
-      const unsigned int MatSize = dimension*number_of_nodes;
-      Matrix SecondMatrix(MatSize,MatSize);
+      Matrix SecondMatrix(dimension*number_of_nodes, number_of_nodes);
       noalias(  SecondMatrix ) = ZeroMatrix( dimension*number_of_nodes, number_of_nodes);
 
       for (unsigned int i = 0; i < dimension*number_of_nodes; i++) {

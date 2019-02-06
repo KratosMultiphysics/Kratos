@@ -53,7 +53,7 @@ bool ProjectTo1D2D(const GeometryPointerType pGeometry,
         pGeometry->UnitNormal(local_coords_init),
         pGeometry->UnitNormal(local_coords_init)));
 
-    bool is_inside = pGeometry->IsInside(projected_point, rLocalCoords);
+    bool is_inside = pGeometry->IsInside(projected_point, rLocalCoords, 1E-14);
 
     return is_inside;
 }

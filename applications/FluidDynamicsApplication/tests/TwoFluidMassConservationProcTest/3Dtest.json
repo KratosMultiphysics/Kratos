@@ -35,7 +35,7 @@
             "time_step"           	: 0.025
         },
     	"linear_solver_settings": {
-        	"solver_type": "AMGCL"
+        	"solver_type": "amgcl"
     	}
     },
 	"processes"	:	{

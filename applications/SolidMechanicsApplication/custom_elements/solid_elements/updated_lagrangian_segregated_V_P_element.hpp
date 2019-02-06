@@ -59,7 +59,7 @@ public:
   ///Type for size
   typedef GeometryData::SizeType SizeType;
 
-  typedef std::vector<Element*> ElementPointerVectorType;
+  typedef WeakPointerVector<Element> ElementWeakPtrVectorType;
 
   /// Counted pointer of UpdatedLagrangianSegregatedVPElement
   KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianSegregatedVPElement );

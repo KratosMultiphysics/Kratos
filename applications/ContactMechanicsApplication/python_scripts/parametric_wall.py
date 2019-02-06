@@ -121,7 +121,7 @@ class ParametricWall(object):
             self.body_model_part = self.main_model_part.GetSubModelPart(self.body_model_part_name)
 
             #RigidBodyCenter = self.rigid_body_model_part.GetNode(self.rigid_body_model_part.NumberOfNodes()-1)
-            for node in self.rigid_body_model_part.GetNodes():
+            for node in self.body_model_part.GetNodes():
                 RigidBodyCenter = node
                 break
 

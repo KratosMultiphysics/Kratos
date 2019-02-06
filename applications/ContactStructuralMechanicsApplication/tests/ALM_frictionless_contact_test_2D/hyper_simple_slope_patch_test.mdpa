@@ -4,11 +4,6 @@ End ModelPartData
 
 Begin Properties 0
 End Properties
-Begin Properties 1
-End Properties
-
-Begin Properties 2
-End Properties
 
 Begin Nodes
     1        0.00000        0.00000        0.00000
@@ -23,11 +18,11 @@ End Nodes
 
 
 Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto2
-         1          1         1         2         3         4 
+         1          0         1         2         3         4
 End Elements
 
 Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Parts Auto3
-         2          2         5         6         7         8 
+         2          0         5         6         7         8
 End Elements
 
 Begin Conditions LineLoadCondition2D2N// GUI group identifier: Load on lines Auto1

@@ -156,7 +156,7 @@ TrussElement3D2N::CalculateBodyForces() {
   // creating necessary values
   const double A = this->GetProperties()[CROSS_AREA];
   const double L = StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-  const double rho = this->GetProperties()[DENSITY];
+  const double rho = StructuralMechanicsElementUtilities::GetDensityForMassMatrixComputation(*this);
 
   double total_mass = A * L * rho;
   BoundedVector<double, msDimension> body_forces_node =
@@ -876,7 +876,7 @@ void TrussElement3D2N::FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessIn
 
 BoundedVector<double,TrussElement3D2N::msLocalSize>
   TrussElement3D2N::GetConstitutiveLawTrialResponse(
-   ProcessInfo& rCurrentProcessInfo,const bool& rSaveInternalVariables)
+   const ProcessInfo& rCurrentProcessInfo, const bool rSaveInternalVariables)
 {
     KRATOS_TRY;
     Vector strain_vector = ZeroVector(this->mpConstitutiveLaw->GetStrainSize());
