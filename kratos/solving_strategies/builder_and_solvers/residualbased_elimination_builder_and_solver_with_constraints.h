@@ -518,28 +518,11 @@ protected:
         }
 
         // Builing without BC
-        TSystemMatrixType auxiliar_A;
-        if (mComputeConstantContribution) {
-            ConstructMatrixStructure(pScheme, auxiliar_A, rModelPart);
-            BuildWithConstraints(pScheme, rModelPart, auxiliar_A, rb, false);
-        } else {
-            BuildRHSNoDirichlet(pScheme,rModelPart,rb);
-        }
+        BuildRHSNoDirichlet(pScheme,rModelPart,rb);
 
         Timer::Stop("Build RHS");
 
-        if (mComputeConstantContribution) {
-            TSystemVectorType auxiliar_Dx(mDoFToSolveSystemSize);
-            ApplyDirichletConditions(pScheme, rModelPart, auxiliar_A, auxiliar_Dx, rb);
-        } else {
-            ApplyDirichletConditionsRHS(pScheme, rModelPart, rb);
-        }
-
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
-        "Before the solution of the system" << "\nRHS vector = " << rb << std::endl;
-
-        // We reconstruct the Unknowns vector and the residual
-        const double start_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
+        ApplyDirichletConditionsRHS(pScheme, rModelPart, rb);
 
         // We get the global T matrix
         TSystemMatrixType& rTMatrix = *mpTMatrix;
@@ -548,15 +531,6 @@ protected:
         TSystemVectorType rb_copy = rb;
         rb.resize(BaseType::mEquationSystemSize, false);
         TSparseSpace::Mult(rTMatrix, rb_copy, rb);
-
-        // Adding constant contribution
-        if (mComputeConstantContribution) {
-            TSystemVectorType& rConstantVector = *mpConstantVector;
-            TSystemVectorType rigid_rb_copy = rb;
-            TSparseSpace::Mult(*mpOldAMatrix, rConstantVector, rigid_rb_copy);
-            TSparseSpace::UnaliasedAdd(rb, 1.0, rigid_rb_copy);
-            mpOldAMatrix = NULL;
-        }
 
         // Adding contribution to reactions
         TSystemVectorType& r_reactions_vector = *BaseType::mpReactionsVector;
@@ -571,9 +545,6 @@ protected:
                 }
             }
         }
-
-        const double stop_reconstruct_slaves = OpenMPUtils::GetCurrentTime();
-        KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() >= 1 && rModelPart.GetCommunicator().MyPID() == 0)) << "Reconstruct slaves time: " << stop_reconstruct_slaves - start_reconstruct_slaves << std::endl;
 
         // Some verbosity
         KRATOS_INFO_IF("ResidualBasedEliminationBuilderAndSolverWithConstraints", (this->GetEchoLevel() == 3)) <<
