@@ -411,8 +411,6 @@ namespace Kratos
             typedef ResidualBasedEliminationBuilderAndSolverWithConstraints< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedEliminationBuilderAndSolverWithConstraintsType;
             py::class_< ResidualBasedEliminationBuilderAndSolverWithConstraintsType, ResidualBasedEliminationBuilderAndSolverWithConstraintsType::Pointer, BuilderAndSolverType>(m,"ResidualBasedEliminationBuilderAndSolverWithConstraints")
             .def(py::init< LinearSolverType::Pointer > ())
-            .def(py::init< LinearSolverType::Pointer, bool > ())
-            .def(py::init< LinearSolverType::Pointer, bool, bool > ())
             .def(py::init< LinearSolverType::Pointer, Parameters > ())
             ;
 
