@@ -130,6 +130,9 @@ class ResidualBasedEliminationBuilderAndSolverWithConstraints
     /// Set definition
     typedef std::unordered_set<IndexType> IndexSetType;
 
+    /// Map definition
+    typedef std::unordered_map<IndexType, IndexType> IndexMapType;
+
     /// MPC definitions
     typedef MasterSlaveConstraint MasterSlaveConstraintType;
     typedef typename MasterSlaveConstraint::Pointer MasterSlaveConstraintPointerType;
@@ -387,6 +390,7 @@ protected:
     DofsArrayType mDoFMasterFixedSet;                 /// The set containing the fixed master DoF of the system
     DofsArrayType mDoFSlaveSet;                       /// The set containing the slave DoF of the system
     SizeType mDoFToSolveSystemSize = 0;               /// Number of degrees of freedom of the problem to actually be solved
+    IndexMapType mReactionEquationIdMap;              /// In order to know the corresponding EquaionId for each component of the reaction vector
 
     bool mComputeConstantContribution = false;        /// If we compute the constant contribution of the MPC
     bool mCleared = true;                             /// If the system has been reseted
@@ -541,7 +545,7 @@ protected:
                 const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
                 if (is_master_fixed || is_slave) { // Fixed or MPC dof
                     const IndexType equation_id = r_dof.EquationId();
-                    r_reactions_vector[equation_id - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()] += rb[equation_id];
+                    r_reactions_vector[mReactionEquationIdMap[equation_id]] += rb[equation_id];
                 }
             }
         }
@@ -939,7 +943,7 @@ protected:
         // Filling with zero the matrix (creating the structure)
         Timer::Start("RelationMatrixStructure");
 
-        std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
+        IndexMapType solvable_dof_reorder;
         std::unordered_map<IndexType, IndexSetType> master_indices;
 
         // Filling with "ones"
@@ -1370,6 +1374,9 @@ protected:
         mDoFMasterFixedSet = DofsArrayType();
         mDoFSlaveSet = DofsArrayType();
 
+        // Clearing the relation map
+        mReactionEquationIdMap.clear();
+
         // Clear constraint system
         if (mpTMatrix != nullptr)
             TSparseSpace::Clear(mpTMatrix);
@@ -1517,6 +1524,17 @@ private:
 
         // The total system of equations to be solved
         mDoFToSolveSystemSize = counter;
+
+        // Finally we build the relation between the EquationID and the component of the reaction
+        counter = 0;
+        for (auto& r_dof : BaseType::mDofSet) {
+            const bool is_master_fixed = mDoFMasterFixedSet.find(r_dof) == mDoFMasterFixedSet.end() ? false : true;
+            const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
+            if (is_master_fixed || is_slave) { // Fixed or MPC dof
+                mReactionEquationIdMap.insert({r_dof.EquationId(), counter});
+                ++counter;
+            }
+        }
 
         KRATOS_CATCH("ResidualBasedEliminationBuilderAndSolverWithConstraints::FormulateGlobalMasterSlaveRelations failed ..");
     }
@@ -1788,7 +1806,7 @@ private:
                 const bool is_master_fixed = mDoFMasterFixedSet.find(*it_dof) == mDoFMasterFixedSet.end() ? false : true;
                 const bool is_slave = mDoFSlaveSet.find(*it_dof) == mDoFSlaveSet.end() ? false : true;
                 if (is_master_fixed || is_slave) { // Fixed or MPC dof
-                    double& r_b_value = r_reactions_vector[i_global - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()];
+                    double& r_b_value = r_reactions_vector[mReactionEquationIdMap[i_global]];
                     const double rhs_value = rRHSContribution[i_local];
 
                     #pragma omp atomic
@@ -1863,7 +1881,7 @@ private:
         }
 
         // Auxiliar set to reorder master DoFs
-        std::unordered_map<IndexType, IndexType> solvable_dof_reorder;
+        IndexMapType solvable_dof_reorder;
 
         // Filling with "ones"
         typedef std::pair<IndexType, IndexType> IndexIndexPairType;
