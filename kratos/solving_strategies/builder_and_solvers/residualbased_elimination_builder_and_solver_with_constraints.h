@@ -563,7 +563,9 @@ protected:
 
         if (BaseType::mCalculateReactionsFlag) {
             for (auto& r_dof : BaseType::mDofSet) {
-                if (r_dof.IsFixed() || mDoFSlaveSet.find(r_dof) != mDoFSlaveSet.end()) {
+                const bool is_master_fixed = mDoFMasterFixedSet.find(r_dof) == mDoFMasterFixedSet.end() ? false : true;
+                const bool is_slave = mDoFSlaveSet.find(r_dof) == mDoFSlaveSet.end() ? false : true;
+                if (is_master_fixed || is_slave) { // Fixed or MPC dof
                     const IndexType equation_id = r_dof.EquationId();
                     r_reactions_vector[equation_id - mDoFToSolveSystemSize + mDoFMasterFixedSet.size()] += rb[equation_id];
                 }
