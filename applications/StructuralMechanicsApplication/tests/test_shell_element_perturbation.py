@@ -119,7 +119,7 @@ class TestShellElementPerturbation(KratosUnittest.TestCase):
                 self.assertAlmostEqual(RHS_difference_Z[i][j], self.RHS_difference_Z[i][0][j], 4)
 
     def test_thin_shell_element(self):
-        # these values are not correct, it is just a trial
+        
         RHS_difference_node_1_X = [-7.27596e-12,-24.449,83.3333,0,-12.2245,83.3333,-7.27596e-12,-12.2245,41.6667,0,-24.449,41.6667]
         RHS_difference_node_1_Y = [24.449,0,79.6661,12.2245,0,39.8331,12.2245,0,39.8331,24.449,0,79.6661]
         RHS_difference_node_1_Z = [-83.3333,-79.6661,0,-83.3333,-39.8331,-1.45519e-11,-41.6667,-39.8331,0,-41.6667,-79.6661,0]

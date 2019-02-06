@@ -13,7 +13,7 @@
         "response_type"    : "adjoint_nonlinear_strain_energy",
         "gradient_mode"     : "semi_analytic",
         "step_size"         : 1.0e-5,
-        "primal_settings"  : "nonlinear_3D_truss_test_parameters.json",
-        "adjoint_settings"  : "nonlinear_3D_truss_test_adjoint_parameters.json"
+        "primal_settings"  : "response_function_tests/nonlinear_3D_truss_test_parameters.json",
+        "adjoint_settings"  : "response_function_tests/nonlinear_3D_truss_test_adjoint_parameters.json"
     }
 }

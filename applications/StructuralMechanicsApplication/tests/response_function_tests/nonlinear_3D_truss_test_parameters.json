@@ -19,10 +19,10 @@
         "compute_reactions"			   : true,
         "model_import_settings"              : {
             "input_type"     : "mdpa",
-            "input_filename" : "nonlinear_3D_truss_structure"
+            "input_filename" : "response_function_tests/nonlinear_3D_truss_structure"
         },
         "material_import_settings"           : {
-            "materials_filename" : "StructuralMaterials_truss.json"
+            "materials_filename" : "response_function_tests/StructuralMaterials_truss.json"
         },
         "line_search"                        : false,
         "convergence_criterion"              : "residual_criterion",

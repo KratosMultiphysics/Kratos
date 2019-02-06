@@ -475,8 +475,9 @@ class NonlinearAdjointStrainEnergy(ResponseFunctionBase):
     def CalculateGradient(self):
         Logger.PrintInfo("\n> Starting adjoint analysis for response:", self.identifier)
         startTime = timer.time()
-        self.adjoint_analysis._GetSolver().Predict()
-        self.adjoint_analysis._GetSolver().SolveSolutionStep()
+        ## Commented out because adjoint analysis have been already implemented in InitializeSolutionStep()
+       ## self.adjoint_analysis._GetSolver().Predict()
+       ## self.adjoint_analysis._GetSolver().SolveSolutionStep()
         Logger.PrintInfo("> Time needed for solving the adjoint analysis = ",round(timer.time() - startTime,2),"s")
 
     def GetValue(self):

@@ -37,10 +37,10 @@
         },
         "model_import_settings"        : {
             "input_type"     : "mdpa",
-            "input_filename" : "nonlinear_truss_structure"
+            "input_filename" : "response_function_tests/nonlinear_truss_structure"
         },
         "material_import_settings" :{
-            "materials_filename": "StructuralMaterials_truss.json"
+            "materials_filename": "response_function_tests/StructuralMaterials_truss.json"
         }
     },
     "processes" : {
