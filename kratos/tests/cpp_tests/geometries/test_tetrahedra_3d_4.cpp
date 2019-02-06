@@ -425,6 +425,17 @@ namespace Kratos {
 
       KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria),  0.955316618, TOLERANCE);
     }
+    
+     /** Checks if the max dihedral angle quality metric is correctly calculated.
+     * - TriRectangular tetrahedra, which should return a sub-optimal score.
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D4MaxDihedralAngle, KratosCoreGeometriesFastSuite) {
+      auto geomTriRect = GenerateTriRectangularTetrahedra3D4();
+
+      auto criteria = TetGeometryType::QualityCriteria::MAX_DIHEDRAL_ANGLE;
+
+      KRATOS_CHECK_NEAR(geomTriRect->Quality(criteria), Globals::Pi *0.5, TOLERANCE);
+    }
 
 
     /** Checks if the min solid angle quality metric is correctly calculated.

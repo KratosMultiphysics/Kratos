@@ -189,10 +189,10 @@ def AuxiliarCreateLinearSolver(main_model_part, settings, contact_settings, line
             name_mixed_solver = contact_settings["mixed_ulm_solver_parameters"]["solver_type"].GetString()
             if name_mixed_solver == "mixed_ulm_linear_solver":
                 linear_solver_name = settings["linear_solver_settings"]["solver_type"].GetString()
-                if linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
+                if linear_solver_name == "amgcl" or linear_solver_name == "AMGCL" or linear_solver_name == "AMGCLSolver":
                     amgcl_param = KM.Parameters("""
                     {
-                        "solver_type"                    : "AMGCL",
+                        "solver_type"                    : "amgcl",
                         "smoother_type"                  : "ilu0",
                         "krylov_type"                    : "lgmres",
                         "coarsening_type"                : "aggregation",
