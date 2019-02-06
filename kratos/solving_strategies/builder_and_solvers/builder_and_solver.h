@@ -219,10 +219,6 @@ public:
 
         // We set the other member variables
         mpLinearSystemSolver = pNewLinearSystemSolver;
-
-        mDofSetIsInitialized = false;
-
-        mReshapeMatrixFlag = false;
     }
 
     /** Constructor.
@@ -231,12 +227,6 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         mpLinearSystemSolver = pNewLinearSystemSolver;
-
-        mDofSetIsInitialized = false;
-
-        mReshapeMatrixFlag = false; //by default the matrix is shaped just once
-        //		mVectorsAreInitialized = false;
-
     }
 
     /** Destructor.
@@ -620,14 +610,13 @@ protected:
 
     DofsArrayType mDofSet;
 
-    bool mReshapeMatrixFlag;
-    //		bool mVectorsAreInitialized;
+    bool mReshapeMatrixFlag = false;
 
     /// flag taking care if the dof set was initialized ot not
-    bool mDofSetIsInitialized;
+    bool mDofSetIsInitialized = false;
 
     /// flag taking in account if it is needed or not to calculate the reactions
-    bool mCalculateReactionsFlag;
+    bool mCalculateReactionsFlag = false;
 
     /// number of degrees of freedom of the problem to be solve
     unsigned int mEquationSystemSize;

@@ -39,7 +39,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
             "pressure_linear_solver_settings":  {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,
@@ -52,7 +52,7 @@ class NavierStokesSolverFractionalStep(FluidSolver):
                 "verbosity"                      : 0
             },
             "velocity_linear_solver_settings": {
-                "solver_type"                    : "AMGCL",
+                "solver_type"                    : "amgcl",
                 "max_iteration"                  : 200,
                 "tolerance"                      : 1e-6,
                 "provide_coordinates"            : false,

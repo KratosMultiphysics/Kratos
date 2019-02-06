@@ -51,7 +51,7 @@
         "volume_model_part_name"       : "Parts_Fluid",
         "skin_parts"                   : ["Inlet2D_Inlet","Outlet2D_Outlet","NoSlip2D_Cylinder","NoSlip2D_Wall"],
         "linear_solver_settings"       : {
-            "solver_type"         : "AMGCL",
+            "solver_type"         : "amgcl",
             "verbosity"           : 0,
             "coarse_enough"       : 500,
             "tolerance"           : 1e-7
