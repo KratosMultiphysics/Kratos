@@ -694,8 +694,8 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
         NodeType::Pointer p_node = CreateNode(i_node, ref, is_required);
 
         // Set the DOFs in the nodes
-        for (typename NodeType::DofsContainerType::const_iterator it_dof = mDofs.begin(); it_dof != mDofs.end(); ++it_dof)
-            p_node->pAddDof(*it_dof);
+        for (auto& r_dof : mDofs)
+            p_node->pAddDof(r_dof);
 
         if (ref != 0) color_nodes[static_cast<IndexType>(ref)].push_back(i_node);// NOTE: ref == 0 is the MainModelPart
     }
@@ -714,6 +714,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
                     counter_cond_0 += 1;
                 }
             }
+
             ConditionType::Pointer p_condition = CreateCondition0(cond_id, ref, is_required, skip_creation);
 
             if (p_condition != nullptr) {
@@ -726,8 +727,7 @@ void MmgProcess<TMMGLibray>::ExecuteRemeshing()
 
         IndexType counter_cond_1 = 0;
         const IndexVectorType condition_to_remove_1 = CheckConditions1();
-        for (IndexType i_cond = 1; i_cond <= n_conditions[1]; ++i_cond)
-        {
+        for (IndexType i_cond = 1; i_cond <= n_conditions[1]; ++i_cond) {
             bool skip_creation = false;
             if (counter_cond_1 < condition_to_remove_1.size()) {
                 if (condition_to_remove_1[counter_cond_1] == i_cond) {
@@ -1512,9 +1512,9 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG2D>::CreateCondition0(
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             return p_condition;
         } else {
-            PointerVector<NodeType> dummy_nodes;
-            p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Clone(0, dummy_nodes);
             p_prop = mrThisModelPart.pGetProperties(0);
+            PointerVector<NodeType> dummy_nodes (2);
+            p_base_condition = KratosComponents<Condition>::Get("LineCondition2D2N").Create(0, dummy_nodes, p_prop);
         }
     } else {
         p_base_condition = mpRefCondition[PropId];
@@ -1560,13 +1560,14 @@ ConditionType::Pointer MmgProcess<MMGLibray::MMG3D>::CreateCondition0(
     // Sometimes MMG creates conditions where there are not, then we skip
     Properties::Pointer p_prop = nullptr;
     Condition::Pointer p_base_condition = nullptr;
+
     if (mpRefCondition[PropId] == nullptr) {
         if (mDiscretization != DiscretizationOption::ISOSURFACE) { // The ISOSURFACE method creates new conditions from scratch, so we allow no previous Properties
             return p_condition;
         } else {
-            PointerVector<NodeType> dummy_nodes;
-            p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Clone(0, dummy_nodes);
             p_prop = mrThisModelPart.pGetProperties(0);
+            PointerVector<NodeType> dummy_nodes (3);
+            p_base_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N").Create(0, dummy_nodes, p_prop);
         }
     } else {
         p_base_condition = mpRefCondition[PropId];
