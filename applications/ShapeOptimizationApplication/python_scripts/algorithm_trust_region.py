@@ -45,20 +45,22 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
-        self.objectives = optimization_settings["objectives"]
-        self.constraints = optimization_settings["constraints"]
+        self.optimization_settings = optimization_settings
+        self.mapper_settings = optimization_settings["design_variables"]["filter"]
 
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
+        self.design_surface = None
+        self.mapper = None
+        self.data_logger = None
+        self.optimization_utilities = None
+
+        self.objectives = optimization_settings["objectives"]
+        self.constraints = optimization_settings["constraints"]
+
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
-        self.design_surface = model_part_controller.GetDesignSurface()
-
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, optimization_settings["design_variables"]["filter"])
-        self.data_logger = data_logger_factory.CreateDataLogger(model_part_controller, communicator, optimization_settings)
-
-        self.optimization_utilities = OptimizationUtilities(self.design_surface, optimization_settings)
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -67,10 +69,19 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
-        self.model_part_controller.InitializeMeshController()
-        self.mapper.Initialize()
+        self.model_part_controller.Initialize()
+
         self.analyzer.InitializeBeforeOptimizationLoop()
+
+        self.design_surface = self.model_part_controller.GetDesignSurface()
+
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        self.mapper.Initialize()
+
+        self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
+
+        self.optimization_utilities = OptimizationUtilities(self.design_surface, self.optimization_settings)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -123,8 +134,9 @@ class AlgorithmTrustRegion(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __InitializeNewShape(self):
-            self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
-            self.model_part_controller.SetReferenceMeshToMesh()
+        self.model_part_controller.UpdateTimeStep(self.opt_iteration)
+        self.model_part_controller.UpdateMeshAccordingInputVariable(SHAPE_UPDATE)
+        self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
     def __AnalyzeShape(self):

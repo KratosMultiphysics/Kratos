@@ -152,16 +152,21 @@ void SkinDetectionProcess<TDim>::Execute()
 
         mrModelPart.RemoveSubModelPart(name_auxiliar_model_part);
         mrModelPart.CreateSubModelPart(name_auxiliar_model_part);
-    } 
+    }
     ModelPart& r_auxiliar_model_part = mrModelPart.GetSubModelPart(name_auxiliar_model_part);
 
     // The auxiliar name of the condition
     const std::string& name_condition = mThisParameters["name_auxiliar_condition"].GetString();
     std::string pre_name = "";
-    if (TDim == 3 && name_condition == "Condition") 
+    if (TDim == 3 && name_condition == "Condition")
         pre_name = "Surface";
 
     // The number of conditions
+    ConditionsArrayType& condition_array = mrModelPart.GetRootModelPart().Conditions();
+    const auto& it_begin = condition_array.begin();
+    for(IndexType i = 0; i < condition_array.size(); ++i)
+        (it_begin + i)->SetId(i + 1);
+
     IndexType condition_id = mrModelPart.GetRootModelPart().Conditions().size();
 
     // The indexes of the nodes of the skin
@@ -172,7 +177,14 @@ void SkinDetectionProcess<TDim>::Execute()
         condition_id += 1;
 
         const VectorIndexType& nodes_face = map.second;
-        Properties::Pointer p_prop = mrModelPart.pGetProperties(properties_face_map[map.first]);
+
+        Properties::Pointer p_prop;
+        const IndexType property_id = properties_face_map[map.first];
+         if (mrModelPart.RecursivelyHasProperties(property_id)) {
+             p_prop = mrModelPart.pGetProperties(property_id);
+         } else {
+             p_prop = mrModelPart.CreateNewProperties(property_id);
+         }
 
         for (auto& index : nodes_face)
             nodes_in_the_skin.insert(index);

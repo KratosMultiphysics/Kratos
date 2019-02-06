@@ -39,8 +39,8 @@
         "linear_solver_settings"             : {
             "solver_type" : "SkylineLUFactorizationSolver"
         },
-        "problem_domain_sub_model_part_list" : ["Parts_Part_foundation","Parts_Part_punch"],
-        "processes_sub_model_part_list"      : ["Parts_Part_foundation_Nodes",
+        "problem_domain_sub_model_part_list" : ["Structure","Parts_Part_foundation","Parts_Part_punch"],
+        "processes_sub_model_part_list"      : ["Structure","Parts_Part_foundation_Nodes",
                                                 "Parts_Part_punch_Nodes",
                                                 "DISPLACEMENT_BC_fixed_support",
                                                 "DISPLACEMENT_BC_rolling_x",
@@ -143,7 +143,7 @@
         "contact_process_list" :[
         {
             "python_module"   : "alm_contact_process",
-            "kratos_module"   : "ContactStructuralMechanicsApplication",
+            "kratos_module"   : "KratosMultiphysics.ContactStructuralMechanicsApplication",
             "help"                  : "",
             "process_name"          : "ALMContactProcess",
             "Parameters"            : {
@@ -236,15 +236,5 @@
             "time_frequency"       : 1.00
         }
     }
-    ],
-    "restart_options"          : {
-        "SaveRestart"      : false,
-        "RestartFrequency" : 0,
-        "LoadRestart"      : false,
-        "Restart_Step"     : 0
-    },
-    "constraints_data"         : {
-        "incremental_load"         : false,
-        "incremental_displacement" : false
-    }
+    ]
 }

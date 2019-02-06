@@ -19,7 +19,7 @@
 
 // Project includes
 #include "custom_elements/shell_kl_discrete_element.h"
-
+#include "custom_utilities/geometry_utilities/iga_geometry_utilities.h"
 
 namespace Kratos
 {
@@ -349,7 +349,7 @@ namespace Kratos
         metric.gab[1] = pow(metric.g2[0], 2) + pow(metric.g2[1], 2) + pow(metric.g2[2], 2);
         metric.gab[2] = metric.g1[0] * metric.g2[0] + metric.g1[1] * metric.g2[1] + metric.g1[2] * metric.g2[2];
 
-        CalculateHessian(metric.H, DDN_DDe);
+        IgaGeometryUtilities.CalculateHessian(metric.H, DDN_DDe);
 
         metric.curvature[0] = metric.H(0, 0)*n[0] + metric.H(1, 0)*n[1] + metric.H(2, 0)*n[2];
         metric.curvature[1] = metric.H(0, 1)*n[0] + metric.H(1, 1)*n[1] + metric.H(2, 1)*n[2];

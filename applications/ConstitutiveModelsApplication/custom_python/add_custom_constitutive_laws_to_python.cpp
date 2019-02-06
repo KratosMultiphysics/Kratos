@@ -62,6 +62,10 @@
 #include "custom_models/plasticity_models/johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/baker_johnson_cook_J2_thermo_plasticity_model.hpp"
 #include "custom_models/plasticity_models/cam_clay_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_cam_clay_model.hpp"
+#include "custom_models/plasticity_models/gens_nova_model.hpp"
+#include "custom_models/plasticity_models/v2_gens_nova_model.hpp"
+#include "custom_models/plasticity_models/nonlocal_v2_gens_nova_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_exponential_damage_model.hpp"
 #include "custom_models/plasticity_models/simo_ju_modified_exponential_damage_model.hpp"
 
@@ -154,11 +158,11 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
       .def( py::init<ConstitutiveModelPointer>() )
       ;
 
-  py::class_< Newtonian3DLaw, typename Newtonian3DLaw::Pointer, ConstitutiveLawBaseType >(m, "Newtonian3DLaw")
+  py::class_< NewtonianFluid3DLaw, typename NewtonianFluid3DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianFluid3DLaw")
       .def( py::init<>() )
       ;
 
-  py::class_< NewtonianPlaneStrain2DLaw, typename NewtonianPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianPlaneStrain2DLaw")
+  py::class_< NewtonianFluidPlaneStrain2DLaw, typename NewtonianFluidPlaneStrain2DLaw::Pointer, ConstitutiveLawBaseType >(m, "NewtonianFluidPlaneStrain2DLaw")
       .def( py::init<>() )
       ;
 
@@ -272,6 +276,23 @@ void  AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
   py::class_< CamClayModel, typename CamClayModel::Pointer, ConstitutiveModelBaseType >
       (m, "CamClayModel")
+      .def( py::init<>() )
+      ;
+  py::class_< NonlocalCamClayModel, typename NonlocalCamClayModel::Pointer, ConstitutiveModelBaseType >
+      (m, "NonlocalCamClayModel")
+      .def( py::init<>() )
+      ;
+  py::class_< GensNovaModel, typename GensNovaModel::Pointer, ConstitutiveModelBaseType >
+      (m, "GensNovaModel")
+      .def( py::init<>() )
+      ;
+
+  py::class_< V2GensNovaModel, typename V2GensNovaModel::Pointer, ConstitutiveModelBaseType >
+      (m, "V2GensNovaModel")
+      .def( py::init<>() )
+      ;
+  py::class_< NonlocalV2GensNovaModel, typename NonlocalV2GensNovaModel::Pointer, ConstitutiveModelBaseType >
+      (m, "NonlocalV2GensNovaModel")
       .def( py::init<>() )
       ;
 

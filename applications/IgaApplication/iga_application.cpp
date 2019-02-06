@@ -38,8 +38,9 @@ KratosIgaApplication::KratosIgaApplication()
 
 void KratosIgaApplication::Register() {
     KratosApplication::Register();
-    std::cout << "Initializing KratosIgaApplication... " << std::endl;
+    KRATOS_INFO("") << "Initializing KratosIgaApplication..." << std::endl;
 
+    // ELEMENTS
     KRATOS_REGISTER_ELEMENT("IgaTrussElement", mIgaTrussElement)
     KRATOS_REGISTER_ELEMENT("ShellKLDiscreteElement", mShellKLDiscreteElement)
 

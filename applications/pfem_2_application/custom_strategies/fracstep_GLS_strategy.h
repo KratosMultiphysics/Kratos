@@ -2,9 +2,9 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Author Julio Marti.
@@ -127,9 +127,9 @@ namespace Kratos
       typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
       typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    
+
       typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    
+
       typedef OpenMPUtils::PartitionVector PartitionVector;
 
 
@@ -169,7 +169,7 @@ namespace Kratos
       : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, false)//, msolver_config(solver_config)
 	{
 	  KRATOS_TRY
-	  
+
 	    this->mvelocity_toll = velocity_toll;
 	  this->mpressure_toll = pressure_toll;
 	  this->mMaxVelIterations = MaxVelocityIterations;
@@ -181,22 +181,22 @@ namespace Kratos
 	  this->mReformDofAtEachIteration = ReformDofAtEachIteration;
 	  this->proj_is_initialized = false;
 	  this->mecho_level = 1;
-	
-	  
+
+
 	  bool CalculateReactions = false;
 	  bool CalculateNormDxFlag = true;
 	  bool ReformDofAtEachIteration = false;
-	
+
 	  //computation of the fractional vel velocity (first step)
 	  //3 dimensional case
 	  //typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3 > > > VarComponent;
 	  typedef typename BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer BuilderSolverTypePointer;
 	  typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-	
+
 	  //initializing fractional velocity solution step
 	  typedef Scheme< TSparseSpace, TDenseSpace > SchemeType;
 	  typename SchemeType::Pointer pscheme = typename SchemeType::Pointer(new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace, TDenseSpace > ());
-	
+
 	  BuilderSolverTypePointer vel_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (pNewVelocityLinearSolver));
 
 
@@ -206,39 +206,39 @@ namespace Kratos
 
 
 	  BuilderSolverTypePointer pressure_build = BuilderSolverTypePointer(new ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace, TDenseSpace, TLinearSolver, Variable<double> >(pNewPressureLinearSolver, PRESSURE));
-	
+
 	  this->mppressurestep = typename BaseType::Pointer(new ResidualBasedLinearStrategy<TSparseSpace, TDenseSpace, TLinearSolver > (model_part, pscheme,pNewPressureLinearSolver, pressure_build, CalculateReactions, ReformDofAtEachIteration, CalculateNormDxFlag));
 	  this->mppressurestep->SetEchoLevel(2);
-	
+
 	  this->m_step = 1;
-	
+
 	  mHasSlipProcess = false;
-	
+
 	  KRATOS_CATCH("")
 	    }
-    
+
       /** Destructor.
        */
       virtual ~FracStepStrategy()
 	{
 	}
-    
+
       /** Destructor.
        */
-    
-      double Solve()
+
+      double Solve() override
       {
 	KRATOS_TRY
 	  Timer time;
 	Timer::Start("Solve_strategy");
-	
+
 #if defined(QCOMP)
 	double Dp_norm;
 	Dp_norm = IterativeSolve();
 #else
 	//multifluids
 	AssignInitialStepValues();
-	
+
 	double Dp_norm = 1.00;
 	//int iteration = 0;
 	//int MaxPressureIterations = this->mMaxPressIterations;
@@ -249,37 +249,37 @@ namespace Kratos
 	return Dp_norm;
 	KRATOS_CATCH("")
 	  }
-      
+
       double SolvePressure()
       {
 	KRATOS_TRY
-	
+
 	//ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	this->SolveStep7(); //pold=pn+1
 	double Dp_norm = this->SolveStep2();
       	return Dp_norm;
-	
+
 	KRATOS_CATCH("")
 	  }
-      
+
       double IterativeSolve()
       {
 	KRATOS_TRY
 	  Timer time;
 	Timer::Start("Solve_ambos");
-	
+
 	double Dp_norm = 1.00;
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	//KRATOS_THROW_ERROR(std::logic_error,  "method not implemented" , "");
 	rCurrentProcessInfo[VISCOSITY] = 1.0;
-      
+
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    i->FastGetSolutionStepValue(VELOCITY_X,1) =  i->FastGetSolutionStepValue(VELOCITY_X);
 	    i->FastGetSolutionStepValue(VELOCITY_Y,1) =  i->FastGetSolutionStepValue(VELOCITY_Y);
 	    i->FastGetSolutionStepValue(VELOCITY_Z,1) =  i->FastGetSolutionStepValue(VELOCITY_Z);
 	  }
-      
+
 #if defined(QCOMP)
 	this->SolveStep1(this->mvelocity_toll, this->mMaxVelIterations);
 #else
@@ -287,7 +287,7 @@ namespace Kratos
 #endif
         //double p_norm=0.0;
 #if defined(QCOMP)
-      
+
 	//polimero
 	this->SolveStepaux();
 	//int MaxPressureIterations = this->mMaxPressIterations;
@@ -298,7 +298,7 @@ namespace Kratos
 	//KRATOS_WATCH(time)
 #else
 	int iteration = 0;
-	while (  iteration++ < 3)   
+	while (  iteration++ < 3)
 	  {
 	    Dp_norm = SolvePressure();
  	    double p_norm = SavePressureIteration();
@@ -314,7 +314,7 @@ namespace Kratos
 	return Dp_norm;
 	KRATOS_CATCH("")
 	  }
-      
+
       /**
        * copies PRESSURE->PRESSURE_OLD_IT
        * @return the norm of the pressure vector
@@ -322,7 +322,7 @@ namespace Kratos
       double SavePressureIteration()
       {
         KRATOS_TRY
-	  
+
 	  double local_p_norm = 0.0;
         for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
 	     i != BaseType::GetModelPart().NodesEnd(); ++i)
@@ -331,36 +331,36 @@ namespace Kratos
             const double& p = (i)->FastGetSolutionStepValue(PRESSURE);
 	    local_p_norm += p*p;
 	  }
-	
-        double p_norm = local_p_norm; 
-	
+
+        double p_norm = local_p_norm;
+
         //TODO: prepare for parallelization
         p_norm = sqrt(p_norm);
-	
+
         return p_norm;
         KRATOS_CATCH("")
 	  }
-      
-      
-      
+
+
+
       void AssignInitialStepValues()
       {
 	KRATOS_TRY
-	  
+
 	  ModelPart& model_part=BaseType::GetModelPart();
-	
+
 	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
-	
+
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
-	  {	    
+	  {
 	    (i)->FastGetSolutionStepValue(PRESSURE_OLD_IT) = 0.0;
 	    (i)->FastGetSolutionStepValue(PRESSURE) = 0.0;
 	    (i)->FastGetSolutionStepValue(PRESSURE,1) = 0.0;
 	  }
 	KRATOS_CATCH("");
       }
-      
-      
+
+
       /**
        * this function performs the iterative solution of the non-linear velocity problem in the first step
      * of the fractional step procedure
@@ -370,19 +370,19 @@ namespace Kratos
       void SolveStep1(double velocity_toll, int MaxIterations)
       {
 	KRATOS_TRY;
-	
+
 	Timer time;
 	Timer::Start("SolveStep1");
-	
+
 	int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
-	
+
         double normDx = 0.0;
-	
+
         bool is_converged = false;
 	int iteration = 0;
         //double iteration = 1;
 	//ModelPart& model_part=BaseType::GetModelPart();
-	
+
 	while (is_converged == false && iteration++<3)
 	  {
 	    //perform one iteration over the fractional step velocity
@@ -395,7 +395,7 @@ namespace Kratos
 	KRATOS_CATCH("");
 
       }
-      
+
       double FractionalVelocityIteration()
       {
 	KRATOS_TRY
@@ -405,13 +405,13 @@ namespace Kratos
 	return normDx;
 	KRATOS_CATCH("");
       }
-      
+
       void SolveStep4()
       {
         KRATOS_TRY;
         Timer time;
         Timer::Start("paso_4");
-	
+
         array_1d<double, 3 > zero = ZeroVector(3);
 
 //#ifdef _OPENMP
@@ -419,9 +419,9 @@ namespace Kratos
 //#else
 //        int number_of_threads = 1;
 //#endif
-	
+
         //ModelPart& model_part=BaseType::GetModelPart();
-	
+
         //double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	//dt=0.005;
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
@@ -431,14 +431,14 @@ namespace Kratos
 	    double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
 	    nodal_mass = 0.0;
 	  }
-	
+
  	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	rCurrentProcessInfo[FRACTIONAL_STEP] = 6;
 	for (ModelPart::ElementIterator i = BaseType::GetModelPart().ElementsBegin(); i != BaseType::GetModelPart().ElementsEnd(); ++i)
 	  {
             (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 	  }
-	
+
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
@@ -446,15 +446,15 @@ namespace Kratos
 	    if(A<0.0000000000000001){
 	      A=1.0;
 	    }
-	    
+
 	    double dt_Minv = 0.005  / A ;
 	    //dt_Minv=1.0;
 	    force_temp *= dt_Minv;
-	    
+
 	  //KRATOS_WATCH(force_temp);
 	    if(!i->IsFixed(VELOCITY_X)) //FRACT_VEL_X
 	      {
-		i->FastGetSolutionStepValue(VELOCITY_X) += force_temp[0] ; 
+		i->FastGetSolutionStepValue(VELOCITY_X) += force_temp[0] ;
 	      }
 	    if(!i->IsFixed(VELOCITY_Y))
 	      {
@@ -466,33 +466,33 @@ namespace Kratos
 	      }
 	    if(i->IsFixed(VELOCITY_X))
 	      {
-		i->FastGetSolutionStepValue(VELOCITY_X)=0.0; //i->FastGetSolutionStepValue(VELOCITY_X,1); 
+		i->FastGetSolutionStepValue(VELOCITY_X)=0.0; //i->FastGetSolutionStepValue(VELOCITY_X,1);
 	      }
 	    if(i->IsFixed(VELOCITY_Y))
 	      {
-		i->FastGetSolutionStepValue(VELOCITY_Y)= 0.0; //i->FastGetSolutionStepValue(VELOCITY_Y,1) ; 
+		i->FastGetSolutionStepValue(VELOCITY_Y)= 0.0; //i->FastGetSolutionStepValue(VELOCITY_Y,1) ;
 	      }
 	    if(i->IsFixed(VELOCITY_Z))
 	      {
-		i->FastGetSolutionStepValue(VELOCITY_Z)=0.0; //i->FastGetSolutionStepValue(VELOCITY_Z,1) ; 
+		i->FastGetSolutionStepValue(VELOCITY_Z)=0.0; //i->FastGetSolutionStepValue(VELOCITY_Z,1) ;
 	      }
 	  }
 	KRATOS_CATCH("");
     }
-      
+
       void SolveStep7()
       {
 	KRATOS_TRY;
 	//  ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	array_1d<double, 3 > zero = ZeroVector(3);
 	//Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-	
+
 #ifdef _OPENMP
 	int number_of_threads = omp_get_max_threads();
 #else
 	int number_of_threads = 1;
 #endif
-	
+
 	//ModelPart& model_part=BaseType::GetModelPart();
 	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
 	vector<unsigned int> partition;
@@ -512,7 +512,7 @@ namespace Kratos
         }
       KRATOS_CATCH("");
       }
-      
+
       double SolveStep2()
       {
 	KRATOS_TRY;
@@ -523,39 +523,39 @@ namespace Kratos
 	//KRATOS_WATCH(*time)
 	//mppressurestep->Clear();
 	KRATOS_CATCH("");
-	
+
     }
-    
+
       void SolveStep3()
       {
 	KRATOS_TRY
-	  
+
 	  ModelPart& model_part=BaseType::GetModelPart();
 	const double dt = model_part.GetProcessInfo()[DELTA_TIME];
         Timer time;
         Timer::Start("paso_3");
-	
+
 #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
 #else
         int number_of_threads = 1;
 #endif
-	
+
         vector<unsigned int> partition;
         CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
-	
-	
-	
+
+
+
 #pragma omp parallel for schedule(static,1)
         for (int k = 0; k < number_of_threads; k++)
 	  {
             ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
             ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
-	    
-	    
+
+
             array_1d<double, 3 > zero = ZeroVector(3);
-	    
-	    
+
+
             for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 	      {
                 double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -566,13 +566,13 @@ namespace Kratos
 	      }
 	  }
         array_1d<double,3> zero = ZeroVector(3);
-	
+
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
         rCurrentProcessInfo[FRACTIONAL_STEP] = 5;
 
         vector<unsigned int> elem_partition;
         CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
-	
+
 #pragma omp parallel for schedule(static,1)
         for (int k = 0; k < number_of_threads; k++)
 	  {
@@ -588,31 +588,31 @@ namespace Kratos
 	  {
             ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
             ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
-	    
+
             for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 	      {
                 array_1d<double,3>& force_temp = i->FastGetSolutionStepValue(FORCE);
-		
+
                 force_temp *=(1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
-		
+
 		//array_1d<double,3>& vel = i->FastGetSolutionStepValue(VELOCITY);
  		i->FastGetSolutionStepValue(VELOCITY) = i->FastGetSolutionStepValue(VELOCITY,1) + dt * force_temp;
 	      }
 	  }
-  
+
         KRATOS_CATCH("");
       }
-      
+
       void SolveStepaux()
       {
 	KRATOS_TRY
-	  
+
 	  Timer time;
 	Timer::Start("SolveStepaux");
-	
+
 	//ModelPart& model_part=BaseType::GetModelPart();
 	//const double dt = model_part.GetProcessInfo()[DELTA_TIME];
-	
+
 #ifdef _OPENMP
 	int number_of_threads = omp_get_max_threads();
 #else
@@ -622,15 +622,15 @@ namespace Kratos
 	//number_of_threads = 1;
 	vector<unsigned int> partition;
 	CreatePartition(number_of_threads, BaseType::GetModelPart().Nodes().size(), partition);
-      
+
 #pragma omp parallel for schedule(static,1)
 	for (int k = 0; k < number_of_threads; k++)
 	  {
             ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
             ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
-	    
+
             array_1d<double, 3 > zero = ZeroVector(3);
-	    
+
             for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 	      {
                 double & nodal_mass = (i)->FastGetSolutionStepValue(NODAL_MASS);
@@ -640,10 +640,10 @@ namespace Kratos
 	      }
 	  }
 
-      
+
 	ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 	rCurrentProcessInfo[FRACTIONAL_STEP] = 7;
-      
+
 	vector<unsigned int> elem_partition;
 	CreatePartition(number_of_threads, BaseType::GetModelPart().Elements().size(), elem_partition);
 #pragma omp parallel for schedule(static,1)
@@ -656,14 +656,14 @@ namespace Kratos
                 (i)->InitializeSolutionStep(BaseType::GetModelPart().GetProcessInfo());
 	      }
 	  }
-      
-      
+
+
 #pragma omp parallel for schedule(static,1)
 	for (int k = 0; k < number_of_threads; k++)
 	  {
 	    ModelPart::NodeIterator it_begin = BaseType::GetModelPart().NodesBegin() + partition[k];
 	    ModelPart::NodeIterator it_end = BaseType::GetModelPart().NodesBegin() + partition[k + 1];
-	  
+
             for (ModelPart::NodeIterator i = it_begin; i != it_end; ++i)
 	      {
 		if(i->FastGetSolutionStepValue(NODAL_MASS)==0.0)
@@ -672,20 +672,20 @@ namespace Kratos
 		  }
 		else
 		  {
-		    //if()	
+		    //if()
 		    i->FastGetSolutionStepValue(PRESSURE)=i->FastGetSolutionStepValue(PRESSUREAUX) * (1.0/ i->FastGetSolutionStepValue(NODAL_MASS));
 		  }
-		
+
 	      }
 	  }
-      
-	
+
+
         KRATOS_CATCH("");
-      
-      
+
+
       }
-    
-    
+
+
     /**
      * implements the convergence check for the velocities
      * convergence is considered achieved when normDx/norm(v) is less than tol
@@ -697,43 +697,43 @@ namespace Kratos
       {
 	KRATOS_TRY;
 	double norm_v = 0.00;
-      
-      
+
+
 	for (ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin();
 	     i != BaseType::GetModelPart().NodesEnd(); ++i)
 	  {
 	    const array_1d<double, 3 > & v = (i)->FastGetSolutionStepValue(VELOCITY);
-	  
+
 	    norm_v += v[0] * v[0];
 	    norm_v += v[1] * v[1];
 	    norm_v += v[2] * v[2];
 	  }
-      
+
 	//BaseType::GetModelPart().GetCommunicator().SumAll(norm_v);
-      
+
         double norm_v1 = sqrt(norm_v);
-	
+
         if (norm_v1 == 0.0) norm_v1 = 1.00;
-	
+
         double ratio = normDx / norm_v1;
-	
+
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
         if (rank == 0) std::cout << "velocity ratio = " << ratio << std::endl;
-	
-	
+
+
         if (ratio < tol)
 	  {
             if (rank == 0) std::cout << "convergence achieved" << std::endl;
             return true;
 	  }
-	
+
         return false;
-	
-	
+
+
         KRATOS_CATCH("");
       }
-    
-    
+
+
       void Compute()
       {
         KRATOS_TRY
@@ -821,7 +821,7 @@ namespace Kratos
        *
        * @param Level
        */
-      virtual void SetEchoLevel(int Level)
+      virtual void SetEchoLevel(int Level) override
       {
         mecho_level = Level;
         mpfracvel_strategy->SetEchoLevel(Level);
@@ -829,7 +829,7 @@ namespace Kratos
       }
 
 
-      virtual void Clear()
+      virtual void Clear() override
       {
         int rank = BaseType::GetModelPart().GetCommunicator().MyPID();
         if (rank == 0) KRATOS_WATCH("FracStepStrategy Clear Function called");
@@ -1003,8 +1003,3 @@ namespace Kratos
 } /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUALBASED_FRACTIONALSTEP_STRATEGY  defined */
-
-
-
-
-
