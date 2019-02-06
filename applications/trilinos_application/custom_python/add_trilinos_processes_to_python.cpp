@@ -13,6 +13,7 @@
 #include "spaces/ublas_space.h"
 
 #include "custom_processes/trilinos_levelset_convection_process.h"
+#include "custom_processes/trilinos_levelset_forward_convection_process.h"
 #include "custom_processes/trilinos_spalart_allmaras_turbulence_model.h"
 #include "custom_processes/trilinos_stokes_initialization_process.h"
 #include "custom_processes/trilinos_variational_distance_calculation_process.h"
@@ -97,6 +98,31 @@ void AddProcesses(pybind11::module& m)
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double>())
         .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double, const unsigned int>())
+        ;
+
+    // Level set forward convection processes (required for mass conservation)
+    typedef LevelSetForwardConvectionProcess<2, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseLevelSetForwardConvectionProcess2D;
+    typedef LevelSetForwardConvectionProcess<3, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseLevelSetForwardConvectionProcess3D;
+
+    py::class_<BaseLevelSetForwardConvectionProcess2D, BaseLevelSetForwardConvectionProcess2D::Pointer, Process>(m,"BaseTrilinosLevelSetForwardConvectionProcess2D");
+    py::class_<BaseLevelSetForwardConvectionProcess3D, BaseLevelSetForwardConvectionProcess3D::Pointer, Process>(m,"BaseTrilinosLevelSetForwardConvectionProcess3D");
+
+    typedef TrilinosLevelSetForwardConvectionProcess<2, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLevelSetForwardConvectionProcess2D;
+    py::class_<TrilinosLevelSetForwardConvectionProcess2D, TrilinosLevelSetForwardConvectionProcess2D::Pointer, BaseLevelSetForwardConvectionProcess2D>(m, "TrilinosLevelSetForwardConvectionProcess2D")
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double, const unsigned int>())
+        .def("ConvectForward", &TrilinosLevelSetForwardConvectionProcess2D::ConvectForward)
+        ;
+
+    typedef TrilinosLevelSetForwardConvectionProcess<3, TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> TrilinosLevelSetForwardConvectionProcess3D;
+    py::class_<TrilinosLevelSetForwardConvectionProcess3D, TrilinosLevelSetForwardConvectionProcess3D::Pointer, BaseLevelSetForwardConvectionProcess3D>(m, "TrilinosLevelSetForwardConvectionProcess3D")
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double>())
+        .def(py::init<Epetra_MpiComm&, Variable<double>&, ModelPart&, TrilinosLinearSolverType::Pointer, const double, const double, const unsigned int>())
+        .def("ConvectForward", &TrilinosLevelSetForwardConvectionProcess3D::ConvectForward)
         ;
 
 }

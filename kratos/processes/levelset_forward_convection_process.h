@@ -131,7 +131,7 @@ public:
 
         // Generate an auxilary model part and populate it by elements of type DistanceCalculationElementSimplex
         mDistancePartIsInitialized = false;
-        ReGenerateConvectionModelPart(rBaseModelPart);
+        ReGenerateForwardConvectionModelPart(rBaseModelPart);
 
         // Generate a linear strategy
         typename SchemeType::Pointer pscheme = Kratos::make_shared< ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace > >();
@@ -157,8 +157,6 @@ public:
 
         //TODO: check flag DO_EXPENSIVE_CHECKS
         mpSolvingStrategy->Check();
-
-        KRATOS_WATCH( "FORWARD LS coonvection constructed " )
 
         KRATOS_CATCH("")
     }
@@ -191,9 +189,7 @@ public:
         mVelocityOld.clear();
         mOldDistance.clear();
         mCurrentDistance.clear();
-        KRATOS_WATCH( "FORWARD LS clear called" )
     }
-
 
     void ConvectForward( double timeStep, Variable<double>& rAuxLevelSetVar )
     {
@@ -202,12 +198,11 @@ public:
         KRATOS_CHECK_VARIABLE_KEY( rAuxLevelSetVar )
 
         if(mDistancePartIsInitialized == false){
-            ReGenerateConvectionModelPart(mrBaseModelPart);
+            ReGenerateForwardConvectionModelPart(mrBaseModelPart);
         }
 
         // Evaluate steps needed to achieve target max_cfl
         const auto n_substep = EvaluateNumberOfSubsteps();
-        KRATOS_WATCH( n_substep )
 
         // Save the variables to be employed so that they can be restored after the solution
         ProcessInfo& rCurrentProcessInfo = mpDistanceAuxModelPart->GetProcessInfo();
@@ -218,11 +213,9 @@ public:
         // using the required time step for the convection
         const double delta_time = timeStep;
 
-        KRATOS_WATCH( delta_time )
-
         // Save current level set value and current and previous step velocity values (***)
         // Save current level set value and current and previous step velocity values
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceAuxModelPart->NumberOfNodes()); ++i_node){
             const auto it_node = mpDistanceAuxModelPart->NodesBegin() + i_node;
             mVelocity[i_node] = it_node->FastGetSolutionStepValue(VELOCITY);
@@ -231,15 +224,11 @@ public:
             mOldDistance[i_node] = it_node->FastGetSolutionStepValue(mrLevelSetVar,1);
         }
 
-        KRATOS_WATCH( "CP1" )
-
         const double dt = delta_time / static_cast<double>(n_substep);
         rCurrentProcessInfo.SetValue(DELTA_TIME, dt);
         rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS)->SetUnknownVariable(mrLevelSetVar);
 
         const int rank = mrBaseModelPart.GetCommunicator().MyPID();
-
-        KRATOS_WATCH( rank )
 
         for(unsigned int step = 1; step <= n_substep; ++step){
 
@@ -269,16 +258,12 @@ public:
             mpSolvingStrategy->Solve();
         }
 
-        KRATOS_WATCH( "CP2" )
-
-        // storing the convected distance field
+        // storing the convected distance field to an auxiliary variable
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(mpDistanceAuxModelPart->NumberOfNodes()); ++i_node){
             auto it_node = mpDistanceAuxModelPart->NodesBegin() + i_node;
             it_node->SetValue( rAuxLevelSetVar, it_node->FastGetSolutionStepValue(mrLevelSetVar) );
         }
-
-        KRATOS_WATCH( "CP3" )
 
         // Reset the processinfo to the original settings
         rCurrentProcessInfo.SetValue(DELTA_TIME, previous_delta_time);
@@ -295,8 +280,6 @@ public:
             it_node->FastGetSolutionStepValue(mrLevelSetVar) = mCurrentDistance[i_node];
             it_node->FastGetSolutionStepValue(mrLevelSetVar,1) = mOldDistance[i_node];
         }
-
-        KRATOS_WATCH( "CP4 - level set 'ConvectForwad'   " )
 
         KRATOS_CATCH("")
     }
@@ -381,7 +364,7 @@ protected:
 
 
 
-    virtual void ReGenerateConvectionModelPart(ModelPart& rBaseModelPart){
+    virtual void ReGenerateForwardConvectionModelPart(ModelPart& rBaseModelPart){
 
         KRATOS_TRY
 
